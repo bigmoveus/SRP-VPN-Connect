@@ -1,0 +1,303 @@
+#include "internal.h"
+
+#include "DomainResolver/interface.h"
+
+#include "loggers/network_logger.h"
+
+static bool vlessclientCreateInternalDomainResolver(tunnel_t *t, node_t *node)
+{
+    vlessclient_tstate_t *ts = tunnelGetState(t);
+
+    if (! ts->resolve_domains)
+    {
+        return true;
+    }
+
+    ts->domain_resolver_settings = cJSON_CreateObject();
+    cJSON_AddNumberToObject(ts->domain_resolver_settings, "strategy", (double) ts->domain_strategy);
+
+    if (! nodeConfigureChild(&ts->domain_resolver_node,
+                             nodeDomainResolverGet(),
+                             node,
+                             ".domain-resolver",
+                             kNodeChildLinkNone,
+                             ts->domain_resolver_settings))
+    {
+        LOGF("VlessClient: failed to configure internal DomainResolver node");
+        return false;
+    }
+
+    ts->domain_resolver_tunnel = nodemanagerCreateTunnelInstance(&ts->domain_resolver_node);
+    if (ts->domain_resolver_tunnel == NULL)
+    {
+        LOGF("VlessClient: failed to create internal DomainResolver");
+        return false;
+    }
+
+    domainresolverTunnelUseLineStrategy(ts->domain_resolver_tunnel, true);
+    domainresolverTunnelSetPrepareHook(ts->domain_resolver_tunnel, t, 0, vlessclientDomainResolverPrepare, NULL);
+    ts->domain_resolver_node.instance = ts->domain_resolver_tunnel;
+    return true;
+}
+
+static bool parseUuid(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *uuid_json = getJsonObjectItemByKeys(settings, "uuid", "id", "user-id");
+
+    if (! cJSON_IsString(uuid_json) || uuid_json->valuestring == NULL || uuid_json->valuestring[0] == '\0')
+    {
+        LOGF("JSON Error: VlessClient->settings->uuid (string field) is required");
+        return false;
+    }
+
+    if (! wwUuidParseString(uuid_json->valuestring, ts->uuid))
+    {
+        LOGF("JSON Error: VlessClient->settings->uuid must be an RFC4122 UUID string");
+        return false;
+    }
+
+    return true;
+}
+
+static bool parseTargetAddress(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *address_json = getJsonObjectItemByKeys(settings, "target-address", "address", "target");
+    if (address_json == NULL)
+    {
+        LOGF("JSON Error: VlessClient->settings->target-address (string field) is required");
+        return false;
+    }
+
+    if (! cJSON_IsString(address_json) || address_json->valuestring == NULL)
+    {
+        LOGF("JSON Error: VlessClient->settings->target-address must be a string");
+        return false;
+    }
+
+    const char *address = address_json->valuestring;
+    size_t      len     = stringLength(address);
+
+    if (len == 0 || len > UINT8_MAX)
+    {
+        LOGF("JSON Error: VlessClient->settings->target-address must be 1..%u bytes", (unsigned int) UINT8_MAX);
+        return false;
+    }
+
+    if (stringCompare(address, "dest_context->address") == 0 || stringCompare(address, "line->dest_ctx->address") == 0)
+    {
+        ts->target_addr_source = kDvsFirstOption;
+        return true;
+    }
+
+    ts->target_addr_source = kDvsConstant;
+
+    if (! addresscontextSetIpAddress(&ts->target_addr, address))
+    {
+        addresscontextDomainSet(&ts->target_addr, address, (uint8_t) len);
+    }
+
+    return true;
+}
+
+static bool parseTargetPort(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *port_json = cJSON_GetObjectItemCaseSensitive(settings, "port");
+    if (port_json == NULL)
+    {
+        LOGF("JSON Error: VlessClient->settings->port is required");
+        return false;
+    }
+
+    if (cJSON_IsString(port_json) && port_json->valuestring != NULL)
+    {
+        if (stringCompare(port_json->valuestring, "dest_context->port") == 0 ||
+            stringCompare(port_json->valuestring, "line->dest_ctx->port") == 0)
+        {
+            ts->target_port_source = kDvsFirstOption;
+            return true;
+        }
+
+        LOGF("JSON Error: VlessClient->settings->port string supports only \"dest_context->port\"");
+        return false;
+    }
+
+    int64_t val = 0;
+    if (! jsonGetIntegerInRange(port_json, 1, UINT16_MAX, &val))
+    {
+        LOGF("JSON Error: VlessClient->settings->port must be a valid number in range [1, %u] or "
+             "\"dest_context->port\"",
+             (unsigned int) UINT16_MAX);
+        return false;
+    }
+
+    ts->target_port_source = kDvsConstant;
+    addresscontextSetPort(&ts->target_addr, (uint16_t) val);
+    return true;
+}
+
+static bool parseProtocol(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    char *protocol = NULL;
+    if (! getStringFromJsonObjectByKeys(&protocol, settings, "protocol", "proto", NULL))
+    {
+        ts->protocol = kVlessClientProtocolTcp;
+        return true;
+    }
+
+    stringLowerCase(protocol);
+
+    if (stringCompare(protocol, "tcp") == 0 || stringCompare(protocol, "connect") == 0)
+    {
+        ts->protocol = kVlessClientProtocolTcp;
+        memoryFree(protocol);
+        return true;
+    }
+
+    if (stringCompare(protocol, "udp") == 0 || stringCompare(protocol, "udp-associate") == 0)
+    {
+        ts->protocol = kVlessClientProtocolUdp;
+        memoryFree(protocol);
+        return true;
+    }
+
+    if (stringCompare(protocol, "dest_context->protocol") == 0 ||
+        stringCompare(protocol, "line->dest_ctx->protocol") == 0)
+    {
+        ts->protocol = kVlessClientProtocolDestContext;
+        memoryFree(protocol);
+        return true;
+    }
+
+    LOGF("JSON Error: VlessClient->settings->protocol supports only \"tcp\", \"udp\", \"udp-associate\", or "
+         "\"dest_context->protocol\"");
+    memoryFree(protocol);
+    return false;
+}
+
+static bool parseDomainStrategy(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *strategy_json = cJSON_GetObjectItemCaseSensitive(settings, "domain-strategy");
+
+    ts->resolve_domains = false;
+    ts->domain_strategy = kDsInvalid;
+
+    if (strategy_json == NULL)
+    {
+        return true;
+    }
+
+    if (! cJSON_IsString(strategy_json) || strategy_json->valuestring == NULL || strategy_json->valuestring[0] == '\0')
+    {
+        LOGF("JSON Error: VlessClient->settings->domain-strategy must be a non-empty string");
+        return false;
+    }
+
+    const char *strategy = strategy_json->valuestring;
+
+    if (stricmp(strategy, "do-not-resolve-domains") == 0)
+    {
+        ts->resolve_domains = false;
+        return true;
+    }
+
+    ts->resolve_domains = true;
+
+    if (stricmp(strategy, "resolve-domains-with-core-settings") == 0)
+    {
+        ts->domain_strategy = GSTATE.domain_strategy;
+        return true;
+    }
+    if (stricmp(strategy, "resolve-domains-and-accept-dns-returned-order") == 0)
+    {
+        ts->domain_strategy = kDsInvalid;
+        return true;
+    }
+    if (stricmp(strategy, "resolve-domains-and-prefer-ipv4") == 0)
+    {
+        ts->domain_strategy = kDsPreferIpV4;
+        return true;
+    }
+    if (stricmp(strategy, "resolve-domains-and-prefer-ipv6") == 0)
+    {
+        ts->domain_strategy = kDsPreferIpV6;
+        return true;
+    }
+    if (stricmp(strategy, "resolve-domains-and-use-only-ipv4") == 0)
+    {
+        ts->domain_strategy = kDsOnlyIpV4;
+        return true;
+    }
+    if (stricmp(strategy, "resolve-domains-and-use-only-ipv6") == 0)
+    {
+        ts->domain_strategy = kDsOnlyIpV6;
+        return true;
+    }
+
+    LOGF("JSON Error: VlessClient->settings->domain-strategy has an unsupported value");
+    return false;
+}
+
+static bool parseFirstPayloadTimeout(vlessclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *value   = cJSON_GetObjectItemCaseSensitive(settings, "first-payload-timeout-ms");
+    int64_t      timeout = 400;
+    if (value != NULL && ! jsonGetIntegerInRange(value, 0, UINT32_MAX, &timeout))
+    {
+        LOGF("JSON Error: VlessClient->settings->first-payload-timeout-ms must be an integer in [0, 4294967295]");
+        return false;
+    }
+    ts->first_payload_timeout_ms = (uint32_t) timeout;
+    return true;
+}
+
+tunnel_t *vlessclientTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(vlessclient_tstate_t), sizeof(vlessclient_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    vlessclient_tstate_t *ts       = tunnelGetState(t);
+    const cJSON          *settings = node->node_settings_json;
+
+    t->fnInitU    = &vlessclientTunnelUpStreamInit;
+    t->fnFinU     = &vlessclientTunnelUpStreamFinish;
+    t->fnPayloadU = &vlessclientTunnelUpStreamPayload;
+    t->fnPauseU   = &vlessclientTunnelUpStreamPause;
+    t->fnResumeU  = &vlessclientTunnelUpStreamResume;
+    t->fnEstD     = &vlessclientTunnelDownStreamEst;
+    t->fnFinD     = &vlessclientTunnelDownStreamFinish;
+    t->fnPayloadD = &vlessclientTunnelDownStreamPayload;
+    t->fnPauseD   = &vlessclientTunnelDownStreamPause;
+    t->fnResumeD  = &vlessclientTunnelDownStreamResume;
+
+    t->onChain   = &vlessclientTunnelOnChain;
+    t->onDestroy = &vlessclientTunnelDestroy;
+
+    if (! checkJsonIsObjectAndHasChild(settings))
+    {
+        LOGF("JSON Error: VlessClient->settings (object field) : The object was empty or invalid");
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    getBoolFromJsonObjectOrDefault(&ts->verbose, settings, "verbose", false);
+
+    if (! parseUuid(ts, settings) || ! parseTargetAddress(ts, settings) || ! parseTargetPort(ts, settings) ||
+        ! parseProtocol(ts, settings) || ! parseDomainStrategy(ts, settings) ||
+        ! parseFirstPayloadTimeout(ts, settings))
+    {
+        vlessclientTunnelstateDestroy(ts);
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    if (! vlessclientCreateInternalDomainResolver(t, node))
+    {
+        vlessclientTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    return t;
+}

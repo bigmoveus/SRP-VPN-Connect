@@ -1,0 +1,124 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static bool ptcLoadSettings(ptc_tstate_t *ts, const cJSON *settings)
+{
+    int64_t                   mtu        = CORE_DEFAULT_MTU;
+    const json_value_status_t mtu_status = jsonGetObjectIntegerInRange(settings, "mtu", 68, UINT16_MAX, &mtu);
+    if (mtu_status == kJsonValueInvalid || mtu < 68 || mtu > UINT16_MAX)
+    {
+        LOGF("JSON Error: PacketsToConnection->settings->mtu must be an integer between 68 and 65535%s",
+             mtu_status == kJsonValueMissing ? "; inherited core misc.mtu is unsupported; set an explicit node mtu"
+                                             : "");
+        return false;
+    }
+    ts->mtu = (uint16_t) mtu;
+
+    /*
+     * Present but invalid is an error, not a default. getIntFromJsonObjectOrDefault()
+     * cannot separate the two, so `"udp-idle-timeout-ms": "60000"` silently
+     * configured the default and `60000.5` silently truncated.
+     */
+    int64_t udp_idle_timeout_ms = (int64_t) kPtcDefaultUdpIdleTimeoutMs;
+
+    if (! ptcLoadOptionalInteger(settings,
+                                 "udp-idle-timeout-ms",
+                                 1,
+                                 (int64_t) UINT32_MAX,
+                                 &udp_idle_timeout_ms,
+                                 "PacketsToConnection->settings->udp-idle-timeout-ms"))
+    {
+        return false;
+    }
+
+    ts->udp_idle_timeout_ms = (uint32_t) udp_idle_timeout_ms;
+
+    int64_t max_pending_bytes = (int64_t) kPtcDefaultMaxPendingBytes;
+
+    if (! ptcLoadOptionalInteger(settings,
+                                 "max-pending-bytes",
+                                 (int64_t) kPtcMinMaxPendingBytes,
+                                 (int64_t) kPtcMaxMaxPendingBytes,
+                                 &max_pending_bytes,
+                                 "PacketsToConnection->settings->max-pending-bytes"))
+    {
+        return false;
+    }
+
+    ts->max_pending_bytes = (uint32_t) max_pending_bytes;
+    return ptcFakeDnsLoadSettings(ts, settings);
+}
+
+tunnel_t *ptcTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(ptc_tstate_t), sizeof(ptc_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+    ptc_tstate_t *ts       = tunnelGetState(t);
+    const cJSON  *settings = node->node_settings_json;
+
+    t->fnInitU    = &ptcTunnelUpStreamInit;
+    t->fnPayloadU = &ptcTunnelUpStreamPayload;
+    // The packet adapter on the prev side only sends upstream Init/Payload on the packet
+    // line; Est/Finish/Pause/Resume are never expected there, so wire them as guards.
+
+    t->fnFinU     = &ptcTunnelUpStreamFinish;
+    t->fnPauseU   = &ptcTunnelUpStreamPause;
+    t->fnResumeU  = &ptcTunnelUpStreamResume;
+    t->fnPayloadD = &ptcTunnelDownStreamPayload;
+    t->fnFinD     = &ptcTunnelDownStreamFinish;
+    t->fnEstD     = &ptcTunnelDownStreamEst;
+    t->fnPauseD   = &ptcTunnelDownStreamPause;
+    t->fnResumeD  = &ptcTunnelDownStreamResume;
+
+    t->onStart          = &ptcTunnelOnStart;
+    t->onQuiesceRequest = &ptcTunnelOnQuiesceRequest;
+    t->onQuiesceWait    = &ptcTunnelOnQuiesceWait;
+    t->onStop           = &ptcTunnelOnStop;
+    t->onWorkerStop     = &ptcTunnelOnWorkerStop;
+    t->onDestroy        = &ptcTunnelDestroy;
+
+    *ts = (ptc_tstate_t) {
+        .max_pending_bytes   = kPtcDefaultMaxPendingBytes,
+        .max_pending_entries = kPtcMaxPendingEntries,
+        .udp_idle_timeout_ms = kPtcDefaultUdpIdleTimeoutMs,
+    };
+    if (settings != NULL && ! cJSON_IsObject(settings))
+    {
+        LOGF("JSON Error: PacketsToConnection->settings (object field) : expected an object");
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    if (! ptcLoadSettings(ts, settings))
+    {
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    quiescenceGateInit(&ts->output_gate);
+    quiescenceGateInit(&ts->next_gate);
+    atomic_init(&ts->stopping, false);
+    atomic_init(&ts->fragment_drops, 0);
+    if (UNLIKELY(! mutexTryInit(&ts->drain_lock)))
+    {
+        ptcFakeDnsDestroy(ts);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    if (UNLIKELY(! mutexTryInit(&ts->dns_lock)))
+    {
+        mutexDestroy(&ts->drain_lock);
+        ptcFakeDnsDestroy(ts);
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    initTcpIpStack();
+    ptcRxWrapperPoolInitializeOnce();
+
+    return t;
+}

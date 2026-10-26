@@ -1,0 +1,282 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static void ptcDeliverTcpReceiveTask(tunnel_t *t, line_t *l)
+{
+    ptc_lstate_t *ls  = lineGetState(l, t);
+    sbuf_t       *buf = ls->rx_delivery;
+    assert(buf != NULL);
+    /* Publish the empty slot before Init/Payload can reenter or finish this
+     * line. Later input gets its own deferred delivery and FIFO position. */
+    ls->rx_delivery = NULL;
+    ptcDeliverPayloadTask(t, l, buf);
+}
+
+static sbuf_t *ptcAcquireReceiveBuffer(buffer_pool_t *pool, uint32_t length)
+{
+    const uint16_t    padding = bufferpoolGetLargeBufferPadding(pool);
+    buffer_pool_fit_t fit;
+    const bool        fits = bufferpoolQueryBestFit(pool, length, padding, &fit);
+    assert(fits);
+    discard fits;
+    /* A custom oversized worker tier must not enlarge this bounded staging
+     * buffer. Dedicated storage still keeps the onward chain's padding. */
+    return fit.payload_capacity <= TCP_WND ? bufferpoolGetBestFit(pool, length, padding)
+                                           : sbufCreateWithPadding(length, padding);
+}
+
+void lwipThreadPtcTcpConnectionErrorCallback(void *arg, err_t err)
+{
+    ptc_lstate_t *ls = arg;
+
+    if (err != ERR_OK)
+    {
+        LOGD("PacketsToConnection: tcp connection error %d", err);
+    }
+
+    if (ls == NULL)
+    {
+        return;
+    }
+
+    ls->tcp_pcb   = NULL;
+    ls->route_ctx = NULL;
+
+    if (lineIsAlive(ls->line))
+    {
+        const line_task_submit_result_e result = lineScheduleTask(ls->line, ptcCloseLineTask, ls->tunnel, NULL);
+        if (result == kLineTaskSubmitRejectedSettled)
+        {
+            discard ptcRequiredControlRefusedLocked(ls, "TCP error close");
+        }
+        else
+        {
+            assert(result == kLineTaskSubmitAcceptedAsync);
+        }
+    }
+}
+
+err_t lwipThreadPtcTcpRecvCallback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+{
+    ptc_lstate_t *ls = arg;
+
+    if (ls == NULL || ls->kind != kPtcLineKindTcp || ls->tcp_pcb != tpcb)
+    {
+        if (p != NULL)
+        {
+            pbuf_free(p);
+        }
+        return ERR_OK;
+    }
+
+    assert(currentThreadOwnsWorker(lineGetWID(ls->line)));
+    assert(wwLwipEngineCurrent() == ls->engine);
+
+    if (err != ERR_OK)
+    {
+        if (p != NULL)
+        {
+            pbuf_free(p);
+        }
+
+        ptcDetachTcpPcbLocked(ls);
+        if (tpcb != NULL)
+        {
+            tcp_abort(tpcb);
+        }
+
+        if (lineIsAlive(ls->line))
+        {
+            const line_task_submit_result_e result = lineScheduleTask(ls->line, ptcCloseLineTask, ls->tunnel, NULL);
+            if (result == kLineTaskSubmitRejectedSettled)
+            {
+                discard ptcRequiredControlRefusedLocked(ls, "TCP receive-error close");
+            }
+            else
+            {
+                assert(result == kLineTaskSubmitAcceptedAsync);
+            }
+        }
+        return ERR_ABRT;
+    }
+
+    if (p == NULL)
+    {
+        if (lineIsAlive(ls->line))
+        {
+            const line_task_submit_result_e result = lineScheduleTask(ls->line, ptcCloseLineTask, ls->tunnel, NULL);
+            if (result == kLineTaskSubmitRejectedSettled)
+            {
+                if (ptcRequiredControlRefusedLocked(ls, "TCP peer-FIN close"))
+                {
+                    return ERR_ABRT;
+                }
+            }
+            else
+            {
+                assert(result == kLineTaskSubmitAcceptedAsync);
+            }
+        }
+        return ERR_OK;
+    }
+
+    wid_t owner_wid = lineGetWID(ls->line);
+
+    if (! lineIsAlive(ls->line))
+    {
+        return ERR_MEM;
+    }
+
+    buffer_pool_t *pool    = lineGetBufferPool(ls->line);
+    sbuf_t        *buf     = ls->rx_delivery;
+    const uint32_t pending = buf != NULL ? sbufGetLength(buf) : 0;
+    assert(pending <= TCP_WND);
+    if (p->tot_len > TCP_WND - pending)
+    {
+        /* lwIP keeps this pbuf for replay; never consume a partial callback. */
+        return ERR_MEM;
+    }
+    if (! ptcReceiveCreditAccumulateLocked(ls, p->tot_len))
+    {
+        pbuf_free(p);
+        return ERR_ABRT;
+    }
+
+    const uint32_t    length   = pending + p->tot_len;
+    const bool        schedule = buf == NULL;
+    my_custom_pbuf_t *reuse    = schedule ? ptcReusableReceiveBuffer(p, pool, owner_wid) : NULL;
+    if (schedule)
+    {
+        buf = reuse != NULL ? reuse->sbuf : ptcAcquireReceiveBuffer(pool, length);
+    }
+    else if (sbufGetMaximumWriteableSize(buf) < length)
+    {
+        const uint32_t capacity = sbufGetMaximumWriteableSize(buf);
+        const uint32_t growth   = max(length, min((uint32_t) TCP_WND, capacity * 2U));
+        sbuf_t        *grown    = ptcAcquireReceiveBuffer(pool, growth);
+        if (pending < 64)
+            memoryCopy(sbufGetMutablePtr(grown), sbufGetRawPtr(buf), pending);
+        else
+            memoryCopyLarge(sbufGetMutablePtr(grown), sbufGetRawPtr(buf), pending);
+        bufferpoolReuseBuffer(pool, buf);
+        buf = grown;
+    }
+    if (reuse == NULL)
+    {
+        pbufLargeCopyToPtr(p, (uint8_t *) sbufGetMutablePtr(buf) + pending);
+        sbufSetLength(buf, length);
+    }
+    ls->rx_delivery = buf;
+
+    if (schedule)
+    {
+        const line_task_submit_result_e result = lineScheduleTask(ls->line, ptcDeliverTcpReceiveTask, ls->tunnel, NULL);
+        if (result == kLineTaskSubmitRejectedSettled)
+        {
+            /* No task owns the staging buffer. Roll back this whole callback;
+             * lwIP retains its pbuf, while owner Stop handles later cancellation. */
+            ls->rx_delivery = NULL;
+            if (reuse == NULL)
+                bufferpoolReuseBuffer(pool, buf);
+            ptcReceiveCreditRollbackLocked(ls, p->tot_len);
+            return ERR_MEM;
+        }
+        assert(result == kLineTaskSubmitAcceptedAsync);
+    }
+
+    if (reuse != NULL)
+    {
+        /* The task is force-queued to this owner and cannot run inline. Until
+         * admission succeeds, keep lwIP's buffer and packet geometry untouched
+         * so ERR_MEM can replay the exact input. Only its wrapper is freed now. */
+        const uint32_t offset = (uint32_t) ((uintptr_t) p->payload - (uintptr_t) sbufGetRawPtr(buf));
+        reuse->sbuf           = NULL;
+        sbufShiftRight(buf, offset);
+        sbufSetLength(buf, length);
+    }
+    pbuf_free(p);
+    return ERR_OK;
+}
+
+err_t lwipThreadPtcTcpAccptCallback(void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+    interface_route_context_t *route_ctx = arg;
+
+    if (err != ERR_OK)
+    {
+        if (newpcb != NULL)
+        {
+            tcp_abort(newpcb);
+        }
+        return err;
+    }
+
+    if (route_ctx == NULL || newpcb == NULL)
+    {
+        if (newpcb != NULL)
+        {
+            tcp_abort(newpcb);
+        }
+        return ERR_ARG;
+    }
+
+    const wid_t owner_wid = route_ctx->packet_wid;
+    if (UNLIKELY(! currentThreadOwnsWorker(owner_wid)))
+    {
+        LOGW(
+            "PacketsToConnection: tcp accept callback arrived on worker %d for route owned by worker %d; dropping flow",
+            workerWIDForLog(getWID()),
+            workerWIDForLog(owner_wid));
+        tcp_abort(newpcb);
+        return ERR_ABRT;
+    }
+
+    tunnel_t     *t  = route_ctx->tunnel;
+    line_t       *l  = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), owner_wid);
+    ptc_lstate_t *ls = lineGetState(l, t);
+
+    ptcLinestateInitialize(ls, t, l, kPtcLineKindTcp, newpcb);
+
+    ls->route_ctx = route_ctx;
+
+    addresscontextSetIpPortProtocol(
+        lineGetSourceAddressContext(l), &newpcb->remote_ip, newpcb->remote_port, IP_PROTO_TCP);
+    if (! ptcFakeDnsApplyMappedDestination(
+            t, lineGetDestinationAddressContext(l), &newpcb->local_ip, newpcb->local_port, IP_PROTO_TCP))
+    {
+        addresscontextSetIpPortProtocol(
+            lineGetDestinationAddressContext(l), &newpcb->local_ip, newpcb->local_port, IP_PROTO_TCP);
+    }
+    lineGetRoutingContext(l)->local_listener_port = newpcb->local_port;
+
+    tcp_arg(newpcb, ls);
+    tcp_sent(newpcb, ptcTcpSendCompleteCallback);
+    tcp_recv(newpcb, lwipThreadPtcTcpRecvCallback);
+    tcp_err(newpcb, lwipThreadPtcTcpConnectionErrorCallback);
+    tcp_nagle_disable(newpcb);
+
+    if (loggerCheckWriteLevel(getNetworkLogger(), LOG_LEVEL_DEBUG))
+    {
+        char local_ip[40];
+        char remote_ip[40];
+
+        stringCopyN(local_ip, ipAddrNetworkToAddress(&newpcb->local_ip), 40);
+        stringCopyN(remote_ip, ipAddrNetworkToAddress(&newpcb->remote_ip), 40);
+
+        LOGD("PacketsToConnection: new tcp flow accepted [%s:%u] <= [%s:%u]",
+             local_ip,
+             (unsigned int) newpcb->local_port,
+             remote_ip,
+             (unsigned int) newpcb->remote_port);
+    }
+
+    const line_task_submit_result_e result = lineScheduleTask(l, ptcOpenLineTask, t, NULL);
+    if (result == kLineTaskSubmitRejectedSettled)
+    {
+        discard ptcRequiredControlRefusedLocked(ls, "TCP accepted-line Init");
+        return ERR_ABRT;
+    }
+    assert(result == kLineTaskSubmitAcceptedAsync);
+    return ERR_OK;
+}

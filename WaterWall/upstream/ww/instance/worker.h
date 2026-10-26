@@ -1,0 +1,281 @@
+#pragma once
+
+#include "async_dns.h"
+#include "lifecycle.h"
+#include "threadsafe_generic_pool.h"
+#include "watomic.h"
+#include "wlibc.h"
+#include "wloop.h"
+#include "wthread.h"
+
+typedef uint8_t        wid_t;
+typedef _Atomic(wid_t) atomic_wid_t;
+
+enum
+{
+    kInvalidWID = UINT8_MAX,
+};
+
+typedef struct worker_message_queue_s worker_message_queue_t;
+
+/**
+ * @brief Worker lifecycle state, stored atomically and only ever advanced.
+ *
+ * Requests are published by the main coordinator. Acknowledgements are
+ * published by the owner worker after the represented work is complete.
+ */
+typedef enum
+{
+    kWorkerLifecycleInitialized = 0, // resources created, thread not running yet
+    kWorkerLifecycleRunning,         // worker routine entered
+    kWorkerLifecycleQuiesceRequested,
+    kWorkerLifecycleQuiesced,
+    kWorkerLifecycleDrainRequested,
+    kWorkerLifecycleDrained,
+    kWorkerLifecycleTeardownRequested,
+    kWorkerLifecycleExited,
+    kWorkerLifecycleJoined
+} worker_lifecycle_e;
+
+/**
+ * @brief Structure representing a worker.
+ */
+typedef struct worker_s
+{
+
+    // Thread-safe pool for managing WIO objects.
+    // functions like wloopPostEvent allocate WIO from target wid loop.
+    threadsafe_generic_pool_t *wios_pool;
+
+    /*
+     * `loop` and `message_queue` are published and detached together.
+     * control_mutex is the sole synchronization domain for their lifetime,
+     * worker-message admission, ordinary/timed queue mutation, and the
+     * worker-message wake state. Foreign posters hold it from the final
+     * admission decision through wake publication. Once
+     * workerMessagesCloseAdmissionAndDetach() releases it, the detached
+     * queue has exclusive shutdown-owner access and no later poster may touch
+     * either detached pointer. Posting order is control_mutex, then the
+     * loop's normal-admission mutex, then custom_events_mutex.
+     */
+    wloop_t                *loop;          // Event loop associated with the worker.
+    dns_resolver_t          dns_resolver;  // Worker-local async DNS resolver.
+    buffer_pool_t          *buffer_pool;   // Buffer pool for managing memory buffers.
+    generic_pool_t         *context_pool;  // Generic pool for managing context objects.
+    generic_pool_t         *message_pool;  // Local cache of transferable worker-message records.
+    generic_pool_t         *timer_pool;    // Owner-local delayed-message timeout records.
+    worker_message_queue_t *message_queue; // Worker-owned queued/timed messages.
+    wthread_t               thread;        // Thread associated with the worker.
+    // Lifetime lock for loop/message_queue and the worker phase protocol.
+    wmutex_t               control_mutex;
+    wcond_mutex_t          control_condition_mutex;
+    wcondvar_t             control_condition;
+    atomic_int             lifecycle;           // worker_lifecycle_e
+    atomic_bool            resources_destroyed; // guards one-shot own-resource teardown
+    ww_lifecycle_context_t lifecycle_context;
+    bool                   lifecycle_context_set;
+    /*
+     * The authoritative admission gate for every worker-message delivery
+     * shape: inline, queued, and timed. It is closed before loop/queue
+     * detachment, so teardown callbacks cannot re-admit work merely because
+     * they still execute with this worker's TLS identity.
+     */
+    atomic_bool message_admission_open;
+    bool        thread_valid; // True only after native thread handle creation succeeds.
+    tid_t       tid;          // Os Thread Id
+    wid_t       wid;          // Worker ID.
+
+} worker_t;
+
+extern thread_local wid_t tl_wid; // Thread-local worker ID. */
+
+/**
+ * @brief Initializes a worker.
+ *
+ * Every worker owns an event loop and worker-local resources.
+ * @param worker Pointer to the worker to initialize.
+ * @param wid Worker ID.
+ */
+bool workerInit(worker_t *worker, wid_t wid);
+
+/**
+ * Transactionally construct WIO, context, and event-worker message/timer pool metadata.
+ * Returns false without publishing pools when any constructor fails.
+ */
+bool workerTryCreateCorePools(worker_t *worker);
+bool workerTryCreateBufferPool(worker_t *worker);
+
+/**
+ * @brief Runs the worker.
+ * @param worker Pointer to the worker to run.
+ */
+void workerRun(worker_t *worker);
+
+/**
+ * @brief Runs the worker in a new thread.
+ * @param worker Pointer to the worker to run.
+ * @return `kWThreadErrorNone` on success, otherwise native thread-creation error.
+ */
+wthread_error_t workerSpawn(worker_t *worker);
+
+/**
+ * @brief Binds the current thread to a registered worker instance.
+ * @param worker Pointer to the target worker structure.
+ */
+void workerBindCurrentThread(worker_t *worker);
+
+/**
+ * @brief Unbinds the current thread from its worker role, restoring kInvalidWID.
+ */
+void workerUnbindCurrentThread(void);
+
+/**
+ * @brief Whether @p wid is a valid registered worker slot.
+ *
+ * Registration does not imply open admission or a still-attached event loop.
+ */
+bool workerWIDIsRegistered(wid_t wid);
+
+/**
+ * @brief Whether the current thread is bound to a registered worker.
+ */
+bool currentThreadIsWorker(void);
+
+/**
+ * @brief Whether the current thread is bound to the registered worker @p wid.
+ */
+bool currentThreadOwnsWorker(wid_t wid);
+
+/**
+ * @brief Diagnostic integer conversion for worker IDs, rendering kInvalidWID as -1.
+ *
+ * Diagnostic logging helper only. Preserves every non-sentinel WID numerically and converts kInvalidWID to -1 for
+ * formatters using %d. Does not validate whether a non-sentinel WID is currently registered.
+ *
+ * @param wid Worker ID to convert.
+ * @return Integer representation of @p wid, or -1 for kInvalidWID.
+ */
+static inline int workerWIDForLog(wid_t wid)
+{
+    return wid == kInvalidWID ? -1 : (int) wid;
+}
+
+/**
+ * @brief Test-only helper to bind the current thread to a test WID.
+ */
+static inline void testWorkerBindWID(wid_t wid)
+{
+    tl_wid = wid;
+}
+
+/**
+ * @brief Test-only helper to restore kInvalidWID on the current thread.
+ */
+static inline void testWorkerUnbindWID(void)
+{
+    tl_wid = kInvalidWID;
+}
+
+/**
+ * @brief Resolves a domain on the current worker's async DNS channel.
+ *
+ * The caller must pass its own worker ID. This helper is intentionally
+ * worker-local and asserts if called for a different worker.
+ */
+int workerResolveDomainAsync(wid_t wid, const char *domain, dns_resolve_cb cb, void *userdata);
+
+/**
+ * @brief Resolves a domain/service pair on the current worker's async DNS channel.
+ *
+ * The caller must pass its own worker ID. socktype may be 0, SOCK_STREAM, or
+ * SOCK_DGRAM depending on the intended socket use.
+ */
+int workerResolveDomainServiceAsync(wid_t wid, const char *domain, const char *service, int socktype, dns_resolve_cb cb,
+                                    void *userdata);
+
+/**
+ * @brief Gets the worker ID of the current thread.
+ * @return The worker ID, or kInvalidWID if called from an unregistered thread.
+ */
+static inline wid_t getWID(void)
+{
+    return tl_wid;
+}
+
+/**
+ * @brief Close normal admission and request worker quiescence.
+ *
+ * Advances the lifecycle to kWorkerLifecycleQuiesceRequested and wakes the
+ * worker's event loop through its lifecycle-control path. Safe before the loop starts
+ * running, safe while it is blocked in the poller, safe when the worker already
+ * exited, and safe to repeat.
+ *
+ * The caller must not assume the worker quiesced when this returns; wait for
+ * kWorkerLifecycleQuiesced before releasing external producers.
+ *
+ * @param worker Pointer to the worker structure.
+ * The boolean wrappers return false only when the request is unavailable. Use
+ * the typed result when immediate wake delivery matters diagnostically.
+ */
+typedef enum worker_quiesce_request_result_e
+{
+    kWorkerQuiesceRequestUnavailable = 0,
+    kWorkerQuiesceRequestAcceptedWakeDelivered,
+    kWorkerQuiesceRequestAcceptedWakeDegraded,
+    kWorkerQuiesceRequestAlreadyAccepted
+} worker_quiesce_request_result_e;
+
+worker_quiesce_request_result_e workerRequestQuiesceResult(worker_t *worker);
+worker_quiesce_request_result_e workerRequestQuiesceWithContextResult(worker_t                     *worker,
+                                                                      const ww_lifecycle_context_t *context);
+worker_quiesce_request_result_e workerInstallApplicationQuiesceRequest(worker_t                     *worker,
+                                                                       const ww_lifecycle_context_t *context);
+bool                            workerRequestQuiesce(worker_t *worker);
+bool workerRequestQuiesceWithContext(worker_t *worker, const ww_lifecycle_context_t *context);
+
+/**
+ * @brief Whether this worker has been asked to stop.
+ */
+bool workerQuiesceRequested(const worker_t *worker);
+
+/**
+ * @brief Publish a drain or teardown release to a parked worker.
+ */
+bool workerRequestDrain(worker_t *worker);
+bool workerRequestTeardown(worker_t *worker);
+
+/** @brief Wait until the worker reaches at least @p phase. */
+bool workerWaitForPhase(worker_t *worker, worker_lifecycle_e phase, uint32_t timeout_ms);
+
+/** @brief Current worker lifecycle phase. */
+worker_lifecycle_e workerGetLifecycle(const worker_t *worker);
+
+/** Owner-worker lifecycle stages. */
+void workerPerformQuiesce(worker_t *worker, const ww_lifecycle_context_t *context);
+void workerPerformDrain(worker_t *worker, const ww_lifecycle_context_t *context);
+void workerPerformTeardown(worker_t *worker);
+
+/** Destroy an event worker whose OS thread was never created. */
+void workerDestroyUnstartedResources(worker_t *worker);
+
+/**
+ * @brief Waits for a worker's spawned OS thread to exit.
+ *
+ * Does not advance the worker lifecycle. Use only after the worker has reached
+ * kWorkerLifecycleExited.
+ *
+ * @param worker Pointer to the worker structure.
+ * @return true after a confirmed join, false while thread ownership remains.
+ */
+bool workerJoin(worker_t *worker);
+
+/**
+ * @brief Advance a single worker through quiesce, drain, and teardown, then join.
+ *
+ * Convenience wrapper; prefer requesting every worker to stop before joining any
+ * of them.
+ *
+ * @param worker Pointer to the worker structure.
+ * @return true after a confirmed join, false while thread ownership remains.
+ */
+bool workerExitJoin(worker_t *worker);

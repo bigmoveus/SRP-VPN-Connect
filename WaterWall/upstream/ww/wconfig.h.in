@@ -1,0 +1,241 @@
+#ifndef WW_CONFIG_H_
+#define WW_CONFIG_H_
+
+#define WW_VERSION_MAJOR @WW_VERSION_MAJOR@
+#define WW_VERSION_MINOR @WW_VERSION_MINOR@
+#define WW_VERSION_PATCH @WW_VERSION_PATCH@
+
+#ifndef HAVE_STDBOOL_H
+#define HAVE_STDBOOL_H @HAVE_STDBOOL_H@
+#endif
+
+#ifndef HAVE_STDINT_H
+#define HAVE_STDINT_H @HAVE_STDINT_H@
+#endif
+
+#ifndef HAVE_STDATOMIC_H
+#define HAVE_STDATOMIC_H @HAVE_STDATOMIC_H@
+#endif
+
+#ifndef WW_HAVE_C11_ATOMICS
+#define WW_HAVE_C11_ATOMICS @WW_HAVE_C11_ATOMICS@
+#endif
+
+#ifndef HAVE_SYS_TYPES_H
+#define HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+#endif
+
+#ifndef HAVE_SYS_STAT_H
+#define HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+#endif
+
+#ifndef HAVE_SYS_TIME_H
+#define HAVE_SYS_TIME_H @HAVE_SYS_TIME_H@
+#endif
+
+#ifndef HAVE_FCNTL_H
+#define HAVE_FCNTL_H @HAVE_FCNTL_H@
+#endif
+
+#ifndef HAVE_PTHREAD_H
+#define HAVE_PTHREAD_H @HAVE_PTHREAD_H@
+#endif
+
+#ifndef HAVE_ENDIAN_H
+#define HAVE_ENDIAN_H @HAVE_ENDIAN_H@
+#endif
+
+#ifndef HAVE_X86INTRIN_H
+#define HAVE_X86INTRIN_H @HAVE_X86INTRIN_H@
+#endif
+
+#ifndef HAVE_IMMINTRIN_H
+#define HAVE_IMMINTRIN_H @HAVE_IMMINTRIN_H@
+#endif
+
+#ifndef HAVE_SYS_ENDIAN_H
+#define HAVE_SYS_ENDIAN_H @HAVE_SYS_ENDIAN_H@
+#endif
+
+#ifndef HAVE_GETTID
+#define HAVE_GETTID @HAVE_GETTID@
+#endif
+
+#ifndef HAVE_STRLCPY
+#define HAVE_STRLCPY @HAVE_STRLCPY@
+#endif
+
+#ifndef HAVE_STRLCAT
+#define HAVE_STRLCAT @HAVE_STRLCAT@
+#endif
+
+#ifndef HAVE_CLOCK_GETTIME
+#define HAVE_CLOCK_GETTIME @HAVE_CLOCK_GETTIME@
+#endif
+
+#ifndef HAVE_GETTIMEOFDAY
+#define HAVE_GETTIMEOFDAY @HAVE_GETTIMEOFDAY@
+#endif
+
+#ifndef HAVE_PTHREAD_SPIN_LOCK
+#define HAVE_PTHREAD_SPIN_LOCK @HAVE_PTHREAD_SPIN_LOCK@
+#endif
+
+#ifndef HAVE_PTHREAD_MUTEX_TIMEDLOCK
+#define HAVE_PTHREAD_MUTEX_TIMEDLOCK @HAVE_PTHREAD_MUTEX_TIMEDLOCK@
+#endif
+
+#ifndef HAVE_SEM_TIMEDWAIT
+#define HAVE_SEM_TIMEDWAIT @HAVE_SEM_TIMEDWAIT@
+#endif
+
+#ifndef HAVE_PIPE
+#define HAVE_PIPE @HAVE_PIPE@
+#endif
+
+// Build capability for the Linux splice() API, independent of the event watcher.
+#ifndef WW_HAVE_SPLICE
+#define WW_HAVE_SPLICE @WW_HAVE_SPLICE@
+#endif
+
+#ifndef HAVE_SOCKETPAIR
+#define HAVE_SOCKETPAIR @HAVE_SOCKETPAIR@
+#endif
+
+#ifndef HAVE_EVENTFD
+#define HAVE_EVENTFD @HAVE_EVENTFD@
+#endif
+
+#ifndef HAVE_SETPROCTITLE
+#define HAVE_SETPROCTITLE @HAVE_SETPROCTITLE@
+#endif
+
+#ifndef HAVE_MEMSET_EXPLICIT
+#define HAVE_MEMSET_EXPLICIT @HAVE_MEMSET_EXPLICIT@
+#endif
+
+#ifndef HAVE_EXPLICIT_BZERO
+#define HAVE_EXPLICIT_BZERO @HAVE_EXPLICIT_BZERO@
+#endif
+
+#ifndef HAVE_TIMINGSAFE_BCMP
+#define HAVE_TIMINGSAFE_BCMP @HAVE_TIMINGSAFE_BCMP@
+#endif
+
+#ifndef WW_IS_64_BIT
+#define WW_IS_64_BIT @WW_IS_64_BIT@
+#endif
+
+#ifndef WW_HAVE_ADVANCED_CPU_INSTRUCTIONS
+#define WW_HAVE_ADVANCED_CPU_INSTRUCTIONS @WW_HAVE_ADVANCED_CPU_INSTRUCTIONS@
+#endif
+
+#ifndef HAVE_SSE3
+#define HAVE_SSE3 @WW_HAVE_SSE3@
+#endif
+
+#ifndef HAVE_AVX
+#define HAVE_AVX @WW_HAVE_AVX@
+#endif
+
+#ifndef HAVE_AVX2
+#define HAVE_AVX2 @WW_HAVE_AVX2@
+#endif
+
+#ifndef CHECKSUM_AVX2
+#define CHECKSUM_AVX2 @WW_CHECKSUM_AVX2@
+#endif
+
+#ifndef CHECKSUM_SSE3
+#define CHECKSUM_SSE3 @WW_CHECKSUM_SSE3@
+#endif
+
+#ifndef ENABLE_MEMCOPY_AVX512
+#define ENABLE_MEMCOPY_AVX512 @WW_SUPPORTED_MEMCOPY_AVX512F@
+#endif
+
+#ifndef ENABLE_MEMCOPY_AVX2
+#define ENABLE_MEMCOPY_AVX2 @WW_SUPPORTED_MEMCOPY_AVX2@
+#endif
+
+#cmakedefine ENABLE_UDS 0
+#cmakedefine WITH_WEPOLL 1
+
+#define FNV_HASH  100
+#define KOMI_HASH 200
+#define WHASH_ALG KOMI_HASH
+
+
+enum ram_profiles_e
+{
+    kRamProfileInvalid  = 0,
+    kRamProfileS1Memory = 1,
+    kRamProfileS2Memory = 4,
+    kRamProfileM1Memory = 1  * 8,
+    kRamProfileM2Memory = 4  * 8,
+    kRamProfileL1Memory = 16 * 8,
+    kRamProfileL2Memory = 32 * 8
+};
+
+/* Local buffer caches and ordinary buffer masters use this width. Other pools
+ * and the splice master retain the full profile width. */
+#define PROPER_BUFFER_POOL_WIDTH(ram_profile)                                                                          \
+    ((ram_profile) >= kRamProfileL1Memory ? (ram_profile) / 2U : (ram_profile))
+
+/*
+
+    small buffer size is used for small buffers that are allocated for Udp and Raw Ip packets
+    going lower than 1500 bytes is not recommended, as it is the standard MTU size for Ethernet
+*/
+
+#define SMALL_BUFFER_SIZE 4096
+#define MEDIUM_BUFFER_SIZE_RAM_LOW  (32 * 1024)
+#define MEDIUM_BUFFER_SIZE_RAM_HIGH (64 * 1024)
+#define SPLICE_BUFFER_STORAGE_SIZE 32
+#define kMaxAllowedPacketLength 1500
+
+/* Ordinary TCP reads use the large tier directly; UDP requests whole datagrams.
+ * Medium buffers also serve framing and retained queues. Cache counts follow the memory profile. */
+
+// Depending on memory profile, we can choose which is the best buffer size (core.json typically)
+#define LARGE_BUFFER_SIZE_RAM_LOW   (64 * 1024)
+#define LARGE_BUFFER_SIZE_RAM_HIGH  (128 * 1024)
+/* Every profile uses the same socket read limit and individual pipe capacity. */
+#define SPLICE_PAYLOAD_LIMIT (1024 * 1024)
+/* Maximum process-wide splice capacity; profiles and detected RAM can lower it. */
+#define SPLICE_TOTAL_SIZE_LIMIT (512ULL * 1024ULL * 1024ULL)
+
+/* Waiting budgets retain their profile values independently of allocation and splice sizes. */
+#define WAITING_BUDGET_BASIS_RAM_LOW  (64 * 1024)
+#define WAITING_BUDGET_BASIS_RAM_HIGH (1024 * 1024)
+#define PROPER_WAITING_BUDGET_BASIS(ram_profile)                                                                       \
+    ((ram_profile) >= LARGE_RAM_PROFILE_THRESHOLD ? WAITING_BUDGET_BASIS_RAM_HIGH : WAITING_BUDGET_BASIS_RAM_LOW)
+
+#define LARGE_RAM_PROFILE_THRESHOLD kRamProfileM1Memory
+
+#define PROPER_LARGE_BUFFER_SIZE(ram_profile)                                                                           \
+    ((ram_profile) >= LARGE_RAM_PROFILE_THRESHOLD ? LARGE_BUFFER_SIZE_RAM_HIGH : LARGE_BUFFER_SIZE_RAM_LOW)
+
+#define PROPER_MEDIUM_BUFFER_SIZE(ram_profile)                                                                         \
+    ((ram_profile) >= LARGE_RAM_PROFILE_THRESHOLD ? MEDIUM_BUFFER_SIZE_RAM_HIGH : MEDIUM_BUFFER_SIZE_RAM_LOW)
+
+// Recent host-load sampling interval for isSystemUnderLoad().
+#define SYSTEM_LOAD_SAMPLER_INTERVAL_MS 500
+#define SYSTEM_LOAD_SAMPLE_STALE_INTERVALS 2
+#define SYSTEM_LOAD_SAMPLE_MAX_AGE_MS  (SYSTEM_LOAD_SAMPLER_INTERVAL_MS * SYSTEM_LOAD_SAMPLE_STALE_INTERVALS)
+
+
+#cmakedefine01 ALLOCATOR_BYPASS
+#define BYPASS_BUFFERPOOL   0
+#define BYPASS_GENERIC_POOL 0
+#define POOL_DEBUG          0
+
+// #define POOL_THREAD_CHECK (!(defined(RELEASE))) causes warning !
+#ifndef RELEASE
+#define POOL_THREAD_CHECK 1
+#else
+#define POOL_THREAD_CHECK 0
+#endif
+
+
+#endif // WW_CONFIG_H_

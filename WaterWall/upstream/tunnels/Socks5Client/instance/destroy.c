@@ -1,0 +1,40 @@
+#include "internal.h"
+
+#include "loggers/network_logger.h"
+
+static void socks5clientClearInternalNode(node_t *node)
+{
+    memoryFree(node->name);
+    memoryFree(node->type);
+    memoryFree(node->next);
+    memoryZero(node, sizeof(*node));
+}
+
+static void socks5clientDestroyInternalDomainResolverChain(socks5client_tstate_t *ts)
+{
+    if (ts->domain_resolver_tunnel != NULL)
+    {
+        tunnelOwnedChildDestroy(ts->domain_resolver_tunnel);
+        ts->domain_resolver_tunnel = NULL;
+    }
+
+    if (ts->domain_resolver_settings != NULL)
+    {
+        cJSON_Delete(ts->domain_resolver_settings);
+        ts->domain_resolver_settings = NULL;
+    }
+
+    socks5clientClearInternalNode(&ts->domain_resolver_node);
+}
+
+void socks5clientTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context)
+{
+    discard context;
+    assert(t != NULL);
+
+    socks5client_tstate_t *ts = tunnelGetState(t);
+
+    socks5clientDestroyInternalDomainResolverChain(ts);
+    socks5clientTunnelstateDestroy(ts);
+    tunnelDestroy(t);
+}

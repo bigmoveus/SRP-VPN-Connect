@@ -1,0 +1,41 @@
+add_library(AuthenticationClient STATIC
+                    instance/create.c
+                    instance/destroy.c
+                    instance/api.c
+                    instance/node.c
+                    instance/start.c
+                    instance/stop.c
+                    common/line_state.c
+                    common/wire.c
+                    common/pending.c
+                    common/control_line.c
+                    common/sync.c
+                    common/accounting.c
+                    common/table.c
+                    common/responses.c
+                    common/progress.c
+                    common/status.c
+                    common/users_api.c
+                    upstream/init.c
+                    upstream/fin.c
+                    upstream/payload.c
+                    upstream/pause.c
+                    upstream/resume.c
+                    downstream/est.c
+                    downstream/fin.c
+                    downstream/payload.c
+                    downstream/pause.c
+                    downstream/resume.c
+)
+
+target_include_directories(AuthenticationClient PRIVATE
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_include_directories(AuthenticationClient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(AuthenticationClient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/AuthenticationClient)
+
+target_link_libraries(AuthenticationClient ww)
+if(NOT APPLE)
+    target_precompile_headers(AuthenticationClient REUSE_FROM ww)
+endif()

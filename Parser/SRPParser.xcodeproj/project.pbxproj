@@ -1,0 +1,538 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		607567CBFB80DADC01818F8A /* PDParserSoftEther.m in Sources */ = {isa = PBXBuildFile; fileRef = BC2320885B25CDF26C7598F5 /* PDParserSoftEther.m */; };
+		9C1716EF2B53C45600253D99 /* PDBase64.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C1716ED2B53C45600253D99 /* PDBase64.m */; };
+		9C1716F02B53C45600253D99 /* PDBase64.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C1716EE2B53C45600253D99 /* PDBase64.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C2920E32B32EC69001F29C2 /* YDURLRequestSerialization.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C2920E12B32EC69001F29C2 /* YDURLRequestSerialization.h */; };
+		9C2920E42B32EC69001F29C2 /* YDURLRequestSerialization.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C2920E22B32EC69001F29C2 /* YDURLRequestSerialization.m */; };
+		9C8DA7B52B4A853B00062430 /* PDParserSSTP.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C8DA7B32B4A853B00062430 /* PDParserSSTP.h */; };
+		9C8DA7B62B4A853B00062430 /* PDParserSSTP.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C8DA7B42B4A853B00062430 /* PDParserSSTP.m */; };
+		9CC347C92AFE5A2800426CE2 /* TCPPinger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CC347C72AFE5A2800426CE2 /* TCPPinger.m */; };
+		9CC347CA2AFE5A2800426CE2 /* TCPPinger.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CC347C82AFE5A2800426CE2 /* TCPPinger.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FBFFC2112ACC577800CE9ECE /* SRPParser.docc in Sources */ = {isa = PBXBuildFile; fileRef = FBFFC2102ACC577800CE9ECE /* SRPParser.docc */; };
+		FBFFC2172ACC577800CE9ECE /* SRPParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBFFC20C2ACC577800CE9ECE /* SRPParser.framework */; };
+		FBFFC21C2ACC577800CE9ECE /* SRPParserTests.m in Sources */ = {isa = PBXBuildFile; fileRef = FBFFC21B2ACC577800CE9ECE /* SRPParserTests.m */; };
+		FBFFC21D2ACC577800CE9ECE /* SRPParser.h in Headers */ = {isa = PBXBuildFile; fileRef = FBFFC20F2ACC577800CE9ECE /* SRPParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FBFFC2532ACC57AF00CE9ECE /* SimplePing.m in Sources */ = {isa = PBXBuildFile; fileRef = FBFFC2452ACC57AE00CE9ECE /* SimplePing.m */; };
+		FBFFC2562ACC57AF00CE9ECE /* PDVPNManager.m in Sources */ = {isa = PBXBuildFile; fileRef = FBFFC2482ACC57AE00CE9ECE /* PDVPNManager.m */; };
+		FBFFC2582ACC57AF00CE9ECE /* PDVPNManager.h in Headers */ = {isa = PBXBuildFile; fileRef = FBFFC24A2ACC57AE00CE9ECE /* PDVPNManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FBFFC2592ACC57AF00CE9ECE /* SimplePing.h in Headers */ = {isa = PBXBuildFile; fileRef = FBFFC24B2ACC57AE00CE9ECE /* SimplePing.h */; };
+		FBFFC25B2ACC57AF00CE9ECE /* PDParser.h in Headers */ = {isa = PBXBuildFile; fileRef = FBFFC24D2ACC57AE00CE9ECE /* PDParser.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FBFFC25D2ACC57AF00CE9ECE /* PDParser.m in Sources */ = {isa = PBXBuildFile; fileRef = FBFFC24F2ACC57AF00CE9ECE /* PDParser.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FBFFC2182ACC577800CE9ECE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FBFFC2032ACC577800CE9ECE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FBFFC20B2ACC577800CE9ECE;
+			remoteInfo = SRPParser;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		44202C49F119C3CB503B4556 /* PDParserSoftEther.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = PDParserSoftEther.h; sourceTree = "<group>"; };
+		9C1716ED2B53C45600253D99 /* PDBase64.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PDBase64.m; sourceTree = "<group>"; };
+		9C1716EE2B53C45600253D99 /* PDBase64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PDBase64.h; sourceTree = "<group>"; };
+		9C2920E12B32EC69001F29C2 /* YDURLRequestSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YDURLRequestSerialization.h; sourceTree = "<group>"; };
+		9C2920E22B32EC69001F29C2 /* YDURLRequestSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YDURLRequestSerialization.m; sourceTree = "<group>"; };
+		9C8DA7B32B4A853B00062430 /* PDParserSSTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PDParserSSTP.h; sourceTree = "<group>"; };
+		9C8DA7B42B4A853B00062430 /* PDParserSSTP.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PDParserSSTP.m; sourceTree = "<group>"; };
+		9CC347C72AFE5A2800426CE2 /* TCPPinger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCPPinger.m; sourceTree = "<group>"; };
+		9CC347C82AFE5A2800426CE2 /* TCPPinger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCPPinger.h; sourceTree = "<group>"; };
+		BC2320885B25CDF26C7598F5 /* PDParserSoftEther.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = PDParserSoftEther.m; sourceTree = "<group>"; };
+		FBFFC20C2ACC577800CE9ECE /* SRPParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SRPParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBFFC20F2ACC577800CE9ECE /* SRPParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPParser.h; sourceTree = "<group>"; };
+		FBFFC2102ACC577800CE9ECE /* SRPParser.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = SRPParser.docc; sourceTree = "<group>"; };
+		FBFFC2162ACC577800CE9ECE /* SRPParserTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SRPParserTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FBFFC21B2ACC577800CE9ECE /* SRPParserTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPParserTests.m; sourceTree = "<group>"; };
+		FBFFC2452ACC57AE00CE9ECE /* SimplePing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimplePing.m; sourceTree = "<group>"; };
+		FBFFC2482ACC57AE00CE9ECE /* PDVPNManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PDVPNManager.m; sourceTree = "<group>"; };
+		FBFFC24A2ACC57AE00CE9ECE /* PDVPNManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PDVPNManager.h; sourceTree = "<group>"; };
+		FBFFC24B2ACC57AE00CE9ECE /* SimplePing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePing.h; sourceTree = "<group>"; };
+		FBFFC24D2ACC57AE00CE9ECE /* PDParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PDParser.h; sourceTree = "<group>"; };
+		FBFFC24F2ACC57AF00CE9ECE /* PDParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PDParser.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FBFFC2092ACC577800CE9ECE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FBFFC2132ACC577800CE9ECE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBFFC2172ACC577800CE9ECE /* SRPParser.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FBFFC2022ACC577800CE9ECE = {
+			isa = PBXGroup;
+			children = (
+				FBFFC20E2ACC577800CE9ECE /* SRPParser */,
+				FBFFC21A2ACC577800CE9ECE /* SRPParserTests */,
+				FBFFC20D2ACC577800CE9ECE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		FBFFC20D2ACC577800CE9ECE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FBFFC20C2ACC577800CE9ECE /* SRPParser.framework */,
+				FBFFC2162ACC577800CE9ECE /* SRPParserTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FBFFC20E2ACC577800CE9ECE /* SRPParser */ = {
+			isa = PBXGroup;
+			children = (
+				FBFFC20F2ACC577800CE9ECE /* SRPParser.h */,
+				FBFFC24D2ACC57AE00CE9ECE /* PDParser.h */,
+				FBFFC24F2ACC57AF00CE9ECE /* PDParser.m */,
+				9C8DA7B32B4A853B00062430 /* PDParserSSTP.h */,
+				9C8DA7B42B4A853B00062430 /* PDParserSSTP.m */,
+				FBFFC24A2ACC57AE00CE9ECE /* PDVPNManager.h */,
+				FBFFC2482ACC57AE00CE9ECE /* PDVPNManager.m */,
+				9C1716EE2B53C45600253D99 /* PDBase64.h */,
+				9C1716ED2B53C45600253D99 /* PDBase64.m */,
+				9C2920E12B32EC69001F29C2 /* YDURLRequestSerialization.h */,
+				9C2920E22B32EC69001F29C2 /* YDURLRequestSerialization.m */,
+				9CC347C82AFE5A2800426CE2 /* TCPPinger.h */,
+				9CC347C72AFE5A2800426CE2 /* TCPPinger.m */,
+				FBFFC24B2ACC57AE00CE9ECE /* SimplePing.h */,
+				FBFFC2452ACC57AE00CE9ECE /* SimplePing.m */,
+				FBFFC2102ACC577800CE9ECE /* SRPParser.docc */,
+				44202C49F119C3CB503B4556 /* PDParserSoftEther.h */,
+				BC2320885B25CDF26C7598F5 /* PDParserSoftEther.m */,
+			);
+			path = SRPParser;
+			sourceTree = "<group>";
+		};
+		FBFFC21A2ACC577800CE9ECE /* SRPParserTests */ = {
+			isa = PBXGroup;
+			children = (
+				FBFFC21B2ACC577800CE9ECE /* SRPParserTests.m */,
+			);
+			path = SRPParserTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		FBFFC2072ACC577800CE9ECE /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBFFC21D2ACC577800CE9ECE /* SRPParser.h in Headers */,
+				9C1716F02B53C45600253D99 /* PDBase64.h in Headers */,
+				FBFFC25B2ACC57AF00CE9ECE /* PDParser.h in Headers */,
+				9CC347CA2AFE5A2800426CE2 /* TCPPinger.h in Headers */,
+				FBFFC2592ACC57AF00CE9ECE /* SimplePing.h in Headers */,
+				9C8DA7B52B4A853B00062430 /* PDParserSSTP.h in Headers */,
+				FBFFC2582ACC57AF00CE9ECE /* PDVPNManager.h in Headers */,
+				9C2920E32B32EC69001F29C2 /* YDURLRequestSerialization.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		FBFFC20B2ACC577800CE9ECE /* SRPParser */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FBFFC2202ACC577800CE9ECE /* Build configuration list for PBXNativeTarget "SRPParser" */;
+			buildPhases = (
+				FBFFC2072ACC577800CE9ECE /* Headers */,
+				FBFFC2082ACC577800CE9ECE /* Sources */,
+				FBFFC2092ACC577800CE9ECE /* Frameworks */,
+				FBFFC20A2ACC577800CE9ECE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SRPParser;
+			productName = SRPParser;
+			productReference = FBFFC20C2ACC577800CE9ECE /* SRPParser.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FBFFC2152ACC577800CE9ECE /* SRPParserTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FBFFC2232ACC577800CE9ECE /* Build configuration list for PBXNativeTarget "SRPParserTests" */;
+			buildPhases = (
+				FBFFC2122ACC577800CE9ECE /* Sources */,
+				FBFFC2132ACC577800CE9ECE /* Frameworks */,
+				FBFFC2142ACC577800CE9ECE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FBFFC2192ACC577800CE9ECE /* PBXTargetDependency */,
+			);
+			name = SRPParserTests;
+			productName = SRPParserTests;
+			productReference = FBFFC2162ACC577800CE9ECE /* SRPParserTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FBFFC2032ACC577800CE9ECE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					FBFFC20B2ACC577800CE9ECE = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					FBFFC2152ACC577800CE9ECE = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = FBFFC2062ACC577800CE9ECE /* Build configuration list for PBXProject "SRPParser" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = FBFFC2022ACC577800CE9ECE;
+			productRefGroup = FBFFC20D2ACC577800CE9ECE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FBFFC20B2ACC577800CE9ECE /* SRPParser */,
+				FBFFC2152ACC577800CE9ECE /* SRPParserTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FBFFC20A2ACC577800CE9ECE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FBFFC2142ACC577800CE9ECE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FBFFC2082ACC577800CE9ECE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBFFC2532ACC57AF00CE9ECE /* SimplePing.m in Sources */,
+				9C1716EF2B53C45600253D99 /* PDBase64.m in Sources */,
+				9C2920E42B32EC69001F29C2 /* YDURLRequestSerialization.m in Sources */,
+				9C8DA7B62B4A853B00062430 /* PDParserSSTP.m in Sources */,
+				FBFFC2562ACC57AF00CE9ECE /* PDVPNManager.m in Sources */,
+				9CC347C92AFE5A2800426CE2 /* TCPPinger.m in Sources */,
+				FBFFC25D2ACC57AF00CE9ECE /* PDParser.m in Sources */,
+				FBFFC2112ACC577800CE9ECE /* SRPParser.docc in Sources */,
+				607567CBFB80DADC01818F8A /* PDParserSoftEther.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FBFFC2122ACC577800CE9ECE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBFFC21C2ACC577800CE9ECE /* SRPParserTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FBFFC2192ACC577800CE9ECE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FBFFC20B2ACC577800CE9ECE /* SRPParser */;
+			targetProxy = FBFFC2182ACC577800CE9ECE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		FBFFC21E2ACC577800CE9ECE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		FBFFC21F2ACC577800CE9ECE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		FBFFC2212ACC577800CE9ECE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPParser;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FBFFC2222ACC577800CE9ECE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPParser;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FBFFC2242ACC577800CE9ECE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPParserTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FBFFC2252ACC577800CE9ECE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPParserTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FBFFC2062ACC577800CE9ECE /* Build configuration list for PBXProject "SRPParser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FBFFC21E2ACC577800CE9ECE /* Debug */,
+				FBFFC21F2ACC577800CE9ECE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FBFFC2202ACC577800CE9ECE /* Build configuration list for PBXNativeTarget "SRPParser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FBFFC2212ACC577800CE9ECE /* Debug */,
+				FBFFC2222ACC577800CE9ECE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FBFFC2232ACC577800CE9ECE /* Build configuration list for PBXNativeTarget "SRPParserTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FBFFC2242ACC577800CE9ECE /* Debug */,
+				FBFFC2252ACC577800CE9ECE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FBFFC2032ACC577800CE9ECE /* Project object */;
+}

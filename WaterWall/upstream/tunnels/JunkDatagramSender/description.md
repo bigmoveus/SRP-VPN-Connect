@@ -1,0 +1,118 @@
+<!--
+Documentation version: 155
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/JunkDatagramSender.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/JunkDatagramSender.mdx, and all files must keep the same documentation version.
+-->
+
+# JunkDatagramSender Node
+
+`JunkDatagramSender` is a composable middle tunnel that injects generated junk datagram payloads before the first upstream payloads of a line. It is intended for camouflage and protocol-noise experiments around UDP-like paths, while still preserving Waterwall's normal line lifecycle and callback directions.
+
+The node forwards `Init` normally, then sends generated junk payloads when upstream payload callbacks arrive. The real upstream payload is forwarded after that junk batch has been sent. Regular payloads after the configured trigger count, downstream payloads, `Est`, pause/resume, and finish callbacks are otherwise pass-through.
+
+## Configuration Example
+
+```json
+{
+  "name": "junk",
+  "type": "JunkDatagramSender",
+  "settings": {
+    "packet-count-perline-min": 2,
+    "packet-count-perline-max": 5,
+    "resend-again-times": 1,
+    "selected-protocols": ["dns", "ntp", "quic-http3", "rtp-rtcp-srtp"],
+    "keep-sending-max-ms": 1500
+  },
+  "next": "udp-out"
+}
+```
+
+## Settings
+
+- `packet-count-perline-min` `(integer, optional)`
+  Minimum number of junk packets generated each time an upstream payload triggers junk sending.
+  Default: `1`
+
+- `packet-count-perline-max` `(integer, optional)`
+  Maximum number of junk packets generated each time an upstream payload triggers junk sending.
+  Default: `1`
+
+- `resend-again-times` `(integer, optional)`
+  Number of upstream payload callbacks that trigger junk sending before forwarding the real payload. For example, `2` means the first and second upstream payloads each send a junk batch first. Default `1`; `0` disables junk sending.
+
+- `selected-protocols` `(array of strings, optional)`
+  Protocol module names eligible for packet generation. If omitted, all implemented modules are eligible. Use `all` to explicitly enable all implemented modules.
+
+- `keep-sending-max-ms` `(integer, optional)`
+  Default `0` disables delayed copies. When greater than zero, each generated junk packet is duplicated and scheduled once at a random delay between `1` and this value.
+
+## Protocol Names
+
+Accepted canonical names are:
+
+- `dns`
+- `dhcp`
+- `ntp`
+- `quic-http3`
+- `rtp-rtcp-srtp`
+- `stun-turn-ice`
+- `mdns`
+- `snmp`
+- `syslog`
+- `ipsec-nat-t`
+- `sip`
+
+Some shorter aliases are accepted, such as `quic`, `http3`, `rtp`, `stun`, and `ipsec-natt`.
+
+## Disabled Protocol Names
+
+These protocol modules are intentionally disabled until their packet generators are implemented. If a user lists one in `selected-protocols`, configuration fails.
+
+- `tftp`
+- `ssdp`
+- `radius`
+- `gtp-u`
+- `gtpu`
+- `game-udp-protocols`
+- `game-udp`
+- `game`
+- `coap`
+
+## Module Contract
+
+Each protocol module lives in `modules/` and exposes one generator:
+
+```c
+bool junkdatagramsender<Protocol>Generate(sbuf_t *buf, const junkdatagramsender_module_args_t *args);
+```
+
+The generator receives an already allocated `sbuf_t`, writes one datagram payload into it, sets the buffer length, and returns whether generation succeeded. The module owns only the bytes it writes; the node owns forwarding, scheduling, and buffer reuse.
+
+The DNS module currently builds a real DNS query UDP payload with a question and optional EDNS(0) OPT record. DHCP builds valid-looking DHCPv4 client messages, NTP builds valid-looking NTP client requests, QUIC/HTTP3 builds QUIC Initial-like datagrams with HTTP/3 ALPN, RTP/RTCP/SRTP builds RTP media, RTCP control, and SRTP-shaped payloads, STUN/TURN/ICE builds connectivity-check and relay-control messages, mDNS builds multicast DNS query and announcement payloads, SNMP builds v1/v2c manager requests, Syslog builds RFC3164/RFC5424 messages, IPsec NAT-T builds keepalive, IKEv2, and ESP-in-UDP payloads, and SIP builds valid-looking SIP requests and responses. The disabled modules remain structural placeholders for future implementation and are not selectable by users.
+
+## Lifecycle Notes
+
+`JunkDatagramSender` stores a per-line remaining trigger count and directional Finish gates. For an immediate junk batch, it holds a temporary line reference with `lineRef()`, checks `lineIsAlive()` after the re-entrant sends, then releases that reference with `lineUnref()`. The reference preserves the allocation, not line contents or worker access. Delayed payloads are best effort and transfer their duplicate buffer to Waterwall's `lineScheduleDelayedTaskWithBuf()` on every submission result. The scheduler releases that buffer if a normal line closes before the task runs. A packet line remains allocated until chain destruction, so either packet-direction Finish closes both junk gates; an already armed duplicate is then recycled instead of being published after the terminal callback.
+
+Packet helper lines are not destroyed by this tunnel during runtime, and junk generation is skipped on worker packet lines so a layer-3 chain bootstrap does not emit connection-style junk payloads.
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayerAnything` |
+| `layer_group_prev_node` | `kNodeLayerSameAsNext` |
+| `layer_group_next_node` | `kNodeLayerSameAsPrev` |
+| `required_padding_left` | `0` bytes |
+
+## Splice support
+
+Generated junk and its delayed duplicates remain ordinary buffers. Incoming application payloads pass through opaquely, preserving their private-pipe bodies and existing ordering relative to immediate junk. Terminal directions discard input; if sending junk closes the line, the still-owned application buffer is recycled.
+
+Ordinary fallback buffers remain accepted. Splice requires a supported Linux build, `misc.splice` enabled, no packet nodes, and support from every node in the finalized expanded/merged chain. The capability flag does not bypass these checks. No performance improvement is promised without measurement.
+
+Packet configurations of this dual-layer node still do not enable splice.

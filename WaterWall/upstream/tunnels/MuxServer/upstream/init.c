@@ -1,0 +1,11 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void muxserverTunnelUpStreamInit(tunnel_t *t, line_t *parent_l)
+{
+    muxserver_lstate_t *parent_ls = lineGetState(parent_l, t);
+    muxserverLinestateInitialize(t, parent_ls, parent_l, false, 0);
+    muxserverScheduleParentStatsLog(t, parent_l);
+    tunnelPrevDownStreamEst(t, parent_l);
+}

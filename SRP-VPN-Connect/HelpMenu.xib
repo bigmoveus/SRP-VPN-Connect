@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="49" id="KGk-i7-Jjw" customClass="HelpMenu">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ikw-nj-JYw">
+                        <rect key="frame" x="2" y="9" width="105" height="29"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                        <state key="normal" title="SSTP">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </state>
+                    </button>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZBe-sf-mjr">
+                        <rect key="frame" x="108" y="9" width="105" height="29"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                        <state key="normal" title="SSH">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </state>
+                    </button>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j28-K1-Uow">
+                        <rect key="frame" x="214" y="9" width="105" height="29"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                        <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
+                        <state key="normal" title="OpenConnect">
+                            <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        </state>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="ZBe-sf-mjr" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="9" id="9wf-6x-Nhp"/>
+                    <constraint firstItem="Ikw-nj-JYw" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leading" constant="2" id="Jr7-5W-AyX"/>
+                    <constraint firstAttribute="trailing" secondItem="j28-K1-Uow" secondAttribute="trailing" constant="1" id="Kgq-Tq-ELm"/>
+                    <constraint firstItem="ZBe-sf-mjr" firstAttribute="width" secondItem="j28-K1-Uow" secondAttribute="width" id="PNV-GN-aJq"/>
+                    <constraint firstItem="ZBe-sf-mjr" firstAttribute="leading" secondItem="Ikw-nj-JYw" secondAttribute="trailing" constant="1" id="Rld-To-CH6"/>
+                    <constraint firstItem="Ikw-nj-JYw" firstAttribute="width" secondItem="ZBe-sf-mjr" secondAttribute="width" id="Tqb-iM-Vba"/>
+                    <constraint firstItem="j28-K1-Uow" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="9" id="b4B-wp-IQf"/>
+                    <constraint firstItem="Ikw-nj-JYw" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="top" constant="9" id="uF6-g4-y6V"/>
+                    <constraint firstItem="j28-K1-Uow" firstAttribute="leading" secondItem="ZBe-sf-mjr" secondAttribute="trailing" constant="1" id="xE6-4N-Mue"/>
+                </constraints>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="aW0-zy-SZf"/>
+            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+            <connections>
+                <outlet property="openConnectBtn" destination="j28-K1-Uow" id="6He-Mg-VtX"/>
+                <outlet property="sshBtn" destination="ZBe-sf-mjr" id="WgM-rL-TQA"/>
+                <outlet property="sstpBtn" destination="Ikw-nj-JYw" id="S0M-TE-8Wq"/>
+            </connections>
+            <point key="canvasLocation" x="117.55725190839694" y="-9.5070422535211279"/>
+        </tableViewCell>
+    </objects>
+</document>

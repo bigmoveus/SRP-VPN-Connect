@@ -1,0 +1,353 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static void logHandshakeComplete(line_t *l, tlsclient_lstate_t *ls)
+{
+    const uint8_t *alpn     = NULL;
+    unsigned int   alpn_len = 0;
+
+    SSL_get0_alpn_selected(ls->ssl, &alpn, &alpn_len);
+
+    if (alpn_len > 0)
+    {
+        LOGD("TlsClient: worker %u TLS handshake complete (version=%s, cipher=%s, alpn=\"%.*s\")",
+             (unsigned int) lineGetWID(l),
+             SSL_get_version(ls->ssl),
+             SSL_get_cipher_name(ls->ssl),
+             (int) alpn_len,
+             (const char *) alpn);
+        return;
+    }
+
+    LOGD("TlsClient: worker %u TLS handshake complete (version=%s, cipher=%s, alpn=<none>)",
+         (unsigned int) lineGetWID(l),
+         SSL_get_version(ls->ssl),
+         SSL_get_cipher_name(ls->ssl));
+}
+
+static inline int performHandshake(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls)
+{
+    int            n      = SSL_connect(ls->ssl);
+    enum sslstatus status = getSslStatus(ls->ssl, n);
+
+    if (status == kSslstatusFail)
+    {
+        if (X509_V_OK != SSL_get_verify_result(ls->ssl))
+        {
+            long        verify_result = SSL_get_verify_result(ls->ssl);
+            const char *verify_reason = X509_verify_cert_error_string(verify_result);
+            LOGE("TlsClient: downstream payload failed: boringssl says certificate verification failed "
+                 "(verify_result=%ld, reason=%s)",
+                 verify_result,
+                 verify_reason != NULL ? verify_reason : "unknown");
+        }
+        else
+        {
+            LOGW("TlsClient: downstream payload failed: boringssl state is printed below");
+        }
+        tlsclientPrintSSLError();
+        return -1; // Error
+    }
+
+    if (status == kSslstatusWantIo)
+    {
+        // Check if SSL wants to read more data from input BIO
+        int ssl_error = SSL_get_error(ls->ssl, n);
+        if (ssl_error == SSL_ERROR_WANT_READ)
+        {
+            return 0; // Need more input data, break outer loop
+        }
+        // For SSL_ERROR_WANT_WRITE, we will flush output
+    }
+
+    // Flush anything SSL_connect() generated
+    if (! tlsclientFlushSslOutput(t, l, ls))
+    {
+        return -1; // Error (includes line not alive)
+    }
+
+    if (SSL_is_init_finished(ls->ssl))
+    {
+        logHandshakeComplete(l, ls);
+        ls->handshake_completed = true;
+
+        // write the data that we previously wanted to encrypt and send
+        // yes, after the handshake is complete we can safely call SSL_write
+        if (UNLIKELY(! tlsclientDrainPendingPlaintext(t, l)))
+        {
+            return -1; // Error (includes line not alive)
+        }
+    }
+
+    return 1; // Continue handshake
+}
+
+static int performTakeoverHandshake(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls)
+{
+    while (true)
+    {
+        int            n      = SSL_connect(ls->ssl);
+        enum sslstatus status = getSslStatus(ls->ssl, n);
+
+        if (status == kSslstatusFail)
+        {
+            if (X509_V_OK != SSL_get_verify_result(ls->ssl))
+            {
+                long        verify_result = SSL_get_verify_result(ls->ssl);
+                const char *verify_reason = X509_verify_cert_error_string(verify_result);
+                LOGE("TlsClient: takeover handshake failed certificate verification "
+                     "(verify_result=%ld, reason=%s)",
+                     verify_result,
+                     verify_reason != NULL ? verify_reason : "unknown");
+            }
+            tlsclientPrintSSLError();
+            return -1;
+        }
+
+        if (! tlsclientFlushSslOutput(t, l, ls))
+        {
+            return lineIsAlive(l) ? -1 : -2;
+        }
+
+        if (SSL_is_init_finished(ls->ssl))
+        {
+            /*
+             * One complete record was the only ciphertext made available to
+             * BoringSSL. Verify both its transport BIO and internal TLS read
+             * buffer are empty before publishing the handoff boundary.
+             */
+            if (! tlsclientSslReadBoundaryIsClean(ls))
+            {
+                LOGW("TlsClient: completing takeover record was not fully consumed");
+                return -1;
+            }
+
+            logHandshakeComplete(l, ls);
+            ls->handshake_completed = true;
+            if (! ls->handshake_ready_sent)
+            {
+                tlsclient_tstate_t *ts   = tunnelGetState(t);
+                ls->handshake_ready_sent = true;
+                ts->handshake_ready(ts->handshake_owner, l);
+                if (! lineIsAlive(l))
+                {
+                    return -2;
+                }
+                ls = lineGetState(l, t);
+                if (UNLIKELY(ls->tunnel != t || ! ls->handshake_completed))
+                {
+                    return -2;
+                }
+            }
+
+            if (ls->takeover_phase != kTlsClientTakeoverDrain && ls->takeover_phase != kTlsClientTakeoverPassthrough)
+            {
+                LOGW("TlsClient: takeover owner did not begin or complete the negotiated handoff");
+                return -1;
+            }
+            return 1;
+        }
+
+        if (status == kSslstatusWantIo)
+        {
+            int ssl_error = SSL_get_error(ls->ssl, n);
+            if (ssl_error == SSL_ERROR_WANT_READ)
+            {
+                return 0;
+            }
+            continue;
+        }
+
+        LOGW("TlsClient: SSL_connect returned success before the handshake completed");
+        return -1;
+    }
+}
+
+static void processTakeoverHandshakePayload(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls, sbuf_t *buf)
+{
+    lineRef(l);
+    bufferstreamPush(&ls->takeover_stream, buf);
+
+    while (true)
+    {
+        sbuf_t *record  = NULL;
+        bool    invalid = false;
+        if (! tlsclientTakeoverTryReadRecord(ls, &record, &invalid))
+        {
+            if (! invalid)
+            {
+                lineUnref(l);
+                return;
+            }
+            goto failed;
+        }
+
+        if (UNLIKELY(! tlsbufferbioFeed(ls->rbio, record)))
+        {
+            goto failed;
+        }
+
+        int handshake_result = performTakeoverHandshake(t, l, ls);
+        if (handshake_result == -2)
+        {
+            lineUnref(l);
+            return;
+        }
+        if (handshake_result < 0)
+        {
+            goto failed;
+        }
+        if (handshake_result > 0)
+        {
+            lineUnref(l);
+            return;
+        }
+
+        if (! tlsclientSslReadBoundaryIsClean(ls))
+        {
+            LOGW("TlsClient: takeover handshake record left unread ciphertext in BoringSSL");
+            goto failed;
+        }
+    }
+
+failed:
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+    ls = lineGetState(l, t);
+    if (ls->tunnel != t || ls->resources_released)
+    {
+        lineUnref(l);
+        return;
+    }
+    LOGW("TlsClient: downstream takeover handshake failed: boringssl state is printed below");
+    if (ls->ssl != NULL)
+    {
+        tlsclientPrintSSLState(ls->ssl);
+    }
+    lineUnref(l);
+    tlsclientCloseLineBidirectional(t, l);
+}
+
+static inline bool readDecryptedData(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls)
+{
+    int            n;
+    enum sslstatus status;
+
+    /* The encrypted data is now in the input bio so now we can perform actual
+     * read of unencrypted data. */
+    do
+    {
+        sbuf_t *data_buf = bufferpoolGetLargeBuffer(lineGetBufferPool(l));
+
+        int avail = (int) sbufGetMaximumWriteableSize(data_buf);
+        n         = SSL_read(ls->ssl, sbufGetMutablePtr(data_buf), avail);
+
+        if (n > 0)
+        {
+            sbufSetLength(data_buf, n);
+            tunnelPrevDownStreamPayload(t, l, data_buf);
+            if (! lineIsAlive(l))
+            {
+                return false;
+            }
+            ls = lineGetState(l, t);
+            if (UNLIKELY(ls->tunnel != t || ls->resources_released))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            lineReuseBuffer(l, data_buf);
+            status = getSslStatus(ls->ssl, n);
+            if (status == kSslstatusFail)
+            {
+                return false;
+            }
+        }
+    } while (n > 0);
+
+    return true;
+}
+
+void tlsclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    tlsclient_tstate_t *ts = tunnelGetState(t);
+    tlsclient_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->upstream_finished)
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    if (ls->takeover_phase == kTlsClientTakeoverDrain || ls->takeover_phase == kTlsClientTakeoverPassthrough)
+    {
+        tunnelPrevDownStreamPayload(t, l, buf);
+        return;
+    }
+
+    if (ts->handshake_takeover_enabled && ! ls->handshake_completed)
+    {
+        processTakeoverHandshakePayload(t, l, ls, buf);
+        return;
+    }
+
+    if (UNLIKELY(sbufGetLength(buf) == 0))
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    lineRef(l);
+    /* Admission transfers the entire input before a handshake/output callback
+     * can reenter. BIO reads advance the owned input without staging a copy. */
+    if (UNLIKELY(! tlsbufferbioFeed(ls->rbio, buf)))
+        goto failed;
+
+    while (UNLIKELY(! ls->handshake_completed))
+    {
+        int handshake_result = performHandshake(t, l, ls);
+
+        if (UNLIKELY(handshake_result == -1))
+            goto failed;
+
+        if (handshake_result == 0)
+            break; // Need more data (kSslstatusWantIo)
+    }
+
+    // Input can retire shaping and cancel its timer. Drain pending plaintext
+    // here as well, so that retirement cannot strand the paused source.
+    if (UNLIKELY(! tlsclientFlushSslOutput(t, l, ls) || ! readDecryptedData(t, l, ls) ||
+                 ! tlsclientFlushSslOutput(t, l, ls) || ! tlsclientDrainPendingPlaintext(t, l)))
+        goto failed;
+
+    lineUnref(l);
+    return;
+
+failed:
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    ls = lineGetState(l, t);
+    if (ls->tunnel != t || ls->resources_released)
+    {
+        lineUnref(l);
+        return;
+    }
+    LOGW("TlsClient: downstream payload failed: boringssl state is printed below");
+    if (ls->ssl != NULL)
+    {
+        tlsclientPrintSSLState(ls->ssl);
+    }
+
+    lineUnref(l);
+    tlsclientCloseLineBidirectional(t, l);
+}

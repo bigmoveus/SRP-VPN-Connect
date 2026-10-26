@@ -1,0 +1,314 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static bool muxclientReadMaxChildren(const cJSON *settings, uint32_t *value)
+{
+    int64_t parsed = 0;
+    switch (jsonGetObjectIntegerInRange(settings, "max-children", 1, INT_MAX, &parsed))
+    {
+    case kJsonValueMissing:
+        *value = kMuxDefaultMaxChildrenPerParent;
+        return true;
+    case kJsonValuePresent:
+        *value = (uint32_t) parsed;
+        return true;
+    case kJsonValueInvalid:
+        LOGF("MuxClient: \"max-children\" must be a positive integer no greater than INT_MAX");
+        return false;
+    }
+    return false;
+}
+
+static bool muxclientComputeFixedStorageGeometry(size_t workers_count, uint32_t fixed_connections_count,
+                                                 size_t *parents_bytes_out)
+{
+    assert(parents_bytes_out != NULL && workers_count > 0 && fixed_connections_count > 0);
+    *parents_bytes_out = 0;
+
+    if (workers_count > SIZE_MAX / fixed_connections_count)
+    {
+        return false;
+    }
+
+    const size_t slots = workers_count * fixed_connections_count;
+    size_t       parents_bytes;
+    if (! memoryTryComputeArraySize(slots, sizeof(line_t *), &parents_bytes))
+    {
+        return false;
+    }
+
+    *parents_bytes_out = parents_bytes;
+    return true;
+}
+
+static bool muxclientReadParentWriteSettings(const cJSON *settings, muxclient_tstate_t *ts)
+{
+    const char    *names[]    = {"parent-write-buffer-pause-threshold", "parent-write-buffer-limit"};
+    uint32_t      *values[]   = {&ts->parent_write_pause_threshold, &ts->parent_write_limit};
+    const uint32_t defaults[] = {kMuxDefaultParentWritePauseThreshold, kMuxDefaultParentWriteLimit};
+    for (size_t i = 0; i < 2; ++i)
+    {
+        int64_t parsed = 0;
+        switch (jsonGetObjectIntegerInRange(settings, names[i], 1, INT_MAX, &parsed))
+        {
+        case kJsonValueMissing:
+            *values[i] = defaults[i];
+            break;
+        case kJsonValuePresent:
+            *values[i] = (uint32_t) parsed;
+            break;
+        case kJsonValueInvalid:
+            LOGF("MuxClient: \"%s\" must be a positive integer no greater than INT_MAX", names[i]);
+            return false;
+        }
+    }
+    int64_t resume = 0;
+    switch (jsonGetObjectIntegerInRange(settings, "parent-write-buffer-resume-threshold", 0, INT_MAX, &resume))
+    {
+    case kJsonValueMissing:
+        ts->parent_write_resume_threshold = kMuxDefaultParentWriteResumeThreshold;
+        break;
+    case kJsonValuePresent:
+        ts->parent_write_resume_threshold = (uint32_t) resume;
+        break;
+    case kJsonValueInvalid:
+        LOGF("MuxClient: parent-write-buffer-resume-threshold must be an integer in [0, INT_MAX]");
+        return false;
+    }
+    if (ts->parent_write_resume_threshold >= ts->parent_write_pause_threshold ||
+        ts->parent_write_pause_threshold >= ts->parent_write_limit)
+    {
+        LOGF("MuxClient: require parent-write-buffer-resume-threshold=%u < "
+             "parent-write-buffer-pause-threshold=%u < parent-write-buffer-limit=%u",
+             ts->parent_write_resume_threshold,
+             ts->parent_write_pause_threshold,
+             ts->parent_write_limit);
+        return false;
+    }
+    return true;
+}
+
+tunnel_t *muxclientTunnelCreate(node_t *node)
+{
+    int wc = getWorkersCount();
+
+    if (wc <= 0)
+    {
+        LOGF("MuxClient: at least one worker is required");
+        return NULL;
+    }
+    /* getWorkersCount() returns an 8-bit count; this fixed worker state fits on every target. */
+    const size_t worker_bytes = (size_t) wc * sizeof(muxclient_worker_state_t);
+
+    tunnel_t *t = tunnelCreate(node, sizeof(muxclient_tstate_t) + worker_bytes, sizeof(muxclient_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    t->fnInitU    = &muxclientTunnelUpStreamInit;
+    t->fnFinU     = &muxclientTunnelUpStreamFinish;
+    t->fnPayloadU = &muxclientTunnelUpStreamPayload;
+    t->fnPauseU   = &muxclientTunnelUpStreamPause;
+    t->fnResumeU  = &muxclientTunnelUpStreamResume;
+    t->fnEstD     = &muxclientTunnelDownStreamEst;
+    t->fnFinD     = &muxclientTunnelDownStreamFinish;
+    t->fnPayloadD = &muxclientTunnelDownStreamPayload;
+    t->fnPauseD   = &muxclientTunnelDownStreamPause;
+    t->fnResumeD  = &muxclientTunnelDownStreamResume;
+
+    t->onWorkerQuiesce = &muxclientTunnelOnWorkerQuiesce;
+    t->onWorkerStop = &muxclientTunnelOnWorkerStop;
+    t->onDestroy    = &muxclientTunnelDestroy;
+
+    const mux_detached_defaults_t detached_defaults             = muxGetDefaultDetachedLimits(RAM_PROFILE);
+    const cJSON                  *settings                      = node->node_settings_json;
+    muxclient_tstate_t           *ts                            = tunnelGetState(t);
+    int                           child_buffer_limit            = kMuxDefaultChildBufferLimit;
+    int                           child_buffer_resume_threshold = kMuxDefaultChildBufferResumeThreshold;
+    int                           parent_buffer_limit           = kMuxDefaultParentBufferLimit;
+    int                           detached_buffer_limit         = (int) detached_defaults.buffer_limit;
+    int                           detached_child_limit          = (int) detached_defaults.child_limit;
+    bool                          log_main_line_stats           = false;
+    uint32_t                      staged_fixed_connections      = 0;
+
+    if (! muxclientReadParentWriteSettings(settings, ts))
+    {
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    if (! muxclientReadMaxChildren(settings, &ts->max_children))
+    {
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    ts->keepalive         = true;
+    int64_t ping_interval = kMuxDefaultPingIntervalMs;
+    int64_t pong_timeout  = kMuxDefaultPongTimeoutMs;
+    if (jsonGetObjectBoolean(settings, "keepalive", &ts->keepalive) == kJsonValueInvalid ||
+        jsonGetObjectIntegerInRange(settings, "ping-interval", 1, INT_MAX, &ping_interval) == kJsonValueInvalid ||
+        jsonGetObjectIntegerInRange(settings, "tolerance-ms", 1, INT_MAX, &pong_timeout) == kJsonValueInvalid)
+    {
+        LOGF("MuxClient: keepalive must be boolean; ping-interval and tolerance-ms must be integers in [1, INT_MAX]");
+        tunnelDestroy(t);
+        return NULL;
+    }
+    ts->ping_interval_ms = (uint32_t) ping_interval;
+    ts->pong_timeout_ms  = (uint32_t) pong_timeout;
+
+    getIntFromJsonObjectOrDefault(&child_buffer_limit, settings, "child-buffer-limit", kMuxDefaultChildBufferLimit);
+    getIntFromJsonObjectOrDefault(&child_buffer_resume_threshold,
+                                  settings,
+                                  "child-buffer-resume-threshold",
+                                  kMuxDefaultChildBufferResumeThreshold);
+    getIntFromJsonObjectOrDefault(&parent_buffer_limit, settings, "parent-buffer-limit", kMuxDefaultParentBufferLimit);
+    getIntFromJsonObjectOrDefault(
+        &detached_buffer_limit, settings, "detached-buffer-limit", (int) detached_defaults.buffer_limit);
+    getIntFromJsonObjectOrDefault(
+        &detached_child_limit, settings, "detached-child-limit", (int) detached_defaults.child_limit);
+    getBoolFromJsonObjectOrDefault(&log_main_line_stats, settings, "log-main-line-stats", false);
+    if (child_buffer_limit <= 0)
+    {
+        LOGF("MuxClient: \"child-buffer-limit\" must be greater than 0, got %d", child_buffer_limit);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    if (child_buffer_resume_threshold <= 0)
+    {
+        LOGF("MuxClient: \"child-buffer-resume-threshold\" must be greater than 0, got %d",
+             child_buffer_resume_threshold);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    if (parent_buffer_limit < 0)
+    {
+        LOGF("MuxClient: \"parent-buffer-limit\" must be greater than or equal to 0, got %d", parent_buffer_limit);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    if (detached_buffer_limit < 0)
+    {
+        LOGF("MuxClient: \"detached-buffer-limit\" must be greater than or equal to 0, got %d", detached_buffer_limit);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    if (detached_child_limit < 0)
+    {
+        LOGF("MuxClient: \"detached-child-limit\" must be greater than or equal to 0, got %d", detached_child_limit);
+        tunnelDestroy(t);
+        return NULL;
+    }
+    ts->child_buffer_limit = (uint32_t) child_buffer_limit;
+    ts->child_buffer_resume_threshold =
+        (uint32_t) min((size_t) child_buffer_resume_threshold, (size_t) child_buffer_limit);
+    // This is a per-parent budget, not another per-child limit, so it may
+    // intentionally be smaller than child_buffer_limit. Zero disables it.
+    ts->parent_buffer_limit   = (uint32_t) parent_buffer_limit;
+    ts->detached_buffer_limit = (uint32_t) detached_buffer_limit;
+    ts->detached_child_limit  = (uint32_t) detached_child_limit;
+    ts->workers_count         = (uint32_t) wc;
+    for (uint32_t wid = 0; wid < ts->workers_count; ++wid)
+        bufferbudgetInit(&ts->worker_states[wid].detached_queue_budget,
+                         (buffer_budget_cost_t) {.bytes = SIZE_MAX, .charge = SIZE_MAX, .entries = SIZE_MAX});
+    ts->log_main_line_stats   = log_main_line_stats;
+
+    ts->concurrency_mode =
+        parseDynamicNumericValueFromJsonObject(settings, "mode", 3, "timer", "counter", "fixed-connections-count")
+            .status;
+
+    if (ts->concurrency_mode != kConcurrencyModeTimer && ts->concurrency_mode != kConcurrencyModeCounter &&
+        ts->concurrency_mode != kConcurrencyModeFixedConnectionsCount)
+    {
+        LOGF("MuxClient: Invalid concurrency mode: %u", ts->concurrency_mode);
+        tunnelDestroy(t);
+        return NULL;
+    }
+
+    if (ts->concurrency_mode == kConcurrencyModeTimer)
+    {
+        int duration = 0;
+        if (! getIntFromJsonObject(&duration, settings, "connection-duration-ms"))
+        {
+            LOGF("MuxClient: \"connection-duration-ms\" is not specified", duration);
+            tunnelDestroy(t);
+            return NULL;
+        }
+        if (duration <= 0)
+        {
+            LOGF("MuxClient: duration must be greater than 0, got %d", duration);
+            tunnelDestroy(t);
+            return NULL;
+        }
+        if (duration <= 60)
+        {
+            LOGF("MuxClient: This value is in Milliseconds: you are probably wrong with value lower than 60 , value is"
+                 " %d",
+                 duration);
+            tunnelDestroy(t);
+            return NULL;
+        }
+
+        ts->concurrency_duration = duration;
+    }
+
+    if (ts->concurrency_mode == kConcurrencyModeCounter)
+    {
+        int counter = 0;
+        if (! getIntFromJsonObject(&counter, settings, "connection-capacity"))
+        {
+            LOGF("MuxClient: \"connection-capacity\" is not specified", counter);
+            tunnelDestroy(t);
+            return NULL;
+        }
+
+        if (counter <= 0)
+        {
+            LOGF("MuxClient: \"connection-capacity\" must be greater than 0, got %d", counter);
+            tunnelDestroy(t);
+            return NULL;
+        }
+        ts->concurrency_capacity = counter;
+    }
+
+    if (ts->concurrency_mode == kConcurrencyModeFixedConnectionsCount)
+    {
+        int fixed_connections_count = 0;
+        if (! getIntFromJsonObject(&fixed_connections_count, settings, "per-worker-connections-count"))
+        {
+            LOGF("MuxClient: \"per-worker-connections-count\" is not specified");
+            tunnelDestroy(t);
+            return NULL;
+        }
+
+        if (fixed_connections_count <= 0)
+        {
+            LOGF("MuxClient: \"per-worker-connections-count\" must be greater than 0, got %d", fixed_connections_count);
+            tunnelDestroy(t);
+            return NULL;
+        }
+
+        staged_fixed_connections = (uint32_t) fixed_connections_count;
+    }
+
+    line_t                  **staged_fixed_parent_lines   = NULL;
+
+    if (staged_fixed_connections != 0)
+    {
+        size_t fixed_parent_bytes;
+        if (! muxclientComputeFixedStorageGeometry((size_t) wc, staged_fixed_connections, &fixed_parent_bytes))
+        {
+            LOGF("MuxClient: \"per-worker-connections-count\" is too large: %u", staged_fixed_connections);
+            tunnelDestroy(t);
+            return NULL;
+        }
+        staged_fixed_parent_lines = memoryAllocateZero(fixed_parent_bytes);
+    }
+
+    ts->fixed_connections_count   = staged_fixed_connections;
+    ts->fixed_parent_lines        = staged_fixed_parent_lines;
+
+    return t;
+}

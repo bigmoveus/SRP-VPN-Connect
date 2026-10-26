@@ -1,0 +1,51 @@
+#include "internal.h"
+
+void vlessserverTunnelUpStreamResume(tunnel_t *t, line_t *l)
+{
+    vlessserver_lstate_t *ls = lineGetState(l, t);
+
+    if (UNLIKELY(ls->phase == kVlessServerPhaseClosing))
+    {
+        return;
+    }
+
+    if (ls->line_kind == kVlessServerLineKindUdpRemote)
+    {
+        return;
+    }
+
+    ls->response_paused = false;
+
+    if (UNLIKELY(ls->phase == kVlessServerPhaseFallback))
+    {
+        tunnel_t *fallback = ((vlessserver_tstate_t *) tunnelGetState(t))->fallback_tunnel;
+        if (LIKELY(fallback != NULL))
+        {
+            tunnelUpStreamResume(fallback, l);
+        }
+        return;
+    }
+
+    if (ls->phase == kVlessServerPhaseTcpConnecting || ls->phase == kVlessServerPhaseTcpEstablished)
+    {
+        tunnelNextUpStreamResume(t, l);
+        return;
+    }
+
+    if (bufferqueueGetBufCount(&ls->pending_down) != 0 && ! vlessserverDrainResponse(t, l, false))
+    {
+        return;
+    }
+    ls = lineGetState(l, t);
+    if (ls->response_paused)
+        return;
+
+    if (ls->phase == kVlessServerPhaseUdpConnecting || ls->phase == kVlessServerPhaseUdpEstablished)
+    {
+        line_t *remote_l = ls->udp_remote_line;
+        if (LIKELY(remote_l != NULL && lineIsAlive(remote_l)))
+        {
+            discard lineCallWithRef(remote_l, tunnelNextUpStreamResume, t);
+        }
+    }
+}

@@ -1,0 +1,115 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+#include "tricks/echsnitrick/trick.h"
+#include "tricks/overlapsni/trick.h"
+#include "tricks/portghost/trick.h"
+#include "tricks/protoswap/trick.h"
+#include "tricks/smugglefin/trick.h"
+#include "tricks/smugglesni/trick.h"
+#include "tricks/sniblender/trick.h"
+#include "tricks/tcpbitchange/trick.h"
+
+void ipmanipulatorDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    assert(lineIsOnCurrentWorker(l));
+
+    ipmanipulator_tstate_t *state = tunnelGetState(t);
+    bool                    decoded = false;
+
+    if (state->trick_proto_swap)
+    {
+        if (sbufGetLength(buf) >= sizeof(struct ip_hdr))
+        {
+            const struct ip_hdr *ip = sbufGetRawPtr(buf);
+            if (IPH_V(ip) == 4 && ((IPH_PROTO(ip) == IPPROTO_TCP && state->trick_proto_swap_tcp_number != -1) ||
+                                   (IPH_PROTO(ip) == IPPROTO_UDP && state->trick_proto_swap_udp_number != -1)))
+            {
+                /* Port restoration supports either protocol representation. Keep it
+                 * before normalization so any requested repair still sees native bytes. */
+                if (state->trick_source_port_ghost || state->trick_dest_port_ghost)
+                {
+                    discard portghosttrickRestore(t, l, &buf);
+                    if (buf == NULL)
+                    {
+                        return;
+                    }
+                }
+                ipmanipulatorSendDownstreamEncoded(t, l, buf);
+                return;
+            }
+        }
+        decoded = protoswapApply(t, l, buf);
+    }
+
+    if (state->trick_source_port_ghost || state->trick_dest_port_ghost)
+    {
+        discard portghosttrickRestore(t, l, &buf);
+        if (buf == NULL)
+        {
+            return;
+        }
+    }
+
+    if (decoded && getWorkersCount() > 1)
+    {
+        /* Restore the native tuple before selecting its stateful processing
+         * worker. The continuation must not repeat decoding or port restore. */
+        packetAffinityForward(state->decoded_downstream_affinity, l, buf);
+        return;
+    }
+
+    ipmanipulatorDownStreamPayloadAfterDecode(t, l, buf);
+}
+
+void ipmanipulatorDownStreamPayloadAfterDecode(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    assert(lineIsOnCurrentWorker(l));
+    ipmanipulator_tstate_t *state = tunnelGetState(t);
+
+    if (state->trick_smuggle_fin && smugglefintrickDownStreamPayload(t, l, buf))
+    {
+        return;
+    }
+
+    ipmanipulatorDownStreamPayloadAfterSmuggleFin(t, l, buf);
+}
+
+void ipmanipulatorDownStreamPayloadAfterSmuggleFin(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    assert(lineIsOnCurrentWorker(l));
+
+    ipmanipulator_tstate_t *state = tunnelGetState(t);
+
+    if (state->trick_ech_sni && echsnitrickDownStreamPayload(t, l, buf))
+    {
+        return;
+    }
+
+    if (state->trick_overlap_sni && overlapsnitrickDownStreamPayload(t, l, buf))
+    {
+        return;
+    }
+
+    if (state->trick_tcp_bit_changes)
+    {
+        tcpbitchangetrickDownStreamPayload(t, l, &buf);
+        if (buf == NULL)
+        {
+            return;
+        }
+    }
+
+    if (state->trick_sni_blender)
+    {
+        sniblendertrickDownStreamPayload(t, l, buf);
+    }
+
+    if (state->trick_smuggle_sni)
+    {
+        smugglesnitrickLogDownStreamServerHello(t, l, buf);
+    }
+
+    ipmanipulatorSendDownstreamFinal(t, l, buf);
+}

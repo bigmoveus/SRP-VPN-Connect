@@ -1,0 +1,241 @@
+#pragma once
+
+#include "HttpCommon/h2_data.h"
+#include "wwapi.h"
+
+#include "http2_def.h"
+#include "http_def.h"
+#include "nghttp2/nghttp2.h"
+
+typedef enum httpclient_version_mode_e
+{
+    kHttpClientVersionModeHttp1 = 1,
+    kHttpClientVersionModeHttp2 = 2,
+    kHttpClientVersionModeBoth  = 3
+} httpclient_version_mode_t;
+
+typedef enum httpclient_runtime_proto_e
+{
+    kHttpClientRuntimeUnknown      = 0,
+    kHttpClientRuntimeHttp1        = 1,
+    kHttpClientRuntimeHttp2        = 2,
+    kHttpClientRuntimeWaitUpgrade  = 3,
+    kHttpClientRuntimeAfterUpgrade = 4,
+    kHttpClientRuntimeUpgradedRaw  = 5
+} httpclient_runtime_proto_t;
+
+typedef enum httpclient_h1_body_mode_e
+{
+    kHttpClientH1BodyNone       = 0,
+    kHttpClientH1BodyChunked    = 1,
+    kHttpClientH1BodyContentLen = 2,
+    kHttpClientH1BodyUntilClose = 3
+} httpclient_h1_body_mode_t;
+
+typedef enum httpclient_h1_transport_mode_e
+{
+    kHttpClientH1TransportSingle = 0,
+    kHttpClientH1TransportSplit  = 1
+} httpclient_h1_transport_mode_t;
+
+typedef enum httpclient_split_role_e
+{
+    kHttpClientSplitRoleNone     = 0,
+    kHttpClientSplitRoleMain     = 1,
+    kHttpClientSplitRoleUpload   = 2,
+    kHttpClientSplitRoleDownload = 3
+} httpclient_split_role_t;
+
+typedef enum httpclient_split_placement_e
+{
+    kHttpClientSplitPlacementQuery  = 0,
+    kHttpClientSplitPlacementHeader = 1,
+    kHttpClientSplitPlacementCookie = 2,
+    kHttpClientSplitPlacementPath   = 3
+} httpclient_split_placement_t;
+
+typedef struct httpclient_tstate_s
+{
+    nghttp2_session_callbacks *cbs;
+    nghttp2_option            *ngoptions;
+
+    char *scheme;
+    char *path;
+    char *host;
+    char *method;
+    char *user_agent;
+    char *websocket_origin;
+    char *websocket_subprotocol;
+    char *websocket_extensions;
+    char *upgrade_protocol;
+    char *split_upload_method;
+    char *split_download_method;
+    char *split_upload_path;
+    char *split_download_path;
+    char *split_id_name;
+    char *split_direction_name;
+    char *split_upload_value;
+    char *split_download_value;
+    char *split_cache_bypass_name;
+    char *split_token;
+    char *split_token_name;
+
+    const cJSON *headers;
+    const cJSON *upgrade_request_headers;
+    const cJSON *upgrade_response_headers;
+    const cJSON *split_upload_headers;
+    const cJSON *split_download_headers;
+
+    enum http_method       method_enum;
+    enum http_method       split_upload_method_enum;
+    enum http_method       split_download_method_enum;
+    enum http_content_type content_type;
+
+    int host_port;
+
+    uint8_t *upgrade_settings_payload;
+    size_t   upgrade_settings_payload_len;
+    char    *upgrade_settings_b64;
+
+    httpclient_version_mode_t      version_mode;
+    httpclient_h1_transport_mode_t h1_transport_mode;
+    httpclient_split_placement_t   split_id_placement;
+    httpclient_split_placement_t   split_direction_placement;
+    httpclient_split_placement_t   split_token_placement;
+    bool                           enable_upgrade;
+    bool                           websocket_enabled;
+    bool                           split_cache_bypass;
+    bool                           verbose;
+} httpclient_tstate_t;
+
+typedef struct httpclient_lstate_s
+{
+    tunnel_t *tunnel;
+    line_t   *line;
+
+    nghttp2_session *session;
+
+    buffer_stream_t            in_stream;
+    buffer_queue_t             pending_up;
+    context_queue_t            events_down;
+    h2_data_queue_t            h2_data;
+
+    httpclient_runtime_proto_t runtime_proto;
+
+    int32_t h2_stream_id;
+
+    int64_t h1_chunk_expected;
+    int64_t h1_body_remaining;
+
+    bool                      h1_headers_parsed;
+    bool                      h1_trailing_bytes_logged;
+    httpclient_h1_body_mode_t h1_body_mode;
+
+    bool h2_headers_received;
+    bool response_complete;
+    bool prev_finished;
+    bool next_finished;
+
+    bool fin_sent;
+
+    bool websocket_active;
+    bool websocket_waiting_handshake;
+    bool websocket_close_sent;
+    bool websocket_close_received;
+    bool websocket_h2_waiting_connect;
+    bool websocket_h2_request_submitted;
+    bool websocket_h2_status_seen;
+    bool websocket_h2_protocol_seen;
+    bool websocket_h2_extensions_seen;
+    int  websocket_h2_status_code;
+    char websocket_key[32];
+    char websocket_h2_protocol[128];
+    char websocket_h2_extensions[256];
+
+    httpclient_split_role_t split_role;
+    line_t                 *split_main_line;
+    line_t                 *split_upload_line;
+    line_t                 *split_download_line;
+    char                    split_id[48];
+    bool                    h1_write_in_progress;
+    bool                    h2_request_headers_sent;
+} httpclient_lstate_t;
+
+enum
+{
+    kTunnelStateSize = sizeof(httpclient_tstate_t),
+    kLineStateSize   = sizeof(httpclient_lstate_t),
+
+    kHttpClientRequiredPaddingLeft = 16,
+
+    kHttpClientBufferQueueCap   = 8,
+    kHttpClientMaxHeaderBytes   = 64 * 1024,
+    kHttpClientHttp1ChunkBodyBytes   = 16 * 1024 - 12,
+    kHttpClientHttp1NestedMaxBuffers = 8,
+    kHttpClientHttp1NestedMaxBytes   = 1024 * 1024,
+    kHttpClientHttp1NestedMaxCharge  = 2 * 1024 * 1024,
+    kHttpClientHttp2DataBytes        = 16 * 1024 - 9,
+    kHttpClientHttp2SettingsMaxCount = 5,
+    kHttpClientHttp2StreamWindow     = 6 * 1024 * 1024,
+    kHttpClientHttp2ConnectionWindow = 15 * 1024 * 1024,
+    kHttpClientDefaultHttp1Port = 80,
+    kHttpClientDefaultHttpsPort = 443,
+
+    kHttpClientSplitIdHexChars = 32,
+    kHttpClientSplitIdCapacity = 33
+};
+
+WW_EXPORT void         httpclientTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *httpclientTunnelCreate(node_t *node);
+WW_EXPORT api_result_t httpclientTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void httpclientTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void httpclientTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void httpclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void httpclientTunnelUpStreamPause(tunnel_t *t, line_t *l);
+void httpclientTunnelUpStreamResume(tunnel_t *t, line_t *l);
+
+void httpclientTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void httpclientTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void httpclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void httpclientTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void httpclientTunnelDownStreamResume(tunnel_t *t, line_t *l);
+
+void httpclientLinestateInitialize(httpclient_lstate_t *ls, tunnel_t *t, line_t *l);
+void httpclientLinestateDestroy(httpclient_lstate_t *ls);
+
+sbuf_t *allocBufferForLength(line_t *l, uint32_t len);
+size_t  httpclientBuildHttp2Settings(const httpclient_tstate_t *ts,
+                                     nghttp2_settings_entry     settings[kHttpClientHttp2SettingsMaxCount]);
+
+bool httpclientTransportSendHttp1RequestHeaders(tunnel_t *t, line_t *l, bool upgrade_to_h2);
+bool httpclientTransportSendHttp1SplitRequestHeaders(tunnel_t *t, line_t *l);
+bool httpclientTransportSendHttp1FinalChunk(tunnel_t *t, line_t *l);
+bool httpclientTransportSendHttp1ChunkedPayload(tunnel_t *t, line_t *l, sbuf_t *payload);
+bool httpclientTransportSendWebSocketData(tunnel_t *t, line_t *l, httpclient_lstate_t *ls, sbuf_t *payload,
+                                          uint8_t opcode);
+bool httpclientTransportSendWebSocketClose(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportDrainWebSocketDown(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+
+bool httpclientTransportEnsureHttp2Session(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportHandleUpgradeAccepted(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportSendHttp2DataFrame(tunnel_t *t, line_t *l, httpclient_lstate_t *ls, sbuf_t *payload,
+                                           bool end_stream);
+
+bool httpclientTransportFlushPendingUp(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportFinishCustomUpgrade(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportQueueRawInput(tunnel_t *t, line_t *l, sbuf_t *buf, bool upstream);
+bool httpclientTransportFeedHttp2Input(tunnel_t *t, line_t *l, httpclient_lstate_t *ls, sbuf_t *buf);
+bool httpclientTransportHandleHttp1ResponseHeaderPhase(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportDrainHttp1ChunkedBody(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientTransportDrainHttp1Body(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+void httpclientTransportCloseBothDirections(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+void httpclientTransportCloseNextDirection(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+
+bool httpclientSplitIsEnabled(tunnel_t *t);
+bool httpclientSplitGenerateId(char *out, size_t out_capacity);
+void httpclientSplitUpStreamInit(tunnel_t *t, line_t *l);
+void httpclientSplitUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void httpclientSplitUpStreamFinish(tunnel_t *t, line_t *l);
+void httpclientSplitDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void httpclientSplitDownStreamFinish(tunnel_t *t, line_t *l);

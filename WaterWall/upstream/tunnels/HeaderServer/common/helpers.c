@@ -1,0 +1,123 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static bool headerserverParsePort(uint16_t *out, const cJSON *value, const char *json_path)
+{
+    int64_t val = 0;
+    if (! jsonGetIntegerInRange(value, 1, UINT16_MAX, &val))
+    {
+        LOGF("HeaderServer: %s must be in range [1, %u]", json_path, (unsigned int) UINT16_MAX);
+        return false;
+    }
+
+    *out = (uint16_t) val;
+    return true;
+}
+
+bool headerserverLoadSettings(headerserver_tstate_t *ts, const cJSON *settings)
+{
+    dynamic_value_t override = parseDynamicNumericValueFromJsonObject(settings,
+                                                                      "override",
+                                                                      5,
+                                                                      "dest_context->port",
+                                                                      "line->dest_ctx->port",
+                                                                      "proxy-protocol->source-fields",
+                                                                      "dest_context->protocol",
+                                                                      "line->dest_ctx->protocol");
+
+    switch (override.status)
+    {
+    case kDvsFirstOption:
+    case kDvsSecondOption:
+        ts->override_mode = kHeaderServerOverrideModeHeaderPort;
+        return true;
+
+    case kDvsThirdOption:
+        ts->override_mode = kHeaderServerOverrideModeProxyProtocolSourceFields;
+        return true;
+
+    case kDvsFourthOption:
+    case kDvsFifthOption:
+        ts->override_mode = kHeaderServerOverrideModeHeaderProtocol;
+        return true;
+
+    case kDvsConstant: {
+        const cJSON *override_json = cJSON_GetObjectItemCaseSensitive(settings, "override");
+        ts->override_mode          = kHeaderServerOverrideModeConstant;
+        return headerserverParsePort(&ts->constant_port, override_json, "settings.override");
+    }
+
+    default:
+        LOGF("HeaderServer: settings.override is required and must be a port number, \"dest_context->port\", "
+             "\"dest_context->protocol\", or \"proxy-protocol->source-fields\"");
+        return false;
+    }
+}
+
+void headerserverCloseLineFromUpstream(tunnel_t *t, line_t *l)
+{
+    lineRef(l);
+
+    headerserver_lstate_t *ls = lineGetState(l, t);
+    if (ls->phase == kHeaderServerPhaseNone)
+    {
+        lineUnref(l);
+        return;
+    }
+
+    bool close_next = ls->phase == kHeaderServerPhaseEstablished;
+
+    headerserverLinestateDestroy(ls);
+
+    if (close_next)
+    {
+        tunnelNextUpStreamFinish(t, l);
+    }
+
+    lineUnref(l);
+}
+
+void headerserverCloseLineFromDownstream(tunnel_t *t, line_t *l)
+{
+    lineRef(l);
+
+    headerserver_lstate_t *ls = lineGetState(l, t);
+    if (ls->phase == kHeaderServerPhaseNone)
+    {
+        lineUnref(l);
+        return;
+    }
+
+    headerserverLinestateDestroy(ls);
+    tunnelPrevDownStreamFinish(t, l);
+
+    lineUnref(l);
+}
+
+void headerserverCloseLineFromProtocolError(tunnel_t *t, line_t *l)
+{
+    lineRef(l);
+
+    headerserver_lstate_t *ls = lineGetState(l, t);
+    if (ls->phase == kHeaderServerPhaseNone)
+    {
+        lineUnref(l);
+        return;
+    }
+
+    bool close_next = ls->phase == kHeaderServerPhaseEstablished;
+
+    headerserverLinestateDestroy(ls);
+
+    if (close_next)
+    {
+        tunnelNextUpStreamFinish(t, l);
+    }
+
+    if (lineIsAlive(l))
+    {
+        tunnelPrevDownStreamFinish(t, l);
+    }
+    lineUnref(l);
+}

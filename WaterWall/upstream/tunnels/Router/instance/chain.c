@@ -1,0 +1,146 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static bool routerDeferUntilPrevious(tunnel_t *t, tunnel_chain_t *chain)
+{
+    if (t->prev != NULL)
+    {
+        return false;
+    }
+
+    if (chain->tunnels.len != 0)
+    {
+        LOGF("Router: cannot defer internal DomainResolver insertion on a non-empty chain");
+        startupFailureRecord(1);
+        return true;
+    }
+
+    tunnelchainDestroy(chain);
+    return true;
+}
+
+static void routerSetRuleTargetEntry(tunnel_t *t, router_rule_t *rule, tunnel_t *target)
+{
+    tunnel_t *entry = tunnelGetBranchEntry(t, target);
+    if (entry == NULL)
+    {
+        LOGF("Router: rule target node \"%s\" is not reachable from the router", target->node->name);
+        startupFailureRecord(1);
+        return;
+    }
+
+    rule->target_tunnel = entry;
+}
+
+// Fold a rule's target node into this router's chain so the target gets a
+// per-line state slot and its downstream traffic returns through the router.
+// If the target inserts internal tunnels before itself, store that branch entry
+// as the callable route. The same target may be referenced by several rules.
+static void routerBindRuleTarget(tunnel_t *t, tunnel_chain_t *chain, router_rule_t *rule, uint32_t rule_index)
+{
+    tunnel_t *target = rule->target_node->instance;
+    if (target == NULL)
+    {
+        LOGF("Router: referenced target tunnel \"%s\" is not available", rule->target_node->name);
+        startupFailureRecord(1);
+        return;
+    }
+
+    if (target == t)
+    {
+        LOGF("Router: rule target must be different from the router");
+        startupFailureRecord(1);
+        return;
+    }
+
+    if (target->chain == chain)
+    {
+        // A previous binding may have inserted private predecessors. Only the
+        // configured default or an already-bound rule target may reuse those
+        // predecessors; an arbitrary descendant belongs to another node.
+        bool bound_by_router =
+            target->prev == t || (t->node->hash_next != 0 && t->node->hash_next == rule->target_node->hash_name);
+        router_tstate_t *ts = tunnelGetState(t);
+        for (uint32_t i = 0; ! bound_by_router && i < rule_index; ++i)
+        {
+            bound_by_router = ts->rules[i].target_node == rule->target_node && ts->rules[i].target_tunnel != NULL;
+        }
+        if (! bound_by_router)
+        {
+            LOGF("Router: rule target node \"%s\" belongs to another configured branch", rule->target_node->name);
+            startupFailureRecord(1);
+            return;
+        }
+        routerSetRuleTargetEntry(t, rule, target);
+        return;
+    }
+
+    if (target->prev != NULL && target->prev != t)
+    {
+        LOGF("Router: rule target node \"%s\" is already bound to previous node \"%s\"",
+             target->node->name,
+             target->prev->node->name);
+        startupFailureRecord(1);
+        return;
+    }
+
+    if (target->prev == NULL)
+    {
+        tunnelBindDown(t, target);
+    }
+
+    if (target->chain != NULL)
+    {
+        tunnelchainCombine(chain, target->chain);
+    }
+    else
+    {
+        target->onChain(target, chain);
+    }
+    if (UNLIKELY(startupFailurePending()))
+    {
+        return;
+    }
+
+    routerSetRuleTargetEntry(t, rule, target);
+}
+
+void routerTunnelOnChain(tunnel_t *t, tunnel_chain_t *chain)
+{
+    router_tstate_t *ts = tunnelGetState(t);
+
+    if (ts->resolve_domains)
+    {
+        if (routerDeferUntilPrevious(t, chain))
+        {
+            return;
+        }
+
+        if (! tunnelInsertBefore(t, ts->domain_resolver_tunnel, chain))
+        {
+            return;
+        }
+    }
+
+    tunnelDefaultOnChain(t, chain);
+    if (UNLIKELY(startupFailurePending()))
+    {
+        return;
+    }
+    chain = tunnelGetChain(t);
+
+    for (uint32_t i = 0; i < ts->rules_count; ++i)
+    {
+        routerBindRuleTarget(t, chain, &ts->rules[i], i);
+        if (UNLIKELY(startupFailurePending()))
+        {
+            return;
+        }
+
+        // A target's onChain may merge this chain into an already-built downstream chain,
+        // destroying the local pointer while updating t->chain. Reacquire it before the
+        // next rule instead of carrying a potentially freed chain across iterations.
+        chain = tunnelGetChain(t);
+    }
+}

@@ -1,0 +1,199 @@
+#pragma once
+
+#include "TlsRecordShapingCommon/record_shaping.h"
+#include "interface.h"
+#include "wwapi.h"
+
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
+
+#include "TlsBufferBio/buffer_bio.h"
+
+typedef struct tlsclient_tstate_s
+{
+    // settings
+    uint8_t                  *alpn_wire;
+    size_t                    alpn_wire_len;
+    char                     *sni;
+    char                     *ech_grease_sni_override;
+    bool                      verify;
+    bool                      verbose;
+    bool                      x25519mlkem768_enabled;
+    bool                      handshake_takeover_enabled;
+    tlsrecordshaping_config_t record_shaping;
+
+    // state
+    tunnel_t                    *handshake_owner;
+    tlsclient_handshake_ready_fn handshake_ready;
+    SSL_CTX                    **threadlocal_ssl_contexts;
+    SSL_CTX                    **threadlocal_ech_grease_inner_ssl_contexts;
+    tunnel_t                    *fragment_tunnel;
+    node_t                       fragment_node;
+    cJSON                       *fragment_settings;
+} tlsclient_tstate_t;
+
+typedef enum tlsclient_takeover_phase_e
+{
+    kTlsClientTakeoverHandshake = 0,
+    kTlsClientTakeoverDrain,
+    kTlsClientTakeoverPassthrough,
+} tlsclient_takeover_phase_t;
+
+typedef struct tlsclient_lstate_s
+{
+    tunnel_t                       *tunnel;
+    line_t                         *line;
+    SSL                            *ssl;
+    BIO                            *rbio;
+    BIO                            *wbio;
+    buffer_budget_t                 pending_budget;
+    buffer_budget_reservation_t     pending_reservation;
+    buffer_queue_t                  bq;
+    buffer_stream_t                 takeover_stream;
+    tlsrecordshaping_output_queue_t shaping_output;
+    tlsrecordshaping_state_t        shaping_state;
+    wtimer_t                       *shaping_output_timer;
+    tlsclient_takeover_phase_t      takeover_phase;
+    // Reality binds the visible ClientHello, including when ECH hides a different inner random.
+    uint8_t                         outer_client_random[SSL3_RANDOM_SIZE];
+    bool                            outer_client_random_captured;
+    bool                            handshake_completed;
+    bool                            handshake_ready_sent;
+    bool                            resources_released;
+    bool                            post_handshake_consume_in_progress;
+    bool                            upstream_finished;
+    bool                            shaping_producer_paused;
+    /* Monotonic: once true, an uninitialized shaping_output is intentional. */
+    bool shaping_retired;
+    bool shaping_timer_failure_logged;
+    bool shaping_metadata_error;
+    bool verbose;
+    bool transport_est_sent;
+    /* Locally originated protocol/order and shaping pressure share one source notification. */
+    bool plaintext_producer_paused;
+    bool source_paused;
+    bool plaintext_write_in_progress;
+    /* Plaintext awaiting TLS readiness or older reentrant output. The active
+     * head remains charged and owned here across wire callbacks. */
+    sbuf_t *pending_plaintext;
+} tlsclient_lstate_t;
+
+enum
+{
+    kTlsClientTunnelStateSize         = sizeof(tlsclient_tstate_t),
+    kTlsClientLineStateSize           = sizeof(tlsclient_lstate_t),
+    kTlsClientPendingPlaintextBytes   = 2U * 1024U * 1024U,
+    kTlsClientPendingPlaintextBuffers = 1024U
+};
+
+enum sslstatus
+{
+    kSslstatusOk,
+    kSslstatusWantIo,
+    kSslstatusFail
+};
+
+enum tlsclient_record_e
+{
+    kTlsClientRecordHeaderSize = SSL3_RT_HEADER_LENGTH,
+    kTlsClientMaxRecordBody    = SSL3_RT_MAX_ENCRYPTED_LENGTH,
+    kTlsClientMaxSniLength     = TLSEXT_MAXLEN_host_name,
+    // The ALPN extension body also contains a two-byte ProtocolNameList length.
+    // tlsclientTunnelCreate additionally preflights the complete ClientHello,
+    // which has tighter limits once the other extensions are present.
+    kTlsClientMaxAlpnWireLength = UINT16_MAX - 2U,
+    // BoringSSL's GREASE ECH payload is 128..224 bytes rounded to 32, plus
+    // the 16-byte AEAD tag. Keep startup preflight at its largest wire size.
+    kTlsClientMaxEchGreasePayloadLength = 240U,
+};
+
+static enum sslstatus getSslStatus(SSL *ssl, int n)
+{
+    switch (SSL_get_error(ssl, n))
+    {
+    case SSL_ERROR_NONE:
+        return kSslstatusOk;
+    case SSL_ERROR_WANT_WRITE:
+    case SSL_ERROR_WANT_READ:
+        return kSslstatusWantIo;
+    case SSL_ERROR_ZERO_RETURN:
+    case SSL_ERROR_SYSCALL:
+    default:
+        return kSslstatusFail;
+    }
+}
+
+WW_EXPORT void         tlsclientTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *tlsclientTunnelCreate(node_t *node);
+WW_EXPORT api_result_t tlsclientTunnelApi(tunnel_t *instance, sbuf_t *message);
+void                   tlsclientTunnelOnChain(tunnel_t *t, tunnel_chain_t *chain);
+
+WW_EXPORT bool tlsclientTunnelIsHandshakeCompleted(tunnel_t *t, line_t *l);
+WW_EXPORT bool tlsclientTunnelGetHandshakeBinding(tunnel_t *t, line_t *l, tlsclient_handshake_binding_t *binding);
+WW_EXPORT bool tlsclientTunnelDeinitAfterHandshake(tunnel_t *t, line_t *l, sbuf_t **pending_raw);
+WW_EXPORT bool tlsclientTunnelBeginTakeoverDrain(tunnel_t *t, line_t *l, sbuf_t **pending_raw);
+WW_EXPORT tlsclient_post_handshake_result_t tlsclientTunnelConsumePostHandshakeRecord(tunnel_t *t, line_t *l,
+                                                                                      sbuf_t *record);
+WW_EXPORT bool                              tlsclientTunnelCompleteTakeover(tunnel_t *t, line_t *l);
+
+void tlsclientTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void tlsclientTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void tlsclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+bool tlsclientDrainPendingPlaintext(tunnel_t *t, line_t *l);
+bool tlsclientUpdateSourcePressure(tunnel_t *t, line_t *l);
+
+void tlsclientTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void tlsclientTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void tlsclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void tlsclientTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void tlsclientTunnelDownStreamResume(tunnel_t *t, line_t *l);
+
+bool tlsclientParseAlpnSetting(tlsclient_tstate_t *ts, const cJSON *settings);
+bool tlsclientLinestateInitialize(tlsclient_lstate_t *ls, SSL_CTX *sctx, buffer_pool_t *pool, const uint8_t *alpn_wire,
+                                  size_t alpn_wire_len);
+bool tlsclientLinestateInitializeWithShaping(tlsclient_lstate_t *ls, SSL_CTX *sctx, buffer_pool_t *pool,
+                                             const uint8_t *alpn_wire, size_t alpn_wire_len,
+                                             const tlsrecordshaping_config_t *record_shaping, bool verbose);
+void tlsclientLinestateDestroy(tlsclient_lstate_t *ls);
+void tlsclientLinestateRelease(tlsclient_lstate_t *ls);
+bool tlsclientConfigureClientHelloExtensions(SSL *ssl, const uint8_t *alpn_wire, size_t alpn_wire_len);
+void tlsclientCloseLineBidirectional(tunnel_t *t, line_t *l);
+bool tlsclientTakeoverTryReadRecord(tlsclient_lstate_t *ls, sbuf_t **record, bool *invalid);
+/*
+ * Transfers all pending bytes from an owned-buffer BIO into one buffer. The
+ * first allocation is reused; additional entries are copied only when a complete
+ * handshake flight or takeover tail spans multiple allocations. Returns false
+ * on an unrepresentable length or an incomplete drain, leaving *out NULL. An
+ * empty BIO succeeds with *out NULL.
+ */
+bool   tlsclientDrainBioToBuffer(buffer_pool_t *pool, BIO *bio, sbuf_t **out);
+bool   tlsclientFlushSslOutput(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls);
+bool   tlsclientDrainShapedOutput(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls, bool force);
+bool   tlsclientScheduleShapedOutput(tunnel_t *t, line_t *l, tlsclient_lstate_t *ls);
+void   tlsclientCancelShapedOutputTimer(tlsclient_lstate_t *ls);
+size_t tlsclientRecordPaddingCallback(SSL *ssl, uint8_t type, size_t plaintext_len, size_t max_padding, void *arg);
+bool   tlsclientSslReadBoundaryIsClean(tlsclient_lstate_t *ls);
+
+void tlsclientPrintSSLState(const SSL *ssl);
+void tlsclientPrintSSLError(void);
+bool tlsclientConfigureTrustAnchors(SSL_CTX *ctx);
+/* Static real ECH is owned by the worker contexts; only Init and startup preflight opt in. */
+bool tlsclientConfigureEchContexts(tlsclient_tstate_t *ts, const cJSON *settings);
+bool tlsclientConfigureEchForSsl(SSL *ssl);
+/* Context policy and cache access are serialized by the owning worker. */
+bool tlsclientConfigureSessionCache(SSL_CTX *ctx, const char *server_name, size_t fresh_hello_wire_length);
+/* Only ordinary connections opt in, after SNI/verification setup and before SSL I/O. */
+bool tlsclientPrepareSession(SSL *ssl);
+bool tlsclientReverifySession(SSL *ssl, const SSL_SESSION *session);
+/* BoringSSL certificate callback; arg borrows an immutable STACK_OF(X509). */
+int  tlsclientVerifyCertificateWithIntermediates(X509_STORE_CTX *ctx, void *arg);
+/* The SSL object already owns its read/write BIOs. */
+bool tlsclientConfigureSslForConnect(SSL *ssl, const char *sni, const uint8_t *ech_grease_override_payload,
+                                     size_t ech_grease_override_payload_len);
+bool tlsclientCreateClientHelloFromContext(SSL_CTX *ssl_ctx, const char *sni,
+                                           const uint8_t *ech_grease_override_payload,
+                                           size_t ech_grease_override_payload_len, const uint8_t *alpn_wire,
+                                           size_t alpn_wire_len, sbuf_t **out);
+bool tlsclientCreateEchGreaseInnerClientHello(tlsclient_tstate_t *ts, wid_t wid, sbuf_t **out);
+void tlsclientTunnelstateDestroy(tlsclient_tstate_t *ts);

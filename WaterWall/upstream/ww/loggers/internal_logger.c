@@ -1,0 +1,114 @@
+#include "internal_logger.h"
+
+struct logger_s;
+static logger_t *internal_logger = NULL;
+
+void internaloggerDestroy(void)
+{
+    if (internal_logger)
+    {
+        loggerSyncFile(internal_logger);
+        loggerDestroy(internal_logger);
+        internal_logger = NULL;
+    }
+}
+
+static void internalLoggerHandleOnlyStdStream(int loglevel, const char *buf, int len)
+{
+    switch (loglevel)
+    {
+    case LOG_LEVEL_WARN:
+    case LOG_LEVEL_ERROR:
+    case LOG_LEVEL_FATAL:
+        stderrLogger(loglevel, buf, len);
+        break;
+    default:
+        stdoutLogger(loglevel, buf, len);
+        break;
+    }
+}
+
+static void internalLoggerHandleWithStdStream(int loglevel, const char *buf, int len)
+{
+    internalLoggerHandleOnlyStdStream(loglevel, buf, len);
+    loggerWrite(internal_logger, buf, len);
+}
+
+static void internalLoggerHandle(int loglevel, const char *buf, int len)
+{
+    discard loglevel;
+    loggerWrite(internal_logger, buf, len);
+}
+
+logger_t *getInternalLogger(void)
+{
+    return internal_logger;
+}
+
+void setInternalLogger(logger_t *newlogger)
+{
+    assert(internal_logger == NULL);
+    internal_logger = newlogger;
+}
+
+logger_t *createInternalLogger(const char *log_file, bool console)
+{
+    assert(internal_logger == NULL);
+    logger_t *logger = loggerCreate();
+    if (UNLIKELY(logger == NULL))
+    {
+        return NULL;
+    }
+    bool path_accepted = ((log_file != NULL) && loggerSetFile(logger, log_file)) != 0;
+    if (console)
+    {
+        if (path_accepted)
+        {
+            loggerSetHandler(logger, internalLoggerHandleWithStdStream);
+        }
+        else
+        {
+
+            loggerSetHandler(logger, internalLoggerHandleOnlyStdStream);
+        }
+    }
+    else if (path_accepted)
+    {
+        loggerSetHandler(logger, internalLoggerHandle);
+    }
+
+    internal_logger = logger;
+    return logger;
+}
+
+logger_handler getInternalLoggerHandle(void)
+{
+    return loggerGetHandle(internal_logger);
+}
+
+logger_t *loggerGetDefaultLogger(void)
+{
+    if (internal_logger == NULL)
+    {
+        // loggerGetDefaultLogger is not threadsafe, this function can be called from many threads and
+        // we dont want to lock a mutex for everylog, so crash if asked before init.
+        printError("DefaultLogger Get() called before runtime init");
+        internal_logger = loggerCreate();
+        if (UNLIKELY(internal_logger == NULL))
+        {
+            abort();
+        }
+        loggerSetHandler(internal_logger, internalLoggerHandleOnlyStdStream);
+    }
+    return internal_logger;
+}
+
+void loggerDestroyDefaultLogger(void)
+{
+    if (internal_logger)
+    {
+        loggerSyncFile(internal_logger);
+        loggerDestroy(internal_logger);
+        internal_logger = NULL;
+    }
+}

@@ -1,0 +1,46 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void tlsserverTunnelUpStreamInit(tunnel_t *t, line_t *l)
+{
+    tlsserver_tstate_t *ts = tunnelGetState(t);
+    tlsserver_lstate_t *ls = lineGetState(l, t);
+
+    if (ts->verbose)
+    {
+        LOGD("TlsServer: worker %u initializing TLS server line", (unsigned int) lineGetWID(l));
+    }
+
+    if (! tlsserverLinestateInitialize(
+            ls, ts->threadlocal_ssl_contexts[lineGetWID(l)], lineGetBufferPool(l), &ts->record_shaping, ts->verbose))
+    {
+        LOGE("TlsServer: failed to initialize per-line OpenSSL state");
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+
+    ls->tunnel = t;
+    ls->line   = l;
+
+    if (! tlsserverArmHandshakeDeadline(t, l, ls))
+    {
+        // neither the protected nor the fallback branch has been initialized yet, so only the previous side
+        // may be closed here
+        LOGE("TlsServer: failed to arm the handshake deadline, closing this line");
+        tlsserverLinestateDestroy(ls);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+
+    if (ts->verbose)
+    {
+        LOGD("TlsServer: worker %u TLS server line initialized%s",
+             (unsigned int) lineGetWID(l),
+             ts->fallback_tunnel == NULL ? "; forwarding upstream Init" : "; waiting for TLS classification");
+    }
+    if (ts->fallback_tunnel == NULL)
+    {
+        discard tlsserverStartProtectedBranch(t, l, ls);
+    }
+}

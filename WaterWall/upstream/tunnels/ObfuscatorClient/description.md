@@ -1,0 +1,176 @@
+<!--
+Documentation version: 154
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/ObfuscatorClient.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/ObfuscatorClient.mdx, and all files must keep the same documentation version.
+-->
+
+# ObfuscatorClient Node
+
+`ObfuscatorClient` applies a reversible payload transform to traffic passing through it. In the current implementation, the only supported method is XOR obfuscation.
+
+The option-off path is stateless. TLS-like stream framing keeps normal-line receive state; exact packet lines remain stateless.
+
+In practice, this node is used together with `ObfuscatorServer` configured with the same method and key.
+
+## What It Does
+
+- Reads payload from the previous node.
+- Applies the configured obfuscation method before sending payload to the next node.
+- Applies the same operation again on downstream payload returning from the next node.
+- Forwards all init, est, finish, pause, and resume events without changing their meaning.
+
+Because XOR is symmetrical, the same transform is used in both directions.
+
+## Typical Placement
+
+A common layout is:
+
+- normal payload-producing node before `ObfuscatorClient`
+- `ObfuscatorClient`
+- some transport path
+- `ObfuscatorServer` on the remote side
+- service-facing nodes after it
+
+This tunnel is useful only as a lightweight payload obfuscation layer. It is not a secure encryption layer.
+
+## Configuration Example
+
+```json
+{
+  "name": "obfuscator-client",
+  "type": "ObfuscatorClient",
+  "settings": {
+    "method": "xor",
+    "xor_key": 90,
+    "skip": "transport",
+    "tls_record_header": true
+  },
+  "next": "transport-node"
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this node.
+
+- `type` `(string)`
+  Must be exactly `"ObfuscatorClient"`.
+
+- `next` `(string)`
+  The next node that should receive the transformed payload.
+
+### `settings`
+
+- `method` `(string)`
+  Obfuscation method to use.
+
+  Currently supported values:
+  - `"xor"`
+
+- `xor_key` `(integer)`
+  Required when `method` is `"xor"`.
+
+  This value is converted to a single byte and used as the XOR key.
+
+- `tls_record_header` `(boolean)`
+  Optional.
+
+  When `true`, the transport-facing payload is wrapped in a minimal TLS application-data record header:
+  content type `23`, version `0x0303`, and a 2-byte payload length.
+
+- `skip` `(string)`
+  Optional.
+
+  Controls which leading packet bytes are left unobfuscated before XOR runs.
+
+  Supported values:
+  - `"none"`: XOR the whole payload buffer
+  - `"ipv4"`: if the payload starts with a valid IPv4 packet, leave only the IPv4 header clear
+  - `"transport"`: if the payload starts with a valid IPv4 TCP/UDP packet, leave the IPv4 header and the TCP/UDP header clear
+
+## Optional `settings` Fields
+
+There are no additional tunnel-specific optional settings in the current implementation beyond `tls_record_header` and `skip`.
+
+## Detailed Behavior
+
+### XOR behavior
+
+For each payload buffer:
+
+- before sending upstream to the next node, payload bytes after the configured skip region are XORed with `xor_key`
+- when payload comes back downstream, payload bytes after the configured skip region are XORed with the same `xor_key` again
+
+Because XOR is reversible, both ends must use the same key.
+
+When `skip` is enabled and the payload does not parse as a valid IPv4 packet, the tunnel falls back to XORing the whole payload buffer.
+
+### Optional TLS-like record header
+
+When `tls_record_header` is enabled:
+
+- after XOR on the transport-facing send path, the tunnel prepends a 5-byte TLS-like application-data header
+- on the transport-facing receive path, it validates and strips that same 5-byte header before XOR
+- the header bytes are `17 03 03` followed by the big-endian payload length
+
+This only imitates the post-handshake TLS record shape. It is not a real TLS handshake or encryption layer.
+
+### Event forwarding behavior
+
+`ObfuscatorClient` does not change line ownership or connection topology.
+
+It simply forwards:
+
+- upstream `init`, `est`, `finish`, `pause`, `resume`
+- downstream `init`, `est`, `finish`, `pause`, `resume`
+
+Normal stream Init initializes receive state and records the source side; Finish releases that state.
+Pause/Resume always relay transparently and do not gate encoding or decoding.
+
+### Implementation details
+
+The XOR helper is optimized for the current platform:
+
+- AVX2 path when available
+- 64-bit chunked path on aligned 64-bit builds
+- 32-bit chunked or byte-by-byte fallback otherwise
+
+That optimization affects speed only, not the visible behavior.
+
+## Notes And Caveats
+
+- `ObfuscatorClient` is intended to be paired with `ObfuscatorServer` using the same `method` and `xor_key`.
+- Current support is limited to `method: "xor"`.
+- This is obfuscation, not cryptographic security.
+- `xor_key` is stored as a single byte in the current implementation, so values outside `0..255` are effectively truncated.
+- Exact packet lines retain the one-packet/one-record limit and oversized-datagram drop policy.
+
+## Node Metadata
+
+Source-backed metadata:
+
+This node explicitly disables splice for the entire chain through
+`kNodeFlagBlocksSplice`, even if `kNodeFlagSupportsSplice` is also set.
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagBlocksSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayerAnything` |
+| `layer_group_prev_node` | `kNodeLayerSameAsNext` |
+| `layer_group_next_node` | `kNodeLayerSameAsPrev` |
+| `required_padding_left` | `5` bytes |
+
+With TLS-like framing enabled on ordinary streams, large deliveries split into
+records of at most 65,535 body bytes, applying XOR and skip per record. One encoded
+aggregate is sent per delivery. Receivers reassemble fragmented headers/bodies,
+coalesce complete records into one onward callback, and retain partial tails.
+Pause/Resume relay transparently, including repeats; complete records decode without waiting for Resume.
+Incoming bytes plus any retained partial record are bounded by
+a fixed **2,162,692 bytes** (`2 MiB + 65,540`), independent of pool sizes, RAM
+profile and splice settings. The 65,535-byte record-body limit is separate. Malformed records
+and overflow close the borrowed normal line, finishing the opposite side before the source side after local cleanup.
+The nodes stay active to apply XOR and record processing to every payload. Packet behavior stays unchanged.

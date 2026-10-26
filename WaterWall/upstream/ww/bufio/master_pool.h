@@ -1,0 +1,238 @@
+#pragma once
+
+/*
+ * Shared master pool interface used by worker-local pools for burst allocation.
+ */
+
+#include "wlibc.h"
+#include "wmutex.h"
+
+/*
+    Master Pool
+
+    In some cases, workers need to send data/buffers to each other, while each have a thread local pool
+
+    therefore, thread local pools may keep running out of items, and there is a need for a thread-safe-pool
+
+    thread local pools will fall back to the master pool instead of allocating more memory or freeing it and
+    interacting with os, malloc,free; in a single batch allocation for a full charge with only 1 mutex lock
+
+
+                                |-----------|
+                                |           |
+                                |           |
+                                |           | -------------> |----------------|
+                                |           |                | Worker 1 pools |
+                                |           | <------------- |----------------|
+                                |           |
+                                |           |
+                                |           |
+                                |           |
+                                |           | -------------> |----------------|
+                                |           |                | Worker 2 pools |
+                                |           | <------------- |----------------|
+     |-----------|              |           |
+     |  Malloc   | -----------> |  MASTER   |
+     | --------  |              |           |
+     |   Free    | <----------- |   POOL    |
+     |-----------|              |           |
+                                |           | -------------> |----------------|
+                                |           |                | Worker 3 pools |
+                                |           | <------------- |----------------|
+                                |           |
+                                |           |
+                                |           |
+                                |           |
+                                |           | -------------> |----------------|
+                                |           |                | Worker 4 pools |
+                                |           | <------------- |----------------|
+                                |           |
+                                |           |
+                                |-----------|
+
+
+*/
+
+struct master_pool_s;
+typedef void master_pool_item_t;
+
+// pool handles are assumed to be thread safe
+typedef master_pool_item_t *(*MasterPoolItemCreateHandle)(void *userdata);
+typedef void (*MasterPoolItemDestroyHandle)(master_pool_item_t *item);
+
+/*
+    do not read this pool properties from the struct, its a multi-threaded object
+*/
+
+typedef MSVC_ATTR_ALIGNED_LINE_CACHE struct master_pool_s
+{
+    wmutex_t                    mutex;
+    MasterPoolItemCreateHandle  create_item_handle;
+    MasterPoolItemDestroyHandle destroy_item_handle;
+    atomic_uint                 len;         // Advisory probes are lockless; the mutex protects cached slots.
+    atomic_size_t               checked_out; // Terminal returns publish completion independently of the mutex.
+    const uint32_t              cap;
+    void                       *available[];
+} GNU_ATTR_ALIGNED_LINE_CACHE master_pool_t;
+
+/** Account for an item leaving/returning to this family of local pools. */
+static inline void masterpoolRecordCheckout(master_pool_t *const pool)
+{
+    const size_t previous = atomicAddExplicit(&pool->checked_out, 1, memory_order_relaxed);
+    assert(previous != SIZE_MAX);
+    if (UNLIKELY(previous == SIZE_MAX))
+    {
+        printError("masterpoolRecordCheckout: checkout counter overflow");
+        abortProgramNow(1);
+    }
+}
+
+static inline void masterpoolRecordReturn(master_pool_t *const pool)
+{
+    /* Return/destruction can finish outside the master's mutex. Publish its
+     * completion before teardown observes that all checkouts have settled. */
+    const size_t previous = atomicSubExplicit(&pool->checked_out, 1, memory_order_release);
+    assert(previous != 0);
+    if (UNLIKELY(previous == 0))
+    {
+        printError("masterpoolRecordReturn: return counter underflow");
+        abortProgramNow(1);
+    }
+}
+
+static inline size_t masterpoolGetCheckedOut(const master_pool_t *const pool)
+{
+    /* Pair with terminal returns. Teardown must also close checkout admission;
+     * observing zero alone cannot exclude a new checkout. */
+    return atomicLoadExplicit(&((master_pool_t *) pool)->checked_out, memory_order_acquire);
+}
+
+/**
+ * Enforce the ordinary pooled-item allocation contract. Metadata constructors
+ * are nullable, but once a valid pool is published, ordinary item acquisition
+ * is fail-fast and never returns or stores a NULL item.
+ */
+master_pool_item_t *masterpoolRequireCreatedItem(master_pool_t *pool, master_pool_item_t *item, void *userdata);
+
+/** Pop one already-cached item, or return NULL when the cache is empty.
+ * Never allocates or calls the creation callback. Like GetItems/ReuseItems,
+ * checkout/return accounting remains the caller's responsibility. */
+master_pool_item_t *masterpoolTryGetItem(master_pool_t *pool);
+
+/* Remove up to count cached entries, without creating missing items. */
+uint32_t masterpoolTryGetItems(master_pool_t *pool, master_pool_item_t **items, uint32_t count);
+
+/**
+ * Retrieves a specified number of items from the master pool.
+ * @param pool The master pool.
+ * @param iptr Pointer to the array where the items will be stored.
+ * @param count The number of items to retrieve.
+ * @param userdata User data passed to the create handler.
+ */
+static inline void masterpoolGetItems(master_pool_t *const pool, master_pool_item_t **const iptr, const uint32_t count,
+                                      void *userdata)
+{
+    uint32_t i = 0;
+
+    /* This is only an advisory empty probe. Slot visibility is established
+     * under the mutex below, so a stale result can at worst allocate a new item. */
+    if (atomicLoadExplicit(&(pool->len), memory_order_relaxed) > 0)
+    {
+        mutexLock(&(pool->mutex));
+        const uint32_t tmp_len  = (uint32_t) atomicLoadExplicit(&(pool->len), memory_order_relaxed);
+        const uint32_t consumed = min(tmp_len, count);
+
+        if (consumed > 0)
+        {
+            const uint32_t pbase = (tmp_len - consumed);
+            for (; i < consumed; i++)
+            {
+                iptr[i] = pool->available[pbase + i];
+            }
+            /* Slot ownership is transferred under the mutex. Lockless probes
+             * only inspect the count and never read the slots. */
+            atomicStoreExplicit(&(pool->len), pbase, memory_order_relaxed);
+        }
+        mutexUnlock(&(pool->mutex));
+    }
+
+    for (; i < count; i++)
+    {
+        iptr[i] = masterpoolRequireCreatedItem(pool, pool->create_item_handle(userdata), userdata);
+    }
+}
+
+/**
+ * Reuses a specified number of items by returning them to the master pool.
+ * @param pool The master pool.
+ * @param iptr Pointer to the array of items to be reused.
+ * @param count The number of items to reuse.
+ */
+static inline void masterpoolReuseItems(master_pool_t *const pool, master_pool_item_t **const iptr,
+                                        const uint32_t count)
+{
+    /* This is only an advisory full probe. A stale full result may destroy an
+     * item that a later lock holder could have retained, but cannot expose a
+     * slot before it is initialized. */
+    if (pool->cap == (uint32_t) atomicLoadExplicit(&(pool->len), memory_order_relaxed))
+    {
+        for (uint32_t i = 0; i < count; i++)
+        {
+            pool->destroy_item_handle(iptr[i]);
+        }
+        return;
+    }
+
+    uint32_t i = 0;
+
+    mutexLock(&(pool->mutex));
+
+    const uint32_t tmp_len  = (uint32_t) atomicLoadExplicit(&(pool->len), memory_order_relaxed);
+    const uint32_t consumed = min(pool->cap - tmp_len, count);
+
+    for (; i < consumed; i++)
+    {
+        pool->available[i + tmp_len] = iptr[i];
+    }
+
+    /* Unlocking publishes the initialized slots to the next mutex holder. */
+    atomicStoreExplicit(&(pool->len), tmp_len + consumed, memory_order_relaxed);
+
+    mutexUnlock(&(pool->mutex));
+
+    for (; i < count; i++)
+    {
+        pool->destroy_item_handle(iptr[i]);
+    }
+}
+
+/**
+ * Installs create and destroy callbacks for the master pool.
+ * @param pool The master pool.
+ * @param create_h The handler to create pool items.
+ * @param destroy_h The handler to destroy pool items.
+ */
+void masterpoolInstallCallBacks(master_pool_t *pool, MasterPoolItemCreateHandle create_h,
+                                MasterPoolItemDestroyHandle destroy_h);
+
+/**
+ * Creates a master pool with a specified capacity.
+ * @param pool_width The width of the pool.
+ * @return A pointer to the created master pool, or NULL when its metadata
+ *         geometry or mutex initialization fails. Callers must check the
+ *         result before publication.
+ */
+master_pool_t *masterpoolCreateWithCapacity(uint32_t pool_width);
+
+/**
+ * @brief Remove all items from the pool without destroying the pool object.
+ *
+ * @param pool Master pool instance.
+ */
+void masterpoolMakeEmpty(master_pool_t *pool);
+
+/**
+ * Destroys the master pool and frees its resources.
+ * @param pool The master pool to destroy.
+ */
+void masterpoolDestroy(master_pool_t *pool);

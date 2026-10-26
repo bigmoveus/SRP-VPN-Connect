@@ -1,0 +1,43 @@
+<PAGE>
+	<INCLUDE file="inc/header.tmpl" />
+
+	<VAR match="VAR_SEL_INDEX" replace="selected" />
+	<VAR match="VAR_SEL_DOWNLOAD" replace="selected" />
+	<PARSE file="menu1.xml" />
+	<PARSE file="menu2.xml" />
+
+	<INCLUDE file="inc/content.tmpl" />
+
+    	<h1>Download</h1>
+
+<p>Released versions of OpenConnect are available from the FTP site, and also over HTTP:</p>
+<ul>
+  <li><a href="ftp://ftp.infradead.org/pub/openconnect/"><tt>ftp://ftp.infradead.org/pub/openconnect/</tt></a></li>
+  <li><a href="https://www.infradead.org/openconnect/download/"><tt>https://www.infradead.org/openconnect/download/</tt></a></li>
+</ul>
+
+<p>Release tarballs (since 3.13) are signed with the PGP key with fingerprint <a href="https://pgp.mit.edu/pks/lookup?op=vindex&amp;search=0xBE07D9FD54809AB2C4B0FF5F63762CDA67E2F359">BE07 D9FD 5480 9AB2 C4B0  FF5F 6376 2CDA 67E2 F359</a>.</p>
+
+<p>
+<!-- latest-release-start -->
+The latest release is <a href="https://www.infradead.org/openconnect/download/openconnect-9.21.tar.gz">OpenConnect v9.21</a>
+<i>(<a href="https://www.infradead.org/openconnect/download/openconnect-9.21.tar.gz.asc">PGP signature</a>)</i>,
+released on 2026-06-16 with the following changelog:</p>
+     <ul>
+       <li>Fix infinite loop in <tt>buf_append()</tt> when output exactly fills available buffer space (<a href="https://gitlab.com/openconnect/openconnect/-/issues/851">#851</a>).</li>
+       <li>Accept base32 token secrets without trailing <tt>=</tt> padding (<a href="https://gitlab.com/openconnect/openconnect/-/issues/771">#771</a>).</li>
+       <li>Fix crash on NULL passphrase from TPM2 auth dialog (<a href="https://gitlab.com/openconnect/openconnect/-/issues/842">#842</a>).</li>
+     </ul>
+<!-- latest-release-end -->
+
+<p>For older releases and change logs, see the <a href="changelog.html">changelog page</a>.</p>
+
+<h2>Latest sources</h2>
+
+<p>The latest source code is available from the git repository at:</p>
+<ul><li><tt>git://git.infradead.org/users/dwmw2/openconnect.git</tt><br/>or browsable in gitweb at:</li>
+<li><a href="https://git.infradead.org/users/dwmw2/openconnect.git">
+https://git.infradead.org/users/dwmw2/openconnect.git</a></li></ul>
+
+	<INCLUDE file="inc/footer.tmpl" />
+</PAGE>

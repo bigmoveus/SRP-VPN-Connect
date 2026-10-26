@@ -1,0 +1,75 @@
+#pragma once
+
+#include "capture_protocol_filter.h"
+#include "shiftbuffer.h"
+#include "wlibc.h"
+
+enum
+{
+    kCaptureLinuxNetfilterReadBufferSize = 4096
+};
+
+typedef enum netfilter_packet_parse_result_e
+{
+    kNetfilterPacketParseMalformed = 0,
+    kNetfilterPacketParseDiscarded,
+    kNetfilterPacketParseReady
+} netfilter_packet_parse_result_t;
+
+typedef struct netfilter_packet_view_s
+{
+    const uint8_t *payload;
+    uint32_t       payload_length;
+    uint32_t       capture_length;
+    uint32_t       packet_id;
+    uint32_t       skb_info;
+    bool           has_capture_length;
+    bool           has_packet_id;
+    bool           has_skb_info;
+} netfilter_packet_view_t;
+
+netfilter_packet_parse_result_t captureLinuxNetfilterParsePacket(uint8_t *message, size_t copied_len,
+                                                                 netfilter_packet_view_t *view);
+bool captureLinuxNetfilterTryReadPacketIdFromPrefix(const uint8_t *message, size_t copied_len, uint32_t *packet_id);
+void captureLinuxNetfilterExposePacket(sbuf_t *buff, const uint8_t *message, const netfilter_packet_view_t *view);
+
+#if defined(OS_LINUX)
+
+// Outcome of one supervised Capture command. Timeout, parent-side execution
+// failure, and output-limit termination are distinct from an ordinary nonzero
+// exit because an iptables mutation may already have committed before the
+// supervisor terminated or lost control of the child.
+typedef enum capturedevice_command_status_e
+{
+    kCapturedeviceCommandOk = 0,
+    kCapturedeviceCommandFailed,
+    kCapturedeviceCommandSpawnFailed,
+    kCapturedeviceCommandTimedOut,
+    kCapturedeviceCommandOutputTooLarge
+} capturedevice_command_status_t;
+
+// Command-layer seams. These are internal to the Linux capture device and are
+// exposed only so the command-wiring unit test can drive them without opening a
+// real NFQUEUE socket or requiring root.
+capturedevice_command_status_t capturedeviceRunIptablesQueueRule(const char *operation, const char *cidr,
+                                                                 uint32_t queue_number, const char *rule_comment,
+                                                                 const char *protocol_filter);
+capturedevice_command_status_t capturedeviceRunIptablesNotrackRule(const char *operation, const char *cidr,
+                                                                   const char *rule_comment,
+                                                                   const char *protocol_filter);
+void                           captureLinuxBuildProtocolFilter(const capture_protocol_filter_t *filter,
+                                                               char                             output[kCaptureLinuxProtocolFilterSize]);
+capturedevice_command_status_t capturedeviceReadIptablesInputRules(char **input_rules);
+capturedevice_command_status_t capturedeviceReadIptablesNotrackRules(char **notrack_rules);
+void                           capturedeviceApplySysctls(bool skip_sysctl);
+
+// Select the first queue at or after `start` (with uint16_t wraparound) that is
+// not referenced by an existing `--queue-num` or `--queue-balance` rule in an
+// `iptables -S INPUT` snapshot. This prevents an old fail-open rule from
+// becoming active again merely because a later process reused its queue number.
+bool capturedeviceSelectUnusedQueueNumber(const char *input_rules, uint16_t start, uint16_t *selected);
+/* Select count adjacent unreferenced queues. A selected range never wraps at
+ * UINT16_MAX; the search for its first queue retains uint16_t wraparound. */
+bool capturedeviceSelectUnusedQueueRange(const char *input_rules, uint16_t start, uint16_t count, uint16_t *selected);
+
+#endif

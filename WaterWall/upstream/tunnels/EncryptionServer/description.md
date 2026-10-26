@@ -1,0 +1,71 @@
+<!--
+Documentation version: 153
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/EncryptionServer.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/EncryptionServer.mdx, and all files must keep the same documentation version.
+-->
+
+# EncryptionServer
+
+`EncryptionServer` is the server-side counterpart of `EncryptionClient`.
+It decrypts upstream traffic carried in TLS-like application-data records and encrypts downstream responses the same way.
+
+Recommended chain usage:
+
+- Client side: `TcpListener -> EncryptionClient -> TcpConnector`
+- Server side: `TcpListener -> EncryptionServer -> TcpConnector`
+
+## Settings
+
+- `algorithm` (string or number, optional): `chacha20-poly1305` (default) or `aes-gcm`
+- `password` (string, required): shared secret used for key derivation
+- `salt` (string, optional): key-derivation salt, default `waterwall-encryption`
+- `kdf-iterations` (number, optional): key derivation rounds, default `12000`
+- `max-frame-size` (number, optional): maximum plaintext frame size in bytes, default `16356`
+
+## Example
+
+```json
+{
+  "name": "enc-server",
+  "type": "EncryptionServer",
+  "settings": {
+    "algorithm": "aes-gcm",
+    "password": "replace-with-a-strong-secret",
+    "salt": "chain-A",
+    "kdf-iterations": 20000,
+    "max-frame-size": 16356
+  }
+}
+```
+
+## Wire Format
+
+Encrypted payloads are sent as TLS-like application-data records:
+
+- TLS record type `0x17`
+- TLS version `0x0303`
+- 16-bit record body length
+- random nonce followed by AEAD ciphertext and tag
+
+The selected algorithm is configured locally on both peers and is not exposed in the record header.
+
+Complete received records are drained as they become available; only an incomplete
+record remains buffered between callbacks. Once its header is complete, the record
+length is checked against `max-frame-size` before waiting for the rest of the body.
+Malformed records or AEAD authentication failure close both directions.
+
+## Node Metadata
+
+Source-backed metadata:
+
+This node explicitly disables splice for the entire chain through
+`kNodeFlagBlocksSplice`, even if `kNodeFlagSupportsSplice` is also set.
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagBlocksSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4` |
+| `layer_group_next_node` | `kNodeLayer4` |
+| `required_padding_left` | `17` bytes |

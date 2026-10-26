@@ -1,0 +1,755 @@
+{
+    "version": 4,
+    "include": [
+        "base.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "linux-packed",
+            "inherits": [
+                "linux"
+            ],
+            "binaryDir": "${sourceDir}/build/linux-packed",
+            "cacheVariables": {
+                "WW_PACK_RUNTIME": "ON"
+            }
+        },
+        {
+            "name": "linux",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-unit-tests",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "native-unit-tests",
+                "default"
+            ],
+            "cacheVariables": {}
+        },
+        {
+            "name": "linux-tsan-unit",
+            "inherits": "linux-unit-tests",
+            "cacheVariables": {
+                "ENABLE_TSAN": true
+            }
+        },
+        {
+            "name": "linux-software-crypto-unit",
+            "inherits": ["linux-software-crypto", "native-unit-tests"]
+        },
+        {
+            "name": "linux-sodium-crypto-unit",
+            "inherits": ["linux-sodium-crypto", "native-unit-tests"]
+        },
+        {
+            "name": "linux-openssl-crypto-unit",
+            "inherits": ["linux-openssl-crypto", "native-unit-tests"]
+        },
+        {
+            "name": "linux-combined-crypto-unit",
+            "inherits": ["linux-combined-crypto", "native-unit-tests"]
+        },
+        {
+            "name": "linux-software-crypto-tls-unit",
+            "inherits": ["linux-software-crypto-tls", "native-unit-tests"]
+        },
+        {
+            "name": "linux-software-crypto-sanitize-unit",
+            "inherits": ["linux-software-crypto-sanitize", "native-unit-tests"]
+        },
+        {
+            "name": "linux-software-crypto",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "default"
+            ],
+            "cacheVariables": {
+                "WCRYPTO_BACKEND_OPENSSL": false,
+                "WCRYPTO_BACKEND_SODIUM": false,
+                "INCLUDE_TLS_SERVER": false,
+                "INCLUDE_VMESS_SERVER": false,
+                "INCLUDE_VMESS_CLIENT": false,
+                "router_enable_quic_sniffing": false
+            }
+        },
+        {
+            "name": "linux-sodium-crypto",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "default"
+            ],
+            "cacheVariables": {
+                "WCRYPTO_BACKEND_OPENSSL": false,
+                "WCRYPTO_BACKEND_SODIUM": true,
+                "INCLUDE_TLS_SERVER": false,
+                "INCLUDE_VMESS_SERVER": false,
+                "INCLUDE_VMESS_CLIENT": false,
+                "router_enable_quic_sniffing": false
+            }
+        },
+        {
+            "name": "linux-openssl-crypto",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "default"
+            ],
+            "cacheVariables": {
+                "WCRYPTO_BACKEND_OPENSSL": true,
+                "WCRYPTO_BACKEND_SODIUM": false,
+                "INCLUDE_TLS_SERVER": false,
+                "router_enable_quic_sniffing": false
+            }
+        },
+        {
+            "name": "linux-combined-crypto",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "ccache",
+                "default"
+            ],
+            "cacheVariables": {
+                "WCRYPTO_BACKEND_OPENSSL": true,
+                "WCRYPTO_BACKEND_SODIUM": true
+            }
+        },
+        {
+            "name": "linux-software-crypto-sanitize",
+            "inherits": "linux-software-crypto",
+            "cacheVariables": {
+                "ENABLE_ASAN": true,
+                "ENABLE_USAN": true,
+                "INCLUDE_TLS_SERVER": true,
+                "INCLUDE_VMESS_SERVER": true,
+                "INCLUDE_VMESS_CLIENT": true
+            }
+        },
+        {
+            "name": "linux-software-crypto-tls",
+            "inherits": "linux-software-crypto",
+            "cacheVariables": {
+                "INCLUDE_TLS_SERVER": true,
+                "INCLUDE_VMESS_SERVER": true,
+                "INCLUDE_VMESS_CLIENT": true
+            }
+        },
+        {
+            "name": "linux-clang-x64",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "clang",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-clang-avx512f-x64",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "clang",
+                "avx512f",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "gcc",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-old-cpu",
+            "inherits": [
+                "host-linux",
+                "target-linux",
+                "ninja",
+                "gcc",
+                "old-cpu-x64",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64",
+            "inherits": [
+                "host-linux",
+                "target-linux-arm64",
+                "ninja",
+                "gcc-cross-arm64",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-old-cpu",
+            "inherits": [
+                "host-linux",
+                "target-linux-arm64",
+                "ninja",
+                "gcc-cross-arm64",
+                "old-cpu-arm",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "linux-packed",
+            "configurePreset": "linux-packed",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux",
+            "configurePreset": "linux",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-unit-release",
+            "configurePreset": "linux-unit-tests",
+            "configuration": "Release",
+            "targets": [
+                "waterwall_unit_tests"
+            ],
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-unit-debug",
+            "configurePreset": "linux-unit-tests",
+            "configuration": "Debug",
+            "targets": [
+                "waterwall_unit_tests"
+            ],
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-tsan-unit",
+            "configurePreset": "linux-tsan-unit",
+            "configuration": "Debug",
+            "targets": [
+                "Waterwall",
+                "shutdown_manager_test",
+                "user_public_views_test",
+                "authenticationserver_api_test",
+                "authenticationserver_update_api_test",
+                "authenticationserver_create_api_test",
+                "authenticationserver_api_concurrency_test",
+                "authenticationserver_storage_test",
+                "lwip_engine_isolation_test",
+                "lwip_engine_pools_test",
+                "lwip_engine_ports_test",
+                "lwip_engine_ids_test",
+                "lwip_engine_runtime_test",
+                "lwip_shutdown_test",
+                "connectiontopackets_shutdown_refusal_test",
+                "packetstoconnection_shutdown_refusal_test",
+                "lwip_ptc_engine_test",
+                "lwip_ptc_trusted_engine_test",
+                "tun_linux_message_lifetime_test",
+                "tundevice_gso_configuration_test",
+                "lwip_ctp_roundtrip_test",
+                "connectiontopackets_schedule_rejection_test",
+                "packetstoconnection_schedule_rejection_test",
+                "wloop_stop_request_test",
+                "worker_context_helpers_test",
+                "line_task_scheduling_test",
+                "device_reader_session_test",
+                "ping_tracker_test",
+                "idle_table_contract_test",
+                "local_idle_table_indexed_test",
+                "widle_table_cancellation_test",
+                "system_memory_snapshot_test",
+                "system_memory_linux_provider_test",
+                "muxserver_admission_limit_test",
+                "muxserver_admission_concurrency_test",
+                "reverseclient_owner_drain_test",
+                "packetstostream_orderly_shutdown_test",
+                "packetsender_orderly_shutdown_test",
+                "wchan_close_semantics_test",
+                "socks5server_udp_close_reentrant_test",
+                "socks5server_dynamic_provider_test",
+                "udplistener_dynamic_endpoint_test",
+                "tcpudplistener_dynamic_provider_test",
+                "udpconnector_socket_pool_test"
+            ],
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-unit",
+            "configurePreset": "linux-software-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-sodium-crypto-unit",
+            "configurePreset": "linux-sodium-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-openssl-crypto-unit",
+            "configurePreset": "linux-openssl-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-combined-crypto-unit",
+            "configurePreset": "linux-combined-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-tls-unit",
+            "configurePreset": "linux-software-crypto-tls-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-sanitize-unit",
+            "configurePreset": "linux-software-crypto-sanitize-unit",
+            "inherits": [
+                "linux-unit-debug"
+            ]
+        },
+        {
+            "name": "linux-software-crypto",
+            "configurePreset": "linux-software-crypto",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-sodium-crypto",
+            "configurePreset": "linux-sodium-crypto",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-openssl-crypto",
+            "configurePreset": "linux-openssl-crypto",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-combined-crypto",
+            "configurePreset": "linux-combined-crypto",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-sanitize",
+            "configurePreset": "linux-software-crypto-sanitize",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-tls",
+            "configurePreset": "linux-software-crypto-tls",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-x64",
+            "configurePreset": "linux-clang-x64",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-x64-debug",
+            "configurePreset": "linux-clang-x64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-x64-rwd",
+            "configurePreset": "linux-clang-x64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-avx512f-x64",
+            "configurePreset": "linux-clang-avx512f-x64",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-avx512f-x64-debug",
+            "configurePreset": "linux-clang-avx512f-x64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-clang-avx512f-x64-rwd",
+            "configurePreset": "linux-clang-avx512f-x64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64",
+            "configurePreset": "linux-gcc-x64",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-debug",
+            "configurePreset": "linux-gcc-x64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-rwd",
+            "configurePreset": "linux-gcc-x64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-debug",
+            "configurePreset": "linux",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-rwd",
+            "configurePreset": "linux",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-old-cpu",
+            "configurePreset": "linux-gcc-x64-old-cpu",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-old-cpu-debug",
+            "configurePreset": "linux-gcc-x64-old-cpu",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-x64-old-cpu-rwd",
+            "configurePreset": "linux-gcc-x64-old-cpu",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64",
+            "configurePreset": "linux-gcc-arm64",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-debug",
+            "configurePreset": "linux-gcc-arm64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-rwd",
+            "configurePreset": "linux-gcc-arm64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-old-cpu",
+            "configurePreset": "linux-gcc-arm64-old-cpu",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-old-cpu-debug",
+            "configurePreset": "linux-gcc-arm64-old-cpu",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux"
+            ]
+        },
+        {
+            "name": "linux-gcc-arm64-old-cpu-rwd",
+            "configurePreset": "linux-gcc-arm64-old-cpu",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-linux"
+            ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "linux-packed",
+            "configurePreset": "linux-packed",
+            "filter": {
+                "exclude": {
+                    "label": "speedtest|stress"
+                }
+            },
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux",
+            "configurePreset": "linux",
+            "filter": {
+                "exclude": {
+                    "label": "speedtest|stress"
+                }
+            },
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-unit-release",
+            "configurePreset": "linux-unit-tests",
+            "configuration": "Release",
+            "filter": {
+                "include": {
+                    "label": "unit"
+                },
+                "exclude": {
+                    "label": "source-policy"
+                }
+            },
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-unit-debug",
+            "configurePreset": "linux-unit-tests",
+            "configuration": "Debug",
+            "filter": {
+                "include": {
+                    "label": "unit"
+                },
+                "exclude": {
+                    "label": "source-policy"
+                }
+            },
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-tsan-unit",
+            "configurePreset": "linux-tsan-unit",
+            "configuration": "Debug",
+            "filter": {
+                "include": {
+                    "name": "^waterwall\\.((user_public_views|authenticationserver_api|authenticationserver_update_api|authenticationserver_create_api|authenticationserver_api_concurrency|authenticationserver_storage|lwip_engine_isolation|lwip_engine_pools|lwip_engine_ports|lwip_engine_ids|lwip_engine_runtime|lwip_shutdown|lwip_ptc_engine|lwip_ptc_trusted_engine|tun_linux_message_lifetime|tundevice_gso_configuration|lwip_ctp_roundtrip|connectiontopackets_schedule_rejection|packetstoconnection_schedule_rejection|connectiontopackets_shutdown_refusal|packetstoconnection_shutdown_refusal|shutdown_manager|wloop_stop_request|worker_context_helpers|line_task_scheduling|device_reader_session|wchan_close_semantics|idle_table_contract|local_idle_table_indexed|widle_table_cancellation|system_memory_snapshot|system_memory_linux_provider|muxserver_admission_limit|muxserver_admission_concurrency|reverseclient_owner_drain|packetstostream_orderly_shutdown_test|packetsender_orderly_shutdown_test|ping_tracker|socks5server_udp_close_reentrant|socks5server_dynamic_provider|udplistener_dynamic_endpoint|tcpudplistener_dynamic_provider|udpconnector_socket_pool)_unit|shutdown_production_sequence|reverse_tcp_bridge_roundtrip)$"
+                }
+            },
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-unit",
+            "configurePreset": "linux-software-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-sodium-crypto-unit",
+            "configurePreset": "linux-sodium-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-openssl-crypto-unit",
+            "configurePreset": "linux-openssl-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-combined-crypto-unit",
+            "configurePreset": "linux-combined-crypto-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-tls-unit",
+            "configurePreset": "linux-software-crypto-tls-unit",
+            "inherits": [
+                "linux-unit-release"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-sanitize-unit",
+            "configurePreset": "linux-software-crypto-sanitize-unit",
+            "inherits": [
+                "linux-unit-debug"
+            ]
+        },
+        {
+            "name": "linux-software-crypto",
+            "configurePreset": "linux-software-crypto",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-sodium-crypto",
+            "configurePreset": "linux-sodium-crypto",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-openssl-crypto",
+            "configurePreset": "linux-openssl-crypto",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-combined-crypto",
+            "configurePreset": "linux-combined-crypto",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-sanitize",
+            "configurePreset": "linux-software-crypto-sanitize",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-software-crypto-tls",
+            "configurePreset": "linux-software-crypto-tls",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-debug",
+            "configurePreset": "linux",
+            "configuration": "Debug",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-clang",
+            "configurePreset": "linux-clang-x64",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        },
+        {
+            "name": "linux-gcc",
+            "configurePreset": "linux-gcc-x64",
+            "inherits": [
+                "host-linux",
+                "options"
+            ]
+        }
+    ]
+}

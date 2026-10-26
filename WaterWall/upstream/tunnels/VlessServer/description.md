@@ -1,0 +1,441 @@
+<!--
+Documentation version: 158
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/VlessServer.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/VlessServer.mdx, and all files must keep the same documentation version.
+-->
+
+# VlessServer Node
+
+`VlessServer` is a server-side VLESS v0 protocol middle tunnel for Waterwall.
+
+It accepts a base VLESS byte stream from the previous node, authenticates the 16-byte raw UUID in the request header,
+parses the requested TCP or UDP destination, and forwards accepted traffic to the configured `next` node.
+
+Authentication can run in either local allowlist mode or user-database mode:
+
+- Without `auth-client-node-name`, `VlessServer` uses the configured local UUID allowlist.
+- With `auth-client-node-name`, `VlessServer` authenticates through `AuthenticationClient`, records the resulting
+  `user_handle_t` on the line, and internally inserts a `UserController` before the configured outbound node.
+
+This node implements plain VLESS protocol handling only. It does not create TLS, REALITY, XTLS Vision, mux, reverse, or
+transport-specific wrapping.
+
+## Cached Account Admission
+
+With AuthenticationClient, admission uses its last valid RAM table and clock basis during ordinary network outages
+and re-authentication. Cached enabled status, expiry, traffic quota and local connection/IP reservations still apply.
+No initial cache, stopping, terminal accounting-continuity failure or explicit client credential rejection blocks new
+admission. Only validated authorization clears that rejection; existing authorized traffic keeps cached enforcement and
+accounting. Offline administrative changes apply after refresh. Local allowances can overshoot aggregate limits across
+multiple disconnected clients; they are not global reservations.
+
+## What It Does
+
+- Parses VLESS v0 request headers.
+- Authenticates users by local UUID allowlist or by `AuthenticationClient`.
+- Optionally forwards unauthenticated invalid probes to a fallback branch.
+- Supports VLESS TCP command `0x01`.
+- Supports VLESS UDP command `0x02`.
+- Rejects non-empty addons, including Vision flow addons.
+- Rejects mux, reverse, unknown commands, malformed destinations, empty domain names, and zero ports.
+- Relays transport Est promptly and combines `00 00` with the first nonempty TCP reply or first framed UDP reply, including an empty datagram or a valid pre-Est reply.
+- Preserves any TCP body bytes that arrive in the same payload as the request header.
+- Uses VLESS UDP length framing: `uint16_be length` followed by one UDP payload.
+- Creates one internal backend UDP line for the UDP destination carried by the initial VLESS request.
+
+## Splice and retention
+
+VlessServer supports ordinary and splice payloads in both directions. Splice runs only on supported Linux builds with
+`misc.splice` enabled and every node in the expanded chain capable, including UserController, connector/DomainResolver
+helpers and merged fallback branches. TLS and ordinary-only fallback nodes still block the whole chain.
+
+Request parsing reads only the required metadata into a cache of at most 278 bytes. The first Payload callback must
+contain the version and all 16 UUID bytes in its **logical** length, including bytes in a private pipe; fewer than 17
+bytes, including an empty callback, takes fallback/rejection. Successful authentication is cached. Unsupported addons
+and other malformed authenticated requests close the protected flow. Accepted metadata is removed before body budgeting.
+The first nonempty TCP reply or first framed UDP reply, including an empty datagram, shares one ordinary buffer with
+the `00 00` response header. Ordinary input with
+enough headroom is reused in place; splice-backed input or insufficient headroom uses a best-fit ordinary buffer.
+Later opaque TCP replies retain their representation where possible. UDP uses one fixed request destination and exact two-byte
+length framing, with bodies of 0..65,535 bytes. Pipe allocation or transfer pressure uses complete ordinary fallback;
+not every frame is guaranteed zero-copy.
+
+| Retained obligation | Inclusive limit |
+| --- | --- |
+| Upstream Init/reentry and fallback backlog, shared | 2,097,152 logical bytes and 1,024 buffers |
+| Downstream response-header/reentry backlog | 2,097,152 logical bytes and 1,024 buffers |
+| Request/UDP parser, including cached metadata and active input | 2,162,689 logical bytes (2 MiB + 65,537) |
+
+Empty retained output buffers consume entries; incomplete UDP fragments have no 1,024-entry output cap. Equality is
+accepted; overflow or queue refusal closes the affected association and releases locally owned data. These are retention
+limits, not RSS/kernel-pipe-memory limits or size limits on an already-ready synchronous TCP handoff.
+
+## Typical Placement
+
+Normal VLESS server:
+
+```text
+TcpListener -> TlsServer -> VlessServer -> TcpUdpConnector
+```
+
+TCP-only outbound:
+
+```text
+TcpListener -> TlsServer -> VlessServer -> TcpConnector
+```
+
+Important:
+
+- `VlessServer` does not create or manage TLS.
+- Operators should place `TlsServer` before `VlessServer` for normal VLESS deployments.
+- Without TLS, the UUID and destination metadata are visible on the wire.
+- The UUID is a bearer credential. Anyone who knows it can authenticate.
+- In user-database mode, put the user's UUID string in the user's `password` field.
+
+## Configuration Example
+
+Minimal server with one UUID:
+
+```json
+{
+  "name": "vless-server",
+  "type": "VlessServer",
+  "settings": {
+    "uuid": "5783a3e7-e373-51cd-8642-c83782b807c5",
+    "connect": true,
+    "udp": true,
+    "verbose": false
+  },
+  "next": "outbound"
+}
+```
+
+Multiple local allowlist users:
+
+```json
+{
+  "name": "vless-server",
+  "type": "VlessServer",
+  "settings": {
+    "users": [
+      "5783a3e7-e373-51cd-8642-c83782b807c5",
+      {
+        "username": "alice",
+        "id": "11111111-2222-3333-4444-555555555555"
+      }
+    ],
+    "connect": true,
+    "udp": true
+  },
+  "next": "outbound"
+}
+```
+
+Database-backed authentication:
+
+```json
+{
+  "name": "vless-server",
+  "type": "VlessServer",
+  "settings": {
+    "auth-client-node-name": "auth-client",
+    "connect": true,
+    "udp": true
+  },
+  "next": "outbound"
+}
+```
+
+Example with fallback:
+
+```json
+{
+  "name": "vless-server",
+  "type": "VlessServer",
+  "settings": {
+    "uuid": "5783a3e7-e373-51cd-8642-c83782b807c5",
+    "fallback-node-name": "fallback-service",
+    "fallback-intentional-delay-ms": 7,
+    "fallback-intentional-delay-jitter-ms": 1,
+    "connect": true,
+    "udp": true
+  },
+  "next": "outbound"
+}
+```
+
+The matching user database entry should use the UUID string as the password:
+
+```json
+{
+  "id": 2001,
+  "name": "vless-user",
+  "password": "5783a3e7-e373-51cd-8642-c83782b807c5",
+  "enabled": true
+}
+```
+
+Typical outbound connector:
+
+```json
+{
+  "name": "outbound",
+  "type": "TcpUdpConnector",
+  "settings": {
+    "address": "dest_context->address",
+    "port": "dest_context->port"
+  }
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this node.
+
+- `type` `(string)`
+  Must be exactly `"VlessServer"`.
+
+- `next` `(string)`
+  Required. Accepted VLESS traffic is forwarded to this node.
+
+### `settings`
+
+Choose exactly one authentication mode.
+
+For local allowlist mode, omit `auth-client-node-name` and configure at least one UUID using one or more of:
+
+- `uuid` `(string)`
+  A single RFC4122 UUID string.
+
+- `id` `(string)`
+  Alias for `uuid`. Use either `uuid` or `id`, not both.
+
+- `uuids` `(array of strings)`
+  Multiple UUID strings.
+
+- `users` `(array)`
+  Each entry may be a UUID string or an object containing exactly one of `uuid`, `id`, or `user-id`. Object entries may
+  also include an optional `username` string, which is recorded on the line if that UUID authenticates.
+
+- `clients` `(array)`
+  Alias for `users`. Use either `users` or `clients`, not both.
+
+Duplicate local UUIDs are a fatal configuration error, regardless of whether the duplicate entries use different
+`username` values.
+
+UUID strings may be dashed RFC4122 form or compact 32-character hex form. The wire comparison uses RFC4122 byte order:
+hex bytes left-to-right, not Windows GUID memory order.
+
+For user-database mode, configure:
+
+- `auth-client-node-name` `(string)`
+  Name of an existing `AuthenticationClient` node in the same config file.
+
+In this mode, local UUID settings (`uuid`, `id`, `uuids`, `users`, `clients`) are rejected so the user database remains
+the only authority. The 16-byte wire UUID is looked up directly against UUID credentials locally derived from each
+user's `password`. For example, this password is accepted:
+
+```text
+5783a3e7-e373-51cd-8642-c83782b807c5
+```
+
+Dashed, uppercase, and compact 32-character UUID password forms derive the same credential key. Duplicate equivalent
+UUID credentials are rejected because a VLESS request cannot distinguish them.
+
+In local allowlist mode, the canonical lowercase dashed UUID string is stored as the line's raw password after the full
+VLESS request is parsed, so `Router` can match `password` rules without a users database. If the matching local object
+has `username`, that username is also stored on the line for `Router` username rules.
+
+The complete VLESS credential, meaning the version byte plus the 16-byte raw UUID, must be present in the first upstream
+payload callback. If the first payload does not contain the full UUID, `VlessServer` sends the unauthenticated bytes to
+fallback when fallback is configured; otherwise it rejects the line. This path logs a warning even when `verbose` is
+disabled. Fields after the UUID, including addons length, command, destination, and any early payload, may still arrive
+buffered across later payload callbacks.
+
+At least one of `connect` or `udp` must be enabled.
+
+## Optional `settings` Fields
+
+- `connect` `(boolean)`
+  Enables VLESS TCP command `0x01`.
+  Default: `true`
+
+- `udp` `(boolean)`
+  Enables VLESS UDP command `0x02`.
+  Default: `true`
+
+- `verbose` `(boolean)`
+  Enables extra rejection logging.
+  Default: `false`
+
+- `fallback-node-name` `(string)`
+  Name of an existing node used as fallback for unauthenticated invalid probes or failed authentication.
+
+  Accepted aliases:
+
+  - `fallback-node`
+  - `fallback`
+
+- `fallback-intentional-delay-ms` `(number, milliseconds)`
+  Delay applied to upstream payloads sent to the fallback branch.
+  Default: `7`
+
+  The fallback branch still receives `Init` immediately. Only payload is delayed. This small delay exists to reduce
+  timing-based active-probe fingerprints where a detector compares how quickly an invalid probe is handed to fallback.
+  Set to `0` to disable the intentional delay. At delay zero, an active fallback with no older queued bytes or
+  scheduled drain receives payload inline. Bytes behind an older FIFO batch keep their order; the scheduled drain
+  sends when due without waiting for Resume.
+
+  This value must be calibrated against the public behavior the fallback should resemble. The important question is
+  whether the fallback branch would answer faster or slower than that behavior, not whether it is co-located or remote.
+  A co-located fallback can still be too fast when the protected path normally includes an upstream round trip, such as
+  proxy-like traffic fetching remote content, so a positive delay may be appropriate. A remote fallback may already carry
+  enough latency, and a local-service imitation may be closer with `0`. Measure the target behavior; delay and jitter are
+  mitigations, not proof of timing indistinguishability.
+
+- `fallback-intentional-delay-jitter-ms` `(number, milliseconds)`
+  Random jitter applied to delayed fallback payload scheduling.
+  Default: `1`
+
+  When `fallback-intentional-delay-ms` is non-zero, each delayed FIFO drain is scheduled in the range
+  `max(0, delay - jitter)` through `delay + jitter` milliseconds. If `fallback-intentional-delay-ms` is `0`, jitter is
+  ignored because no intentional delay is applied.
+
+## Protocol Behavior
+
+Accepted request format:
+
+```text
+version:      1 byte, must be 00
+user id:      16 raw UUID bytes
+addons len:   1 byte, must be 00
+command:      01 TCP or 02 UDP
+destination:  port first, then address
+body:         TCP raw stream or UDP length-prefixed packets
+```
+
+Destination format:
+
+```text
+port:         2 bytes big-endian
+address type: 01 IPv4, 02 domain, 03 IPv6
+address body: IPv4 4 bytes, domain length + bytes, or IPv6 16 bytes
+```
+
+Response format:
+
+```text
+00 00
+```
+
+Every same-line TCP and fallback Est is forwarded, including repeats, independently of the response header and output
+Pause. Owned UDP backend Est maps to its client association once. The `00 00` header is sent exactly once, together with
+the complete first nonempty TCP reply or first framed UDP reply in one ordinary buffer, including a valid reply received
+before Est. An empty UDP reply is valid: its first combined response is `00 00 00 00`, containing the response header
+and the datagram's zero length.
+Est, Resume and empty TCP replies never send a standalone header; there is no header-only timer. A connection that closes
+without a backend reply sends no VLESS response bytes. Later replies keep the normal splice-capable forwarding path.
+This avoids a deliberate header-only write, but does not guarantee TCP packet or TLS record boundaries.
+
+Authenticated TCP permanently bypasses this node after the first response header/body
+handoff, once initialization and retained input/replies have settled. Local line state is destroyed before bypass.
+UDP and fallback remain active for framing, owned-line cleanup and branch routing.
+
+TCP and fallback relay every Pause/Resume, including duplicates. TCP response-ordering storage and due fallback
+replay drain without waiting for Resume. UDP associations retain producer control: their independent reply drain
+waits while client output is paused, while an admitted reply may complete synchronously. Response/Est reentry cannot
+reorder older replies. The retained response FIFO is bounded to 2 MiB logical bytes plus 1,024 buffers, with transactional
+admission and per-association close on overflow. Client receiver Pause recorded before branch Init is replayed onto
+the initialized selected branch and every new or recreated owned UDP backend. Before branch selection, Resume clears
+that pending Pause. Nested application input during branch Init/replay stays behind the original input in a temporary
+FIFO with the same limits. Authentication, fallback selection and the exact owned UDP backend remain unchanged.
+
+Partial two-byte UDP length prefixes and datagram bodies wait for later input.
+
+UDP packets after the request header use:
+
+```text
+length:  2 bytes big-endian
+payload: length bytes
+```
+
+The UDP destination is fixed by the initial VLESS request. Individual UDP frames do not carry per-packet addresses.
+
+A received length of `0` consumes its two-byte prefix and delivers exactly one empty UDP datagram. The association
+stays open and parsing continues with the next frame in order. Empty backend replies emit a `00 00` length prefix;
+oversized local replies are dropped without closing the backend.
+This differs from [Xray's base VLESS implementation](https://github.com/XTLS/Xray-core/blob/0888beb38a9ba45440557175e71ce21cf8ba3b13/proxy/vless/encoding/addons.go), whose writers drop empty datagrams and whose reader skips zero-length frames.
+Empty-datagram delivery requires a peer that supports it; nonempty framing is unchanged.
+Empty datagrams are valid at the [UDP layer (RFC 8085 §5)](https://datatracker.ietf.org/doc/html/rfc8085#section-5).
+
+## Fallback Behavior
+
+Fallback is intended for active-probing resistance.
+
+When fallback is configured, unauthenticated traffic that does not look like a valid VLESS request is forwarded to the
+fallback branch with the original buffered bytes preserved. `VlessServer` does not send a VLESS response header before
+doing this.
+
+The fallback branch receives `Init` immediately. During normal live operation, nonzero delay uses the configured delay
+and jitter. At delay zero, an active fallback with no older FIFO batch or scheduled drain completes admitted payload
+inline, including through Pause; independently retained bytes remain FIFO and their scheduled drain runs when due
+without requiring Resume. The delayed FIFO is bounded to the shared upstream 2 MiB / 1,024-buffer budget. Downstream
+responses from fallback are not intentionally delayed.
+
+An upstream `Finish` does not keep the remaining intentional delay alive. Outside branch Init, accepted queued bytes
+are synchronously flushed in one FIFO batch before fallback `Finish`, including during advisory Pause. During branch
+Init, the still-local delayed batch is discarded and fallback is closed. The finished source receives no reflected
+callbacks. Delay and jitter are only mitigations; they do not prove timing indistinguishability. Measure the deployment
+path and choose values that match the service being impersonated.
+
+Fallback may be selected for:
+
+- invalid version byte
+- segmented UUID authentication in the first upstream payload
+- failed UUID lookup
+- cached authentication unavailable (unloaded, stopping, rejected or terminal continuity failure)
+
+Fallback is not used after the UUID has authenticated. Once the UUID is accepted, malformed VLESS addons, command,
+destination, or UDP framing closes the VLESS line instead of replaying authenticated client bytes to the fallback
+service.
+
+Operational notes:
+
+- The fallback target must be a real configured node.
+- It must not be `VlessServer` itself.
+- It must not be the internal `UserController`.
+- It should be something that plausibly speaks the public-facing protocol exposed by the same endpoint.
+- Fallback health is part of the public fingerprint. A down fallback, immediate close, generic proxy error, mismatched
+  response content or headers, or mismatched timeout/timing behavior can identify the deployment.
+- If no fallback is configured, unauthenticated invalid probes are closed.
+
+## Unsupported Features
+
+The current implementation intentionally rejects:
+
+- nonzero addons length
+- XTLS Vision flow addons
+- mux command `0x03`
+- reverse command `0x04`
+- unknown commands
+- VLESS over non-stream transports
+- XUDP and advanced UDP/mux behavior
+
+Invalid unauthenticated probes may go to fallback; bad authenticated protocol data closes without writing another VLESS
+response header.
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4` |
+| `layer_group_next_node` | `kNodeLayer4` |
+| `required_padding_left` | `4` bytes: response header plus UDP length prefix |

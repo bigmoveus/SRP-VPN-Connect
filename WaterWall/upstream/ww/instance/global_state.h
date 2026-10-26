@@ -1,0 +1,501 @@
+#pragma once
+
+#include "wlibc.h"
+
+#include "application_shutdown.h"
+#include "buffer_pool.h"
+#include "generic_pool.h"
+#include "net/address_context.h"
+#include "startup.h"
+#include "threadsafe_generic_pool.h"
+#include "wloop.h"
+#include "worker.h"
+#include "worker_messages.h"
+#include "wsysinfo.h"
+
+/*
+    This is a global state file that powers many WW things up
+
+    this also dose not limit loading another WW lib dynamically, it manages
+    the loaded library and sets it up so there is no such problem of multiple global symbols
+
+*/
+
+typedef struct
+{
+    char *log_file_path;
+    char *log_level;
+    bool  log_console;
+
+} logger_construction_data_t;
+
+typedef err_t (*LwipV4Hook)(struct pbuf *, struct netif *);
+
+#if defined(OS_WIN)
+typedef LONG(WINAPI *secure_random_windows_generator_fn)(void *, unsigned char *, ULONG, ULONG);
+#endif
+
+typedef struct secure_random_state_s
+{
+#if defined(OS_WIN)
+    HMODULE                            library_handle;
+    secure_random_windows_generator_fn generator;
+#elif defined(OS_UNIX) && ! (defined(OS_DARWIN) || defined(OS_BSD))
+    int device_fd;
+#endif
+    bool initialized;
+} secure_random_state_t;
+
+typedef struct ww_global_state_s
+{
+    wloop_t                       **shortcut_loops;
+    buffer_pool_t                 **shortcut_buffer_pools;
+    threadsafe_generic_pool_t     **shortcut_wios_pools;
+    generic_pool_t                **shortcut_context_pools;
+    master_pool_t                  *masterpool_buffer_pools_large;
+    master_pool_t                  *masterpool_buffer_pools_small;
+    master_pool_t                  *masterpool_buffer_pools_medium;
+    master_pool_t                  *masterpool_wios;
+    master_pool_t                  *masterpool_context_pools;
+    master_pool_t                  *masterpool_messages;
+    master_pool_t                  *masterpool_timers;
+    struct sbuf_splice_inventory_s *splice_inventory; // Owned here; private bufio state, shared by state copies.
+    worker_t                       *workers;
+    struct application_shutdown_s  *application_shutdown;
+    struct signal_manager_s        *signal_manager;
+    struct socket_manager_s        *socekt_manager;
+    struct node_manager_s          *node_manager;
+    struct logger_s                *core_logger;
+    struct logger_s                *network_logger;
+    struct logger_s                *dns_logger;
+    struct logger_s                *internal_logger;
+    struct dedicated_memory_s      *openssl_dedicated_memory;
+    LwipV4Hook                      lwip_process_v4_hook;
+    secure_random_state_t           secure_random;
+    system_load_state_t            *system_load;
+    void                           *wintun_dll_handle;
+    void                           *wintun_dll_path;
+    void                           *windivert_dll_handle;
+    void (*application_finalizer)(void);
+    uint32_t             workers_count;
+    uint32_t             ram_profile;
+    asyncdns_options_t   dns_options;
+    enum domain_strategy domain_strategy;
+    uint64_t             main_thread_id;
+    wid_t                lwip_wid; // Reserved ABI slot; always kInvalidWID.
+    atomic_wid_t         distribute_wid;
+    uint16_t             buffer_allocation_padding;
+    uint16_t             capturedevice_queue_start_number;
+    uint16_t             mtu_size;
+    uint8_t              flag_initialized : 1;
+    uint8_t              flag_tundev_windows_initialized : 1;
+    uint8_t              flag_openssl_initialized : 1;
+    uint8_t              flag_libsodium_initialized : 1;
+    uint8_t              flag_lwip_initialized : 1;
+    atomic_bool          workers_run_flag; // main thread sets this to true when it started its loop
+
+    // Published by a TunDevice in system-route mode before worker traffic runs.
+    // Outbound connector sockets use this to pin WaterWall's own egress to the
+    // physical default interface and avoid routing back into the TUN.
+    atomic_bool tun_egress_pin_active;
+    char        tun_egress_ifname[64];
+    uint32_t    tun_egress_ifindex_v4;
+    uint32_t    tun_egress_ifindex_v6;
+    uint32_t    tun_egress_pin_refs;
+
+    bool splice_disabled; // Startup policy; prevents chains from enabling splice.
+    bool tcp_tune_enabled; // Startup policy; suppresses automatic per-socket Mux buffer sizing.
+
+} ww_global_state_t;
+
+typedef struct
+{
+    unsigned int               workers_count;
+    enum ram_profiles_e        ram_profile;
+    uint16_t                   mtu_size;
+    asyncdns_options_t         dns_options;
+    enum domain_strategy       domain_strategy;
+    logger_construction_data_t internal_logger_data;
+    logger_construction_data_t core_logger_data;
+    logger_construction_data_t network_logger_data;
+    logger_construction_data_t dns_logger_data;
+    void (*application_finalizer)(void);
+
+    bool splice_disabled; // Opt-out: zero-initialized construction settings permit splice.
+    bool tcp_tune_enabled; // The application requests TCP tuning; independent of sysctl success.
+
+} ww_construction_data_t;
+
+extern ww_global_state_t global_ww_state;
+
+#define GSTATE               global_ww_state
+// Runtime core misc.mtu: the configurable default exposed to nodes.
+#define CORE_DEFAULT_MTU     global_ww_state.mtu_size
+#define RAM_PROFILE          global_ww_state.ram_profile
+#define WORKERS              global_ww_state.workers
+#define WORKERS_COUNT        global_ww_state.workers_count
+#define MAX_ORDINARY_WORKERS 254
+
+/*!
+ * @brief Get the number of workers.
+ *
+ * Every registered worker owns an event loop. Auxiliary threads are not workers.
+ *
+ * @return The number of workers.
+ */
+static inline wid_t getWorkersCount(void)
+{
+    return (wid_t) WORKERS_COUNT;
+}
+
+/*!
+ * @brief Get a worker by its ID.
+ *
+ * @param wid The worker ID.
+ * @return A pointer to the worker.
+ */
+static inline worker_t *getWorker(wid_t wid)
+{
+    assert(GSTATE.flag_initialized && WORKERS != NULL);
+    assert(wid != kInvalidWID);
+    assert(wid < getWorkersCount());
+    if (UNLIKELY(wid == kInvalidWID || wid >= getWorkersCount()))
+    {
+        abortProgramNow(1);
+    }
+    return &(WORKERS[wid]);
+}
+
+/*!
+ * @brief Get the buffer pool for a worker.
+ *
+ * @param wid The worker ID.
+ * @return A pointer to the buffer pool.
+ */
+static inline buffer_pool_t *getWorkerBufferPool(wid_t wid)
+{
+    assert(GSTATE.flag_initialized && GSTATE.shortcut_buffer_pools != NULL);
+    assert(wid != kInvalidWID);
+    assert(wid < getWorkersCount());
+    if (UNLIKELY(wid == kInvalidWID || wid >= getWorkersCount()))
+    {
+        abortProgramNow(1);
+    }
+    return GSTATE.shortcut_buffer_pools[wid];
+}
+
+/*!
+ * @brief Get the Wios pool for a worker.
+ *
+ * @param wid The worker ID.
+ * @return A pointer to the Wios pool.
+ */
+static inline threadsafe_generic_pool_t *getWorkerWiosPool(wid_t wid)
+{
+    assert(GSTATE.flag_initialized && GSTATE.shortcut_wios_pools != NULL);
+    assert(wid != kInvalidWID);
+    assert(wid < getWorkersCount());
+    if (UNLIKELY(wid == kInvalidWID || wid >= getWorkersCount()))
+    {
+        abortProgramNow(1);
+    }
+    return GSTATE.shortcut_wios_pools[wid];
+}
+
+/*!
+ * @brief Get the context pool for a worker.
+ *
+ * @param wid The worker ID.
+ * @return A pointer to the context pool.
+ */
+static inline generic_pool_t *getWorkerContextPool(wid_t wid)
+{
+    assert(GSTATE.flag_initialized && GSTATE.shortcut_context_pools != NULL);
+    assert(wid != kInvalidWID);
+    assert(wid < getWorkersCount());
+    if (UNLIKELY(wid == kInvalidWID || wid >= getWorkersCount()))
+    {
+        abortProgramNow(1);
+    }
+    return GSTATE.shortcut_context_pools[wid];
+}
+
+/*!
+ * @brief Get the event loop for a worker.
+ *
+ * @param wid The worker ID.
+ * @return A pointer to the event loop.
+ */
+static inline struct wloop_s *getWorkerLoop(wid_t wid)
+{
+    assert(GSTATE.flag_initialized && GSTATE.shortcut_loops != NULL);
+    assert(wid != kInvalidWID);
+    assert(wid < getWorkersCount());
+    if (UNLIKELY(wid == kInvalidWID || wid >= getWorkersCount()))
+    {
+        abortProgramNow(1);
+    }
+    return GSTATE.shortcut_loops[wid];
+}
+
+/*!
+ * @brief Reports a current-event-worker contract violation and aborts.
+ *
+ * Kept out of line so the checked accessors below stay small on hot paths. It
+ * logs the accessor name, the observed WID (or "unregistered"), and the OS
+ * thread id, which is what actually identifies the offending thread.
+ *
+ * @param accessor Name of the accessor whose contract was violated.
+ */
+WW_EXPORT _Noreturn void globalstateAbortNotWorker(const char *accessor);
+
+/*!
+ * @brief The worker owning the current thread, for event-worker-only callbacks.
+ *
+ * Use this in internal callbacks whose contract already guarantees an ordinary
+ * event worker (event-loop/timer/wio callbacks, worker-message callbacks, tunnel
+ * payload handlers). It never falls back to worker 0: a caller without an event-worker context aborts instead.
+ *
+ * Externally reachable or otherwise fallible code must branch on
+ * currentThreadIsWorker()/tryGetCurrentWorker() and fail cleanly
+ * rather than calling this.
+ *
+ * @return A pointer to the current thread's worker.
+ */
+static inline worker_t *getCurrentWorker(void)
+{
+    const wid_t wid = getWID();
+    if (UNLIKELY(! workerWIDIsRegistered(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return &(WORKERS[wid]);
+}
+
+/*!
+ * @brief Nullable form of getCurrentWorker(), for fallible callers.
+ *
+ * @return The current thread's worker, or NULL when the caller is unregistered
+ *         or runs before/after worker storage exists. Identity remains valid
+ *         during teardown after the worker's event loop has been detached.
+ */
+static inline worker_t *tryGetCurrentWorker(void)
+{
+    const wid_t wid = getWID();
+    if (! workerWIDIsRegistered(wid))
+    {
+        return NULL;
+    }
+    return &(WORKERS[wid]);
+}
+
+/*!
+ * @brief The current thread's own event-worker id, validated once.
+ *
+ * Prefer this over repeatedly reading getWID() when a callback needs its WID for
+ * both a per-worker array and a worker-local resource.
+ *
+ * @return The current worker ID. Aborts when the caller is not an event worker.
+ */
+static inline wid_t getCurrentWorkerWID(void)
+{
+    const wid_t wid = getWID();
+    if (UNLIKELY(! workerWIDIsRegistered(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return wid;
+}
+
+/*!
+ * @brief The buffer pool owned by the current event worker.
+ *
+ * Same contract as getCurrentWorker(): callers that may run on an
+ * unregistered thread must not use it.
+ *
+ * @return A pointer to the current worker's buffer pool.
+ */
+static inline buffer_pool_t *getCurrentWorkerBufferPool(void)
+{
+    const wid_t wid = getWID();
+    if (UNLIKELY(! workerWIDIsRegistered(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return GSTATE.shortcut_buffer_pools[wid];
+}
+
+/*!
+ * @brief The context pool owned by the current event worker.
+ *
+ * @return A pointer to the current worker's context pool.
+ */
+static inline generic_pool_t *getCurrentWorkerContextPool(void)
+{
+    const wid_t wid = getWID();
+    if (UNLIKELY(! workerWIDIsRegistered(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return GSTATE.shortcut_context_pools[wid];
+}
+
+/*!
+ * @brief The event loop owned by the current event worker.
+ *
+ * Worker identity remains valid after `worker->loop` is detached during teardown.
+ * This accessor reads the saved shortcut, which does not grant admission or extend
+ * the loop's lifetime; teardown callers must obey the loop's cleanup ordering.
+ *
+ * @return A pointer to the current worker's event loop.
+ */
+static inline struct wloop_s *getCurrentWorkerLoop(void)
+{
+    const wid_t wid = getWID();
+    if (UNLIKELY(! workerWIDIsRegistered(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return GSTATE.shortcut_loops[wid];
+}
+
+/*!
+ * @brief The event worker that owns @p loop, validated against the caller.
+ *
+ * The preferred source of identity inside a loop/io/timer callback: the event
+ * being dispatched already names its owning loop, so this reads the WID from the
+ * loop and only checks TLS to confirm the callback really is running on it.
+ * Derive it once and reuse the result for every per-worker array and resource in
+ * the callback.
+ *
+ * @param loop Loop the callback was dispatched from.
+ * @return The owning worker ID. Aborts when the caller does not own that loop.
+ */
+static inline wid_t getLoopWorkerWID(struct wloop_s *loop)
+{
+    const wid_t wid = (wid_t) wloopGetWID(loop);
+    if (UNLIKELY(! currentThreadOwnsWorker(wid)))
+    {
+        globalstateAbortNotWorker(__func__);
+    }
+    return wid;
+}
+
+/*!
+ * @brief Cached "now" in milliseconds for a worker's event loop.
+ *
+ * Reads the loop's cached timestamp (refreshed once per loop iteration by
+ * wloopUpdateTime), so the accessor is a cached read instead of a clock_gettime
+ * syscall. Accuracy is one loop iteration, which is sufficient for ms-scale
+ * timekeeping on hot data paths. Must be called from the worker that owns @p wid.
+ *
+ * @param wid The worker ID.
+ * @return Cached wall-clock time in milliseconds.
+ */
+static inline uint64_t getWorkerNowMS(wid_t wid)
+{
+    return wloopNowMS(getWorkerLoop(wid));
+}
+
+/*!
+ * @brief Cached "now" in microseconds for a worker's event loop.
+ *
+ * Splicesecond-resolution counterpart of getWorkerNowMS(); same caching and
+ * threading constraints apply.
+ *
+ * @param wid The worker ID.
+ * @return Cached wall-clock time in microseconds.
+ */
+static inline uint64_t getWorkerNowUS(wid_t wid)
+{
+    return wloopNowUS(getWorkerLoop(wid));
+}
+
+static inline wid_t getNextDistributionWID(void)
+{
+    wid_t wid = atomicAddExplicit(&GSTATE.distribute_wid, 1, memory_order_relaxed);
+
+    // Only registered event workers participate.
+    if (wid >= getWorkersCount())
+    {
+        atomicStoreRelaxed(&GSTATE.distribute_wid, 1);
+        wid = 0;
+    }
+
+    return wid;
+}
+
+/*!
+ * @brief Runs the main thread.
+ */
+WW_EXPORT void runMainThread(void);
+/* Hosted variant returns the selected shutdown status instead of terminating after coordination. */
+int globalstateRunHostedMainThread(void (*after_publication)(void));
+
+/*!
+ * @brief Exits the main thread.
+ *
+ * This function exits the main thread
+ */
+WW_EXPORT void finishGlobalState(const application_shutdown_snapshot_t *snapshot);
+WW_EXPORT void globalstateRunShutdownSequence(void);
+
+/*!
+ * @brief Creates the global state.
+ *
+ * @param data The construction data for the global state.
+ */
+WW_EXPORT ww_startup_result_t createGlobalState(ww_construction_data_t data);
+/*!
+ * @brief Gets the global state.
+ *
+ * @return A pointer to the global state.
+ */
+WW_EXPORT ww_global_state_t *getGlobalState(void);
+/*!
+ * @brief Sets the global state.
+ *
+ * @param state A pointer to the global state.
+ */
+WW_EXPORT void setGlobalState(ww_global_state_t *state);
+
+/*
+ * Initializes and probes the process-wide secure random provider.
+ * createGlobalState() calls this before workers or tunnels are started.
+ */
+WW_EXPORT bool globalstateInitializeSecureRandom(void);
+
+/* Releases resources cached by globalstateInitializeSecureRandom(). */
+WW_EXPORT void globalstateDestroySecureRandom(void);
+
+WW_EXPORT void globalstateStopSystemLoadSampler(void);
+
+/*!
+ * @brief Updates the allocation padding for the global state.
+ *
+ * @param padding The padding value.
+ */
+WW_EXPORT void globalstateUpdateAllocationPadding(uint16_t padding);
+
+/*!
+ * @brief Initializes shared lwIP infrastructure before worker publication; creates no thread.
+ */
+WW_EXPORT void initTcpIpStack(void);
+
+/*!
+ * @brief Destroys global state, all threads must be stopped before doing this
+ */
+WW_EXPORT void destroyGlobalState(void);
+
+/**
+ * Recycles a buffer into the **current event worker's** pool.
+ *
+ * This is only correct when the calling thread owns the buffer's pool, which is
+ * why it rejects callers without an event-worker context instead of
+ * indexing a shortcut array. Cross-worker cleanup paths must not be converted to
+ * it: use lineReuseBuffer()/bufferpoolReuseBuffer() with the owning pool when the
+ * owner is known, or sbufDestroy() when it is not.
+ *
+ * @param b The buffer to recycle.
+ */
+WW_EXPORT void reuseBuffer(sbuf_t *b);

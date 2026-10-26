@@ -1,0 +1,54 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+tunnel_t *halfduplexserverTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(halfduplexserver_tstate_t), sizeof(halfduplexserver_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    halfduplexserver_tstate_t *ts = tunnelGetState(t);
+
+    t->fnInitU    = &halfduplexserverTunnelUpStreamInit;
+    t->fnFinU     = &halfduplexserverTunnelUpStreamFinish;
+    t->fnPayloadU = &halfduplexserverTunnelUpStreamPayload;
+    t->fnPauseU   = &halfduplexserverTunnelUpStreamPause;
+    t->fnResumeU  = &halfduplexserverTunnelUpStreamResume;
+    t->fnEstD     = &halfduplexserverTunnelDownStreamEst;
+    t->fnFinD     = &halfduplexserverTunnelDownStreamFinish;
+    t->fnPayloadD = &halfduplexserverTunnelDownStreamPayload;
+    t->fnPauseD   = &halfduplexserverTunnelDownStreamPause;
+    t->fnResumeD  = &halfduplexserverTunnelDownStreamResume;
+
+    t->onDestroy = &halfduplexserverTunnelDestroy;
+
+    ts->upload_line_map   = hmap_cons_t_init();
+    ts->download_line_map = hmap_cons_t_init();
+
+    if (UNLIKELY(! mutexTryInit(&ts->pending_line_maps_mutex)))
+    {
+        halfduplexserverTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+    ts->pending_line_maps_mutex_initialized = true;
+
+    const bool download_reserved = hmap_cons_t_reserve(&ts->download_line_map, kHmapCap);
+    const bool upload_reserved   = hmap_cons_t_reserve(&ts->upload_line_map, kHmapCap);
+    assert(download_reserved && hmap_cons_t_capacity(&ts->download_line_map) >= kHmapCap);
+    assert(upload_reserved && hmap_cons_t_capacity(&ts->upload_line_map) >= kHmapCap);
+    discard download_reserved;
+    discard upload_reserved;
+
+    tunnel_t *pipe_tunnel = pipetunnelCreate(t);
+    if (! pipe_tunnel)
+    {
+        // The wrapper never took ownership, so the child is still this call's.
+        halfduplexserverTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    return pipe_tunnel;
+}

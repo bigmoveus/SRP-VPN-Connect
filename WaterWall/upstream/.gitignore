@@ -1,0 +1,69 @@
+.DS_Store
+node_modules
+/build
+/scripts
+/WaterWall-Docs
+/wireshock
+/tests/cases/__pycache__
+
+/tunnels/shared/protobuf/generator
+/core/texts
+ww/cmake/version.txt
+gen.py
+cacert.pem
+todo.txt
+#compiled bins
+/dist
+*.exe
+
+/core/texts
+/cmake
+/.cache
+
+.env.local
+.env.*.local
+package-lock.json
+main_linkerArgs.txt
+
+# Generated Router GeoSite database
+/tunnels/Router/geosite_ww_style_generator/geosite_generated.json
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vscode/
+
+# CTest scratch output, created wherever ctest runs outside a build directory
+Testing/
+
+# Python test/tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated test runner artifacts.
+# The case runners now build these inside a private run directory under TMPDIR,
+# so a normal `ctest` run leaves the source tree untouched. These entries still
+# cover older in-place leftovers and runners that write beside their inputs;
+# `tests/cleanup_generated_outputs.sh` removes them.
+/tests/cases/*/core.json
+/tests/cases/*/stdout.log
+/tests/cases/*/log/
+/tests/cases/*/packet-receiver-report.txt
+/tests/cases/*/users.json.backup
+/tests/cases/tls_handshake_timeout_slow_drip/server.crt
+/tests/cases/tls_handshake_timeout_slow_drip/server.key
+/tests/cases/tls_tlslike_invalid_probe_does_not_fallback/server.crt
+/tests/cases/tls_tlslike_invalid_probe_does_not_fallback/server.key
+/tests/cases/tls_tlslike_oversized_probe_does_not_fallback/server.crt
+/tests/cases/tls_tlslike_oversized_probe_does_not_fallback/server.key
+/tests/speedtests/*/core.json
+/tests/speedtests/*/stdout.log
+/tests/speedtests/*/log/
+/tests/speedtests/*/server.crt
+/tests/speedtests/*/server.key
+!/tests/speedtests/_shared/server.crt
+!/tests/speedtests/_shared/server.key
+/tests/unittests/log/

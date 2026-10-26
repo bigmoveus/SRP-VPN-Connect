@@ -1,0 +1,683 @@
+<!--
+Documentation version: 162
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/MuxClient.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/MuxClient.mdx, and all files must keep the same documentation version.
+-->
+
+# MuxClient Node
+
+`MuxClient` multiplexes many logical WaterWall lines onto a smaller number of shared transport lines. Instead of opening one full transport connection for every child line, it opens a parent connection and packs multiple child streams into framed messages on that parent.
+
+In practice, this node is used together with `MuxServer` on the remote side.
+
+## What It Does
+
+- Accepts many child lines from the previous node.
+- Reuses a shared parent transport line toward the next node.
+- Wraps child traffic into an internal MUX frame format.
+- Creates a new parent transport line when the current one is exhausted.
+- Demultiplexes reply frames from the remote `MuxServer` back to the correct child line.
+- Forwards `pause`, `resume`, and `finish` per child stream.
+
+This node is not a listener by itself. It relies on the previous node to create child lines and on the next node to provide the real shared transport.
+
+## Typical Placement
+
+A common layout is:
+
+- some line-producing node before `MuxClient`
+- `MuxClient`
+- one transport chain after it
+- `MuxServer` on the remote side of that transport
+- service-facing nodes after `MuxServer`
+
+Typical pairings are useful when you want many short or medium-lived logical connections to share fewer outer transport connections.
+
+## Configuration Example
+
+Timer mode:
+
+```json
+{
+  "name": "mux-client",
+  "type": "MuxClient",
+  "settings": {
+    "mode": "timer",
+    "connection-duration-ms": 30000
+  },
+  "next": "outbound-transport"
+}
+```
+
+Counter mode:
+
+```json
+{
+  "name": "mux-client",
+  "type": "MuxClient",
+  "settings": {
+    "mode": "counter",
+    "connection-capacity": 128
+  },
+  "next": "outbound-transport"
+}
+```
+
+Fixed connection count mode:
+
+```json
+{
+  "name": "mux-client",
+  "type": "MuxClient",
+  "settings": {
+    "mode": "fixed-connections-count",
+    "per-worker-connections-count": 2
+  },
+  "next": "outbound-transport"
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this node.
+
+- `type` `(string)`
+  Must be exactly `"MuxClient"`.
+
+- `next` `(string)`
+  The next node that carries the shared parent transport connection.
+
+### `settings`
+
+- `mode` `(string)`
+  Controls when `MuxClient` stops attaching new child lines to the current parent transport line.
+
+  Supported values:
+  - `"timer"`
+  - `"counter"`
+  - `"fixed-connections-count"`
+
+- `connection-duration-ms` `(integer, milliseconds)`
+  Required when `mode` is `"timer"`.
+
+  A parent transport line may accept new child lines only until this many milliseconds have passed since that parent was created.
+
+  The implementation requires this value to be greater than `60`.
+
+- `connection-capacity` `(integer)`
+  Required when `mode` is `"counter"`.
+
+  Maximum number of child streams that may be opened on one parent transport line before `MuxClient` rotates to a new
+  parent.
+
+  This value must be greater than `0`.
+
+- `per-worker-connections-count` `(integer)`
+  Required when `mode` is `"fixed-connections-count"`.
+
+  Number of parent transport lines `MuxClient` keeps available per worker.
+
+  This value must be greater than `0`.
+
+### Parent write buffering
+
+Each parent has a lazy FIFO of encoded outgoing buffers, shared by its children.
+The following optional settings measure **queue-capacity charge in bytes**:
+`sizeof(sbuf_t) + sbufGetTotalCapacity(buf) + kSbufAllocationAlignment`.
+Ordinary capacity is resident allocation; splice capacity is logical geometry.
+Padding is included once. Kernel pipe capacity and control storage are not added;
+this is not a physical memory, descriptor, or RSS limit.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `parent-write-buffer-pause-threshold` | `134217728` (128 MiB) | Pause attached child producers when retained charge reaches this value. |
+| `parent-write-buffer-resume-threshold` | `4194304` (4 MiB) | Release parent pressure at or below this charge while transport is writable. |
+| `parent-write-buffer-limit` | `536870912` (512 MiB) | Maximum retained charge for each parent; equality is allowed. |
+
+Pause and hard limits must be integers in `[1, INT_MAX]`; resume accepts
+`[0, INT_MAX]`. The effective tuple must satisfy `0 <= resume < pause < hard`.
+Omitted settings use their defaults. Resume defaults to `4194304` (4 MiB)
+independently of pause. Explicit values are honored; `0` requires an empty
+outgoing queue before release. Transport must be writable in every case. Booleans,
+strings, null, fractions, negatives and out-of-range values reject startup. Invalid
+combinations report all three effective values without clamping. For example,
+inside `settings` (explicitly selects a 1.5 MiB resume threshold):
+
+```json
+{
+  "parent-write-buffer-pause-threshold": 2097152,
+  "parent-write-buffer-resume-threshold": 1572864,
+  "parent-write-buffer-limit": 4194304
+}
+```
+
+The gate uses retained queue charge (`sbufGetQueueCharge`), including header,
+capacity, padding and alignment, rather than wire length. Resume runs before the
+next FIFO pop, after the prior delivery returns. Synchronous resumed output
+appends behind existing frames and complete splice batches. A new pause stops
+an interrupted Resume pass; the FIFO of locally held children preserves later
+release opportunities. Init/Est completion reconciles deferred producer permission.
+Peer FlowPause and terminal close remain independent reasons to stop a source.
+
+The default releases held producers when outgoing queue charge is at or below
+4 MiB and the transport is writable. The 512 MiB limit is per parent,
+allocated on demand, and is not an RSS, socket-buffer or FD bound.
+Already-admitted Data can still reach a peer-paused child; the default 128 MiB
+child and 512 MiB parent receive budgets can shed children or close that parent.
+
+With `log-main-line-stats`, five-second samples include
+`parent-output-queued-bytes`, `parent-output-queue-charge`,
+`parent-output-queue-items`, `parent-transport-paused`,
+`parent-sources-throttled`, `children-parent-write-paused`,
+`children-peer-flow-paused`, `parent-output-throttle-ms`, and
+`parent-output-last-throttle-ms`, plus the three effective settings.
+`children-parent-write-paused` counts individual writer and aggregate holds.
+It can be nonzero while `parent-sources-throttled` is false. That boolean and
+its current/last throttle durations describe only the aggregate pause-all latch.
+Throttle durations use the owner's 64-bit monotonic clock; current duration is
+zero outside a throttle episode. `parent-child-queue-charge` and
+`parent-input-queue-charge` describe incoming storage. Logging remains optional
+and has no role in flow-control progress.
+
+These settings apply independently to every parent of this node. They are separate
+from `parent-buffer-limit`, which bounds incoming assembly plus attached child queues.
+
+## Optional `settings` Fields
+
+- `max-children` `(integer, optional)`
+  Maximum concurrent live children on one parent. Default: `10000`. It must be
+  positive and is separate from counter mode's cumulative
+  `connection-capacity`.
+
+- `child-buffer-limit` `(integer, bytes, optional)`
+  Maximum queue-capacity charge per paused child line before `MuxClient` closes that child stream.
+  Ordinary entries charge actual capacity (including padding), the buffer header, and alignment overhead.
+  Splice entries charge logical sbuf capacity plus sbuf/alignment overhead, including reserved padding once.
+
+  Default: `134217728` (`128 MiB`).
+
+- `child-buffer-resume-threshold` `(integer, bytes, optional)`
+  Logical queued-payload low-water mark for sending `FlowResume` after the local child becomes writable. The frame is
+  sent once the sum of queued application payload bytes falls below this value, allowing the peer to restart before
+  the queue is completely empty. It must be greater than `0`; its configured numeric value is capped to
+  `child-buffer-limit`.
+
+  Default: `524288` (`512 KiB`). Raising it resumes the peer earlier and may reduce high-RTT throughput gaps, at the
+  cost of weaker hysteresis and potentially more pause/resume cycling.
+
+  The resume threshold uses logical payload bytes. Queue-capacity charge is used by the hard retention budgets.
+
+- `parent-buffer-limit` `(integer, bytes, optional)`
+  Per-parent queue-capacity budget for incoming assembly plus all attached child queues.
+  On reaching it, beneficial incoming compaction precedes largest-child shedding; ties prefer the oldest child.
+  Recovery may close several children or, if pressure cannot be relieved, the affected parent.
+
+  Default: `536870912` (`512 MiB`). Set to `0` to disable the aggregate budget; `child-buffer-limit` still bounds each
+  individual child. The value may intentionally be lower than `child-buffer-limit`.
+
+  Each parent has an independent retained-state limit, with transient delivered input excluded from an instantaneous ceiling.
+
+- `detached-buffer-limit` `(integer, bytes, optional)`
+  Per-worker queue-capacity-charge limit for child queues kept after their parent transport has closed. The default depends on
+  the global `misc.ram-profile`, as shown below. Reaching the limit aborts only the newly detached blocked child. Set
+  to `0` to disable this aggregate bound.
+
+- `detached-child-limit` `(integer, optional)`
+  Per-worker count limit for blocked children retained after parent loss. The default depends on the global
+  `misc.ram-profile`, as shown below. Reaching the limit aborts only the newly detached blocked child. Set to `0` to
+  disable this aggregate bound.
+
+  | RAM profile | Default detached charge | Default detached children |
+  | --- | ---: | ---: |
+  | S1 (`minimal` / `ultralow`) | `33554432` (`32 MiB`) | `4096` |
+  | S2 | `80740352` (`77 MiB`) | `5677` |
+  | M1 (`client`) | `127926272` (`122 MiB`) | `7258` |
+  | M2 (`client-larger`) | `174063616` (`166 MiB`) | `8838` |
+  | L1 | `221249536` (`211 MiB`) | `10419` |
+  | L2 (`server`, the global default) | `268435456` (`256 MiB`) | `12000` |
+
+  Defaults are linearly interpolated over the six ordered RAM-profile tiers, with the charge limit rounded to the
+  nearest whole MiB. An explicit setting overrides the profile-derived value independently for that limit.
+
+- `log-main-line-stats` `(boolean, optional)`
+  When `true`, each active parent transport line logs best-effort mux diagnostics every `5` seconds. Parent logical
+  death suppresses normal stats execution; when the queued or timed runner is reached, the task settles as `LineDead`.
+  Worker quiescence actively cancels pending queued or timed stats work. Neither path rearms it.
+
+  The log keeps `parent-line-read-paused=no` for compatibility. Its `parent-child-queue-charge` and
+  `parent-input-queue-charge` fields report the separate charges whose sum is limited by
+  `parent-buffer-limit`, not logical payload bytes. It also reports
+  `children-close-pending`, along with `wid`, parent-line write pause state, child count, child read-pause count, and
+  child write-pause count.
+  Default: `false`.
+
+## Detailed Behavior
+
+### Parent and child model
+
+`MuxClient` keeps two kinds of lines:
+
+- child lines: the logical streams coming from the previous node
+- parent lines: the shared transport connections opened toward the next node
+
+Each child line gets a 32-bit connection id (`cid`). That id is used inside MUX frames so the remote `MuxServer` can map traffic back to the correct child stream.
+
+In timer and counter modes, `MuxClient` keeps one current reusable parent line per worker. The code calls this the unsatisfied line. As long as that parent is still allowed to accept more children, new child lines will join it. If another child arrives while the parent is at `max-children`, the parent is selection-retired, remains alive for current children, and closes after the last child leaves and pending output is handed off; the arriving child uses a new parent.
+
+In fixed connection count mode, `MuxClient` keeps `per-worker-connections-count` selectable parent slots per worker. It first prefers non-suspect parents below `max-children`, then uses rendezvous hashing within that health group. Each new child receives a worker-local selection key; each parent has a stable identity for its lifetime. Child count is a hard eligibility cap, not a ranking score. Existing children retain their original parent. If all eligible parents are suspect, selection still uses rendezvous among them. If every selectable parent is full or finishing, the new borrowed child receives Finish; no unbounded wait queue is created.
+
+### Parent keepalive and soft replacement
+
+Keepalive is enabled by default in all modes. Optional `settings`:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `keepalive` | `true` | Send probes, acknowledge replies and allow health-based replacement. `false` disables all three. |
+| `ping-interval` | `15000` | Milliseconds between probes. |
+| `tolerance-ms` | `45000` | Elapsed milliseconds allowed for a matching Pong, including Pause. |
+
+The switch must be boolean; both durations must be integers in `1..2147483647`,
+even when disabled. Fixed-mode rendezvous remains active when disabled.
+
+A worker-local idle table schedules probes and reply deadlines for established
+selectable parents, not children. Expiry has approximately one-second resolution,
+so a due probe or timeout may be handled about one second late, including when a
+configured duration is shorter. The first probe is due one `ping-interval` after
+transport Est and is sent at the first eligible expiry at or after that deadline.
+Waiting for it does not make the parent suspect or block new children.
+Later probes obey `ping-interval`, and reply timing starts when a probe is sent. Only one
+probe is outstanding per parent. Ping/Pong has zero payload and uses CID bytes
+as a 32-bit token. Only a complete matching Pong on that parent acknowledges it;
+Data, partial frames and wrong tokens do not. The first matching reply confirms
+peer support. Before that, unanswered discovery is retried without suspicion or
+replacement. This permits a disabled MuxServer responder, but means a parent
+that never answers its first probe has no health-based recovery.
+
+The scheduled probes and outstanding reply deadlines continue through parent
+transport Pause and child FlowPause. A due probe waits until parent output is
+unpaused, its active callback has returned, and its FIFO is empty. Missed ticks
+produce one due probe, not a burst. Blocked probes retry after about one second.
+Its reply clock starts immediately before
+handoff to the next node; an unsent probe cannot make a parent suspect or retire it.
+Pong replies share the ordinary parent FIFO, charge limit and Pause gate.
+All timestamps use the owner's monotonic clock. After handoff, queuing in later
+nodes, local Pause and wire transfer consume tolerance. Idle connections and one-way uploads
+do not require application replies: the Mux peer answers independently.
+
+At one quarter of tolerance (rounded down, at least 1 ms; 11250 ms by default),
+fixed selection prefers non-suspect parents. At full tolerance, reply-deadline expiry
+or a new-child request may softly retire a parent, including during Pause.
+A replacement is created only on a new-child request. A late matching Pong
+restores a still-selectable parent. A retired parent never rejoins selection;
+its existing children stay attached and continue working until their normal
+finish. It closes after its last child leaves, discarding blocked final output
+without waiting for Resume. A timed-out selectable parent with no children closes
+through normal parent-loss cleanup, including blocked final output.
+
+Per worker, at most `per-worker-connections-count` keepalive-retired parents
+remain in fixed mode, or one in timer/counter modes. Pending final output still
+counts. At the bound, occupied unresponsive parents remain selectable until
+retirement capacity is released, with expiry retrying about once per second;
+empty ones can still be replaced. Existing counter/timer rotation continues
+independently and measures parent age with the owner's monotonic clock. Idle-table
+callbacks probe and apply expiry;
+replacement creation runs on a new-child request, with no forced termination of
+active children.
+Adapter and peer timeouts remain independent.
+
+### When a new parent connection is opened
+
+When a child line arrives:
+
+- if there is no reusable parent line for that worker, a new parent line is created
+- if the current parent line is exhausted, a new parent line is created
+- the new parent line is initialized through the next node
+- the child line is then attached to that parent and downstream establishment is reported
+
+The first child payload submits `Open` followed by Data. A child that finishes before sending data submits `Open` and `Close`. Transport establishment does not wait for that first payload.
+
+In fixed connection count mode, closed or softly retired slots are refilled on new-child selection. The selectable pool remains capped by `per-worker-connections-count`; softly retired parents have the separate bound described above.
+
+### Exhaustion rules
+
+The current parent line becomes exhausted in one of these ways:
+
+- timer mode: its age becomes greater than `connection-duration-ms`
+- counter mode: its opened child stream count reaches `connection-capacity`
+- all modes: its concurrent live child count reaches `max-children`
+- fixed connection count mode: cumulative age and CID count do not rotate parents; the live cap and keepalive policy apply
+- absolute hard limit: the parent connection id reaches `4294967295`
+
+An exhausted parent line is not closed immediately. It simply stops accepting new child lines. Existing child streams continue using it until they finish.
+
+When an exhausted parent has no children, `MuxClient` retires it from selection and
+closes it once pending encoded output has been handed off and no send is active.
+A replacement parent can serve new children while the old parent waits for Resume.
+The owned-parent inventory retains the old parent throughout that wait.
+
+Child response lookup uses a per-parent hash index and remains average O(1). A
+server resource-rejection `Close(cid)` finishes only that matching borrowed
+child; the parent and unrelated siblings continue.
+
+### Internal frame format
+
+`MuxClient` and `MuxServer` share the same fixed header format:
+
+| Offset | Size | Meaning |
+| --- | --- | --- |
+| 0 | 3 bytes | Unsigned payload length, big-endian. |
+| 3 | 1 byte | Frame type/flags. |
+| 4 | 4 bytes | Unsigned connection ID, big-endian. |
+
+The inclusive payload maximum is **1 MiB (1,048,576 bytes)** for every frame
+type, independent of RAM profile, buffer sizes and requested or granted pipe
+capacity. A maximum frame occupies 1,048,584 wire bytes; a preceding Open adds
+another eight bytes (1,048,592 total). Decoding rejects a larger declaration as
+soon as all eight header bytes arrive, even for unknown CIDs or types, and closes
+only that parent through normal parent-loss cleanup. After a valid Data header,
+the decoder delivers available body bytes incrementally; it does not wait for the
+whole frame. For a paused child, or one with queued Data, the incomplete body
+instead stays in incoming assembly and joins that child's queue as one entry when
+the frame ends. Data for an unknown or closed CID is discarded incrementally. Empty
+Data is consumed without a child Payload callback. Other frame bodies are also
+consumed incrementally, but control effects wait until their declared bodies end.
+Available body bytes and completed controls drain before retained incomplete
+input is checked against **1,048,584 bytes**, including its cached header.
+Bytes not yet received do not count as retained input.
+
+Header size: `8 bytes`
+
+Frame flags:
+
+- `0`: `Open`
+- `1`: `Close`
+- `2`: `FlowPause`
+- `3`: `FlowResume`
+- `4`: `Data`
+- `5`: `Ping` (empty parent control; CID is the probe token)
+- `6`: `Pong` (empty parent control; CID echoes the probe token)
+
+Payload length is the framed data length after the header.
+
+`1,048,576` bytes is the maximum payload of one `Data` frame, not a limit on one
+child `Payload` callback. The encoder splits a larger callback payload into
+consecutive `Data` frames of at most `1,048,576` bytes and preserves the exact byte
+order. The checked aggregate encoded size (payload plus every 8-byte frame
+header and an optional `Open` frame) must fit in `uint32_t`. If it does not, the
+ordinary input buffer is recycled and only that child is closed; no partial frame
+is published. Large splice batches instead use affected-parent refusal and their
+complete-batch resource limit, described below. Allocation of the checked aggregate buffer follows the shift-buffer
+fail-fast allocation contract, so an actual allocator refusal terminates rather
+than forwarding a truncated encoding.
+
+### Data flow direction
+
+- Child to parent transport: previous node -> `MuxClient` -> next node
+- Parent transport back to child: next node -> `MuxClient` -> previous node
+
+For payload, `MuxClient` adds the 8-byte header before sending data on the parent line.
+
+For replies, it validates the parent frame header, looks up the child by `cid`, and forwards available Data body chunks to that child in byte order.
+
+### Pause and resume behavior
+
+When a child line is paused or resumed by the previous node, `MuxClient` uses `FlowPause` and `FlowResume` frames for
+that child's `cid`. `FlowPause` is sent as soon as the local child write side pauses.
+
+If writing parent-delivered data to a child causes that child to pause, `MuxClient` queues later data for that child.
+If the child paused before its first payload submitted `Open`, MuxClient submits `FlowPause` after that
+`Open` and its complete first Data payload, provided the child is still paused and attached. This also applies to
+large splice batches. A child that resumes before submission completes needs no deferred `FlowPause`.
+Queued data is flushed when the child resumes. `FlowResume` is sent
+once the child's queue drops below `child-buffer-resume-threshold`, allowing the peer to begin sending before the queue
+is completely empty.
+
+Queue pressure does not pause reads on the parent transport. A parent is shared by every child, so a parent read pause
+taken for one indefinitely blocked destination also prevents unrelated child frames from being demultiplexed. That is
+global head-of-line blocking even though the other streams and the parent transport are healthy.
+
+Pressure is bounded by closing a child instead. If one child's retained queue charge reaches `child-buffer-limit`, that child is closed.
+When incoming assembly plus attached child charge reaches `parent-buffer-limit`, beneficial incoming
+compaction runs first. Remaining pressure closes the largest queued child with the oldest tie-break,
+rechecking after each callback. Multiple closes may be needed; unrelieved pressure closes the parent.
+
+Logical queue length remains the sum of application payload bytes and drives the `FlowResume` threshold.
+`FlowPause` follows the local child pause state, independently of queue length.
+Zero-length `Data` is valid wire input but is consumed without a child callback or queued buffer.
+It adds no logical payload activity.
+
+The queue-capacity charge is a policy budget, not exact kernel memory or whole-process RSS. Allocator caches, queue-ring
+storage, and the buffer pools' fixed baseline may remain allocated outside a particular live queue's charge.
+
+Parent transport `Pause` stops parent-bound Payload, including Open, Close,
+flow controls and Ping/Pong. Admitted frames share one FIFO and charge limit;
+Resume continues their original order. A child submitting Data while transport is
+blocked acquires an individual local producer hold after its complete payload or
+splice batch is admitted. A direct submission that leaves transport paused also
+holds its writer before returning. A transient Pause followed by Resume uses the
+final state. Empty Data follows the same policy; control frames alone do not make
+the referenced child a writer. Idle siblings below the aggregate threshold remain
+unpaused until they write.
+
+At charge greater than or equal to `parent-write-buffer-pause-threshold`, the
+aggregate pause-all latch still holds every attached open child. Local writer
+holds do not activate that latch themselves. Both causes share one local reason
+per child and one parent-local FIFO of held children; duplicate causes preserve
+the child's place. A resumed writer that becomes held again joins the tail.
+
+The pump releases local holds whenever the parent is alive, not finishing, not
+quiescing, writable, and at or below `parent-write-buffer-resume-threshold`, even
+if the aggregate latch never activated. It clears that latch under the same
+condition. Before each release and the next FIFO pop it checks the state left by
+the previous callback. A transport Pause, charge above low water, renewed
+aggregate gate, parent loss, or quiescence interrupts release. Writable output
+continues draining and reconsiders waiting children without requiring an extra
+transport event. Peer FlowPause and terminal-close reasons remain independent.
+
+Release snapshots reference every locally held line before the first callback;
+callbacks may destroy siblings or the parent. Only surviving, attached, open,
+non-starting children are notified. Init/Est records reasons separately from
+already-emitted producer permission, then reconciles once safe. Unlink, terminal
+transition and shutdown remove registry membership before state destruction and
+never emit Resume just to clear the registry. The registry holds no persistent
+line references. Reentrant output follows existing Data, controls and admitted
+splice-batch remainders. Incoming parent reads and unrelated parents remain active.
+
+A candidate that would exceed `parent-write-buffer-limit`, or a queue reservation
+failure, closes only the affected parent through normal local teardown. The
+candidate and undeliverable output are recycled; the process is not terminated.
+An unblocked direct write needs no FIFO allocation and is not constrained by the
+retention limit. Small control frames use a fitting small pooled allocation with
+chain padding. Parent loss immediately discards outgoing backlog, while existing
+incoming child queues retain their separate detached-drain behavior.
+
+An exhausted timer/counter parent with no remaining children stays in MuxClient's
+owned-parent inventory until its queued final frames have been handed off and no
+send is active. It is retired from new-child selection while waiting. Fixed
+parents remain reusable unless softly retired. Worker Stop discards pending
+output and closes all owned parents, including retired parents with no children.
+
+A peer `Close` is ordered after earlier `Data` for the same `cid`. If the local child destination is paused,
+`MuxClient` retains those earlier bytes and waits for Resume; it never forces Payload through Pause and sends local
+Finish only after the queue is empty and writable. Later frames for that closed `cid` are discarded while unrelated
+children on the parent continue normally.
+
+During normal operation, if the parent transport is lost, the parent line still closes immediately. Already accepted child-destined queues
+become child-only detached drains: writable children complete immediately, while paused children continue on later
+Resume without retaining or dereferencing the dead parent. New outbound child data is rejected in this state.
+`detached-buffer-limit` bounds the aggregate queue-capacity charge and `detached-child-limit` bounds the retained
+child count per worker. `MuxClient` borrows
+child lines, so their true source owners remain responsible for enumerating and finishing them during shutdown.
+
+### Buffering and overflow handling
+
+Replies wait only for a complete header or more body bytes, and for the rest of a Data frame whose child is paused or has queued Data. Available Data otherwise passes incrementally to the child; a retaining child queues the rest of each frame as one bounded entry. Other body bytes are consumed without delivery.
+
+Current overflow limit:
+
+- `1,048,584 bytes` of incomplete parent input, including the eight-byte header
+
+If that limit is exceeded, `MuxClient` discards the incomplete parent remainder, closes the parent line, and applies
+the same detached drain behavior to already parsed child queues.
+
+## Notes And Caveats
+
+- `MuxClient` is intended to be paired with `MuxServer`.
+- `mode` is mandatory in the current implementation.
+- `connection-duration-ms` is only valid in timer mode.
+- `connection-capacity` is only valid in counter mode.
+- `per-worker-connections-count` is only valid in fixed connection count mode.
+- A local child Finish or orderly process shutdown may release a residual detached queue instead of forwarding it.
+- The detached drain changes no MUX wire bytes or peer capability requirements.
+- `UpStreamEst` and `DownStreamInit` are disabled in the current implementation, so this node is not meant to be used as a generic chain endpoint.
+
+## Worker shutdown
+
+During worker quiescence, `MuxClient` stops its worker-local keepalive table and
+switches terminal cleanup to discard retained MUX queues without sending
+payload, Open/Close frames, or flow-control work. Each worker inventories every parent it creates independently
+of selection, including connecting, idle, active, and retired parents. Worker stop
+closes that inventory, removing its keepalive items and finishing attached children
+toward their source owners, which destroy the borrowed child lines. It then
+destroys the empty table on the same worker. Previously detached
+borrowed children may outlive the MUX worker hook; their state and exact queue accounting remain available until
+their source owners send Finish. Final instance destruction requires both ownership and detached accounting to be
+empty. Ordinary connection loss and ordered peer Close retain their normal backpressure-driven drain behavior.
+
+## Byte streams and UDP
+
+Each parent is an internally owned TCP transport line. Before parent Init,
+MuxClient sets TCP as the only protocol in both the source and destination routing
+contexts, independently of the child's application protocol. Protocol-selecting
+connectors therefore see the same transport metadata as they do without MUX.
+
+Each child is an ordered byte stream. Neither the original Payload callback
+boundary nor the MUX Data frame boundary is part of the child contract. A frame
+may produce several nonempty child Payload callbacks as its body arrives. For
+example, a frame declaring 64 KiB can deliver its first available 4 KiB without
+waiting for the other 60 KiB. Later frames on the same parent still follow the
+current frame's remaining bytes.
+
+The parent receive accumulator caches the eight-byte header. It tracks the
+remaining Data body length, extracts available chunks with independent ownership,
+and gathers the next header only after the current body is consumed. For a paused
+child, or one with queued Data, it keeps the incomplete body instead and queues the
+rest of the frame as one FIFO entry under the existing queue budgets. When that
+child resumes and drains its queue, the kept bytes are delivered without waiting
+for more input.
+A child that closes during delivery receives no more bytes; the parser discards
+that frame's remaining body before interpreting another header. Already delivered
+prefixes stay delivered if the parent fails. Accepted queued entries retain the
+normal detached-drain behavior; a body still kept in the accumulator is discarded
+with the parent's incoming stream.
+
+Zero-length child payloads still encode as a Data header with no body. The
+receiver consumes that frame without creating a child Payload callback or queue
+entry; it means neither EOF nor Close and does not refresh child idle activity.
+
+For UDP traffic, use explicit `UdpOverTcpClient`/`UdpOverTcpServer` framing on the
+child sides of MUX:
+
+```text
+client: UdpListener -> UdpOverTcpClient -> MuxClient -> TcpConnector
+server: TcpListener -> MuxServer -> UdpOverTcpServer -> UdpConnector
+```
+
+Direct UDP adapters next to MUX cannot rely on datagram boundaries. The
+UdpOverTcp pair currently requires nonempty datagrams; MUX stream delivery does
+not provide a representation for an empty datagram.
+
+### Splice retention and large batches
+
+See the developer guide for the [limits table](https://radkesvat.github.io/WaterWall-Docs/docs/devguides/part3-buffers-and-padding#queue-capacity-budgets),
+[allocation and data-flow walkthrough](https://radkesvat.github.io/WaterWall-Docs/docs/devguides/part3-buffers-and-padding#mux-allocation-and-data-flow),
+and [edge-case reference](https://radkesvat.github.io/WaterWall-Docs/docs/devguides/part3-buffers-and-padding#mux-buffer-edge-cases).
+
+Mux uses one **queue-capacity charge** for every owned buffer:
+
+```text
+sizeof(sbuf_t) + sbufGetTotalCapacity(buf) + kSbufAllocationAlignment
+```
+
+Capacity includes reserved left padding. Ordinary entries therefore retain their
+allocation-based charge; splice entries charge logical sbuf capacity, without
+adding wrapper control storage or kernel pipe capacity. Unknown cached pipe
+capacity does not force a valid retained source into ordinary storage.
+
+`parent-buffer-limit` (512 MiB by default) covers incoming frame assembly plus
+all attached child queues. The stream counter remains separate from the child
+aggregate, and their sum is checked at stable return boundaries. Available Data
+chunks and complete controls in a coalesced delivery drain first, even if its
+temporary charge exceeds the limit. A paused child, or one with queued Data, leaves
+an incomplete body in incoming assembly and retains the rest of the frame as one
+charged queue entry. Cached header bytes and such a body count toward the
+independent 1,048,584-byte incomplete-input bound until the body ends, but the
+header cache and stream/queue metadata carry no sbuf charge.
+The declared body bytes still missing from the transport carry no retention charge.
+Active splice-head body consumption reduces logical capacity and its charge;
+prefix consumption and ordinary cursor movement do not reduce capacity.
+
+Reaching a finite receive limit first attempts to combine incoming fragments
+into one ordinary best-fit buffer, only if its predicted total charge is strictly
+lower. Compaction preserves the cached header and exact byte order. It does not
+run on every Push or rewrite child/output queues. Remaining pressure sheds the
+largest queued child, preferring the oldest on ties, and rechecks after every
+callback. Several victims may be needed. No victim or no progress closes only
+that parent through normal parent-loss cleanup. A zero parent limit disables
+this combined finite bound; it introduces no other aggregate cap.
+
+`child-buffer-limit` remains 128 MiB by default and rejects equality. Outgoing
+parent queues remain separate: their default pause threshold is 128 MiB, resume
+threshold is 4 MiB, and hard limit is 512 MiB; hard-limit equality is permitted.
+Detached queues retain their per-worker settings and zero/unlimited meanings.
+The FlowResume threshold counts
+logical payload bytes; FlowPause follows the local child pause state. Ordinary
+child candidates may still compact to a cheaper pooled tier; valid splice
+candidates are not individually materialized for queue pressure.
+
+There is no worker-wide pipe-count or pipe-capacity quota. Other parents cannot
+force fallback through shared pipe reservations. These charges are not physical
+memory, FD, kernel page-reference, socket-queue or RSS bounds, nor a strict
+instantaneous memory ceiling. More retained splice data can use more descriptors
+and nominal kernel capacity under the same logical budget. Pools may cache empty
+pipes after recycling; lower charge does not prove those resources were closed.
+
+Inputs through 1 MiB use the fitting single-buffer path, including one Data header
+for empty input. Larger ordinary input uses one encoded aggregate; larger splice
+input uses a complete ordered batch, with Open once before the first client Data.
+A real 1 MiB pipe body plus a resident prefix can require splitting. Batch staging
+uses completed logical capacity for pipe estimates and reserves ordinary fallback
+costs for the remaining frames. All fallible admission precedes publication and
+callbacks. Refusal discards the local batch and closes only the affected parent.
+A fitting writable-parent direct write still needs no FIFO admission.
+
+Actual pipe creation, capacity and slot pressure remain transfer constraints.
+Short progress/EINTR and complete ordinary fallback preserve every byte, even
+after partial transfer. Nominal 1 MiB capacity does not prove available slots.
+Best-fit fallback preserves headroom and may exceed a low-profile large tier.
+Pool sizes, pipe targets, protocol limits and JSON defaults remain unchanged.
+
+Pause stops output, including Ping/Pong; Resume preserves the shared FIFO.
+Nested application output and child
+Close follow admitted Data. Child death does not release parent-owned output. Parent
+loss discards incoming/output ownership and rebinds child queues, including empty
+queues, from the parent budget to the worker's detached budget before callbacks.
+Queue operations maintain aggregate usage; Mux retains its admission and drain
+policies. Final owner cleanup settles every queue. HTTP and ordinary
+BufferStream remain ordinary-only.
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4` |
+| `layer_group_next_node` | `kNodeLayer4` |
+| `required_padding_left` | `16` bytes |

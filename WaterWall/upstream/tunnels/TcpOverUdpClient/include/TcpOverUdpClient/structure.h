@@ -1,0 +1,128 @@
+#pragma once
+
+#include "wwapi.h"
+
+#include "ikcp.h"
+#include "ww_fec.h"
+
+typedef struct tcpoverudpclient_tstate_s
+{
+    uint16_t    mtu; // Immutable configured packet budget.
+    atomic_bool stopping;
+    bool        fec_enabled;
+    uint8_t     fec_data_shards;
+    uint8_t     fec_parity_shards;
+    bool        kcp_nodelay;
+    bool        kcp_no_congestion_control;
+    int         kcp_interval_ms;
+    int         kcp_resend;
+    int         kcp_send_window;
+    int         kcp_recv_window;
+    int         kcp_initial_cwnd;
+    int         kcp_rx_minrto_ms;
+    int         kcp_send_buffer_limit;
+    uint32_t    ping_interval_ms;
+    uint32_t    no_recv_timeout_ms;
+} tcpoverudpclient_tstate_t;
+
+typedef struct tcpoverudpclient_lstate_s
+{
+    tunnel_t                 *tunnel;         // our tunnel
+    line_t                   *line;           // our line
+    ikcpcb                   *k_handle;       // kcp handle
+    wtimer_t                 *k_timer;        // kcp processing loop timer
+    tcpoverudp_fec_encoder_t *fec_encoder;    // optional fec encoder
+    tcpoverudp_fec_decoder_t *fec_decoder;    // optional fec decoder
+    uint64_t                  last_recv;      // last received timestamp
+    context_queue_t           cq_u;           // context queue upstream
+    bool                      source_paused;  // our KCP send-queue pressure
+    bool                      can_downstream; // can downstream data
+    bool                      ping_sent;      // ping sent state
+
+} tcpoverudpclient_lstate_t;
+
+enum
+{
+    kTunnelStateSize                        = sizeof(tcpoverudpclient_tstate_t),
+    kLineStateSize                          = sizeof(tcpoverudpclient_lstate_t),
+    kFrameHeaderLength                      = 1,
+    kFrameFlagData                          = 0x00,
+    kFrameFlagPing                          = 0xF0,
+    kFrameFlagClose                         = 0xFF,
+    kTcpOverUdpClientFecDefaultDataShards   = 10,
+    kTcpOverUdpClientFecDefaultParityShards = 3,
+    // the smallest MTU ikcp_setmtu() accepts; anything below it is rejected with -1
+    kTcpOverUdpClientKcpMinimumMtu = 50,
+    kTcpOverUdpClientIpv4HeaderSize = 20,
+    kTcpOverUdpClientUdpHeaderSize  = 8,
+    kTcpOverUdpClientKcpHeaderSize  = 24,
+    kTcpOverUdpClientKcpMaximumMtu  = 64000,
+};
+
+enum tcpoverudpclient_kcpsettings_e
+{
+    kTcpOverUdpClientKcpNodelayDefault             = 1,
+    kTcpOverUdpClientKcpIntervalDefault            = 10,
+    kTcpOverUdpClientKcpResendDefault              = 2,
+    kTcpOverUdpClientKcpNoCongestionControlDefault = 1,
+    kTcpOverUdpClientKcpSendWindowDefault          = 8192,
+    kTcpOverUdpClientKcpRecvWindowDefault          = 8192,
+    kTcpOverUdpClientKcpInitialCwndDefault         = 4096,
+    kTcpOverUdpClientKcpRxMinRtoDefault            = 30,
+    kTcpOverUdpClientKcpSendBufferLimitDefault     = 0,
+    kTcpOverUdpClientPingintervalMsDefault         = 10000,
+    kTcpOverUdpClientNoRecvTimeOutDefault          = 30000,
+};
+
+static inline uint32_t tcpoverudpclientGetOuterFecOverhead(const tcpoverudpclient_tstate_t *ts)
+{
+    return ts->fec_enabled ? kTcpOverUdpFecOuterHeaderSize : 0;
+}
+
+static inline int tcpoverudpclientGetKcpMtu(const tcpoverudpclient_tstate_t *ts)
+{
+    const int budget = (int) ts->mtu - kTcpOverUdpClientIpv4HeaderSize - kTcpOverUdpClientUdpHeaderSize -
+                       (int) tcpoverudpclientGetOuterFecOverhead(ts);
+    return min(budget, kTcpOverUdpClientKcpMaximumMtu);
+}
+
+static inline int tcpoverudpclientGetKcpWriteMtu(const tcpoverudpclient_tstate_t *ts)
+{
+    return tcpoverudpclientGetKcpMtu(ts) - kTcpOverUdpClientKcpHeaderSize - kFrameHeaderLength;
+}
+
+static inline int tcpoverudpclientGetKcpSendBufferLimit(const tcpoverudpclient_lstate_t *ls)
+{
+    const tcpoverudpclient_tstate_t *ts = tunnelGetState(ls->tunnel);
+    if (ts->kcp_send_buffer_limit > 0)
+    {
+        return ts->kcp_send_buffer_limit;
+    }
+
+    const uint64_t limit = (uint64_t) ls->k_handle->snd_wnd + ls->k_handle->rmt_wnd + 10U;
+    return limit > INT_MAX ? INT_MAX : (int) limit;
+}
+
+WW_EXPORT tunnel_t    *tcpoverudpclientTunnelCreate(node_t *node);
+WW_EXPORT api_result_t tcpoverudpclientTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void tcpoverudpclientTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_context_t *context);
+
+void tcpoverudpclientTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+
+void tcpoverudpclientTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void tcpoverudpclientTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelDownStreamResume(tunnel_t *t, line_t *l);
+
+bool tcpoverudpclientLinestateInitialize(tcpoverudpclient_lstate_t *ls, line_t *l, tunnel_t *t);
+void tcpoverudpclientLinestateDestroy(tcpoverudpclient_lstate_t *ls);
+
+int  tcpoverudpclientKUdpOutput(const char *data, int len, ikcpcb *kcp, void *user);
+bool tcpoverudpclientInputKcpPacket(void *ctx, const uint8_t *packet, size_t packet_len);
+
+void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer);
+bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush);

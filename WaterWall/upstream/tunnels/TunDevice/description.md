@@ -1,0 +1,526 @@
+<!--
+Documentation version: 164
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TunDevice.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TunDevice.mdx, and all files must keep the same documentation version.
+-->
+
+# TunDevice Node
+
+`TunDevice` attaches WaterWall to a TUN interface. It reads IP packets from the virtual network device and forwards them into the chain, and it can also write IP packets from the chain back into the TUN device.
+
+This node is a layer-3 adapter rather than a connection-oriented tunnel.
+
+`device-mtu` is resolved and validated once at construction. Each instance keeps
+its own MTU; other node overrides do not change it. An invalid inherited core
+`misc.mtu` requires a supported explicit node override.
+
+## What It Does
+
+- Creates and configures a TUN interface.
+- Assigns an IP address and subnet mask to that device.
+- Brings the device up.
+- Reads packets from the device and forwards them to the adjacent chain side.
+- Writes packets received from the chain back into the device.
+- Recalculates checksums before writing when the packet buffer requests it.
+
+Because it is a packet adapter, this node does not create per-connection lines. It uses worker packet lines provided by the chain.
+
+Linux uses worker-owned receive queues. With the default `multi-queue: true`, a
+newly created interface attempts one queue per event worker with fixed kernel
+steering. Unavailable multiqueue or steering falls back to one queue owned by
+worker 0. Existing single-queue interfaces remain supported. Unfragmented IPv4
+TCP/UDP retains the same symmetric address/port/protocol hash as processing-worker
+affinity, allowing connections between the same hosts to use different queues.
+Complete, structurally valid IPv4 packets of other protocols use approximate
+round-robin receive queues and continue processing on their receiving worker.
+Each interface's eBPF map keeps a separate bounded 32-bit cursor for each kernel
+CPU. Ordinary increments advance the cursor without atomic operations, and a
+CPU-ID offset avoids starting every CPU at queue zero. Overlapping updates can
+lose a step; this policy does not promise exact global order or equal queue counts.
+Unsupported per-CPU map or steering setup falls back to one reader.
+With one receive queue, opaque processing uses a device-local round-robin sequence
+across the configured workers. No new setting or downstream-chain inspection is
+needed. A decoder that restores inner TCP/UDP selects that inner flow's worker.
+
+All IPv4 fragments and TCP/UDP packets too short to contain both ports retain the
+address-pair/protocol fallback. Every fragment of one datagram keeps one reader;
+fragmented and ordinary packets of one connection can still have different
+readers and reorder. The shared fragment table retains its staging and preserved
+fragment affinity; a reassembled opaque packet follows the ordinary opaque
+processing policy. Opaque round robin can also reorder packets across readers.
+Malformed packets and unsupported IP versions retain queue-zero selection for
+downstream validation. Startup logs the active queue count. Queue selection is
+independent of `gso`. Set `multi-queue: false` to use one receive queue owned by
+worker 0 while retaining all configured processing workers. Other platforms keep
+their existing receive and processing policies.
+
+Windows receives on worker 0 using Wintun event notifications. Linux and Windows
+have no dedicated application TUN reader thread. Reads use bounded batches;
+TCP/UDP retains its flow ownership across the configured processing workers.
+Darwin/BSD use external reader threads with their own buffer pools.
+
+Windows, macOS and BSD limit queued receive packets to 8 MiB of retained buffer
+allocation and 1,024 packets per device. Admission never waits on a worker:
+when either limit is reached, the unadmitted remainder of the current read
+batch is dropped. Later reads can use capacity released by delivery or cleanup.
+The current read batch contains at most 128 packets on Windows/macOS. On BSD,
+its size depends on the RAM profile, reaching 256 packets with the `server`
+profile. This batch, bounded fragment storage, and queue metadata are separate
+from the allocation budget. Accepted packets keep
+their per-worker order. macOS also reads one byte beyond `device-mtu` so oversized
+frames are discarded with a rate-limited diagnostic rather than mistaken for
+exactly-MTU input.
+
+Ordinary Linux offload records, including assured `DATA_VALID` and matching
+`NEEDS_CSUM` packets, copy only their IP bytes into a best-fit allocation. They
+reserve that allocation and work metadata, one packet slot and no segmentation
+output allowance; the reader keeps its scratch for reuse. TCPv4 GSO work retains
+its aggregate allocation, output allowance and two-slot reservation. A direct
+trusted TUN/PTC pair can deliver an assured TCPv4 GSO aggregate intact; other
+consumers receive MTU-sized segments. Startup keeps validated scratch geometry
+rather than an unused packet allocation.
+
+## Typical Placement
+
+`TunDevice` can be placed at either edge of a chain:
+
+- if it is last in the chain, packets read from the TUN device are forwarded to the previous node
+- otherwise, packets read from the TUN device are forwarded to the next node
+
+Payload coming from either side and reaching `TunDevice` is written into the TUN interface.
+
+## Configuration Example
+
+```json
+{
+  "name": "tun0-adapter",
+  "type": "TunDevice",
+  "settings": {
+    "fragment-policy": "preserve-fragments",
+    "device-name": "tun0",
+    "device-ip": "10.10.0.1/24",
+    "device-mtu": 1500,
+    "multi-queue": true,
+    "gso": true,
+    "dns": ["1.1.1.1", "8.8.8.8"],
+    "route-table": "off"
+  },
+  "next": "next-node-name"
+}
+```
+
+Full-route example with local ranges excluded:
+
+```json
+{
+  "name": "tun0-adapter",
+  "type": "TunDevice",
+  "settings": {
+    "fragment-policy": "preserve-fragments",
+    "device-name": "tun0",
+    "device-ip": "10.10.0.1/24",
+    "device-mtu": 1500,
+    "route-table": "main",
+    "route-exclude-cidrs": [
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16"
+    ]
+  },
+  "next": "next-node-name"
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this node.
+
+- `type` `(string)`
+  Must be exactly `"TunDevice"`.
+
+### `settings`
+
+- `device-name` `(string)`
+  Name of the TUN interface to create or open.
+
+- `device-ip` `(string)`
+  IPv4 interface address and subnet in CIDR form. IPv6 is rejected because the
+  packet datapath is IPv4-only.
+  Example: `"10.10.0.1/24"`
+
+  The current implementation splits this into:
+  - device IP address
+  - subnet mask length
+
+## Optional `settings` Fields
+
+- `device-mtu` `(integer)`
+  MTU to configure on the TUN device, in the inclusive range `68..65535`.
+  Fractional numbers, strings, booleans, and `null` are rejected.
+
+  Default: global MTU size used by WaterWall.
+
+- `multi-queue` `(boolean)`
+  Allow Linux to create one TUN queue per event worker. Default: `true`.
+  Unavailable multiqueue or fixed steering, or refused extra-queue setup,
+  automatically falls back to one queue owned by worker 0.
+
+  `false` disables multiqueue setup and uses one queue owned by worker 0.
+  Other workers still process their assigned flows; the configured worker count
+  does not change. Reads and writes use the resulting TUN queue set. This option
+  is independent of `gso`. Invalid types, including `null`, are rejected on every
+  platform. Non-Linux platforms accept the boolean and ignore it.
+
+- `gso` `(boolean)`
+  Request Linux TCPv4 segmentation offload. The default remains `true`;
+  `false` disables segmentation while every fresh Linux device still attempts
+  checksum offload. Invalid types, including `null`, are rejected. Checksum
+  offload is negotiated automatically. Startup logs the final active mode:
+
+  | Active mode | Framing | Features |
+  | --- | --- | --- |
+  | Raw fallback | IP bytes | No offload |
+  | Checksum only | 10-byte little-endian virtio header + IP | `TUN_F_CSUM` |
+  | Checksum and TCPv4 GSO | Same virtio framing | `TUN_F_CSUM \| TUN_F_TSO4` |
+
+  Linux negotiates checksum support first, then upgrades to GSO when requested.
+  A rejected GSO upgrade retains checksum-only mode. Unavailable checksum/framing
+  support or common receive resources select raw fallback. Non-Linux platforms
+  retain their existing ordinary framing. The configured device MTU still limits
+  each packet emitted by segmentation. Linux's TCPv4 GSO ECN modifier is supported
+  when it appears in a record on an active GSO device.
+
+  > **Pre-created Linux interfaces:** Requested GSO requires a new interface
+  > name. Deployments that attach to a pre-created TUN must explicitly set
+  > `"gso": false` to retain ordinary attachment behavior, including when the
+  > setting was previously omitted. Automatic fallback for unavailable offload
+  > facilities does not silently accept an interface-name conflict. The checksum
+  > probe is exclusive; a pre-created raw interface is attached in raw framing
+  > without negotiating offload on that existing interface.
+
+- `route-table` `(string)`
+  Controls native system route installation.
+
+  Default: `"off"`
+
+  Supported values:
+  - `"off"`: do not install routes
+  - `"main"` or `"auto"`: install routes into the normal platform routing table
+  - Linux only: a numeric or named routing table accepted by `ip route`
+
+- `system-route` `(boolean)`
+  Convenience switch for full-device routing. If this is `true` and `route-table` is not set, it behaves like `"route-table": "main"`.
+
+  Default: `false`
+
+- `route-cidrs` `(array of strings)`
+  IPv4 CIDRs to route toward the TUN interface when routing is enabled.
+
+  An enabled capture list containing any IPv6 CIDR is rejected during node creation,
+  before exclusions or route installation. Mixed IPv4/IPv6 lists are also rejected,
+  including IPv6 entries that exclusions would remove. `"route-table": "off"`
+  installs no routes and leaves capture CIDRs unused.
+
+  Default: the IPv4 full route, `"0.0.0.0/0"`.
+  Default routes are installed as split `/1` routes so the existing system default route does not need to be replaced.
+
+- `route-exclude-cidrs` `(array of strings)`
+  CIDRs to leave out of the routes installed by `route-cidrs`.
+  Opposite-family exclusions have no effect on IPv4 capture routes.
+
+  This is useful when `route-cidrs` is global and some local, management, or upstream endpoint ranges must keep using the existing system route.
+
+- `dns` `(array of IPv4 strings)`
+  DNS servers to associate with the TUN interface.
+
+  The array must contain one or two valid IPv4 addresses. Hostnames, IPv6
+  addresses, empty strings, and more than two entries are rejected during node
+  creation.
+
+  `null` is treated the same as leaving the field unset.
+
+  Linux supports DNS configuration on a pre-created interface with `gso: false`.
+  For these attachments, `busctl` reads the existing systemd-resolved DNS servers
+  and search/routing domains before any DNS mutation. Cleanup restores those
+  fields, including their original order, without resetting unrelated resolver
+  settings. If the baseline cannot be read, DNS setup fails without changing it.
+  Detected external changes are left untouched and reported as incomplete cleanup.
+  Coordinate per-interface DNS changes with other network managers; systemd's
+  read/compare/write operations are not an atomic transaction across processes.
+  Built-in commands retain their seven-second deadlines.
+
+  On Linux this requires `systemd-resolved` / `resolvectl`; it sets DNS servers
+  and installs the `~.` routing domain so the configured servers are used as the
+  default resolver path while the device is active. On
+  Windows this configures static IPv4 DNS servers on the Wintun adapter with
+  `netsh`; DNS precedence still follows Windows interface metrics. macOS TUN DNS
+  configuration is rejected during node creation; use `post-up-script` /
+  `pre-down-script` for platform-specific resolver setup there.
+
+- `loop-protection` `(boolean)`
+  Keeps WaterWall's own outbound traffic from being routed back into the TUN
+  (a routing loop) when the TUN is a system/full route.
+
+  Default: enabled whenever system routing is enabled (i.e. tracks
+  `system-route` / `route-table`), disabled otherwise. Set to `false` to opt out.
+
+  When active, `TunDevice` snapshots the current physical default interface
+  before installing TUN routes and publishes it as a process-wide egress pin.
+  Outbound adapter sockets such as `TcpConnector`, `UdpConnector`, and
+  `UdpStatelessSocket` apply that pin unless their own `interface` setting is
+  explicitly configured.
+
+- `post-up-script` `(string)`
+  Optional shell command to run after the interface is up and native routes are installed.
+
+- `pre-down-script` `(string)`
+  Optional shell command to run before native routes are removed and the interface is brought down.
+
+## Detailed Behavior
+
+### Device setup
+
+During tunnel creation, `TunDevice`:
+
+- parses route/DNS settings
+- if loop protection is enabled, snapshots the current physical default
+  interface and publishes it for outbound adapter sockets
+
+During `onStart`, `TunDevice`:
+
+- decides which adjacent tunnel should receive packets read from the device
+- creates the TUN device
+- attempts Linux TCPv4 GSO when requested, and logs whether it is active or
+  ordinary TUN framing is used
+- assigns the configured IP/subnet
+- brings the device up
+- on Linux, disables IPv4 reverse-path filtering for `all` and the TUN interface, always, and holds the interface value down until it sticks
+- optionally installs native system routes
+- optionally runs `post-up-script`
+
+The actual device creation is deferred until start time because the tunnel needs chain context to know which side should receive packets.
+
+### Packet input path
+
+When the TUN device produces a packet:
+
+- the packet is received on a worker
+- outside the direct trusted pair below, in either Linux offload mode, ordinary
+  unfragmented TCP/UDP records with matching deferred-checksum metadata complete
+  their checksum on the destination worker before publication; this includes
+  plain IPv6 TCP/UDP without extension headers. Other metadata and fragment
+  handling retain the reader path; `GSO_NONE` records, including IPv6, retain
+  their existing admission policy without an IPv4-only preflight
+- for TCPv4 GSO, the reader validates the aggregate and transfers its buffer
+  to the flow's worker; that worker allocates independent MTU-sized packets,
+  copies their headers and payload, and completes IPv4 and TCP checksums before
+  normal TunDevice delivery, logging, or packet publication in ordinary mode
+- ordinary batches and GSO aggregates share a bounded FIFO for each worker;
+  unfinished segmentation stays ahead of later packets and continues in bounded
+  callbacks, preserving flow order without blocking the worker for queue capacity
+- with ordinary TUN framing, unfragmented kernel-produced packets remain
+  trusted at this adapter boundary; downstream consumers retain their validation
+  policy except for the direct receive-trust pair below. Fragmented IPv4 packets
+  pass the common fragment parser, which validates their structure and header
+  checksum before association; the direct pair omits header checksum verification
+- the TunDevice packet callback still forwards only exact IPv4 packets; ordinary
+  IPv6 records reach that existing callback and follow its existing rejection
+- the packet is forwarded through the chosen adjacent tunnel using the worker's packet line
+
+If the device is down, the packet is dropped.
+
+The reader's fragment policy determines publication: `reassemble` holds fragment
+bytes until a complete datagram can be delivered, while `preserve-fragments`
+retains fragment boundaries and worker affinity. Published buffers follow ordinary
+ownership through copies, delays and worker handoff; they carry no fragment
+settlement claim. Local-stack packet inputs enforce their complete-datagram
+requirement at delivery. See the fragment-policy section below.
+
+### Packet output path
+
+When payload reaches `TunDevice` from upstream or downstream:
+
+- the payload is treated as an IP packet
+- the complete packet is structurally validated as exact IPv4, even when no
+  checksum recalculation was requested; trailing bytes and malformed or
+  truncated packets are dropped
+- checksum recalculation is performed if the packet buffer requests it
+- the packet is written to the TUN device only if requested checksum recalculation succeeds; malformed or truncated
+  packets that cannot be recalculated are dropped with a rate-limited warning
+
+Both upstream and downstream payload handlers write to the same TUN device.
+
+Payload callbacks validate and append to the current event worker's output FIFO
+without waiting for capacity or performing native I/O. One deferred flush per
+worker performs native writes and recycles buffers through that worker's existing
+pool. TUN has no dedicated writer thread or writer pool. Workers can write
+concurrently; each worker preserves its FIFO order. Direct PTC flows remain on
+their owning packet worker; output on different workers has no shared FIFO order.
+Device-wide admission bounds queued and active output.
+This enqueue-only guarantee allows an immediately adjacent PTC on the packet
+worker to deliver its final sbuf directly.
+
+On an active GSO device with a direct trusted Linux pair, each worker combines
+compatible adjacent TCP data packets into bounded scatter/gather GSO records. It
+takes only packets already available, never waits to fill a batch, and retains
+packet order. A flush processes at most 64 packets and 256 KiB of allocation
+charge; a larger single allocation progresses alone. Remaining packets schedule
+another deferred flush. Each GSO record stays within 65,535 IPv4 bytes. Original packets must still fit
+MTU. UDP, fragments, controls, incompatible TCP packets, interposed nodes and
+`gso:false` keep individual packet writes. Checksum-only writes still include the
+virtio header: ordinary untrusted packets use zero metadata and complete bytes;
+trusted TCP/UDP packets may carry a partial seed and `NEEDS_CSUM` with `GSO_NONE`.
+Checksum-only input rejects every non-`GSO_NONE` record. Payload bytes are not
+copied into an aggregate.
+
+
+### Direct PacketsToConnection checksums
+
+A reciprocal immediate `TunDevice -> PacketsToConnection` pair in Linux
+implicitly trusts incoming IPv4 header and TCP/UDP checksums in raw,
+checksum-only and GSO modes, independently of `gso`. No extra setting is needed.
+Non-Linux platforms and intervening nodes retain ordinary verification. The
+kernel-input trust assumption is described in Developer Guide Part 4.
+
+IPv4 header and TCP/UDP checksum verification is omitted in TUN admission,
+fragment handling, PTC and fake DNS, including unmarked input. Structural checks,
+metadata consistency, fragment policy, repair requests, FIFO bounds and shutdown
+ownership remain unchanged. Generated and reconstructed IPv4 headers still
+receive valid checksums. IPv6 and UDP-Lite verification remain enabled.
+
+Matching `NEEDS_CSUM` coordinates or applicable `DATA_VALID` retain positive
+assurance only in TUN-private queued work; receive trust does not manufacture
+that assurance for unmarked input. Contradictory metadata and partial IP
+fragments are rejected. Existing GSO conversion rules remain in effect.
+
+Receive trust does not enable partial transmit checksums. Raw TUN output retains
+full software checksums and checksum-on-copy. When checksum offload was actually
+negotiated and its resources are ready, PTC omits transport sums only for complete
+packets that fit its MTU; TUN emits a pseudoheader seed and `NEEDS_CSUM` metadata
+for kernel delivery or forwarding. Oversized datagrams receive full checksums
+before fragmentation, and fragments use ordinary metadata. The selected modes
+remain fixed until destroy.
+
+### Checksum behavior
+
+Before writing a packet, `TunDevice` checks the packet buffer request:
+
+- if `sbufGetRecalculateChecksum(buf)` is true, the packet checksum is recomputed
+- full packet checksum recalculation is attempted
+- for fragmented IPv4 packets, transport checksum recalculation is skipped automatically and only the IP header checksum is recomputed
+- if the requested calculation cannot validate the available packet structure, the request flag is cleared and the
+  buffer is recycled without calling the OS TUN writer
+
+### Self-traffic loop protection
+
+When the TUN installs itself as the system default route, every outbound packet
+of the machine is steered into the TUN -- including WaterWall's own upstream
+sockets. Without protection those packets are read back from the TUN and re-sent,
+forming a routing loop.
+
+With `loop-protection` enabled (the default in system-route mode), `TunDevice`:
+
+- snapshots the original default interface per family *before* installing the
+  TUN routes,
+- publishes that interface as a process-wide egress pin,
+- lets outbound adapter sockets apply the pin before `connect()`, `bind()`, or
+  `sendto()` traffic can follow the new TUN default route,
+- releases the pin when the owning `TunDevice` stops or is destroyed.
+
+On Linux the pin is applied with `SO_BINDTODEVICE`. On Windows it is applied with
+`IP_UNICAST_IF` / `IPV6_UNICAST_IF`. macOS currently has no automatic egress pin,
+so use an explicit connector `interface` or `route-exclude-cidrs` there.
+
+An explicit adapter `interface` setting overrides the automatic pin. A
+`source-ip` setting alone does not override it; if the source IP belongs to a
+different NIC than the detected default interface, especially on Windows
+strong-host configurations, set `interface` explicitly instead.
+
+c-ares DNS resolver sockets are not pinned by this feature. The default
+interface is detected once at startup; if the physical default route changes,
+restart WaterWall or configure explicit interfaces/routes.
+
+On Windows, automatic loop prevention only selects the interface for participating
+sockets; it does not add physical-interface host routes. The built-in TUN IP,
+route, and DNS settings target the owned adapter. Process termination,
+packet-session teardown, adapter removal, and retained files/device properties
+have separate completion boundaries. See the
+[Windows recovery contract](../../core/tools/windows_launcher/LIFECYCLE.md#what-remains-after-forced-termination)
+for what is released automatically and what may remain after a forced exit.
+
+Windows startup reserves the case-insensitive `device-name` before choosing the
+outbound interface. The runtime and built-in DNS helpers retain kernel ownership;
+Windows releases it when the last handle closes, including after a crash. Startup
+can then remove its own precisely tagged stale Wintun device and initialize the
+new tunnel. Different names remain independent. An unverified old recovery record
+does not prevent another launch; a current owner, occupied interface name, access
+denial, or failed Windows operation can still stop initialization. Untagged and
+foreign adapters are not reclaimed. Use a device name reserved for this application.
+See the [restart flow](../../core/tools/windows_launcher/LIFECYCLE.md#restart-after-a-crash).
+
+### Callback behavior
+
+Payload is the meaningful callback path. Ordinary connection lifecycle
+callbacks (`Init`, `Est`, `Pause`, and `Resume`) are terminal absorbers at this
+packet adapter. An unexpected `Finish` in either direction is a fatal packet-line
+lifecycle violation and aborts the program; it is not a no-op.
+
+The chain owns one persistent packet line per worker. `TunDevice` never destroys
+those lines and has zero bytes of line state.
+
+## Notes And Caveats
+
+- The current receive path only forwards IPv4 packets.
+- `device-ip` must be a valid CIDR string.
+- On Windows, the implementation requires administrative privileges to load and manage the tunnel driver.
+- On macOS, the requested name should be an `utunN` name; if no concrete `utun` unit is requested, macOS assigns the actual interface name.
+- Native system route setup is disabled by default. If enabled, routes are removed during destroy in reverse install order.
+- On Linux, startup always writes `0` to `/proc/sys/net/ipv4/conf/all/rp_filter` and to the TUN interface's own `rp_filter` so reverse-path filtering does not drop packets routed through the TUN. This happens for every Linux TUN, not only when native system routes are enabled, because the kernel filters on `max(all, <interface>)` and both must be `0` for the TUN to be exempt. Other interface-specific `rp_filter` files are left untouched, so any interface carrying its own non-zero value keeps filtering; an interface left at `0` while only `all` was non-zero does become unfiltered as a side effect. These sysctl changes are not restored on stop or destroy. If the sysctl files are read-only, startup logs a warning and continues.
+- The interface-specific write is re-applied until it sticks. On systemd distributions, udev answers the new interface's `add` event by running `systemd-sysctl --prefix=/net/ipv4/conf/<interface>`, which re-applies patterns such as the `net.ipv4.conf.*.rp_filter` line in `/usr/lib/sysctl.d/50-default.conf` and would otherwise overwrite the value a few milliseconds after it is written. Startup therefore holds the value down until it has stayed `0` for 300 ms, which adds roughly that much to TUN bring-up, and gives up with an error log after 2 s.
+- DNS setup is optional. If configured, invalid IPv4 values are rejected during node creation and failed platform DNS application stops startup.
+- On Windows and macOS, `route-table` values other than `"main"` or `"auto"` are rejected.
+- Platform support depends on build and operating system support for TUN devices.
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagChainHead` &#124; `kNodeFlagChainEnd` &#124; `kNodeFlagSupportsTrustedPacketChecksums` &#124; `kNodeFlagPacketPayloadEnqueueOnly` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer3` |
+| `layer_group_prev_node` | `kNodeLayer3` |
+| `layer_group_next_node` | `kNodeLayer3` |
+| `required_padding_left` | 10 bytes on Linux; 0 bytes on other supported platforms |
+
+The checksum and enqueue-only bits advertise capabilities for a direct
+`TunDevice`–`PacketsToConnection` pair. An eligible Linux pair automatically
+activates receive trust during setup, including raw mode. Transmit checksum
+offload additionally requires actual negotiated support and ready resources;
+static capability flags alone do not imply either active mode.
+
+This is the node's logical advertised left-padding requirement. Linux advertises
+it even when `"gso": false`. Allocation alignment is separate, so it does not
+mean every allocation grows by exactly ten bytes.
+
+### `fragment-policy` (optional, default: `reassemble`)
+
+Omitting this setting selects `reassemble`: IPv4 fragments are assembled before
+publication into the chain. `preserve-fragments` keeps their bytes and boundaries.
+The policy does not impose a node-name or topology allowlist; ordinary layer and
+chain validation still applies. Invalid values (including `null`) fail startup.
+
+`PacketsToConnection` upstream packet input and `ConnectionToPackets` downstream
+packet input require complete IPv4 datagrams. Any fragment reaching either input
+is a runtime contract violation: a fatal diagnostic explains the reassembly
+requirement and the process exits, in Debug and Release. Reassemble before these
+consumers, regardless of the device policy or intervening nodes. DF alone is not
+a fragment; MF or a nonzero fragment offset is.
+
+Reassembly emits complete IPv4 datagrams up to 65,535 bytes. It does not raise
+packet-output limits or device MTU, and does not automatically fragment output
+again. See Developer Guide Part 4 for assembly bounds and packet ownership.

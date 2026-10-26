@@ -1,0 +1,68 @@
+diff --git a/aether/src/consts.rs b/aether/src/consts.rs
+index 13bfc0f..2f7fedb 100644
+--- a/aether/src/consts.rs
++++ b/aether/src/consts.rs
+@@ -62,4 +62,9 @@ pub const MASQUE_PINS: &[&[u8]] = &[
+     // cloudflareaccess.com — signed by Google Trust Services WE1
+     // Returned when SNI=cloudflareaccess.com
+     b"\x3f\xbb\x1d\x74\x52\xd3\x2b\x38\x81\xeb\x4b\x5d\x48\x42\x14\x45\xb6\xb9\xd8\xf5\x22\x59\x59\xf0\x33\x53\x2d\x50\x26\x37\xb0\x40",
++    // SRP: Let's Encrypt YE2 (intermediate) — most edges now serve an
++    // LE-issued leaf for SNI=consumer-masque.cloudflareclient.com; the leaf
++    // rotates quarterly, so pins are matched against the whole chain (tls.rs).
++    // YE2 expires 2028-09-02.
++    b"\xb3\xfb\x5d\x00\xe9\x94\xcd\xdf\x2c\xc9\xa4\xee\xa9\xf8\x06\xbc\x57\x27\xe8\x3c\xc0\xe4\x29\x9b\xf9\x56\xf2\xd5\x24\xfe\x53\x76",
+ ];
+diff --git a/aether/src/tls.rs b/aether/src/tls.rs
+index 224f8ff..4ed7f82 100644
+--- a/aether/src/tls.rs
++++ b/aether/src/tls.rs
+@@ -269,17 +269,41 @@ pub fn install_verification(
+     if pin_endpoint && !expected_pins.is_empty() {
+         let pins: Vec<Vec<u8>> = expected_pins.iter().map(|p| p.to_vec()).collect();
+         builder.set_custom_verify_callback(SslVerifyMode::PEER, move |ssl| {
+-            let leaf_cert = ssl.peer_certificate().ok_or_else(|| {
++            // SRP: match any certificate in the presented chain, not just the
++            // leaf — Cloudflare rotates edge leaf certs under Let's Encrypt,
++            // so the stable pin is the YE2 intermediate.
++            let mut presented: Vec<boring::x509::X509> = Vec::new();
++            if let Some(leaf) = ssl.peer_certificate() {
++                presented.push(leaf);
++            }
++            if let Some(chain) = ssl.peer_cert_chain() {
++                presented.extend(chain.iter().map(|x| x.to_owned()));
++            }
++            if presented.is_empty() {
+                 log::warn!("tls pin: no peer certificate presented");
+-                SslVerifyError::Invalid(boring::ssl::SslAlert::BAD_CERTIFICATE)
+-            })?;
+-            let hash = spki_sha256(&leaf_cert).ok_or_else(|| {
+-                log::warn!("tls pin: failed to compute SPKI hash");
+-                SslVerifyError::Invalid(boring::ssl::SslAlert::INTERNAL_ERROR)
+-            })?;
+-            if pins.iter().any(|pin| pin.as_slice() == hash.as_slice()) {
++                return Err(SslVerifyError::Invalid(boring::ssl::SslAlert::BAD_CERTIFICATE));
++            }
++            let matches = presented.iter().any(|cert| {
++                spki_sha256(cert)
++                    .map(|hash| pins.iter().any(|pin| pin.as_slice() == hash.as_slice()))
++                    .unwrap_or(false)
++            });
++            if matches {
+                 Ok(())
+             } else {
++                // SRP debug: log the leaf SPKI + names so a mismatch is diagnosable
++                if let Some(leaf) = ssl.peer_certificate() {
++                    if let Some(hash) = spki_sha256(&leaf) {
++                        let subj = leaf.subject_name().entries()
++                            .map(|e| format!("{}={}", e.object().to_string(), String::from_utf8_lossy(e.data().as_slice())))
++                            .collect::<Vec<_>>().join(",");
++                        let iss = leaf.issuer_name().entries()
++                            .map(|e| format!("{}={}", e.object().to_string(), String::from_utf8_lossy(e.data().as_slice())))
++                            .collect::<Vec<_>>().join(",");
++                        log::warn!("tls pin: no match; leaf spki={} subj=[{}] iss=[{}]", hex::encode(hash), subj, iss);
++                    }
++                }
++                log::warn!("tls pin: no chain certificate matched the pins");
+                 Err(SslVerifyError::Invalid(
+                     boring::ssl::SslAlert::CERTIFICATE_UNKNOWN,
+                 ))

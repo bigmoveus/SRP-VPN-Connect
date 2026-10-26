@@ -1,0 +1,85 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static bool connectionfisherclientMainLineStillOpen(tunnel_t *t, line_t *main_l)
+{
+    if (! lineIsAlive(main_l))
+    {
+        return false;
+    }
+
+    connectionfisherclient_lstate_t *main_ls = lineGetState(main_l, t);
+    return main_ls->role == kConnectionFisherClientRoleMain;
+}
+
+void connectionfisherclientTunnelUpStreamInit(tunnel_t *t, line_t *main_l)
+{
+    connectionfisherclient_tstate_t *ts      = tunnelGetState(t);
+    connectionfisherclient_lstate_t *main_ls = lineGetState(main_l, t);
+
+    if (UNLIKELY(! connectionfisherclientLinestateInitializeMain(main_ls, ts->simultaneous_tries_perline)))
+    {
+        connectionfisherclientCloseMainLine(t, main_l);
+        return;
+    }
+
+    lineRef(main_l);
+
+    for (uint32_t i = 0; i < ts->simultaneous_tries_perline; ++i)
+    {
+        line_t *child_l = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(main_l));
+        connectionfisherclient_lstate_t *child_ls = lineGetState(child_l, t);
+
+        connectionfisherclientLinestateInitializeChild(child_ls, child_l, main_l, i);
+        main_ls->child_lines[i] = child_l;
+        main_ls->open_child_count += 1;
+
+        lineRef(child_l);
+        child_ls->child_initializing = true;
+        tunnelNextUpStreamInit(t, child_l);
+        if (lineIsAlive(child_l) && connectionfisherclientMainLineStillOpen(t, main_l))
+        {
+            child_ls->child_initializing = false;
+            /* Onward pooling may return a transport already marked established. */
+            if (lineIsEstablished(child_l))
+                connectionfisherclientTunnelDownStreamEst(t, child_l);
+            if (lineIsAlive(child_l) && connectionfisherclientMainLineStillOpen(t, main_l))
+                discard connectionfisherclientSendPing(t, child_l);
+        }
+        lineUnref(child_l);
+        if (! connectionfisherclientMainLineStillOpen(t, main_l))
+        {
+            lineUnref(main_l);
+            return;
+        }
+        if (main_ls->selected_child != NULL)
+            break;
+    }
+
+    main_ls = lineGetState(main_l, t);
+    if (main_ls->open_child_count == 0)
+    {
+        connectionfisherclientCloseMainLine(t, main_l);
+        lineUnref(main_l);
+        return;
+    }
+
+    if (main_ls->selected_child != NULL)
+    {
+        lineUnref(main_l);
+        return;
+    }
+
+    const line_task_submit_result_e result =
+        lineScheduleDelayedTask(main_l, connectionfisherclientTimeoutTask, kConnectionFisherTimeoutMs, t, NULL);
+    if (UNLIKELY(result == kLineTaskSubmitRejectedSettled))
+    {
+        connectionfisherclientCloseMainLine(t, main_l);
+    }
+    else
+    {
+        assert(result == kLineTaskSubmitTimerArmed);
+    }
+    lineUnref(main_l);
+}

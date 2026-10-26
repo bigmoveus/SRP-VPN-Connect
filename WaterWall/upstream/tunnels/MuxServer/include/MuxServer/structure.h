@@ -1,0 +1,259 @@
+#pragma once
+
+#include "MuxCommon/mux_limits.h"
+#include "MuxCommon/mux_parent_output.h"
+#include "MuxCommon/mux_retention.h"
+#include "MuxCommon/mux_wire.h"
+#include "wwapi.h"
+
+typedef struct muxserver_lstate_s muxserver_lstate_t;
+
+#define i_type muxserver_child_map_t
+#define i_key  mux_cid_t
+#define i_val  muxserver_lstate_t *
+#include "stc/hmap.h"
+#undef i_val
+#undef i_key
+#undef i_type
+
+typedef enum muxserver_child_close_state_e
+{
+    kMuxServerChildCloseOpen = 0,
+    kMuxServerChildClosePeerDraining,
+    kMuxServerChildCloseParentGoneDraining,
+} muxserver_child_close_state_t;
+
+typedef enum muxserver_child_drain_result_e
+{
+    kMuxServerChildDrainBlocked = 0,
+    kMuxServerChildDrainReadyToFinish,
+    kMuxServerChildDrainChildGone,
+    kMuxServerChildDrainParentGone,
+} muxserver_child_drain_result_t;
+
+typedef struct muxserver_detached_registry_s
+{
+    muxserver_lstate_t *head;
+    uint32_t            count;
+    buffer_budget_t     queue_budget;
+} muxserver_detached_registry_t;
+
+typedef struct muxserver_rejection_bucket_s
+{
+    uint64_t last_refill_ms;
+    uint32_t tokens;
+} muxserver_rejection_bucket_t;
+
+typedef struct muxserver_parent_state_s
+{
+    buffer_budget_t              child_queue_budget;
+    muxserver_lstate_t          *local_hold_head;
+    muxserver_lstate_t          *local_hold_tail;
+    uint32_t                     local_hold_count;
+    mux_parent_output_t          output;
+    unsigned                     receive_depth;     // Nonzero defers enforcement and Resume's kept-byte reparse.
+    bool                         receive_enforcing; // Close callbacks may re-enter parser/admission.
+    mux_frame_t                  read_frame;        // Header remains cached while its body is consumed incrementally.
+    mux_length_t                 read_remaining;
+    bool                         reading_frame;
+    bool                         discard_frame; // A missing/closed child cannot acquire the remainder of this frame.
+    splice_stream_t             *read_stream;
+    muxserver_child_map_t        child_map;
+    muxserver_rejection_bucket_t rejection_bucket;
+} muxserver_parent_state_t;
+
+typedef struct muxserver_worker_state_s
+{
+    muxserver_detached_registry_t detached_registry;
+    local_idle_table_t           *child_idle_table;
+    bool                          quiescing;
+} muxserver_worker_state_t;
+
+typedef struct muxserver_tstate_s
+{
+    uint32_t child_buffer_limit;
+    uint32_t child_buffer_resume_threshold;
+    uint32_t parent_buffer_limit;
+    uint32_t parent_write_pause_threshold;
+    uint32_t parent_write_resume_threshold;
+    uint32_t parent_write_limit;
+    uint32_t detached_buffer_limit;
+    uint32_t detached_child_limit;
+    uint32_t max_children;
+    uint32_t max_live_children;
+    uint32_t memory_fallback_max_live_children;
+    uint32_t initial_child_idle_timeout_ms;
+    uint32_t active_child_idle_timeout_ms;
+    uint32_t memory_high_watermark_percent;
+    uint32_t memory_low_watermark_percent;
+    uint32_t memory_reserve;
+    uint32_t workers_count;
+    bool     log_main_line_stats;
+    bool     keepalive;
+
+    atomic_uint               live_children_count;
+    atomic_ullong             memory_admission_state;
+    atomic_log_rate_limiter_t resource_admission_log_limiter;
+    atomic_log_rate_limiter_t protocol_abuse_log_limiter;
+    atomic_log_rate_limiter_t memory_transition_log_limiter;
+    atomic_log_rate_limiter_t idle_expiry_log_limiter;
+
+    muxserver_worker_state_t worker_states[];
+} muxserver_tstate_t;
+
+struct muxserver_lstate_s
+{
+    tunnel_t *t;           // owning MuxServer instance
+    line_t   *l;           // the line this state is associated with
+
+    struct muxserver_lstate_s *parent;             // the parent  f is_child is true
+    struct muxserver_lstate_s *child_prev;         // previous child in the parent connection
+    struct muxserver_lstate_s *child_next;         // next child in the parent connection
+    struct muxserver_lstate_s *detached_prev;      // child-only detached owner registry link
+    struct muxserver_lstate_s *detached_next;      // child-only detached owner registry link
+    muxserver_lstate_t        *local_hold_prev;
+    muxserver_lstate_t        *local_hold_next;
+    buffer_queue_t                pending_child_data;         // ordered decoded byte chunks retained while paused
+    mux_cid_t connection_id;              // unique connection id, used for multiplexing
+    muxserver_child_close_state_t close_state; // child: monotonic ordered-close/drain state
+    uint32_t children_count; // number of children in the parent connection, used for concurrency mode counter
+    muxserver_parent_state_t *parent_state;         // parent-only CID index and rejection bucket
+    local_idle_item_t        *child_idle_item;      // child-only two-phase idle entry
+    bool                      is_child : 1;         // immutable line role: this line is a Mux child
+    bool                      paused : 1;           // child: local child write side is paused
+    bool                      flow_paused_sent : 1; // child: FlowPause was sent to the peer for this cid
+    bool                      peer_flow_paused : 1; // child: peer sent FlowPause for this cid
+    bool                      source_pause_notified : 1; // Effective producer permission already emitted.
+    bool                      source_starting : 1;  // child: producer Init/Est callback is still on the stack
+    bool parent_write_paused : 1; // child: local hold registry membership (writer or aggregate pressure)
+    bool parent_finishing : 1;                      // parent: main FIN is being handled, suppress parent writes
+    bool detached_registered : 1;                   // child: present in its worker's detached owner registry
+    bool child_slot_reserved : 1;                   // child: aggregate reservation is owned until state destruction
+    bool child_has_payload_activity : 1;            // child: active idle timeout phase
+};
+
+typedef enum muxserver_admission_reason_e
+{
+    kMuxServerAdmissionAllowedFresh,
+    kMuxServerAdmissionAllowedFallback,
+    kMuxServerAdmissionRejectedPressure,
+    kMuxServerAdmissionRejectedFallbackCeiling,
+    kMuxServerAdmissionRejectedHardCeiling,
+} muxserver_admission_reason_t;
+
+typedef struct muxserver_memory_admission_s
+{
+    uint32_t                        effective_ceiling;
+    uint64_t                        snapshot_generation;
+    system_memory_snapshot_status_t snapshot_status;
+    muxserver_admission_reason_t    reason;
+    bool                            permits_memory;
+    bool                            gate_transitioned;
+    bool                            gate_closed;
+} muxserver_memory_admission_t;
+
+enum
+{
+    kTunnelStateSize                      = sizeof(muxserver_tstate_t),
+    kLineStateSize                        = sizeof(muxserver_lstate_t),
+    kConcurrencyModeTimer                 = kDvsFirstOption,
+    kConcurrencyModeCounter               = kDvsSecondOption,
+    kMuxDefaultChildBufferLimit           = 128 * 1024 * 1024,
+    kMuxDefaultChildBufferResumeThreshold = 512 * 1024,
+    kMuxDefaultParentBufferLimit          = 512 * 1024 * 1024,
+    kMuxParentBufferLimitUnlimited        = 0,
+    kMuxChildBufferQueueCap               = 8,
+    kMuxMainLineStatsLogIntervalMs        = 5000,
+    kMuxServerRejectedOpenBurst           = 1024,
+    kMuxServerRejectedOpenRefillPerSecond = 64,
+    kMuxServerAdmissionLogIntervalMs      = 5000,
+};
+
+WW_EXPORT void         muxserverTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *muxserverTunnelCreate(node_t *node);
+WW_EXPORT api_result_t muxserverTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void muxserverTunnelOnStop(tunnel_t *t, const ww_lifecycle_context_t *context);
+void muxserverTunnelOnWorkerQuiesce(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+void muxserverTunnelOnWorkerStop(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+
+void muxserverTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void muxserverTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void muxserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void muxserverTunnelUpStreamPause(tunnel_t *t, line_t *l);
+void muxserverTunnelUpStreamResume(tunnel_t *t, line_t *l);
+
+void muxserverTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void muxserverTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void muxserverTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void muxserverTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void muxserverTunnelDownStreamResume(tunnel_t *t, line_t *l);
+
+void muxserverLinestateInitialize(tunnel_t *t, muxserver_lstate_t *ls, line_t *l, bool is_child,
+                                  mux_cid_t connection_id);
+void muxserverLinestateDestroy(tunnel_t *t, muxserver_lstate_t *ls);
+void muxserverScheduleParentStatsLog(tunnel_t *t, line_t *parent_l);
+
+void                         muxserverJoinConnection(muxserver_lstate_t *parent, muxserver_lstate_t *child);
+void                         muxserverLeaveConnection(muxserver_lstate_t *child);
+muxserver_lstate_t          *muxserverFindChildByConnectionId(muxserver_lstate_t *parent, mux_cid_t cid);
+muxserver_memory_admission_t muxserverEvaluateMemoryAdmission(muxserver_tstate_t *ts);
+bool                         muxserverTryReserveLiveChildSlot(muxserver_tstate_t *ts, uint32_t effective_ceiling);
+void                         muxserverReleaseLiveChildSlot(muxserver_tstate_t *ts);
+bool                         muxserverConsumeRejectedOpenToken(muxserver_lstate_t *parent_ls, uint64_t now_ms);
+void                         muxserverArmChildIdle(tunnel_t *t, muxserver_lstate_t *child_ls);
+void                         muxserverRefreshChildIdle(tunnel_t *t, muxserver_lstate_t *child_ls);
+
+/**
+ * Close one child of a still-live parent connection: unlink it, release its flow control, emit the Close frame,
+ * destroy the child line state and destroy the child line.
+ *
+ * MuxServer creates its child lines, so it is also the node that destroys them.
+ *
+ * @param notify_child_next send Finish to the child's next side. Must be false when this close is the reaction to
+ *                          a Finish received from that same side.
+ *
+ * The parent may be dead afterwards. A caller that continues must hold its own parent reference and
+ * recheck parent life/state; the owned child is logically dead.
+ */
+void muxserverCloseChildKeepParent(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *parent_ls,
+                                   muxserver_lstate_t *child_ls, bool notify_child_next);
+bool muxserverSendControlFrame(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *parent_ls, line_t *child_l,
+                               mux_cid_t cid, uint8_t flag);
+bool muxserverSendChildFlowPause(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *parent_ls, line_t *child_l,
+                                 muxserver_lstate_t *child_ls);
+void muxserverReleaseParentInputForChildClose(muxserver_lstate_t *parent_ls, muxserver_lstate_t *child_ls);
+bool muxserverPauseChildSource(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *child_ls, bool peer_flow,
+                               bool parent_write);
+bool muxserverResumeChildSource(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *child_ls, bool peer_flow,
+                                bool parent_write);
+bool muxserverQueueChildPayload(tunnel_t *t, line_t *parent_l, muxserver_tstate_t *ts, muxserver_lstate_t *parent_ls,
+                                muxserver_lstate_t *child_ls, sbuf_t *buf);
+muxserver_child_drain_result_t muxserverDrainAttachedChild(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *parent_ls,
+                                                           line_t *child_l, muxserver_lstate_t *child_ls);
+/* For a resumed child whose queue drained, parse the Data body the parent stream kept for it. */
+void muxserverDeliverKeptChildData(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *child_ls);
+muxserver_child_drain_result_t muxserverDrainDetachedChild(tunnel_t *t, line_t *child_l, muxserver_lstate_t *child_ls);
+bool muxserverBeginPeerCloseDrain(tunnel_t *t, line_t *parent_l, muxserver_tstate_t *ts, muxserver_lstate_t *parent_ls,
+                                  muxserver_lstate_t *child_ls);
+bool muxserverFinalizeAttachedPeerClose(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *parent_ls,
+                                        muxserver_lstate_t *child_ls);
+void muxserverFinalizeDetachedChild(tunnel_t *t, line_t *child_l, muxserver_lstate_t *child_ls);
+void muxserverAbortDetachedChild(tunnel_t *t, line_t *child_l, muxserver_lstate_t *child_ls, bool notify_child_next);
+void muxserverHandleParentLoss(tunnel_t *t, line_t *parent_l, bool notify_parent_prev);
+muxserver_detached_registry_t *muxserverGetDetachedRegistry(tunnel_t *t, line_t *child_l);
+muxserver_worker_state_t      *muxserverGetWorkerState(tunnel_t *t, line_t *line);
+
+/* Takes buf on every result. True proves only the parent survives; callers that
+ * continue using a child must hold and check that child's reference separately.
+ * publish_child/flag publish wire state after admission, before any callback. */
+bool muxserverSendParentOutput(tunnel_t *t, line_t *parent_l, sbuf_t *buf, muxserver_lstate_t *publish_child,
+                               uint8_t flag);
+void muxserverDrainParentOutput(tunnel_t *t, line_t *parent_l);
+
+void muxserverSendSpliceBatch(tunnel_t *t, line_t *parent_l, sbuf_t *input, muxserver_lstate_t *child);
+
+bool muxserverEnforceParentReceiveLimit(tunnel_t *t, line_t *parent_l);
+
+/* Complete deferred producer permission after Init/Est; caller holds the child. */
+void muxserverChildSourceStarted(tunnel_t *t, line_t *child_l);

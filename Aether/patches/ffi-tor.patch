@@ -1,0 +1,74 @@
+diff --git a/aether/src/ffi.rs b/aether/src/ffi.rs
+index 3f3760a..d75a7c3 100644
+--- a/aether/src/ffi.rs
++++ b/aether/src/ffi.rs
+@@ -263,6 +263,8 @@ struct TunnelPayload {
+     keepalive: Option<u16>,
+     #[serde(default)]
+     ech: Option<bool>,
++    #[serde(default)]
++    tor: Option<String>,
+ }
+
+ fn transport_of(raw: &Option<String>) -> api::Transport {
+@@ -476,16 +478,58 @@ pub unsafe extern "C" fn aether_verify_start(identity: u64, payload: *const c_ch
+ pub unsafe extern "C" fn aether_tunnel_start(identity: u64, payload: *const c_char) -> *mut c_char {
+     respond(|| {
+         let payload: TunnelPayload = unsafe { read_json(payload) }?;
+-        let identity = identity_of(identity)?;
++        // SRP: optional tor mode — "only" (arti alone, no WARP, no identity
++        // needed) or "reverse" (the MASQUE tunnel is dialled through tor,
++        // which forces the HTTP/2 carrier since tor carries TCP only)
++        let tor_mode = payload.tor.as_deref().unwrap_or("off").to_string();
++        let tor_only = tor_mode == "only";
++        let tor_reverse = tor_mode == "reverse";
++        let identity = if tor_only { None } else { Some(identity_of(identity)?) };
+         let peer = socket_of(&payload.peer, "the peer address")?;
+         let spec = tunnel_spec_of(&payload)?;
+         let want_ech = payload.ech.unwrap_or(false);
+
+         spawn_job(move |cancel| async move {
+             let mut spec = spec;
++
++            if tor_only {
++                let state = crate::tor::state_dir("");
++                let listener = crate::socks::bind_listener("tor socks5", spec.socks, "--tor-bind")
++                    .await
++                    .map_err(describe)?;
++                let work = crate::tor::run_only(listener, spec.socks, state);
++                return match tokio::select! {
++                    biased;
++                    _ = cancel.wait() => Err(crate::error::AetherError::Cancelled),
++                    outcome = work => outcome,
++                } {
++                    Ok(()) => Ok(json!({"state": "closed"})),
++                    Err(crate::error::AetherError::Cancelled) => Ok(json!({"state": "stopped"})),
++                    Err(e) => Err(describe(e)),
++                };
++            }
++
+             spec.ech = job_ech(want_ech, spec.transport).await?;
+
+-            match api::connect(&identity, peer, &spec, &cancel).await {
++            if tor_reverse {
++                let state = crate::tor::state_dir("");
++                let (socks, carrier) = crate::tor::start_reverse(state).await.map_err(describe)?;
++                let proxy = crate::upstream::Upstream::parse(&format!("socks5://{socks}"))
++                    .map_err(describe)?;
++                log::info!("[+] tor up; the tunnel is dialled through tor ({socks})");
++                let outcome = crate::upstream::through(
++                    proxy,
++                    api::connect(identity.as_ref().unwrap(), peer, &spec, &cancel),
++                ).await;
++                carrier.abort();
++                return match outcome {
++                    Ok(()) => Ok(json!({"state": "closed"})),
++                    Err(crate::error::AetherError::Cancelled) => Ok(json!({"state": "stopped"})),
++                    Err(e) => Err(describe(e)),
++                };
++            }
++
++            match api::connect(identity.as_ref().unwrap(), peer, &spec, &cancel).await {
+                 Ok(()) => Ok(json!({"state": "closed"})),
+                 Err(crate::error::AetherError::Cancelled) => Ok(json!({"state": "stopped"})),
+                 Err(e) => Err(describe(e)),

@@ -1,0 +1,5 @@
+build/obj-*/
+SETest/setest
+SETest/*.dSYM/
+SETest/*.p12
+SETest/*.password.txt

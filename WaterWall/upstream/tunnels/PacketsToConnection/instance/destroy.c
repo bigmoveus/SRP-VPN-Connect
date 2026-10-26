@@ -1,0 +1,53 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void ptcDestroyLwipResources(tunnel_t *t)
+{
+    ptc_tstate_t *state = tunnelGetState(t);
+    if (state->lwip_resources_destroyed)
+    {
+        return;
+    }
+
+    if (state->routes_v4 != NULL)
+    {
+        for (uint32_t wid = 0; wid < state->route_worker_count; ++wid)
+        {
+            if (state->routes_v4[wid] != NULL)
+            {
+                LOGF("PacketsToConnection: worker route survived owner drain");
+                abortProgramNow(1);
+            }
+        }
+        memoryFree(state->routes_v4);
+        state->routes_v4 = NULL;
+    }
+    assert(state->drain_count == 0 && state->drain_bytes == 0);
+    ptcFakeDnsDestroy(state);
+    state->lwip_resources_destroyed = true;
+}
+
+void ptcTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context)
+{
+    discard context;
+    ptcTunnelOnStop(t, context);
+
+    ptc_tstate_t *state = tunnelGetState(t);
+    if (state->owned_lines != NULL)
+    {
+        for (uint32_t wid = 0; wid < state->owned_worker_count; ++wid)
+        {
+            assert(state->owned_lines[wid] == NULL);
+        }
+        memoryFree(state->owned_lines);
+        state->owned_lines = NULL;
+    }
+    mutexDestroy(&state->drain_lock);
+    mutexDestroy(&state->dns_lock);
+    const uint64_t fragment_drops = atomicLoadU64Relaxed(&state->fragment_drops);
+    if (fragment_drops != 0)
+        LOGI("PacketsToConnection: unsupported IPv4 fragments dropped=%llu", (unsigned long long) fragment_drops);
+
+    tunnelDestroy(t);
+}

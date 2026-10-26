@@ -1,0 +1,220 @@
+#pragma once
+
+/*
+ * Buffer pool for ordinary small/medium/large buffers and bounded splice inventory entries.
+ */
+
+#include "generic_pool.h"
+#include "master_pool.h"
+#include "shiftbuffer.h"
+#include "wlibc.h"
+
+/*
+    A growable pool
+
+    preallocates (n) number of buffers at each call to charge(),
+
+    users select a buffer tier or call bufferpoolGetBestFit(), and later call bufferpoolReuseBuffer when
+    they are done with the buffer.
+
+    recharing is done autmatically and internally.
+
+    This is the most memory consuming part of the program, and also the preallocation length really
+    depends on where you want to use this program, on a mobile phone or on a 16 core server?
+
+    so the pool width is affected by ww memory profile
+
+    for performance reasons, this pool dose not inherit from generic_pool, so 80% of the code is the same
+    but also it has its own differences ofcourse
+
+*/
+
+typedef struct buffer_pool_s buffer_pool_t;
+
+/**
+ * Creates a buffer pool with specified parameters.
+ * @param mp_large The master pool for large buffers.
+ * @param mp_medium The master pool for medium helper buffers.
+ * @param mp_small The master pool for small buffers.
+ * @param bufcount The number of buffers to preallocate.
+ * @param large_buffer_size The size of each large buffer.
+ * @param medium_buffer_size The size of each medium helper buffer.
+ * @param small_buffer_size The size of each small buffer.
+ * @param splice_payload_limit Socket splice request limit, in [1, INT_MAX], independent of inventory sizing.
+ * @param waiting_budget_basis Independent basis for node waiting limits, in [1, INT_MAX]; not a receive size.
+ * @return A pointer to the completely constructed buffer pool, or NULL when
+ *         the input geometry or a master pool is invalid. Nothing is published
+ *         and no master-pool callback is installed on rejection. Heap allocation
+ *         failure terminates the process.
+ */
+buffer_pool_t *bufferpoolCreate(master_pool_t *mp_large, master_pool_t *mp_medium, master_pool_t *mp_small,
+                                uint32_t bufcount, uint32_t large_buffer_size, uint32_t medium_buffer_size,
+                                uint32_t small_buffer_size, uint32_t splice_payload_limit,
+                                uint32_t waiting_budget_basis);
+
+/**
+ * @brief Free ordinary caches and return cached splice entries to their master.
+ *
+ * @param pool Buffer pool instance.
+ */
+void bufferpoolDestroy(buffer_pool_t *pool);
+
+/**
+ * Retrieves a large buffer from the buffer pool.
+ * @param pool The buffer pool.
+ * @return A pointer to the retrieved large buffer.
+ */
+sbuf_t *bufferpoolGetLargeBuffer(buffer_pool_t *pool);
+
+/** Retrieve a medium helper buffer (32 KiB in S1/S2, 64 KiB in higher profiles).
+ * Cache counts follow the pool width. Linux NIO UDP reads may also
+ * select this tier through best-fit allocation. */
+sbuf_t  *bufferpoolGetMediumBuffer(buffer_pool_t *pool);
+uint32_t bufferpoolGetMediumBufferSize(buffer_pool_t *pool);
+uint16_t bufferpoolGetMediumBufferPadding(buffer_pool_t *pool);
+
+/**
+ * Retrieves a small buffer from the buffer pool.
+ * @param pool The buffer pool.
+ * @return A pointer to the retrieved small buffer.
+ */
+sbuf_t *bufferpoolGetSmallBuffer(buffer_pool_t *pool);
+
+/** Retrieve a complete empty splice buffer with its permanent pipe and fixed padding.
+ * A local miss takes up to four entries from the shared master, lazily creating
+ * missing entries within the inventory limits. At most eight free entries are cached locally.
+ * Returns NULL with ENOBUFS on exhaustion or kernel refusal, or ENOSYS if unsupported;
+ * other workers' caches are not reclaimed. Callers normally use ordinary fallback.
+ * Populate the pipe before publishing its actual logical body size. */
+sbuf_t *bufferpoolGetSpliceBuffer(buffer_pool_t *pool);
+
+typedef struct buffer_pool_fit_s
+{
+    size_t   allocation_charge; // Same userspace-storage charge as sbufGetAllocationCharge().
+    uint32_t payload_capacity;  // Excludes left padding; includes allocation alignment rounding.
+    uint16_t left_padding;      // Actual aligned padding.
+    bool     pooled;            // Selects a configured tier rather than dedicated storage.
+} buffer_pool_fit_t;
+
+/** Query the ordinary allocation GetBestFit would select, without allocating or
+ * changing the pool. Uses the same tier selection, including padding eligibility
+ * and small/medium/large tie order. False means unrepresentable geometry and
+ * leaves fit unchanged. The result remains valid while pool geometry is unchanged.
+ * This does not reserve an allocation or include any kernel-pipe charge. */
+bool bufferpoolQueryBestFit(const buffer_pool_t *pool, uint64_t minimum_payload, uint16_t minimum_left_padding,
+                            buffer_pool_fit_t *fit);
+
+/**
+ * Retrieve the smallest small/medium/large pooled buffer satisfying both payload capacity
+ * and left-padding requirements. Splice allocation is explicit. When no
+ * ordinary tier fits, allocate a dedicated
+ * padded buffer; bufferpoolReuseBuffer() safely destroys that fallback.
+ *
+ * @param pool Buffer pool instance.
+ * @param minimum_payload Minimum writable payload capacity in bytes.
+ * @param minimum_left_padding Minimum left padding in bytes.
+ * @return A reset owned buffer satisfying both requirements.
+ */
+sbuf_t *bufferpoolGetBestFit(buffer_pool_t *pool, uint32_t minimum_payload, uint16_t minimum_left_padding);
+
+/** Checked best-fit allocation for wide computed lengths. Returns NULL for
+ * unrepresentable geometry; otherwise uses the same pooled tiers as GetBestFit. */
+sbuf_t *bufferpoolTryGetBestFit(buffer_pool_t *pool, uint64_t minimum_payload, uint16_t minimum_left_padding);
+
+/**
+ * Reuses a buffer by returning it to the buffer pool.
+ * Takes ownership and discards remaining payload, including a splice wrapper's
+ * real prefix and private-pipe body. Splice discard runs in every build, including
+ * when pooling is bypassed. With BUFFER_POOL_DEBUG == 1, kernel-emptiness validation
+ * logs a fatal error and aborts on failure before reset, independently of NDEBUG.
+ * Healthy complete entries return to the local cache or shared master; a drain failure retires the entry.
+ * Callers must exclusively own the buffer.
+ * @param pool The buffer pool.
+ * @param b The buffer to reuse.
+ */
+void bufferpoolReuseBuffer(buffer_pool_t *pool, sbuf_t *b);
+
+/**
+ * Releases the pool's debug thread ownership after its owning thread has been
+ * joined. The next accessor becomes the new owner.
+ *
+ * The caller must have exclusive access to the pool. In particular, this must
+ * not be used as a way to move a live pool between concurrent threads.
+ *
+ * @param pool Buffer pool whose former owner can no longer access it.
+ */
+void bufferpoolResetThreadOwnership(buffer_pool_t *pool);
+
+/**
+ * Updates the allocation paddings for the buffer pool.
+ * @param pool The buffer pool.
+ * @param large_buffer_left_padding The left padding for large buffers.
+ * @param medium_buffer_left_padding The left padding for medium buffers.
+ * @param small_buffer_left_padding The left padding for small buffers.
+ * @param splice_buffer_left_padding The left padding for splice buffers.
+ */
+void bufferpoolUpdateAllocationPaddings(buffer_pool_t *pool, uint16_t large_buffer_left_padding,
+                                        uint16_t medium_buffer_left_padding, uint16_t small_buffer_left_padding,
+                                        uint16_t splice_buffer_left_padding);
+
+/**
+ * Gets the size of large buffers in the buffer pool.
+ * @param pool The buffer pool.
+ * @return The size of large buffers.
+ */
+uint32_t bufferpoolGetLargeBufferSize(buffer_pool_t *pool);
+
+/**
+ * @brief Get configured left padding for large buffers.
+ *
+ * @param pool Buffer pool instance.
+ * @return uint16_t Left padding in bytes.
+ */
+uint16_t bufferpoolGetLargeBufferPadding(buffer_pool_t *pool);
+
+/**
+ * Gets the size of small buffers in the buffer pool.
+ * @param pool The buffer pool.
+ * @return The size of small buffers.
+ */
+uint32_t bufferpoolGetSmallBufferSize(buffer_pool_t *pool);
+
+/**
+ * @brief Get configured left padding for small buffers.
+ *
+ * @param pool Buffer pool instance.
+ * @return uint16_t Left padding in bytes.
+ */
+uint16_t bufferpoolGetSmallBufferPadding(buffer_pool_t *pool);
+
+/** Configured socket splice request limit, excluding padding.
+ * Fixed at construction, independent of wrapper storage and actual kernel pipe capacity. */
+uint32_t bufferpoolGetSplicePayloadLimit(buffer_pool_t *pool);
+
+/** Profile-selected basis for waiting budgets, independent of buffer storage and receive headroom. */
+uint32_t bufferpoolGetWaitingBudgetBasis(buffer_pool_t *pool);
+
+/** Return the fixed 32-byte control-storage capacity, excluding padding and logical payload size. */
+uint32_t bufferpoolGetSpliceBufferStorageSize(buffer_pool_t *pool);
+
+/** Return the pool's configured splice left padding. */
+uint16_t bufferpoolGetSpliceBufferPadding(buffer_pool_t *pool);
+
+/**
+ * Appends and merges two exclusively owned ordinary buffers.
+ * Consumes both inputs: b2 is recycled through pool, and b1 may be destroyed
+ * and replaced during growth. The caller owns only the returned buffer.
+ * @param pool The buffer pool.
+ * @param b1 The first buffer.
+ * @param b2 The second buffer.
+ * @return A pointer to the merged buffer.
+ */
+sbuf_t *sbufAppendMerge(buffer_pool_t *pool, sbuf_t *restrict b1, sbuf_t *restrict b2);
+
+/**
+ * Duplicates a buffer using the buffer pool.
+ * @param pool The buffer pool.
+ * @param b The buffer to duplicate.
+ * @return A pointer to the duplicated buffer.
+ */
+sbuf_t *sbufDuplicateByPool(buffer_pool_t *pool, sbuf_t *b);

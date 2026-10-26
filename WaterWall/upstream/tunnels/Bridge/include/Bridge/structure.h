@@ -1,0 +1,34 @@
+#pragma once
+
+#include "wwapi.h"
+
+typedef struct bridge_tstate_s
+{
+    node_t   *pair_node;
+    tunnel_t *pair_tun;
+} bridge_tstate_t;
+
+enum
+{
+    kTunnelStateSize = sizeof(bridge_tstate_t),
+    kLineStateSize   = 0
+};
+
+WW_EXPORT tunnel_t    *bridgeTunnelCreate(node_t *node);
+WW_EXPORT api_result_t bridgeTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void bridgeTunnelOnChain(tunnel_t *t, tunnel_chain_t *chain);
+
+void bridgeTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void bridgeTunnelUpStreamEst(tunnel_t *t, line_t *l);
+void bridgeTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void bridgeTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void bridgeTunnelUpStreamPause(tunnel_t *t, line_t *l);
+void bridgeTunnelUpStreamResume(tunnel_t *t, line_t *l);
+
+void bridgeTunnelDownStreamInit(tunnel_t *t, line_t *l);
+void bridgeTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void bridgeTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void bridgeTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void bridgeTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void bridgeTunnelDownStreamResume(tunnel_t *t, line_t *l);

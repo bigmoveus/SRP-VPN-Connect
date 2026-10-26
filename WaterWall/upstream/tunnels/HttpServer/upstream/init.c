@@ -1,0 +1,63 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static void closeOrDestroyLine(tunnel_t *t, line_t *l, httpserver_lstate_t *ls)
+{
+    if (lineIsAlive(l))
+    {
+        httpserverTransportCloseBothDirections(t, l, ls);
+    }
+}
+
+void httpserverTunnelUpStreamInit(tunnel_t *t, line_t *l)
+{
+    if (httpserverSplitIsEnabled(t))
+    {
+        httpserverSplitUpStreamInit(t, l);
+        return;
+    }
+
+    httpserver_tstate_t *ts = tunnelGetState(t);
+    httpserver_lstate_t *ls = lineGetState(l, t);
+
+    httpserverLinestateInitialize(ls, t, l);
+    if (ts->version_mode == kHttpServerVersionModeHttp1)
+    {
+        ls->runtime_proto = kHttpServerRuntimeHttp1;
+    }
+
+    if (ts->verbose)
+    {
+        LOGD("HttpServer: line init version-mode=%d websocket=%s upgrade=%s",
+             ts->version_mode,
+             boolToTrueFalse(ts->websocket_enabled),
+             boolToTrueFalse(ts->enable_upgrade));
+    }
+
+    lineRef(l);
+
+    if (! lineCallWithRef(l, tunnelNextUpStreamInit, t))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (! tunnelIsActiveForLine(t, l) || ls->line == NULL)
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (ts->version_mode == kHttpServerVersionModeHttp2)
+    {
+        if (! httpserverTransportPrepareHttp2Session(t, l, ls))
+        {
+            closeOrDestroyLine(t, l, ls);
+        }
+        lineUnref(l);
+        return;
+    }
+
+    lineUnref(l);
+}

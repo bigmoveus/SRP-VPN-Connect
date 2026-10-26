@@ -1,0 +1,34 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void muxclientTunnelUpStreamFinish(tunnel_t *t, line_t *child_l)
+{
+
+    muxclient_tstate_t *ts       = tunnelGetState(t);
+    muxclient_lstate_t *child_ls = lineGetState(child_l, t);
+
+    assert(child_ls->is_child);
+
+    // The source can finish re-entrantly while parent selection is still
+    // opening or retiring transports. No parent association exists yet.
+    if (child_ls->parent == NULL && child_ls->close_state == kMuxClientChildCloseOpen)
+    {
+        muxclientLinestateDestroy(child_ls);
+        return;
+    }
+
+    if (child_ls->close_state == kMuxClientChildCloseParentGoneDraining)
+    {
+        // The previous side sent Finish, so release retained data without reflecting Finish back to it.
+        muxclientAbortDetachedChild(t, child_l, child_ls, false);
+        return;
+    }
+
+    assert(child_ls->parent);
+    muxclient_lstate_t *parent_ls = child_ls->parent;
+    line_t             *parent_l  = parent_ls->l;
+
+    // the previous side sent us Finish, so nothing may be reflected back toward it
+    muxclientCloseChildKeepParent(t, ts, parent_l, parent_ls, child_ls, false);
+}

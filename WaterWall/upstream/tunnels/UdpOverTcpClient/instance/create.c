@@ -1,0 +1,20 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+tunnel_t *udpovertcpclientTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, 0, sizeof(udpovertcpclient_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    t->fnInitU    = &udpovertcpclientTunnelUpStreamInit;
+    t->fnFinU     = &udpovertcpclientTunnelUpStreamFinish;
+    t->fnPayloadU = &udpovertcpclientTunnelUpStreamPayload;
+    t->fnFinD     = &udpovertcpclientTunnelDownStreamFinish;
+    t->fnPayloadD = &udpovertcpclientTunnelDownStreamPayload;
+
+    return t;
+}

@@ -1,0 +1,169 @@
+<!--
+Documentation version: 153
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/Bridge.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/Bridge.mdx, and all files must keep the same documentation version.
+-->
+
+# Bridge Node
+
+`Bridge` links two separate places in the same WaterWall configuration. A pair of `Bridge` nodes forwards line events and payload between each other, effectively stitching two otherwise separate chain segments together.
+
+In practice, `Bridge` is commonly used together with `ReverseClient` and `ReverseServer` so that the reverse side and the local service side can be connected through a named bridge pair.
+
+## What It Does
+
+- Pairs itself with another node by name.
+- Forwards upstream events arriving on one bridge into the paired bridge's previous side.
+- Forwards downstream events arriving on one bridge into the paired bridge's next side.
+- Relays `init`, `est`, `payload`, `finish`, `pause`, and `resume` without adding its own protocol.
+
+This node is a pure relay. It does not create its own transport and it does not parse payload.
+
+## Typical Placement
+
+`Bridge` is intended to be used as a pair.
+
+A common reverse-tunnel layout is:
+
+- a `Bridge` directly before `ReverseClient` in the client-side layout
+- a `Bridge` directly after `ReverseServer` in the server-side layout
+- each bridge points at the other by name
+- the reverse half of the chain is connected on one side of the pair
+- the local service half of the chain is connected on the other side
+
+That is why `ReverseClient` and `ReverseServer` are typically described together with `Bridge`: the bridge pair is what makes it easy to attach the reverse tunnel to another chain segment.
+
+## Reverse-node adjacency rules
+
+When using Bridge with reverse nodes, keep these connections directly adjacent:
+
+- `Bridge -> ReverseClient`
+- `ReverseServer -> Bridge`
+
+No node may be inserted in either gap. For example,
+`Bridge -> SpeedLimit -> ReverseClient` and `ReverseServer -> SpeedLimit -> Bridge`
+are forbidden. Place any additional processing outside these gaps.
+
+This rule preserves the ownership assumptions of ordinary stream tunnels.
+ReverseClient's downstream Init goes directly into Bridge, which forwards
+upstream Init on its paired branch. Bridge passes the same line and never takes
+ownership of it. Keep the direction change at this boundary instead of placing
+a middle tunnel there that assumes the owner is toward `prev`.
+
+These are chain-design rules that users must follow; the code does not automatically
+validate these adjacency requirements. They apply to these reverse-node connections
+and do not require every Bridge to have a reverse-node neighbor.
+
+## Configuration Example
+
+Bridge A:
+
+```json
+{
+  "name": "bridge-a",
+  "type": "Bridge",
+  "settings": {
+    "pair": "bridge-b"
+  },
+  "next": "some-next-node"
+}
+```
+
+Bridge B:
+
+```json
+{
+  "name": "bridge-b",
+  "type": "Bridge",
+  "settings": {
+    "pair": "bridge-a"
+  },
+  "next": "another-next-node"
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this bridge node.
+
+- `type` `(string)`
+  Must be exactly `"Bridge"`.
+
+### `settings`
+
+- `pair` `(string)`
+  The name of the other bridge node.
+
+  The named node must exist in the same loaded configuration and must already be instantiated by the node manager.
+
+## Detailed Behavior
+
+### Pairing model
+
+When the tunnel chain is being wired up, `Bridge` resolves the configured `pair` node name and stores the paired tunnel instance. The first bridge to finish chaining also sets the reverse pointer on the other bridge.
+
+After that, both bridges can relay line events into each other.
+
+### Event forwarding behavior
+
+For a line arriving at one bridge:
+
+- upstream `init` is forwarded as downstream `init` into the paired bridge's previous side
+- upstream `est` is forwarded as downstream `est`
+- upstream `payload` is forwarded as downstream `payload`
+- upstream `finish` is forwarded as downstream `finish`
+- upstream `pause` is forwarded as downstream `pause`
+- upstream `resume` is forwarded as downstream `resume`
+
+And in the other direction:
+
+- downstream `init` is forwarded as upstream `init` into the paired bridge's next side
+- downstream `est` is forwarded as upstream `est`
+- downstream `payload` is forwarded as upstream `payload`
+- downstream `finish` is forwarded as upstream `finish`
+- downstream `pause` is forwarded as upstream `pause`
+- downstream `resume` is forwarded as upstream `resume`
+
+`Bridge` reserves no per-line state and reroutes callbacks through its partner using the same line.
+
+### Why it helps with reverse tunnels
+
+`ReverseClient` and `ReverseServer` handle reverse-link creation and pairing, but they do not by themselves explain where the "other side" of the local traffic should be attached.
+
+A bridge pair solves that by letting you place:
+
+- one bridge directly before `ReverseClient` or directly after `ReverseServer`, depending on the layout
+- its paired bridge on the local-facing chain
+
+and then connect those two places logically through the bridge pair.
+
+## Notes And Caveats
+
+- `Bridge` is intended to be paired with another `Bridge` node.
+- The current implementation requires the paired node name to exist in the same configuration.
+- `Bridge` adds no buffering, protocol parsing, or transport of its own. It only relays events.
+- `Bridge` advertises `kNodeLayerAnything` and registers logical layer equivalence relations between paired instances (`Bridge A prev == Bridge B prev` and `Bridge A next == Bridge B next`). Startup fails if paired bridge nodes are connected to incompatible network layers (e.g. L3 packet on one side and L4 stream on the other).
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagChainHead` &#124; `kNodeFlagChainEnd` &#124; `kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayerAnything` |
+| `layer_group_prev_node` | `kNodeLayerAnything` |
+| `layer_group_next_node` | `kNodeLayerAnything` |
+| `required_padding_left` | `0` bytes |
+
+## Splice support
+
+Both supported payload directions transfer the original buffer and exact line through the paired Bridge with the existing callback direction mapping. The merged topology must be eligible as a whole. Bridge never acquires ownership of the forwarded line.
+
+Ordinary fallback buffers remain accepted. Splice requires a supported Linux build, `misc.splice` enabled, no packet nodes, and support from every node in the finalized expanded/merged chain. The capability flag does not bypass these checks. No performance improvement is promised without measurement.
+
+Packet configurations of this dual-layer node still do not enable splice.

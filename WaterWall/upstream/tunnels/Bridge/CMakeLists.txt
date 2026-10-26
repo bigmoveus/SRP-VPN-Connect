@@ -1,0 +1,28 @@
+
+add_library(Bridge STATIC
+                    instance/create.c
+                    instance/api.c
+                    instance/node.c
+                    instance/chain.c
+                    upstream/init.c
+                    upstream/est.c
+                    upstream/fin.c
+                    upstream/payload.c
+                    upstream/pause.c
+                    upstream/resume.c
+                    downstream/init.c
+                    downstream/est.c
+                    downstream/fin.c
+                    downstream/payload.c
+                    downstream/pause.c
+                    downstream/resume.c
+  
+)
+
+target_include_directories(Bridge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(Bridge PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/Bridge)
+
+target_link_libraries(Bridge ww)
+if(NOT APPLE)
+    target_precompile_headers(Bridge REUSE_FROM ww)
+endif()

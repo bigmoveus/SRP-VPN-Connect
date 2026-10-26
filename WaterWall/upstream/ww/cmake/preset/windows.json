@@ -1,0 +1,449 @@
+{
+    "version": 4,
+    "include": [
+        "base.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "windows-ninja",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "mingw",
+                "ccache",
+                "default"
+            ]
+        },
+        {
+            "name": "windows",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-iocp",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ],
+            "cacheVariables": {
+                "WITH_NATIVE_IOCP": true,
+                "WITH_WEPOLL": false
+            }
+        },
+        {
+            "name": "windows-iocp-unit",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "ninja",
+                "native-unit-tests",
+                "native-unit-windows-x64",
+                "default"
+            ],
+            "cacheVariables": {
+                "WITH_NATIVE_IOCP": true,
+                "WITH_WEPOLL": false
+            }
+        },
+        {
+            "name": "windows-arm32",
+            "inherits": [
+                "host-windows",
+                "target-windows-arm32",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-arm64",
+            "inherits": [
+                "host-windows",
+                "target-windows-arm64",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-x86",
+            "inherits": [
+                "host-windows",
+                "target-windows-x86",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-x86-unit",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "ninja",
+                "ccache",
+                "native-unit-tests",
+                "native-unit-windows-x86",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-x86-64",
+            "inherits": [
+                "host-windows",
+                "target-windows-x86-64",
+                "vs2026",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-x86-64-unit",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "ninja",
+                "ccache",
+                "native-unit-tests",
+                "native-unit-windows-x64",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-msys-clang",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "ninja",
+                "clang",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-mingw",
+            "inherits": [
+                "host-windows",
+                "target-windows",
+                "ninja",
+                "gcc",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "windows-cross-mingw-x64-unit",
+            "inherits": ["native-unit-tests", "windows-cross-mingw-x64"],
+            "cacheVariables": {
+                "WW_PACK_RUNTIME": false,
+                "WW_NATIVE_UNIT_TEST_EXECUTABLE_RUNNABLE": false
+            }
+        },
+        {
+            "name": "windows-cross-mingw-x64",
+            "inherits": [
+                "host-linux",
+                "ninja",
+                "default"
+            ],
+            "toolchainFile": "${sourceDir}/core/tools/windows_launcher/mingw-x64.cmake",
+            "cacheVariables": {
+                "WW_PACK_RUNTIME": true,
+                "BUILD_TESTING": false,
+                "MAKE": "/usr/bin/make"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-lifecycle-unit-debug",
+            "configurePreset": "windows-cross-mingw-x64-unit",
+            "configuration": "Debug",
+            "targets": ["windows_lifecycle_test"]
+        },
+        {
+            "name": "windows-lifecycle-unit-release",
+            "configurePreset": "windows-cross-mingw-x64-unit",
+            "configuration": "Release",
+            "targets": ["windows_lifecycle_test"]
+        },
+        {
+            "name": "windows-ninja",
+            "configurePreset": "windows-ninja",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-ninja-rwd",
+            "configurePreset": "windows-ninja",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-ninja-debug",
+            "configurePreset": "windows-ninja",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows",
+            "configurePreset": "windows",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-iocp",
+            "configurePreset": "windows-iocp",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-iocp-debug",
+            "configurePreset": "windows-iocp",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-iocp-rwd",
+            "configurePreset": "windows-iocp",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-rwd",
+            "configurePreset": "windows",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-debug",
+            "configurePreset": "windows",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm32",
+            "configurePreset": "windows-arm32",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm32-debug",
+            "configurePreset": "windows-arm32",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm32-rwd",
+            "configurePreset": "windows-arm32",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm64",
+            "configurePreset": "windows-arm64",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm64-debug",
+            "configurePreset": "windows-arm64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-arm64-rwd",
+            "configurePreset": "windows-arm64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86",
+            "configurePreset": "windows-x86",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86-debug",
+            "configurePreset": "windows-x86",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86-rwd",
+            "configurePreset": "windows-x86",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86-64",
+            "configurePreset": "windows-x86-64",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86-64-debug",
+            "configurePreset": "windows-x86-64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-x86-64-rwd",
+            "configurePreset": "windows-x86-64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-msys-clang",
+            "configurePreset": "windows-msys-clang",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-msys-clang-debug",
+            "configurePreset": "windows-msys-clang",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-msys-clang-rwd",
+            "configurePreset": "windows-msys-clang",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-mingw",
+            "configurePreset": "windows-mingw",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-mingw-debug",
+            "configurePreset": "windows-mingw",
+            "configuration": "Debug",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-mingw-rwd",
+            "configurePreset": "windows-mingw",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-windows"
+            ]
+        },
+        {
+            "name": "windows-cross-mingw-x64",
+            "configurePreset": "windows-cross-mingw-x64",
+            "configuration": "Release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "windows",
+            "configurePreset": "windows",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        },
+        {
+            "name": "windows-iocp",
+            "configurePreset": "windows-iocp",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        },
+        {
+            "name": "windows-arm32",
+            "configurePreset": "windows-arm32",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        },
+        {
+            "name": "windows-arm64",
+            "configurePreset": "windows-arm64",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        },
+        {
+            "name": "windows-x86",
+            "configurePreset": "windows-x86",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        },
+        {
+            "name": "windows-x86-64",
+            "configurePreset": "windows-x86-64",
+            "inherits": [
+                "host-windows",
+                "options"
+            ]
+        }
+    ]
+}

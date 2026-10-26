@@ -1,0 +1,727 @@
+<!--
+Documentation version: 158
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/01-getting-started/tutorial-part1.mdx, and both English files must keep the same documentation version. User-facing behavior changes should also update WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/01-getting-started/tutorial-part1.mdx.
+-->
+
+# Core Settings
+
+`core.json` is the startup configuration file read by the Waterwall executable.
+It configures process-wide behavior: which node config files are loaded, where
+logs are written, how many workers are created, which runtime memory profile is
+used, and how the shared async DNS resolver should behave.
+
+The core file does not define tunnels directly. Tunnel chains are loaded from the
+paths listed in `configs`.
+
+## Core JSON Input
+
+With no startup option or environment override, Waterwall keeps its original
+behavior and reads `./core.json` from the process working directory.
+
+Use any one of these equivalent command-line forms to select another source:
+
+```text
+-c:PATH
+--c:PATH
+-config:PATH
+--config:PATH
+config:PATH
+```
+
+The colon is required. `PATH` may be relative to the process working directory
+or absolute. The special value `stdin` reads the core JSON from standard input:
+
+```bash
+./Waterwall --config:/etc/waterwall/core.json
+./Waterwall --config:stdin < core.json
+```
+
+The `WW_CORE_JSON_INPUT` environment variable accepts the same path or `stdin`
+value. Input selection follows this precedence:
+
+```text
+CLI option > WW_CORE_JSON_INPUT > ./core.json
+```
+
+Selecting a core input does not change the process working directory. Relative
+paths inside `core.json`, including entries in `configs`, therefore remain
+relative to the directory where Waterwall was started rather than to the
+selected core file's directory.
+
+## Structural Example
+
+```json
+{
+  "log": {
+    "path": "log/",
+    "internal": {
+      "loglevel": "INFO",
+      "file": "internal.log",
+      "console": true
+    },
+    "core": {
+      "loglevel": "INFO",
+      "file": "core.log",
+      "console": true
+    },
+    "network": {
+      "loglevel": "INFO",
+      "file": "network.log",
+      "console": true
+    },
+    "dns": {
+      "loglevel": "INFO",
+      "file": "dns.log",
+      "console": true
+    }
+  },
+  "misc": {
+    "workers": 4,
+    "ram-profile": "server",
+    "mtu": 1500,
+    "try-enabling-bbr": true,
+    "libs-path": "libs/"
+  },
+  "dns": {
+    "domain-strategy": "prefer-ipv4",
+    "timeout-ms": 1000,
+    "max-timeout-ms": 5000,
+    "tries": 2,
+    "query-cache-max-ttl": 1800,
+    "ndots": 1,
+    "udp-port": 53,
+    "tcp-port": 53,
+    "socket-send-buffer-size": 262144,
+    "socket-receive-buffer-size": 262144,
+    "edns-packet-size": 1232,
+    "udp-max-queries": 0,
+    "flags": ["edns", "dns0x20"],
+    "rotate": true,
+    "domains": ["example.com"],
+    "lookups": "bf",
+    "resolvconf-path": "/etc/resolv.conf",
+    "hosts-path": "/etc/hosts",
+    "sortlist": "10.0.0.0/8",
+    "servers": ["1.1.1.1", "8.8.8.8"],
+    "server-failover": {
+      "retry-chance": 10,
+      "retry-delay-ms": 5000
+    }
+  },
+  "configs": [
+    "config.json"
+  ]
+}
+```
+
+All top-level sections except `configs` are optional, but production configs
+should usually keep `misc` explicit so the worker count, MTU, library path, and
+memory profile are intentional.
+
+## Top-Level Options
+
+| Option | Type | Required | Description |
+| --- | --- | --- | --- |
+| `configs` | array of strings | yes | List of Waterwall node config files to parse and run. |
+| `log` | object | no | Logger paths, files, levels, and console output settings. |
+| `misc` | object | no | Runtime worker, memory, MTU, and tunnel library settings. |
+| `dns` | object | no | Shared async DNS resolver options and default domain strategy. |
+
+`domain-strategy` is not valid as a top-level option. Configure it as
+`dns.domain-strategy`.
+
+## `configs`
+
+`configs` must be a non-empty array. Each string is a config file path that the
+node manager will parse after the core runtime is initialized.
+
+Example:
+
+```json
+{
+  "configs": [
+    "server.json",
+    "reverse.json"
+  ]
+}
+```
+
+The paths are passed to the config loader as written. In normal deployments they
+are relative to the process working directory.
+
+## `log`
+
+The `log` object controls the four process loggers:
+
+| Logger | Purpose |
+| --- | --- |
+| `internal` | Low-level/internal Waterwall logs. |
+| `core` | Core startup, config parsing, and runtime manager logs. |
+| `network` | Network and tunnel runtime logs. |
+| `dns` | Async DNS resolver logs. |
+
+Each logger object accepts:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `loglevel` | string | `"INFO"` | Minimum log level written by this logger. |
+| `file` | string | logger-specific | File name under `log.path`. |
+| `console` | boolean | `true` | Whether this logger also writes to console output. |
+
+`log.path` is the base directory used to build log file paths. Waterwall creates
+this directory during startup if needed.
+
+Defaults:
+
+| Option | Default |
+| --- | --- |
+| `log.path` | `"log/"` |
+| `log.internal.loglevel` | `"INFO"` |
+| `log.internal.file` | `"internal.log"` |
+| `log.internal.console` | `true` |
+| `log.core.loglevel` | `"INFO"` |
+| `log.core.file` | `"core.log"` |
+| `log.core.console` | `true` |
+| `log.network.loglevel` | `"INFO"` |
+| `log.network.file` | `"network.log"` |
+| `log.network.console` | `true` |
+| `log.dns.loglevel` | `"INFO"` |
+| `log.dns.file` | `"dns.log"` |
+| `log.dns.console` | `true` |
+
+Accepted log level strings are:
+
+```text
+VERBOSE, DEBUG, INFO, WARN, ERROR, FATAL, SILENT
+```
+
+The logger uppercases the configured value before applying it.
+
+To show all log levels for one run, add `--verbose`:
+
+```bash
+./Waterwall --verbose
+./Waterwall --verbose --config:/etc/waterwall/core.json
+```
+
+Equivalent aliases are `--log`, `-log`, `-verbose`, `--showlog`, `-showlog`, and
+`--debug-log`. Specify only one spelling per run.
+
+This enables console output and sets `internal`, `core`, `network`, and `dns` to
+`VERBOSE`, overriding their `loglevel` and `console` settings even when logging is
+`SILENT`. Enabled log files also receive the additional messages. File paths and
+disabled file outputs still follow the configuration. The override is applied in
+memory before logger initialization and does not rewrite `core.json`. `-v` still
+prints the version. Specify `--verbose` once; it cannot be combined with a version
+or Windows recovery request.
+
+Example:
+
+```json
+{
+  "log": {
+    "path": "logs/",
+    "core": {
+      "loglevel": "DEBUG",
+      "file": "core.log",
+      "console": true
+    },
+    "network": {
+      "loglevel": "INFO",
+      "file": "network.log",
+      "console": false
+    }
+  }
+}
+```
+
+Omitted logger objects use their defaults.
+
+## `misc`
+
+The `misc` object controls process-wide runtime settings.
+
+Every field below has a real default, and those defaults apply whether `misc` is
+an empty object or absent entirely. Keeping the block explicit is still good
+practice, but an omitted one no longer leaves `mtu` or `ram-profile` unusable.
+
+A `misc` that is present but is not an object - `"misc": []`, say - is a
+configuration error rather than a synonym for absent. Treating the two alike
+meant every field the block was meant to carry silently reverted.
+
+Invalid values are refused rather than replaced: a wrong type, a fractional
+number, or a number outside the documented range terminates startup with the
+field named. Silently substituting a default would run the whole topology at a
+setting nobody chose. This applies to every field in the table, not only to
+`mtu` and `ram-profile`.
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `workers` | integer | CPU core count | Number of worker threads. Must be a whole number in the signed 32-bit range when present. Within that range, values less than or equal to `0` mean "as many as this machine has" and values above `254` are reduced to `254`. |
+| `ram-profile` | string or integer | `"server"` | Memory sizing profile for pools and profile-aware node defaults. A number must be a whole number in `0..6`; `0` and `1` are legacy aliases for the smallest profile. |
+| `mtu` | integer | `1500` | Construction-time default for per-node MTUs. Must be a whole number in `68..65535` - RFC 791's minimum IPv4 MTU up to what the field can hold. |
+| `splice` | boolean | `true` | Allow splice on eligible stream chains. `false` disables splice for every chain. Platform support and support from every node are still required; packet chains remain ineligible. |
+| `tcp-tune` | boolean | `true` on Linux; `false` otherwise | Best-effort core startup tuning with 128 MiB socket ceilings and TCP autotuning maxima; also raises RAM-based TCP memory thresholds when `splice` is enabled. |
+| `try-enabling-bbr` | boolean | `true` on Linux; `false` otherwise | Linux-only best-effort startup attempt to enable TCP BBR. |
+| `libs-path` | string | `"libs/"` | Directory used when loading external tunnel libraries. |
+
+Core `misc.mtu` is only a construction-time seed. Each MTU-consuming node validates
+and stores its own immutable value. Node overrides do not change core state or
+other nodes, and this default is neither one enforced MTU for all nodes nor a
+measured path MTU.
+
+
+On Linux, automatic worker sizing uses the online logical CPU count from
+`get_nprocs()`, excluding configured CPUs that are offline.
+
+Recommended example:
+
+```json
+{
+  "misc": {
+    "workers": 4,
+    "ram-profile": "server",
+    "mtu": 1500,
+    "splice": true,
+    "tcp-tune": true,
+    "try-enabling-bbr": true,
+    "libs-path": "libs/"
+  }
+}
+```
+
+On Linux, keeping both `splice` and `tcp-tune` enabled is recommended for
+supported stream chains to benefit from splice and the intended startup TCP tuning.
+
+Set `"splice": false` to use ordinary read/write buffers throughout the TCP
+adapters. This startup setting applies to every chain, including chains with
+internally inserted nodes. Omitting it, including when `misc` is empty or absent,
+defaults to `true`; a non-boolean value is a configuration error.
+
+On supported Linux builds, enabled splice also makes a best-effort startup
+request to raise `fs.pipe-user-pages-soft` to the 512 MiB splice budget converted
+to system pages, capped by `fs.pipe-user-pages-hard` when that limit is nonzero.
+These settings apply system-wide to each user's pipe usage. WaterWall preserves
+an unlimited soft limit (`0`) and any soft limit already at or above the target;
+lack of permission or another failure does not stop startup. It never changes
+the hard limit or `fs.pipe-max-size`, or writes persistent sysctl configuration.
+A successful increase remains in effect after exit.
+
+After every startup configuration's chains are finalized, and before prepare/start
+hooks or producers run, WaterWall allocates complete splice buffers with their
+fixed maximum required padding and full-sized 1 MiB pipes, up to a process-wide
+512 MiB capacity budget. The number of pipes is also capped
+at `floor((RLIMIT_NOFILE.soft - open_descriptors) / 8)`: each pipe has two
+descriptors, so inventory uses at most one quarter of the remaining descriptor
+allowance, leaving the rest for configuration and runtime resources. The
+`/proc/self/fd` count includes its temporary scan descriptor
+conservatively; an unavailable limit or scan leaves the inventory empty. Kernel
+limits and allocation failures can reduce the acquired inventory further.
+Startup logs the actual pipe count and capacity. This is a pipe-capacity budget,
+not a reservation of 512 MiB of physical payload memory.
+
+Each worker caches up to eight unused splice buffers. An empty local cache draws
+from the shared master. If both are empty, checkout returns NULL and callers
+normally fall back to ordinary buffers, even if other worker caches retain pipes. Healthy pipes are retained until shutdown; traffic
+never creates replacement pipes, grows them, or accepts smaller pipes. An
+unusable pipe is retired without replacement. Setting `splice` to `false` skips
+both pipe-limit tuning and inventory allocation.
+
+When `try-enabling-bbr` is true on Linux, Waterwall checks the current TCP
+congestion control, configures `net.core.default_qdisc=fq` when needed, and
+applies `net.ipv4.tcp_congestion_control=bbr`. Writing the congestion-control
+setting lets Linux load the `tcp_bbr` module when it is available. These live
+sysctl changes require permission to write the settings, and module loading
+requires `CAP_NET_ADMIN` in the relevant network namespace; running as root is
+the usual arrangement. Failures are reported in the core log. Waterwall does
+not install kernels, persist settings in `/etc/sysctl.conf`, or replace
+queueing disciplines already attached to network interfaces.
+
+### `tcp-tune`
+
+`tcp-tune` defaults to `true` on native Linux and `false` on other platforms,
+including Android and Cygwin. Omitted or empty `misc` blocks use the same default.
+Only a JSON boolean is accepted. Set `"tcp-tune": false` to skip this core startup
+phase. The four fixed socket/TCP buffer settings apply even when `splice` is
+disabled; the RAM-based `tcp_mem` step requires both flags to be enabled.
+`try-enabling-bbr` remains independent. On other platforms, explicit `true` is
+accepted but performs no tuning.
+
+After runtime logging is ready and before loading node configurations, WaterWall
+attempts these four fixed live sysctl writes, independent of the memory profile:
+
+| Setting | Value |
+| --- | --- |
+| `net.core.rmem_max` | `134217728` (128 MiB) |
+| `net.core.wmem_max` | `134217728` (128 MiB) |
+| `net.ipv4.tcp_rmem` | `4096 87380 134217728` |
+| `net.ipv4.tcp_wmem` | `4096 87380 134217728` |
+
+When both `tcp-tune` and `splice` are enabled, it also tries to increase the
+system-wide `net.ipv4.tcp_mem` thresholds using total host physical RAM and the
+system page size. Setting `"splice": false` skips this step. With
+`unit = floor(floor(total_ram_bytes / page_size) / 16)`, the target is
+`3 * unit`, `4 * unit`, `6 * unit` pages. This preserves the `3:4:6` ratio:
+approximately 18.75% of RAM for leaving pressure mode, 25% for entering it,
+and 37.5% for the maximum TCP-accounting threshold. These values do not
+preallocate memory and do not override cgroup limits.
+
+WaterWall reads the current triple first and preserves it if any target value
+would lower an existing threshold. A changed triple is read back before success
+is logged. Invalid or unavailable memory/page-size information, unreadable
+settings, failed writes, and verification failures are nonfatal and do not skip
+the other tuning commands. This host-wide target does not use the RAM profile,
+current free RAM, or a container's memory quota.
+
+This phase does not change `net.core.netdev_max_backlog` or `net.core.somaxconn`.
+A chain containing either MuxClient or MuxServer activates TcpListener's and
+TcpConnector's 16 MiB send/receive defaults for omitted options, independently of
+`tcp-tune` or sysctl success. Without a Mux node, omitted options use kernel defaults.
+Explicit `large-send-buffer` and `large-recv-buffer` settings always take precedence,
+including connector destination overrides.
+
+Each failed command logs a warning, and the remaining commands are still
+attempted; permission denial or a missing `sysctl` never fails startup. Successful
+writes change the live kernel settings and are not restored on exit. WaterWall
+does not persist them in `/etc/sysctl.conf`.
+
+RawSocket's separate tuning batch, controlled by `skip-sysctl`, tunes backlogs and
+other TCP parameters. The buffer and `tcp_mem` writes above belong exclusively to the core
+`tcp-tune` phase.
+
+### `ram-profile`
+
+String values:
+
+| Value | Meaning |
+| --- | --- |
+| `"server"` | Larger server-side pool profile. |
+| `"client"` | Generic client-side profile. |
+| `"client-larger"` | Larger client-side profile. |
+| `"minimal"` | Minimal memory profile. |
+| `"ultralow"` | Alias of `"minimal"`. |
+
+Integer values are also accepted:
+
+| Value | Profile |
+| --- | --- |
+| `0` or `1` | S1 memory profile |
+| `2` | S2 memory profile |
+| `3` | M1 memory profile |
+| `4` | M2 memory profile |
+| `5` | L1 memory profile |
+| `6` | L2 memory profile |
+
+The profile also selects defaults for memory-sensitive node settings. In particular, omitted MuxClient and MuxServer
+`detached-buffer-limit` and `detached-child-limit` values scale from the S1 minimum to the L2 maximum; explicit node
+settings still override them. See the Mux node references for the exact limits.
+
+## `dns`
+
+The `dns` object configures the shared c-ares based async resolver used by
+workers, plus Waterwall's default domain address selection strategy for connector
+nodes.
+
+If `dns` is omitted or empty, the resolver uses Waterwall's c-ares defaults and
+`dns.domain-strategy` defaults to `"prefer-ipv4"`.
+
+### `dns.domain-strategy`
+
+`domain-strategy` controls how connector nodes choose an address when a domain
+resolves to IPv4 and/or IPv6 records.
+
+This value is the core default for nodes that do not specify their own
+`domain-strategy`. `TcpConnector` and `UdpConnector` can still override it in
+their own `settings`. `TcpConnector` per-address entries can also override the
+connector's default for that specific destination.
+
+Valid string values:
+
+| Value | Behavior |
+| --- | --- |
+| `"prefer-ipv4"` | Choose the first IPv4 address if one is returned; otherwise fall back to the first IPv6 address. This is the core default. |
+| `"prefer-ipv6"` | Choose the first IPv6 address if one is returned; otherwise fall back to the first IPv4 address. |
+| `"only-ipv4"` | Use only IPv4 results. If no IPv4 address is returned, resolution is treated as unusable for that connection. |
+| `"only-ipv6"` | Use only IPv6 results. If no IPv6 address is returned, resolution is treated as unusable for that connection. |
+| `"accept-dns-returned-order"` | Accept the first usable address in the order returned by DNS. |
+
+Legacy integer values are also accepted:
+
+| Value | Strategy |
+| --- | --- |
+| `0` | `accept-dns-returned-order` |
+| `1` | `prefer-ipv4` |
+| `2` | `prefer-ipv6` |
+| `3` | `only-ipv4` |
+| `4` | `only-ipv6` |
+
+Example:
+
+```json
+{
+  "dns": {
+    "domain-strategy": "prefer-ipv4"
+  }
+}
+```
+
+Do not place `domain-strategy` directly in the root object:
+
+```json
+{
+  "domain-strategy": "prefer-ipv4"
+}
+```
+
+That form is rejected. Use `dns.domain-strategy`.
+
+### Resolver Timing and Cache Options
+
+| Option | Type | Default | Validation | Description |
+| --- | --- | --- | --- | --- |
+| `timeout-ms` | integer | `1000` | greater than `0` | Initial DNS query timeout in milliseconds. |
+| `max-timeout-ms` | integer | `5000` | greater than `0` | Maximum DNS query timeout in milliseconds. |
+| `tries` | integer | `2` | greater than `0` | Number of DNS query tries. |
+| `query-cache-max-ttl` | integer | `1800` | greater than or equal to `0` | Maximum TTL, in seconds, for the resolver query cache. |
+
+Example:
+
+```json
+{
+  "dns": {
+    "timeout-ms": 750,
+    "max-timeout-ms": 3000,
+    "tries": 2,
+    "query-cache-max-ttl": 600
+  }
+}
+```
+
+### Resolver Behavior Options
+
+| Option | Type | Validation | Description |
+| --- | --- | --- | --- |
+| `ndots` | integer | range `0` to `15` | Number of dots required before c-ares tries a name as absolute. |
+| `udp-port` | integer | range `1` to `65535` | UDP DNS server port. |
+| `tcp-port` | integer | range `1` to `65535` | TCP DNS server port. |
+| `socket-send-buffer-size` | integer | greater than `0` | DNS socket send buffer size. |
+| `socket-receive-buffer-size` | integer | greater than `0` | DNS socket receive buffer size. |
+| `edns-packet-size` | integer | range `1` to `65535` | EDNS packet size. |
+| `udp-max-queries` | integer | greater than or equal to `0` | Maximum number of UDP queries allowed by c-ares. |
+| `rotate` | boolean | boolean | Enables or disables c-ares server rotation. |
+
+### Search and Source Options
+
+| Option | Type | Validation | Description |
+| --- | --- | --- | --- |
+| `domains` | array of strings | non-empty array, non-empty strings | Search domains passed to c-ares. |
+| `lookups` | string | contains only `b` and `f`; no repeated characters | Lookup source order. `b` means DNS, `f` means hosts file. |
+| `resolvconf-path` | string | non-empty | Custom resolv.conf path. |
+| `hosts-path` | string | non-empty | Custom hosts file path. |
+| `sortlist` | string | non-empty | c-ares sortlist string. |
+| `servers` | string or array of strings | non-empty; array items may not contain commas | DNS servers passed to c-ares. A string may use c-ares CSV syntax; an array is joined as CSV. |
+
+Example:
+
+```json
+{
+  "dns": {
+    "servers": ["1.1.1.1", "8.8.8.8"],
+    "lookups": "bf",
+    "domains": ["example.com"],
+    "hosts-path": "/etc/hosts"
+  }
+}
+```
+
+`lookups` examples:
+
+| Value | Meaning |
+| --- | --- |
+| `"b"` | DNS only. |
+| `"f"` | Hosts file only. |
+| `"bf"` | Try DNS, then hosts file. |
+| `"fb"` | Try hosts file, then DNS. |
+
+### `dns.flags`
+
+`flags` configures supported c-ares flags. It can be written as:
+
+1. A numeric bitmask.
+2. A single flag name.
+3. An array of flag names.
+4. An object whose keys are flag names and whose values are booleans.
+
+Examples:
+
+```json
+{
+  "dns": {
+    "flags": ["edns", "dns0x20"]
+  }
+}
+```
+
+```json
+{
+  "dns": {
+    "flags": {
+      "edns": true,
+      "dns0x20": true,
+      "use-vc": false
+    }
+  }
+}
+```
+
+Supported flag names:
+
+| Name | c-ares flag |
+| --- | --- |
+| `"usevc"` | `ARES_FLAG_USEVC` |
+| `"use-vc"` | `ARES_FLAG_USEVC` |
+| `"tcp"` | `ARES_FLAG_USEVC` |
+| `"primary"` | `ARES_FLAG_PRIMARY` |
+| `"igntc"` | `ARES_FLAG_IGNTC` |
+| `"ignore-truncated"` | `ARES_FLAG_IGNTC` |
+| `"norecurse"` | `ARES_FLAG_NORECURSE` |
+| `"no-recurse"` | `ARES_FLAG_NORECURSE` |
+| `"stayopen"` | `ARES_FLAG_STAYOPEN` |
+| `"stay-open"` | `ARES_FLAG_STAYOPEN` |
+| `"no-search"` | `ARES_FLAG_NOSEARCH` |
+| `"no-aliases"` | `ARES_FLAG_NOALIASES` |
+| `"nocheckresp"` | `ARES_FLAG_NOCHECKRESP` |
+| `"no-check-response"` | `ARES_FLAG_NOCHECKRESP` |
+| `"edns"` | `ARES_FLAG_EDNS` |
+| `"no-default-server"` | `ARES_FLAG_NO_DFLT_SVR` |
+| `"no-dflt-svr"` | `ARES_FLAG_NO_DFLT_SVR` |
+| `"dns0x20"` | `ARES_FLAG_DNS0x20` |
+
+When object syntax is used, `true` enables a flag and `false` leaves it disabled.
+
+### `dns.server-failover`
+
+`server-failover` is an object passed to c-ares server failover options.
+
+| Option | Type | Default | Validation | Description |
+| --- | --- | --- | --- | --- |
+| `retry-chance` | integer | `10` | range `0` to `65535` | c-ares retry chance value. |
+| `retry-delay-ms` | integer | `5000` | greater than or equal to `0` | Delay before retrying a failed DNS server. |
+
+Example:
+
+```json
+{
+  "dns": {
+    "server-failover": {
+      "retry-chance": 25,
+      "retry-delay-ms": 2000
+    }
+  }
+}
+```
+
+## Minimal Practical `core.json`
+
+```json
+{
+  "log": {
+    "path": "log/",
+    "core": {
+      "loglevel": "INFO",
+      "file": "core.log",
+      "console": true
+    },
+    "network": {
+      "loglevel": "INFO",
+      "file": "network.log",
+      "console": true
+    },
+    "dns": {
+      "loglevel": "INFO",
+      "file": "dns.log",
+      "console": true
+    },
+    "internal": {
+      "loglevel": "INFO",
+      "file": "internal.log",
+      "console": true
+    }
+  },
+  "misc": {
+    "workers": 4,
+    "ram-profile": "server",
+    "mtu": 1500,
+    "try-enabling-bbr": true,
+    "libs-path": "libs/"
+  },
+  "dns": {
+    "domain-strategy": "prefer-ipv4"
+  },
+  "configs": [
+    "config.json"
+  ]
+}
+```
+
+## DNS-Tuned `core.json`
+
+```json
+{
+  "log": {
+    "path": "log/",
+    "core": {
+      "loglevel": "INFO",
+      "file": "core.log",
+      "console": true
+    },
+    "network": {
+      "loglevel": "WARN",
+      "file": "network.log",
+      "console": false
+    },
+    "dns": {
+      "loglevel": "DEBUG",
+      "file": "dns.log",
+      "console": true
+    },
+    "internal": {
+      "loglevel": "INFO",
+      "file": "internal.log",
+      "console": false
+    }
+  },
+  "misc": {
+    "workers": 8,
+    "ram-profile": "client-larger",
+    "mtu": 1500,
+    "try-enabling-bbr": true,
+    "libs-path": "libs/"
+  },
+  "dns": {
+    "domain-strategy": "prefer-ipv4",
+    "servers": [
+      "1.1.1.1",
+      "8.8.8.8"
+    ],
+    "timeout-ms": 1000,
+    "max-timeout-ms": 5000,
+    "tries": 2,
+    "query-cache-max-ttl": 600,
+    "lookups": "bf",
+    "flags": [
+      "edns",
+      "dns0x20"
+    ],
+    "rotate": true,
+    "server-failover": {
+      "retry-chance": 10,
+      "retry-delay-ms": 5000
+    }
+  },
+  "configs": [
+    "server.json",
+    "reverse.json"
+  ]
+}
+```

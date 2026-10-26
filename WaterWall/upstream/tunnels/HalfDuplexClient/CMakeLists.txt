@@ -1,0 +1,27 @@
+
+add_library(HalfDuplexClient STATIC
+                    instance/create.c
+                    instance/api.c
+                    instance/node.c
+                    common/helpers.c
+                    common/line_state.c
+                    upstream/init.c
+                    upstream/fin.c
+                    upstream/payload.c
+                    upstream/pause.c
+                    upstream/resume.c
+                    downstream/est.c
+                    downstream/fin.c
+                    downstream/payload.c
+                    downstream/pause.c
+                    downstream/resume.c
+  
+)
+
+target_include_directories(HalfDuplexClient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(HalfDuplexClient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/HalfDuplexClient)
+
+target_link_libraries(HalfDuplexClient ww)
+if(NOT APPLE)
+    target_precompile_headers(HalfDuplexClient REUSE_FROM ww)
+endif()

@@ -1,0 +1,35 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {"major": 3, "minor": 25},
+  "configurePresets": [
+    {
+      "name": "host",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build/host",
+      "cacheVariables": {
+        "CMAKE_SYSTEM_NAME": "Darwin",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "12.0",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ios",
+      "generator": "Xcode",
+      "binaryDir": "${sourceDir}/build/ios",
+      "toolchainFile": "${sourceDir}/upstream/ww/cmake/toolchain/ios.cmake",
+      "cacheVariables": {
+        "CMAKE_OSX_SYSROOT": "iphoneos",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "15.0",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {"name": "host", "configurePreset": "host", "configuration": "Release"},
+    {"name": "ios", "configurePreset": "ios", "configuration": "Release"}
+  ],
+  "testPresets": [
+    {"name": "host", "configurePreset": "host", "configuration": "Release", "output": {"outputOnFailure": true}}
+  ]
+}

@@ -1,0 +1,1264 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+enum frame_read_result_e
+{
+    kRealityFrameNeedMore = 0,
+    kRealityFrameOk       = 1,
+    kRealityFrameInvalid  = -1,
+};
+
+static void realityserverTerminalClose(tunnel_t *t, line_t *l, uint8_t alert, bool received_prev_finish,
+                                       bool received_next_finish);
+
+static sbuf_t *realityserverAllocFrameBuffer(buffer_pool_t *pool, uint32_t frame_len)
+{
+    uint32_t small_size = bufferpoolGetSmallBufferSize(pool);
+    uint32_t large_size = bufferpoolGetLargeBufferSize(pool);
+
+    if (frame_len <= small_size)
+    {
+        return bufferpoolGetSmallBuffer(pool);
+    }
+
+    if (frame_len <= large_size)
+    {
+        return bufferpoolGetLargeBuffer(pool);
+    }
+
+    return sbufCreateWithPadding(frame_len, bufferpoolGetLargeBufferPadding(pool));
+}
+
+static sbuf_t *realityserverDuplicateBuffer(buffer_pool_t *pool, sbuf_t *buf)
+{
+    uint32_t len = sbufGetLength(buf);
+    sbuf_t  *out = realityserverAllocFrameBuffer(pool, len);
+
+    out = sbufReserveSpace(out, len);
+    sbufSetLength(out, len);
+    memoryCopyLarge(sbufGetMutablePtr(out), sbufGetRawPtr(buf), len);
+    return out;
+}
+
+static bool realityserverDeriveSessionKeys(realityserver_tstate_t *ts, realityserver_lstate_t *ls)
+{
+    assert(! ls->session_keys_ready);
+    assert(ls->tls_capture.client_ready && ls->tls_capture.server_ready);
+
+    reality_v2_record_profile_t profile = {0};
+    if (! realityV2SelectRecordProfile(
+            ls->tls_capture.binding.tls_version, ls->tls_capture.binding.cipher_suite, &profile))
+    {
+        return false;
+    }
+
+    if (ls->tls_capture.binding.tls_version == kRealityV2Tls12 &&
+        (! realityserverTls12RecordTrackerSetProfile(&ls->client_record_tracker, &profile) ||
+         ! realityserverTls12RecordTrackerSetProfile(&ls->server_record_tracker, &profile)))
+    {
+        return false;
+    }
+
+    reality_v2_session_material_t material = {0};
+    if (! realityV2DeriveSessionMaterial(ts->root_key, &ls->tls_capture.binding, &material))
+    {
+        memoryZero(&material, sizeof(material));
+        return false;
+    }
+
+    memoryCopy(ls->session_id, material.session_id, sizeof(ls->session_id));
+    memoryCopy(ls->c2s_key, material.c2s_key, sizeof(ls->c2s_key));
+    memoryCopy(ls->s2c_key, material.s2c_key, sizeof(ls->s2c_key));
+    memoryCopy(ls->c2s_iv, material.c2s_iv, sizeof(ls->c2s_iv));
+    memoryCopy(ls->s2c_iv, material.s2c_iv, sizeof(ls->s2c_iv));
+    ls->record_profile = profile;
+    memoryZero(&material, sizeof(material));
+    ls->tls13_pre_request_cover_records_remaining =
+        ls->tls_capture.binding.tls_version == kRealityV2Tls13 ? kRealityServerTls13PreRequestCoverRecordAllowance : 0;
+    ls->session_keys_ready = true;
+    return true;
+}
+
+static bool realityserverEncryptFrame(realityserver_tstate_t *ts, realityserver_lstate_t *ls, buffer_pool_t *pool,
+                                      uint8_t record_kind, const uint8_t *plaintext, uint32_t plaintext_len,
+                                      sbuf_t **frame_buffer)
+{
+    assert(frame_buffer != NULL);
+
+    if (! ls->session_keys_ready || ! realityV2SequenceAvailable(ls->s2c_send_seq) ||
+        ! realityV2RecordProfileIsValid(&ls->record_profile))
+    {
+        return false;
+    }
+
+    reality_v2_record_descriptor_t descriptor;
+    reality_v2_record_layout_t     layout;
+    if (! realityV2BuildRecordDescriptor(
+            ls->tls_capture.binding.tls_version, &ls->record_profile, record_kind, &descriptor) ||
+        ! realityV2CalculateDescriptorLayout(&descriptor, plaintext_len, &layout))
+    {
+        return false;
+    }
+
+    uint32_t frame_len = kRealityServerTlsHeaderSize + layout.wire_body_len;
+    sbuf_t  *out       = realityserverAllocFrameBuffer(pool, frame_len);
+    out                = sbufReserveSpace(out, frame_len);
+    sbufSetLength(out, frame_len);
+
+    uint64_t sequence_number = ls->s2c_send_seq;
+    uint8_t *frame           = sbufGetMutablePtr(out);
+    frame[0]                 = descriptor.outer_content_type;
+    frame[1]                 = kRealityServerTlsVersionMajor;
+    frame[2]                 = kRealityServerTlsVersionMinor;
+    frame[3]                 = (uint8_t) (layout.wire_body_len >> 8);
+    frame[4]                 = (uint8_t) layout.wire_body_len;
+
+    uint8_t *visible_prefix = frame + kRealityServerTlsHeaderSize;
+    uint64_t counter_value  = 0;
+    bool     counter_used   = false;
+    if (descriptor.profile.profile_id == kRealityV2RecordProfileTls12Gcm)
+    {
+        if (ls->server_gcm_nonce_policy == kRealityServerGcmNoncePolicySequence)
+        {
+            if (! realityV2AddTlsRecordSequence(ls->server_tls_sequence_base, sequence_number, &counter_value))
+            {
+                bufferpoolReuseBuffer(pool, out);
+                return false;
+            }
+            realityV2WriteBe64(visible_prefix, counter_value);
+        }
+        else if (ls->server_gcm_nonce_policy == kRealityServerGcmNoncePolicyCounter)
+        {
+            counter_value = ls->server_gcm_counter_next;
+            if (counter_value == UINT64_MAX)
+            {
+                bufferpoolReuseBuffer(pool, out);
+                return false;
+            }
+            counter_used = true;
+            realityV2WriteBe64(visible_prefix, counter_value);
+        }
+        else if (ls->server_gcm_nonce_policy == kRealityServerGcmNoncePolicyRandom)
+        {
+            getRandomBytes(visible_prefix, kRealityV2Tls12GcmPrefixSize);
+        }
+        else
+        {
+            bufferpoolReuseBuffer(pool, out);
+            return false;
+        }
+    }
+    else if (descriptor.visible_prefix_len != 0)
+    {
+        getRandomBytes(visible_prefix, descriptor.visible_prefix_len);
+    }
+
+    uint8_t *ciphertext = visible_prefix + descriptor.visible_prefix_len;
+    if (! realityV2BuildInnerPlaintext(&descriptor, plaintext, plaintext_len, ciphertext, layout.inner_plaintext_len))
+    {
+        bufferpoolReuseBuffer(pool, out);
+        return false;
+    }
+
+    uint8_t nonce[kRealityV2IvSize];
+    uint8_t aad[kRealityV2RecordAadMaxSize];
+    size_t  aad_len = 0;
+    realityV2BuildNonce(ls->s2c_iv, sequence_number, nonce);
+    if (! realityV2BuildRecordAad(&descriptor,
+                                  kRealityV2DirectionServerToClient,
+                                  sequence_number,
+                                  ls->session_id,
+                                  frame,
+                                  visible_prefix,
+                                  descriptor.visible_prefix_len,
+                                  aad,
+                                  &aad_len))
+    {
+        memoryZero(nonce, sizeof(nonce));
+        bufferpoolReuseBuffer(pool, out);
+        return false;
+    }
+
+    size_t           ciphertext_capacity = sbufGetMaximumWriteableSize(out) - (size_t) (ciphertext - frame);
+    wcrypto_status_t result              = realityserverEncryptAead(ts->algorithm,
+                                                       ciphertext,
+                                                       ciphertext_capacity,
+                                                       ciphertext,
+                                                       layout.inner_plaintext_len,
+                                                       aad,
+                                                       aad_len,
+                                                       nonce,
+                                                       ls->s2c_key);
+    memoryZero(nonce, sizeof(nonce));
+    memoryZero(aad, sizeof(aad));
+    if (result != kWCryptoOk)
+    {
+        bufferpoolReuseBuffer(pool, out);
+        return false;
+    }
+
+    ls->s2c_send_seq = sequence_number + 1;
+    if (counter_used)
+    {
+        ls->server_gcm_counter_next = counter_value + 1U;
+    }
+    *frame_buffer = out;
+    return true;
+}
+
+static WCRYPTO_MUST_USE wcrypto_status_t realityserverDecryptExpectedAdapter(
+    void *context, unsigned char *dst, size_t dst_capacity, const unsigned char *src, size_t src_len,
+    const unsigned char *ad, size_t ad_len, const unsigned char *nonce, const unsigned char *key)
+{
+    realityserver_tstate_t *ts = context;
+    return realityserverDecryptAead(ts->algorithm, dst, dst_capacity, src, src_len, ad, ad_len, nonce, key);
+}
+
+static bool realityserverExpectedControlIsPlausible(const realityserver_lstate_t *ls, const sbuf_t *record,
+                                                    uint8_t expected_kind, reality_v2_record_descriptor_t *descriptor)
+{
+    assert(sbufGetLength(record) >= kRealityServerTlsHeaderSize);
+    if (! realityV2BuildRecordDescriptor(kRealityV2Tls13, &ls->record_profile, expected_kind, descriptor))
+    {
+        return false;
+    }
+
+    const uint8_t *frame    = sbufGetRawPtr(record);
+    uint32_t       body_len = ((uint32_t) frame[3] << 8) | frame[4];
+    return frame[0] == descriptor->outer_content_type && frame[1] == kRealityServerTlsVersionMajor &&
+           frame[2] == kRealityServerTlsVersionMinor &&
+           sbufGetLength(record) == kRealityServerTlsHeaderSize + body_len &&
+           realityV2ValidateDescriptorBodyLength(descriptor, body_len);
+}
+
+static bool realityserverTryExpectedControl(realityserver_tstate_t *ts, const realityserver_lstate_t *ls,
+                                            const sbuf_t *record, const reality_v2_record_descriptor_t *descriptor,
+                                            uint8_t plaintext[kRealityV2ControlMaxInnerPlaintext])
+{
+    uint32_t payload_offset = 0;
+    uint32_t payload_len    = 0;
+    return realityV2TryDecryptExpectedRecord(descriptor,
+                                             kRealityV2DirectionClientToServer,
+                                             ls->c2s_recv_seq,
+                                             ls->session_id,
+                                             ls->c2s_key,
+                                             ls->c2s_iv,
+                                             sbufGetRawPtr(record),
+                                             sbufGetLength(record),
+                                             realityserverDecryptExpectedAdapter,
+                                             ts,
+                                             plaintext,
+                                             kRealityV2ControlMaxInnerPlaintext,
+                                             &payload_offset,
+                                             &payload_len) &&
+           realityV2ParseControl(descriptor->record_kind, plaintext + payload_offset, payload_len);
+}
+
+bool realityserverSendHandoffAckAtBoundary(tunnel_t *t, line_t *l)
+{
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    realityserver_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->mode != kRealityServerModeHandoffAwaitBoundary || ! ls->handoff_request_authenticated ||
+        ls->handoff_ack_sent || ls->destination_downstream_forward_depth != 0 ||
+        ! realityserverTlsRecordBoundaryTrackerIsAtBoundary(&ls->destination_record_boundary) ||
+        ls->c2s_recv_seq != 1 || ls->s2c_send_seq != 0 || ls->protected_init_sent)
+    {
+        return false;
+    }
+
+    /* The cutoff must be observable by every callback re-entered by the send. */
+    ls->destination_downstream_cutoff = true;
+
+    uint8_t  control[kRealityV2ControlMaxPayload];
+    uint32_t control_len = 0;
+    sbuf_t  *frame       = NULL;
+    bool built = realityV2BuildControlPayload(kRealityV2RecordKindHandoffAck, control, sizeof(control), &control_len) &&
+                 realityserverEncryptFrame(
+                     ts, ls, lineGetBufferPool(l), kRealityV2RecordKindHandoffAck, control, control_len, &frame);
+    memoryZero(control, sizeof(control));
+    if (! built)
+    {
+        realityserverCloseLineBidirectional(t, l);
+        return false;
+    }
+
+    assert(ls->s2c_send_seq == 1);
+    ls->handoff_ack_sent = true;
+    ls->mode             = kRealityServerModeHandoffAwaitConfirm;
+    return lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, frame);
+}
+
+static int realityserverTryReadTlsRecord(buffer_stream_t *stream, sbuf_t **record)
+{
+    size_t  available_length                    = bufferstreamGetBufLen(stream);
+    uint8_t header[kRealityServerTlsHeaderSize] = {0};
+    size_t  prefix_length                       = min(available_length, sizeof(header));
+    if (prefix_length > 0)
+    {
+        bufferstreamViewBytesAt(stream, 0, header, prefix_length);
+    }
+
+    enum realityserver_tls_record_prefix_e prefix_result = realityserverClassifyTlsRecordPrefix(header, prefix_length);
+    if (prefix_result == kRealityServerTlsRecordPrefixInvalid)
+    {
+        return kRealityFrameInvalid;
+    }
+    if (prefix_result == kRealityServerTlsRecordPrefixNeedMore)
+    {
+        return kRealityFrameNeedMore;
+    }
+
+    uint32_t body_len  = ((uint32_t) header[3] << 8) | (uint32_t) header[4];
+    uint32_t frame_len = kRealityServerTlsHeaderSize + body_len;
+    if (available_length < frame_len)
+    {
+        return kRealityFrameNeedMore;
+    }
+
+    *record = bufferstreamReadExact(stream, frame_len);
+    return kRealityFrameOk;
+}
+
+static bool realityserverIsRealityCandidate(const realityserver_lstate_t *ls, sbuf_t *record)
+{
+    assert(sbufGetLength(record) >= kRealityServerTlsHeaderSize);
+
+    reality_v2_record_descriptor_t descriptor;
+    return realityV2ClassifyRecord(
+        ls->tls_capture.binding.tls_version, &ls->record_profile, sbufGetRawPtr(record), &descriptor);
+}
+
+static bool realityserverDecryptFrame(realityserver_tstate_t *ts, realityserver_lstate_t *ls, sbuf_t *frame_buffer,
+                                      uint8_t *record_kind, uint8_t *alert)
+{
+    assert(record_kind != NULL && alert != NULL);
+
+    if (! ls->session_keys_ready || ! realityV2SequenceAvailable(ls->c2s_recv_seq))
+    {
+        return false;
+    }
+
+    uint64_t                       sequence_number = ls->c2s_recv_seq;
+    uint8_t                       *frame           = sbufGetMutablePtr(frame_buffer);
+    uint32_t                       body_len        = ((uint32_t) frame[3] << 8) | (uint32_t) frame[4];
+    reality_v2_record_descriptor_t descriptor;
+    if (! realityV2ClassifyRecord(ls->tls_capture.binding.tls_version, &ls->record_profile, frame, &descriptor))
+    {
+        return false;
+    }
+    uint32_t ciphertext_len = body_len - descriptor.visible_prefix_len;
+
+    uint8_t *visible_prefix = frame + kRealityServerTlsHeaderSize;
+    uint8_t *ciphertext     = visible_prefix + descriptor.visible_prefix_len;
+
+    reality_v2_record_descriptor_t application_descriptor = {0};
+    bool                           ambiguous_tls13_kind   = descriptor.tls_version == kRealityV2Tls13 &&
+                                descriptor.record_kind == kRealityV2RecordKindAlert &&
+                                realityV2BuildRecordDescriptor(ls->tls_capture.binding.tls_version,
+                                                               &ls->record_profile,
+                                                               kRealityV2RecordKindApplicationData,
+                                                               &application_descriptor) &&
+                                application_descriptor.outer_content_type == frame[0] &&
+                                realityV2ValidateDescriptorBodyLength(&application_descriptor, body_len);
+    uint8_t encrypted_alert_backup[kRealityV2AlertMessageSize + 1U + kRealityV2TagSize];
+    if (ambiguous_tls13_kind)
+    {
+        if (ciphertext_len != sizeof(encrypted_alert_backup))
+        {
+            return false;
+        }
+        memoryCopy(encrypted_alert_backup, ciphertext, ciphertext_len);
+    }
+
+    if (descriptor.profile.profile_id == kRealityV2RecordProfileTls12Gcm)
+    {
+        uint64_t expected_tls_sequence;
+        if (ls->mode == kRealityServerModePending)
+        {
+            if (! ls->client_record_tracker.last_record_was_protected)
+            {
+                return false;
+            }
+            expected_tls_sequence = ls->client_record_tracker.last_record_sequence;
+        }
+        else if (! realityV2AddTlsRecordSequence(ls->client_tls_sequence_base, sequence_number, &expected_tls_sequence))
+        {
+            return false;
+        }
+
+        if (realityV2ReadBe64(visible_prefix) != expected_tls_sequence)
+        {
+            return false;
+        }
+    }
+
+    uint8_t nonce[kRealityV2IvSize];
+    uint8_t aad[kRealityV2RecordAadMaxSize];
+    size_t  aad_len = 0;
+    realityV2BuildNonce(ls->c2s_iv, sequence_number, nonce);
+    bool             aad_ok              = realityV2BuildRecordAad(&descriptor,
+                                          kRealityV2DirectionClientToServer,
+                                          sequence_number,
+                                          ls->session_id,
+                                          frame,
+                                          visible_prefix,
+                                          descriptor.visible_prefix_len,
+                                          aad,
+                                          &aad_len);
+    size_t           ciphertext_capacity = sbufGetMaximumWriteableSize(frame_buffer) - (size_t) (ciphertext - frame);
+    wcrypto_status_t decrypt_result      = aad_ok ? realityserverDecryptAead(ts->algorithm,
+                                                                        ciphertext,
+                                                                        ciphertext_capacity,
+                                                                        ciphertext,
+                                                                        ciphertext_len,
+                                                                        aad,
+                                                                        aad_len,
+                                                                        nonce,
+                                                                        ls->c2s_key)
+                                                  : kWCryptoInvalidArgument;
+    if (ambiguous_tls13_kind && realityV2ShouldRetryAmbiguousTls13Decrypt(decrypt_result))
+    {
+        memoryCopy(ciphertext, encrypted_alert_backup, ciphertext_len);
+        descriptor = application_descriptor;
+        aad_len    = 0;
+        memoryZero(aad, sizeof(aad));
+        aad_ok         = realityV2BuildRecordAad(&descriptor,
+                                         kRealityV2DirectionClientToServer,
+                                         sequence_number,
+                                         ls->session_id,
+                                         frame,
+                                         visible_prefix,
+                                         descriptor.visible_prefix_len,
+                                         aad,
+                                         &aad_len);
+        decrypt_result = aad_ok ? realityserverDecryptAead(ts->algorithm,
+                                                           ciphertext,
+                                                           ciphertext_capacity,
+                                                           ciphertext,
+                                                           ciphertext_len,
+                                                           aad,
+                                                           aad_len,
+                                                           nonce,
+                                                           ls->c2s_key)
+                                : kWCryptoInvalidArgument;
+    }
+    memoryZero(nonce, sizeof(nonce));
+    memoryZero(aad, sizeof(aad));
+    memoryZero(encrypted_alert_backup, sizeof(encrypted_alert_backup));
+    if (decrypt_result != kWCryptoOk)
+    {
+        return false;
+    }
+
+    uint32_t inner_plaintext_len = ciphertext_len - kRealityServerTagSize;
+    uint32_t inner_payload_offset;
+    uint32_t payload_len;
+    if (! realityV2ValidateInnerPlaintext(
+            &descriptor, ciphertext, inner_plaintext_len, &inner_payload_offset, &payload_len))
+    {
+        return false;
+    }
+
+    uint8_t parsed_alert = kRealityV2AlertInvalid;
+    if (descriptor.record_kind == kRealityV2RecordKindAlert &&
+        ! realityV2ParseAlert(ciphertext + inner_payload_offset, payload_len, &parsed_alert))
+    {
+        return false;
+    }
+
+    ls->c2s_recv_seq        = sequence_number + 1;
+    *record_kind            = descriptor.record_kind;
+    *alert                  = parsed_alert;
+    uint32_t payload_offset = kRealityServerTlsHeaderSize + descriptor.visible_prefix_len + inner_payload_offset;
+    sbufShiftRight(frame_buffer, payload_offset);
+    sbufSetLength(frame_buffer, payload_len);
+    return true;
+}
+
+static bool realityserverForwardToDestination(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    return lineCallWithRefWithBuf(l, tunnelUpStreamPayload, ts->destination_tunnel, buf);
+}
+
+static bool realityserverFlushBufferedToDestination(tunnel_t *t, line_t *l, realityserver_lstate_t *ls)
+{
+    sbuf_t *pending = bufferstreamFullRead(&ls->read_stream);
+    if (pending == NULL)
+    {
+        return true;
+    }
+
+    return realityserverForwardToDestination(t, l, pending);
+}
+
+static bool realityserverSwitchToVisitor(tunnel_t *t, line_t *l, realityserver_lstate_t *ls)
+{
+    ls->mode = kRealityServerModeVisitor;
+    return realityserverFlushBufferedToDestination(t, l, ls);
+}
+
+bool realityserverFreezeTlsCamouflage(realityserver_tstate_t *ts, realityserver_lstate_t *ls)
+{
+    if (ls->tls_capture.binding.tls_version != kRealityV2Tls12)
+    {
+        return true;
+    }
+
+    realityserver_tls12_record_tracker_t *client = &ls->client_record_tracker;
+    realityserver_tls12_record_tracker_t *server = &ls->server_record_tracker;
+    if (client->failed || server->failed || ! client->protected_epoch || ! server->protected_epoch ||
+        ! client->saw_protected_record || ! server->saw_protected_record || ! client->last_record_was_protected ||
+        client->last_record_sequence == 0 || ls->c2s_recv_seq != 1)
+    {
+        return false;
+    }
+
+    ls->client_tls_sequence_base = client->last_record_sequence;
+    ls->server_tls_sequence_base = server->next_sequence;
+
+    if (ls->record_profile.profile_id == kRealityV2RecordProfileTls12Gcm)
+    {
+        if (! realityserverResolveGcmNoncePolicy(
+                ts->tls12_gcm_server_nonce_policy, server, &ls->server_gcm_nonce_policy, &ls->server_gcm_counter_next))
+        {
+            return false;
+        }
+    }
+
+    realityserverTls12RecordTrackerFreeze(client);
+    realityserverTls12RecordTrackerFreeze(server);
+    return true;
+}
+
+static bool realityserverCloseDestinationForAuthorization(tunnel_t *t, line_t *l)
+{
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    realityserver_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->destination_init_sent && ! ls->destination_up_finished)
+    {
+        ls->destination_up_finished            = true;
+        ls->closing_destination_for_authorized = true;
+
+        if (! lineCallWithRef(l, tunnelUpStreamFin, ts->destination_tunnel))
+        {
+            return false;
+        }
+
+        ls->closing_destination_for_authorized = false;
+    }
+
+    return true;
+}
+
+static bool realityserverInitializeProtectedNext(tunnel_t *t, line_t *l)
+{
+    realityserver_lstate_t *ls = lineGetState(l, t);
+
+    if (! ls->protected_init_sent)
+    {
+        /* The cover and protected branches share this line. */
+        l->fallback_mode              = false;
+        l->fallback_peer_write_closed = false;
+        ls->protected_init_sent       = true;
+        if (! lineCallWithRef(l, tunnelNextUpStreamInit, t))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool realityserverSwitchToAuthorized(tunnel_t *t, line_t *l)
+{
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    realityserver_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->mode == kRealityServerModeAuthorized)
+    {
+        return true;
+    }
+
+    if (ls->tls_capture.binding.tls_version == kRealityV2Tls13)
+    {
+        if (ls->mode != kRealityServerModeHandoffAwaitConfirm || ! ls->handoff_request_authenticated ||
+            ! ls->handoff_ack_sent || ! ls->destination_downstream_cutoff || ls->c2s_recv_seq != 2 ||
+            ls->s2c_send_seq != 1)
+        {
+            return false;
+        }
+
+        if (! realityserverCloseDestinationForAuthorization(t, l))
+        {
+            return false;
+        }
+        ls       = lineGetState(l, t);
+        ls->mode = kRealityServerModeAuthorized;
+        return realityserverInitializeProtectedNext(t, l);
+    }
+
+    if (ls->tls_capture.binding.tls_version != kRealityV2Tls12 || ! realityserverFreezeTlsCamouflage(ts, ls))
+    {
+        return false;
+    }
+
+    /* Preserve the established TLS 1.2 takeover ordering. */
+    ls->mode = kRealityServerModeAuthorized;
+    if (! realityserverCloseDestinationForAuthorization(t, l))
+    {
+        return false;
+    }
+    return realityserverInitializeProtectedNext(t, l);
+}
+
+bool realityserverEncryptAndSendDownstream(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    realityserver_tstate_t *ts            = tunnelGetState(t);
+    realityserver_lstate_t *ls            = lineGetState(l, t);
+    uint32_t                plaintext_len = sbufGetLength(buf);
+
+    if (plaintext_len == 0)
+    {
+        lineReuseBuffer(l, buf);
+        return true;
+    }
+
+    if (plaintext_len > kRealityV2MaxPlaintextFragment)
+    {
+        buffer_pool_t *pool      = lineGetBufferPool(l);
+        const uint8_t *src       = sbufGetRawPtr(buf);
+        uint32_t       remaining = plaintext_len;
+
+        while (remaining > 0)
+        {
+            uint32_t chunk_len = min(remaining, (uint32_t) kRealityV2MaxPlaintextFragment);
+            sbuf_t  *frame_buf = NULL;
+            if (! realityserverEncryptFrame(
+                    ts, ls, pool, kRealityV2RecordKindApplicationData, src, chunk_len, &frame_buf))
+            {
+                LOGW("RealityServer: failed to encrypt downstream payload chunk");
+                bufferpoolReuseBuffer(pool, buf);
+                realityserverCloseLineBidirectional(t, l);
+                return false;
+            }
+
+            src += chunk_len;
+            remaining -= chunk_len;
+
+            if (! lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, frame_buf))
+            {
+                bufferpoolReuseBuffer(pool, buf);
+                return false;
+            }
+            ls = lineGetState(l, t);
+            if (ls->terminal_closing || ls->prev_finished)
+            {
+                bufferpoolReuseBuffer(pool, buf);
+                return false;
+            }
+        }
+
+        lineReuseBuffer(l, buf);
+        return true;
+    }
+
+    buffer_pool_t *pool      = lineGetBufferPool(l);
+    sbuf_t        *frame_buf = NULL;
+    if (! realityserverEncryptFrame(
+            ts, ls, pool, kRealityV2RecordKindApplicationData, sbufGetRawPtr(buf), plaintext_len, &frame_buf))
+    {
+        LOGW("RealityServer: failed to encrypt downstream payload");
+        bufferpoolReuseBuffer(pool, buf);
+        realityserverCloseLineBidirectional(t, l);
+        return false;
+    }
+
+    bufferpoolReuseBuffer(pool, buf);
+    return lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, frame_buf);
+}
+
+static bool realityserverForwardHandoffTail(tunnel_t *t, line_t *l, sbuf_t *record)
+{
+    realityserver_lstate_t *ls   = lineGetState(l, t);
+    buffer_pool_t          *pool = lineGetBufferPool(l);
+    uint32_t                len  = sbufGetLength(record);
+
+    bool over_record_limit = ls->handoff_tail_records >= kRealityServerMaxHandoffTailRecords;
+    bool over_byte_limit   = ls->handoff_tail_bytes > kRealityServerMaxHandoffTailBytes ||
+                           len > kRealityServerMaxHandoffTailBytes - ls->handoff_tail_bytes;
+    if (ls->destination_up_finished || over_record_limit || over_byte_limit)
+    {
+        bufferpoolReuseBuffer(pool, record);
+        bufferstreamEmpty(&ls->read_stream);
+        realityserverCloseLineBidirectional(t, l);
+        return false;
+    }
+
+    ++ls->handoff_tail_records;
+    ls->handoff_tail_bytes += len;
+    return realityserverForwardToDestination(t, l, record);
+}
+
+static bool realityserverAccountFailedTls13Candidate(realityserver_tstate_t *ts, realityserver_lstate_t *ls)
+{
+    assert(ls->mode == kRealityServerModePending);
+    assert(ls->tls_capture.binding.tls_version == kRealityV2Tls13);
+    assert(ls->session_keys_ready);
+    assert(! ls->handoff_request_authenticated);
+
+    if (ls->tls13_pre_request_cover_records_remaining > 0)
+    {
+        --ls->tls13_pre_request_cover_records_remaining;
+        return false;
+    }
+
+    if (ls->sniffing_attempts < UINT32_MAX)
+    {
+        ++ls->sniffing_attempts;
+    }
+    return ls->sniffing_attempts >= ts->sniffing_attempts;
+}
+
+static bool realityserverHandleTls13PendingRecord(tunnel_t *t, line_t *l, sbuf_t *record)
+{
+    realityserver_tstate_t *ts   = tunnelGetState(t);
+    realityserver_lstate_t *ls   = lineGetState(l, t);
+    buffer_pool_t          *pool = lineGetBufferPool(l);
+
+    bool generic_candidate = ls->session_keys_ready && realityserverIsRealityCandidate(ls, record);
+    reality_v2_record_descriptor_t request_descriptor;
+    bool                           plausible =
+        ls->session_keys_ready && ls->c2s_recv_seq == 0 &&
+        realityserverExpectedControlIsPlausible(ls, record, kRealityV2RecordKindHandoffRequest, &request_descriptor);
+    if (! plausible)
+    {
+        bool visitor_threshold_reached = false;
+        if (generic_candidate)
+        {
+            visitor_threshold_reached = realityserverAccountFailedTls13Candidate(ts, ls);
+        }
+        if (! realityserverForwardToDestination(t, l, record))
+        {
+            return false;
+        }
+        ls = lineGetState(l, t);
+        if (visitor_threshold_reached && ls->mode == kRealityServerModePending)
+        {
+            ls->mode = kRealityServerModeVisitor;
+            return realityserverFlushBufferedToDestination(t, l, ls);
+        }
+        return true;
+    }
+
+    sbuf_t  *trial = realityserverDuplicateBuffer(pool, record);
+    uint8_t  plaintext[kRealityV2ControlMaxInnerPlaintext];
+    uint64_t sequence_before = ls->c2s_recv_seq;
+    bool     authenticated   = realityserverTryExpectedControl(ts, ls, trial, &request_descriptor, plaintext);
+    memoryZero(plaintext, sizeof(plaintext));
+    bufferpoolReuseBuffer(pool, trial);
+    if (! authenticated)
+    {
+        assert(ls->c2s_recv_seq == sequence_before);
+        bool visitor_threshold_reached = realityserverAccountFailedTls13Candidate(ts, ls);
+        if (! realityserverForwardToDestination(t, l, record))
+        {
+            return false;
+        }
+        ls = lineGetState(l, t);
+        if (visitor_threshold_reached && ls->mode == kRealityServerModePending)
+        {
+            ls->mode = kRealityServerModeVisitor;
+            return realityserverFlushBufferedToDestination(t, l, ls);
+        }
+        return true;
+    }
+
+    assert(sequence_before == 0);
+    ls->c2s_recv_seq = sequence_before + 1;
+    bufferpoolReuseBuffer(pool, record);
+    ls->tls13_pre_request_cover_records_remaining = 0;
+    ls->handoff_request_authenticated             = true;
+    ls->mode                                      = kRealityServerModeHandoffAwaitBoundary;
+
+    if (ls->destination_record_boundary.failed)
+    {
+        bufferstreamEmpty(&ls->read_stream);
+        realityserverCloseLineBidirectional(t, l);
+        return false;
+    }
+
+    if (realityserverTlsRecordBoundaryTrackerIsAtBoundary(&ls->destination_record_boundary) &&
+        ls->destination_downstream_forward_depth == 0)
+    {
+        return realityserverSendHandoffAckAtBoundary(t, l);
+    }
+    return true;
+}
+
+static bool realityserverHandleTls13HandoffRecord(tunnel_t *t, line_t *l, sbuf_t *record)
+{
+    realityserver_tstate_t *ts   = tunnelGetState(t);
+    realityserver_lstate_t *ls   = lineGetState(l, t);
+    buffer_pool_t          *pool = lineGetBufferPool(l);
+
+    if (ls->mode == kRealityServerModeHandoffAwaitBoundary)
+    {
+        return realityserverForwardHandoffTail(t, l, record);
+    }
+
+    assert(ls->mode == kRealityServerModeHandoffAwaitConfirm);
+    assert(ls->handoff_ack_sent && ls->destination_downstream_cutoff && ! ls->protected_init_sent);
+
+    reality_v2_record_descriptor_t confirm_descriptor;
+    bool                           plausible = ls->c2s_recv_seq == 1 && realityserverExpectedControlIsPlausible(
+                                                  ls, record, kRealityV2RecordKindHandoffConfirm, &confirm_descriptor);
+    if (! plausible)
+    {
+        return realityserverForwardHandoffTail(t, l, record);
+    }
+
+    sbuf_t  *trial = realityserverDuplicateBuffer(pool, record);
+    uint8_t  plaintext[kRealityV2ControlMaxInnerPlaintext];
+    uint64_t sequence_before = ls->c2s_recv_seq;
+    bool     authenticated   = realityserverTryExpectedControl(ts, ls, trial, &confirm_descriptor, plaintext);
+    memoryZero(plaintext, sizeof(plaintext));
+    bufferpoolReuseBuffer(pool, trial);
+    if (! authenticated)
+    {
+        assert(ls->c2s_recv_seq == sequence_before);
+        return realityserverForwardHandoffTail(t, l, record);
+    }
+
+    assert(sequence_before == 1);
+    ls->c2s_recv_seq = sequence_before + 1;
+    bufferpoolReuseBuffer(pool, record);
+    return realityserverSwitchToAuthorized(t, l);
+}
+
+bool realityserverProcessUpstream(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    realityserver_tstate_t *ts   = tunnelGetState(t);
+    realityserver_lstate_t *ls   = lineGetState(l, t);
+    buffer_pool_t          *pool = lineGetBufferPool(l);
+
+    if (buf != NULL)
+    {
+        if (ls->mode == kRealityServerModePending && ! ls->client_hello_parser.complete &&
+            ! realityserverTlsParserFeed(
+                &ls->client_hello_parser, sbufGetRawPtr(buf), sbufGetLength(buf), &ls->tls_capture))
+        {
+            ls->mode = kRealityServerModeVisitor;
+        }
+        bufferstreamPush(&ls->read_stream, buf);
+    }
+
+    /* A destination callback may have captured ServerHello before ClientHello
+     * completed. Install the profile now; no replay or later callback is needed. */
+    if (ls->mode == kRealityServerModePending && ! ls->session_keys_ready && ls->tls_capture.client_ready &&
+        ls->tls_capture.server_ready && ! realityserverDeriveSessionKeys(ts, ls))
+    {
+        return realityserverSwitchToVisitor(t, l, ls);
+    }
+
+    while (true)
+    {
+        if (ls->mode == kRealityServerModeVisitor)
+        {
+            return realityserverFlushBufferedToDestination(t, l, ls);
+        }
+
+        sbuf_t *record      = NULL;
+        int     read_result = realityserverTryReadTlsRecord(&ls->read_stream, &record);
+
+        if (read_result == kRealityFrameNeedMore)
+        {
+            return true;
+        }
+
+        if (read_result == kRealityFrameInvalid)
+        {
+            if (ls->mode == kRealityServerModeAuthorized)
+            {
+                LOGW("RealityServer: invalid Reality record after authorization");
+                bufferstreamEmpty(&ls->read_stream);
+                realityserverFailAuthenticated(t, l);
+                return false;
+            }
+
+            if (ls->mode == kRealityServerModeHandoffAwaitBoundary || ls->mode == kRealityServerModeHandoffAwaitConfirm)
+            {
+                bufferstreamEmpty(&ls->read_stream);
+                realityserverCloseLineBidirectional(t, l);
+                return false;
+            }
+
+            return realityserverSwitchToVisitor(t, l, ls);
+        }
+
+        if (ls->mode == kRealityServerModePending && ls->session_keys_ready &&
+            ls->tls_capture.binding.tls_version == kRealityV2Tls13)
+        {
+            if (! realityserverHandleTls13PendingRecord(t, l, record))
+            {
+                return false;
+            }
+            ls = lineGetState(l, t);
+            continue;
+        }
+
+        if (ls->mode == kRealityServerModeHandoffAwaitBoundary || ls->mode == kRealityServerModeHandoffAwaitConfirm)
+        {
+            if (! realityserverHandleTls13HandoffRecord(t, l, record))
+            {
+                return false;
+            }
+            ls = lineGetState(l, t);
+            continue;
+        }
+
+        if (ls->mode == kRealityServerModePending && ls->session_keys_ready &&
+            ls->tls_capture.binding.tls_version == kRealityV2Tls12 &&
+            ! realityserverTls12RecordTrackerFeed(
+                &ls->client_record_tracker, sbufGetRawPtr(record), sbufGetLength(record)))
+        {
+            ls->mode = kRealityServerModeVisitor;
+            if (! realityserverForwardToDestination(t, l, record))
+            {
+                return false;
+            }
+            return realityserverFlushBufferedToDestination(t, l, ls);
+        }
+
+        bool candidate = realityserverIsRealityCandidate(ls, record);
+        if (! candidate)
+        {
+            if (ls->mode == kRealityServerModeAuthorized)
+            {
+                LOGW("RealityServer: non-Reality TLS record after authorization");
+                lineReuseBuffer(l, record);
+                bufferstreamEmpty(&ls->read_stream);
+                realityserverFailAuthenticated(t, l);
+                return false;
+            }
+
+            if (! realityserverForwardToDestination(t, l, record))
+            {
+                return false;
+            }
+            continue;
+        }
+
+        if (! ls->session_keys_ready)
+        {
+            if (ls->mode == kRealityServerModeAuthorized)
+            {
+                LOGW("RealityServer: Reality v2 session keys unavailable after authorization");
+                lineReuseBuffer(l, record);
+                bufferstreamEmpty(&ls->read_stream);
+                realityserverFailAuthenticated(t, l);
+                return false;
+            }
+
+            if (! realityserverForwardToDestination(t, l, record))
+            {
+                return false;
+            }
+            continue;
+        }
+
+        sbuf_t *candidate_buf = realityserverDuplicateBuffer(pool, record);
+        uint8_t record_kind   = kRealityV2RecordKindInvalid;
+        uint8_t alert         = kRealityV2AlertInvalid;
+        bool    decrypt_ok    = realityserverDecryptFrame(ts, ls, candidate_buf, &record_kind, &alert);
+
+        if (decrypt_ok)
+        {
+            if (ls->mode == kRealityServerModePending && ! realityserverFreezeTlsCamouflage(ts, ls))
+            {
+                bufferpoolReuseBuffer(pool, candidate_buf);
+                ls->mode = kRealityServerModeVisitor;
+                if (! realityserverForwardToDestination(t, l, record))
+                {
+                    return false;
+                }
+                ls = lineGetState(l, t);
+                return realityserverFlushBufferedToDestination(t, l, ls);
+            }
+
+            if (! realityserverSwitchToAuthorized(t, l))
+            {
+                bufferpoolReuseBuffer(pool, candidate_buf);
+                bufferpoolReuseBuffer(pool, record);
+                return false;
+            }
+
+            bufferpoolReuseBuffer(pool, record);
+
+            if (record_kind == kRealityV2RecordKindAlert)
+            {
+                bufferpoolReuseBuffer(pool, candidate_buf);
+                bufferstreamEmpty(&ls->read_stream);
+                realityserverHandlePeerAlert(t, l, alert);
+                return false;
+            }
+
+            if (! lineCallWithRefWithBuf(l, tunnelNextUpStreamPayload, t, candidate_buf))
+            {
+                return false;
+            }
+            ls = lineGetState(l, t);
+            if (ls->terminal_closing || ls->next_finished)
+            {
+                return false;
+            }
+            continue;
+        }
+
+        bufferpoolReuseBuffer(pool, candidate_buf);
+
+        if (ls->mode == kRealityServerModeAuthorized)
+        {
+            LOGW("RealityServer: Reality authentication failed after authorization");
+            lineReuseBuffer(l, record);
+            bufferstreamEmpty(&ls->read_stream);
+            realityserverFailAuthenticated(t, l);
+            return false;
+        }
+
+        ++ls->sniffing_attempts;
+        if (! realityserverForwardToDestination(t, l, record))
+        {
+            return false;
+        }
+
+        if (ls->sniffing_attempts >= ts->sniffing_attempts)
+        {
+            ls->mode = kRealityServerModeVisitor;
+            return realityserverFlushBufferedToDestination(t, l, ls);
+        }
+    }
+}
+
+bool realityserverObserveDownstreamHandshake(tunnel_t *t, line_t *l, const uint8_t *data, size_t len)
+{
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    realityserver_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->mode != kRealityServerModePending)
+    {
+        return true;
+    }
+
+    /* Parse first so a ServerHello completed here installs the profile before
+     * the tracker sees any protected records later in this same callback. */
+    if (! ls->session_keys_ready && ! realityserverTlsParserFeed(&ls->server_hello_parser, data, len, &ls->tls_capture))
+    {
+        return realityserverSwitchToVisitor(t, l, ls);
+    }
+
+    if (! ls->session_keys_ready && ls->tls_capture.client_ready && ls->tls_capture.server_ready)
+    {
+        if (! realityserverDeriveSessionKeys(ts, ls))
+        {
+            return realityserverSwitchToVisitor(t, l, ls);
+        }
+    }
+
+    /* Consume each chunk once in fixed-size state. A pre-profile failure is
+     * sticky, but only matters if negotiation selects TLS 1.2, not TLS 1.3. */
+    bool tracked = realityserverTls12RecordTrackerFeed(&ls->server_record_tracker, data, len);
+    if (ls->session_keys_ready && ls->tls_capture.binding.tls_version == kRealityV2Tls12 && ! tracked)
+    {
+        return realityserverSwitchToVisitor(t, l, ls);
+    }
+    return true;
+}
+
+void realityserverTunnelstateDestroy(realityserver_tstate_t *ts)
+{
+    memoryZero(ts->root_key, sizeof(ts->root_key));
+    memoryZeroAligned32(ts, tunnelGetCorrectAlignedStateSize(sizeof(*ts)));
+}
+
+wcrypto_status_t realityserverEncryptAead(uint32_t algorithm, unsigned char *dst, size_t dst_capacity,
+                                          const unsigned char *src, size_t src_len, const unsigned char *ad,
+                                          size_t ad_len, const unsigned char *nonce, const unsigned char *key)
+{
+    if (algorithm == kRealityServerAlgorithmChaCha20Poly1305)
+    {
+        return wCryptoChaCha20Poly1305Encrypt(dst, dst_capacity, src, src_len, ad, ad_len, nonce, key);
+    }
+
+    if (algorithm == kRealityServerAlgorithmAes256Gcm)
+    {
+        return wCryptoAes256GcmEncrypt(dst, dst_capacity, src, src_len, ad, ad_len, nonce, key);
+    }
+
+    return kWCryptoUnavailable;
+}
+
+wcrypto_status_t realityserverDecryptAead(uint32_t algorithm, unsigned char *dst, size_t dst_capacity,
+                                          const unsigned char *src, size_t src_len, const unsigned char *ad,
+                                          size_t ad_len, const unsigned char *nonce, const unsigned char *key)
+{
+    if (algorithm == kRealityServerAlgorithmChaCha20Poly1305)
+    {
+        return wCryptoChaCha20Poly1305Decrypt(dst, dst_capacity, src, src_len, ad, ad_len, nonce, key);
+    }
+
+    if (algorithm == kRealityServerAlgorithmAes256Gcm)
+    {
+        return wCryptoAes256GcmDecrypt(dst, dst_capacity, src, src_len, ad, ad_len, nonce, key);
+    }
+
+    return kWCryptoUnavailable;
+}
+
+void realityserverCloseLineBidirectional(tunnel_t *t, line_t *l)
+{
+    realityserverTerminalClose(t, l, kRealityV2AlertInvalid, false, false);
+}
+
+static void realityserverTerminalClose(tunnel_t *t, line_t *l, uint8_t alert, bool received_prev_finish,
+                                       bool received_next_finish)
+{
+    if (! lineIsAlive(l))
+    {
+        return;
+    }
+
+    lineRef(l);
+    realityserver_tstate_t *ts = tunnelGetState(t);
+    realityserver_lstate_t *ls = lineGetState(l, t);
+    if (received_prev_finish)
+    {
+        ls->prev_finished = true;
+    }
+    if (received_next_finish)
+    {
+        ls->next_finished = true;
+        if (ls->mode != kRealityServerModeAuthorized)
+        {
+            ls->destination_up_finished = true;
+        }
+    }
+    if (ls->terminal_closing)
+    {
+        lineUnref(l);
+        return;
+    }
+
+    ls->terminal_closing = true;
+
+    buffer_pool_t *pool            = lineGetBufferPool(l);
+    sbuf_t        *pending_visitor = NULL;
+    if (received_prev_finish && ls->mode == kRealityServerModePending && ls->destination_init_sent &&
+        ! bufferstreamIsEmpty(&ls->read_stream))
+    {
+        pending_visitor = bufferstreamFullRead(&ls->read_stream);
+    }
+
+    if (pending_visitor != NULL)
+    {
+        if (! ls->destination_up_finished)
+        {
+            tunnelUpStreamPayload(ts->destination_tunnel, l, pending_visitor);
+            pending_visitor = NULL;
+            if (! lineIsAlive(l))
+            {
+                realityserverLinestateDestroy(lineGetState(l, t));
+                lineUnref(l);
+                return;
+            }
+            ls = lineGetState(l, t);
+        }
+        else
+        {
+            bufferpoolReuseBuffer(pool, pending_visitor);
+            pending_visitor = NULL;
+        }
+    }
+
+    if (alert != kRealityV2AlertInvalid && ls->mode == kRealityServerModeAuthorized && ls->session_keys_ready &&
+        ! ls->prev_finished)
+    {
+        uint8_t alert_bytes[kRealityV2AlertMessageSize];
+        sbuf_t *frame = NULL;
+        bool    built =
+            realityV2SerializeAlert(alert, alert_bytes) &&
+            realityserverEncryptFrame(
+                ts, ls, lineGetBufferPool(l), kRealityV2RecordKindAlert, alert_bytes, sizeof(alert_bytes), &frame);
+        memoryZero(alert_bytes, sizeof(alert_bytes));
+        if (built)
+        {
+            tunnelPrevDownStreamPayload(t, l, frame);
+            if (! lineIsAlive(l))
+            {
+                /* This close frame owns cleanup; terminal re-entry deliberately defers to it. */
+                realityserverLinestateDestroy(lineGetState(l, t));
+                lineUnref(l);
+                return;
+            }
+            ls = lineGetState(l, t);
+        }
+    }
+
+    bool close_protected = ls->mode == kRealityServerModeAuthorized && ls->protected_init_sent && ! ls->next_finished;
+    bool close_destination =
+        ls->destination_init_sent && ! ls->destination_up_finished && ls->mode != kRealityServerModeAuthorized;
+    bool close_prev = ! ls->prev_finished;
+
+    realityserverLinestateDestroy(ls);
+
+    if (close_protected)
+    {
+        tunnelNextUpStreamFinish(t, l);
+    }
+    else if (close_destination)
+    {
+        tunnelUpStreamFin(ts->destination_tunnel, l);
+    }
+
+    if ((close_protected || close_destination) && ! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+    if (close_prev)
+    {
+        tunnelPrevDownStreamFinish(t, l);
+    }
+    lineUnref(l);
+}
+
+void realityserverFailAuthenticated(tunnel_t *t, line_t *l)
+{
+    realityserverTerminalClose(t, l, kRealityV2AlertBadRecordMac, false, false);
+}
+
+void realityserverHandlePeerAlert(tunnel_t *t, line_t *l, uint8_t alert)
+{
+    if (alert == kRealityV2AlertCloseNotify)
+    {
+        realityserverTerminalClose(t, l, kRealityV2AlertCloseNotify, false, false);
+        return;
+    }
+    realityserverTerminalClose(t, l, kRealityV2AlertInvalid, false, false);
+}
+
+void realityserverHandleUpstreamFinish(tunnel_t *t, line_t *l)
+{
+    realityserverTerminalClose(t, l, kRealityV2AlertInvalid, true, false);
+}
+
+void realityserverHandleDownstreamFinish(tunnel_t *t, line_t *l)
+{
+    realityserver_lstate_t *ls = lineGetState(l, t);
+    uint8_t alert = ls->mode == kRealityServerModeAuthorized && ls->session_keys_ready ? kRealityV2AlertCloseNotify
+                                                                                       : kRealityV2AlertInvalid;
+    realityserverTerminalClose(t, l, alert, false, true);
+}

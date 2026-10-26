@@ -1,0 +1,94 @@
+#pragma once
+
+#include "wwapi.h"
+
+typedef struct tcplistener_tstate_s
+{
+    local_idle_table_t **idle_tables; // worker-local idle tables for closing dead connections
+    atomic_bool          stopping;    // prevents queued accepts after tunnel stop
+
+    // These fields are read from json
+    char    *listen_address;           // address to listen on
+    uint16_t listen_port_min;          // min port to listen on (minimum of the range)
+    uint16_t listen_port_max;          // max port to listen on (maximum of the range)
+    bool     option_tcp_no_delay;      // apply TCP no delay option on sockets
+    int      send_buffer_size;         // optional socket SO_SNDBUF size
+    int      recv_buffer_size;         // optional socket SO_RCVBUF size
+    bool     send_buffer_size_set;     // whether large-send-buffer was explicitly configured
+    bool     recv_buffer_size_set;     // whether large-recv-buffer was explicitly configured
+    uint64_t initial_idle_timeout_ms;  // idle timeout before first listener-side activity
+    uint64_t active_idle_timeout_ms;   // idle timeout after listener-side activity
+
+} tcplistener_tstate_t;
+
+typedef struct tcplistener_lstate_s
+{
+    tunnel_t          *tunnel;      // reference to the tunnel (TcpListener)
+    line_t            *line;        // reference to the line
+    wio_t             *io;          // IO handle for the connection (socket)
+    local_idle_item_t *idle_handle; // reference to the idle item for this connection
+
+    // These fields are used internally for the queue implementation for TCP
+    buffer_queue_t pause_queue;
+    // Combined adapter/WIO retention: active allocation remains charged until write completion.
+    buffer_budget_t             write_budget;
+    buffer_budget_reservation_t active_write;
+    bool   queue_pause_sent;
+    bool   write_paused : 1;
+    bool   read_paused : 1;
+
+} tcplistener_lstate_t;
+
+static inline void tcplistenerApplyReadPreference(const tcplistener_lstate_t *ls)
+{
+    if (UNLIKELY(wioIsSpliceEnabled(ls->io) && linePrefersOrdinaryReadUpstream(ls->line)))
+        wioDisableSplice(ls->io);
+}
+
+enum
+{
+    kTunnelStateSize               = sizeof(tcplistener_tstate_t),
+    kLineStateSize                 = sizeof(tcplistener_lstate_t),
+    kMaxPauseQueueSize             = (1U << 24), // 16MB
+    kMinPauseQueueSize             = (1U << 10), // 1KB
+    kDefaultKeepAliveTimeOutMs     = 60 * 1000,
+    // Keep the idle cleanup limit aligned with TcpConnector; peers may close sooner.
+    kEstablishedKeepAliveTimeOutMs = 600 * 1000,
+
+    kPauseQueueCapacity = 2
+};
+
+static inline hash_t tcplistenerIdleKey(const wio_t *io)
+{
+    return (hash_t) wioGetID((wio_t *) io);
+}
+
+WW_EXPORT void         tcplistenerTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *tcplistenerTunnelCreate(node_t *node);
+WW_EXPORT api_result_t tcplistenerTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void tcplistenerTunnelOnStart(tunnel_t *t);
+void tcplistenerTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_context_t *context);
+void tcplistenerTunnelOnWorkerQuiesce(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+void tcplistenerTunnelOnWorkerStop(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+
+void tcplistenerTunnelDownStreamInit(tunnel_t *t, line_t *l);
+void tcplistenerTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void tcplistenerTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void tcplistenerTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void tcplistenerTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void tcplistenerTunnelDownStreamResume(tunnel_t *t, line_t *l);
+
+void tcplistenerLinestateInitialize(tcplistener_lstate_t *ls, wio_t *io, tunnel_t *t, line_t *l);
+void tcplistenerLinestateDestroy(tcplistener_lstate_t *ls);
+
+local_idle_table_t *tcplistenerGetWorkerIdleTable(tcplistener_tstate_t *ts);
+local_idle_table_t *tcplistenerGetLineIdleTable(tcplistener_tstate_t *ts, line_t *l);
+void                tcplistenerFlushWriteQueue(tcplistener_lstate_t *lstate);
+void                tcplistenerOnInboundConnected(wevent_t *ev);
+void                tcplistenerOnWriteComplete(wio_t *io);
+bool                tcplistenerBeginFallbackLinger(tunnel_t *t, wio_t *io);
+
+void tcplistenerOnIdleConnectionExpire(local_idle_item_t *idle_tcp);
+
+void tcplistenerRefreshWriteBudget(tcplistener_lstate_t *ls);

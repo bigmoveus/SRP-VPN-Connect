@@ -1,0 +1,58 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void httpclientLinestateInitialize(httpclient_lstate_t *ls, tunnel_t *t, line_t *l)
+{
+    *ls = (httpclient_lstate_t) {.tunnel                         = t,
+                                 .line                           = l,
+                                 .session                        = NULL,
+                                 .in_stream                      = bufferstreamCreate(lineGetBufferPool(l), 0),
+                                 .pending_up                     = bufferqueueCreate(kHttpClientBufferQueueCap),
+                                 .events_down                    = contextqueueCreate(),
+                                 .runtime_proto                  = kHttpClientRuntimeUnknown,
+                                 .h2_stream_id                   = 0,
+                                 .h1_chunk_expected              = -1,
+                                 .h1_body_remaining              = 0,
+                                 .h1_headers_parsed              = false,
+                                 .h1_trailing_bytes_logged       = false,
+                                 .h1_body_mode                   = kHttpClientH1BodyNone,
+                                 .h2_headers_received            = false,
+                                 .response_complete              = false,
+                                 .prev_finished                  = false,
+                                 .next_finished                  = false,
+                                 .fin_sent                       = false,
+                                 .websocket_active               = false,
+                                 .websocket_waiting_handshake    = false,
+                                 .websocket_close_sent           = false,
+                                 .websocket_close_received       = false,
+                                 .websocket_h2_waiting_connect   = false,
+                                 .websocket_h2_request_submitted = false,
+                                 .websocket_h2_status_seen       = false,
+                                 .websocket_h2_protocol_seen     = false,
+                                 .websocket_h2_extensions_seen   = false,
+                                 .websocket_h2_status_code       = 0,
+                                 .split_role                     = kHttpClientSplitRoleNone,
+                                 .split_main_line                = NULL,
+                                 .split_upload_line              = NULL,
+                                 .split_download_line            = NULL,
+                                 .h1_write_in_progress           = false,
+                                 .h2_request_headers_sent        = false};
+    h2DataInit(&ls->h2_data, lineGetBufferPool(l), kHttpClientHttp2DataBytes);
+}
+
+void httpclientLinestateDestroy(httpclient_lstate_t *ls)
+{
+    if (ls->session != NULL)
+    {
+        nghttp2_session_del(ls->session);
+        ls->session = NULL;
+    }
+
+    h2DataDestroyAfterSession(&ls->h2_data);
+    bufferstreamDestroy(&ls->in_stream);
+    bufferqueueDestroy(&ls->pending_up);
+    contextqueueDestroy(&ls->events_down);
+
+    memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(*ls)));
+}

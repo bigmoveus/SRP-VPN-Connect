@@ -1,0 +1,1568 @@
+#--------------------------------------------------------------------------------
+# Project Definition and Basic Configuration
+#--------------------------------------------------------------------------------
+cmake_minimum_required(VERSION 3.25 FATAL_ERROR)
+
+cmake_policy(SET CMP0091 NEW)
+
+if(POLICY CMP0169)
+  cmake_policy(SET CMP0169 OLD)
+  set(CMAKE_POLICY_DEFAULT_CMP0169 OLD)
+endif()
+
+# CMAKE_UNITY_BUILD is off by default but most of cmake presets enable it
+# it must be disabled in order to allow language server to work correctly
+set(CMAKE_UNITY_BUILD_BATCH_SIZE 500)
+
+project(Waterwall
+  VERSION 1.5.1
+  DESCRIPTION "A fast and secure VPN tunnel"
+  HOMEPAGE_URL "https://github.com/radkesvat/waterwall"
+  LANGUAGES C CXX
+)
+
+# MSBuild's /m parallelizes projects; MSVC's /MP also compiles translation
+# units within each project in parallel. Ninja schedules those jobs itself.
+if(CMAKE_GENERATOR MATCHES "^Visual Studio")
+  add_compile_options(
+    "$<$<COMPILE_LANG_AND_ID:C,MSVC>:/MP>"
+    "$<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/MP>"
+  )
+endif()
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/ww/cmake")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/ww/cmake/version.txt" "${PROJECT_VERSION}\n")
+
+#--------------------------------------------------------------------------------
+# Build Type Configuration
+#--------------------------------------------------------------------------------
+if(NOT CMAKE_BUILD_TYPE)
+  message(STATUS "CMAKE_BUILD_TYPE not set - defaulting to Release build, on multi-config generators this will be ignored")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: ${CMAKE_CONFIGURATION_TYPES}." FORCE)
+endif()
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE} (ignored on multi-config generators)")
+
+# Set static runtime library for MSVC - this is the modern CMake way (dont move this line)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_definitions(
+    _ITERATOR_DEBUG_LEVEL=0
+    _HAS_ITERATOR_DEBUGGING=0
+  )
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+else()
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+
+#--------------------------------------------------------------------------------
+# Executable and C/CXX Standards
+#--------------------------------------------------------------------------------
+set(FINAL_EXECUTABLE_NAME "Waterwall" CACHE STRING "Final executable name" FORCE)
+
+# since Waterwall 1.40, we use C++17 as the minimum standard which is necessary for BoringSSL
+set(CMAKE_C_STANDARD 11 CACHE INTERNAL "C standard version" FORCE)
+set(CMAKE_CXX_STANDARD 17 CACHE INTERNAL "CXX standard version" FORCE)
+set(CMAKE_C_STANDARD_REQUIRED TRUE CACHE BOOL "request not to use lower versions" FORCE)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE CACHE BOOL "request not to use lower versions" FORCE)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+#--------------------------------------------------------------------------------
+# Deprecated CPM Library Warning Suppression
+#--------------------------------------------------------------------------------
+# The following policy settings are to manage warnings from the CPM library.
+# A newer version of CPM might resolve this.
+#   CMake Warning (dev) at /snap/cmake/1408/share/cmake-3.30/Modules/FetchContent.cmake:1953 (message):
+#   [cmake]   Calling FetchContent_Populate(komihash) is deprecated, call
+#   [cmake]   FetchContent_MakeAvailable(komihash) instead.  Policy CMP0169 can be set to
+#   [cmake]   OLD to allow FetchContent_Populate(komihash) to be called directly for now,
+#   [cmake]   but the ability to call it with declared details will be removed completely
+#   [cmake]   in a future version.
+cmake_policy(SET CMP0069 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
+
+include(CTest)
+
+#--------------------------------------------------------------------------------
+# Interprocedural Optimization (IPO)
+#--------------------------------------------------------------------------------
+option(WW_ENABLE_IPO "Enable interprocedural optimization for production targets" ON)
+option(WW_BUILD_UNIT_TESTS "Register compiled native unit-test targets" OFF)
+option(WW_NATIVE_UNIT_TEST_EXECUTABLE_RUNNABLE
+  "The selected native unit-test binaries are runnable on this CI host" OFF)
+
+# Native-unit test seams are intentionally uniform across the complete target
+# graph so reused precompiled headers see one macro set. Production configure
+# presets leave WW_BUILD_UNIT_TESTS disabled and omit the seams.
+if(WW_BUILD_UNIT_TESTS)
+  add_compile_definitions(
+    WW_EVENT_MEMORY_TEST_SEAM=1
+    WW_LWIP_TEST_SEAM=1
+    WFRAND_TEST_SEAM=1
+  )
+endif()
+
+if(WW_BUILD_UNIT_TESTS AND NOT BUILD_TESTING)
+  message(FATAL_ERROR "WW_BUILD_UNIT_TESTS=ON requires BUILD_TESTING=ON")
+endif()
+
+if(WW_BUILD_UNIT_TESTS AND WW_ENABLE_IPO)
+  message(FATAL_ERROR
+    "WW_BUILD_UNIT_TESTS=ON requires WW_ENABLE_IPO=OFF; configure the dedicated no-LTO unit-test tree")
+endif()
+
+if(WW_ENABLE_IPO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT ipo_supported OUTPUT ipo_output)
+
+  if(ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    set(WW_EFFECTIVE_RELEASE_IPO ON)
+  else()
+    message(WARNING "IPO is not supported: ${ipo_output}")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE FALSE)
+    set(WW_EFFECTIVE_RELEASE_IPO OFF)
+  endif()
+else()
+  # This must happen before ww, lwIP, dependencies, tunnels, or tests create a
+  # target. A per-test property cannot turn LTO archives back into native code.
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_DEBUG OFF)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE FALSE)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO OFF)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL OFF)
+  set(WW_EFFECTIVE_RELEASE_IPO OFF)
+endif()
+message(STATUS "IPO policy: requested=${WW_ENABLE_IPO}; Release effective=${WW_EFFECTIVE_RELEASE_IPO}")
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/TestHelpers.cmake")
+
+# Linux owns the comprehensive aggregate in tests/unittests. Other native
+# platforms register their portable/runtime tests from this root file, so give
+# those configurations an equivalent build aggregate. Production trees never
+# create either target.
+if(WW_BUILD_UNIT_TESTS AND NOT (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_CROSSCOMPILING))
+  add_custom_target(waterwall_platform_unit_tests)
+
+  function(waterwall_register_platform_native_unit test_name target_name labels)
+    if(NOT TARGET ${target_name})
+      message(FATAL_ERROR "platform native-unit target is missing: ${target_name}")
+    endif()
+    waterwall_native_aggregate(${target_name} waterwall_platform_unit_tests)
+  endfunction()
+endif()
+
+#--------------------------------------------------------------------------------
+# Profiling Flags (Commented Out)
+#--------------------------------------------------------------------------------
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-use=${CMAKE_CURRENT_SOURCE_DIR}/build/bin/code.profdata")
+# add_compile_options(-Wno-profile-instr-unprofiled)
+
+#--------------------------------------------------------------------------------
+# GLIBC Version Force Link (Commented Out)
+#--------------------------------------------------------------------------------
+# force link glibc ver 2.27
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -include  ${CMAKE_CURRENT_SOURCE_DIR}/core/force_link_glibc_2.27.h")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include  ${CMAKE_CURRENT_SOURCE_DIR}/core/force_link_glibc_2.27.h")
+
+#--------------------------------------------------------------------------------
+# Sanitizer Options
+#--------------------------------------------------------------------------------
+option(ENABLE_ASAN "enable address sanitizer" OFF)
+option(ENABLE_TSAN "enable thread sanitizer" OFF)
+option(ENABLE_LSAN "enable leak sanitizer" OFF)
+option(ENABLE_USAN "enable undefined behaviour sanitizer" OFF)
+option(ALLOCATOR_BYPASS "use the system allocator instead of mimalloc" OFF)
+if(ENABLE_TSAN)
+  # TSAN observes allocation lifetimes through the system allocator interceptors.
+  set(ALLOCATOR_BYPASS ON)
+endif()
+
+#--------------------------------------------------------------------------------
+# Tunnel and Core Feature Inclusion Options
+#--------------------------------------------------------------------------------
+
+# Define conditional variables for platform-specific options
+
+
+if(ANDROID OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  set(TUNDEVICE_SUPPORTED FALSE)
+else()
+  set(TUNDEVICE_SUPPORTED TRUE)
+endif()
+
+if(NOT ANDROID AND NOT (CMAKE_SYSTEM_NAME STREQUAL "NetBSD"
+    OR CMAKE_SYSTEM_NAME STREQUAL "OpenBSD" OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD"))
+  if(LINUX OR (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64"))
+    set(RAWSOCKET_SUPPORTED TRUE)
+  else()
+    set(RAWSOCKET_SUPPORTED FALSE)
+  endif()
+else()
+  set(RAWSOCKET_SUPPORTED FALSE)
+endif()
+
+option(INCLUDE_TEMPLATE                 "link Template staticly to the core"                                        TRUE)
+option(INCLUDE_TESTER_CLIENT            "link TesterClient staticly to the core"                                    TRUE)
+option(INCLUDE_TESTER_SERVER            "link TesterServer staticly to the core"                                    TRUE)
+option(INCLUDE_SPEEDTEST_CLIENT         "link SpeedTestClient staticly to the core"                                 TRUE)
+option(INCLUDE_SPEEDTEST_SERVER         "link SpeedTestServer staticly to the core"                                 TRUE)
+option(INCLUDE_AUTHENTICATION_CLIENT    "link AuthenticationClient staticly to the core"                            TRUE)
+option(INCLUDE_API_SERVER               "link APIServer statically to the core"                                      TRUE)
+option(INCLUDE_AUTHENTICATION_SERVER    "link AuthenticationServer staticly to the core"                            TRUE)
+option(INCLUDE_WIREGUARD_DEVICE         "link WireGuardDevice staticly to the core"                                 TRUE)
+option(INCLUDE_PACKET_TO_CONNECTION     "link PacketsToConnection staticly to the core"                             TRUE)
+option(INCLUDE_CONNECTION_TO_PACKETS    "link ConnectionToPackets staticly to the core"                             TRUE)
+option(INCLUDE_STREAM_TO_PACKETS        "link StreamToPackets staticly to the core"                                 TRUE)
+option(INCLUDE_PACKETS_TO_STREAM        "link PacketsToStream staticly to the core"                                 TRUE)
+option(INCLUDE_PACKET_SPLIT_STREAM      "link PacketSplitStream staticly to the core"                               TRUE)
+option(INCLUDE_LAYER3_IP_ROUTING_TABLE  "link Layer3IpRoutingTable staticly to the core"                            FALSE)
+option(INCLUDE_IP_OVERRIDER             "link IpOverrider staticly to the core"                                     TRUE)
+option(INCLUDE_IP_MANIPULATOR           "link IPManipulator staticly to the core"                                   TRUE)
+option(INCLUDE_PING_CLIENT              "link PingClient staticly to the core"                                      TRUE)
+option(INCLUDE_PING_SERVER              "link PingServer staticly to the core"                                      TRUE)
+option(INCLUDE_KEEPALIVE_CLIENT         "link KeepAliveClient staticly to the core"                                 TRUE)
+option(INCLUDE_KEEPALIVE_SERVER         "link KeepAliveServer staticly to the core"                                 TRUE)
+option(INCLUDE_CONNECTION_FISHER_CLIENT "link ConnectionFisherClient staticly to the core"                          TRUE)
+option(INCLUDE_CONNECTION_FISHER_SERVER "link ConnectionFisherServer staticly to the core"                          TRUE)
+option(INCLUDE_TCP_LISTENER             "link TcpListener staticly to the core"                                     TRUE)
+option(INCLUDE_UDP_LISTENER             "link UdpListener staticly to the core"                                     TRUE)
+option(INCLUDE_TCP_UDP_LISTENER         "link TcpUdpListener staticly to the core"                                  TRUE)
+option(INCLUDE_LOGGER_TUNNEL            "link LoggerTunnel staticly to the core"                                    TRUE)
+option(INCLUDE_TCP_UDP_CONNECTOR        "link TcpUdpConnector staticly to the core"                                 TRUE)
+option(INCLUDE_TCPCONNECTOR             "link TcpConnector staticly to the core"                                    TRUE)
+option(INCLUDE_UDP_CONNECTOR            "link UdpConnector staticly to the core"                                    TRUE)
+option(INCLUDE_UDP_STATELESS_SOCKET     "link UdpStatelessSocket staticly to the core"                              TRUE)
+option(INCLUDE_UDP_OVER_TCP_CLIENT      "link UdpOverTcpClient staticly to the core"                                TRUE)
+option(INCLUDE_UDP_OVER_TCP_SERVER      "link UdpOverTcpServer staticly to the core"                                TRUE)
+option(INCLUDE_TCP_OVER_UDP_CLIENT      "link TcpOverUdpClient staticly to the core"                                TRUE)
+option(INCLUDE_TCP_OVER_UDP_SERVER      "link TcpOverUdpServer staticly to the core"                                TRUE)
+option(INCLUDE_BRIDGE                   "link Bridge staticly to the core"                                          TRUE)
+option(INCLUDE_SNIFF_ROUTER             "link SniffRouter staticly to the core"                                     TRUE)
+option(INCLUDE_ROUTER                   "link Router staticly to the core"                                          TRUE)
+option(router_enable_quic_sniffing      "Enable Router QUIC SNI sniffing support (requires OpenSSL)"                TRUE)
+option(router_enable_http2_sniffing     "Enable Router HTTP/2 plaintext domain sniffing support (requires nghttp2)" TRUE)
+option(INCLUDE_TLS_CLIENT               "link TLSClient staticly to the core"                                       TRUE)
+option(INCLUDE_TLS_SERVER               "link TLSServer staticly to the core"                                       TRUE)
+option(INCLUDE_QUIC_CLIENT              "link QuicClient statically to the core"                                   TRUE)
+option(INCLUDE_QUIC_SERVER              "link QuicServer statically to the core"                                   TRUE)
+option(INCLUDE_TROJAN_CLIENT            "link TrojanClient staticly to the core"                                    TRUE)
+option(INCLUDE_TROJAN_SERVER            "link TrojanServer staticly to the core"                                    TRUE)
+option(INCLUDE_VLESS_CLIENT             "link VlessClient staticly to the core"                                     TRUE)
+option(INCLUDE_VMESS_SERVER             "link VmessServer statically to the core"                                    TRUE)
+option(INCLUDE_VMESS_CLIENT             "link VmessClient statically to the core"                                    TRUE)
+option(INCLUDE_VLESS_SERVER             "link VlessServer staticly to the core"                                     TRUE)
+option(INCLUDE_HTTP_SERVER              "link HttpServer staticly to the core"                                      TRUE)
+option(INCLUDE_HTTP_PROXY_CLIENT "link HttpProxyClient statically to the core" TRUE)
+option(INCLUDE_HTTP_PROXY_SERVER        "link HttpProxyServer statically to the core"                                TRUE)
+option(INCLUDE_HTTP_CLIENT              "link HttpClient staticly to the core"                                      TRUE)
+option(INCLUDE_SOCKS5_CLIENT            "link Socks5Client staticly to the core"                                    TRUE)
+option(INCLUDE_PROTOBUF_SERVER          "link ProtoBufServer staticly to the core"                                  FALSE)
+option(INCLUDE_PROTOBUF_CLIENT          "link ProtoBufClient staticly to the core"                                  FALSE)
+option(INCLUDE_REVERSE_SERVER           "link ReverseServer staticly to the core"                                   TRUE)
+option(INCLUDE_REVERSE_CLIENT           "link ReverseClient staticly to the core"                                   TRUE)
+option(INCLUDE_HEADER_SERVER            "link HeaderServer staticly to the core"                                    TRUE)
+option(INCLUDE_HEADER_CLIENT            "link HeaderClient staticly to the core"                                    TRUE)
+option(INCLUDE_OBFUSCATOR_CLIENT        "link ObfuscatorClient staticly to the core"                                TRUE)
+option(INCLUDE_OBFUSCATOR_SERVER        "link ObfuscatorServer staticly to the core"                                TRUE)
+option(INCLUDE_ENCRYPTION_CLIENT        "link EncryptionClient staticly to the core"                                TRUE)
+option(INCLUDE_ENCRYPTION_SERVER        "link EncryptionServer staticly to the core"                                TRUE)
+option(INCLUDE_PRECONNECT_SERVER        "link PreConnectServer staticly to the core"                                FALSE)
+option(INCLUDE_PRECONNECT_CLIENT        "link PreConnectClient staticly to the core"                                FALSE)
+option(INCLUDE_SOCKS_5_SERVER           "link Socks5Server staticly to the core"                                    TRUE)
+option(INCLUDE_REALITY_SERVER           "link RealityServer staticly to the core"                                   TRUE)
+option(INCLUDE_REALITY_CLIENT           "link RealityClient staticly to the core"                                   TRUE)
+option(INCLUDE_HALFDUPLEX_SERVER        "link HalfDuplexServer staticly to the core"                                TRUE)
+option(INCLUDE_HALFDUPLEX_CLIENT        "link HalfDuplexClient staticly to the core"                                TRUE)
+option(INCLUDE_BGP4_SERVER              "link Bgp4Server staticly to the core"                                      TRUE)
+option(INCLUDE_BGP4_CLIENT              "link Bgp4Client staticly to the core"                                      TRUE)
+option(INCLUDE_MUX_SERVER               "link MuxServer staticly to the core"                                       TRUE)
+option(INCLUDE_MUX_CLIENT               "link MuxClient staticly to the core"                                       TRUE)
+option(INCLUDE_TUN_DEVICE               "link TunDevice staticly to the core"                                       ${TUNDEVICE_SUPPORTED})
+option(INCLUDE_PACKET_SENDER            "link PacketSender staticly to the core"                                    TRUE)
+option(INCLUDE_PACKET_RECEIVER          "link PacketReceiver staticly to the core"                                  TRUE)
+option(INCLUDE_RAWSOCKET                "link RawSocket staticly to the core"                                       ${RAWSOCKET_SUPPORTED})
+option(INCLUDE_DISTURBER                "link Disturber staticly to the core"                                       TRUE)
+option(INCLUDE_JUNK_DATAGRAM_SENDER     "link JunkDatagramSender staticly to the core"                              TRUE)
+option(INCLUDE_BLACKHOLE                "link BlackHole staticly to the core"                                       TRUE)
+option(INCLUDE_SPEEDLIMIT               "link SpeedLimit staticly to the core"                                      TRUE)
+option(INCLUDE_SOFT_IP_LIMITER          "link SoftIpLimiter staticly to the core"                                   TRUE)
+option(INCLUDE_DOMAIN_RESOLVER          "link DomainResolver staticly to the core"                                  TRUE)
+option(INCLUDE_STREAM_FRAGMENTER        "link StreamFragmenter statically to the core"                              TRUE)
+option(INCLUDE_USER_CONTROLLER          "link UserController staticly to the core"                                  TRUE)
+
+option(WW_MINIMAL_NODES "Build only the hosted NEPacketDevice runtime closure" OFF)
+option(INCLUDE_NE_PACKET_DEVICE "link NEPacketDevice statically to the core" ${WW_MINIMAL_NODES})
+if(WW_MINIMAL_NODES)
+  set(router_enable_quic_sniffing OFF CACHE BOOL "Excluded from minimal hosted runtime" FORCE)
+  set(router_enable_http2_sniffing OFF CACHE BOOL "Excluded from minimal hosted runtime" FORCE)
+  set(waterwall_minimal_allowed_nodes
+    INCLUDE_NE_PACKET_DEVICE
+    INCLUDE_PACKET_TO_CONNECTION
+    INCLUDE_TCP_UDP_CONNECTOR
+    INCLUDE_TCPCONNECTOR
+    INCLUDE_UDP_CONNECTOR
+    INCLUDE_DOMAIN_RESOLVER
+    INCLUDE_STREAM_FRAGMENTER
+    INCLUDE_VLESS_CLIENT
+    INCLUDE_VMESS_CLIENT
+    INCLUDE_TROJAN_CLIENT
+    INCLUDE_SOCKS5_CLIENT
+    INCLUDE_HTTP_PROXY_CLIENT
+    INCLUDE_TLS_CLIENT
+    INCLUDE_MUX_CLIENT
+    INCLUDE_WIREGUARD_DEVICE
+    INCLUDE_UDP_STATELESS_SOCKET
+    INCLUDE_AUTHENTICATION_CLIENT
+    INCLUDE_USER_CONTROLLER
+    INCLUDE_REALITY_CLIENT
+    INCLUDE_ENCRYPTION_CLIENT
+    INCLUDE_PACKETS_TO_STREAM
+    INCLUDE_ROUTER
+    INCLUDE_QUIC_CLIENT
+    INCLUDE_HTTP_CLIENT
+    INCLUDE_OBFUSCATOR_CLIENT
+    INCLUDE_TCP_OVER_UDP_CLIENT
+  )
+  get_cmake_property(waterwall_include_options VARIABLES)
+  foreach(waterwall_include_option IN LISTS waterwall_include_options)
+    if(waterwall_include_option MATCHES "^INCLUDE_")
+      if(waterwall_include_option IN_LIST waterwall_minimal_allowed_nodes)
+        set(${waterwall_include_option} ON CACHE BOOL "Minimal hosted runtime node" FORCE)
+      else()
+        set(${waterwall_include_option} OFF CACHE BOOL "Excluded from minimal hosted runtime" FORCE)
+      endif()
+    endif()
+  endforeach()
+endif()
+
+if(INCLUDE_TLS_CLIENT AND NOT INCLUDE_STREAM_FRAGMENTER)
+  message(STATUS "Forcing StreamFragmenter because TlsClient uses it internally")
+  set(INCLUDE_STREAM_FRAGMENTER TRUE CACHE BOOL "link StreamFragmenter statically to the core" FORCE)
+endif()
+
+if((INCLUDE_HTTP_PROXY_CLIENT OR INCLUDE_TCPCONNECTOR OR INCLUDE_UDP_CONNECTOR OR INCLUDE_SOCKS5_CLIENT OR INCLUDE_VLESS_CLIENT OR INCLUDE_TROJAN_CLIENT OR INCLUDE_VMESS_CLIENT OR INCLUDE_ROUTER OR INCLUDE_CONNECTION_TO_PACKETS) AND NOT INCLUDE_DOMAIN_RESOLVER)
+  message(STATUS "Forcing DomainResolver because connector/client/router tunnels use it internally")
+  set(INCLUDE_DOMAIN_RESOLVER TRUE CACHE BOOL "link DomainResolver staticly to the core" FORCE)
+endif()
+
+# Determine if OpenSSL is required based on included tunnels
+if(INCLUDE_TLS_SERVER OR router_enable_quic_sniffing OR INCLUDE_VMESS_SERVER OR INCLUDE_VMESS_CLIENT)
+  set(PROJECT_REQUIRES_OPENSSL TRUE CACHE INTERNAL "if any of the tunnels that require openssl is included, this will be set to true" FORCE)
+else()
+  set(PROJECT_REQUIRES_OPENSSL FALSE CACHE INTERNAL "if any of the tunnels that require openssl is included, this will be set to true" FORCE)
+endif()
+
+if(INCLUDE_HTTP_SERVER OR INCLUDE_HTTP_CLIENT OR (INCLUDE_ROUTER AND router_enable_http2_sniffing))
+  set(PROJECT_REQUIRES_NGHTTP2 TRUE CACHE INTERNAL "if any of the tunnels that require nghttp2 is included, this will be set to true" FORCE)
+else()
+  set(PROJECT_REQUIRES_NGHTTP2 FALSE CACHE INTERNAL "if any of the tunnels that require nghttp2 is included, this will be set to true" FORCE)
+endif()
+
+
+#--------------------------------------------------------------------------------
+# Main Executable and Sources
+#--------------------------------------------------------------------------------
+option(WW_PACK_RUNTIME "Package the ordinary executable in a platform C launcher" OFF)
+if(WW_PACK_RUNTIME)
+  if(WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|i[3-6]86|x86)$")
+    if(MSVC AND NOT CMAKE_C_COMPILER_ARCHITECTURE_ID MATCHES "^(X86|x64)$")
+      message(FATAL_ERROR "Packed Windows requires an x86 or x64 compiler target")
+    endif()
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(WW_PACKED_TARGET windows-x86_64)
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+      set(WW_PACKED_TARGET windows-x86)
+    else()
+      message(FATAL_ERROR "Unsupported Windows packed pointer size")
+    endif()
+  elseif(NOT CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+         CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(WW_PACKED_TARGET linux-x86_64)
+  else()
+    message(FATAL_ERROR "WW_PACK_RUNTIME supports native Linux x86-64 and Windows x86/x64 only")
+  endif()
+
+  set(WATERWALL_APPLICATION_TARGET WaterwallApplication)
+else()
+  set(WATERWALL_APPLICATION_TARGET Waterwall)
+endif()
+
+set(WATERWALL_STARTUP_GUARD_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/core/startup_guard.c")
+set(WATERWALL_INNER_MAIN_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/core/main.c")
+
+# The CPU startup guard owns the process entry point and verifies required CPU
+# instruction sets before any optimized code runs. It is disabled on MinGW GCC
+# (mingw64/ucrt64): there it is not built at all and core/main.c provides main()
+# directly, accepting that the process may crash on an unsupported CPU.
+set(WW_USE_STARTUP_GUARD TRUE)
+if(MINGW AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(WW_USE_STARTUP_GUARD FALSE)
+endif()
+
+set(WATERWALL_STARTUP_GUARD_OBJECTS "")
+if(WW_USE_STARTUP_GUARD)
+  set(startup_guard_targets WaterwallStartupGuard)
+  if(WW_PACK_RUNTIME)
+    list(APPEND startup_guard_targets WaterwallLauncherStartupGuard)
+  endif()
+  foreach(startup_guard_target IN LISTS startup_guard_targets)
+    add_library(${startup_guard_target} OBJECT
+      ${WATERWALL_STARTUP_GUARD_SOURCE}
+    )
+
+    target_include_directories(${startup_guard_target} PRIVATE
+      ${CMAKE_CURRENT_BINARY_DIR}/ww
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/ww
+    )
+    target_compile_definitions(${startup_guard_target} PRIVATE WATERWALL_VERSION=${Waterwall_VERSION})
+    set_target_properties(${startup_guard_target} PROPERTIES
+      UNITY_BUILD OFF
+      INTERPROCEDURAL_OPTIMIZATION OFF
+      INTERPROCEDURAL_OPTIMIZATION_RELEASE OFF
+      INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO OFF
+      INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL OFF
+    )
+  endforeach()
+  set(WATERWALL_STARTUP_GUARD_OBJECTS $<TARGET_OBJECTS:WaterwallStartupGuard>)
+endif()
+
+add_executable(${WATERWALL_APPLICATION_TARGET}
+  ${WATERWALL_STARTUP_GUARD_OBJECTS}
+  ${WATERWALL_INNER_MAIN_SOURCE}
+  core/core_settings.c
+  core/imported_tunnels.c
+  core/os_helpers.c
+  core/startup_options.c
+  # core/tests/bench_memcpy.c
+)
+
+if(WIN32)
+  target_sources(${WATERWALL_APPLICATION_TARGET} PRIVATE core/lifecycle_windows.c core/lifecycle_capabilities_windows.c)
+endif()
+
+# Runtime consumers share code-generation and link flags through ww. Keep this
+# separate from directory flags so the launcher and host tools do not inherit it.
+add_library(waterwall_runtime_options INTERFACE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID AND NOT ENABLE_TSAN)
+  include(CheckPIESupported)
+  check_pie_supported(LANGUAGES C CXX)
+  if(NOT CMAKE_C_LINK_NO_PIE_SUPPORTED OR NOT CMAKE_CXX_LINK_NO_PIE_SUPPORTED)
+    message(FATAL_ERROR "The Linux Waterwall application requires non-PIE linker support")
+  endif()
+  set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES
+    POSITION_INDEPENDENT_CODE OFF
+  )
+  target_compile_options(waterwall_runtime_options INTERFACE
+    "$<$<COMPILE_LANGUAGE:C,CXX,ASM>:-fno-pic;-fno-pie>"
+  )
+  target_link_options(waterwall_runtime_options INTERFACE -no-pie)
+elseif(WIN32)
+  # Windows ARM requires ASLR. On x86/x64, fix the executable image at its
+  # preferred address; do not apply fixed-base linking to dependency DLLs.
+  if(MSVC AND CMAKE_C_COMPILER_ARCHITECTURE_ID MATCHES "^(X86|x64)$")
+    target_link_options(waterwall_runtime_options INTERFACE
+      "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:/DYNAMICBASE:NO;/FIXED;/INCREMENTAL:NO>"
+    )
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      target_link_options(waterwall_runtime_options INTERFACE
+        "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:/HIGHENTROPYVA:NO>"
+      )
+    endif()
+  elseif(MINGW AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64|i[3-6]86|x86)$")
+    target_compile_options(waterwall_runtime_options INTERFACE
+      "$<$<COMPILE_LANGUAGE:C,CXX,ASM>:-fno-pic;-fno-pie>"
+    )
+    target_link_options(waterwall_runtime_options INTERFACE
+      "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:LINKER:--disable-dynamicbase;LINKER:--disable-reloc-section>"
+    )
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      target_link_options(waterwall_runtime_options INTERFACE
+        "$<$<STREQUAL:$<TARGET_PROPERTY:TYPE>,EXECUTABLE>:LINKER:--disable-high-entropy-va>"
+      )
+    endif()
+  endif()
+endif()
+
+function(waterwall_configure_runtime_dependency dependency)
+  # Copy usage requirements without mixing upstream plain/keyword link signatures.
+  # Static-library consumers still need the matching executable link policy.
+  get_target_property(runtime_compile_options waterwall_runtime_options INTERFACE_COMPILE_OPTIONS)
+  if(runtime_compile_options)
+    target_compile_options(${dependency} PRIVATE ${runtime_compile_options})
+    set_target_properties(${dependency} PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+  endif()
+  get_target_property(runtime_link_options waterwall_runtime_options INTERFACE_LINK_OPTIONS)
+  if(runtime_link_options)
+    target_link_options(${dependency} INTERFACE ${runtime_link_options})
+  endif()
+endfunction()
+
+if(WW_USE_STARTUP_GUARD)
+  target_link_libraries(WaterwallStartupGuard PRIVATE waterwall_runtime_options)
+  # main.c suppresses its own main(); startup_guard.c provides the entry point.
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PRIVATE WATERWALL_HAS_STARTUP_GUARD=1)
+
+  set_source_files_properties(${WATERWALL_STARTUP_GUARD_SOURCE}
+    PROPERTIES
+      SKIP_UNITY_BUILD_INCLUSION ON
+      SKIP_PRECOMPILE_HEADERS ON
+  )
+
+  if((CMAKE_C_COMPILER_ID STREQUAL "GNU" OR CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+      AND CMAKE_SIZEOF_VOID_P EQUAL 8
+      AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64"))
+    set_property(SOURCE ${WATERWALL_STARTUP_GUARD_SOURCE} APPEND PROPERTY COMPILE_OPTIONS
+      -march=x86-64
+      -mtune=generic
+      -mno-ssse3
+      -mno-sse3
+      -mno-sse4.1
+      -mno-sse4.2
+      -mno-avx
+      -mno-avx2
+      -mno-avx512f
+      -mno-fma
+      -mno-f16c
+      -mno-bmi
+      -mno-bmi2
+      -mno-lzcnt
+      -mno-popcnt
+      -mno-movbe
+      -fno-lto
+    )
+  endif()
+endif()
+
+#--------------------------------------------------------------------------------
+# Windows and iOS Specific Settings
+#--------------------------------------------------------------------------------
+if(WIN32)
+  if(MSVC)
+    set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\"")
+  else()
+    # Keep the resource compiler isolated from Waterwall's many tunnel-specific
+    # include directories and definitions.
+    add_library(waterwall_resources OBJECT core/rc/app.rc)
+
+    target_compile_definitions(waterwall_resources PRIVATE
+      FINAL_EXECUTABLE_NAME="${FINAL_EXECUTABLE_NAME}.exe"
+      WATERWALL_VERSION=${Waterwall_VERSION}
+      WW_VERSION=1.1.0
+    )
+
+    target_include_directories(waterwall_resources PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${CMAKE_CURRENT_SOURCE_DIR}/core
+      ${CMAKE_CURRENT_SOURCE_DIR}/core/rc
+    )
+
+    target_sources(${WATERWALL_APPLICATION_TARGET} PRIVATE $<TARGET_OBJECTS:waterwall_resources>)
+  endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS" AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+  message(STATUS "Compiling for iOS on a macOS host")
+
+  set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES
+    XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.alireza.Waterwall"
+    XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO" # for test, later we need apple developer account
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "" # for test, later we need apple developer account
+  )
+endif()
+
+#--------------------------------------------------------------------------------
+# Include Directories
+#--------------------------------------------------------------------------------
+target_include_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core)
+target_include_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ww)
+
+#--------------------------------------------------------------------------------
+# WW Library
+#--------------------------------------------------------------------------------
+# Independent vendored library: consumers link it directly, not through ww.
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ww/vendor/xz-embedded)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ww/compression)
+target_link_libraries(${WATERWALL_APPLICATION_TARGET} XZEmbedded::XZEmbedded WaterWall::XZDecoder)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ww)
+# Share only the selected CPU instruction flags with decoder code. PRIVATE keeps
+# these options out of the launcher and its conservative startup guard; neither
+# ww's runtime dependencies nor its non-PIE policy cross this boundary.
+foreach(decoder_target xz_embedded ww_launcher_xz_embedded ww_xz_decoder ww_launcher_xz_decoder)
+  if(TARGET ${decoder_target})
+    target_link_libraries(${decoder_target} PRIVATE waterwall_cpu_options)
+  endif()
+endforeach()
+target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ww)
+target_include_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ww)
+target_link_libraries(${WATERWALL_APPLICATION_TARGET} ww)
+
+# Xcode/iOS simulator links are more reliable when the final executable links
+# the imported OpenSSL targets directly instead of only through the static ww
+# library's transitive link interface.
+if(TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSL::SSL OpenSSL::Crypto)
+  if(TARGET OpenSSL::applink)
+    target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSL::applink)
+  endif()
+endif()
+
+#--------------------------------------------------------------------------------
+# Tunnel Libraries
+
+if(INCLUDE_TLS_CLIENT OR INCLUDE_QUIC_CLIENT OR INCLUDE_QUIC_SERVER)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/ww/cmake/dependencies/boringssl.cmake")
+endif()
+if(INCLUDE_QUIC_CLIENT OR INCLUDE_QUIC_SERVER)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/ww/cmake/dependencies/quiche.cmake")
+  add_subdirectory(tunnels/Internals/QuicCommon)
+endif()
+#--------------------------------------------------------------------------------
+
+if(INCLUDE_TLS_CLIENT OR INCLUDE_TLS_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/TlsRecordShapingCommon)
+endif()
+
+#template
+if(INCLUDE_TEMPLATE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TEMPLATE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/template)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/template)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Template)
+endif()
+
+#tester client
+if(INCLUDE_TESTER_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TESTER_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TesterClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TesterClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TesterClient)
+endif()
+
+#tester server
+if(INCLUDE_TESTER_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TESTER_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TesterServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TesterServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TesterServer)
+endif()
+
+#speedtest client
+if(INCLUDE_SPEEDTEST_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SPEEDTEST_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedTestClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedTestClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} SpeedTestClient)
+endif()
+
+#speedtest server
+if(INCLUDE_SPEEDTEST_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SPEEDTEST_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedTestServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedTestServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} SpeedTestServer)
+endif()
+
+#authentication client
+if(INCLUDE_API_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_API_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/APIServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} APIServer)
+endif()
+
+if(INCLUDE_AUTHENTICATION_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_AUTHENTICATION_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/AuthenticationClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/AuthenticationClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} AuthenticationClient)
+endif()
+
+#authentication server
+if(INCLUDE_AUTHENTICATION_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_AUTHENTICATION_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/AuthenticationServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/AuthenticationServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} AuthenticationServer)
+endif()
+
+#user controller
+if(INCLUDE_USER_CONTROLLER AND INCLUDE_AUTHENTICATION_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_USER_CONTROLLER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/UserController)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/UserController)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UserController)
+elseif(INCLUDE_USER_CONTROLLER)
+  message(STATUS "Skipping UserController because INCLUDE_AUTHENTICATION_CLIENT is OFF")
+endif()
+
+#domain resolver
+if(INCLUDE_DOMAIN_RESOLVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_DOMAIN_RESOLVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/DomainResolver)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/DomainResolver)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} DomainResolver)
+endif()
+
+#stream fragmenter
+if(INCLUDE_STREAM_FRAGMENTER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_STREAM_FRAGMENTER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/StreamFragmenter)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} StreamFragmenter)
+endif()
+
+#tun device
+if(INCLUDE_TUN_DEVICE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TUN_DEVICE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TunDevice)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TunDevice)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TunDevice)
+endif()
+
+if(INCLUDE_NE_PACKET_DEVICE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_NE_PACKET_DEVICE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../native/NEPacketDevice ${CMAKE_CURRENT_BINARY_DIR}/NEPacketDevice)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} NEPacketDevice)
+endif()
+
+#packet sender
+if(INCLUDE_PACKET_SENDER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_SENDER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSender)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSender)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketSender)
+endif()
+
+#packet receiver
+if(INCLUDE_PACKET_RECEIVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_RECEIVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketReceiver)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketReceiver)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketReceiver)
+endif()
+
+#packet to connection
+if(INCLUDE_PACKET_TO_CONNECTION)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_TO_CONNECTION=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketsToConnection)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketsToConnection)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketsToConnection)
+endif()
+
+#connection to packets
+if(INCLUDE_CONNECTION_TO_PACKETS)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_CONNECTION_TO_PACKETS=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionToPackets)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionToPackets)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ConnectionToPackets)
+endif()
+
+#data as packet
+if(INCLUDE_STREAM_TO_PACKETS)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_STREAM_TO_PACKETS=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/StreamToPackets)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/StreamToPackets)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} StreamToPackets)
+endif()
+
+#packet as data
+if(INCLUDE_PACKETS_TO_STREAM)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKETS_TO_STREAM=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketsToStream)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketsToStream)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketsToStream)
+endif()
+
+#packet split stream
+if(INCLUDE_PACKET_SPLIT_STREAM)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_SPLIT_STREAM=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSplitStream)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSplitStream)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketSplitStream)
+endif()
+
+#raw socket
+if(INCLUDE_RAWSOCKET)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_RAWSOCKET=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RawSocket)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RawSocket)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} RawSocket)
+endif()
+
+#wiregurad device
+if(INCLUDE_WIREGUARD_DEVICE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_WIREGUARD_DEVICE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/WireGuardDevice)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/WireGuardDevice)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} WireGuardDevice)
+endif()
+
+#layer3 ip route table
+if(INCLUDE_LAYER3_IP_ROUTING_TABLE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_LAYER3_IP_ROUTING_TABLE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/layer3/ip/routing_table)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/layer3/ip/routing_table)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Layer3IpRoutingTable)
+endif()
+
+#ip overrider
+if(INCLUDE_IP_OVERRIDER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_IP_OVERRIDER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/IpOverrider)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/IpOverrider)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} IpOverrider)
+endif()
+
+#ip manipulator
+if(INCLUDE_IP_MANIPULATOR)
+  if(NOT INCLUDE_TLS_CLIENT)
+    message(FATAL_ERROR "IpManipulator requires INCLUDE_TLS_CLIENT=ON")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_IP_MANIPULATOR=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/IpManipulator)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/IpManipulator)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} IpManipulator)
+endif()
+
+# Ping wire v2 codec is shared by either endpoint.  Keep it independent of
+# whether a build includes one node or both for plugin/minimal builds.
+if(INCLUDE_PING_CLIENT OR INCLUDE_PING_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/PingCommon)
+endif()
+
+#ping client
+if(INCLUDE_PING_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PING_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PingClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PingClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PingClient)
+endif()
+
+#ping server
+if(INCLUDE_PING_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PING_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PingServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PingServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PingServer)
+endif()
+
+#keepalive client
+if(INCLUDE_KEEPALIVE_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_KEEPALIVE_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/KeepAliveClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/KeepAliveClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} KeepAliveClient)
+endif()
+
+#keepalive server
+if(INCLUDE_KEEPALIVE_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_KEEPALIVE_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/KeepAliveServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/KeepAliveServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} KeepAliveServer)
+endif()
+
+#connection fisher client
+if(INCLUDE_CONNECTION_FISHER_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_CONNECTION_FISHER_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionFisherClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionFisherClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ConnectionFisherClient)
+endif()
+
+#connection fisher server
+if(INCLUDE_CONNECTION_FISHER_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_CONNECTION_FISHER_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionFisherServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ConnectionFisherServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ConnectionFisherServer)
+endif()
+
+
+#tcp listener
+if(INCLUDE_TCP_LISTENER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_LISTENER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpListener)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpListener)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpListener)
+endif()
+
+#udp listener
+if(INCLUDE_UDP_LISTENER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_UDP_LISTENER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpListener)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpListener)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UdpListener)
+endif()
+
+#tcp/udp listener
+if(INCLUDE_TCP_UDP_LISTENER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_UDP_LISTENER=1)
+  if(NOT TARGET TcpListener)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpListener)
+  endif()
+  if(NOT TARGET UdpListener)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpListener)
+  endif()
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpUdpListener)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpUdpListener)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpUdpListener)
+endif()
+
+#tcp connector
+if(INCLUDE_TCPCONNECTOR)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCPCONNECTOR=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpConnector)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpConnector)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpConnector)
+endif()
+
+#udp connector
+if(INCLUDE_UDP_CONNECTOR)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_UDP_CONNECTOR=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpConnector)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpConnector)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UdpConnector)
+endif()
+
+#tcp/udp connector
+if(INCLUDE_TCP_UDP_CONNECTOR)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_UDP_CONNECTOR=1)
+  if(NOT TARGET TcpConnector)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpConnector)
+  endif()
+  if(NOT TARGET UdpConnector)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpConnector)
+  endif()
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpUdpConnector)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpUdpConnector)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpUdpConnector)
+endif()
+
+#udp stateless socket
+if(INCLUDE_UDP_STATELESS_SOCKET)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_UDP_STATELESS_SOCKET=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpStatelessSocket)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpStatelessSocket)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UdpStatelessSocket)
+endif()
+
+#udp over tcp client
+if(INCLUDE_UDP_OVER_TCP_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_UDP_OVER_TCP_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpOverTcpClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpOverTcpClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UdpOverTcpClient)
+endif()
+
+#udp over tcp server
+if(INCLUDE_UDP_OVER_TCP_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_UDP_OVER_TCP_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpOverTcpServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpOverTcpServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} UdpOverTcpServer)
+endif()
+
+#tcp over udp client
+if(INCLUDE_TCP_OVER_UDP_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_OVER_UDP_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpOverUdpClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpOverUdpClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_BINARY_DIR}/tunnels/TcpOverUdpClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpOverUdpClient)
+endif()
+
+#tcp over udp server
+if(INCLUDE_TCP_OVER_UDP_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_OVER_UDP_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpOverUdpServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpOverUdpServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_BINARY_DIR}/tunnels/TcpOverUdpServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TcpOverUdpServer)
+endif()
+
+#bridge
+if(INCLUDE_BRIDGE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_BRIDGE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bridge)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bridge)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Bridge)
+endif()
+
+#reverse client
+if(INCLUDE_REVERSE_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_REVERSE_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ReverseClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ReverseClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ReverseClient)
+endif()
+
+#sniff router
+if(INCLUDE_SNIFF_ROUTER)
+  if(NOT TARGET ReverseClient)
+    message(FATAL_ERROR "SniffRouter requires INCLUDE_REVERSE_CLIENT=ON")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SNIFF_ROUTER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SniffRouter)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SniffRouter)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} SniffRouter)
+endif()
+
+#router
+if(INCLUDE_ROUTER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_ROUTER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Router)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Router)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Router)
+endif()
+
+# Shared pure HTTP proxy parsing, before its consumers.
+if(INCLUDE_HTTP_PROXY_SERVER OR INCLUDE_HTTP_PROXY_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/HttpProxyCommon)
+endif()
+
+if(INCLUDE_HTTP_PROXY_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HTTP_PROXY_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpProxyClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HttpProxyClient)
+endif()
+
+#http server
+if(INCLUDE_HTTP_PROXY_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HTTP_PROXY_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpProxyServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HttpProxyServer)
+endif()
+
+if(INCLUDE_HTTP_SERVER OR INCLUDE_HTTP_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/HttpCommon)
+endif()
+
+if(INCLUDE_HTTP_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HTTP_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HttpServer)
+endif()
+
+#http client
+if(INCLUDE_HTTP_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HTTP_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HttpClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HttpClient)
+endif()
+
+#socks5 client
+if(INCLUDE_SOCKS5_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SOCKS5_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Socks5Client)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Socks5Client)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Socks5Client)
+endif()
+
+#openssl server
+if(INCLUDE_OPENSSL_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_OPENSSL_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/openssl)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/openssl)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSLServer)
+endif()
+
+#quic client/server
+foreach(quic_role IN ITEMS CLIENT SERVER)
+  if(INCLUDE_QUIC_${quic_role})
+    if(quic_role STREQUAL "CLIENT")
+      set(quic_node QuicClient)
+    else()
+      set(quic_node QuicServer)
+    endif()
+    target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_QUIC_${quic_role}=1)
+    add_subdirectory(tunnels/${quic_node})
+    target_link_libraries(${WATERWALL_APPLICATION_TARGET} ${quic_node})
+  endif()
+endforeach()
+
+#tls client
+if(INCLUDE_TLS_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TLS_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TlsClient)
+endif()
+
+#tls server
+if(INCLUDE_TLS_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TLS_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TlsServer)
+endif()
+
+#trojan client
+if(INCLUDE_TROJAN_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TROJAN_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TrojanClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TrojanClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TrojanClient)
+endif()
+
+#vless client
+if(INCLUDE_VLESS_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_VLESS_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VlessClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VlessClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} VlessClient)
+endif()
+
+#trojan server
+if(INCLUDE_TROJAN_SERVER)
+  if(NOT INCLUDE_USER_CONTROLLER)
+    message(FATAL_ERROR "TrojanServer requires INCLUDE_USER_CONTROLLER because it creates an internal UserController")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TROJAN_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TrojanServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TrojanServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TrojanServer)
+endif()
+
+#vless server
+if(INCLUDE_VLESS_SERVER)
+  if(NOT INCLUDE_USER_CONTROLLER)
+    message(FATAL_ERROR "VlessServer requires INCLUDE_USER_CONTROLLER because auth mode creates an internal UserController")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_VLESS_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VlessServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VlessServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} VlessServer)
+endif()
+
+if(INCLUDE_VMESS_SERVER OR INCLUDE_VMESS_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/VmessCommon)
+endif()
+
+if(INCLUDE_VMESS_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_VMESS_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VmessClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} VmessClient)
+endif()
+
+if(INCLUDE_VMESS_SERVER)
+  if(NOT INCLUDE_USER_CONTROLLER)
+    message(FATAL_ERROR "VmessServer requires INCLUDE_USER_CONTROLLER because auth mode creates an internal UserController")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_VMESS_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VmessServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/VmessServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} VmessServer)
+endif()
+
+#trojan auth server
+if(INCLUDE_TROJAN_AUTH_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TROJAN_AUTH_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/trojan/auth)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/trojan/socks)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TrojanAuthServer)
+endif()
+
+#trojan socks server
+if(INCLUDE_TROJAN_SOCKS_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TROJAN_SOCKS_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/trojan/socks)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/trojan/socks)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} TrojanSocksServer)
+endif()
+
+
+#logger tunnel
+if(INCLUDE_LOGGER_TUNNEL)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_LOGGER_TUNNEL=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/logger)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/logger)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} LoggerTunnel)
+endif()
+
+#protobuf server
+if(INCLUDE_PROTOBUF_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PROTOBUF_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/protobuf)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/protobuf)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ProtoBufServer)
+endif()
+
+#protobuf client
+if(INCLUDE_PROTOBUF_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PROTOBUF_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/client/protobuf)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/client/protobuf)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ProtoBufClient)
+endif()
+
+#reverse server
+if(INCLUDE_REVERSE_SERVER)
+  if(NOT TARGET ReverseClient)
+    message(FATAL_ERROR "ReverseServer requires INCLUDE_REVERSE_CLIENT=ON")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_REVERSE_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ReverseServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ReverseServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ReverseServer)
+endif()
+
+#header server
+if(INCLUDE_HEADER_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HEADER_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HeaderServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HeaderServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HeaderServer)
+endif()
+
+#header client
+if(INCLUDE_HEADER_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HEADER_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HeaderClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HeaderClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HeaderClient)
+endif()
+
+#obfuscator client
+if(INCLUDE_OBFUSCATOR_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_OBFUSCATOR_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ObfuscatorClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ObfuscatorClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ObfuscatorClient)
+endif()
+
+#obfuscator server
+if(INCLUDE_OBFUSCATOR_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_OBFUSCATOR_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ObfuscatorServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ObfuscatorServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} ObfuscatorServer)
+endif()
+
+#encryption client
+if(INCLUDE_ENCRYPTION_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_ENCRYPTION_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/EncryptionClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/EncryptionClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} EncryptionClient)
+endif()
+
+#encryption server
+if(INCLUDE_ENCRYPTION_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_ENCRYPTION_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/EncryptionServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/EncryptionServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} EncryptionServer)
+endif()
+
+#preconnect server
+if(INCLUDE_PRECONNECT_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PRECONNECT_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/preconnect)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/server/preconnect)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PreConnectServer)
+endif()
+
+#preconnect client
+if(INCLUDE_PRECONNECT_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PRECONNECT_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/client/preconnect)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/client/preconnect)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PreConnectClient)
+endif()
+
+#socks5 server
+if(INCLUDE_SOCKS_5_SERVER)
+  if(NOT INCLUDE_USER_CONTROLLER)
+    message(FATAL_ERROR "Socks5Server requires INCLUDE_USER_CONTROLLER because it creates an internal UserController")
+  endif()
+  # Socks5Server's typed UDP-provider capability is compiled even when the
+  # provider nodes themselves are not registered in this build. This keeps a
+  # TCP-only Socks5Server usable in reduced builds while allowing udp: true to
+  # fail at topology preparation instead of creating a link-time feature gap.
+  if(NOT TARGET UdpListener)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/UdpListener)
+  endif()
+  if(NOT TARGET TcpListener)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpListener)
+  endif()
+  if(NOT TARGET TcpUdpListener)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpUdpListener)
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SOCKS_5_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Socks5Server)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Socks5Server)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Socks5Server)
+endif()
+
+if(INCLUDE_REALITY_SERVER OR INCLUDE_REALITY_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/RealityCommon)
+endif()
+
+#reality server
+if(INCLUDE_REALITY_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_REALITY_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RealityServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RealityServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} RealityServer)
+endif()
+
+#reality client
+if(INCLUDE_REALITY_CLIENT)
+  if(NOT TARGET TlsClient)
+    message(FATAL_ERROR "RealityClient requires INCLUDE_TLS_CLIENT=ON")
+  endif()
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_REALITY_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RealityClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/RealityClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} RealityClient)
+endif()
+
+#halfduplex server
+if(INCLUDE_HALFDUPLEX_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HALFDUPLEX_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HalfDuplexServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HalfDuplexServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HalfDuplexServer)
+endif()
+
+#halfduplex client
+if(INCLUDE_HALFDUPLEX_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HALFDUPLEX_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HalfDuplexClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/HalfDuplexClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} HalfDuplexClient)
+endif()
+
+#bgp4server server
+if(INCLUDE_BGP4_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_BGP4_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bgp4Server)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bgp4Server)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Bgp4Server)
+endif()
+
+#bgp4client client
+if(INCLUDE_BGP4_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_BGP4_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bgp4Client)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Bgp4Client)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Bgp4Client)
+endif()
+
+if(INCLUDE_MUX_SERVER OR INCLUDE_MUX_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/MuxCommon)
+endif()
+
+#mux server
+if(INCLUDE_MUX_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_MUX_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/MuxServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/MuxServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} MuxServer)
+endif()
+
+#mux client
+if(INCLUDE_MUX_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_MUX_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/MuxClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/MuxClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} MuxClient)
+endif()
+
+#disturber
+if(INCLUDE_DISTURBER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_DISTURBER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Disturber)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Disturber)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} Disturber)
+endif()
+
+#junk datagram sender
+if(INCLUDE_JUNK_DATAGRAM_SENDER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_JUNK_DATAGRAM_SENDER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/JunkDatagramSender)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/JunkDatagramSender)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} JunkDatagramSender)
+endif()
+
+#blackhole
+if(INCLUDE_BLACKHOLE)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_BLACKHOLE=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/BlackHole)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/BlackHole)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} BlackHole)
+endif()
+
+if(INCLUDE_SPEEDLIMIT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SPEEDLIMIT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedLimit)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SpeedLimit)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} SpeedLimit)
+endif()
+
+if(INCLUDE_SOFT_IP_LIMITER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SOFT_IP_LIMITER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SoftIpLimiter)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SoftIpLimiter)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} SoftIpLimiter)
+endif()
+
+#--------------------------------------------------------------------------------
+# Platform-Specific Linker and Compiler Flags
+#--------------------------------------------------------------------------------
+
+# Enable Unity Build (already enabled globally)
+# set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES UNITY_BUILD ON)
+
+# Use C++ linker for proper C++ runtime handling (especially for BoringSSL)
+set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES LINKER_LANGUAGE CXX)
+
+# Disable import library generation for the executable
+set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES ENABLE_EXPORTS FALSE)
+
+# Ensure no import library is generated
+if(WIN32 AND (MINGW OR MSYS))
+  set_target_properties(${WATERWALL_APPLICATION_TARGET} PROPERTIES
+    ARCHIVE_OUTPUT_NAME ""
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/symbols_archive"
+    WINDOWS_EXPORT_ALL_SYMBOLS FALSE
+  )
+endif()
+
+# Platform-specific flags
+option(WW_WINDOWS_LINK_MAP "Write a Windows application linker map for crash diagnostics" OFF)
+if(MINGW OR MSYS)
+  # On Windows (MinGW), statically link libgcc, libstdc++, and libwinpthread
+  target_link_options(${WATERWALL_APPLICATION_TARGET} PRIVATE -static -static-libgcc -static-libstdc++)
+  if(WW_WINDOWS_LINK_MAP)
+    target_link_options(${WATERWALL_APPLICATION_TARGET} PRIVATE
+      "LINKER:-Map,$<TARGET_FILE:${WATERWALL_APPLICATION_TARGET}>.map")
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  # Ensure static linking of C++ standard library for BoringSSL (but not glibc)
+  target_link_options(${WATERWALL_APPLICATION_TARGET} PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+
+#------------------------------------------------------------------------------------------
+# Final Configuration
+#------------------------------------------------------------------------------------------
+target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC WATERWALL_VERSION=${Waterwall_VERSION})
+
+if(WW_PACK_RUNTIME)
+  add_subdirectory(core/launcher)
+  # CMAKE_CROSSCOMPILING is also true for native Windows presets which set
+  # CMAKE_SYSTEM_NAME. x86 runs on both x86 and x64 hosts; x64 needs an x64 host.
+  if(BUILD_TESTING AND WIN32 AND CMAKE_HOST_WIN32 AND
+      (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(AMD64|amd64|x86_64)$" OR
+       (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|x86)$" AND CMAKE_SIZEOF_VOID_P EQUAL 4)))
+    find_program(WW_WINDOWS_TEST_PYTHON NAMES python3 python REQUIRED)
+    add_test(NAME waterwall.windows_packed_application
+      COMMAND "${WW_WINDOWS_TEST_PYTHON}" "${PROJECT_SOURCE_DIR}/tests/windows_packed_application_test.py"
+        --launcher "$<TARGET_FILE:Waterwall>" --application "$<TARGET_FILE:WaterwallApplication>")
+    set_tests_properties(waterwall.windows_packed_application PROPERTIES
+      TIMEOUT 240 LABELS "integration;core;launcher;windows;tls")
+  endif()
+endif()
+
+# This metadata-only check also runs for cross-built Linux artifacts. Packed
+# builds must check the embedded application as well as the public launcher.
+if(BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID
+    AND NOT WW_BUILD_UNIT_TESTS
+    AND NOT (ENABLE_ASAN OR ENABLE_TSAN OR ENABLE_LSAN OR ENABLE_USAN))
+  if(NOT CMAKE_READELF)
+    find_program(CMAKE_READELF NAMES readelf llvm-readelf REQUIRED)
+  endif()
+  set(waterwall_dependency_binaries "$<TARGET_FILE:${WATERWALL_APPLICATION_TARGET}>")
+  if(WW_PACK_RUNTIME)
+    list(APPEND waterwall_dependency_binaries "$<TARGET_FILE:Waterwall>")
+  endif()
+  add_test(NAME waterwall.linux_runtime_dependencies
+    COMMAND "${CMAKE_COMMAND}"
+      "-DREADELF=${CMAKE_READELF}"
+      "-DWATERWALL_BINARIES=${waterwall_dependency_binaries}"
+      -P "${PROJECT_SOURCE_DIR}/tests/linux_runtime_dependencies.cmake")
+  set_tests_properties(waterwall.linux_runtime_dependencies PROPERTIES
+    TIMEOUT 30 LABELS "policy;build;linking")
+endif()
+
+if(BUILD_TESTING AND WW_BUILD_UNIT_TESTS)
+  add_subdirectory(tests/support)
+endif()
+
+if(BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_CROSSCOMPILING)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PRIVATE WATERWALL_SYSTEM_LOAD_TEST_HOOKS=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
+elseif(BUILD_TESTING)
+  # The tests/ subtree above is Linux-only, but neither tunnel hard-abort test
+  # depends on it: the policy check is a pure source scan and the runtime cases
+  # use no POSIX-only header or process API. Both are registered here so Windows
+  # and macOS keep the same abort coverage.
+  #
+  # Python is REQUIRED rather than optional: silently dropping the policy test
+  # would leave the 234 Category-D candidates unchecked on this platform, so a
+  # missing interpreter must fail configuration instead of failing open.
+  find_program(WATERWALL_POLICY_TEST_PYTHON NAMES python3 python REQUIRED)
+
+  add_test(
+    NAME waterwall.tunnels_abort_policy_test
+    COMMAND
+      "${WATERWALL_POLICY_TEST_PYTHON}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/tunnels_abort_policy_test.py"
+  )
+  set_tests_properties(
+    waterwall.tunnels_abort_policy_test
+    PROPERTIES
+      TIMEOUT 120
+      LABELS "unit;tunnels;policy;source-policy;abort"
+  )
+
+  include("${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests/tunnels_abort_runtime_test.cmake")
+endif()
+
+# Register the same portable sampler, idle, and MUX contracts in the supported
+# non-Linux native-unit trees. Native Linux includes this module from its full
+# tests/unittests configuration above.
+if(BUILD_TESTING AND WW_BUILD_UNIT_TESTS AND
+   NOT (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_CROSSCOMPILING))
+  include("${CMAKE_CURRENT_SOURCE_DIR}/tests/unittests/portable_contract_tests.cmake")
+endif()
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/native/platform.cmake")
+
+if(TARGET waterwall_platform_unit_tests)
+  set(waterwall_platform_lto_artifacts "")
+  foreach(waterwall_platform_lto_target IN ITEMS ww ww_lwip TlsClient)
+    if(TARGET ${waterwall_platform_lto_target})
+      add_dependencies(waterwall_platform_unit_tests ${waterwall_platform_lto_target})
+      string(APPEND waterwall_platform_lto_artifacts
+        "${waterwall_platform_lto_target}\t$<TARGET_FILE:${waterwall_platform_lto_target}>\n")
+    endif()
+  endforeach()
+  file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/unit_lto_contract-$<CONFIG>.tsv"
+    CONTENT "${waterwall_platform_lto_artifacts}")
+
+  add_test(
+    NAME waterwall.unit_release_no_lto_policy
+    COMMAND
+      "${WATERWALL_POLICY_TEST_PYTHON}"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/unit_release_no_lto_policy_test.py"
+      --unit-build "${CMAKE_BINARY_DIR}"
+      --configuration "$<CONFIG>"
+      --target waterwall_platform_unit_tests
+      --manifest "${CMAKE_BINARY_DIR}/unit_lto_contract-$<CONFIG>.tsv"
+    CONFIGURATIONS Release)
+  set_tests_properties(waterwall.unit_release_no_lto_policy PROPERTIES
+    TIMEOUT 120
+    LABELS "unit;policy;build;ipo;lto")
+endif()
+
+
+message(STATUS "Waterwall version: ${Waterwall_VERSION}")

@@ -1,0 +1,97 @@
+#pragma once
+
+#include "wwapi.h"
+
+#ifndef LOG_PACKET_INFO
+#define LOG_PACKET_INFO 0
+#endif
+#ifndef LOG_SSDP
+#define LOG_SSDP 0
+#endif
+#ifndef LOG_MDNS
+#define LOG_MDNS 0
+#endif
+#ifndef LOG_V6
+#define LOG_V6 0
+#endif
+
+typedef struct tundevice_tstate_s
+{
+
+    packet_lifecycle_anchor_t lifecycle_anchor;
+    device_fragment_policy_t  fragment_policy;
+
+    // settings form json
+    char    *name;        // name of the device
+    char    *ip_subnet;   // ip/subnet
+    char    *ip_present;  //  only ip
+    int      subnet_mask; // only subnet mask
+    uint16_t mtu;         // device mtu, default is CORE_DEFAULT_MTU
+    bool     gso_requested;
+    bool     multi_queue_requested;
+
+    bool   system_route_enabled;
+    char  *route_table;
+    char **system_routes;
+    size_t system_route_count;
+    size_t system_routes_installed;
+    bool   system_route_outcome_unknown;
+    size_t system_route_deletes_unknown; /* Uncertain deletions lead the installed prefix. */
+    size_t system_route_unknown_index;
+    char  *post_up_script;
+    char  *pre_down_script;
+
+    char  *dns_servers[kTunDeviceMaxDnsServers];
+    size_t dns_server_count;
+    bool   dns_servers_installed;
+    bool   policy_cleanup_failed; // Sticky even if a later cleanup retry succeeds.
+    bool   pre_down_pending;      // Run once, only after OnStart completed successfully.
+
+    bool loop_protection_enabled; // exclude this process's own traffic from the TUN
+    bool egress_pin_published;    // this instance contributed a reference to the global egress pin
+
+    tun_device_t *tdev;
+#ifdef OS_WIN
+    tun_windows_ownership_t windows_ownership;
+#endif
+
+} tundevice_tstate_t;
+
+_Static_assert(offsetof(tundevice_tstate_t, lifecycle_anchor) == 0,
+               "TunDevice lifecycle anchor must remain the tunnel-state prefix");
+
+enum
+{
+    kTunnelStateSize = sizeof(tundevice_tstate_t)
+};
+
+WW_EXPORT void         tundeviceTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *tundeviceTunnelCreate(node_t *node);
+WW_EXPORT api_result_t tundeviceTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void tundeviceTunnelOnStart(tunnel_t *t);
+void tundeviceTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_context_t *context);
+void tundeviceTunnelOnWorkerQuiesce(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+void tundeviceTunnelOnQuiesceWait(tunnel_t *t, const ww_lifecycle_context_t *context);
+
+bool tundeviceLoadRouteSettings(tundevice_tstate_t *state, const cJSON *settings);
+bool tundeviceApplySystemRoutes(tundevice_tstate_t *state);
+void tundeviceCleanupSystemRoutes(tundevice_tstate_t *state);
+void tundeviceFreeRouteSettings(tundevice_tstate_t *state);
+
+bool tundeviceLoadDnsSettings(tundevice_tstate_t *state, const cJSON *settings);
+bool tundeviceApplyDnsSettings(tundevice_tstate_t *state);
+void tundeviceCleanupDnsSettings(tundevice_tstate_t *state);
+void tundeviceFreeDnsSettings(tundevice_tstate_t *state);
+
+void tundeviceOnIPPacketReceived(tun_device_t *tdev, void *userdata, sbuf_t *buf, wid_t wid);
+void tundeviceTunnelWritePayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+
+static inline void tundeviceClearEgressPinIfPublished(tundevice_tstate_t *state)
+{
+    if (state->egress_pin_published)
+    {
+        egressPinClear();
+        state->egress_pin_published = false;
+    }
+}

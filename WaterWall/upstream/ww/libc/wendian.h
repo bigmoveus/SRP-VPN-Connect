@@ -1,0 +1,335 @@
+#ifndef WW_ENDIAN_H_
+#define WW_ENDIAN_H_
+
+#include "wplatform.h"
+
+// ------------------- OS_MAC condition -------------------
+#if defined(OS_MAC)
+#include <libkern/OSByteOrder.h>
+#define htobe16(v) OSSwapHostToBigInt16(v)
+#define htobe32(v) OSSwapHostToBigInt32(v)
+#define htobe64(v) OSSwapHostToBigInt64(v)
+#define be16toh(v) OSSwapBigToHostInt16(v)
+#define be32toh(v) OSSwapBigToHostInt32(v)
+#define be64toh(v) OSSwapBigToHostInt64(v)
+
+#define htole16(v) OSSwapHostToLittleInt16(v)
+#define htole32(v) OSSwapHostToLittleInt32(v)
+#define htole64(v) OSSwapHostToLittleInt64(v)
+#define le16toh(v) OSSwapLittleToHostInt16(v)
+#define le32toh(v) OSSwapLittleToHostInt32(v)
+#define le64toh(v) OSSwapLittleToHostInt64(v)
+// ------------------- End OS_MAC condition -------------------
+
+// ------------------- OS_WIN condition -------------------
+#elif defined(OS_WIN)
+
+#if _WIN32_WINNT < _WIN32_WINNT_WIN8
+    /*
+    * Byte order conversion functions for 64-bit integers and 32 + 64 bit
+    * floating-point numbers.  IEEE big-endian format is used for the
+    * network floating point format.
+    */
+    #define _WS2_32_WINSOCK_SWAP_LONG(l)                \
+                ( ( ((l) >> 24) & 0x000000FFL ) |       \
+                ( ((l) >>  8) & 0x0000FF00L ) |       \
+                ( ((l) <<  8) & 0x00FF0000L ) |       \
+                ( ((l) << 24) & 0xFF000000L ) )
+
+    #define _WS2_32_WINSOCK_SWAP_LONGLONG(l)            \
+                ( ( ((l) >> 56) & 0x00000000000000FFLL ) |       \
+                ( ((l) >> 40) & 0x000000000000FF00LL ) |       \
+                ( ((l) >> 24) & 0x0000000000FF0000LL ) |       \
+                ( ((l) >>  8) & 0x00000000FF000000LL ) |       \
+                ( ((l) <<  8) & 0x000000FF00000000LL ) |       \
+                ( ((l) << 24) & 0x0000FF0000000000LL ) |       \
+                ( ((l) << 40) & 0x00FF000000000000LL ) |       \
+                ( ((l) << 56) & 0xFF00000000000000LL ) )
+
+
+    #ifndef htonll
+    static __inline unsigned __int64 htonll ( unsigned __int64 Value )
+    {
+        const unsigned __int64 Retval = _WS2_32_WINSOCK_SWAP_LONGLONG (Value);
+        return Retval;
+    }
+    #endif /* htonll */
+
+    #ifndef ntohll
+    static __inline unsigned __int64 ntohll ( unsigned __int64 Value )
+    {
+        const unsigned __int64 Retval = _WS2_32_WINSOCK_SWAP_LONGLONG (Value);
+        return Retval;
+    }
+    #endif /* ntohll */
+
+    #ifndef htonf
+    static __inline unsigned __int32 htonf ( float Value )
+    {
+        unsigned __int32 Tempval;
+        unsigned __int32 Retval;
+        // Tempval = *(unsigned __int32*)(&Value);
+        memcpy(&Tempval, &Value, sizeof(Value));
+
+        Retval = _WS2_32_WINSOCK_SWAP_LONG (Tempval);
+        return Retval;
+    }
+    #endif /* htonf */
+
+    #ifndef ntohf
+    static __inline float ntohf ( unsigned __int32 Value )
+    {
+        const unsigned __int32 Tempval = _WS2_32_WINSOCK_SWAP_LONG (Value);
+        float Retval;
+        // *((unsigned __int32*)&Retval) = Tempval;
+        memcpy(&Retval, &Tempval, sizeof(Tempval));
+        return Retval;
+    }
+    #endif /* ntohf */
+
+    #ifndef htond
+    static __inline unsigned __int64 htond ( double Value )
+    {
+        unsigned __int64 Tempval;
+        unsigned __int64 Retval;
+        memcpy(&Tempval, &Value, sizeof(Value));
+        // Tempval = *(unsigned __int64*)(&Value);
+        Retval = _WS2_32_WINSOCK_SWAP_LONGLONG (Tempval);
+        return Retval;
+    }
+    #endif /* htond */
+
+    #ifndef ntohd
+    static __inline double ntohd ( unsigned __int64 Value )
+    {
+        const unsigned __int64 Tempval = _WS2_32_WINSOCK_SWAP_LONGLONG (Value);
+        double Retval;
+        memcpy(&Retval, &Tempval, sizeof(Tempval));
+        // *((unsigned __int64*)&Retval) = Tempval;
+        return Retval;
+    }
+    #endif /* ntohd */
+#endif
+
+#define htobe16(v) htons(v)
+#define htobe32(v) htonl(v)
+#define htobe64(v) htonll(v)
+#define be16toh(v) ntohs(v)
+#define be32toh(v) ntohl(v)
+#define be64toh(v) ntohll(v)
+
+#if (BYTE_ORDER == LITTLE_ENDIAN)
+#define htole16(v) (v)
+#define htole32(v) (v)
+#define htole64(v) (v)
+#define le16toh(v) (v)
+#define le32toh(v) (v)
+#define le64toh(v) (v)
+#elif (BYTE_ORDER == BIG_ENDIAN)
+#define htole16(v) __builtin_bswap16(v)
+#define htole32(v) __builtin_bswap32(v)
+#define htole64(v) __builtin_bswap64(v)
+#define le16toh(v) __builtin_bswap16(v)
+#define le32toh(v) __builtin_bswap32(v)
+#define le64toh(v) __builtin_bswap64(v)
+#endif
+// ------------------- End OS_WIN condition -------------------
+
+#else 
+    // ------------------- HAVE_ENDIAN_H condition -------------------
+    #if HAVE_ENDIAN_H
+    #include <endian.h>
+    // ------------------- End HAVE_ENDIAN_H condition -------------------
+
+    // ------------------- HAVE_SYS_ENDIAN_H condition -------------------
+    #elif HAVE_SYS_ENDIAN_H
+    #include <sys/endian.h>
+    // ------------------- End HAVE_SYS_ENDIAN_H condition -------------------
+
+    #else
+    #warning "Not found endian.h!"
+    #endif
+    // ------------------- End main platform condition -------------------
+
+
+        
+    // Select htonll/ntohll by comparing the active byte-order value from
+    // wplatform.h. Testing whether a macro merely exists is unreliable because
+    // several system headers define both BIG_ENDIAN and LITTLE_ENDIAN
+    // regardless of the host.
+    #if ! defined(BYTE_ORDER)
+        #error "BYTE_ORDER is not defined"
+    #elif BYTE_ORDER == BIG_ENDIAN
+
+        // Network byte order equals host byte order: identity conversions.
+        #ifndef htonll
+        #define htonll(x) (x)
+        #endif
+        #ifndef ntohll
+        #define ntohll(x) (x)
+        #endif
+
+    #elif BYTE_ORDER == LITTLE_ENDIAN
+
+        #ifndef htonll
+
+        static inline uint64_t htonll(uint64_t x)
+        {
+            uint32_t low  = htonl((uint32_t) (x & 0xFFFFFFFF));
+            uint32_t high = htonl((uint32_t) (x >> 32));
+            return ((uint64_t) low << 32) | high;
+        }
+
+        #endif
+
+        #ifndef ntohll
+
+        static inline uint64_t ntohll(uint64_t x)
+        {
+            uint32_t low  = ntohl((uint32_t) (x & 0xFFFFFFFF));
+            uint32_t high = ntohl((uint32_t) (x >> 32));
+            return ((uint64_t) low << 32) | high;
+        }
+        #endif
+
+    #else
+        #error "Unsupported BYTE_ORDER value"
+    #endif
+
+
+#endif
+
+static inline uint16_t wendianLoad16(const void *p)
+{
+    uint16_t v;
+    memcpy(&v, p, sizeof(v));
+    return v;
+}
+
+static inline uint32_t wendianLoad32(const void *p)
+{
+    uint32_t v;
+    memcpy(&v, p, sizeof(v));
+    return v;
+}
+
+static inline uint64_t wendianLoad64(const void *p)
+{
+    uint64_t v;
+    memcpy(&v, p, sizeof(v));
+    return v;
+}
+
+static inline void wendianStore16(void *p, uint16_t v)
+{
+    memcpy(p, &v, sizeof(v));
+}
+
+static inline void wendianStore32(void *p, uint32_t v)
+{
+    memcpy(p, &v, sizeof(v));
+}
+
+static inline void wendianStore64(void *p, uint64_t v)
+{
+    memcpy(p, &v, sizeof(v));
+}
+
+static inline uint32_t wendianGetBe24(const void *p)
+{
+    const uint8_t *b = (const uint8_t *) p;
+    return ((uint32_t) b[0] << 16) | ((uint32_t) b[1] << 8) | (uint32_t) b[2];
+}
+
+static inline uint32_t wendianGetLe24(const void *p)
+{
+    const uint8_t *b = (const uint8_t *) p;
+    return ((uint32_t) b[2] << 16) | ((uint32_t) b[1] << 8) | (uint32_t) b[0];
+}
+
+static inline void wendianPutBe24(void *p, uint32_t v)
+{
+    uint8_t *b = (uint8_t *) p;
+    b[0]       = (uint8_t) ((v >> 16) & 0xFF);
+    b[1]       = (uint8_t) ((v >> 8) & 0xFF);
+    b[2]       = (uint8_t) (v & 0xFF);
+}
+
+static inline void wendianPutLe24(void *p, uint32_t v)
+{
+    uint8_t *b = (uint8_t *) p;
+    b[0]       = (uint8_t) (v & 0xFF);
+    b[1]       = (uint8_t) ((v >> 8) & 0xFF);
+    b[2]       = (uint8_t) ((v >> 16) & 0xFF);
+}
+
+#define GET_BE16(p)     be16toh(wendianLoad16(p))
+#define GET_BE24(p)     wendianGetBe24(p)
+#define GET_BE32(p)     be32toh(wendianLoad32(p))
+#define GET_BE64(p)     be64toh(wendianLoad64(p))
+
+#define GET_LE16(p)     le16toh(wendianLoad16(p))
+#define GET_LE24(p)     wendianGetLe24(p)
+#define GET_LE32(p)     le32toh(wendianLoad32(p))
+#define GET_LE64(p)     le64toh(wendianLoad64(p))
+
+#define PUT_BE16(p, v)  wendianStore16(p, htobe16(v))
+#define PUT_BE24(p, v)  wendianPutBe24(p, v)
+#define PUT_BE32(p, v)  wendianStore32(p, htobe32(v))
+#define PUT_BE64(p, v)  wendianStore64(p, htobe64(v))
+
+#define PUT_LE16(p, v)  wendianStore16(p, htole16(v))
+#define PUT_LE24(p, v)  wendianPutLe24(p, v)
+#define PUT_LE32(p, v)  wendianStore32(p, htole32(v))
+#define PUT_LE64(p, v)  wendianStore64(p, htole64(v))
+
+// NOTE: uint8_t* p = (uint8_t*)buf;
+#define POP_BE8(p, v)   v = *p; ++p
+#define POP_BE16(p, v)  v = GET_BE16(p); p += 2
+#define POP_BE24(p, v)  v = GET_BE24(p); p += 3
+#define POP_BE32(p, v)  v = GET_BE32(p); p += 4
+#define POP_BE64(p, v)  v = GET_BE64(p); p += 8
+
+#define POP_LE8(p, v)   v= *p; ++p
+#define POP_LE16(p, v)  v = GET_LE16(p); p += 2
+#define POP_LE24(p, v)  v = GET_LE24(p); p += 3
+#define POP_LE32(p, v)  v = GET_LE32(p); p += 4
+#define POP_LE64(p, v)  v = GET_LE64(p); p += 8
+
+#define PUSH_BE8(p, v)  *p = v; ++p
+#define PUSH_BE16(p, v) PUT_BE16(p, v); p += 2
+#define PUSH_BE24(p, v) PUT_BE24(p, v); p += 3
+#define PUSH_BE32(p, v) PUT_BE32(p, v); p += 4
+#define PUSH_BE64(p, v) PUT_BE64(p, v); p += 8
+
+#define PUSH_LE8(p, v)  *p = v; ++p
+#define PUSH_LE16(p, v) PUT_LE16(p, v); p += 2
+#define PUSH_LE24(p, v) PUT_LE24(p, v); p += 3
+#define PUSH_LE32(p, v) PUT_LE32(p, v); p += 4
+#define PUSH_LE64(p, v) PUT_LE64(p, v); p += 8
+
+// NOTE: NET_ENDIAN = BIG_ENDIAN
+#define POP8(p, v)      POP_BE8(p, v)
+#define POP16(p, v)     POP_BE16(p, v)
+#define POP24(p, v)     POP_BE24(p, v)
+#define POP32(p, v)     POP_BE32(p, v)
+#define POP64(p, v)     POP_BE64(p, v)
+#define POP_N(p, v, n)  memcpy(v, p, n); p += n
+
+#define PUSH8(p, v)     PUSH_BE8(p, v)
+#define PUSH16(p, v)    PUSH_BE16(p, v)
+#define PUSH24(p, v)    PUSH_BE24(p, v)
+#define PUSH32(p, v)    PUSH_BE32(p, v)
+#define PUSH64(p, v)    PUSH_BE64(p, v)
+#define PUSH_N(p, v, n) memcpy(p, v, n); p += n
+
+static inline int detect_endian(void) {
+    union {
+        char c;
+        short s;
+    } u;
+    u.s = 0x1122;
+    return u.c ==0x11 ? BIG_ENDIAN : LITTLE_ENDIAN;
+}
+
+#endif /* WW_ENDIAN_H_ */

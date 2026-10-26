@@ -1,0 +1,355 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+enum
+{
+    kPtcRxPoolExhaustionLogIntervalMs = 5U * 1000U
+};
+
+static atomic_log_rate_limiter_t rx_pool_exhaustion_log;
+
+#ifdef PTC_RECEIVE_ADMISSION_TEST_HOOKS
+static ptc_receive_admission_test_hooks_t ptc_receive_admission_test_hooks;
+
+void ptcReceiveAdmissionTestInstallHooks(const ptc_receive_admission_test_hooks_t *hooks)
+{
+    ptc_receive_admission_test_hooks = hooks != NULL ? *hooks : (ptc_receive_admission_test_hooks_t) {0};
+}
+
+#endif
+
+static bool ptcPacketNeedsAlignedCopy(const sbuf_t *buf)
+{
+    return ((uintptr_t) sbufGetRawPtr(buf) % MEM_ALIGNMENT) != 0;
+}
+
+/* One wrapper per input packet, retained while TCP keeps its pbuf in the
+ * receive/retry or out-of-order queues. Exhaustion remains a bounded packet
+ * drop; ordinary and shifted packets share exactly the same wrapper lifetime. */
+LWIP_MEMPOOL_DECLARE(RX_POOL, WW_LWIP_RX_WRAPPER_POOL_SIZE, sizeof(my_custom_pbuf_t), "Zero-copy RX PBUF pool")
+
+static wonce_t g_rx_pool_once = WONCE_INIT;
+
+static void ptcRxWrapperPoolInitialize(void)
+{
+    LWIP_MEMPOOL_INIT(RX_POOL);
+    wwLwipPoolCacheRegisterRxPool(&memp_RX_POOL);
+}
+
+void ptcRxWrapperPoolInitializeOnce(void)
+{
+    wonce(&g_rx_pool_once, ptcRxWrapperPoolInitialize);
+}
+
+static void my_pbuf_free_custom(struct pbuf *p)
+{
+    my_custom_pbuf_t *custombuf = (my_custom_pbuf_t *) p;
+
+    /*
+     * TCP may retain this pbuf across owner-loop timer work and node shutdown.
+     * Keep the originating pool identity explicit. A detached foreign free
+     * destroys the standalone allocation instead of borrowing that pool.
+     */
+    if (custombuf->sbuf != NULL)
+    {
+        if (currentThreadOwnsWorker(custombuf->origin_wid))
+        {
+            bufferpoolReuseBuffer(custombuf->origin_pool, custombuf->sbuf);
+        }
+        else
+        {
+            sbufDestroy(custombuf->sbuf);
+        }
+    }
+    LWIP_MEMPOOL_FREE(RX_POOL, custombuf);
+}
+
+my_custom_pbuf_t *ptcReusableReceiveBuffer(struct pbuf *p, buffer_pool_t *pool, wid_t owner_wid)
+{
+    assert(currentThreadOwnsWorker(owner_wid));
+    if (p->next != NULL || p->ref != 1 || p->len == 0 || p->len != p->tot_len || (p->flags & PBUF_FLAG_IS_CUSTOM) == 0)
+        return NULL;
+    struct pbuf_custom *custom = (struct pbuf_custom *) p;
+    if (custom->custom_free_function != my_pbuf_free_custom)
+        return NULL;
+    my_custom_pbuf_t *rx      = (my_custom_pbuf_t *) p;
+    sbuf_t           *buf     = rx->sbuf;
+    const uint16_t    padding = bufferpoolGetLargeBufferPadding(pool);
+    if (buf == NULL || rx->origin_wid != owner_wid || rx->origin_pool != pool || sbufIsSplice(buf) ||
+        sbufGetLeftPadding(buf) < padding || sbufGetTotalCapacityNoPadding(buf) > TCP_WND)
+        return NULL;
+
+    /* Reusing a large device scratch for a tiny stream delivery would retain
+     * more storage than the existing best-fit copy. Keep that compaction. */
+    buffer_pool_fit_t fit;
+    const bool        fits = bufferpoolQueryBestFit(pool, p->tot_len, padding, &fit);
+    assert(fits);
+    discard fits;
+    if (fit.payload_capacity > TCP_WND || sbufGetTotalCapacityNoPadding(buf) > fit.payload_capacity)
+        return NULL;
+
+    /* lwIP may trim either end or point a pbuf into another chain member.
+     * Only a range wholly inside this wrapper's own packet can be transferred. */
+    const uintptr_t start   = (uintptr_t) sbufGetRawPtr(buf);
+    const uintptr_t payload = (uintptr_t) p->payload;
+    if (payload < start || payload - start > sbufGetLength(buf))
+        return NULL;
+    const uint32_t offset = (uint32_t) (payload - start);
+    if (p->len > sbufGetLength(buf) - offset || sbufGetLeftCapacity(buf) + offset < padding)
+        return NULL;
+    return rx;
+}
+
+/*
+ * Copies a shifted packet into a buffer whose payload lwIP may read as typed
+ * headers.
+ *
+ * A pooled buffer starts at its pool's configured left padding, which nothing
+ * requires to be a MEM_ALIGNMENT multiple - so the best-fit buffer is checked
+ * rather than assumed, and a zero-padding allocation is what guarantees the
+ * property when it does not hold. Returns NULL only when the length is one no
+ * buffer can carry.
+ */
+static sbuf_t *ptcAcquireAlignedCopy(buffer_pool_t *pool, sbuf_t *src)
+{
+    const uint32_t len = sbufGetLength(src);
+
+    if (UNLIKELY(len == 0 || len > (uint32_t) UINT16_MAX))
+    {
+        return NULL;
+    }
+
+    sbuf_t *dst = bufferpoolGetBestFit(pool, len, 0);
+
+    if (UNLIKELY(((uintptr_t) sbufGetMutablePtr(dst) % MEM_ALIGNMENT) != 0))
+    {
+        bufferpoolReuseBuffer(pool, dst);
+        dst = sbufCreateWithPadding(len, 0);
+    }
+
+    assert(((uintptr_t) sbufGetMutablePtr(dst) % MEM_ALIGNMENT) == 0);
+
+    sbufSetLength(dst, len);
+    memoryCopyLarge(sbufGetMutablePtr(dst), sbufGetRawPtr(src), len);
+    return dst;
+}
+
+static void ptcSubmitPacketToStack(sbuf_t *buf, struct netif *inp)
+{
+    // Runs on the packet line's event worker; record that identity with the
+    // pbuf so a later deferred free knows whose pool the sbuf came from.
+    const wid_t    origin_wid  = getCurrentWorkerWID();
+    buffer_pool_t *origin_pool = getWorkerBufferPool(origin_wid);
+
+    /*
+     * Packet transforms may leave the sbuf cursor at any byte alignment. Keep
+     * the zero-copy path for the common aligned case, but copy a shifted packet
+     * into an aligned sbuf before the stack reads typed IP/TCP headers from it,
+     * so it keeps travelling through the custom-pbuf wrapper. A PBUF_RAM copy
+     * would land in lwIP's pooled heap, whose largest class caps a valid IPv4
+     * packet at roughly 16 KiB - a ceiling the aligned path beside it does not
+     * have. Alignment is a boundary responsibility here, not a new packet-chain
+     * contract.
+     */
+    if (UNLIKELY(ptcPacketNeedsAlignedCopy(buf)))
+    {
+        /*
+         * The copy goes into another sbuf and through the ordinary wrapper below,
+         * not into a PBUF_RAM.
+         *
+         * With MEM_USE_POOLS the lwIP heap's largest class is 16 KiB including
+         * allocator and pbuf overhead, so a PBUF_RAM copy silently dropped every
+         * valid IPv4 packet above roughly that size - a ceiling the aligned path
+         * beside it does not have, on a node whose input contract is full IPv4.
+         * It also spent lwIP's TCP transmit heap on receive traffic.
+         */
+        sbuf_t *aligned = ptcAcquireAlignedCopy(origin_pool, buf);
+
+        if (UNLIKELY(aligned == NULL))
+        {
+            bufferpoolReuseBuffer(origin_pool, buf);
+            return;
+        }
+
+        bufferpoolReuseBuffer(origin_pool, buf);
+        buf = aligned;
+    }
+
+    my_custom_pbuf_t *custombuf =
+#ifdef PTC_RECEIVE_ADMISSION_TEST_HOOKS
+        ptc_receive_admission_test_hooks.fail_rx_wrapper_allocation ? NULL :
+#endif
+                                                                    (my_custom_pbuf_t *) LWIP_MEMPOOL_ALLOC(RX_POOL);
+    if (custombuf == NULL)
+    {
+        // Shared by every worker, so the gate has to be atomic. A silent drop
+        // here used to be indistinguishable from a network loss.
+        if (atomicLogRateLimiterShouldLog(&rx_pool_exhaustion_log, kPtcRxPoolExhaustionLogIntervalMs))
+        {
+            LOGW("PacketsToConnection: dropping a packet, the zero-copy RX wrapper pool (%d) is exhausted",
+                 (int) WW_LWIP_RX_WRAPPER_POOL_SIZE);
+        }
+        bufferpoolReuseBuffer(origin_pool, buf);
+        return;
+    }
+
+    custombuf->p.custom_free_function = my_pbuf_free_custom;
+    custombuf->sbuf                   = buf;
+    custombuf->origin_pool            = origin_pool;
+    custombuf->origin_wid             = origin_wid;
+
+    /* The slow path above owns every valid misaligned cursor. */
+    assert(((uintptr_t) sbufGetMutablePtr(buf) % MEM_ALIGNMENT) == 0);
+
+    struct pbuf *p = pbuf_alloced_custom(
+        PBUF_RAW, sbufGetLength(buf), PBUF_REF, &custombuf->p, sbufGetMutablePtr(buf), sbufGetLength(buf));
+    if (p == NULL)
+    {
+        bufferpoolReuseBuffer(origin_pool, buf);
+        LWIP_MEMPOOL_FREE(RX_POOL, custombuf);
+        return;
+    }
+
+    /* Input may synchronously free the custom pbuf and its sbuf. */
+    if (wwLwipEngineInput(wwLwipEngineCurrent(), p, inp) != ERR_OK)
+    {
+        pbuf_free(p);
+    }
+}
+
+#ifdef PTC_RECEIVE_ADMISSION_TEST_HOOKS
+void ptcReceiveAdmissionTestSubmitPacketToStack(sbuf_t *buf, struct netif *inp)
+{
+    ptcSubmitPacketToStack(buf, inp);
+}
+#endif
+
+static bool ptcPacketHasTransportHeader(const sbuf_t *buf, const struct ip_hdr *iphdr, uint32_t min_transport_len)
+{
+    const uint32_t header_len = IPH_HL_BYTES(iphdr);
+    return sbufGetLength(buf) >= header_len + min_transport_len;
+}
+
+/* The entry callback already validated one complete, unfragmented IPv4 datagram. */
+static void processV4(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    struct ip_hdr *iphdr = (struct ip_hdr *) sbufGetMutablePtr(buf);
+
+    if (IPH_PROTO(iphdr) != IP_PROTO_TCP && IPH_PROTO(iphdr) != IP_PROTO_UDP)
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    if (IPH_PROTO(iphdr) == IP_PROTO_UDP && ptcPacketHasTransportHeader(buf, iphdr, sizeof(struct udp_hdr)))
+    {
+        struct udp_hdr *udphdr = (struct udp_hdr *) ((uint8_t *) iphdr + IPH_HL_BYTES(iphdr));
+
+        const ptc_fake_dns_result_t dns_result = ptcFakeDnsHandleIpv4UdpPacket(t, l, buf, iphdr, udphdr);
+        if (dns_result.handled)
+        {
+            /*
+             * Published through the current engine:
+             * the reply has to leave through the worker netif so lwIP fragments
+             * it at the configured MTU. Output only inlines a certified
+             * enqueue-only sink and never reenters packet input.
+             */
+            if (dns_result.response != NULL)
+            {
+                discard ptcFakeDnsPublishResponseLocked(
+                    t, l, dns_result.response, &dns_result.source, &dns_result.destination);
+            }
+            return;
+        }
+    }
+
+    interface_route_context_t *route_ctx = ptcFindOrCreateRouteContextV4(t, lineGetWID(l));
+    if (route_ctx == NULL)
+    {
+        LOGW("PacketsToConnection: failed to create virtual netif for destination");
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    ptcSubmitPacketToStack(buf, &route_ctx->netif);
+}
+
+void ptcTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    assert(currentThreadOwnsWorker(lineGetWID(l)));
+    assert(tunnelchainIsWorkerPacketLine(tunnelGetChain(t), l));
+    ptc_tstate_t *state                = tunnelGetState(t);
+    const bool    recalculate_checksum = packettunnelTakeChecksumRequest(buf);
+
+    if (UNLIKELY(atomicLoadRelaxed(&state->stopping)))
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    if (UNLIKELY(sbufGetLength(buf) < 1))
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    const uint8_t version = ((const uint8_t *) sbufGetRawPtr(buf))[0] >> 4U;
+
+    if (version == 4)
+    {
+        /* Classify from bytes first; no typed packet access is legal before this copy. */
+        if (UNLIKELY(ptcPacketNeedsAlignedCopy(buf)))
+        {
+            sbuf_t *aligned = ptcAcquireAlignedCopy(lineGetBufferPool(l), buf);
+
+            lineReuseBuffer(l, buf);
+            if (UNLIKELY(aligned == NULL))
+            {
+                return;
+            }
+            buf = aligned;
+        }
+
+        if (UNLIKELY(! packettunnelFinalizeChecksumRequest(
+                recalculate_checksum, sbufGetMutablePtr(buf), sbufGetLength(buf))))
+        {
+            lineReuseBuffer(l, buf);
+            return;
+        }
+
+        if (UNLIKELY((GET_BE16((const uint8_t *) sbufGetRawPtr(buf) + 6) & (IP_MF | IP_OFFMASK)) != 0))
+        {
+            if (atomicIncU64Relaxed(&state->fragment_drops) == 0)
+                LOGW("PacketsToConnection: dropping unsupported IPv4 fragments; enable reassembly at packet "
+                     "ingress or reassemble before this node (further drops counted silently)");
+            lineReuseBuffer(l, buf);
+            return;
+        }
+
+        ww_lwip_engine_t *engine = wwLwipRuntimeGet(lineGetWID(l));
+        if (engine == NULL)
+        {
+            lineReuseBuffer(l, buf);
+            return;
+        }
+        discard           wwLwipEngineJoinReceiveBatch(engine);
+        ww_lwip_engine_t *previous;
+        const bool        entered = wwLwipEngineEnter(engine, &previous);
+        assert(entered);
+        discard entered;
+        if (UNLIKELY(atomicLoadRelaxed(&state->stopping)))
+        {
+            wwLwipEngineLeave(engine, previous);
+            lineReuseBuffer(l, buf);
+            return;
+        }
+
+        processV4(t, l, buf);
+        wwLwipEngineLeave(engine, previous);
+        ptcDrainTerminalLinesOnCurrentWorker(t, lineGetWID(l));
+        return;
+    }
+
+    lineReuseBuffer(l, buf);
+}

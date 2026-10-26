@@ -1,0 +1,61 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void udplistenerRequireCurrentLineWorker(const line_t *l, const char *callback_name)
+{
+    if (UNLIKELY(l == NULL || ! lineIsOnCurrentWorker(l)))
+    {
+        LOGF("UdpListener: %s arrived outside its line owner worker",
+             callback_name != NULL ? callback_name : "flow callback");
+        abortProgramNow(1);
+    }
+}
+
+void udplistenerLinestateInitialize(udplistener_lstate_t *ls, line_t *l, tunnel_t *t, udpsock_t *uio,
+                                    uint16_t real_localport, const sockaddr_u *peer_addr, const sockaddr_u *local_addr)
+{
+    assert(peer_addr != NULL);
+    assert(local_addr != NULL);
+
+    addresscontextFromSockAddrWithProtocol(&(l->routing_context.src_ctx), peer_addr, IP_PROTO_UDP);
+    l->routing_context.peer_source_port = sockaddrPort((sockaddr_u *) peer_addr);
+    addresscontextSetPort(&(l->routing_context.src_ctx), real_localport);
+
+    sockaddr_u effective_local_addr = *local_addr;
+    sockaddrSetPort(&effective_local_addr, real_localport);
+    addresscontextFromSockAddrWithProtocol(&(l->routing_context.dest_ctx), &effective_local_addr, IP_PROTO_UDP);
+
+    l->routing_context.local_listener_port = real_localport;
+
+    *ls = (udplistener_lstate_t) {.line             = l,
+                                  .uio              = uio,
+                                  .tunnel           = t,
+                                  .source_kind      = kUdpListenerSourceStatic,
+                                  .dynamic_handle   = (udplistener_dynamic_endpoint_handle_t) {0},
+                                  .bound_local_port = real_localport,
+                                  .idle_handle      = NULL,
+                                  .listener_fd      = uio->listener_fd,
+                                  .read_paused      = false,
+                                  .peer_addr        = *peer_addr,
+                                  .local_addr       = effective_local_addr};
+
+    if (loggerCheckWriteLevel(getNetworkLogger(), LOG_LEVEL_DEBUG))
+    {
+
+        sockaddr_u log_localaddr = effective_local_addr;
+
+        char localaddrstr[SOCKADDR_STRLEN] = {0};
+        char peeraddrstr[SOCKADDR_STRLEN]  = {0};
+
+        LOGD("UdpListener: Accepted FD:%x  [%s] <= [%s]",
+             ls->listener_fd,
+             SOCKADDR_STR(&log_localaddr, localaddrstr),
+             SOCKADDR_STR((sockaddr_u *) peer_addr, peeraddrstr));
+    }
+}
+
+void udplistenerLinestateDestroy(udplistener_lstate_t *ls)
+{
+    memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(udplistener_lstate_t)));
+}

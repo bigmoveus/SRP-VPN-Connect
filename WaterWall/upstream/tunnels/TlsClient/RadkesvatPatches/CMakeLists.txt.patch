@@ -1,0 +1,49 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -34,7 +34,13 @@
+ include(CTest)
+ include(GNUInstallDirs)
+ 
+-set(INSTALL_ENABLED 1)
++if(NOT DEFINED INSTALL_ENABLED)
++  set(INSTALL_ENABLED 1)
++endif()
++
++if(NOT DEFINED BUILD_TOOL)
++  set(BUILD_TOOL ON)
++endif()
+ 
+ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_CROSSCOMPILING AND
+    BUILD_TESTING)
+@@ -519,6 +525,7 @@
+       "-wd4702" # unreachable code; MSVC's warning is too aggressive. See
+                 # https://crbug.com/385161043
+       "-wd4706" # assignment within conditional expression
++      "-wd4714" # SecureZeroMemory may not be inlined during link-time code generation
+       )
+   add_compile_options(
+     "$<$<COMPILE_LANGUAGE:C,CXX>:-W4;-WX;${MSVC_DISABLED_WARNINGS_LIST}>")
+@@ -761,8 +768,10 @@
+   target_link_libraries(entropy_modulewrapper crypto)
+ endif()
+ 
+-add_executable(bssl ${BSSL_SOURCES})
+-target_link_libraries(bssl ssl crypto)
++if(BUILD_TOOL)
++  add_executable(bssl ${BSSL_SOURCES})
++  target_link_libraries(bssl ssl crypto)
++endif()
+ 
+ if(BUILD_TESTING)
+   add_executable(generate_mldsa_certs pki/testdata/verify_unittest/generate_mldsa_certs.cc)
+@@ -883,7 +892,9 @@
+ 
+ if(INSTALL_ENABLED)
+   install(TARGETS crypto ssl EXPORT OpenSSLTargets)
+-  install(TARGETS bssl)
++  if(TARGET bssl)
++    install(TARGETS bssl)
++  endif()
+   install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+   install(EXPORT OpenSSLTargets
+           FILE OpenSSLTargets.cmake

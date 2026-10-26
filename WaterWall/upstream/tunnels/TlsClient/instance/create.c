@@ -1,0 +1,632 @@
+#include "StreamFragmenter/interface.h"
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+#include <openssl/pem.h>
+
+extern int tlsclientDecompressBrotliCert(SSL *ssl, CRYPTO_BUFFER **out, size_t uncompressed_len, const uint8_t *in,
+                                         size_t in_len);
+
+static void configureTunnelCallbacks(tunnel_t *t)
+{
+    t->fnInitU    = &tlsclientTunnelUpStreamInit;
+    t->fnFinU     = &tlsclientTunnelUpStreamFinish;
+    t->fnPayloadU = &tlsclientTunnelUpStreamPayload;
+    t->fnEstD     = &tlsclientTunnelDownStreamEst;
+    t->fnFinD     = &tlsclientTunnelDownStreamFinish;
+    t->fnPayloadD = &tlsclientTunnelDownStreamPayload;
+    t->fnPauseD   = &tlsclientTunnelDownStreamPause;
+    t->fnResumeD  = &tlsclientTunnelDownStreamResume;
+
+    t->onDestroy = &tlsclientTunnelDestroy;
+}
+
+static bool getAndValidateSniSetting(tlsclient_tstate_t *ts, const cJSON *settings)
+{
+    if (! getStringFromJsonObject(&(ts->sni), settings, "sni"))
+    {
+        LOGF("JSON Error: OpenSSLClient->settings->sni (string field) : The data was empty or invalid");
+        return false;
+    }
+
+    const size_t sni_len = stringLength(ts->sni);
+    if (sni_len == 0 || sni_len > kTlsClientMaxSniLength)
+    {
+        LOGF("TlsClient: 'sni' must contain between 1 and %u bytes", (unsigned int) kTlsClientMaxSniLength);
+        return false;
+    }
+
+    return true;
+}
+
+bool tlsclientParseAlpnSetting(tlsclient_tstate_t *ts, const cJSON *settings)
+{
+    static const uint8_t kDefaultAlpnWire[] = {
+        2,
+        'h',
+        '2',
+        8,
+        'h',
+        't',
+        't',
+        'p',
+        '/',
+        '1',
+        '.',
+        '1',
+    };
+
+    const cJSON *alpns = cJSON_GetObjectItemCaseSensitive(settings, "alpns");
+    if (alpns == NULL)
+    {
+        ts->alpn_wire = memoryAllocate(sizeof(kDefaultAlpnWire));
+        memoryCopy(ts->alpn_wire, kDefaultAlpnWire, sizeof(kDefaultAlpnWire));
+        ts->alpn_wire_len = sizeof(kDefaultAlpnWire);
+        return true;
+    }
+
+    if (! cJSON_IsArray(alpns))
+    {
+        LOGF("JSON Error: TlsClient->settings->alpns must be an array of strings");
+        return false;
+    }
+
+    size_t       wire_len = 0;
+    int          index    = 0;
+    const cJSON *item     = NULL;
+    cJSON_ArrayForEach(item, alpns)
+    {
+        if (! cJSON_IsString(item) || item->valuestring == NULL)
+        {
+            LOGF("JSON Error: TlsClient->settings->alpns[%d] must be a non-empty string", index);
+            return false;
+        }
+
+        const size_t name_len = stringLength(item->valuestring);
+        if (name_len == 0 || name_len > UINT8_MAX)
+        {
+            LOGF("JSON Error: TlsClient->settings->alpns[%d] must contain between 1 and 255 bytes", index);
+            return false;
+        }
+
+        for (int previous_index = 0; previous_index < index; ++previous_index)
+        {
+            const cJSON *previous = cJSON_GetArrayItem(alpns, previous_index);
+            // Earlier entries passed the same type and length validation.
+            if (stringLength(previous->valuestring) == name_len &&
+                memoryCompare(previous->valuestring, item->valuestring, name_len) == 0)
+            {
+                LOGF("JSON Error: TlsClient->settings->alpns[%d] duplicates an earlier protocol", index);
+                return false;
+            }
+        }
+
+        const size_t entry_len = 1 + name_len;
+        if (entry_len > kTlsClientMaxAlpnWireLength - wire_len)
+        {
+            LOGF("JSON Error: TlsClient->settings->alpns is too large for a TLS ALPN protocol list");
+            return false;
+        }
+
+        wire_len += entry_len;
+        ++index;
+    }
+
+    if (wire_len == 0)
+    {
+        return true;
+    }
+
+    ts->alpn_wire     = memoryAllocate(wire_len);
+    ts->alpn_wire_len = wire_len;
+
+    size_t offset = 0;
+    cJSON_ArrayForEach(item, alpns)
+    {
+        const size_t name_len   = stringLength(item->valuestring);
+        ts->alpn_wire[offset++] = (uint8_t) name_len;
+        memoryCopy(ts->alpn_wire + offset, item->valuestring, name_len);
+        offset += name_len;
+    }
+
+    assert(offset == wire_len);
+    return true;
+}
+
+static bool getOptionalBoolSetting(bool *value, const cJSON *settings, const char *name, bool default_value)
+{
+    const cJSON *item = cJSON_GetObjectItemCaseSensitive(settings, name);
+    if (item == NULL)
+    {
+        *value = default_value;
+        return true;
+    }
+    if (! cJSON_IsBool(item))
+    {
+        LOGF("TlsClient: '%s' must be a boolean", name);
+        return false;
+    }
+
+    *value = cJSON_IsTrue(item);
+    return true;
+}
+
+static bool getAndValidateEchGreaseSniOverrideSetting(tlsclient_tstate_t *ts, const cJSON *settings)
+{
+    const cJSON *item = cJSON_GetObjectItemCaseSensitive(settings, "ech-sni-trick");
+    if (item == NULL)
+    {
+        return true;
+    }
+
+    if (! cJSON_IsString(item) || item->valuestring == NULL)
+    {
+        LOGF("TlsClient: 'ech-sni-trick' must be a non-empty string");
+        return false;
+    }
+
+    ts->ech_grease_sni_override = stringDuplicate(item->valuestring);
+
+    const size_t override_len = stringLength(ts->ech_grease_sni_override);
+
+    if (override_len == 0)
+    {
+        LOGF("TlsClient: 'ech-sni-trick' must be a non-empty string");
+        return false;
+    }
+
+    if (override_len > kTlsClientMaxSniLength)
+    {
+        LOGF("TlsClient: 'ech-sni-trick' must contain between 1 and %u bytes", (unsigned int) kTlsClientMaxSniLength);
+        return false;
+    }
+
+    return true;
+}
+
+static const char *getSupportedGroupsList(bool x25519mlkem768_enabled)
+{
+    if (x25519mlkem768_enabled)
+    {
+        return "X25519MLKEM768:X25519:P-256:P-384";
+    }
+
+    return "X25519:P-256:P-384";
+}
+
+static bool loadCaCertificates(SSL_CTX *ssl_ctx)
+{
+    BIO *bio = BIO_new(BIO_s_mem());
+    if (bio == NULL)
+        return false;
+    if (BIO_write(bio, cacert_bytes, (int) cacert_len) != (int) cacert_len)
+    {
+        BIO_free(bio);
+        return false;
+    }
+
+    ERR_clear_error();
+    bool  loaded = false;
+    X509 *x;
+    while ((x = PEM_read_bio_X509_AUX(bio, NULL, NULL, NULL)) != NULL)
+    {
+        const int added = X509_STORE_add_cert(SSL_CTX_get_cert_store(ssl_ctx), x);
+        X509_free(x);
+        if (added != 1)
+        {
+            BIO_free(bio);
+            return false;
+        }
+        loaded = true;
+    }
+
+    // PEM reports normal end-of-bundle as NO_START_LINE; other failures are not EOF.
+    const uint32_t error = ERR_peek_last_error();
+    const bool success   = loaded && ERR_GET_LIB(error) == ERR_LIB_PEM && ERR_GET_REASON(error) == PEM_R_NO_START_LINE;
+    if (success)
+        ERR_clear_error();
+    BIO_free(bio);
+    return success;
+}
+
+static SSL_CTX *setupSslContext(const uint8_t *alpn_wire, size_t alpn_wire_len, bool verify,
+                                bool x25519mlkem768_enabled)
+{
+    SSL_CTX *ssl_ctx = SSL_CTX_new(TLS_client_method());
+
+    if (ssl_ctx == NULL)
+    {
+        return NULL;
+    }
+
+    SSL_CTX_set_verify(ssl_ctx, verify ? SSL_VERIFY_PEER : SSL_VERIFY_NONE, NULL);
+
+    if (! SSL_CTX_set_min_proto_version(ssl_ctx, TLS1_2_VERSION))
+    {
+        LOGF("TlsClient: (part of making SSL_CTX match chrome) Failed to set min proto version for SSL_CTX");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    if (! SSL_CTX_set_max_proto_version(ssl_ctx, TLS1_3_VERSION))
+    {
+        LOGF("TlsClient: (part of making SSL_CTX match chrome) Failed to set max proto version for SSL_CTX");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    SSL_CTX_set_grease_enabled(ssl_ctx, true);
+    SSL_CTX_set_grease_sigalgs_enabled(ssl_ctx, true);
+
+    SSL_CTX_set_permute_extensions(ssl_ctx, true);
+
+    // session tickets are by default enabled, this code disables it (WE DONT WANT TO DISABLE IT)
+    // SSL_CTX_set_options(ctx, SSL_OP_NO_TICKET);
+
+    SSL_CTX_set_session_cache_mode(ssl_ctx, SSL_SESS_CACHE_CLIENT);
+    SSL_CTX_set_timeout(ssl_ctx, 3600); // Chrome's TLS 1.2 lifetime; TLS 1.3 has a separate ticket lifetime.
+
+    if (! SSL_CTX_set1_groups_list(ssl_ctx, getSupportedGroupsList(x25519mlkem768_enabled)))
+    {
+        LOGF("TlsClient: (part of making SSL_CTX match chrome) Failed to set groups list for SSL_CTX");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    // Enable certificate compression with brotli (Chrome supports this)
+    if (! SSL_CTX_add_cert_compression_alg(ssl_ctx,
+                                           TLSEXT_cert_compression_brotli,
+                                           NULL /* compression not supported (same as chrome)*/,
+                                           tlsclientDecompressBrotliCert))
+    {
+        LOGF("TlsClient: failed to configure Brotli certificate decompression");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    // Enable SCT (Signed Certificate Timestamp) extension at context level
+    SSL_CTX_enable_signed_cert_timestamps(ssl_ctx);
+
+    // Match Chrome 154's verification preferences; BoringSSL prepends signature GREASE.
+    if (! SSL_CTX_set1_sigalgs_list(ssl_ctx,
+                                    "mldsa44:mldsa65:mldsa87:"
+                                    "ecdsa_secp256r1_sha256:"
+                                    "rsa_pss_rsae_sha256:"
+                                    "rsa_pkcs1_sha256:"
+                                    "ecdsa_secp384r1_sha384:"
+                                    "rsa_pss_rsae_sha384:"
+                                    "rsa_pkcs1_sha384:"
+                                    "rsa_pss_rsae_sha512:"
+                                    "rsa_pkcs1_sha512"))
+    {
+        LOGF("TlsClient: (part of making SSL_CTX match chrome) Failed to set signature algorithms for SSL_CTX");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    if (verify && ! loadCaCertificates(ssl_ctx))
+    {
+        LOGF("TlsClient: failed to load bundled CA certificates");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    if (! tlsclientConfigureTrustAnchors(ssl_ctx))
+    {
+        LOGF("TlsClient: failed to configure Chrome trust anchor IDs and intermediate certificates");
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+
+    // boringssl: Note this function's return value is backwards.
+    if (SSL_CTX_set_alpn_protos(ssl_ctx, alpn_wire, alpn_wire_len))
+    {
+        LOGF("TlsClient: failed to set ALPN for SSL_CTX (wire length=%zu)", alpn_wire_len);
+        SSL_CTX_free(ssl_ctx);
+        return NULL;
+    }
+    return ssl_ctx;
+}
+
+static bool createSslContextPool(SSL_CTX ***out_contexts, const uint8_t *alpn_wire, size_t alpn_wire_len,
+                                 int worker_count, bool verify, bool x25519mlkem768_enabled)
+{
+    *out_contexts = memoryAllocateZero((size_t) worker_count * sizeof(SSL_CTX *));
+
+    for (int i = 0; i < worker_count; i++)
+    {
+        (*out_contexts)[i] = setupSslContext(alpn_wire, alpn_wire_len, verify, x25519mlkem768_enabled);
+
+        if ((*out_contexts)[i] == NULL)
+        {
+            LOGF("TlsClient: Could not create ssl context");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
+ * Ask BoringSSL to serialize one complete ClientHello without using a worker
+ * buffer pool. A successful WANT_IO result with bytes in the write BIO proves
+ * that every nested TLS length field accepted this exact configuration.
+ */
+static bool tlsclientPreflightClientHello(SSL_CTX *ssl_ctx, const char *sni, const uint8_t *alpn_wire,
+                                          size_t alpn_wire_len, const uint8_t *ech_grease_override_payload,
+                                          size_t ech_grease_override_payload_len, uint8_t **out_payload,
+                                          size_t *out_payload_len)
+{
+    assert(ssl_ctx != NULL && sni != NULL);
+    assert(out_payload == NULL || out_payload_len != NULL);
+
+    if (out_payload != NULL)
+    {
+        *out_payload = NULL;
+    }
+    if (out_payload_len != NULL)
+    {
+        *out_payload_len = 0;
+    }
+
+    SSL     *ssl           = NULL;
+    BIO     *rbio          = NULL;
+    BIO     *wbio          = NULL;
+    uint8_t *payload       = NULL;
+    bool     ssl_owns_bios = false;
+    bool     success       = false;
+
+    ERR_clear_error();
+
+    ssl  = SSL_new(ssl_ctx);
+    rbio = BIO_new(BIO_s_mem());
+    wbio = BIO_new(BIO_s_mem());
+    if (ssl == NULL || rbio == NULL || wbio == NULL ||
+        ! tlsclientConfigureClientHelloExtensions(ssl, alpn_wire, alpn_wire_len))
+    {
+        goto cleanup;
+    }
+
+    SSL_set_bio(ssl, rbio, wbio);
+    ssl_owns_bios = true;
+    if (! tlsclientConfigureSslForConnect(ssl, sni, ech_grease_override_payload, ech_grease_override_payload_len) ||
+        ! tlsclientConfigureEchForSsl(ssl))
+    {
+        goto cleanup;
+    }
+
+    if (getSslStatus(ssl, SSL_connect(ssl)) != kSslstatusWantIo)
+    {
+        goto cleanup;
+    }
+
+    const size_t pending = BIO_ctrl_pending(wbio);
+    if (pending == 0 || pending > INT_MAX)
+    {
+        goto cleanup;
+    }
+
+    if (out_payload != NULL)
+    {
+        payload = memoryAllocate(pending);
+
+        size_t offset = 0;
+        while (offset < pending)
+        {
+            const int n = BIO_read(wbio, payload + offset, (int) (pending - offset));
+            if (n <= 0)
+            {
+                goto cleanup;
+            }
+            offset += (size_t) n;
+        }
+
+        if (BIO_ctrl_pending(wbio) != 0)
+        {
+            goto cleanup;
+        }
+
+        *out_payload = payload;
+        payload      = NULL;
+    }
+
+    if (out_payload_len != NULL)
+        *out_payload_len = pending;
+    success = true;
+
+cleanup:
+    memoryFree(payload);
+    SSL_free(ssl);
+    if (! ssl_owns_bios)
+    {
+        BIO_free(rbio);
+        BIO_free(wbio);
+    }
+
+    if (! success)
+    {
+        ERR_clear_error();
+    }
+    return success;
+}
+
+/*
+ * Default ECH GREASE uses a random 144, 176, 208, or 240-byte payload in the
+ * vendored BoringSSL. Supplying 240 zero bytes is valid because an override is
+ * intentionally opaque, and validates the largest runtime wire image.
+ */
+static bool tlsclientPreflightConfiguredClientHello(const tlsclient_tstate_t *ts, size_t *out_wire_length)
+{
+    assert(ts != NULL && ts->threadlocal_ssl_contexts != NULL && ts->threadlocal_ssl_contexts[0] != NULL &&
+           ts->sni != NULL);
+
+    static const uint8_t kMaximumEchGreasePayload[kTlsClientMaxEchGreasePayloadLength] = {0};
+
+    if (ts->ech_grease_sni_override == NULL)
+    {
+        return tlsclientPreflightClientHello(ts->threadlocal_ssl_contexts[0],
+                                             ts->sni,
+                                             ts->alpn_wire,
+                                             ts->alpn_wire_len,
+                                             kMaximumEchGreasePayload,
+                                             sizeof(kMaximumEchGreasePayload),
+                                             NULL,
+                                             out_wire_length);
+    }
+
+    assert(ts->threadlocal_ech_grease_inner_ssl_contexts != NULL &&
+           ts->threadlocal_ech_grease_inner_ssl_contexts[0] != NULL);
+
+    uint8_t *inner_payload     = NULL;
+    size_t   inner_payload_len = 0;
+    bool     success           = tlsclientPreflightClientHello(ts->threadlocal_ech_grease_inner_ssl_contexts[0],
+                                                 ts->ech_grease_sni_override,
+                                                 ts->alpn_wire,
+                                                 ts->alpn_wire_len,
+                                                 kMaximumEchGreasePayload,
+                                                 sizeof(kMaximumEchGreasePayload),
+                                                 &inner_payload,
+                                                 &inner_payload_len);
+    if (! success || inner_payload_len > UINT16_MAX)
+    {
+        memoryFree(inner_payload);
+        return false;
+    }
+
+    success = tlsclientPreflightClientHello(ts->threadlocal_ssl_contexts[0],
+                                            ts->sni,
+                                            ts->alpn_wire,
+                                            ts->alpn_wire_len,
+                                            inner_payload,
+                                            inner_payload_len,
+                                            NULL,
+                                            out_wire_length);
+    memoryFree(inner_payload);
+    return success;
+}
+
+static bool createFragmenter(tunnel_t *t, node_t *node)
+{
+    const cJSON *fragment = NULL, *item;
+    cJSON_ArrayForEach(item, node->node_settings_json)
+    {
+        if (stringCompare(item->string, "fragment") != 0)
+            continue;
+        if (fragment != NULL || ! cJSON_IsObject(item))
+        {
+            LOGF("TlsClient: fragment must be a single StreamFragmenter settings object");
+            return false;
+        }
+        fragment = item;
+    }
+    if (fragment == NULL)
+        return true;
+
+    tlsclient_tstate_t *ts = tunnelGetState(t);
+    ts->fragment_settings  = cJSON_Duplicate(fragment, true);
+    if (! nodeConfigureChild(&ts->fragment_node,
+                             nodeStreamFragmenterGet(),
+                             node,
+                             ".stream-fragmenter",
+                             kNodeChildLinkOwnerNext,
+                             ts->fragment_settings))
+        return false;
+    ts->fragment_tunnel = nodemanagerCreateTunnelInstance(&ts->fragment_node);
+    if (ts->fragment_tunnel == NULL)
+    {
+        LOGF("TlsClient: failed to construct fragment helper");
+        return false;
+    }
+    ts->fragment_node.instance = ts->fragment_tunnel;
+    t->onChain                 = tlsclientTunnelOnChain;
+    return true;
+}
+
+tunnel_t *tlsclientTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(tlsclient_tstate_t), sizeof(tlsclient_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    configureTunnelCallbacks(t);
+
+    int                 worker_count = getWorkersCount();
+    tlsclient_tstate_t *ts           = tunnelGetState(t);
+    const cJSON        *settings     = node->node_settings_json;
+
+    if (! getAndValidateSniSetting(ts, settings) || ! createFragmenter(t, node))
+    {
+        goto fail;
+    }
+
+    char shaping_error[kTlsRecordShapingErrorSize];
+    if (! tlsrecordshapingParse(settings, kTlsRecordShapingSenderClient, &ts->record_shaping, shaping_error))
+    {
+        LOGF("TlsClient: invalid tls13-record-shaping configuration: %s", shaping_error);
+        goto fail;
+    }
+
+    if (! getOptionalBoolSetting(&ts->x25519mlkem768_enabled, settings, "x25519mlkem768", true) ||
+        ! getOptionalBoolSetting(&ts->verify, settings, "verify", true) ||
+        ! getOptionalBoolSetting(&ts->verbose, settings, "verbose", false) ||
+        ! getAndValidateEchGreaseSniOverrideSetting(ts, settings) || ! tlsclientParseAlpnSetting(ts, settings))
+    {
+        goto fail;
+    }
+
+    if (! createSslContextPool(&(ts->threadlocal_ssl_contexts),
+                               ts->alpn_wire,
+                               ts->alpn_wire_len,
+                               worker_count,
+                               ts->verify,
+                               ts->x25519mlkem768_enabled))
+    {
+        goto fail;
+    }
+
+    if (ts->ech_grease_sni_override != NULL && ! createSslContextPool(&(ts->threadlocal_ech_grease_inner_ssl_contexts),
+                                                                      ts->alpn_wire,
+                                                                      ts->alpn_wire_len,
+                                                                      worker_count,
+                                                                      false,
+                                                                      false))
+    {
+        goto fail;
+    }
+
+    if (! tlsclientConfigureEchContexts(ts, settings))
+        goto fail;
+
+    size_t fresh_hello_wire_length = 0;
+    if (! tlsclientPreflightConfiguredClientHello(ts, &fresh_hello_wire_length))
+    {
+        LOGF("TlsClient: configured ALPN and ECH settings cannot produce a complete ClientHello");
+        goto fail;
+    }
+
+    for (int i = 0; i < worker_count; ++i)
+    {
+        if (! tlsclientConfigureSessionCache(ts->threadlocal_ssl_contexts[i], ts->sni, fresh_hello_wire_length))
+        {
+            LOGF("TlsClient: failed to configure the client session cache");
+            goto fail;
+        }
+    }
+
+    if (ts->verbose)
+    {
+        LOGD("TlsClient: creating node \"%s\" tls13-record-shaping=%s",
+             node->name,
+             tlsrecordshapingConfigModeName(&ts->record_shaping));
+    }
+
+    return t;
+
+fail:
+    tlsclientTunnelstateDestroy(ts);
+    tunnelDestroy(t);
+    return NULL;
+}

@@ -1,0 +1,108 @@
+#include "internal.h"
+
+#include "loggers/network_logger.h"
+
+void socks5clientTunnelstateDestroy(socks5client_tstate_t *ts)
+{
+    assert(ts != NULL);
+
+    addresscontextReset(&ts->target_addr);
+
+    if (ts->username != NULL)
+    {
+        memoryFree(ts->username);
+        ts->username = NULL;
+    }
+
+    if (ts->password != NULL)
+    {
+        memoryZero(ts->password, ts->password_len);
+        memoryFree(ts->password);
+        ts->password = NULL;
+    }
+
+    memoryZeroAligned32(ts, tunnelGetCorrectAlignedStateSize(sizeof(*ts)));
+}
+
+void socks5clientCloseOwnedLine(tunnel_t *t, line_t *owned_l)
+{
+    if (owned_l == NULL || ! lineIsAlive(owned_l))
+    {
+        return;
+    }
+
+    socks5clientLinestateDestroy(lineGetState(owned_l, t));
+    tunnelNextUpStreamFinish(t, owned_l);
+    if (lineIsAlive(owned_l))
+    {
+        lineDestroy(owned_l);
+    }
+}
+
+void socks5clientCloseLineBidirectional(tunnel_t *t, line_t *l)
+{
+    socks5client_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->kind == kSocks5ClientLineKindUdpApplication)
+    {
+        line_t *control_l = ls->control_line;
+        line_t *udp_l     = ls->udp_line;
+
+        ls->control_line = NULL;
+        ls->udp_line     = NULL;
+
+        socks5clientCloseOwnedLine(t, udp_l);
+        socks5clientCloseOwnedLine(t, control_l);
+        socks5clientLinestateDestroy(ls);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+
+    if (ls->kind == kSocks5ClientLineKindUdpControl || ls->kind == kSocks5ClientLineKindUdpRelay)
+    {
+        line_t *application_l = ls->application_line;
+        line_t *control_l     = NULL;
+        line_t *udp_l         = NULL;
+
+        if (application_l != NULL && lineIsAlive(application_l))
+        {
+            socks5client_lstate_t *application_ls = lineGetState(application_l, t);
+
+            control_l = application_ls->control_line;
+            udp_l     = application_ls->udp_line;
+            if (control_l == l)
+            {
+                control_l = NULL;
+            }
+            if (udp_l == l)
+            {
+                udp_l = NULL;
+            }
+
+            application_ls->control_line = NULL;
+            application_ls->udp_line     = NULL;
+        }
+
+        socks5clientLinestateDestroy(ls);
+        tunnelNextUpStreamFinish(t, l);
+        if (lineIsAlive(l))
+        {
+            lineDestroy(l);
+        }
+
+        socks5clientCloseOwnedLine(t, udp_l);
+        socks5clientCloseOwnedLine(t, control_l);
+
+        if (application_l != NULL && lineIsAlive(application_l))
+        {
+            socks5client_lstate_t *application_ls = lineGetState(application_l, t);
+            socks5clientLinestateDestroy(application_ls);
+            tunnelPrevDownStreamFinish(t, application_l);
+        }
+        return;
+    }
+
+    socks5clientLinestateDestroy(ls);
+    tunnelNextUpStreamFinish(t, l);
+    tunnelPrevDownStreamFinish(t, l);
+}

@@ -1,0 +1,68 @@
+#pragma once
+
+#include "wwapi.h"
+
+enum mode_dynamic_value_status
+{
+    kDvsSourceMode = kDvsFirstOption,
+    kDvsDestMode
+};
+
+enum direction_dynamic_value_status
+{
+    kDvsUp = kDvsFirstOption,
+    kDvsDown
+};
+
+enum ipoverrider_direction_index
+{
+    kIpOverriderDirectionUp = 0,
+    kIpOverriderDirectionDown,
+    kIpOverriderDirectionCount
+};
+
+enum ipoverrider_mode_index
+{
+    kIpOverriderModeSource = 0,
+    kIpOverriderModeDest,
+    kIpOverriderModeCount
+};
+
+typedef struct ipoverrider_rule_s
+{
+    struct in6_addr ov_6;
+    uint32_t        ov_4;
+    uint32_t       *ov_4_list;
+    atomic_uint     ov_4_rr_cursor;
+    uint32_t        ov_4_count;
+    bool            support4;
+    bool            support6;
+} ipoverrider_rule_t;
+
+typedef MSVC_ATTR_ALIGNED_LINE_CACHE struct ipoverrider_worker_gates_s
+{
+    noncrypto_percent_gate_t direction[kIpOverriderDirectionCount];
+} GNU_ATTR_ALIGNED_LINE_CACHE ipoverrider_worker_gates_t;
+
+_Static_assert(sizeof(ipoverrider_worker_gates_t) % kCpuLineCacheSize == 0,
+               "IpOverrider worker gates must occupy complete cache lines");
+
+typedef struct ipoverrider_tstate_s
+{
+    ipoverrider_rule_t          rules[kIpOverriderDirectionCount][kIpOverriderModeCount];
+    ipoverrider_worker_gates_t *worker_gates;
+    wid_t                       worker_gate_count;
+    int                         chance;
+    bool                        only120;
+} ipoverrider_tstate_t;
+
+WW_EXPORT void         ipoverriderDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *ipoverriderCreate(node_t *node);
+WW_EXPORT api_result_t ipoverriderApi(tunnel_t *instance, sbuf_t *message);
+
+void ipoverriderUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+
+void ipoverriderDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+
+void ipoverriderApplyUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void ipoverriderApplyDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);

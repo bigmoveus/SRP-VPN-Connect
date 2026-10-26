@@ -1,0 +1,43 @@
+#pragma once
+
+#include <stdbool.h>
+#include <stddef.h> /* for size_t */
+#include <stdint.h>
+
+static inline bool memoryTryComputeArraySize(size_t count, size_t item_size, size_t *size_out)
+{
+    if (size_out == NULL || item_size == 0 || count > SIZE_MAX / item_size)
+    {
+        return false;
+    }
+    *size_out = count * item_size;
+    return true;
+}
+
+struct dedicated_memory_s;
+typedef struct dedicated_memory_s dedicated_memory_t;
+
+/* Heap exhaustion terminates immediately through abortProgramNow(); no orderly
+ * cleanup is attempted and no NULL result is returned for allocation failure.
+ * Zero-byte allocations reserve at least one byte. memoryReAllocate(ptr, 0)
+ * instead frees ptr and returns NULL, including when ptr is NULL.
+ *
+ * Invalid geometry remains distinguishable from heap exhaustion: aligned
+ * allocation returns NULL for invalid alignment or unrepresentable size, and
+ * memoryCalloc returns NULL if n * size overflows. Validate external sizes before
+ * committing to an allocation. Dedicated helpers inherit these contracts. */
+void *memoryAllocate(size_t size);
+void *memoryAllocateZero(size_t size);
+bool  memoryAlignedAllocationSizeIsRepresentable(size_t size, size_t alignment);
+void *memoryAllocateAligned(size_t size, size_t alignment);
+void *memoryAllocateAlignedZero(size_t size, size_t alignment);
+void *memoryAllocateCacheAligned(size_t size);
+void *memoryAllocateCacheAlignedZero(size_t size);
+void *memoryReAllocate(void *ptr, size_t size);
+void *memoryCalloc(size_t n, size_t size);
+void  memoryFree(void *ptr);
+void  memoryFreeAligned(void *ptr);
+
+void *memoryDedicatedAllocate(dedicated_memory_t *dm, size_t size);
+void *memoryDedicatedReallocate(dedicated_memory_t *dm, void *ptr, size_t size);
+void  memoryDedicatedFree(dedicated_memory_t *dm, void *ptr);

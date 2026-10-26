@@ -1,0 +1,239 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static void failAndCloseU(tunnel_t *t, line_t *l, httpserver_lstate_t *ls)
+{
+    if (lineIsAlive(l))
+    {
+        httpserverTransportCloseBothDirections(t, l, ls);
+    }
+}
+
+void httpserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    httpserver_lstate_t *ls = lineGetState(l, t);
+    httpserver_tstate_t *ts = tunnelGetState(t);
+
+    if (ls->split_role == kHttpServerSplitRoleUnknown || ls->split_role == kHttpServerSplitRoleUpload ||
+        ls->split_role == kHttpServerSplitRoleDownload)
+    {
+        httpserverSplitUpStreamPayload(t, l, buf);
+        return;
+    }
+
+    lineRef(l);
+
+    if (ts->verbose)
+    {
+        LOGD("HttpServer: upstream payload runtime=%d len=%u", ls->runtime_proto, sbufGetLength(buf));
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeUpgradedRaw)
+    {
+        httpserverTransportQueueUpgradePayload(t, l, buf, true);
+        lineUnref(l);
+        return;
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeHttp2)
+    {
+        if (! httpserverTransportFeedHttp2Input(t, l, ls, buf))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+        else if (! httpserverTransportFlushPendingDown(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+
+        if (ts->websocket_enabled && ls->websocket_active &&
+            (ls->websocket_close_received || ls->h2_request_finished))
+        {
+            httpserverTransportCloseBothDirections(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+        if (! lineIsAlive(l))
+        {
+            lineUnref(l);
+            return;
+        }
+        lineUnref(l);
+        return;
+    }
+
+    if (ts->websocket_enabled && ls->websocket_active)
+    {
+        bufferstreamPush(&ls->in_stream, buf);
+        if (! httpserverTransportDrainWebSocketUp(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+
+        if (ls->websocket_close_received)
+        {
+            httpserverTransportCloseBothDirections(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+
+        if (! httpserverTransportFlushPendingDown(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+
+        lineUnref(l);
+        return;
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeHttp1 && ls->h1_request_finished)
+    {
+        if (ts->verbose && ! ls->h1_trailing_bytes_logged)
+        {
+            LOGD("HttpServer: ignoring bytes after the HTTP/1.1 request body");
+            ls->h1_trailing_bytes_logged = true;
+        }
+        lineReuseBuffer(l, buf);
+        lineUnref(l);
+        return;
+    }
+
+    bufferstreamPush(&ls->in_stream, buf);
+
+    if (! httpserverTransportDetectRuntimeProtocol(t, l, ls))
+    {
+        failAndCloseU(t, l, ls);
+        lineUnref(l);
+        return;
+    }
+
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeHttp2)
+    {
+        while (! bufferstreamIsEmpty(&ls->in_stream))
+        {
+            sbuf_t *frame = bufferstreamIdealRead(&ls->in_stream);
+            if (! httpserverTransportFeedHttp2Input(t, l, ls, frame))
+            {
+                failAndCloseU(t, l, ls);
+                lineUnref(l);
+                return;
+            }
+
+            if (! lineIsAlive(l))
+            {
+                lineUnref(l);
+                return;
+            }
+        }
+
+        if (! httpserverTransportFlushPendingDown(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+        lineUnref(l);
+        return;
+    }
+
+    if (! httpserverTransportHandleHttp1RequestHeaderPhase(t, l, ls))
+    {
+        if (! lineIsAlive(l))
+        {
+            lineUnref(l);
+            return;
+        }
+
+        failAndCloseU(t, l, ls);
+        lineUnref(l);
+        return;
+    }
+
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (! tunnelIsActiveForLine(t, l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeHttp2)
+    {
+        while (! bufferstreamIsEmpty(&ls->in_stream))
+        {
+            sbuf_t *frame = bufferstreamIdealRead(&ls->in_stream);
+            if (! httpserverTransportFeedHttp2Input(t, l, ls, frame))
+            {
+                failAndCloseU(t, l, ls);
+                lineUnref(l);
+                return;
+            }
+
+            if (! lineIsAlive(l))
+            {
+                lineUnref(l);
+                return;
+            }
+        }
+
+        if (! httpserverTransportFlushPendingDown(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+        lineUnref(l);
+        return;
+    }
+
+    if (ls->runtime_proto == kHttpServerRuntimeHttp1 && ls->h1_headers_parsed)
+    {
+        if (! httpserverTransportDrainHttp1RequestBody(t, l, ls))
+        {
+            failAndCloseU(t, l, ls);
+            lineUnref(l);
+            return;
+        }
+    }
+
+    if (! httpserverTransportFlushPendingDown(t, l, ls))
+    {
+        failAndCloseU(t, l, ls);
+        lineUnref(l);
+        return;
+    }
+
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    if (ts->websocket_enabled && ls->websocket_active && ls->websocket_close_received)
+    {
+        httpserverTransportCloseBothDirections(t, l, ls);
+        lineUnref(l);
+        return;
+    }
+
+    lineUnref(l);
+}

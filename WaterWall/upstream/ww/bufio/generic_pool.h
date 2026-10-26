@@ -1,0 +1,245 @@
+#pragma once
+
+/*
+ * Generic object pool with master-pool fallback and optional thread checks.
+ */
+
+#include "master_pool.h"
+#include "wlibc.h"
+#include "wthread.h"
+
+/*
+    A growable pool
+
+    preallocates (n) number of buffers at each call to charge(),
+
+    recharing is done autmatically and internally.
+
+    pool width is affected by ww memory profile
+
+    when DEBUG is true, you can:
+
+
+*/
+
+typedef struct generic_pool_s generic_pool_t;
+
+// struct pool_item_s; // void
+typedef void pool_item_t;
+
+typedef pool_item_t *(*PoolItemCreateHandle)(generic_pool_t *pool);
+typedef void (*PoolItemDestroyHandle)(pool_item_t *item);
+
+#define GENERIC_POOL_FIELDS                                                                                            \
+    uint32_t              len;                                                                                         \
+    uint32_t              cap;                                                                                         \
+    uint32_t              free_threshold;                                                                              \
+    uint32_t              item_size;                                                                                   \
+    PoolItemCreateHandle  create_item_handle;                                                                          \
+    PoolItemDestroyHandle destroy_item_handle;                                                                         \
+    master_pool_t        *mp;                                                                                          \
+    pool_item_t          *available[];
+
+struct generic_pool_s
+{
+
+#if POOL_THREAD_CHECK
+    tid_t tid;
+    bool  no_thread_check; // if true, we don't check the thread ID
+
+#endif
+
+    GENERIC_POOL_FIELDS
+};
+
+/**
+ * Checks if the current thread has access to the pool.
+ * This has no effect on non-debug builds.
+ * @param pool The generic pool to check access for.
+ */
+#if POOL_THREAD_CHECK
+static inline void genericpoolDebugCheckThreadAccess(generic_pool_t *pool)
+{
+    if (pool->no_thread_check)
+    {
+        // If no thread check is enabled, skip the thread ID check
+        return;
+    }
+
+    if (UNLIKELY(pool->tid == 0))
+    {
+        // This is the first access, set the thread ID
+        pool->tid = getTID();
+    }
+    if (UNLIKELY(pool->tid != getTID()))
+    {
+        printError("GenericPool: Access from wrong thread %d, expected %d", getTID(), pool->tid);
+        assert(false);
+        abortProgramNow(1);
+    }
+}
+#else
+#define genericpoolDebugCheckThreadAccess(pool) ((void) 0)
+#endif
+
+/**
+ * Recharges the pool by preallocating a number of buffers.
+ * @param pool The generic pool to recharge.
+ */
+void genericpoolReCharge(generic_pool_t *pool);
+
+/**
+ * Shrinks the pool by releasing a number of buffers.
+ * @param pool The generic pool to shrink.
+ */
+void genericpoolShrink(generic_pool_t *pool);
+
+/**
+ * Retrieves an item from the pool.
+ * @param pool The generic pool to retrieve an item from.
+ * @return A pointer to the retrieved item.
+ */
+static inline pool_item_t *genericpoolGetItem(generic_pool_t *pool)
+{
+    masterpoolRecordCheckout(pool->mp);
+#if BYPASS_GENERIC_POOL == 1
+    return masterpoolRequireCreatedItem(pool->mp, pool->create_item_handle(pool), pool);
+#endif
+
+    genericpoolDebugCheckThreadAccess(pool);
+
+    pool_item_t *item;
+    if (LIKELY(pool->len > 0))
+    {
+        --(pool->len);
+        item = pool->available[pool->len];
+    }
+    else
+    {
+        genericpoolReCharge(pool);
+        --(pool->len);
+        item = pool->available[pool->len];
+    }
+    return item;
+}
+
+/**
+ * Reuses an item by returning it to the pool.
+ * @param pool The generic pool to return the item to.
+ * @param b The item to be reused.
+ */
+static inline void genericpoolReuseItem(generic_pool_t *pool, pool_item_t *b)
+{
+#if BYPASS_GENERIC_POOL == 1
+    pool->destroy_item_handle(b);
+    masterpoolRecordReturn(pool->mp);
+    return;
+#endif
+
+    genericpoolDebugCheckThreadAccess(pool);
+
+    if (pool->len > pool->free_threshold)
+    {
+        genericpoolShrink(pool);
+    }
+
+    pool->available[(pool->len)++] = b;
+    masterpoolRecordReturn(pool->mp);
+}
+
+/**
+ * Return an item through the shared master pool without touching worker-local
+ * storage. This is the terminal path for a pooled object whose final reference
+ * is released by a foreign or unregistered thread.
+ */
+void genericpoolReuseItemShared(generic_pool_t *pool, pool_item_t *item);
+
+/** Family-wide checked-out items whose terminal return has not completed. */
+static inline size_t genericpoolGetInUse(const generic_pool_t *pool)
+{
+    return masterpoolGetCheckedOut(pool->mp);
+}
+
+/**
+ * Gets the item size of the pool.
+ * @param pool The generic pool to get the item size from.
+ * @return The item size of the pool.
+ */
+static inline uint32_t genericpoolGetItemSize(generic_pool_t *pool)
+{
+    return pool->item_size;
+}
+
+/**
+ * Sets the item size of the pool.
+ * @param pool The generic pool to set the item size for.
+ * @param item_size The item size to set.
+ */
+static inline void genericpoolSetItemSize(generic_pool_t *pool, uint32_t item_size)
+{
+    pool->item_size = item_size;
+}
+
+/**
+ * Creates a generic pool with custom create and destroy handlers.
+ * @param mp The master pool.
+ * @param create_h The handler to create pool items.
+ * @param destroy_h The handler to destroy pool items.
+ * @return A pointer to the created generic pool, or NULL for invalid arguments
+ *         or metadata geometry. Heap allocation failure terminates the process.
+ */
+generic_pool_t *genericpoolCreate(master_pool_t *mp, PoolItemCreateHandle create_h, PoolItemDestroyHandle destroy_h);
+
+/**
+ * Creates a generic pool with custom create and destroy handlers and a specified capacity.
+ * @param mp The master pool.
+ * @param pool_width The width of the pool.
+ * @param create_h The handler to create pool items.
+ * @param destroy_h The handler to destroy pool items.
+ * @return A pointer to the created generic pool, or NULL for invalid arguments or geometry.
+ */
+generic_pool_t *genericpoolCreateWithCapacity(master_pool_t *mp, uint32_t pool_width, PoolItemCreateHandle create_h,
+                                              PoolItemDestroyHandle destroy_h);
+
+/**
+ * Create a local cache without replacing the master's installed callbacks.
+ * The master must have fixed, userdata-independent callbacks installed before
+ * construction, and every local cache in this family must use this constructor.
+ * This also permits direct master checkout with NULL userdata on foreign threads.
+ * Returns NULL for invalid arguments or metadata geometry.
+ */
+generic_pool_t *genericpoolCreateWithMasterPoolCallbacks(master_pool_t *mp, uint32_t pool_width);
+
+/**
+ * Creates a generic pool with a default allocator.
+ * @param mp The master pool.
+ * @param item_size The size of each item in the pool.
+ * @return A pointer to the created generic pool, or NULL for invalid arguments or geometry.
+ */
+generic_pool_t *genericpoolCreateWithDefaultAllocator(master_pool_t *mp, uint32_t item_size);
+
+/**
+ * Creates a generic pool with a default allocator and a specified capacity.
+ * @param mp The master pool.
+ * @param item_size The size of each item in the pool.
+ * @param pool_width The width of the pool.
+ * @return A pointer to the created generic pool, or NULL for invalid arguments or geometry.
+ */
+generic_pool_t *genericpoolCreateWithDefaultAllocatorAndCapacity(master_pool_t *mp, uint32_t item_size,
+                                                                 uint32_t pool_width);
+
+/**
+ * Creates a generic pool with a cache-line aligned default allocator and a specified capacity.
+ * @param mp The master pool.
+ * @param item_size The size of each item in the pool.
+ * @param pool_width The width of the pool.
+ * @return A pointer to the created generic pool, or NULL for invalid arguments or geometry.
+ */
+generic_pool_t *genericpoolCreateWithDefaultCacheAlignedAllocatorAndCapacity(master_pool_t *mp, uint32_t item_size,
+                                                                             uint32_t pool_width);
+
+/**
+ * Destroys the generic pool and frees its resources.
+ * @param pool The generic pool to destroy.
+ */
+void genericpoolDestroy(generic_pool_t *pool);

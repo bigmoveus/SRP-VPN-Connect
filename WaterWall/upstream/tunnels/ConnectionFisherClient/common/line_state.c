@@ -1,0 +1,67 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+bool connectionfisherclientLinestateInitializeMain(connectionfisherclient_lstate_t *ls, uint32_t child_count)
+{
+    assert(child_count > 0);
+
+    *ls = (connectionfisherclient_lstate_t) {
+        .role               = kConnectionFisherClientRoleMain,
+        .main_est_forwarded = false,
+        .open_child_count   = 0,
+        .selected_child     = NULL,
+        .main_line          = NULL,
+        .pending_up         = bufferqueueCreate(kConnectionFisherPendingQueueInitialCapacity),
+    };
+
+#if WW_COMPILE_FOR_32BIT
+    if (UNLIKELY(child_count > SIZE_MAX / sizeof(*ls->child_lines)))
+    {
+        LOGW("ConnectionFisherClient: child line count is too large to represent");
+        return false;
+    }
+#endif
+
+    ls->child_lines = memoryAllocateZero(sizeof(*ls->child_lines) * (size_t) child_count);
+    ls->child_count = child_count;
+    return true;
+}
+
+void connectionfisherclientLinestateInitializeChild(connectionfisherclient_lstate_t *ls, line_t *l, line_t *main_l,
+                                                    uint32_t slot)
+{
+    lineRef(main_l);
+
+    *ls = (connectionfisherclient_lstate_t) {
+        .role                     = kConnectionFisherClientRoleChild,
+        .child_handshake_complete = false,
+        .child_slot               = slot,
+        .main_line                = main_l,
+        .read_stream              = bufferstreamCreate(lineGetBufferPool(l), 0),
+    };
+}
+
+void connectionfisherclientLinestateDestroyMain(connectionfisherclient_lstate_t *ls)
+{
+    assert(ls->role == kConnectionFisherClientRoleMain);
+
+    bufferqueueDestroy(&ls->pending_up);
+    memoryFree(ls->child_lines);
+    memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(*ls)));
+}
+
+void connectionfisherclientLinestateDestroyChild(connectionfisherclient_lstate_t *ls)
+{
+    assert(ls->role == kConnectionFisherClientRoleChild);
+
+    bufferstreamDestroy(&ls->read_stream);
+    memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(*ls)));
+}
+
+void connectionfisherclientRetireReadStream(connectionfisherclient_lstate_t *ls)
+{
+    assert(bufferstreamIsEmpty(&ls->read_stream));
+    bufferstreamDestroy(&ls->read_stream);
+    ls->read_stream = (buffer_stream_t) {0};
+}

@@ -1,0 +1,42 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void tundeviceTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context)
+{
+    discard             context;
+    tundevice_tstate_t *state = tunnelGetState(t);
+    tun_device_t       *tdev  = state->tdev;
+
+    tundeviceClearEgressPinIfPublished(state);
+
+    tundeviceFreeDnsSettings(state);
+    tundeviceFreeRouteSettings(state);
+
+    if (tdev)
+    {
+        tundeviceDestroy(tdev);
+        state->tdev = NULL;
+    }
+#ifdef OS_WIN
+    if (state->windows_ownership.lease != NULL)
+    {
+        CloseHandle(state->windows_ownership.lease);
+        state->windows_ownership.lease = NULL;
+    }
+#endif
+
+    if (state->name)
+    {
+        memoryFree(state->name);
+    }
+    if (state->ip_subnet)
+    {
+        memoryFree(state->ip_subnet);
+    }
+    if (state->ip_present)
+    {
+        memoryFree(state->ip_present);
+    }
+    tunnelDestroy(t);
+}

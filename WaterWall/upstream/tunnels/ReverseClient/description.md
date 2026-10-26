@@ -1,0 +1,219 @@
+<!--
+Documentation version: 155
+Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/ReverseClient.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/ReverseClient.mdx, and all files must keep the same documentation version.
+-->
+
+# ReverseClient Node
+
+`ReverseClient` keeps a pool of pre-opened reverse connections toward a remote `ReverseServer`. When one of those waiting reverse connections starts carrying real traffic, `ReverseClient` creates a local-facing line for the previous node and forwards traffic through that reverse channel.
+
+In practice, this node is used on the client side of a reverse tunnel setup.
+
+## What It Does
+
+- Pre-creates outbound reverse connections through the next node.
+- Keeps a minimum number of spare, ready-to-use reverse connections per worker.
+- Sends an internal handshake on each spare connection.
+- Waits until a reverse connection is actually assigned traffic.
+- Once assigned, opens a line toward the previous node and forwards payload in both directions.
+- Replenishes the spare reverse connection pool whenever a connection is consumed or closed.
+
+This node is neither a pure chain head nor a pure chain end. It behaves like a local inbound source for the previous node, while it also consumes an outbound path through the next node.
+
+## Required Chain Adjacency
+
+Place `Bridge` immediately before `ReverseClient`: `Bridge -> ReverseClient`.
+Do not put any node between them. On the server side, place `Bridge` immediately
+after `ReverseServer`: `ReverseServer -> Bridge`, also with no intervening nodes.
+
+These are chain-design rules that users must follow. The code does not
+automatically enforce either adjacency requirement. Transport or processing nodes
+must be placed outside these two gaps; the outbound path after `ReverseClient`
+may still contain the transport nodes described below.
+
+## Typical Placement
+
+A common setup is:
+
+- `ReverseClient` on the machine that cannot accept direct inbound traffic
+- a `Bridge` immediately before `ReverseClient` to attach the reverse side to another local chain segment
+- some outbound transport after it, such as TCP/TLS/HTTP tunnels, leading to the remote side
+- `ReverseServer` on the reachable side of that transport
+- a paired `Bridge` immediately after `ReverseServer` to attach the reverse side to the service-facing chain
+
+`ReverseClient` expects the next side of the chain to be able to create and carry outbound connections to the remote `ReverseServer`. The local-facing side connects through the directly adjacent `Bridge` and its pair.
+
+## Configuration Example
+
+```json
+{
+  "name": "reverse-client",
+  "type": "ReverseClient",
+  "settings": {
+    "minimum-unused": 16,
+    "reverse-secret-length": 640,
+    "reverse-secret": "shared-secret"
+  },
+  "next": "outbound-chain-node"
+}
+```
+
+## Required JSON Fields
+
+### Top-level fields
+
+- `name` `(string)`
+  A user-chosen name for this node.
+
+- `type` `(string)`
+  Must be exactly `"ReverseClient"`.
+
+- `next` `(string)`
+  The next node used to create the outbound reverse connections.
+
+### `settings`
+
+The implementation works with an empty `settings` object. Optional fields tune
+the spare connection pool and the reverse-link handshake signature.
+
+## Optional `settings` Fields
+
+- `minimum-unused` `(integer)`
+  Minimum number of spare reverse connections that this tunnel tries to keep available.
+
+  Default: `workers * 4`
+
+  This value must be greater than `0`.
+
+- `reverse-secret-length` `(integer)`
+  Overrides the reverse handshake length.
+
+  Default: `640`
+
+  This value must be in range `1` to `1024`.
+
+- `reverse-secret` `(string)`
+  Changes the reverse handshake bytes by XORing the default handshake bytes with
+  the ASCII bytes of this string repeatedly.
+
+  `ReverseClient`, `ReverseServer`, and any `SniffRouter` reverse route in front
+  of them must use the same `reverse-secret-length` and `reverse-secret`.
+
+## Detailed Behavior
+
+### Startup behavior
+
+When the tunnel starts, it asks every worker to create reverse connections until that worker has enough spare capacity. The target spare count is controlled by `minimum-unused`.
+
+The code tracks two per-worker counters:
+
+- connecting reverse connections
+- established but still unused reverse connections
+
+If the sum is below the configured minimum, the tunnel schedules more reverse connection attempts.
+
+### How a reverse connection is created
+
+For each spare reverse connection, `ReverseClient` creates two internal lines:
+
+- one line that goes to the next node and carries the real transport
+- one paired local-facing line that will later be exposed to the previous node if the reverse connection becomes active
+
+As soon as the outbound side is initialized, `ReverseClient` sends the full
+internal handshake in one payload. By default this is `640` bytes of value
+`0xFF`. If `reverse-secret` is configured, the default bytes are XORed with the
+secret bytes repeatedly. `ReverseServer` uses the same configured handshake to
+recognize these spare reverse connections.
+
+### When a spare connection becomes active
+
+A spare reverse link remains unused until the complete one-time activation
+prefix from ReverseServer has arrived. Its four-byte big-endian total length
+includes the header and must be in `4..65536`. Random padding is discarded
+incrementally with a four-byte header cache and 256-byte scratch, without
+allocating the advertised total length. Split headers/padding and a prefix
+coalesced with application bytes are accepted. Malformed lengths close the pair;
+the existing 30-second idle deadline also covers incomplete activation.
+
+After consuming the prefix, the client decrements the connecting or unused count,
+removes the idle entry, increments the active count, schedules a replacement
+spare, and initializes the local paired line toward the previous node. A destination greeting can flow immediately,
+even when the user has sent nothing. The activation never reaches the destination.
+Remaining application bytes are forwarded in order, and all later deliveries pass
+through directly. There is no further activation framing and no client setting for
+the server's size range. Nested application input during destination Init/initial
+handoff stays behind older bytes in a FIFO. The original initial body and queued
+input share a 2 MiB logical-byte / 1,024-buffer budget. Empty input consumes no
+entries; overflow closes the pair. Ready direct payloads do not use this backlog.
+
+### Data flow direction
+
+After pairing:
+
+- Local side to remote side: previous node -> `ReverseClient` -> next node
+- Remote side to local side: next node -> `ReverseClient` -> previous node
+
+Pause and Resume are forwarded across the paired lines, including repeats.
+Before destination Init, the latest transport Pause is remembered; Resume cancels
+it. An outstanding Pause is relayed after Init returns, before the initial body.
+Already admitted application bytes still drain in FIFO order through Pause.
+The node remains active because every delivery maps between two different lines.
+
+### Connection lifecycle and replenishment
+
+`ReverseClient` keeps the pool alive automatically:
+
+- when a spare connection is consumed, it schedules a replacement
+- when a paired active connection closes, it schedules a replacement
+- when a still-unused connection closes before being paired, it also schedules a replacement
+
+### Starvation timeout
+
+Unused reverse connections are tracked in an idle table.
+
+Current timeout:
+
+- about `30 seconds` for a spare connection that never becomes paired
+
+If that timeout expires, the spare connection is closed and replaced with a fresh one.
+
+### Establishment semantics
+
+A connecting reverse link enters the unused pool when the next node reports Est.
+Activation may also arrive after transport Init but before Est; completing it
+moves the link directly from connecting to active. Late or repeated Est marks
+transport readiness without changing an active pair's counters or creating
+another replacement spare.
+
+## Notes And Caveats
+
+- `reverse-secret-length` and `reverse-secret` must match the peer
+  `ReverseServer` and any `SniffRouter` reverse detector in front of it.
+- This node relies on an internal handshake format shared with `ReverseServer`.
+- Spare reverse connections are created proactively, so this tunnel intentionally keeps some idle outbound connections open.
+
+## Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4` |
+| `layer_group_next_node` | `kNodeLayer4` |
+| `required_padding_left` | `0` bytes |
+
+## Splice support
+
+The reverse handshake is generated in ordinary memory. Activation parsing consumes
+only the prefix bytes through representation-aware helpers; an accompanying
+application body can retain its private pipe. Ready application payloads pass
+through unchanged in both directions. Nested startup input retains its ordinary
+or private-pipe representation in FIFO order. Closing during destination Init settles
+retained application bytes exactly once. Both reverse nodes support eligible
+splice chains; keep the direct Bridge -> ReverseClient adjacency.
+
+Ordinary fallback buffers remain accepted. Splice requires a supported Linux build, `misc.splice` enabled, no packet nodes, and support from every node in the finalized expanded/merged chain. The capability flag does not bypass these checks. No performance improvement is promised without measurement.

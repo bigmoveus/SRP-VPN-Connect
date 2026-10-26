@@ -1,0 +1,82 @@
+#pragma once
+
+#include "buffer_queue.h"
+#include "splice_buffer.h"
+
+/* Fixed-header FIFO, serialized on the pool's owner worker. Fields are private
+ * implementation state; queued buffers must never be mutated through aliases. */
+typedef struct splice_stream_s
+{
+    buffer_pool_t *pool;
+    buffer_queue_t pending;
+    sbuf_t        *head;
+    size_t         head_charge;
+    size_t         total;
+    size_t         charge;
+    uint32_t       header_size;
+    uint32_t       header_filled;
+    int            discard_fd; // -1 unopened, -2 unavailable; otherwise an owned /dev/null descriptor.
+    uint8_t        header[];
+} splice_stream_t;
+
+/* Returns NULL only for unrepresentable object/header geometry. Zero header size
+ * is valid; heap allocation failure terminates the process.
+ * The borrowed owner-worker pool must outlive destroy. */
+splice_stream_t *splicestreamCreate(buffer_pool_t *pool, uint32_t header_size);
+void             splicestreamDestroy(splice_stream_t *stream);
+
+/* Takes input on every result. False recycles only this input and leaves existing
+ * bytes/costs intact. Reserve precedes header consumption. Empty inputs recycle.
+ * No callback or representation conversion occurs. */
+bool splicestreamPush(splice_stream_t *stream, sbuf_t *input);
+
+/* Non-consuming, no I/O/allocation. NULL until complete; borrowed until mutation. */
+const uint8_t *splicestreamPeekHeader(const splice_stream_t *stream);
+size_t         splicestreamBodyBytes(const splice_stream_t *stream);
+size_t         splicestreamLength(const splice_stream_t *stream);
+size_t         splicestreamCharge(const splice_stream_t *stream);
+
+/* Explicit pressure relief. Combine remaining sources into one ordinary buffer
+ * only if predicted charge is strictly smaller. Preserve cached header and total;
+ * no callback or lifetime propagation. False leaves bytes and ownership intact. */
+bool splicestreamCompact(splice_stream_t *stream);
+
+/* Consume the cached header AND exactly bytes body bytes (bytes excludes header).
+ * Caller guarantees a complete header/body and an empty destination (Debug asserts).
+ * The destination transfers ownership;
+ * NULL requests ordinary fallback. Return is the sole owned result, which may
+ * replace/recycle destination. Full pool onward padding is preserved. Next
+ * header refills only after the body completes. bytes=0 still consumes a frame.
+ * Resident-only body ranges return ordinary storage, including real prefixes
+ * of splice wrappers; pipe bytes outside the requested range do not select splice.
+ */
+sbuf_t *splicestreamMoveFrame(splice_stream_t *stream, sbuf_t *destination, uint32_t bytes);
+
+/* Move exactly bytes available body bytes with the same ownership, destination
+ * and representation rules as MoveFrame. A complete cached header is required,
+ * but the entire declared frame body need not have arrived. Unless finish_frame
+ * is true, keep that header cached and gather no following header. The caller
+ * tracks the declared body length and marks only its final chunk complete.
+ * Length continues to include the cached header until that final chunk.
+ */
+sbuf_t *splicestreamMoveFrameChunk(splice_stream_t *stream, sbuf_t *destination, uint32_t bytes, bool finish_frame);
+
+/* Same caller preconditions, into caller-owned sufficient empty ordinary storage.
+ * Destination representation/space is checked fatally before consumption;
+ * never grows/replaces destination.
+ */
+void splicestreamMoveFrameToOrdinary(splice_stream_t *stream, sbuf_t *destination, uint32_t bytes);
+
+/* Consume the cached header AND exactly bytes body bytes without retaining output.
+ * Same complete-header/body preconditions as MoveFrame. Resident bytes are skipped;
+ * pipe bodies are discarded with nonblocking splice when available, otherwise
+ * bounded scratch reads. Missing claimed pipe bytes remain fatal invariants.
+ * Only after the complete body is consumed may the next header refill.
+ */
+void splicestreamDiscardFrame(splice_stream_t *stream, uint32_t bytes);
+
+/* Discard available body bytes, retaining the cached header until finish_frame.
+ * Same chunk-completion preconditions as MoveFrameChunk and discard behavior as
+ * DiscardFrame. No following header is gathered before the final chunk.
+ */
+void splicestreamDiscardFrameChunk(splice_stream_t *stream, uint32_t bytes, bool finish_frame);

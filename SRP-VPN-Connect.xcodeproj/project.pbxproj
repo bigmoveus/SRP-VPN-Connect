@@ -1,0 +1,1255 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B3AA8A7E9A42551B04A1954 /* SRPSEMethodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 00C12FF1B1CEDF7E7BD3130B /* SRPSEMethodViewController.m */; };
+		224181D02B52A15800F06C7C /* HomeHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181CE2B52A15800F06C7C /* HomeHeaderView.m */; };
+		224181D52B52A79B00F06C7C /* HomeProtocolView.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181D32B52A79B00F06C7C /* HomeProtocolView.m */; };
+		224181D92B52ADAC00F06C7C /* CreateVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181D82B52ADAC00F06C7C /* CreateVC.m */; };
+		224181E12B52B66C00F06C7C /* NodeModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181E02B52B66C00F06C7C /* NodeModel.m */; };
+		224181F02B53CB9900F06C7C /* CheckConnectData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181EF2B53CB9900F06C7C /* CheckConnectData.m */; };
+		224181F32B553C5C00F06C7C /* HelpVC.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181F22B553C5C00F06C7C /* HelpVC.m */; };
+		224181F72B553C7300F06C7C /* HelpView.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181F52B553C7300F06C7C /* HelpView.m */; };
+		224181F82B553C7300F06C7C /* HelpView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 224181F62B553C7300F06C7C /* HelpView.xib */; };
+		224181FC2B553CB200F06C7C /* HelpMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181FA2B553CB200F06C7C /* HelpMenu.m */; };
+		224181FD2B553CB200F06C7C /* HelpMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 224181FB2B553CB200F06C7C /* HelpMenu.xib */; };
+		224182002B55641E00F06C7C /* userNodeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181FF2B55641E00F06C7C /* userNodeData.m */; };
+		305C655B1A052C57C3DA16E0 /* SRPProtocolViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8D55A659970714A0CEC13737 /* SRPProtocolViewController.m */; };
+		3D8F06244FE25624A0CC1DEB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F64C5AD23555560A7870CFA /* Security.framework */; };
+		6296CA7891B2B7AB6369B903 /* SRPOCServerTypeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A2D018159F1B3BF2CD79ECC8 /* SRPOCServerTypeViewController.m */; };
+		92321B2E59E947528883DC55 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3B302B23151C4BF19B5EABFA /* PrivacyInfo.xcprivacy */; };
+		9C1716F12B53C51200253D99 /* SRPParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C862A222B4E9B1200945639 /* SRPParser.framework */; };
+		9C72445B2B527B9900E9992E /* SRPCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C72445A2B527B9900E9992E /* SRPCore.framework */; };
+		9C72445F2B527BD700E9992E /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C72445E2B527BD200E9992E /* libc++.tbd */; };
+		9C7246D62B529A9400E9992E /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C7246D52B529A8F00E9992E /* libresolv.tbd */; };
+		9C86297B2B4E9A1B00945639 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C86297A2B4E9A1B00945639 /* AppDelegate.m */; };
+		9C86297E2B4E9A1B00945639 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C86297D2B4E9A1B00945639 /* SceneDelegate.m */; };
+		9C8629812B4E9A1B00945639 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C8629802B4E9A1B00945639 /* ViewController.m */; };
+		9C8629842B4E9A1B00945639 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9C8629822B4E9A1B00945639 /* Main.storyboard */; };
+		9C8629862B4E9A1C00945639 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9C8629852B4E9A1C00945639 /* Assets.xcassets */; };
+		9C8629892B4E9A1C00945639 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9C8629872B4E9A1C00945639 /* LaunchScreen.storyboard */; };
+		9C86298C2B4E9A1C00945639 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C86298B2B4E9A1C00945639 /* main.m */; };
+		9C8629B52B4E9A2F00945639 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C8629B42B4E9A2F00945639 /* NetworkExtension.framework */; };
+		9C8629B92B4E9A2F00945639 /* PacketTunnelProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C8629B82B4E9A2F00945639 /* PacketTunnelProvider.m */; };
+		9C8629BE2B4E9A2F00945639 /* SRPTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9C8629B22B4E9A2F00945639 /* SRPTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9C8629C92B4E9A7C00945639 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C8629C82B4E9A7900945639 /* libxml2.tbd */; };
+		9C862A232B4E9B1200945639 /* SRPParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C862A222B4E9B1200945639 /* SRPParser.framework */; };
+		9C862A2A2B4E9CC900945639 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C862A292B4E9CC400945639 /* libz.tbd */; };
+		A024F97F532348A39D263A34 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0F89522E3FEE4DBF9A565219 /* PrivacyInfo.xcprivacy */; };
+		AA1111111111111111111102 /* liblwip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1111111111111111111101 /* liblwip.a */; };
+		B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */; };
+		E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */; };
+		A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000072 /* SRPWaterWallConfigViewController.m */; };
+		BB0000E12B70000100000001 /* SRPEapConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E32B70000100000001 /* SRPEapConfig.m */; };
+		BB0000E22B70000100000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
+		BB0000F12B70000200000001 /* SRPEapConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000F42B70000200000001 /* SRPEapConfigViewController.m */; };
+		BB0000F22B70000200000001 /* SRPTtlsMethodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000F52B70000200000001 /* SRPTtlsMethodViewController.m */; };
+		BB0000F32B70000200000001 /* SRPMethodViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000F62B70000200000001 /* SRPMethodViewController.m */; };
+		BB0002102B70000300000001 /* SRPAuthConfigTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0002012B70000300000001 /* SRPAuthConfigTests.m */; };
+		BB0002112B70000300000001 /* SRPEapConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E32B70000100000001 /* SRPEapConfig.m */; };
+		BB0002122B70000300000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
+		BB0002132B70000300000001 /* NodeModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181E02B52B66C00F06C7C /* NodeModel.m */; };
+		BB0002142B70000300000001 /* CheckConnectData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181EF2B53CB9900F06C7C /* CheckConnectData.m */; };
+		BB0002152B70000300000001 /* userNodeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181FF2B55641E00F06C7C /* userNodeData.m */; };
+		BB0002162B70000300000001 /* SSAuthCapabilities.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0002022B70000300000001 /* SSAuthCapabilities.m */; };
+		BB0003102B70000400000001 /* SRPAuthConfigTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0002012B70000300000001 /* SRPAuthConfigTests.m */; };
+		BB0003112B70000400000001 /* SRPEapConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E32B70000100000001 /* SRPEapConfig.m */; };
+		BB0003122B70000400000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
+		BB0003132B70000400000001 /* NodeModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181E02B52B66C00F06C7C /* NodeModel.m */; };
+		BB0003142B70000400000001 /* CheckConnectData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181EF2B53CB9900F06C7C /* CheckConnectData.m */; };
+		BB0003152B70000400000001 /* userNodeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 224181FF2B55641E00F06C7C /* userNodeData.m */; };
+		BB0003162B70000400000001 /* SSAuthCapabilities.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0002022B70000300000001 /* SSAuthCapabilities.m */; };
+		BB0004212B70000500000001 /* SRPEapMschapv2Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0004012B70000500000001 /* SRPEapMschapv2Tests.m */; };
+		BB0004302B70000500000001 /* chap_ms.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004102B70000500000001 /* chap_ms.c */; };
+		BB0004312B70000500000001 /* pppcrypt.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004112B70000500000001 /* pppcrypt.c */; };
+		BB0004322B70000500000001 /* magic.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004122B70000500000001 /* magic.c */; };
+		BB0004332B70000500000001 /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004132B70000500000001 /* md4.c */; };
+		BB0004342B70000500000001 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004142B70000500000001 /* md5.c */; };
+		BB0004352B70000500000001 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004152B70000500000001 /* sha1.c */; };
+		BB0004362B70000500000001 /* des.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004162B70000500000001 /* des.c */; };
+		BB0004412B70000500000001 /* SRPEapMschapv2Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0004012B70000500000001 /* SRPEapMschapv2Tests.m */; };
+		BB0004502B70000500000001 /* chap_ms.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004102B70000500000001 /* chap_ms.c */; };
+		BB0004512B70000500000001 /* pppcrypt.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004112B70000500000001 /* pppcrypt.c */; };
+		BB0004522B70000500000001 /* magic.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004122B70000500000001 /* magic.c */; };
+		BB0004532B70000500000001 /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004132B70000500000001 /* md4.c */; };
+		BB0004542B70000500000001 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004142B70000500000001 /* md5.c */; };
+		BB0004552B70000500000001 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004152B70000500000001 /* sha1.c */; };
+		BB0004562B70000500000001 /* des.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0004162B70000500000001 /* des.c */; };
+		BB0005112B70000600000001 /* SRPCertificateViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005022B70000600000001 /* SRPCertificateViewController.m */; };
+		BB0005122B70000600000001 /* SRPCertificateStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005042B70000600000001 /* SRPCertificateStore.m */; };
+		BB0005132B70000600000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
+		BB0005302B70000600000001 /* SRPVpnTlsP12Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005202B70000600000001 /* SRPVpnTlsP12Tests.m */; };
+		BB0005312B70000600000001 /* SSProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005212B70000600000001 /* SSProtocol.m */; };
+		BB0005422B70000600000001 /* SRProxySupportTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005402B70000600000001 /* SRProxySupportTests.m */; };
+		BB0005432B70000600000001 /* SSProxySupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005412B70000600000001 /* SSProxySupport.m */; };
+		BB0005442B70000600000001 /* SRProxySupportTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005402B70000600000001 /* SRProxySupportTests.m */; };
+		BB0005452B70000600000001 /* SSProxySupport.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005412B70000600000001 /* SSProxySupport.m */; };
+		BB0005522B70000600000001 /* SROptionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005502B70000600000001 /* SROptionsTests.m */; };
+		BB0005532B70000600000001 /* SSNetOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005512B70000600000001 /* SSNetOptions.m */; };
+		BB0005542B70000600000001 /* SROptionsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005502B70000600000001 /* SROptionsTests.m */; };
+		BB0005552B70000600000001 /* SSNetOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005512B70000600000001 /* SSNetOptions.m */; };
+		A10000000000000000000031 /* SRPWaterWallChainConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000023 /* SRPWaterWallChainConfig.m */; };
+		A10000000000000000000032 /* SRPWaterWallChainConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000023 /* SRPWaterWallChainConfig.m */; };
+		BB0005622B70000600000001 /* SRPLogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0005612B70000600000001 /* SRPLogViewController.m */; };
+		BC96C882A4820248ED605093 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 41E269C83042C08898EEAD87 /* Security.framework */; };
+		E01E31D0CBD6E690C158E7C1 /* libPods-SRP-VPN-Connect.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 12FDBF300B99AF40C37CB6A9 /* libPods-SRP-VPN-Connect.a */; };
+		A20000000000000000000014 /* SRPParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C862A222B4E9B1200945639 /* SRPParser.framework */; };
+		A20000000000000000000015 /* SRPParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C862A222B4E9B1200945639 /* SRPParser.framework */; };
+		A20000000000000000000011 /* SRPProfileLatencyTester.m in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* SRPProfileLatencyTester.m */; };
+		A20000000000000000000012 /* SRPProfileLatencyTester.m in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* SRPProfileLatencyTester.m */; };
+		A20000000000000000000013 /* SRPProfileLatencyTester.m in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* SRPProfileLatencyTester.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9C8629BC2B4E9A2F00945639 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9C86296E2B4E9A1B00945639 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9C8629B12B4E9A2F00945639;
+			remoteInfo = SRPTunnel;
+		};
+		BB0002702B70000300000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9C86296E2B4E9A1B00945639 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9C8629752B4E9A1B00945639;
+			remoteInfo = "SRP-VPN-Connect";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9C8629C22B4E9A2F00945639 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9C8629BE2B4E9A2F00945639 /* SRPTunnel.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		00C12FF1B1CEDF7E7BD3130B /* SRPSEMethodViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPSEMethodViewController.m; sourceTree = "<group>"; };
+		0F89522E3FEE4DBF9A565219 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = SRPTunnel/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		12FDBF300B99AF40C37CB6A9 /* libPods-SRP-VPN-Connect.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SRP-VPN-Connect.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		224181CD2B52A15800F06C7C /* HomeHeaderView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeHeaderView.h; sourceTree = "<group>"; };
+		224181CE2B52A15800F06C7C /* HomeHeaderView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeHeaderView.m; sourceTree = "<group>"; };
+		224181D22B52A79B00F06C7C /* HomeProtocolView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeProtocolView.h; sourceTree = "<group>"; };
+		224181D32B52A79B00F06C7C /* HomeProtocolView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HomeProtocolView.m; sourceTree = "<group>"; };
+		224181D72B52ADAC00F06C7C /* CreateVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateVC.h; sourceTree = "<group>"; };
+		224181D82B52ADAC00F06C7C /* CreateVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CreateVC.m; sourceTree = "<group>"; };
+		224181DF2B52B66C00F06C7C /* NodeModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NodeModel.h; sourceTree = "<group>"; };
+		224181E02B52B66C00F06C7C /* NodeModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NodeModel.m; sourceTree = "<group>"; };
+		224181E32B52C0E500F06C7C /* SRP-VPN-Connect-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SRP-VPN-Connect-Bridging-Header.h"; sourceTree = "<group>"; };
+		224181EE2B53CB9900F06C7C /* CheckConnectData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CheckConnectData.h; sourceTree = "<group>"; };
+		224181EF2B53CB9900F06C7C /* CheckConnectData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CheckConnectData.m; sourceTree = "<group>"; };
+		224181F12B553C5C00F06C7C /* HelpVC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelpVC.h; sourceTree = "<group>"; };
+		224181F22B553C5C00F06C7C /* HelpVC.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HelpVC.m; sourceTree = "<group>"; };
+		224181F42B553C7300F06C7C /* HelpView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelpView.h; sourceTree = "<group>"; };
+		224181F52B553C7300F06C7C /* HelpView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HelpView.m; sourceTree = "<group>"; };
+		224181F62B553C7300F06C7C /* HelpView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = HelpView.xib; sourceTree = "<group>"; };
+		224181F92B553CB200F06C7C /* HelpMenu.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HelpMenu.h; sourceTree = "<group>"; };
+		224181FA2B553CB200F06C7C /* HelpMenu.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HelpMenu.m; sourceTree = "<group>"; };
+		224181FB2B553CB200F06C7C /* HelpMenu.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = HelpMenu.xib; sourceTree = "<group>"; };
+		224181FE2B55641E00F06C7C /* userNodeData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = userNodeData.h; sourceTree = "<group>"; };
+		224181FF2B55641E00F06C7C /* userNodeData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = userNodeData.m; sourceTree = "<group>"; };
+		23DB8C9C3A0927BB6E737D68 /* Pods-SRP-VPN-Connect.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SRP-VPN-Connect.release.xcconfig"; path = "Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect.release.xcconfig"; sourceTree = "<group>"; };
+		3B302B23151C4BF19B5EABFA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SRP-VPN-Connect/PrivacyInfo.xcprivacy"; sourceTree = "<group>"; };
+		41E269C83042C08898EEAD87 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		4F64C5AD23555560A7870CFA /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		7DC8CEDCD0F27652D395671F /* SRPProtocolViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPProtocolViewController.h; sourceTree = "<group>"; };
+		8B015FBA267F90BC27DFD08D /* SRPOCServerTypeViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPOCServerTypeViewController.h; sourceTree = "<group>"; };
+		8D55A659970714A0CEC13737 /* SRPProtocolViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPProtocolViewController.m; sourceTree = "<group>"; };
+		8F59F183BE1119741841FFC0 /* SRPSEMethodViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPSEMethodViewController.h; sourceTree = "<group>"; };
+		9C72445A2B527B9900E9992E /* SRPCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SRPCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C72445E2B527BD200E9992E /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		9C7246D52B529A8F00E9992E /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
+		9C8629762B4E9A1B00945639 /* SRP-VPN-Connect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SRP-VPN-Connect.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C8629792B4E9A1B00945639 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		9C86297A2B4E9A1B00945639 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		9C86297C2B4E9A1B00945639 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		9C86297D2B4E9A1B00945639 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		9C86297F2B4E9A1B00945639 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		9C8629802B4E9A1B00945639 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		9C8629832B4E9A1B00945639 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		9C8629852B4E9A1C00945639 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9C8629882B4E9A1C00945639 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		9C86298A2B4E9A1C00945639 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9C86298B2B4E9A1C00945639 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		9C8629B22B4E9A2F00945639 /* SRPTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SRPTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C8629B42B4E9A2F00945639 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		9C8629B72B4E9A2F00945639 /* PacketTunnelProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PacketTunnelProvider.h; sourceTree = "<group>"; };
+		9C8629B82B4E9A2F00945639 /* PacketTunnelProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PacketTunnelProvider.m; sourceTree = "<group>"; };
+		9C8629BA2B4E9A2F00945639 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9C8629BB2B4E9A2F00945639 /* SRPTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SRPTunnel.entitlements; sourceTree = "<group>"; };
+		9C8629C32B4E9A4200945639 /* SRP-VPN-Connect.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "SRP-VPN-Connect.entitlements"; sourceTree = "<group>"; };
+		9C8629C82B4E9A7900945639 /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		9C862A222B4E9B1200945639 /* SRPParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SRPParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C862A292B4E9CC400945639 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		A2D018159F1B3BF2CD79ECC8 /* SRPOCServerTypeViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPOCServerTypeViewController.m; sourceTree = "<group>"; };
+		AA1111111111111111111101 /* liblwip.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblwip.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0000E32B70000100000001 /* SRPEapConfig.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPEapConfig.m; sourceTree = "<group>"; };
+		BB0000E42B70000100000001 /* SRPKeychain.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPKeychain.m; sourceTree = "<group>"; };
+		BB0000E52B70000100000001 /* SRPEapConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPEapConfig.h; sourceTree = "<group>"; };
+		BB0000E62B70000100000001 /* SRPKeychain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPKeychain.h; sourceTree = "<group>"; };
+		BB0000F42B70000200000001 /* SRPEapConfigViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPEapConfigViewController.m; sourceTree = "<group>"; };
+		BB0000F52B70000200000001 /* SRPTtlsMethodViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPTtlsMethodViewController.m; sourceTree = "<group>"; };
+		BB0000F62B70000200000001 /* SRPMethodViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPMethodViewController.m; sourceTree = "<group>"; };
+		BB0000F72B70000200000001 /* SRPEapConfigViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPEapConfigViewController.h; sourceTree = "<group>"; };
+		BB0000F82B70000200000001 /* SRPTtlsMethodViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPTtlsMethodViewController.h; sourceTree = "<group>"; };
+		BB0000F92B70000200000001 /* SRPMethodViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPMethodViewController.h; sourceTree = "<group>"; };
+		BB0002002B70000300000001 /* SRP-VPN-ConnectTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SRP-VPN-ConnectTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0002012B70000300000001 /* SRPAuthConfigTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPAuthConfigTests.m; sourceTree = "<group>"; };
+		BB0002022B70000300000001 /* SSAuthCapabilities.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ../Core/SRPCore/SSAuthCapabilities.m; sourceTree = "<group>"; };
+		BB0003002B70000400000001 /* SRP-VPN-ConnectTestsMac.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SRP-VPN-ConnectTestsMac.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0004012B70000500000001 /* SRPEapMschapv2Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPEapMschapv2Tests.m; sourceTree = "<group>"; };
+		BB0004102B70000500000001 /* chap_ms.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/chap_ms.c; sourceTree = "<group>"; };
+		BB0004112B70000500000001 /* pppcrypt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/pppcrypt.c; sourceTree = "<group>"; };
+		BB0004122B70000500000001 /* magic.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/magic.c; sourceTree = "<group>"; };
+		BB0004132B70000500000001 /* md4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/polarssl/md4.c; sourceTree = "<group>"; };
+		BB0004142B70000500000001 /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/polarssl/md5.c; sourceTree = "<group>"; };
+		BB0004152B70000500000001 /* sha1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/polarssl/sha1.c; sourceTree = "<group>"; };
+		BB0004162B70000500000001 /* des.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ../LwIP/lwip/netif/ppp/polarssl/des.c; sourceTree = "<group>"; };
+		BB0005012B70000600000001 /* SRPCertificateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPCertificateViewController.h; sourceTree = "<group>"; };
+		BB0005022B70000600000001 /* SRPCertificateViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPCertificateViewController.m; sourceTree = "<group>"; };
+		BB0005032B70000600000001 /* SRPCertificateStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPCertificateStore.h; sourceTree = "<group>"; };
+		BB0005042B70000600000001 /* SRPCertificateStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPCertificateStore.m; sourceTree = "<group>"; };
+		BB0005202B70000600000001 /* SRPVpnTlsP12Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPVpnTlsP12Tests.m; sourceTree = "<group>"; };
+		BB0005212B70000600000001 /* SSProtocol.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ../Core/SRPCore/SSProtocol.m; sourceTree = "<group>"; };
+		BB0005402B70000600000001 /* SRProxySupportTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRProxySupportTests.m; sourceTree = "<group>"; };
+		BB0005412B70000600000001 /* SSProxySupport.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ../Core/SRPCore/SSProxySupport.m; sourceTree = "<group>"; };
+		BB0005502B70000600000001 /* SROptionsTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SROptionsTests.m; sourceTree = "<group>"; };
+		BB0005512B70000600000001 /* SSNetOptions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ../Core/SRPCore/SSNetOptions.m; sourceTree = "<group>"; };
+		A10000000000000000000023 /* SRPWaterWallChainConfig.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ../Core/SRPCore/SRPWaterWallChainConfig.m; sourceTree = "<group>"; };
+		BB0005602B70000600000001 /* SRPLogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPLogViewController.h; sourceTree = "<group>"; };
+		BB0005612B70000600000001 /* SRPLogViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPLogViewController.m; sourceTree = "<group>"; };
+		D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWGConfigViewController.m; sourceTree = "<group>"; };
+		791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPPsiphonEntriesViewController.m; sourceTree = "<group>"; };
+		E8A7C76C71B51AFB20ECAA56 /* Pods-SRP-VPN-Connect.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SRP-VPN-Connect.debug.xcconfig"; path = "Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect.debug.xcconfig"; sourceTree = "<group>"; };
+		F709E90AACDD1C62994D3124 /* SRPWGConfigViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWGConfigViewController.h; sourceTree = "<group>"; };
+		8309784D3E6D4C47A45855E0 /* SRPPsiphonEntriesViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPPsiphonEntriesViewController.h; sourceTree = "<group>"; };
+		A10000000000000000000072 /* SRPWaterWallConfigViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPWaterWallConfigViewController.m; sourceTree = "<group>"; };
+		A10000000000000000000073 /* SRPWaterWallConfigViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallConfigViewController.h; sourceTree = "<group>"; };
+		A20000000000000000000001 /* SRPProfileLatencyTester.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPProfileLatencyTester.m; sourceTree = "<group>"; };
+		A20000000000000000000002 /* SRPProfileLatencyTester.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPProfileLatencyTester.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9C8629732B4E9A1B00945639 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C862A232B4E9B1200945639 /* SRPParser.framework in Frameworks */,
+				E01E31D0CBD6E690C158E7C1 /* libPods-SRP-VPN-Connect.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9C8629AF2B4E9A2F00945639 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C72445F2B527BD700E9992E /* libc++.tbd in Frameworks */,
+				9C862A2A2B4E9CC900945639 /* libz.tbd in Frameworks */,
+				9C8629C92B4E9A7C00945639 /* libxml2.tbd in Frameworks */,
+				9C8629B52B4E9A2F00945639 /* NetworkExtension.framework in Frameworks */,
+				9C1716F12B53C51200253D99 /* SRPParser.framework in Frameworks */,
+				9C72445B2B527B9900E9992E /* SRPCore.framework in Frameworks */,
+				9C7246D62B529A9400E9992E /* libresolv.tbd in Frameworks */,
+				AA1111111111111111111102 /* liblwip.a in Frameworks */,
+				3D8F06244FE25624A0CC1DEB /* Security.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0002312B70000300000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A20000000000000000000014 /* SRPParser.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0003312B70000400000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A20000000000000000000015 /* SRPParser.framework in Frameworks */,
+				BC96C882A4820248ED605093 /* Security.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		38EC32216EA2634DFD30742A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E8A7C76C71B51AFB20ECAA56 /* Pods-SRP-VPN-Connect.debug.xcconfig */,
+				23DB8C9C3A0927BB6E737D68 /* Pods-SRP-VPN-Connect.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		9C86296D2B4E9A1B00945639 = {
+			isa = PBXGroup;
+			children = (
+				9C8629782B4E9A1B00945639 /* SRP-VPN-Connect */,
+				BB0002202B70000300000001 /* SRP-VPN-ConnectTests */,
+				9C8629B62B4E9A2F00945639 /* SRPTunnel */,
+				9C8629B32B4E9A2F00945639 /* Frameworks */,
+				9C8629772B4E9A1B00945639 /* Products */,
+				38EC32216EA2634DFD30742A /* Pods */,
+			);
+			sourceTree = "<group>";
+		};
+		9C8629772B4E9A1B00945639 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9C8629762B4E9A1B00945639 /* SRP-VPN-Connect.app */,
+				9C8629B22B4E9A2F00945639 /* SRPTunnel.appex */,
+				BB0002002B70000300000001 /* SRP-VPN-ConnectTests.xctest */,
+				BB0003002B70000400000001 /* SRP-VPN-ConnectTestsMac.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9C8629782B4E9A1B00945639 /* SRP-VPN-Connect */ = {
+			isa = PBXGroup;
+			children = (
+				9C8629C32B4E9A4200945639 /* SRP-VPN-Connect.entitlements */,
+				9C8629792B4E9A1B00945639 /* AppDelegate.h */,
+				9C86297A2B4E9A1B00945639 /* AppDelegate.m */,
+				9C86297C2B4E9A1B00945639 /* SceneDelegate.h */,
+				9C86297D2B4E9A1B00945639 /* SceneDelegate.m */,
+				224181FE2B55641E00F06C7C /* userNodeData.h */,
+				224181FF2B55641E00F06C7C /* userNodeData.m */,
+				9C86297F2B4E9A1B00945639 /* ViewController.h */,
+				9C8629802B4E9A1B00945639 /* ViewController.m */,
+				224181CD2B52A15800F06C7C /* HomeHeaderView.h */,
+				224181CE2B52A15800F06C7C /* HomeHeaderView.m */,
+				224181D22B52A79B00F06C7C /* HomeProtocolView.h */,
+				224181D32B52A79B00F06C7C /* HomeProtocolView.m */,
+				A20000000000000000000002 /* SRPProfileLatencyTester.h */,
+				A20000000000000000000001 /* SRPProfileLatencyTester.m */,
+				224181D72B52ADAC00F06C7C /* CreateVC.h */,
+				224181D82B52ADAC00F06C7C /* CreateVC.m */,
+				224181EE2B53CB9900F06C7C /* CheckConnectData.h */,
+				224181EF2B53CB9900F06C7C /* CheckConnectData.m */,
+				224181DF2B52B66C00F06C7C /* NodeModel.h */,
+				BB0000E52B70000100000001 /* SRPEapConfig.h */,
+				BB0000F72B70000200000001 /* SRPEapConfigViewController.h */,
+				BB0000F42B70000200000001 /* SRPEapConfigViewController.m */,
+				BB0000F82B70000200000001 /* SRPTtlsMethodViewController.h */,
+				BB0000F52B70000200000001 /* SRPTtlsMethodViewController.m */,
+				BB0000F92B70000200000001 /* SRPMethodViewController.h */,
+				BB0000F62B70000200000001 /* SRPMethodViewController.m */,
+				BB0005012B70000600000001 /* SRPCertificateViewController.h */,
+				BB0005022B70000600000001 /* SRPCertificateViewController.m */,
+				BB0005602B70000600000001 /* SRPLogViewController.h */,
+				BB0005612B70000600000001 /* SRPLogViewController.m */,
+				BB0005032B70000600000001 /* SRPCertificateStore.h */,
+				BB0005042B70000600000001 /* SRPCertificateStore.m */,
+				BB0000E32B70000100000001 /* SRPEapConfig.m */,
+				BB0000E62B70000100000001 /* SRPKeychain.h */,
+				BB0000E42B70000100000001 /* SRPKeychain.m */,
+				224181E02B52B66C00F06C7C /* NodeModel.m */,
+				224181F12B553C5C00F06C7C /* HelpVC.h */,
+				224181F22B553C5C00F06C7C /* HelpVC.m */,
+				224181F42B553C7300F06C7C /* HelpView.h */,
+				224181F52B553C7300F06C7C /* HelpView.m */,
+				224181F62B553C7300F06C7C /* HelpView.xib */,
+				224181F92B553CB200F06C7C /* HelpMenu.h */,
+				224181FA2B553CB200F06C7C /* HelpMenu.m */,
+				224181FB2B553CB200F06C7C /* HelpMenu.xib */,
+				9C8629822B4E9A1B00945639 /* Main.storyboard */,
+				9C8629852B4E9A1C00945639 /* Assets.xcassets */,
+				9C8629872B4E9A1C00945639 /* LaunchScreen.storyboard */,
+				9C86298A2B4E9A1C00945639 /* Info.plist */,
+				9C86298B2B4E9A1C00945639 /* main.m */,
+				224181E32B52C0E500F06C7C /* SRP-VPN-Connect-Bridging-Header.h */,
+				8F59F183BE1119741841FFC0 /* SRPSEMethodViewController.h */,
+				00C12FF1B1CEDF7E7BD3130B /* SRPSEMethodViewController.m */,
+				8B015FBA267F90BC27DFD08D /* SRPOCServerTypeViewController.h */,
+				A2D018159F1B3BF2CD79ECC8 /* SRPOCServerTypeViewController.m */,
+				7DC8CEDCD0F27652D395671F /* SRPProtocolViewController.h */,
+				8D55A659970714A0CEC13737 /* SRPProtocolViewController.m */,
+				F709E90AACDD1C62994D3124 /* SRPWGConfigViewController.h */,
+				D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */,
+				8309784D3E6D4C47A45855E0 /* SRPPsiphonEntriesViewController.h */,
+				791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */,
+				A10000000000000000000073 /* SRPWaterWallConfigViewController.h */,
+				A10000000000000000000072 /* SRPWaterWallConfigViewController.m */,
+			);
+			path = "SRP-VPN-Connect";
+			sourceTree = "<group>";
+		};
+		9C8629B32B4E9A2F00945639 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9C7246D52B529A8F00E9992E /* libresolv.tbd */,
+				AA1111111111111111111101 /* liblwip.a */,
+				9C72445E2B527BD200E9992E /* libc++.tbd */,
+				9C72445A2B527B9900E9992E /* SRPCore.framework */,
+				9C862A292B4E9CC400945639 /* libz.tbd */,
+				9C862A222B4E9B1200945639 /* SRPParser.framework */,
+				9C8629C82B4E9A7900945639 /* libxml2.tbd */,
+				9C8629B42B4E9A2F00945639 /* NetworkExtension.framework */,
+				12FDBF300B99AF40C37CB6A9 /* libPods-SRP-VPN-Connect.a */,
+				4F64C5AD23555560A7870CFA /* Security.framework */,
+				41E269C83042C08898EEAD87 /* Security.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9C8629B62B4E9A2F00945639 /* SRPTunnel */ = {
+			isa = PBXGroup;
+			children = (
+				9C8629B72B4E9A2F00945639 /* PacketTunnelProvider.h */,
+				9C8629B82B4E9A2F00945639 /* PacketTunnelProvider.m */,
+				9C8629BA2B4E9A2F00945639 /* Info.plist */,
+				9C8629BB2B4E9A2F00945639 /* SRPTunnel.entitlements */,
+			);
+			path = SRPTunnel;
+			sourceTree = "<group>";
+		};
+		BB0002202B70000300000001 /* SRP-VPN-ConnectTests */ = {
+			isa = PBXGroup;
+			children = (
+				BB0002012B70000300000001 /* SRPAuthConfigTests.m */,
+				BB0004012B70000500000001 /* SRPEapMschapv2Tests.m */,
+				BB0004102B70000500000001 /* chap_ms.c */,
+				BB0004112B70000500000001 /* pppcrypt.c */,
+				BB0004122B70000500000001 /* magic.c */,
+				BB0004132B70000500000001 /* md4.c */,
+				BB0004142B70000500000001 /* md5.c */,
+				BB0004152B70000500000001 /* sha1.c */,
+				BB0004162B70000500000001 /* des.c */,
+				BB0002022B70000300000001 /* SSAuthCapabilities.m */,
+				BB0005202B70000600000001 /* SRPVpnTlsP12Tests.m */,
+				BB0005212B70000600000001 /* SSProtocol.m */,
+				BB0005402B70000600000001 /* SRProxySupportTests.m */,
+				BB0005412B70000600000001 /* SSProxySupport.m */,
+				BB0005502B70000600000001 /* SROptionsTests.m */,
+				BB0005512B70000600000001 /* SSNetOptions.m */,
+				A10000000000000000000023 /* SRPWaterWallChainConfig.m */,
+			);
+			path = "SRP-VPN-ConnectTests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9C8629752B4E9A1B00945639 /* SRP-VPN-Connect */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C8629A52B4E9A1C00945639 /* Build configuration list for PBXNativeTarget "SRP-VPN-Connect" */;
+			buildPhases = (
+				19CB18A12F0585D4B0D13D8D /* [CP] Check Pods Manifest.lock */,
+				9C8629722B4E9A1B00945639 /* Sources */,
+				9C8629732B4E9A1B00945639 /* Frameworks */,
+				9C8629742B4E9A1B00945639 /* Resources */,
+				9C8629C22B4E9A2F00945639 /* Embed Foundation Extensions */,
+				A7D92A3F2DA6865E98309F5F /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9C8629BD2B4E9A2F00945639 /* PBXTargetDependency */,
+			);
+			name = "SRP-VPN-Connect";
+			productName = "SRP-VPN-Connect";
+			productReference = 9C8629762B4E9A1B00945639 /* SRP-VPN-Connect.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9C8629B12B4E9A2F00945639 /* SRPTunnel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C8629BF2B4E9A2F00945639 /* Build configuration list for PBXNativeTarget "SRPTunnel" */;
+			buildPhases = (
+				9C8629AE2B4E9A2F00945639 /* Sources */,
+				9C8629AF2B4E9A2F00945639 /* Frameworks */,
+				9C8629B02B4E9A2F00945639 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SRPTunnel;
+			productName = SRPTunnel;
+			productReference = 9C8629B22B4E9A2F00945639 /* SRPTunnel.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		BB0002402B70000300000001 /* SRP-VPN-ConnectTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB0002502B70000300000001 /* Build configuration list for PBXNativeTarget "SRP-VPN-ConnectTests" */;
+			buildPhases = (
+				BB0002302B70000300000001 /* Sources */,
+				BB0002312B70000300000001 /* Frameworks */,
+				BB0002322B70000300000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BB0002602B70000300000001 /* PBXTargetDependency */,
+			);
+			name = "SRP-VPN-ConnectTests";
+			productName = "SRP-VPN-ConnectTests";
+			productReference = BB0002002B70000300000001 /* SRP-VPN-ConnectTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		BB0003402B70000400000001 /* SRP-VPN-ConnectTestsMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB0003502B70000400000001 /* Build configuration list for PBXNativeTarget "SRP-VPN-ConnectTestsMac" */;
+			buildPhases = (
+				BB0003302B70000400000001 /* Sources */,
+				BB0003312B70000400000001 /* Frameworks */,
+				BB0003322B70000400000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "SRP-VPN-ConnectTestsMac";
+			productName = "SRP-VPN-ConnectTestsMac";
+			productReference = BB0003002B70000400000001 /* SRP-VPN-ConnectTestsMac.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9C86296E2B4E9A1B00945639 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					9C8629752B4E9A1B00945639 = {
+						CreatedOnToolsVersion = 15.2;
+						LastSwiftMigration = 1500;
+					};
+					9C8629B12B4E9A2F00945639 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					BB0002402B70000300000001 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = 9C8629752B4E9A1B00945639;
+					};
+					BB0003402B70000400000001 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = 9C8629712B4E9A1B00945639 /* Build configuration list for PBXProject "SRP-VPN-Connect" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9C86296D2B4E9A1B00945639;
+			productRefGroup = 9C8629772B4E9A1B00945639 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9C8629752B4E9A1B00945639 /* SRP-VPN-Connect */,
+				9C8629B12B4E9A2F00945639 /* SRPTunnel */,
+				BB0002402B70000300000001 /* SRP-VPN-ConnectTests */,
+				BB0003402B70000400000001 /* SRP-VPN-ConnectTestsMac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9C8629742B4E9A1B00945639 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				92321B2E59E947528883DC55 /* PrivacyInfo.xcprivacy in Resources */,
+				224181FD2B553CB200F06C7C /* HelpMenu.xib in Resources */,
+				224181F82B553C7300F06C7C /* HelpView.xib in Resources */,
+				9C8629892B4E9A1C00945639 /* LaunchScreen.storyboard in Resources */,
+				9C8629862B4E9A1C00945639 /* Assets.xcassets in Resources */,
+				9C8629842B4E9A1B00945639 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9C8629B02B4E9A2F00945639 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A024F97F532348A39D263A34 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0002322B70000300000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0003322B70000400000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		19CB18A12F0585D4B0D13D8D /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SRP-VPN-Connect-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A7D92A3F2DA6865E98309F5F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9C8629722B4E9A1B00945639 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				224181D02B52A15800F06C7C /* HomeHeaderView.m in Sources */,
+				9C8629812B4E9A1B00945639 /* ViewController.m in Sources */,
+				9C86297B2B4E9A1B00945639 /* AppDelegate.m in Sources */,
+				224181F02B53CB9900F06C7C /* CheckConnectData.m in Sources */,
+				9C86298C2B4E9A1C00945639 /* main.m in Sources */,
+				9C86297E2B4E9A1B00945639 /* SceneDelegate.m in Sources */,
+				224181D52B52A79B00F06C7C /* HomeProtocolView.m in Sources */,
+				A20000000000000000000011 /* SRPProfileLatencyTester.m in Sources */,
+				224181D92B52ADAC00F06C7C /* CreateVC.m in Sources */,
+				224181FC2B553CB200F06C7C /* HelpMenu.m in Sources */,
+				224182002B55641E00F06C7C /* userNodeData.m in Sources */,
+				224181F32B553C5C00F06C7C /* HelpVC.m in Sources */,
+				224181F72B553C7300F06C7C /* HelpView.m in Sources */,
+				224181E12B52B66C00F06C7C /* NodeModel.m in Sources */,
+				BB0000E12B70000100000001 /* SRPEapConfig.m in Sources */,
+				BB0000F12B70000200000001 /* SRPEapConfigViewController.m in Sources */,
+				BB0000F22B70000200000001 /* SRPTtlsMethodViewController.m in Sources */,
+				BB0000F32B70000200000001 /* SRPMethodViewController.m in Sources */,
+				BB0000E22B70000100000001 /* SRPKeychain.m in Sources */,
+				BB0005112B70000600000001 /* SRPCertificateViewController.m in Sources */,
+				BB0005122B70000600000001 /* SRPCertificateStore.m in Sources */,
+				BB0005622B70000600000001 /* SRPLogViewController.m in Sources */,
+				0B3AA8A7E9A42551B04A1954 /* SRPSEMethodViewController.m in Sources */,
+				6296CA7891B2B7AB6369B903 /* SRPOCServerTypeViewController.m in Sources */,
+				305C655B1A052C57C3DA16E0 /* SRPProtocolViewController.m in Sources */,
+				B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */,
+				E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */,
+				A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9C8629AE2B4E9A2F00945639 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C8629B92B4E9A2F00945639 /* PacketTunnelProvider.m in Sources */,
+				BB0005132B70000600000001 /* SRPKeychain.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0002302B70000300000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB0002102B70000300000001 /* SRPAuthConfigTests.m in Sources */,
+				BB0002112B70000300000001 /* SRPEapConfig.m in Sources */,
+				BB0002122B70000300000001 /* SRPKeychain.m in Sources */,
+				BB0002132B70000300000001 /* NodeModel.m in Sources */,
+				BB0002142B70000300000001 /* CheckConnectData.m in Sources */,
+				BB0002152B70000300000001 /* userNodeData.m in Sources */,
+				BB0002162B70000300000001 /* SSAuthCapabilities.m in Sources */,
+				BB0004212B70000500000001 /* SRPEapMschapv2Tests.m in Sources */,
+				BB0005422B70000600000001 /* SRProxySupportTests.m in Sources */,
+				BB0005432B70000600000001 /* SSProxySupport.m in Sources */,
+				BB0005522B70000600000001 /* SROptionsTests.m in Sources */,
+				A20000000000000000000012 /* SRPProfileLatencyTester.m in Sources */,
+				BB0005532B70000600000001 /* SSNetOptions.m in Sources */,
+				A10000000000000000000031 /* SRPWaterWallChainConfig.m in Sources */,
+				BB0004302B70000500000001 /* chap_ms.c in Sources */,
+				BB0004312B70000500000001 /* pppcrypt.c in Sources */,
+				BB0004322B70000500000001 /* magic.c in Sources */,
+				BB0004332B70000500000001 /* md4.c in Sources */,
+				BB0004342B70000500000001 /* md5.c in Sources */,
+				BB0004352B70000500000001 /* sha1.c in Sources */,
+				BB0004362B70000500000001 /* des.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BB0003302B70000400000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB0003102B70000400000001 /* SRPAuthConfigTests.m in Sources */,
+				BB0003112B70000400000001 /* SRPEapConfig.m in Sources */,
+				BB0003122B70000400000001 /* SRPKeychain.m in Sources */,
+				BB0003132B70000400000001 /* NodeModel.m in Sources */,
+				BB0003142B70000400000001 /* CheckConnectData.m in Sources */,
+				BB0003152B70000400000001 /* userNodeData.m in Sources */,
+				BB0003162B70000400000001 /* SSAuthCapabilities.m in Sources */,
+				BB0004412B70000500000001 /* SRPEapMschapv2Tests.m in Sources */,
+				BB0005302B70000600000001 /* SRPVpnTlsP12Tests.m in Sources */,
+				BB0005312B70000600000001 /* SSProtocol.m in Sources */,
+				BB0005442B70000600000001 /* SRProxySupportTests.m in Sources */,
+				BB0005452B70000600000001 /* SSProxySupport.m in Sources */,
+				BB0005542B70000600000001 /* SROptionsTests.m in Sources */,
+				A20000000000000000000013 /* SRPProfileLatencyTester.m in Sources */,
+				BB0005552B70000600000001 /* SSNetOptions.m in Sources */,
+				A10000000000000000000032 /* SRPWaterWallChainConfig.m in Sources */,
+				BB0004502B70000500000001 /* chap_ms.c in Sources */,
+				BB0004512B70000500000001 /* pppcrypt.c in Sources */,
+				BB0004522B70000500000001 /* magic.c in Sources */,
+				BB0004532B70000500000001 /* md4.c in Sources */,
+				BB0004542B70000500000001 /* md5.c in Sources */,
+				BB0004552B70000500000001 /* sha1.c in Sources */,
+				BB0004562B70000500000001 /* des.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9C8629BD2B4E9A2F00945639 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9C8629B12B4E9A2F00945639 /* SRPTunnel */;
+			targetProxy = 9C8629BC2B4E9A2F00945639 /* PBXContainerItemProxy */;
+		};
+		BB0002602B70000300000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9C8629752B4E9A1B00945639 /* SRP-VPN-Connect */;
+			targetProxy = BB0002702B70000300000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		9C8629822B4E9A1B00945639 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9C8629832B4E9A1B00945639 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		9C8629872B4E9A1C00945639 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				9C8629882B4E9A1C00945639 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		9C8629A32B4E9A1C00945639 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		9C8629A42B4E9A1C00945639 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9C8629A62B4E9A1C00945639 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E8A7C76C71B51AFB20ECAA56 /* Pods-SRP-VPN-Connect.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "SRP-VPN-Connect/SRP-VPN-Connect.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SRP-VPN-Connect/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "SRP VPN Connect";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "SRP-VPN-Connect/SRP-VPN-Connect-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9C8629A72B4E9A1C00945639 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 23DB8C9C3A0927BB6E737D68 /* Pods-SRP-VPN-Connect.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "SRP-VPN-Connect/SRP-VPN-Connect.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SRP-VPN-Connect/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "SRP VPN Connect";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "SRP-VPN-Connect/SRP-VPN-Connect-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9C8629C02B4E9A2F00945639 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SRPTunnel/SRPTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/SRP-VPN-Connect";
+				INFOPLIST_FILE = SRPTunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SRPTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"$(SRCROOT)/SoftEther/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
+					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WaterWall/build/ios",
+				);
+				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lSECore",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
+					"-liconv",
+					"-lSRPOpenConnect",
+					"-lSRPSSH2",
+					"-lSRPSSHEngine",
+					"-lSRPOpenVPN",
+					"-lsrpwg-go",
+					"-laether",
+					"-lSRPWaterWallRuntime",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9C8629C12B4E9A2F00945639 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SRPTunnel/SRPTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/SRP-VPN-Connect";
+				INFOPLIST_FILE = SRPTunnel/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SRPTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"$(SRCROOT)/SoftEther/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
+					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WaterWall/build/ios",
+				);
+				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lSECore",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
+					"-liconv",
+					"-lSRPOpenConnect",
+					"-lSRPSSH2",
+					"-lSRPSSHEngine",
+					"-lSRPOpenVPN",
+					"-lsrpwg-go",
+					"-laether",
+					"-lSRPWaterWallRuntime",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn.SRPTunnel;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BB0002802B70000300000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/SRP-VPN-Connect",
+					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/LwIP/lwip/include",
+					"$(SRCROOT)/LwIP/lwip/custom",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SRP-VPN-Connect.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SRP-VPN-Connect";
+			};
+			name = Debug;
+		};
+		BB0002812B70000300000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/SRP-VPN-Connect",
+					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/LwIP/lwip/include",
+					"$(SRCROOT)/LwIP/lwip/custom",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SRP-VPN-Connect.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SRP-VPN-Connect";
+			};
+			name = Release;
+		};
+		BB0003802B70000400000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/SRP-VPN-Connect",
+					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/Core/SRPCore/include",
+					"$(SRCROOT)/LwIP/lwip/include",
+					"$(SRCROOT)/LwIP/lwip/custom",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
+					"$(SRCROOT)/Core/SRPCore/crypto.xcframework/macos-arm64_x86_64",
+					"$(SRCROOT)/SoftEther/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
+					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
+				);
+				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lssl",
+					"-lcrypto",
+					"-lSECore",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
+					"-liconv",
+					"-lSRPOpenConnect",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTestsMac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BB0003812B70000400000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 20;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/SRP-VPN-Connect",
+					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/Core/SRPCore/include",
+					"$(SRCROOT)/LwIP/lwip/include",
+					"$(SRCROOT)/LwIP/lwip/custom",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
+					"$(SRCROOT)/Core/SRPCore/crypto.xcframework/macos-arm64_x86_64",
+					"$(SRCROOT)/SoftEther/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
+					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
+				);
+				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lssl",
+					"-lcrypto",
+					"-lSECore",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
+					"-liconv",
+					"-lSRPOpenConnect",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTestsMac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9C8629712B4E9A1B00945639 /* Build configuration list for PBXProject "SRP-VPN-Connect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C8629A32B4E9A1C00945639 /* Debug */,
+				9C8629A42B4E9A1C00945639 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9C8629A52B4E9A1C00945639 /* Build configuration list for PBXNativeTarget "SRP-VPN-Connect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C8629A62B4E9A1C00945639 /* Debug */,
+				9C8629A72B4E9A1C00945639 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9C8629BF2B4E9A2F00945639 /* Build configuration list for PBXNativeTarget "SRPTunnel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C8629C02B4E9A2F00945639 /* Debug */,
+				9C8629C12B4E9A2F00945639 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB0002502B70000300000001 /* Build configuration list for PBXNativeTarget "SRP-VPN-ConnectTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB0002802B70000300000001 /* Debug */,
+				BB0002812B70000300000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB0003502B70000400000001 /* Build configuration list for PBXNativeTarget "SRP-VPN-ConnectTestsMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB0003802B70000400000001 /* Debug */,
+				BB0003812B70000400000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9C86296E2B4E9A1B00945639 /* Project object */;
+}

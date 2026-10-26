@@ -1,0 +1,25 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+tunnel_t *connectionfisherserverTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, 0, sizeof(connectionfisherserver_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    t->fnInitU    = &connectionfisherserverTunnelUpStreamInit;
+    t->fnFinU     = &connectionfisherserverTunnelUpStreamFinish;
+    t->fnPayloadU = &connectionfisherserverTunnelUpStreamPayload;
+    t->fnPauseU   = &connectionfisherserverTunnelUpStreamPause;
+    t->fnResumeU  = &connectionfisherserverTunnelUpStreamResume;
+    t->fnEstD     = &connectionfisherserverTunnelDownStreamEst;
+    t->fnFinD     = &connectionfisherserverTunnelDownStreamFinish;
+    t->fnPayloadD = &connectionfisherserverTunnelDownStreamPayload;
+    t->fnPauseD   = &connectionfisherserverTunnelDownStreamPause;
+    t->fnResumeD  = &connectionfisherserverTunnelDownStreamResume;
+
+    return t;
+}

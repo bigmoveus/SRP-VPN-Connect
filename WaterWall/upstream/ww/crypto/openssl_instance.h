@@ -1,0 +1,31 @@
+#pragma once
+#include "wcrypto.h"
+#include "wlibc.h"
+
+typedef struct ssl_st SSL;
+
+enum ssl_endpoint
+{
+    kSslServer = 0,
+    kSslClient = 1,
+};
+
+WCRYPTO_MUST_USE wcrypto_status_t opensslGlobalInit(void);
+void                              opensslGlobalCleanup(void);
+
+typedef struct
+{
+    const char       *crt_file;
+    const char       *key_file;
+    const char       *ca_file;
+    const char       *ca_path;
+    short             verify_peer;
+    enum ssl_endpoint endpoint;
+} ssl_ctx_opt_t;
+
+typedef void *ssl_ctx_t; ///> SSL_CTX
+
+ssl_ctx_t sslCtxNew(ssl_ctx_opt_t *param);
+void      printSSLState(const SSL *ssl);
+void      printSSLError(void);
+void      printSSLErrorAndAbort(void);

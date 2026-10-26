@@ -1,0 +1,1081 @@
+name: CI
+
+
+permissions:
+  contents: write
+
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      extended_tests:
+        description: Run speed and stress workloads, including the TUN TCP benchmark
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+env:
+  cpm-path: .cpm
+  cpm-key: waterwall-1.1.0-cpm
+  CCACHE_COMPILERCHECK: content
+  CCACHE_BASEDIR: ${{ github.workspace }}
+  CCACHE_NOHASHDIR: 1
+  CCACHE_SLOPPINESS: time_macros,file_macro,pch_defines,include_file_mtime,include_file_ctime
+  CCACHE_COMPRESS: 1
+  CCACHE_MAXSIZE: 20G
+  CCACHE_PCH_EXTSUM: 1
+  CCACHE_DEPEND: 1
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+jobs:
+  linux-tsan:
+    name: linux-tsan-shutdown
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-linux-tsan-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-linux-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache iproute2 util-linux
+      - name: Configure focused TSAN units
+        run: cmake --preset linux-tsan-unit -DCPM_SOURCE_CACHE=${{ env.cpm-path }}
+      - name: Build focused TSAN units
+        run: cmake --build --preset linux-tsan-unit -j8
+      - name: Run focused TSAN units
+        env:
+          TSAN_OPTIONS: halt_on_error=1
+        run: ctest --preset linux-tsan-unit --output-on-failure
+
+      - name: Upload native test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-linux-tsan-test-diagnostics
+          path: |
+            build/linux-tsan-unit/test-runs/
+            build/linux-tsan-unit/Testing/Temporary/
+          if-no-files-found: warn
+
+  windows-shutdown:
+    name: windows-shutdown
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+          key: ${{ env.cpm-key }}-windows-shutdown-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-windows-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Install dependencies
+        # Keep MSVC's PCH compilation direct; ccache only documents PCH support
+        # for GCC and Clang.
+        run: choco install -y ninja nasm
+      - name: Configure focused Windows shutdown units
+        run: >
+          cmake --preset windows-iocp-unit
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      - name: Build Windows platform native units
+        run: >
+          cmake --build build/windows-iocp-unit --config Release --parallel
+          --target waterwall_platform_unit_tests
+      - name: Run required portable Windows contracts
+        run: >
+          ctest --test-dir build/windows-iocp-unit -C Release --no-tests=error --output-on-failure
+          -R '^waterwall\.(idle_table_contract_unit|system_memory_snapshot_unit|muxserver_admission_limit_unit|muxclient_cid_index_unit)$'
+      - name: Run complete Windows platform unit lane
+        run: >
+          ctest --test-dir build/windows-iocp-unit -C Release --no-tests=error --output-on-failure
+          -L unit -LE source-policy
+
+      - name: Upload native test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-windows-shutdown-test-diagnostics
+          path: |
+            build/windows-iocp-unit/test-runs/
+            build/windows-iocp-unit/Testing/Temporary/
+          if-no-files-found: warn
+
+  android:
+    env:
+      ANDROID_NDK_VERSION: "28.2.13676358" # NDK r28c
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: android-arm32
+            arch: armeabi-v7a
+          - preset: android-arm64
+            arch: arm64-v8a
+          - preset: android-x86
+            arch: x86
+          - preset: android-x86-64
+            arch: x86-64
+            
+    name: android-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-android-${{ matrix.arch }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-android-${{ matrix.arch }}-
+            ${{ env.cpm-key }}-android-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache
+
+      - name: Install Android NDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$ANDROID_NDK_VERSION"
+          echo "ANDROID_NDK=$ANDROID_HOME/ndk/$ANDROID_NDK_VERSION" >> "$GITHUB_ENV"
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Configure CMake
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-android-${{ matrix.arch }}
+          path: ${{ github.workspace }}/build/${{ matrix.preset }}/Release/Waterwall
+          if-no-files-found: error
+
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  bsd:
+    strategy:
+      fail-fast: false
+      matrix:
+        # preset: [freebsd, netbsd, openbsd]
+        # arch: [arm64, x86_64]
+        names: [freebsd-x86-64]
+        preset: [freebsd]
+        arch: [x86_64]
+        include:
+          - preset: freebsd
+            version: "14.2"
+            install: sudo pkg install -y cmake perl5 git ninja ccache python3
+          # - preset: netbsd
+          #   version: "10.1"
+          #   install: sudo pkgin -y install cmake perl git ninja ccache
+          # - preset: openbsd
+          #   version: "7.6"
+          #   install: sudo pkg_add cmake git ninja ccache
+            
+    name: ${{ matrix.names }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: cpa.sh {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-bsd-${{ matrix.names }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-bsd-${{ matrix.names }}-
+            ${{ env.cpm-key }}-bsd-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+         
+      - name: Start BSD VM
+        uses: cross-platform-actions/action@master
+        with:
+          operating_system: ${{ matrix.preset }}
+          architecture: ${{ matrix.arch }}
+          version: ${{ matrix.version }}
+
+      - name: Configure CMake
+        run: |
+          ${{ matrix.install }}
+          cmake -B build -G Ninja                    \
+            -DCPM_SOURCE_CACHE=${{ env.cpm-path }}   \
+            -DOPENSSL_CONFIGURE_VERBOSE=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.names }}
+          path: ${{ github.workspace }}/build/Waterwall
+          if-no-files-found: error
+
+  ios:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: ios
+            artifact: ios-arm64
+          - preset: ios_sim
+            artifact: ios-sim-arm64
+    name: ${{ matrix.preset }}
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-ios-${{ matrix.preset }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-ios-${{ matrix.preset }}-
+            ${{ env.cpm-key }}-ios-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on macOS
+        run: |
+          if ! command -v ccache >/dev/null 2>&1; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install ccache
+          fi
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Configure CMake
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Prepare artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_dir="${{ github.workspace }}/artifacts/${{ matrix.preset }}"
+          build_dir="${{ github.workspace }}/build/${{ matrix.preset }}"
+          rm -rf "$artifact_dir"
+          mkdir -p "$artifact_dir"
+
+          shopt -s nullglob
+          product_dirs=( "$build_dir"/Release-* )
+          if [ "${#product_dirs[@]}" -eq 0 ]; then
+            echo "No Xcode Release-* output directory found under $build_dir"
+            if [ -d "$build_dir" ]; then
+              find "$build_dir" -maxdepth 3 -print
+            fi
+            exit 1
+          fi
+
+          for product_dir in "${product_dirs[@]}"; do
+            cp "$product_dir/Waterwall.app/Waterwall" "$artifact_dir/Waterwall"
+          done
+
+          if [ ! -f "$artifact_dir/Waterwall" ]; then
+            echo "No Waterwall executable copied into $artifact_dir"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.artifact }}
+          path: ${{ github.workspace }}/artifacts/${{ matrix.preset }}/Waterwall
+          if-no-files-found: error
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: linux-gcc-x64
+            pack_runtime: "ON"
+          - preset: linux-clang-x64
+            pack_runtime: "ON"
+            clang_version: "19"
+          - preset: linux-gcc-x64-old-cpu
+            pack_runtime: "ON"
+          - preset: linux-gcc-arm64
+            pack_runtime: "OFF"
+          - preset: linux-gcc-arm64-old-cpu
+            pack_runtime: "OFF"
+          - preset: linux-clang-avx512f-x64
+            pack_runtime: "ON"
+            clang_version: "19"
+
+          
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-linux-${{ matrix.preset }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-linux-${{ matrix.preset }}-
+            ${{ env.cpm-key }}-linux-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache iproute2 util-linux strace
+
+      - name: Install pinned Clang
+        if: matrix.clang_version != ''
+        shell: bash
+        env:
+          LLVM_VERSION: ${{ matrix.clang_version }}
+        run: |
+          sudo install -d -m 0755 /etc/apt/keyrings
+          curl --fail --silent --show-error --location https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/keyrings/llvm.asc >/dev/null
+          echo "deb [signed-by=/etc/apt/keyrings/llvm.asc] https://apt.llvm.org/jammy/ llvm-toolchain-jammy-${LLVM_VERSION} main" \
+            | sudo tee /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            "clang-${LLVM_VERSION}" "llvm-${LLVM_VERSION}" "lld-${LLVM_VERSION}"
+
+      - name: Install TUN TCP benchmark dependency
+        if: matrix.preset == 'linux-gcc-x64' && inputs.extended_tests
+        run: sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y iperf3
+
+      - name: Install cross-compiler
+        if: matrix.preset == 'linux-gcc-arm64' || matrix.preset == 'linux-gcc-arm64-old-cpu'
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Configure CMake
+        shell: bash
+        env:
+          CLANG_VERSION: ${{ matrix.clang_version }}
+        run: |
+          compiler_options=()
+          if [[ -n "${CLANG_VERSION}" ]]; then
+            compiler_options+=("-DCMAKE_C_COMPILER=clang-${CLANG_VERSION}" "-DCMAKE_CXX_COMPILER=clang++-${CLANG_VERSION}")
+          fi
+          cmake --preset ${{ matrix.preset }} "${compiler_options[@]}" \
+          -DWW_PACK_RUNTIME=${{ matrix.pack_runtime }} \
+          -DBUILD_TESTING=ON \
+          -DWATERWALL_ENABLE_TUN_TCP_SPEEDTEST=${{ matrix.preset == 'linux-gcc-x64' && inputs.extended_tests && 'ON' || 'OFF' }} \
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+      - name: Check Linux runtime dependencies
+        run: >
+          ctest --test-dir build/${{ matrix.preset }} -C Release
+          -R '^waterwall\.linux_runtime_dependencies$' --output-on-failure --no-tests=error
+      - name: Allow parallel splice inventories
+        if: matrix.preset == 'linux-gcc-x64'
+        run: |
+          # Pipe pages are charged to the host UID across private namespaces.
+          # Budget two 512 MiB inventories per slot at the lane's 32-job cap,
+          # plus one inventory of headroom for other pipes owned by the runner.
+          pipe_pages=$((65 * 512 * 1024 * 1024 / $(getconf PAGESIZE)))
+          sudo sysctl -w fs.pipe-user-pages-soft="$pipe_pages"
+      - name: Network namespace preflight
+        if: matrix.preset == 'linux-gcc-x64'
+        run: bash tests/run_test_lane.sh preflight build/${{ matrix.preset }}
+      - name: Support tests
+        if: matrix.preset == 'linux-gcc-x64'
+        run: bash tests/run_test_lane.sh support build/${{ matrix.preset }} Release --no-tests=error
+      - name: Deterministic functional integration tests
+        if: matrix.preset == 'linux-gcc-x64'
+        run: |
+          cmake --build --preset ${{ matrix.preset }} --config Release --target waterwall_vmess_reference
+          bash tests/run_test_lane.sh functional build/${{ matrix.preset }} Release --no-tests=error
+      - name: External network integration tests
+        if: matrix.preset == 'linux-gcc-x64'
+        run: bash tests/run_test_lane.sh external build/${{ matrix.preset }} Release --no-tests=error
+      - name: Speed tests
+        if: matrix.preset == 'linux-gcc-x64' && inputs.extended_tests
+        run: bash tests/run_test_lane.sh speed build/${{ matrix.preset }} Release --no-tests=error -LE privileged
+      - name: Stress tests
+        if: matrix.preset == 'linux-gcc-x64' && inputs.extended_tests
+        run: bash tests/run_test_lane.sh stress build/${{ matrix.preset }} Release --no-tests=error
+      - name: Privileged network namespace preflight
+        if: matrix.preset == 'linux-gcc-x64'
+        run: sudo -E bash tests/run_test_lane.sh preflight build/${{ matrix.preset }}
+      - name: Privileged integration tests
+        if: matrix.preset == 'linux-gcc-x64'
+        run: sudo -E bash tests/run_test_lane.sh privileged build/${{ matrix.preset }} Release --no-tests=error
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.preset }}
+          path: ${{ github.workspace }}/build/${{ matrix.preset }}/Release/Waterwall
+          if-no-files-found: error
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  unit-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        preset:
+          - linux-unit-release
+          - linux-unit-debug
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-${{ matrix.preset }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-${{ matrix.preset }}-
+            ${{ env.cpm-key }}-linux-unit-
+            ${{ env.cpm-key }}-linux-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache iproute2 util-linux
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+      - name: Configure CMake Unit Preset
+        run: >
+          cmake --preset linux-unit-tests
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      - name: Build Unit Tests
+        run: cmake --build --preset ${{ matrix.preset }} -j8
+      - name: Run Unit Tests
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+      - name: Upload native test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.preset }}-test-diagnostics
+          path: |
+            build/linux-unit-tests/test-runs/
+            build/linux-unit-tests/Testing/Temporary/
+          if-no-files-found: warn
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  crypto-backends:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: linux-software-crypto
+            sanitizer: false
+          - preset: linux-sodium-crypto
+            sanitizer: false
+          - preset: linux-openssl-crypto
+            sanitizer: false
+          - preset: linux-combined-crypto
+            sanitizer: false
+          - preset: linux-software-crypto-tls
+            sanitizer: false
+          - preset: linux-software-crypto-sanitize
+            sanitizer: true
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-${{ matrix.preset }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-${{ matrix.preset }}-
+            ${{ env.cpm-key }}-linux-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build ccache iproute2 util-linux
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+      - name: Configure production crypto backend
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      - name: Configure crypto backend unit tests
+        run: >
+          cmake --preset ${{ matrix.preset }}-unit
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+      - name: Build production Waterwall
+        run: cmake --build --preset ${{ matrix.preset }} --target Waterwall
+      - name: Build crypto unit tests
+        run: cmake --build --preset ${{ matrix.preset }}-unit --target crypto_primitives_test aes256gcm_test
+      - name: Build Reality lifecycle unit test
+        if: matrix.sanitizer == false
+        # Its BoringSSL dependencies need a full build step, outside the native
+        # test runner's 60-second incremental-build allowance.
+        run: cmake --build --preset ${{ matrix.preset }}-unit --target reality_close_lifecycle_test -j8
+      - name: Build ASan and UBSan fallback lifetime tests
+        if: matrix.sanitizer == true
+        run: >
+          cmake --build --preset ${{ matrix.preset }}-unit --target
+          vlessserver_fallback_finish_lifetime_test
+          trojanserver_fallback_finish_lifetime_test
+          tlsserver_fallback_finish_lifetime_test
+          muxserver_vless_fallback_finish_test
+      - name: Run backend unit verification
+        if: matrix.sanitizer == false
+        run: >
+          ctest --preset ${{ matrix.preset }}-unit --no-tests=error --output-on-failure
+          -R '^waterwall\.(aes256gcm_unit|crypto_primitives_unit|users_runtime_migration_unit|global_crypto_startup_failure_unit|openssl_partial_init_failure_unit|wireguard_crypto_failure_unit|encryptionclient_crypto_failure_unit|encryptionserver_crypto_failure_unit|tlsserver_alpn_unit|reality_config_unit|reality_v2_unit|reality_close_lifecycle_unit)$'
+      - name: Run backend integration verification
+        if: matrix.sanitizer == false
+        run: >
+          ctest --preset ${{ matrix.preset }} --no-tests=error --output-on-failure
+          -R '^waterwall\.(encryption_roundtrip|encryption_small_frame_roundtrip|wireguard_udpstateless_packet_roundtrip)$'
+      - name: Run ASan and UBSan crypto tests
+        if: matrix.sanitizer == true
+        run: >
+          ctest --preset ${{ matrix.preset }}-unit --no-tests=error --output-on-failure
+          -R '^waterwall\.(aes256gcm_unit|crypto_primitives_unit|vlessserver_fallback_finish_lifetime_unit|trojanserver_fallback_finish_lifetime_unit|tlsserver_fallback_finish_lifetime_unit|muxserver_vless_fallback_finish_unit)$'
+
+      - name: Upload native test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.preset }}-unit-test-diagnostics
+          path: |
+            build/${{ matrix.preset }}-unit/test-runs/
+            build/${{ matrix.preset }}-unit/Testing/Temporary/
+          if-no-files-found: warn
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: macos
+            arch: arm64
+            runner: macos-15
+    name: macos-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-macos-${{ matrix.arch }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-macos-${{ matrix.arch }}-
+            ${{ env.cpm-key }}-macos-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on macOS
+        if: runner.os == 'macOS'
+        run: |
+          if ! command -v ccache >/dev/null 2>&1; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install ccache
+          fi
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Configure CMake
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Configure macOS native units
+        run: >
+          cmake --preset macos-unit-tests
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+
+      - name: Build macOS platform native units
+        run: >
+          cmake --build build/macos-unit-tests --config Release --parallel
+          --target waterwall_platform_unit_tests
+
+      - name: Run required portable macOS contracts
+        run: >
+          ctest --test-dir build/macos-unit-tests -C Release --no-tests=error --output-on-failure
+          -R '^waterwall\.(idle_table_contract_unit|system_memory_snapshot_unit|muxserver_admission_limit_unit|muxclient_cid_index_unit)$'
+
+      - name: Run complete macOS platform unit lane
+        run: >
+          ctest --test-dir build/macos-unit-tests -C Release --no-tests=error --output-on-failure
+          -L unit -LE source-policy
+
+      - name: Upload native test failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-macos-${{ matrix.arch }}-test-diagnostics
+          path: |
+            build/macos-unit-tests/test-runs/
+            build/macos-unit-tests/Testing/Temporary/
+          if-no-files-found: warn
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-macos-${{ matrix.arch }}
+          path: ${{ github.workspace }}/build/${{ matrix.preset }}/Release/Waterwall
+          if-no-files-found: error
+
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  msys2:
+    env:
+      # Supported by the pinned setup-msys2 version; avoid rate-limited geo mirrors.
+      __SETUP_MSYS2_USE_MAIN_MIRROR_ONLY: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-clang-x64
+            preset: windows-msys-clang
+            msys: CLANG64
+          - name: windows-mingw-x32
+            preset: windows-mingw
+            msys: MINGW32
+          - name: windows-mingw-x64
+            preset: windows-mingw
+            msys: MINGW64
+          - name: windows-mingw-ucrt-x64
+            preset: windows-mingw
+            msys: UCRT64
+    name: ${{ matrix.name }}
+    runs-on: windows-2025-vs2026
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-msys2-${{ matrix.name }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-msys2-${{ matrix.name }}-
+            ${{ env.cpm-key }}-msys2-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Setup MSYS2
+        id: setup_msys2_initial
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2.31.1
+        with:
+          msystem: ${{ matrix.msys }}
+          update: false
+          pacboy: >-
+            ccache:p
+            cmake:p
+            gcc:p
+            gdb:p
+            make:p
+            nasm:p
+            ninja:p
+            python:p
+
+      - name: Clean up MSYS2 before retry
+        if: ${{ !cancelled() && steps.setup_msys2_initial.outcome == 'failure' }}
+        shell: pwsh
+        run: |
+          $msysRoot = Join-Path $env:RUNNER_TEMP 'msys64'
+          if (Test-Path -LiteralPath $msysRoot) {
+            Remove-Item -LiteralPath $msysRoot -Recurse -Force -ErrorAction Stop
+          }
+
+      - name: Wait before MSYS2 retry
+        if: ${{ !cancelled() && steps.setup_msys2_initial.outcome == 'failure' }}
+        shell: pwsh
+        run: Start-Sleep -Seconds 60
+
+      - name: Setup MSYS2 (retry 1)
+        id: setup_msys2_retry_1
+        if: ${{ !cancelled() && steps.setup_msys2_initial.outcome == 'failure' }}
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2.31.1
+        with:
+          msystem: ${{ matrix.msys }}
+          update: false
+          pacboy: >-
+            ccache:p
+            cmake:p
+            gcc:p
+            gdb:p
+            make:p
+            nasm:p
+            ninja:p
+            python:p
+
+      - name: Clean up MSYS2 before final retry
+        if: ${{ !cancelled() && steps.setup_msys2_retry_1.outcome == 'failure' }}
+        shell: pwsh
+        run: |
+          $msysRoot = Join-Path $env:RUNNER_TEMP 'msys64'
+          if (Test-Path -LiteralPath $msysRoot) {
+            Remove-Item -LiteralPath $msysRoot -Recurse -Force -ErrorAction Stop
+          }
+
+      - name: Wait before final MSYS2 retry
+        if: ${{ !cancelled() && steps.setup_msys2_retry_1.outcome == 'failure' }}
+        shell: pwsh
+        run: Start-Sleep -Seconds 120
+
+      - name: Setup MSYS2 (retry 2)
+        if: ${{ !cancelled() && steps.setup_msys2_retry_1.outcome == 'failure' }}
+        uses: msys2/setup-msys2@v2.31.1
+        with:
+          msystem: ${{ matrix.msys }}
+          update: false
+          pacboy: >-
+            ccache:p
+            cmake:p
+            gcc:p
+            gdb:p
+            make:p
+            nasm:p
+            ninja:p
+            python:p
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Install native protoc compiler
+        if: matrix.msys == 'MINGW32'
+        run: pacman -S --needed --noconfirm mingw-w64-x86_64-gcc
+
+      - name: Configure CMake
+        shell: msys2 {0}
+        run: |
+          mkdir -p build/ci-diagnostics
+          set -o pipefail
+          host_protoc_args=()
+          if [[ '${{ matrix.msys }}' == 'MINGW32' ]]; then
+            # protoc runs on the x64 runner; only the application targets x86.
+            host_protoc_args+=(
+              "-DWW_HOST_PROTOC_CC=$(cygpath -m /mingw64/bin/gcc.exe)"
+              "-DWW_HOST_PROTOC_CXX=$(cygpath -m /mingw64/bin/g++.exe)"
+            )
+          fi
+          cmake --preset ${{ matrix.preset }} \
+            "${host_protoc_args[@]}" \
+            -DCPM_SOURCE_CACHE="${{ env.cpm-path }}" \
+            -DDISABLE_PRECOMPILED_HEADERS=ON \
+            -DWW_PACK_RUNTIME=ON -DBUILD_TESTING=ON \
+            -DWW_WINDOWS_LINK_MAP=ON \
+            2>&1 | tee build/ci-diagnostics/configure.log
+
+      - name: Build
+        run: |
+          set -o pipefail
+          cmake --build --preset ${{ matrix.preset }} 2>&1 | tee build/ci-diagnostics/build.log
+
+      - name: Check native packed bootstrap in Debug and Release
+        working-directory: core/tools/windows_launcher
+        run: |
+          set -o pipefail
+          {
+            cmake --preset native &&
+            cmake --build --preset native-debug --parallel 8 &&
+            ctest --preset native-debug --no-tests=error --output-on-failure &&
+            cmake --build --preset native-release --parallel 8 &&
+            ctest --preset native-release --no-tests=error --output-on-failure &&
+            python ../../../tests/packed_build_target_test.py --build-dir ../../../build/windows-launcher-native --config Debug --windows &&
+            python ../../../tests/packed_build_target_test.py --build-dir ../../../build/windows-launcher-native --config Release --windows
+          } 2>&1 | tee ../../../build/ci-diagnostics/bootstrap.log
+
+      - name: Validate packed application
+        id: packed_application
+        env:
+          WW_WINDOWS_TEST_DIAGNOSTICS: ${{ github.workspace }}/build/ci-diagnostics/packed-application
+          WW_WINDOWS_TEST_DEBUGGER: gdb
+        run: >
+          ctest --test-dir build/${{ matrix.preset }} -C Release --no-tests=error --output-on-failure
+          -R '^waterwall.windows_packed_application$'
+
+      - name: Replay failed application with GDB
+        if: ${{ failure() && steps.packed_application.outcome == 'failure' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          set -o pipefail
+          python tests/windows_packed_application_debug.py \
+            --diagnostics-dir build/ci-diagnostics/packed-application \
+            2>&1 | tee build/ci-diagnostics/debugger-setup.log
+
+      - name: Collect Windows failure events
+        if: failure()
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          New-Item -ItemType Directory -Force build/ci-diagnostics | Out-Null
+          try {
+            Get-MpComputerStatus -ErrorAction Stop |
+              Select-Object AMEngineVersion, AntivirusSignatureVersion, AntivirusSignatureLastUpdated, RealTimeProtectionEnabled |
+              Format-List | Out-File build/ci-diagnostics/defender-status.log
+          } catch {
+            $_ | Out-String | Out-File build/ci-diagnostics/defender-status.log
+          }
+          try {
+            Get-WinEvent -FilterHashtable @{
+              LogName = 'Microsoft-Windows-Windows Defender/Operational'
+              Id = 1116, 1117, 1118, 1119, 1121, 1122
+              StartTime = (Get-Date).AddHours(-4)
+            } -ErrorAction Stop | Select-Object TimeCreated, Id, Message |
+              Format-List | Out-File -Width 4096 build/ci-diagnostics/defender-events.log
+          } catch {
+            $_ | Out-String | Out-File build/ci-diagnostics/defender-events.log
+          }
+          try {
+            Get-WinEvent -FilterHashtable @{
+              LogName = 'Application'
+              Id = 1000, 1001
+              StartTime = (Get-Date).AddHours(-4)
+            } -ErrorAction Stop | Select-Object TimeCreated, Id, Message |
+              Format-List | Out-File -Width 4096 build/ci-diagnostics/application-events.log
+          } catch {
+            $_ | Out-String | Out-File build/ci-diagnostics/application-events.log
+          }
+
+      - name: Upload Windows failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.name }}-failure-diagnostics
+          path: |
+            build/${{ matrix.preset }}/Release/Waterwall.exe
+            build/${{ matrix.preset }}/Release/waterwall_application.exe
+            build/${{ matrix.preset }}/Release/waterwall_application.exe.map
+            build/${{ matrix.preset }}/Testing/Temporary/
+            build/${{ matrix.preset }}/CMakeFiles/CMakeConfigureLog.yaml
+            build/windows-launcher-native/test-runs/
+            build/windows-launcher-native/Testing/Temporary/
+            build/windows-launcher-native/CMakeFiles/CMakeConfigureLog.yaml
+            build/ci-diagnostics/
+          if-no-files-found: warn
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.name }}
+          path: ${{ github.workspace }}/build/${{ matrix.preset }}/Release/Waterwall.exe
+          if-no-files-found: error
+
+      - name: Show ccache statistics
+        run: ccache -sv
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: windows-arm64
+            pack_runtime: "OFF"
+          - preset: windows-x86
+            bootstrap_arch: x86
+            pack_runtime: "ON"
+          - preset: windows-x86-64
+            bootstrap_arch: x64
+            pack_runtime: "ON"
+    name: ${{ matrix.preset }}
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.cpm-path }}
+            ${{ github.workspace }}/.ccache
+          key: ${{ env.cpm-key }}-windows-${{ matrix.preset }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+          restore-keys: |
+            ${{ env.cpm-key }}-windows-${{ matrix.preset }}-
+            ${{ env.cpm-key }}-windows-
+            ${{ env.cpm-key }}-
+          enableCrossOsArchive: false
+      - name: Install dependencies on Windows
+        if: runner.os == 'Windows'
+        run: |
+          choco install -y jom nasm ccache
+          echo "C:\Program Files\NASM" >> $ENV:GITHUB_PATH
+
+      - name: Reset ccache statistics
+        run: ccache --zero-stats
+
+      - name: Configure CMake
+        run: >
+          cmake --preset ${{ matrix.preset }}
+          -DWW_PACK_RUNTIME=${{ matrix.pack_runtime }} -DBUILD_TESTING=ON
+          -DCPM_SOURCE_CACHE="${{ env.cpm-path }}"
+        # -DOPENSSL_CONFIGURE_OPTIONS=no-asm
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} --parallel
+
+      - name: Validate packed application
+        if: matrix.pack_runtime == 'ON'
+        run: >
+          ctest --test-dir build/${{ matrix.preset }} -C Release --no-tests=error --output-on-failure
+          -R '^waterwall.windows_packed_application$'
+
+      - name: Configure MSVC for packed bootstrap
+        if: matrix.preset != 'windows-arm64'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.bootstrap_arch }}
+      - name: Install packed bootstrap build tools
+        if: matrix.preset != 'windows-arm64'
+        run: choco install -y ninja
+      - name: Configure packed bootstrap fixture
+        if: matrix.preset != 'windows-arm64'
+        working-directory: core/tools/windows_launcher
+        run: cmake --preset native
+      - name: Check Debug bootstrap
+        if: matrix.preset != 'windows-arm64'
+        working-directory: core/tools/windows_launcher
+        run: |
+          cmake --build --preset native-debug --parallel 8
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --preset native-debug --no-tests=error --output-on-failure
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python ../../../tests/packed_build_target_test.py --build-dir ../../../build/windows-launcher-native --config Debug --windows
+      - name: Check Release bootstrap
+        if: matrix.preset != 'windows-arm64'
+        working-directory: core/tools/windows_launcher
+        run: |
+          cmake --build --preset native-release --parallel 8
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ctest --preset native-release --no-tests=error --output-on-failure
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python ../../../tests/packed_build_target_test.py --build-dir ../../../build/windows-launcher-native --config Release --windows
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: Waterwall-${{ matrix.preset }}
+          path: ${{ github.workspace }}/build/${{ matrix.preset }}/Release/Waterwall.exe
+          if-no-files-found: error
+
+      - name: Show ccache statistics
+        run: ccache -sv
+
+
+
+  release:
+      needs:
+        # - android
+        # - bsd
+        # - ios
+        - linux
+        - macos
+        - msys2
+        - windows
+
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v5
+
+        - name: Configure CMake
+          run: |
+            cmake -B build
+
+        - name: Download artifacts
+          uses: actions/download-artifact@v7
+          with:
+            pattern: Waterwall-*
+            path: downloaded_artifacts
+
+        - name: Extract version
+          run: |
+            VERSION=$(cat build/ww/cmake/version.txt)
+            echo "Project version: $VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+
+        - name: Check if tag exists
+          id: check_tag
+          run: |
+            git fetch --tags
+            if git rev-parse "v${{ env.VERSION }}" >/dev/null 2>&1; then
+              echo "exists=true" >> $GITHUB_OUTPUT
+            else
+              echo "exists=false" >> $GITHUB_OUTPUT
+            fi
+
+        - name: Create Git Tag
+          if: steps.check_tag.outputs.exists == 'false'
+          run: |
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
+            git push origin "v${{ env.VERSION }}"
+
+        - name: Zip release files
+          if: steps.check_tag.outputs.exists == 'false'
+          run: python3 tests/package_release_artifacts.py downloaded_artifacts zipped_artifacts
+
+
+        - name: Create GitHub Release
+          if: steps.check_tag.outputs.exists == 'false'
+          uses: softprops/action-gh-release@v3
+          with:
+            tag_name: v${{ env.VERSION }}
+            files: |
+              zipped_artifacts/*.zip

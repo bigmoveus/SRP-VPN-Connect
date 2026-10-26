@@ -1,0 +1,157 @@
+#pragma once
+
+#include "TcpUdpListener/interface.h"
+#include "UdpListener/interface.h"
+#include "address_codec.h"
+#include "wwapi.h"
+
+/* The remote owns this immutable value. The client map borrows its pointer;
+ * detach removes the entry before remote destruction frees the key. */
+typedef struct socks5server_remote_key_s
+{
+    socks5_address_t address;
+    hash_t           hash;
+} socks5server_remote_key_t;
+
+static inline bool socks5serverRemoteKeyEqual(socks5server_remote_key_t *const *left,
+                                              socks5server_remote_key_t *const *right)
+{
+    const socks5_address_t *a = &(*left)->address;
+    const socks5_address_t *b = &(*right)->address;
+    return a->kind == b->kind && a->port == b->port && a->length == b->length &&
+           memoryEqual(a->bytes, b->bytes, a->length);
+}
+
+#define i_type socks5server_remote_map_t
+#define i_key  socks5server_remote_key_t *
+#define i_val  line_t *
+#define i_eq   socks5serverRemoteKeyEqual
+#ifdef SOCKS5SERVER_TEST_CONSTANT_HASH
+#define i_hash(key) ((void) (key), UINT64_C(0))
+#else
+#define i_hash(key) ((size_t) ((*key)->hash))
+#endif
+#include "stc/hmap.h"
+
+typedef struct socks5server_assoc_entry_s
+{
+    uint64_t                              generation;
+    wid_t                                 owner_wid;
+    udplistener_dynamic_endpoint_handle_t dynamic_handle;
+    uint16_t                              assigned_port;
+    user_handle_t                         user_handle;
+    char                                 *auth_username; // raw SOCKS5 username, owned (NULL if none)
+    char                                 *auth_password; // raw SOCKS5 password, owned (NULL if none)
+    bool                                  active;
+} socks5server_assoc_entry_t;
+
+#define i_type socks5server_assoc_map_t   // NOLINT
+#define i_key  uint64_t                   // NOLINT
+#define i_val  socks5server_assoc_entry_t // NOLINT
+#include "stc/hmap.h"
+
+typedef enum socks5server_line_kind_e
+{
+    kSocks5ServerLineKindNone = 0,
+    kSocks5ServerLineKindControlTcp,
+    kSocks5ServerLineKindUdpClient,
+    kSocks5ServerLineKindUdpRemote,
+    kSocks5ServerLineKindRejected
+} socks5server_line_kind_t;
+
+typedef enum socks5server_phase_e
+{
+    kSocks5ServerPhaseIdle = 0,
+    kSocks5ServerPhaseWaitMethod,
+    kSocks5ServerPhaseWaitAuth,
+    kSocks5ServerPhaseWaitRequest,
+    kSocks5ServerPhaseConnectWaitEst,
+    kSocks5ServerPhaseTcpEstablished,
+    kSocks5ServerPhaseUdpControl,
+    kSocks5ServerPhaseClosing
+} socks5server_phase_t;
+
+typedef enum socks5server_close_origin_e
+{
+    kSocks5ServerCloseInternal = 0, // we decided to close; close both directions
+    kSocks5ServerCloseFromPrev,     // prev/downstream side finished us; close next only
+    kSocks5ServerCloseFromNext      // next/upstream side finished us; close prev only
+} socks5server_close_origin_t;
+
+typedef struct socks5server_tstate_s
+{
+    node_t                        *auth_client_node;
+    tunnel_t                      *auth_client_tunnel;
+    node_t                         user_controller_node;
+    tunnel_t                      *user_controller_tunnel;
+    char                          *udp_reply_ipv4;
+    ip_addr_t                      udp_reply_ip;
+    bool                           allow_connect;
+    bool                           allow_udp;
+    bool                           no_auth;
+    bool                           verbose;
+    udplistener_dynamic_provider_t dynamic_provider;
+    wid_t                          workers_count;
+    socks5server_assoc_map_t      *worker_associations; // worker-local association map array
+} socks5server_tstate_t;
+
+typedef struct socks5server_lstate_s
+{
+    tunnel_t                             *tunnel;
+    line_t                               *line;
+    buffer_stream_t                       in_stream;
+    buffer_queue_t                        pending_up;
+    buffer_queue_t                        pending_down;
+    socks5server_remote_map_t             udp_remote_lines;
+    line_t                               *client_line;
+    user_handle_t                         user_handle;
+    char                                 *auth_username; // raw SOCKS5 username, owned (NULL if none)
+    char                                 *auth_password; // raw SOCKS5 password, owned (NULL if none)
+    socks5server_remote_key_t            *remote_key;
+    udplistener_dynamic_endpoint_handle_t dynamic_handle;
+    socks5server_phase_t                  phase;
+    socks5server_line_kind_t              kind;
+    // CONNECT reply and deferred application FIFO are independent of transport Est.
+    bool transport_est_forwarded : 1;
+    bool control_draining : 1;
+    bool input_draining : 1;
+    bool next_initialized : 1;
+    bool next_initializing : 1;
+    bool pending_read_pause : 1; // Replay only a Pause received before the next side was initialized.
+    bool connect_reply_sent : 1;
+    bool client_line_ref_held : 1;
+    bool udp_first_payload_validated : 1;
+    bool prev_finished : 1; // prev/downstream side already finished this control line
+    bool next_finished : 1; // next/upstream side already finished this control line
+} socks5server_lstate_t;
+
+enum
+{
+    kTunnelStateSize                   = sizeof(socks5server_tstate_t),
+    kLineStateSize                     = sizeof(socks5server_lstate_t),
+    kSocks5ServerMaxControlPrefixBytes = 3 + 2 * UINT8_MAX, // RFC 1929 username/password request.
+    kSocks5ServerMaxPendingBytes       = 1024 * 1024,
+    kSocks5ServerMaxPendingBuffers     = 1024,
+    kSocks5ServerUdpHeaderMaxLen       = 4 + 1 + UINT8_MAX + 2
+};
+
+WW_EXPORT void         socks5serverTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t    *socks5serverTunnelCreate(node_t *node);
+WW_EXPORT api_result_t socks5serverTunnelApi(tunnel_t *instance, sbuf_t *message);
+
+void socks5serverTunnelOnChain(tunnel_t *t, tunnel_chain_t *chain);
+void socks5serverTunnelOnPrepair(tunnel_t *t);
+
+void socks5serverTunnelUpStreamInit(tunnel_t *t, line_t *l);
+void socks5serverTunnelUpStreamEst(tunnel_t *t, line_t *l);
+void socks5serverTunnelUpStreamFinish(tunnel_t *t, line_t *l);
+void socks5serverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void socks5serverTunnelUpStreamPause(tunnel_t *t, line_t *l);
+void socks5serverTunnelUpStreamResume(tunnel_t *t, line_t *l);
+
+void socks5serverTunnelDownStreamInit(tunnel_t *t, line_t *l);
+void socks5serverTunnelDownStreamEst(tunnel_t *t, line_t *l);
+void socks5serverTunnelDownStreamFinish(tunnel_t *t, line_t *l);
+void socks5serverTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void socks5serverTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void socks5serverTunnelDownStreamResume(tunnel_t *t, line_t *l);

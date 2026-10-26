@@ -1,0 +1,54 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+tunnel_t *speedtestserverTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(speedtestserver_tstate_t), sizeof(speedtestserver_lstate_t));
+
+    if (! t)
+    {
+        return NULL;
+    }
+
+    t->fnInitU    = &speedtestserverTunnelUpStreamInit;
+    t->fnFinU     = &speedtestserverTunnelUpStreamFinish;
+    t->fnPayloadU = &speedtestserverTunnelUpStreamPayload;
+    t->fnPauseU   = &speedtestserverTunnelUpStreamPause;
+    t->fnResumeU  = &speedtestserverTunnelUpStreamResume;
+    t->fnEstD     = &speedtestserverTunnelDownStreamEst;
+    t->fnFinD     = &speedtestserverTunnelDownStreamFinish;
+    t->fnPayloadD = &speedtestserverTunnelDownStreamPayload;
+    t->fnPauseD   = &speedtestserverTunnelDownStreamPause;
+    t->fnResumeD  = &speedtestserverTunnelDownStreamResume;
+
+    t->onPrepare = &speedtestserverTunnelOnPrepair;
+
+    t->onDestroy = &speedtestserverTunnelDestroy;
+
+    speedtestserver_tstate_t *state              = tunnelGetState(t);
+    const cJSON              *settings           = node->node_settings_json;
+    int                       report_interval_ms;
+
+    if (UNLIKELY(! mutexTryInit(&state->aggregate_mutex)))
+    {
+        LOGF("SpeedTestServer: failed to initialize aggregate mutex");
+        tunnelDestroy(t);
+        return NULL;
+    }
+    getBoolFromJsonObjectOrDefault(&state->json_summary, settings, "json-summary", false);
+    getBoolFromJsonObjectOrDefault(&state->quiet, settings, "quiet", false);
+    getIntFromJsonObjectOrDefault(
+        &report_interval_ms, settings, "report-interval-ms", kSpeedTestServerDefaultIntervalMs);
+
+    if (report_interval_ms <= 0)
+    {
+        LOGF("JSON Error: SpeedTestServer->settings->report-interval-ms (int field) : expected a positive value");
+        speedtestserverTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    state->report_interval_ms = (uint32_t) report_interval_ms;
+    atomicStoreRelaxed(&state->completed_streams, 0);
+    return t;
+}

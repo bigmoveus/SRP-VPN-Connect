@@ -1,0 +1,24 @@
+
+add_library(EncryptionServer STATIC
+                    instance/create.c
+                    instance/destroy.c
+                    instance/api.c
+                    instance/node.c
+                    common/helpers.c
+                    common/line_state.c
+                    upstream/init.c
+                    upstream/fin.c
+                    upstream/payload.c
+                    downstream/fin.c
+                    downstream/payload.c
+  
+)
+
+target_include_directories(EncryptionServer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(EncryptionServer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/EncryptionServer)
+
+target_link_libraries(EncryptionServer ww)
+if(NOT APPLE)
+    target_precompile_headers(EncryptionServer REUSE_FROM ww)
+endif()
+

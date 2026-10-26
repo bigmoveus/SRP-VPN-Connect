@@ -1,0 +1,31 @@
+#include "structure.h"
+
+static void routerClearInternalNode(node_t *node)
+{
+    memoryFree(node->name);
+    memoryFree(node->type);
+    memoryFree(node->next);
+    memoryZero(node, sizeof(*node));
+}
+
+static void routerDestroyInternalDomainResolver(router_tstate_t *ts)
+{
+    if (ts->domain_resolver_tunnel != NULL)
+    {
+        tunnelOwnedChildDestroy(ts->domain_resolver_tunnel);
+        ts->domain_resolver_tunnel = NULL;
+    }
+
+    routerClearInternalNode(&ts->domain_resolver_node);
+}
+
+void routerTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context)
+{
+    discard          context;
+    router_tstate_t *ts = tunnelGetState(t);
+    routerDestroyInternalDomainResolver(ts);
+    routerGeoipClose(ts);
+    routerGeositeClose(ts);
+    routerRuleTableDestroy(ts);
+    tunnelDestroy(t);
+}

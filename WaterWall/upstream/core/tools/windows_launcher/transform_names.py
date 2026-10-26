@@ -1,0 +1,318 @@
+#!/usr/bin/env python3
+"""Transform Windows API and DLL names for lazy loading.
+
+Uses the nonlinear Feistel permutation and XOR-key transformation to obfuscate
+DLL and procedure names, generating C byte arrays to be decrypted lazily at runtime.
+"""
+
+import argparse
+from pathlib import Path
+import sys
+
+KEY = 0xA5
+
+ROUND_KEYS = (0x3, 0xC, 0x5, 0xA,
+              0xE, 0x1, 0x7, 0xB)
+
+
+def mix(nibble: int, key: int) -> int:
+    """Nonlinear 4-bit mixing function."""
+    x = (nibble + key) & 0x0F
+
+    # Rotate and mix bits
+    x ^= ((x << 1) | (x >> 3)) & 0x0F
+
+    # Modular arithmetic
+    x = (9 * x + 5) & 0x0F
+
+    # Additional bit mixing
+    return (x ^ (x >> 2)) & 0x0F
+
+
+def scramble(byte: int) -> int:
+    """Eight-round Feistel permutation."""
+    left = byte >> 4
+    right = byte & 0x0F
+
+    for key in ROUND_KEYS:
+        left, right = right, left ^ mix(right, key)
+
+    return (left << 4) | right
+
+
+def unscramble(byte: int) -> int:
+    """Inverse of the Feistel permutation."""
+    left = byte >> 4
+    right = byte & 0x0F
+
+    for key in reversed(ROUND_KEYS):
+        left, right = right ^ mix(left, key), left
+
+    return (left << 4) | right
+
+
+def transform_byte(byte: int) -> int:
+    """Self-inverse nonlinear transformation."""
+    if not 0 <= byte <= 255:
+        raise ValueError("Expected an 8-bit byte")
+
+    mixed = scramble(byte) ^ KEY
+    return unscramble(mixed)
+
+
+# Precompute all 256 transformations for efficiency.
+TABLE = bytes(transform_byte(x) for x in range(256))
+
+
+def transform(data: bytes) -> bytes:
+    """Fast transformation of arbitrary byte sequences.
+
+    Because transform_byte is an involution (self-inverse), applying
+    transform twice restores the original data:
+        transform(transform(data)) == data
+    """
+    return data.translate(TABLE)
+
+
+# Windows DLL and API names used in core/launcher
+DLL_NAMES = [
+    ("kernel32", "kernel32.dll"),
+    ("advapi32", "advapi32.dll"),
+    ("ntdll", "ntdll.dll"),
+]
+
+PROC_NAMES = [
+    # kernel32 procedures
+    "SetConsoleCtrlHandler",
+    "Sleep",
+    "GetModuleFileNameW",
+    "CreateFileMappingW",
+    "MapViewOfFile",
+    "UnmapViewOfFile",
+    "DuplicateHandle",
+    "CloseHandle",
+    "LocalFree",
+    "CreateFileW",
+    "GetFinalPathNameByHandleW",
+    "GetVolumeInformationW",
+    "GetFileInformationByHandle",
+    "WideCharToMultiByte",
+    "RemoveDirectoryW",
+    "DeleteFileW",
+    "FindFirstFileW",
+    "FindNextFileW",
+    "FindClose",
+    "ReadFile",
+    "WriteFile",
+    "FlushFileBuffers",
+    "GetTempPathW",
+    "QueryPerformanceCounter",
+    "GetCurrentProcessId",
+    "CreateDirectoryW",
+    "GetStdHandle",
+    "InitializeProcThreadAttributeList",
+    "UpdateProcThreadAttribute",
+    "DeleteProcThreadAttributeList",
+    "CreateJobObjectW",
+    "SetInformationJobObject",
+    "IsProcessInJob",
+    "QueryInformationJobObject",
+    "CreateProcessW",
+    "AssignProcessToJobObject",
+    "ResumeThread",
+    "WaitForSingleObject",
+    "GetExitCodeProcess",
+    "TerminateProcess",
+    "ExitProcess",
+    "OpenProcess",
+    "ReadProcessMemory",
+    # advapi32 procedures
+    "OpenProcessToken",
+    "GetTokenInformation",
+    "ConvertSidToStringSidW",
+    "ConvertStringSecurityDescriptorToSecurityDescriptorW",
+    "SystemFunction036",
+    # ntdll procedures
+    "NtQueryObject",
+]
+
+# Log format and operation strings used in core/launcher/launcher_windows.c
+LOG_STRINGS = [
+    ("log_failed", "Packed runtime: failed %s (Windows error %lu)\n"),
+    ("log_remove_owned", "Packed runtime: could not remove owned %s %s (error %lu)\n"),
+    ("path_conversion_failed", "<path conversion failed>"),
+    ("directory", "directory"),
+    ("file", "file"),
+    ("op_installing_console_handler", "installing console handler"),
+    ("op_capturing_executable_path_and_input", "capturing executable path and input"),
+    ("op_decoding_executable", "decoding executable"),
+    ("op_creating_private_extraction_directory", "creating private extraction directory"),
+    ("op_pinning_temporary_root", "pinning a local ACL-capable temporary root"),
+    ("op_writing_restored_executable", "writing restored executable"),
+    ("op_preparing_child_arguments", "preparing child arguments"),
+    ("op_preparing_inherited_handles", "preparing inherited handles"),
+    ("op_creating_child_job", "creating child job"),
+    ("op_validating_host_containment", "validating host-owned job containment"),
+    ("op_restoring_companion_dlls", "restoring adjacent companion DLLs"),
+    ("op_starting_native_child", "starting native child"),
+    (
+        "op_assigning_child_job",
+        "assigning child job (an incompatible enclosing job may reject admission)",
+    ),
+    ("op_waiting_for_child_exit", "waiting for child exit"),
+]
+
+# Runner and application strings used in core/launcher
+RUNNER_STRINGS = [
+    ("waterwall_application_exe", "waterwall_application.exe"),
+    ("waterwall_directory_format", "%lsWaterwall-%lu-%llx-%u"),
+    ("session_job_prefix", "Local\\Waterwall.Session."),
+    ("session_stop_format", "%ls.Stop"),
+    ("log_session_init_failed", "Could not initialize Waterwall session (Windows error %lu)\n"),
+]
+
+
+def format_c_array(var_name: str, original_str: str) -> str:
+    """Format a transformed string as a C static const uint8_t array."""
+    transformed = transform(original_str.encode("ascii"))
+    hex_bytes = ", ".join(f"0x{b:02x}" for b in transformed)
+    return f"static const uint8_t transf_{var_name}[] = {{{hex_bytes}}};"
+
+
+def generate_header_content() -> str:
+    """Generate the full content of lazy_names.h."""
+    lines = [
+        "/* Auto-generated by transform_names.py. Do not edit directly. */",
+        "#ifndef WW_LAZY_NAMES_H",
+        "#define WW_LAZY_NAMES_H",
+        "",
+        "#include <stddef.h>",
+        "#include <stdint.h>",
+        "",
+        "/* Transformed DLL names */",
+    ]
+
+    for var_name, original_name in DLL_NAMES:
+        lines.append(format_c_array(var_name, original_name))
+
+    lines.append("")
+    lines.append("/* Transformed procedure names */")
+
+    for proc_name in PROC_NAMES:
+        lines.append(format_c_array(proc_name, proc_name))
+
+    lines.append("")
+    lines.append("/* Transformed log and operation strings */")
+
+    for var_name, original_str in LOG_STRINGS:
+        lines.append(format_c_array(var_name, original_str))
+
+    lines.append("")
+    lines.append("/* Transformed runner and application strings */")
+
+    for var_name, original_str in RUNNER_STRINGS:
+        lines.append(format_c_array(var_name, original_str))
+
+    lines.append("")
+    lines.append("#endif /* WW_LAZY_NAMES_H */")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def verify_names() -> bool:
+    """Verify roundtrip transformation for all known names."""
+    all_ok = True
+    for _, original in DLL_NAMES:
+        enc = transform(original.encode("ascii"))
+        dec = transform(enc).decode("ascii")
+        if dec != original:
+            print(f"FAIL: DLL {original} != {dec}", file=sys.stderr)
+            all_ok = False
+
+    for original in PROC_NAMES:
+        enc = transform(original.encode("ascii"))
+        dec = transform(enc).decode("ascii")
+        if dec != original:
+            print(f"FAIL: Proc {original} != {dec}", file=sys.stderr)
+            all_ok = False
+
+    for _, original in LOG_STRINGS:
+        enc = transform(original.encode("ascii"))
+        dec = transform(enc).decode("ascii")
+        if dec != original:
+            print(f"FAIL: Log string {original!r} != {dec!r}", file=sys.stderr)
+            all_ok = False
+
+    for _, original in RUNNER_STRINGS:
+        enc = transform(original.encode("ascii"))
+        dec = transform(enc).decode("ascii")
+        if dec != original:
+            print(f"FAIL: Runner string {original!r} != {dec!r}", file=sys.stderr)
+            all_ok = False
+
+    return all_ok
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Transform Windows API and DLL names for lazy runtime loading."
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="Path to output header file (default: core/launcher/lazy_names.h)",
+    )
+    parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Print generated C header content to stdout",
+    )
+    parser.add_argument(
+        "--names",
+        nargs="+",
+        help="Transform specific names passed on command line",
+    )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Verify round-trip transformation of all names",
+    )
+
+    args = parser.parse_args()
+
+    if args.verify:
+        if verify_names():
+            print(
+                f"All {len(DLL_NAMES) + len(PROC_NAMES) + len(LOG_STRINGS) + len(RUNNER_STRINGS)} names and strings verified successfully."
+            )
+            return 0
+        return 1
+
+    if args.names:
+        for name in args.names:
+            print(format_c_array(name.replace(".", "_"), name))
+        return 0
+
+    header_content = generate_header_content()
+
+    if args.stdout:
+        sys.stdout.write(header_content)
+        return 0
+
+    repo_root = Path(__file__).resolve().parent.parent.parent.parent
+    output_path = args.output or (repo_root / "core" / "launcher" / "lazy_names.h")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(header_content, encoding="utf-8")
+    try:
+        import subprocess
+
+        subprocess.run(["clang-format", "-i", "--style=file", str(output_path)], check=False)
+    except FileNotFoundError:
+        pass
+    print(f"Wrote transformed names to {output_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main() or 0)

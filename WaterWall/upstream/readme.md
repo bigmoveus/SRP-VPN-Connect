@@ -1,0 +1,49 @@
+# Waterwall 
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/radkesvat/WaterWall)
+[![CLang Static Analyzer](https://github.com/radkesvat/WaterWall/actions/workflows/clang_static_analyzer.yml/badge.svg)](https://github.com/radkesvat/WaterWall/actions/workflows/clang_static_analyzer.yml)
+
+[![CI](https://github.com/radkesvat/WaterWall/actions/workflows/ci.yaml/badge.svg)](https://github.com/radkesvat/WaterWall/actions/workflows/ci.yaml)
+
+
+
+## Overview
+
+A simple networking core for tunneling or direct client–server connections.
+Built on high-performance, fully customizable nodes, it allows you to create a wide range of protocols without writing low-level implementation code.
+*(Though admittedly, it might make things feel more complex depending on how you use it.)*
+
+## Getting Started
+
+To begin, please read the documentation:
+👉 [https://radkesvat.github.io/WaterWall-Docs/](https://radkesvat.github.io/WaterWall-Docs/)
+
+> **Note:** The documentation is complete in both English and Persian. Both languages are maintained as first-class documentation.
+
+Each tunnel also includes a `description.md` file, and changes to those files are reflected in the published docs. The website is the recommended documentation source for everyone.
+
+## Quick Build (Fresh Ubuntu / Generic Linux VPS)
+
+You can build **WaterWall** on a fresh Ubuntu (or most Debian-based) VPS with just two commands:
+
+```bash
+apt-get purge -y cmake; apt-get update; apt-get install -y snapd build-essential ninja-build ccache; snap install cmake --classic
+```
+
+```bash
+git clone https://github.com/radkesvat/WaterWall && cd WaterWall && cmake --preset linux-gcc-x64 && cmake --build --preset linux-gcc-x64
+```
+
+This will install all required dependencies, fetch the project, and compile it using the provided CMake presets.
+
+> **Note:** The first command ensures a modern version of CMake via `snap`, which is required for the preset-based build system.
+
+
+<!-- ## Questions & Suggestions
+
+Feel free to reach out in my small [Telegram group](https://t.me/radkesvat_group) if you have any questions about this project, networking, or programming in general. I’m also happy to hear your suggestions and feedback! -->
+
+<!-- 
+
+Thanks for the support! ❤ -->
+

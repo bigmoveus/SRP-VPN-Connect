@@ -1,0 +1,456 @@
+#include "structure.h"
+
+#include "DomainResolver/interface.h"
+
+#include "loggers/network_logger.h"
+
+static void initializeTunnelCallbacks(tunnel_t *t)
+{
+    t->fnInitU    = &tcpconnectorTunnelUpStreamInit;
+    t->fnFinU     = &tcpconnectorTunnelUpStreamFinish;
+    t->fnPayloadU = &tcpconnectorTunnelUpStreamPayload;
+    t->fnPauseU   = &tcpconnectorTunnelUpStreamPause;
+    t->fnResumeU  = &tcpconnectorTunnelUpStreamResume;
+
+    t->onChain         = &tcpconnectorTunnelOnChain;
+    t->onStart         = &tcpconnectorTunnelOnStart;
+    t->onWorkerQuiesce = &tcpconnectorTunnelOnWorkerQuiesce;
+    t->onWorkerStop    = &tcpconnectorTunnelOnWorkerStop;
+    t->onDestroy       = &tcpconnectorTunnelDestroy;
+}
+
+static bool tcpconnectorCreateInternalDomainResolver(tunnel_t *t, node_t *node)
+{
+    tcpconnector_tstate_t *ts = tunnelGetState(t);
+
+    ts->domain_resolver_settings = cJSON_CreateObject();
+    cJSON_AddNumberToObject(ts->domain_resolver_settings, "strategy", (double) ts->domain_strategy);
+
+    if (! nodeConfigureChild(&ts->domain_resolver_node,
+                             nodeDomainResolverGet(),
+                             node,
+                             ".domain-resolver",
+                             kNodeChildLinkNone,
+                             ts->domain_resolver_settings))
+    {
+        LOGF("TcpConnector: failed to configure internal DomainResolver node");
+        return false;
+    }
+
+    ts->domain_resolver_tunnel = nodemanagerCreateTunnelInstance(&ts->domain_resolver_node);
+    if (ts->domain_resolver_tunnel == NULL)
+    {
+        LOGF("TcpConnector: failed to create internal DomainResolver");
+        return false;
+    }
+
+    domainresolverTunnelUseLineStrategy(ts->domain_resolver_tunnel, true);
+    domainresolverTunnelSetPrepareHook(ts->domain_resolver_tunnel,
+                                       t,
+                                       sizeof(tcpconnector_prepared_connection_t),
+                                       tcpconnectorDomainResolverPrepare,
+                                       NULL);
+    ts->domain_resolver_node.instance = ts->domain_resolver_tunnel;
+    return true;
+}
+
+static bool parseBasicSettings(tcpconnector_tstate_t *state, const cJSON *settings)
+{
+    if (! checkJsonIsObjectAndHasChild(settings))
+    {
+        LOGF("JSON Error: TcpConnector->settings (object field) : The object was empty or invalid");
+        return false;
+    }
+
+    getBoolFromJsonObjectOrDefault(&(state->option_tcp_no_delay), settings, "nodelay", true);
+    getBoolFromJsonObjectOrDefault(&(state->option_tcp_fast_open), settings, "fastopen", false);
+    enum domain_strategy domain_strategy = GSTATE.domain_strategy;
+    if (! getDomainStrategyFromJsonObjectOrDefault(
+            &domain_strategy, settings, "domain-strategy", GSTATE.domain_strategy))
+    {
+        LOGF("JSON Error: TcpConnector->settings->domain-strategy (string or integer field) : The value was invalid");
+        return false;
+    }
+    state->domain_strategy = domain_strategy;
+    getIntFromJsonObjectOrDefault(&(state->fwmark), settings, "fwmark", kFwMarkInvalid);
+    state->send_buffer_size_set = cJSON_GetObjectItemCaseSensitive(settings, "large-send-buffer") != NULL;
+    state->recv_buffer_size_set = cJSON_GetObjectItemCaseSensitive(settings, "large-recv-buffer") != NULL;
+    if (! getPositiveIntFromJsonObjectOrBoolDefault(
+            &state->send_buffer_size, settings, "large-send-buffer", kDefaultLargeSocketBufferSize, 0))
+    {
+        LOGF("JSON Error: TcpConnector->settings->large-send-buffer (boolean-or-positive-integer field) : The value "
+             "was empty or invalid");
+        return false;
+    }
+    if (! getPositiveIntFromJsonObjectOrBoolDefault(
+            &state->recv_buffer_size, settings, "large-recv-buffer", kDefaultLargeSocketBufferSize, 0))
+    {
+        LOGF("JSON Error: TcpConnector->settings->large-recv-buffer (boolean-or-positive-integer field) : The value "
+             "was empty or invalid");
+        return false;
+    }
+    getStringFromJsonObject(&(state->interface_name), settings, "interface");
+    getStringFromJsonObject(&(state->source_ip), settings, "source-ip");
+    if (state->source_ip != NULL && ! addressIsIp(state->source_ip))
+    {
+        LOGF("JSON Error: TcpConnector->settings->source-ip (string field) : The value must be a valid IP address");
+        memoryFree(state->source_ip);
+        state->source_ip = NULL;
+        return false;
+    }
+
+    return true;
+}
+
+static bool parseDestinationStringOption(char **dest, const cJSON *settings, const char *key, const char *default_value,
+                                         const char *error_path)
+{
+    assert(*dest == NULL);
+
+    const cJSON *jstr = cJSON_GetObjectItemCaseSensitive(settings, key);
+    if (jstr == NULL)
+    {
+        *dest = stringDuplicate(default_value);
+        return true;
+    }
+
+    if (cJSON_IsNull(jstr))
+    {
+        return true;
+    }
+
+    if (! cJSON_IsString(jstr) || jstr->valuestring == NULL)
+    {
+        LOGF("JSON Error: %s->%s (string or null field) : The value was invalid", error_path, key);
+        return false;
+    }
+
+    *dest = stringDuplicate(jstr->valuestring);
+    return true;
+}
+
+static bool parseDestinationSocketOptions(tcpconnector_destination_t *destination, const tcpconnector_tstate_t *state,
+                                          const cJSON *settings, const char *error_path)
+{
+    getBoolFromJsonObjectOrDefault(&destination->option_tcp_no_delay, settings, "nodelay", state->option_tcp_no_delay);
+    getBoolFromJsonObjectOrDefault(
+        &destination->option_tcp_fast_open, settings, "fastopen", state->option_tcp_fast_open);
+    getIntFromJsonObjectOrDefault(&destination->fwmark, settings, "fwmark", state->fwmark);
+    enum domain_strategy domain_strategy = (enum domain_strategy) state->domain_strategy;
+    if (! getDomainStrategyFromJsonObjectOrDefault(
+            &domain_strategy, settings, "domain-strategy", (enum domain_strategy) state->domain_strategy))
+    {
+        LOGF("JSON Error: %s->domain-strategy (string or integer field) : The value was invalid", error_path);
+        return false;
+    }
+    destination->domain_strategy      = domain_strategy;
+    destination->send_buffer_size_set = cJSON_GetObjectItemCaseSensitive(settings, "large-send-buffer") != NULL;
+    destination->recv_buffer_size_set = cJSON_GetObjectItemCaseSensitive(settings, "large-recv-buffer") != NULL;
+    if (! getPositiveIntFromJsonObjectOrBoolDefault(&destination->send_buffer_size,
+                                                    settings,
+                                                    "large-send-buffer",
+                                                    kDefaultLargeSocketBufferSize,
+                                                    state->send_buffer_size))
+    {
+        LOGF("JSON Error: %s->large-send-buffer (boolean-or-positive-integer field) : The value was empty or invalid",
+             error_path);
+        return false;
+    }
+    if (! getPositiveIntFromJsonObjectOrBoolDefault(&destination->recv_buffer_size,
+                                                    settings,
+                                                    "large-recv-buffer",
+                                                    kDefaultLargeSocketBufferSize,
+                                                    state->recv_buffer_size))
+    {
+        LOGF("JSON Error: %s->large-recv-buffer (boolean-or-positive-integer field) : The value was empty or invalid",
+             error_path);
+        return false;
+    }
+
+    if (! parseDestinationStringOption(
+            &destination->interface_name, settings, "interface", state->interface_name, error_path) ||
+        ! parseDestinationStringOption(&destination->source_ip, settings, "source-ip", state->source_ip, error_path))
+    {
+        return false;
+    }
+
+    if (destination->source_ip != NULL && ! addressIsIp(destination->source_ip))
+    {
+        LOGF("JSON Error: %s->source-ip (string field) : The value must be a valid IP address", error_path);
+        return false;
+    }
+
+    return true;
+}
+
+static bool parseDestinationWeight(const cJSON *settings, int index, uint32_t *weight)
+{
+    const cJSON *jweight = cJSON_GetObjectItemCaseSensitive(settings, "weight");
+    if (! cJSON_IsNumber(jweight) || jweight->valueint <= 0 || jweight->valuedouble != (double) jweight->valueint)
+    {
+        LOGF("JSON Error: TcpConnector->settings->addresses[%d]->weight (positive integer field) : The value was empty "
+             "or invalid",
+             index);
+        return false;
+    }
+
+    *weight = (uint32_t) jweight->valueint;
+    return true;
+}
+
+static const cJSON *getDestinationArraySettings(const cJSON *settings)
+{
+    const cJSON *jaddresses = cJSON_GetObjectItemCaseSensitive(settings, "addresses");
+    const cJSON *jadresses  = cJSON_GetObjectItemCaseSensitive(settings, "adresses");
+
+    if (jaddresses != NULL && jadresses != NULL)
+    {
+        LOGF("JSON Error: TcpConnector->settings : Use either \"addresses\" or \"adresses\", not both");
+        startupFailureRecord(1);
+        return NULL;
+    }
+
+    if (jaddresses != NULL)
+    {
+        return jaddresses;
+    }
+
+    return jadresses;
+}
+
+static bool parseDestinationAddress(dynamic_value_t *dest_addr_selected, address_context_t *constant_dest_addr,
+                                    uint64_t *outbound_ip_range, const cJSON *settings, const char *error_path)
+{
+    *dest_addr_selected =
+        parseDynamicStrValueFromJsonObject(settings, "address", 2, "src_context->address", "dest_context->address");
+
+    if (dest_addr_selected->status == kDvsEmpty)
+    {
+        LOGF("JSON Error: %s->address (string field) : The vaule was empty or invalid", error_path);
+        return false;
+    }
+
+    *outbound_ip_range = 0;
+
+    if (dest_addr_selected->status != kDvsConstant)
+    {
+        return true;
+    }
+
+    char *address_value = dest_addr_selected->string;
+    char *slash         = stringChr(address_value, '/');
+    ip_addr_t parsed_ip;
+    if (slash != NULL)
+    {
+        ip_addr_t parsed_mask;
+        uint8_t   prefix_length;
+        const int family = parseIPWithSubnetMaskAndPrefix(address_value, &parsed_ip, &parsed_mask, &prefix_length);
+        if ((family != 4 && family != 6) || (family == 6 && prefix_length < 64))
+        {
+            LOGF("JSON Error: %s->address must use an IPv4 prefix in [0, 32] or an IPv6 prefix in [64, 128]",
+                 error_path);
+            startupFailureRecord(1);
+            return false;
+        }
+        *slash = '\0';
+        addresscontextSetIp(constant_dest_addr, &parsed_ip);
+        if (family == 4)
+        {
+            *outbound_ip_range = prefix_length == 32 ? 0 : (UINT64_C(1) << (32 - prefix_length));
+        }
+        else
+        {
+            /* UINT64_MAX represents all 64 host bits, rather than a cardinality. */
+            *outbound_ip_range = prefix_length == 64 ? UINT64_MAX : (UINT64_C(1) << (128 - prefix_length));
+        }
+        return true;
+    }
+
+    if (ipaddr_aton(address_value, &parsed_ip))
+    {
+        addresscontextSetIp(constant_dest_addr, &parsed_ip);
+        return true;
+    }
+
+    const size_t domain_length = stringLength(address_value);
+    if (domain_length == 0 || domain_length > UINT8_MAX)
+    {
+        LOGF("JSON Error: %s->address domain must contain 1 to %u bytes", error_path, (unsigned) UINT8_MAX);
+        return false;
+    }
+    addresscontextDomainSetConstMem(constant_dest_addr, address_value, (uint8_t) domain_length);
+    return true;
+}
+
+static bool parseDestinationPort(dynamic_value_t *dest_port_selected, address_context_t *constant_dest_addr,
+                                 const cJSON *settings, const char *error_path)
+{
+    *dest_port_selected =
+        parseDynamicNumericValueFromJsonObject(settings, "port", 2, "src_context->port", "dest_context->port");
+
+    if (dest_port_selected->status == kDvsEmpty)
+    {
+        LOGF("JSON Error: %s->port (number field) : The vaule was empty or invalid", error_path);
+        return false;
+    }
+
+    if (dest_port_selected->status == kDvsConstant)
+    {
+        if (dest_port_selected->integer == 0 || dest_port_selected->integer > UINT16_MAX)
+        {
+            LOGF("JSON Error: %s->port (number field) : expected a valid port number", error_path);
+            return false;
+        }
+        addresscontextSetPort(constant_dest_addr, (uint16_t) dest_port_selected->integer);
+    }
+
+    return true;
+}
+
+static void cleanupDestinationArray(tcpconnector_tstate_t *state)
+{
+    if (state->destinations == NULL)
+    {
+        return;
+    }
+
+    for (uint32_t i = 0; i < state->destinations_count; ++i)
+    {
+        tcpconnectorDestinationDeinit(&state->destinations[i]);
+    }
+
+    memoryFree(state->destinations);
+    state->destinations              = NULL;
+    state->destinations_count        = 0;
+    state->destinations_weight_total = 0;
+}
+
+static bool parseDestinationArray(tcpconnector_tstate_t *state, const cJSON *settings, const cJSON *jaddresses)
+{
+    assert(jaddresses != NULL);
+
+    if (! cJSON_IsArray(jaddresses) || cJSON_GetArraySize(jaddresses) <= 0)
+    {
+        LOGF("JSON Error: TcpConnector->settings->addresses (array field) : The value was empty or invalid");
+        startupFailureRecord(1);
+        return false;
+    }
+
+    if (cJSON_GetObjectItemCaseSensitive(settings, "address") != NULL ||
+        cJSON_GetObjectItemCaseSensitive(settings, "port") != NULL)
+    {
+        LOGF("JSON Error: TcpConnector->settings : Use either \"address\"/\"port\" or \"addresses\", not both");
+        startupFailureRecord(1);
+        return false;
+    }
+
+    const int destination_count = cJSON_GetArraySize(jaddresses);
+    size_t    destinations_size;
+    if (! memoryTryComputeArraySize((size_t) destination_count, sizeof(*state->destinations), &destinations_size))
+    {
+        LOGF("TcpConnector: destination metadata size is not representable");
+        return false;
+    }
+
+    state->destinations       = memoryAllocateZero(destinations_size);
+    state->destinations_count = (uint32_t) destination_count;
+
+    int          index = 0;
+    const cJSON *entry = NULL;
+    cJSON_ArrayForEach(entry, jaddresses)
+    {
+        if (! cJSON_IsObject(entry) || entry->child == NULL)
+        {
+            LOGF("JSON Error: TcpConnector->settings->addresses[%d] (object field) : The value was empty or invalid",
+                 index);
+            cleanupDestinationArray(state);
+            startupFailureRecord(1);
+            return false;
+        }
+
+        tcpconnector_destination_t *destination = &state->destinations[index];
+        char                        error_path[96];
+        snprintf(error_path, sizeof(error_path), "TcpConnector->settings->addresses[%d]", index);
+
+        if (! parseDestinationAddress(&destination->dest_addr_selected,
+                                      &destination->constant_dest_addr,
+                                      &destination->outbound_ip_range,
+                                      entry,
+                                      error_path) ||
+            ! parseDestinationPort(
+                &destination->dest_port_selected, &destination->constant_dest_addr, entry, error_path) ||
+            ! parseDestinationWeight(entry, index, &destination->weight) ||
+            ! parseDestinationSocketOptions(destination, state, entry, error_path))
+        {
+            cleanupDestinationArray(state);
+            return false;
+        }
+
+        state->destinations_weight_total += destination->weight;
+        index++;
+    }
+    return true;
+}
+
+tunnel_t *tcpconnectorTunnelCreate(node_t *node)
+{
+    tunnel_t *t = adapterCreate(node, sizeof(tcpconnector_tstate_t), sizeof(tcpconnector_lstate_t), kAdapterChainEnd);
+    if (! t)
+    {
+        return NULL;
+    }
+
+    initializeTunnelCallbacks(t);
+
+    tcpconnector_tstate_t *state    = tunnelGetState(t);
+    const cJSON           *settings = node->node_settings_json;
+
+    if (! parseBasicSettings(state, settings))
+    {
+        tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    const cJSON *destination_array_settings = getDestinationArraySettings(settings);
+    if (UNLIKELY(startupFailurePending()))
+    {
+        tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+    if (destination_array_settings != NULL)
+    {
+        if (! parseDestinationArray(state, settings, destination_array_settings))
+        {
+            tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+            return NULL;
+        }
+    }
+    else
+    {
+        if (! parseDestinationAddress(&state->dest_addr_selected,
+                                      &state->constant_dest_addr,
+                                      &state->outbound_ip_range,
+                                      settings,
+                                      "TcpConnector->settings"))
+        {
+            tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+            return NULL;
+        }
+
+        if (! parseDestinationPort(
+                &state->dest_port_selected, &state->constant_dest_addr, settings, "TcpConnector->settings"))
+        {
+            tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+            return NULL;
+        }
+    }
+
+    if (! tcpconnectorCreateInternalDomainResolver(t, node))
+    {
+        tcpconnectorTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    state->idle_tables = memoryAllocateZero(sizeof(*state->idle_tables) * getWorkersCount());
+    return t;
+}

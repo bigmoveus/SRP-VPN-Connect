@@ -1,0 +1,100 @@
+#pragma once
+#include "devices/device_fragment_policy.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#define TUN_LOG_EVERYTHING false
+
+enum
+{
+    kTunDeviceMaxDnsServers = 2,
+    kTunVirtioHeaderSize    = 10
+};
+
+typedef struct sbuf_s       sbuf_t;
+typedef struct tun_device_s tun_device_t;
+
+/* Receivers take ownership on the selected event worker. TUN aims to place the
+ * first IP byte on a 32-byte boundary, independently of GSO/checksum trust,
+ * while preserving chain padding. This is best effort, not a consumer
+ * precondition: consumers must check actual addresses before aligned accesses,
+ * and later packet transforms or header removal may change the alignment. */
+typedef void (*TunReadEventHandle)(tun_device_t *tdev, void *userdata, sbuf_t *buf, uint8_t wid);
+
+typedef struct tun_default_route_s
+{
+    bool     have_v4;
+    uint32_t ifindex_v4;
+    bool     have_v6;
+    uint32_t ifindex_v6;
+    char     ifname[64];
+} tun_default_route_t;
+
+/* gso_requested requests Linux TCPv4 segmentation. Linux independently attempts
+ * checksum offload with virtio framing, falling back to raw IP when unavailable.
+ * multi_queue_requested independently allows Linux to open one queue per event
+ * worker, falling back to one when unavailable. False forces one queue owned by
+ * worker 0 without reducing the processing worker count. Other platforms ignore
+ * both requests and retain their ordinary framing and queue arrangement. */
+tun_device_t *tundeviceCreate(const char *name, bool gso_requested, bool multi_queue_requested, uint16_t mtu,
+                              void *userdata, TunReadEventHandle cb, device_fragment_policy_t fragment_policy);
+void          tundeviceDestroy(tun_device_t *tdev);
+bool          tundeviceBringUp(tun_device_t *tdev);
+bool          tundeviceRequestStop(tun_device_t *tdev);
+bool          tundeviceBringDown(tun_device_t *tdev);
+bool          tundeviceIsUp(const tun_device_t *tdev);
+/* Select once while down, after creation fallbacks. False leaves ordinary TX.
+ * No caller may change the selected mode after producer startup, even on stop. */
+#ifdef OS_LINUX
+bool tundeviceEnableTrustedChecksums(tun_device_t *tdev);
+/* Trust kernel input on a direct packet pair without enabling TX offload.
+ * Select only before starting producers, including in raw framing. */
+bool tundeviceEnableTrustedReceiveChecksums(tun_device_t *tdev);
+#else
+static inline bool tundeviceEnableTrustedChecksums(tun_device_t *tdev)
+{
+    (void) tdev;
+    return false;
+}
+static inline bool tundeviceEnableTrustedReceiveChecksums(tun_device_t *tdev)
+{
+    (void) tdev;
+    return false;
+}
+#endif
+bool          tundeviceAssignIP(tun_device_t *tdev, const char *ip_presentation, unsigned int subnet);
+bool          tundeviceUnAssignIP(tun_device_t *tdev, const char *ip_presentation, unsigned int subnet);
+bool          tundeviceSetDnsServers(tun_device_t *tdev, const char *const *servers, size_t count);
+bool          tundeviceClearDnsServers(tun_device_t *tdev);
+bool          tundeviceAddRoute(tun_device_t *tdev, const char *cidr, const char *route_table);
+bool          tundeviceRemoveRoute(tun_device_t *tdev, const char *cidr, const char *route_table);
+#if defined(OS_LINUX) || defined(OS_BSD)
+/* Configuration outcome queries are consumed by the immediate policy owner. */
+bool tundeviceLastCommandOutcomeUnknown(const tun_device_t *tdev);
+bool tundeviceDnsNeedsCleanup(const tun_device_t *tdev);
+#endif
+/* Event-worker-only, enqueue-only output. Success transfers the packet to this
+ * worker's deferred FIFO; refusal leaves ownership with the caller. Native
+ * writes and buffer recycling run later on the same worker. */
+bool tundeviceWrite(tun_device_t *tdev, sbuf_t *buf);
+/* Owner-worker lifecycle hook: detach receive readiness before loop quiescence. */
+void tundeviceWorkerQuiesce(tun_device_t *tdev, uint8_t wid);
+bool tundeviceDetectDefaultInterface(tun_default_route_t *out);
+bool tundeviceDisableReversePathFiltering(const char *ifname);
+
+#if defined(OS_WIN)
+#include "tun_windows_ownership.h"
+/* Moves a prepared reservation into the device. On an earlier failure the
+ * caller retains any non-null lease and releases it during constructor rollback. */
+tun_device_t *tundeviceCreateOwned(const char *name, bool gso_requested, bool multi_queue_requested, uint16_t mtu,
+                                   void *userdata, TunReadEventHandle cb, device_fragment_policy_t fragment_policy,
+                                   tun_windows_ownership_t *ownership);
+/* Releases the process-wide Wintun module after every device has stopped. */
+void tundevicePlatformShutdown(void);
+#endif
+
+// Retrieves the OS interface LUID value of the device (Windows NET_LUID.Value).
+// Returns false on platforms that have no such identifier; *out is set to 0 then.
+bool tundeviceGetLuid(tun_device_t *tdev, uint64_t *out);

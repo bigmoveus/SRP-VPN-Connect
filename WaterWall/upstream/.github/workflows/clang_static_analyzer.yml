@@ -1,0 +1,46 @@
+name: CLang Static Analyzer
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+
+  clang_static_analyzer:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          
+      - name: install deps
+        run: |
+          sudo apt-get update && sudo apt-get install build-essential -y && sudo snap install cmake --classic && sudo wget https://apt.llvm.org/llvm.sh && sudo chmod u+x llvm.sh && sudo ./llvm.sh 19 all
+
+      
+
+      - name: Configure CMake
+        run: >
+          scan-build-19 cmake -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_BUILD_TYPE=Release
+          -G"Unix Makefiles"
+          -S ${{ github.workspace }}
+
+      - name: Build
+        # Build your program with the given configuration. 
+        run: |
+          cd ${{ steps.strings.outputs.build-output-dir }}
+          scan-build-19 make -j 4

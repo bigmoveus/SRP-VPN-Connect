@@ -1,0 +1,839 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2823DBBC069C3C81087CA0C8 /* x25519.c in Sources */ = {isa = PBXBuildFile; fileRef = DD5F3DD0B479409F069864B5 /* x25519.c */; };
+		2C4AC42940C47669C948F408 /* SSFragTLSChannel.m in Sources */ = {isa = PBXBuildFile; fileRef = 4E2D44ADCA368CC0F7B05C84 /* SSFragTLSChannel.m */; };
+		2F7983497E9C7F7A18E2C829 /* SRPWireGuardClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 934D026376CD1246FAA9922C /* SRPWireGuardClient.m */; };
+		3D0EF821BEBA9B45DA736749 /* SRPOpenConnectClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 0D4CDBFA57BB8A7260879A7D /* SRPOpenConnectClient.m */; };
+		59A10ADC031E0D8A246AB706 /* SRPAetherClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 1983F6B0092CD2D0098D9673 /* SRPAetherClient.m */; };
+		A10000000000000000000001 /* SRPWaterWallClient.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SRPWaterWallClient.m */; };
+		A10000000000000000000002 /* SRPWaterWallClient.h in Headers */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* SRPWaterWallClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A10000000000000000000021 /* SRPWaterWallChainConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000023 /* SRPWaterWallChainConfig.m */; };
+		A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A10000000000000000000024 /* SRPWaterWallChainConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */; };
+		59CDE2BE3FF990F4145E4C4D /* SRPOpenVPNClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C2735650B7713FB50B1166F /* SRPOpenVPNClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		63C7EC4805B398A761B6C717 /* SRPSSHClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F880DFCD8A162EA26A588D54 /* SRPSSHClient.m */; };
+		650C3CE80462F77479D436E3 /* SRPWGKeys.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FCC583E78410AF46480BD79 /* SRPWGKeys.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9625D59A007B6C1ADE67D9B3 /* SRPAetherClient.h in Headers */ = {isa = PBXBuildFile; fileRef = B1D07888133D461A0008B5A0 /* SRPAetherClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D322DD21A4484AE6B840D582 /* SRPPsiphonClient.h in Headers */ = {isa = PBXBuildFile; fileRef = DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C0000AA2B70000100E9992E /* SSAuthCapabilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C0000AC2B70000100E9992E /* SSAuthCapabilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C0000AB2B70000100E9992E /* SSAuthCapabilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C0000AD2B70000100E9992E /* SSAuthCapabilities.m */; };
+		9C134B972B6B78C70045BCD4 /* crypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C134B952B6B78C60045BCD4 /* crypto.xcframework */; };
+		9C134B982B6B78C70045BCD4 /* ssl.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C134B962B6B78C60045BCD4 /* ssl.xcframework */; };
+		9C134E1E2B6B7B040045BCD4 /* utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C134E142B6B7B030045BCD4 /* utils.h */; };
+		9C7243E52B527A3200E9992E /* SRPCore.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7243E42B527A3200E9992E /* SRPCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7244592B527ACD00E9992E /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C7244582B527AC600E9992E /* libxml2.tbd */; };
+		9C7245DB2B5287E000E9992E /* sstp-state.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245C22B5287E000E9992E /* sstp-state.c */; };
+		9C7245DC2B5287E000E9992E /* sstp-private.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245C32B5287E000E9992E /* sstp-private.h */; };
+		9C7245DD2B5287E000E9992E /* sstp-stream.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245C42B5287E000E9992E /* sstp-stream.h */; };
+		9C7245DE2B5287E000E9992E /* sstp-cmac.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245C52B5287E000E9992E /* sstp-cmac.h */; };
+		9C7245DF2B5287E000E9992E /* sstp-http.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245C62B5287E000E9992E /* sstp-http.c */; };
+		9C7245E02B5287E000E9992E /* sstp-util.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245C72B5287E000E9992E /* sstp-util.h */; };
+		9C7245E12B5287E000E9992E /* sstp-packet.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245C82B5287E000E9992E /* sstp-packet.c */; };
+		9C7245E22B5287E000E9992E /* sstp-fcs.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245C92B5287E000E9992E /* sstp-fcs.c */; };
+		9C7245E32B5287E000E9992E /* sstp-chap.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245CA2B5287E000E9992E /* sstp-chap.c */; };
+		9C7245E42B5287E000E9992E /* sstp-pppd.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245CB2B5287E000E9992E /* sstp-pppd.h */; };
+		9C7245E52B5287E000E9992E /* sstp-buff.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245CC2B5287E000E9992E /* sstp-buff.c */; };
+		9C7245E62B5287E000E9992E /* sstp-task.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245CD2B5287E000E9992E /* sstp-task.c */; };
+		9C7245E72B5287E000E9992E /* sstp-cmac.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245CE2B5287E000E9992E /* sstp-cmac.c */; };
+		9C7245E82B5287E000E9992E /* sstp-stream.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245CF2B5287E000E9992E /* sstp-stream.c */; };
+		9C7245E92B5287E000E9992E /* sstp-state.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D02B5287E000E9992E /* sstp-state.h */; };
+		9C7245EA2B5287E000E9992E /* sstp-chap.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D12B5287E000E9992E /* sstp-chap.h */; };
+		9C7245EB2B5287E000E9992E /* sstp-fcs.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D22B5287E000E9992E /* sstp-fcs.h */; };
+		9C7245EC2B5287E000E9992E /* sstp-http.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D32B5287E000E9992E /* sstp-http.h */; };
+		9C7245ED2B5287E000E9992E /* sstp-util.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245D42B5287E000E9992E /* sstp-util.c */; };
+		9C7245EE2B5287E000E9992E /* sstp-packet.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D52B5287E000E9992E /* sstp-packet.h */; };
+		9C7245EF2B5287E000E9992E /* sstp-buff.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D62B5287E000E9992E /* sstp-buff.h */; };
+		9C7245F02B5287E000E9992E /* sstp-task.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D72B5287E000E9992E /* sstp-task.h */; };
+		9C7245F12B5287E000E9992E /* sstp-common.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D82B5287E000E9992E /* sstp-common.h */; };
+		9C7245F22B5287E000E9992E /* sstp-ppp.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245D92B5287E000E9992E /* sstp-ppp.h */; };
+		9C7245F32B5287E000E9992E /* sstp-pppd.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245DA2B5287E000E9992E /* sstp-pppd.c */; };
+		9C7245F62B52881900E9992E /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245F42B52881900E9992E /* utils.c */; };
+		9C7245F72B52881900E9992E /* utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245F52B52881900E9992E /* utils.h */; };
+		9C7245FF2B52886C00E9992E /* SSTCPClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245F82B52886B00E9992E /* SSTCPClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7246002B52886C00E9992E /* SSTCPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245F92B52886C00E9992E /* SSTCPClient.m */; };
+		9C7246012B52886C00E9992E /* NWRunLoop.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245FA2B52886C00E9992E /* NWRunLoop.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7246022B52886C00E9992E /* NWRunLoop.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245FB2B52886C00E9992E /* NWRunLoop.m */; };
+		9C7246032B52886C00E9992E /* SSTCPClient+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245FC2B52886C00E9992E /* SSTCPClient+Private.h */; };
+		9C7246042B52886C00E9992E /* SSSSTPClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7245FD2B52886C00E9992E /* SSSSTPClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7246052B52886C00E9992E /* SSSSTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7245FE2B52886C00E9992E /* SSSSTPClient.m */; };
+		9C7246082B52887B00E9992E /* SSProtocol.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246062B52887B00E9992E /* SSProtocol.m */; };
+		9C7246092B52887B00E9992E /* SSProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246072B52887B00E9992E /* SSProtocol.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7246C22B5295D300E9992E /* lwIP.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246B72B5295D300E9992E /* lwIP.m */; };
+		9C7246C32B5295D300E9992E /* x_lwip.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246B82B5295D300E9992E /* x_lwip.h */; };
+		9C7246C52B5295D300E9992E /* LPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246BA2B5295D300E9992E /* LPHelper.m */; };
+		9C7246C72B5295D300E9992E /* x_utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246BC2B5295D300E9992E /* x_utils.m */; };
+		9C7246C82B5295D300E9992E /* lwIP.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246BD2B5295D300E9992E /* lwIP.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		9C7246CA2B5295D300E9992E /* LPHelper.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246BF2B5295D300E9992E /* LPHelper.h */; };
+		9C7246CB2B5295D300E9992E /* x_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246C02B5295D300E9992E /* x_utils.h */; };
+		9C7246CF2B52985600E9992E /* SSBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246CD2B52985600E9992E /* SSBuffer.m */; };
+		9C7246D02B52985600E9992E /* SSBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246CE2B52985600E9992E /* SSBuffer.h */; };
+		9C7246D32B52993400E9992E /* SSData.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C7246D12B52993400E9992E /* SSData.h */; };
+		9C7246D42B52993400E9992E /* SSData.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C7246D22B52993400E9992E /* SSData.m */; };
+		9CD9B0172B5E995100044F00 /* SSDirectClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9AFBC2B5E995100044F00 /* SSDirectClient.h */; };
+		9CD9B0242B5E995100044F00 /* SSDirectClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9AFCA2B5E995100044F00 /* SSDirectClient.m */; };
+		9CD9B0892B5E9C1C00044F00 /* TCPHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9B0852B5E9C1C00044F00 /* TCPHandler.m */; };
+		9CD9B08A2B5E9C1C00044F00 /* TCPHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9B0862B5E9C1C00044F00 /* TCPHandler.h */; };
+		9CD9B08B2B5E9C1C00044F00 /* UDPHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9B0872B5E9C1C00044F00 /* UDPHandler.h */; };
+		9CD9B08C2B5E9C1C00044F00 /* UDPHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9B0882B5E9C1C00044F00 /* UDPHandler.m */; };
+		9CD9B0942B5EA99200044F00 /* CCWebSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9B08E2B5EA99200044F00 /* CCWebSocket.m */; };
+		9CD9B0952B5EA99200044F00 /* CCCodec.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9B08F2B5EA99200044F00 /* CCCodec.m */; };
+		9CD9B0962B5EA99200044F00 /* SRSIMDHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9B0902B5EA99200044F00 /* SRSIMDHelpers.h */; };
+		9CD9B0972B5EA99200044F00 /* CCWebSocket.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9B0912B5EA99200044F00 /* CCWebSocket.h */; };
+		9CD9B0982B5EA99200044F00 /* SRSIMDHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 9CD9B0922B5EA99200044F00 /* SRSIMDHelpers.m */; };
+		9CD9B0992B5EA99200044F00 /* CCCodec.h in Headers */ = {isa = PBXBuildFile; fileRef = 9CD9B0932B5EA99200044F00 /* CCCodec.h */; };
+		A363CECE7F6D736730C9CD56 /* SRPSoftEtherClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B9AFA24AFC1D03F560D82D3 /* SRPSoftEtherClient.m */; };
+		B7E18F62A5D4EDC092E7FC81 /* SRPSSHBridge.c in Sources */ = {isa = PBXBuildFile; fileRef = CE613FBB1A3B9F38FCF4CDF2 /* SRPSSHBridge.c */; };
+		BDDCE81F91BE8C39CB5E1194 /* SRPSSHClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 7D7F4D36079E662A344BBCF6 /* SRPSSHClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		C7F38F2B74ACFA73E4AEE0A2 /* SRPSoftEtherClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 068140E37EF5828061098CF4 /* SRPSoftEtherClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0001002B80000100E9992E /* SSProxySupport.h in Headers */ = {isa = PBXBuildFile; fileRef = CC0001022B80000100E9992E /* SSProxySupport.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0001012B80000100E9992E /* SSProxySupport.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0001032B80000100E9992E /* SSProxySupport.m */; };
+		CC0001102B80000100E9992E /* SSProxyResolver.h in Headers */ = {isa = PBXBuildFile; fileRef = CC0001122B80000100E9992E /* SSProxyResolver.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0001112B80000100E9992E /* SSProxyResolver.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0001132B80000100E9992E /* SSProxyResolver.m */; };
+		CC0002002B80000100E9992E /* SSLog.h in Headers */ = {isa = PBXBuildFile; fileRef = CC0002022B80000100E9992E /* SSLog.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0002012B80000100E9992E /* SSLog.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0002032B80000100E9992E /* SSLog.m */; };
+		CC0002102B80000100E9992E /* SSOuterTls.h in Headers */ = {isa = PBXBuildFile; fileRef = CC0002122B80000100E9992E /* SSOuterTls.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0002112B80000100E9992E /* SSOuterTls.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0002132B80000100E9992E /* SSOuterTls.m */; };
+		CC0002202B80000100E9992E /* SSNetOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = CC0002222B80000100E9992E /* SSNetOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CC0002212B80000100E9992E /* SSNetOptions.m in Sources */ = {isa = PBXBuildFile; fileRef = CC0002232B80000100E9992E /* SSNetOptions.m */; };
+		DD21A5D1020D68C7F15A7AB8 /* SRPWireGuardClient.h in Headers */ = {isa = PBXBuildFile; fileRef = DCBFCE8613666C078E60B532 /* SRPWireGuardClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E8EA6C45844A1B62826E35DA /* SRPOpenVPNClient.mm in Sources */ = {isa = PBXBuildFile; fileRef = 17A1C9DB493D5F09C9F3560D /* SRPOpenVPNClient.mm */; settings = {COMPILER_FLAGS = "-w -DUSE_OPENSSL -DUSE_ASIO -DASIO_STANDALONE -DOPENVPN_EXTERNAL_TUN_FACTORY -DOPENVPN_EXTERNAL_TRANSPORT_FACTORY -include \"$(SRCROOT)/../SoftEther/openssl/openssl-prefix.h\""; }; };
+		EE760C18C380304B1EAF68A2 /* key.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C193248F081DA3AE623B197 /* key.c */; };
+		F12A8B84BAAA1B0EDEABED94 /* SRPOpenConnectClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 56F0AB3D5F357F1253CE6115 /* SRPOpenConnectClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F3577F33367C6419912B5208 /* SRPWGKeys.m in Sources */ = {isa = PBXBuildFile; fileRef = 29A3B1423B25633AD7867F0D /* SRPWGKeys.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		068140E37EF5828061098CF4 /* SRPSoftEtherClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPSoftEtherClient.h; sourceTree = "<group>"; };
+		0D4CDBFA57BB8A7260879A7D /* SRPOpenConnectClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPOpenConnectClient.m; sourceTree = "<group>"; };
+		17A1C9DB493D5F09C9F3560D /* SRPOpenVPNClient.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = SRPOpenVPNClient.mm; sourceTree = "<group>"; };
+		1983F6B0092CD2D0098D9673 /* SRPAetherClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPAetherClient.m; sourceTree = "<group>"; };
+		A10000000000000000000011 /* SRPWaterWallClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWaterWallClient.m; sourceTree = "<group>"; };
+		A10000000000000000000012 /* SRPWaterWallClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallClient.h; sourceTree = "<group>"; };
+		A10000000000000000000014 /* SRPWaterWallBridge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallBridge.h; sourceTree = "<group>"; };
+		A10000000000000000000023 /* SRPWaterWallChainConfig.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWaterWallChainConfig.m; sourceTree = "<group>"; };
+		A10000000000000000000024 /* SRPWaterWallChainConfig.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallChainConfig.h; sourceTree = "<group>"; };
+		02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPPsiphonClient.m; sourceTree = "<group>"; };
+		1C193248F081DA3AE623B197 /* key.c */ = {isa = PBXFileReference; includeInIndex = 1; path = key.c; sourceTree = "<group>"; };
+		29A3B1423B25633AD7867F0D /* SRPWGKeys.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWGKeys.m; sourceTree = "<group>"; };
+		30E1B0945DE87AF7B22DB4CA /* x25519.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = x25519.h; sourceTree = "<group>"; };
+		3F24E163A42207BE2F4F0427 /* SRPSSHBridge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPSSHBridge.h; sourceTree = "<group>"; };
+		4CF9A56FB69BA2602587855E /* key.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = key.h; sourceTree = "<group>"; };
+		4E2D44ADCA368CC0F7B05C84 /* SSFragTLSChannel.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SSFragTLSChannel.m; sourceTree = "<group>"; };
+		56F0AB3D5F357F1253CE6115 /* SRPOpenConnectClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPOpenConnectClient.h; sourceTree = "<group>"; };
+		5B9AFA24AFC1D03F560D82D3 /* SRPSoftEtherClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPSoftEtherClient.m; sourceTree = "<group>"; };
+		5C2735650B7713FB50B1166F /* SRPOpenVPNClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPOpenVPNClient.h; sourceTree = "<group>"; };
+		7D7F4D36079E662A344BBCF6 /* SRPSSHClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPSSHClient.h; sourceTree = "<group>"; };
+		8FCC583E78410AF46480BD79 /* SRPWGKeys.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWGKeys.h; sourceTree = "<group>"; };
+		934D026376CD1246FAA9922C /* SRPWireGuardClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWireGuardClient.m; sourceTree = "<group>"; };
+		9C0000AC2B70000100E9992E /* SSAuthCapabilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSAuthCapabilities.h; sourceTree = "<group>"; };
+		9C0000AD2B70000100E9992E /* SSAuthCapabilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSAuthCapabilities.m; sourceTree = "<group>"; };
+		9C134B952B6B78C60045BCD4 /* crypto.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = crypto.xcframework; sourceTree = "<group>"; };
+		9C134B962B6B78C60045BCD4 /* ssl.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = ssl.xcframework; sourceTree = "<group>"; };
+		9C134E142B6B7B030045BCD4 /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
+		9C7243E12B527A3200E9992E /* SRPCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SRPCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C7243E42B527A3200E9992E /* SRPCore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPCore.h; sourceTree = "<group>"; };
+		9C7244582B527AC600E9992E /* libxml2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libxml2.tbd; path = usr/lib/libxml2.tbd; sourceTree = SDKROOT; };
+		9C7245C22B5287E000E9992E /* sstp-state.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-state.c"; sourceTree = "<group>"; };
+		9C7245C32B5287E000E9992E /* sstp-private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-private.h"; sourceTree = "<group>"; };
+		9C7245C42B5287E000E9992E /* sstp-stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-stream.h"; sourceTree = "<group>"; };
+		9C7245C52B5287E000E9992E /* sstp-cmac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-cmac.h"; sourceTree = "<group>"; };
+		9C7245C62B5287E000E9992E /* sstp-http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-http.c"; sourceTree = "<group>"; };
+		9C7245C72B5287E000E9992E /* sstp-util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-util.h"; sourceTree = "<group>"; };
+		9C7245C82B5287E000E9992E /* sstp-packet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-packet.c"; sourceTree = "<group>"; };
+		9C7245C92B5287E000E9992E /* sstp-fcs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-fcs.c"; sourceTree = "<group>"; };
+		9C7245CA2B5287E000E9992E /* sstp-chap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-chap.c"; sourceTree = "<group>"; };
+		9C7245CB2B5287E000E9992E /* sstp-pppd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-pppd.h"; sourceTree = "<group>"; };
+		9C7245CC2B5287E000E9992E /* sstp-buff.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-buff.c"; sourceTree = "<group>"; };
+		9C7245CD2B5287E000E9992E /* sstp-task.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-task.c"; sourceTree = "<group>"; };
+		9C7245CE2B5287E000E9992E /* sstp-cmac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-cmac.c"; sourceTree = "<group>"; };
+		9C7245CF2B5287E000E9992E /* sstp-stream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-stream.c"; sourceTree = "<group>"; };
+		9C7245D02B5287E000E9992E /* sstp-state.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-state.h"; sourceTree = "<group>"; };
+		9C7245D12B5287E000E9992E /* sstp-chap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-chap.h"; sourceTree = "<group>"; };
+		9C7245D22B5287E000E9992E /* sstp-fcs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-fcs.h"; sourceTree = "<group>"; };
+		9C7245D32B5287E000E9992E /* sstp-http.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-http.h"; sourceTree = "<group>"; };
+		9C7245D42B5287E000E9992E /* sstp-util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-util.c"; sourceTree = "<group>"; };
+		9C7245D52B5287E000E9992E /* sstp-packet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-packet.h"; sourceTree = "<group>"; };
+		9C7245D62B5287E000E9992E /* sstp-buff.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-buff.h"; sourceTree = "<group>"; };
+		9C7245D72B5287E000E9992E /* sstp-task.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-task.h"; sourceTree = "<group>"; };
+		9C7245D82B5287E000E9992E /* sstp-common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-common.h"; sourceTree = "<group>"; };
+		9C7245D92B5287E000E9992E /* sstp-ppp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "sstp-ppp.h"; sourceTree = "<group>"; };
+		9C7245DA2B5287E000E9992E /* sstp-pppd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "sstp-pppd.c"; sourceTree = "<group>"; };
+		9C7245F42B52881900E9992E /* utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utils.c; sourceTree = "<group>"; };
+		9C7245F52B52881900E9992E /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
+		9C7245F82B52886B00E9992E /* SSTCPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSTCPClient.h; sourceTree = "<group>"; };
+		9C7245F92B52886C00E9992E /* SSTCPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSTCPClient.m; sourceTree = "<group>"; };
+		9C7245FA2B52886C00E9992E /* NWRunLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NWRunLoop.h; sourceTree = "<group>"; };
+		9C7245FB2B52886C00E9992E /* NWRunLoop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NWRunLoop.m; sourceTree = "<group>"; };
+		9C7245FC2B52886C00E9992E /* SSTCPClient+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SSTCPClient+Private.h"; sourceTree = "<group>"; };
+		9C7245FD2B52886C00E9992E /* SSSSTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSSSTPClient.h; sourceTree = "<group>"; };
+		9C7245FE2B52886C00E9992E /* SSSSTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSSSTPClient.m; sourceTree = "<group>"; };
+		9C7246062B52887B00E9992E /* SSProtocol.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSProtocol.m; sourceTree = "<group>"; };
+		9C7246072B52887B00E9992E /* SSProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSProtocol.h; sourceTree = "<group>"; };
+		9C7246B72B5295D300E9992E /* lwIP.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = lwIP.m; sourceTree = "<group>"; };
+		9C7246B82B5295D300E9992E /* x_lwip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_lwip.h; sourceTree = "<group>"; };
+		9C7246BA2B5295D300E9992E /* LPHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LPHelper.m; sourceTree = "<group>"; };
+		9C7246BC2B5295D300E9992E /* x_utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = x_utils.m; sourceTree = "<group>"; };
+		9C7246BD2B5295D300E9992E /* lwIP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lwIP.h; sourceTree = "<group>"; };
+		9C7246BF2B5295D300E9992E /* LPHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LPHelper.h; sourceTree = "<group>"; };
+		9C7246C02B5295D300E9992E /* x_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x_utils.h; sourceTree = "<group>"; };
+		9C7246CD2B52985600E9992E /* SSBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSBuffer.m; sourceTree = "<group>"; };
+		9C7246CE2B52985600E9992E /* SSBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSBuffer.h; sourceTree = "<group>"; };
+		9C7246D12B52993400E9992E /* SSData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSData.h; sourceTree = "<group>"; };
+		9C7246D22B52993400E9992E /* SSData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSData.m; sourceTree = "<group>"; };
+		9CD9AFBC2B5E995100044F00 /* SSDirectClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSDirectClient.h; sourceTree = "<group>"; };
+		9CD9AFCA2B5E995100044F00 /* SSDirectClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSDirectClient.m; sourceTree = "<group>"; };
+		9CD9B0852B5E9C1C00044F00 /* TCPHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TCPHandler.m; sourceTree = "<group>"; };
+		9CD9B0862B5E9C1C00044F00 /* TCPHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TCPHandler.h; sourceTree = "<group>"; };
+		9CD9B0872B5E9C1C00044F00 /* UDPHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UDPHandler.h; sourceTree = "<group>"; };
+		9CD9B0882B5E9C1C00044F00 /* UDPHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UDPHandler.m; sourceTree = "<group>"; };
+		9CD9B08E2B5EA99200044F00 /* CCWebSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCWebSocket.m; sourceTree = "<group>"; };
+		9CD9B08F2B5EA99200044F00 /* CCCodec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCCodec.m; sourceTree = "<group>"; };
+		9CD9B0902B5EA99200044F00 /* SRSIMDHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SRSIMDHelpers.h; sourceTree = "<group>"; };
+		9CD9B0912B5EA99200044F00 /* CCWebSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCWebSocket.h; sourceTree = "<group>"; };
+		9CD9B0922B5EA99200044F00 /* SRSIMDHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SRSIMDHelpers.m; sourceTree = "<group>"; };
+		9CD9B0932B5EA99200044F00 /* CCCodec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCCodec.h; sourceTree = "<group>"; };
+		B1D07888133D461A0008B5A0 /* SRPAetherClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPAetherClient.h; sourceTree = "<group>"; };
+		DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPPsiphonClient.h; sourceTree = "<group>"; };
+		BB2CBDBEED790413A9955341 /* SSFragTLSChannel.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SSFragTLSChannel.h; sourceTree = "<group>"; };
+		CC0001022B80000100E9992E /* SSProxySupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSProxySupport.h; sourceTree = "<group>"; };
+		CC0001032B80000100E9992E /* SSProxySupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSProxySupport.m; sourceTree = "<group>"; };
+		CC0001122B80000100E9992E /* SSProxyResolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSProxyResolver.h; sourceTree = "<group>"; };
+		CC0001132B80000100E9992E /* SSProxyResolver.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSProxyResolver.m; sourceTree = "<group>"; };
+		CC0002022B80000100E9992E /* SSLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSLog.h; sourceTree = "<group>"; };
+		CC0002032B80000100E9992E /* SSLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSLog.m; sourceTree = "<group>"; };
+		CC0002122B80000100E9992E /* SSOuterTls.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSOuterTls.h; sourceTree = "<group>"; };
+		CC0002132B80000100E9992E /* SSOuterTls.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSOuterTls.m; sourceTree = "<group>"; };
+		CC0002222B80000100E9992E /* SSNetOptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSNetOptions.h; sourceTree = "<group>"; };
+		CC0002232B80000100E9992E /* SSNetOptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSNetOptions.m; sourceTree = "<group>"; };
+		CE613FBB1A3B9F38FCF4CDF2 /* SRPSSHBridge.c */ = {isa = PBXFileReference; includeInIndex = 1; path = SRPSSHBridge.c; sourceTree = "<group>"; };
+		DCBFCE8613666C078E60B532 /* SRPWireGuardClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWireGuardClient.h; sourceTree = "<group>"; };
+		DD5F3DD0B479409F069864B5 /* x25519.c */ = {isa = PBXFileReference; includeInIndex = 1; path = x25519.c; sourceTree = "<group>"; };
+		F880DFCD8A162EA26A588D54 /* SRPSSHClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPSSHClient.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9C7243DE2B527A3200E9992E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C134B982B6B78C70045BCD4 /* ssl.xcframework in Frameworks */,
+				9C7244592B527ACD00E9992E /* libxml2.tbd in Frameworks */,
+				9C134B972B6B78C70045BCD4 /* crypto.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9C7243D72B527A3200E9992E = {
+			isa = PBXGroup;
+			children = (
+				9C7243E32B527A3200E9992E /* SRPCore */,
+				9C7243E22B527A3200E9992E /* Products */,
+				9C7244572B527AC600E9992E /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		9C7243E22B527A3200E9992E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9C7243E12B527A3200E9992E /* SRPCore.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9C7243E32B527A3200E9992E /* SRPCore */ = {
+			isa = PBXGroup;
+			children = (
+				9CD9B0762B5E9A9600044F00 /* common */,
+				9CD9B08D2B5EA99200044F00 /* codec */,
+				9CD9AFBC2B5E995100044F00 /* SSDirectClient.h */,
+				9CD9AFCA2B5E995100044F00 /* SSDirectClient.m */,
+				9C7243E42B527A3200E9992E /* SRPCore.h */,
+				9C7245FA2B52886C00E9992E /* NWRunLoop.h */,
+				9C0000AC2B70000100E9992E /* SSAuthCapabilities.h */,
+				9C0000AD2B70000100E9992E /* SSAuthCapabilities.m */,
+				9C7245FB2B52886C00E9992E /* NWRunLoop.m */,
+				9C7246B62B5295D300E9992E /* lwip */,
+				9C7246072B52887B00E9992E /* SSProtocol.h */,
+				9C7246062B52887B00E9992E /* SSProtocol.m */,
+				CC0001022B80000100E9992E /* SSProxySupport.h */,
+				CC0001032B80000100E9992E /* SSProxySupport.m */,
+				CC0001122B80000100E9992E /* SSProxyResolver.h */,
+				CC0001132B80000100E9992E /* SSProxyResolver.m */,
+				CC0002022B80000100E9992E /* SSLog.h */,
+				CC0002032B80000100E9992E /* SSLog.m */,
+				CC0002122B80000100E9992E /* SSOuterTls.h */,
+				CC0002132B80000100E9992E /* SSOuterTls.m */,
+				CC0002222B80000100E9992E /* SSNetOptions.h */,
+				CC0002232B80000100E9992E /* SSNetOptions.m */,
+				9C7245FD2B52886C00E9992E /* SSSSTPClient.h */,
+				9C7245FE2B52886C00E9992E /* SSSSTPClient.m */,
+				9C7245F82B52886B00E9992E /* SSTCPClient.h */,
+				9C7245F92B52886C00E9992E /* SSTCPClient.m */,
+				9C134B952B6B78C60045BCD4 /* crypto.xcframework */,
+				9C134B962B6B78C60045BCD4 /* ssl.xcframework */,
+				9C7245FC2B52886C00E9992E /* SSTCPClient+Private.h */,
+				9C7245C12B5287E000E9992E /* sstp */,
+				068140E37EF5828061098CF4 /* SRPSoftEtherClient.h */,
+				5B9AFA24AFC1D03F560D82D3 /* SRPSoftEtherClient.m */,
+				56F0AB3D5F357F1253CE6115 /* SRPOpenConnectClient.h */,
+				0D4CDBFA57BB8A7260879A7D /* SRPOpenConnectClient.m */,
+				CE613FBB1A3B9F38FCF4CDF2 /* SRPSSHBridge.c */,
+				F880DFCD8A162EA26A588D54 /* SRPSSHClient.m */,
+				7D7F4D36079E662A344BBCF6 /* SRPSSHClient.h */,
+				3F24E163A42207BE2F4F0427 /* SRPSSHBridge.h */,
+				5C2735650B7713FB50B1166F /* SRPOpenVPNClient.h */,
+				17A1C9DB493D5F09C9F3560D /* SRPOpenVPNClient.mm */,
+				DCBFCE8613666C078E60B532 /* SRPWireGuardClient.h */,
+				934D026376CD1246FAA9922C /* SRPWireGuardClient.m */,
+				DD5F3DD0B479409F069864B5 /* x25519.c */,
+				1C193248F081DA3AE623B197 /* key.c */,
+				30E1B0945DE87AF7B22DB4CA /* x25519.h */,
+				4CF9A56FB69BA2602587855E /* key.h */,
+				8FCC583E78410AF46480BD79 /* SRPWGKeys.h */,
+				29A3B1423B25633AD7867F0D /* SRPWGKeys.m */,
+				BB2CBDBEED790413A9955341 /* SSFragTLSChannel.h */,
+				4E2D44ADCA368CC0F7B05C84 /* SSFragTLSChannel.m */,
+				B1D07888133D461A0008B5A0 /* SRPAetherClient.h */,
+				1983F6B0092CD2D0098D9673 /* SRPAetherClient.m */,
+				A10000000000000000000012 /* SRPWaterWallClient.h */,
+				A10000000000000000000011 /* SRPWaterWallClient.m */,
+				A10000000000000000000014 /* SRPWaterWallBridge.h */,
+				A10000000000000000000024 /* SRPWaterWallChainConfig.h */,
+				A10000000000000000000023 /* SRPWaterWallChainConfig.m */,
+				DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */,
+				02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */,
+			);
+			path = SRPCore;
+			sourceTree = "<group>";
+		};
+		9C7244572B527AC600E9992E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9C7244582B527AC600E9992E /* libxml2.tbd */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9C7245C12B5287E000E9992E /* sstp */ = {
+			isa = PBXGroup;
+			children = (
+				9C7245CC2B5287E000E9992E /* sstp-buff.c */,
+				9C7245D62B5287E000E9992E /* sstp-buff.h */,
+				9C7245CA2B5287E000E9992E /* sstp-chap.c */,
+				9C7245D12B5287E000E9992E /* sstp-chap.h */,
+				9C7245CE2B5287E000E9992E /* sstp-cmac.c */,
+				9C7245C52B5287E000E9992E /* sstp-cmac.h */,
+				9C7245D82B5287E000E9992E /* sstp-common.h */,
+				9C7245C92B5287E000E9992E /* sstp-fcs.c */,
+				9C7245D22B5287E000E9992E /* sstp-fcs.h */,
+				9C7245C62B5287E000E9992E /* sstp-http.c */,
+				9C7245D32B5287E000E9992E /* sstp-http.h */,
+				9C7245C82B5287E000E9992E /* sstp-packet.c */,
+				9C7245D52B5287E000E9992E /* sstp-packet.h */,
+				9C7245D92B5287E000E9992E /* sstp-ppp.h */,
+				9C7245DA2B5287E000E9992E /* sstp-pppd.c */,
+				9C7245CB2B5287E000E9992E /* sstp-pppd.h */,
+				9C7245C32B5287E000E9992E /* sstp-private.h */,
+				9C7245C22B5287E000E9992E /* sstp-state.c */,
+				9C7245D02B5287E000E9992E /* sstp-state.h */,
+				9C7245CF2B5287E000E9992E /* sstp-stream.c */,
+				9C7245C42B5287E000E9992E /* sstp-stream.h */,
+				9C7245CD2B5287E000E9992E /* sstp-task.c */,
+				9C7245D72B5287E000E9992E /* sstp-task.h */,
+				9C7245D42B5287E000E9992E /* sstp-util.c */,
+				9C7245C72B5287E000E9992E /* sstp-util.h */,
+				9C7245F42B52881900E9992E /* utils.c */,
+				9C7245F52B52881900E9992E /* utils.h */,
+			);
+			path = sstp;
+			sourceTree = "<group>";
+		};
+		9C7246B62B5295D300E9992E /* lwip */ = {
+			isa = PBXGroup;
+			children = (
+				9C7246BF2B5295D300E9992E /* LPHelper.h */,
+				9C7246BA2B5295D300E9992E /* LPHelper.m */,
+				9C7246BD2B5295D300E9992E /* lwIP.h */,
+				9C7246B72B5295D300E9992E /* lwIP.m */,
+				9C7246D12B52993400E9992E /* SSData.h */,
+				9C7246D22B52993400E9992E /* SSData.m */,
+				9C7246CE2B52985600E9992E /* SSBuffer.h */,
+				9C7246CD2B52985600E9992E /* SSBuffer.m */,
+				9CD9B0862B5E9C1C00044F00 /* TCPHandler.h */,
+				9CD9B0852B5E9C1C00044F00 /* TCPHandler.m */,
+				9CD9B0872B5E9C1C00044F00 /* UDPHandler.h */,
+				9CD9B0882B5E9C1C00044F00 /* UDPHandler.m */,
+				9C7246B82B5295D300E9992E /* x_lwip.h */,
+				9C7246C02B5295D300E9992E /* x_utils.h */,
+				9C7246BC2B5295D300E9992E /* x_utils.m */,
+			);
+			path = lwip;
+			sourceTree = "<group>";
+		};
+		9CD9B0762B5E9A9600044F00 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				9C134E142B6B7B030045BCD4 /* utils.h */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		9CD9B08D2B5EA99200044F00 /* codec */ = {
+			isa = PBXGroup;
+			children = (
+				9CD9B0932B5EA99200044F00 /* CCCodec.h */,
+				9CD9B08F2B5EA99200044F00 /* CCCodec.m */,
+				9CD9B0912B5EA99200044F00 /* CCWebSocket.h */,
+				9CD9B08E2B5EA99200044F00 /* CCWebSocket.m */,
+				9CD9B0902B5EA99200044F00 /* SRSIMDHelpers.h */,
+				9CD9B0922B5EA99200044F00 /* SRSIMDHelpers.m */,
+			);
+			path = codec;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		9C7243DC2B527A3200E9992E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C7246C82B5295D300E9992E /* lwIP.h in Headers */,
+				9C7246CB2B5295D300E9992E /* x_utils.h in Headers */,
+				9C7245F22B5287E000E9992E /* sstp-ppp.h in Headers */,
+				9C7245EA2B5287E000E9992E /* sstp-chap.h in Headers */,
+				9C7245DD2B5287E000E9992E /* sstp-stream.h in Headers */,
+				9C134E1E2B6B7B040045BCD4 /* utils.h in Headers */,
+				9C7245FF2B52886C00E9992E /* SSTCPClient.h in Headers */,
+				9C7245EE2B5287E000E9992E /* sstp-packet.h in Headers */,
+				9C7243E52B527A3200E9992E /* SRPCore.h in Headers */,
+				9CD9B0972B5EA99200044F00 /* CCWebSocket.h in Headers */,
+				9C7245EB2B5287E000E9992E /* sstp-fcs.h in Headers */,
+				9C7245F12B5287E000E9992E /* sstp-common.h in Headers */,
+				9C7246D02B52985600E9992E /* SSBuffer.h in Headers */,
+				9C7245EF2B5287E000E9992E /* sstp-buff.h in Headers */,
+				9C7245F72B52881900E9992E /* utils.h in Headers */,
+				9C7246CA2B5295D300E9992E /* LPHelper.h in Headers */,
+				9CD9B08B2B5E9C1C00044F00 /* UDPHandler.h in Headers */,
+				9C7246D32B52993400E9992E /* SSData.h in Headers */,
+				9C7245F02B5287E000E9992E /* sstp-task.h in Headers */,
+				9C7245DE2B5287E000E9992E /* sstp-cmac.h in Headers */,
+				9C7245E02B5287E000E9992E /* sstp-util.h in Headers */,
+				9CD9B08A2B5E9C1C00044F00 /* TCPHandler.h in Headers */,
+				9C7246042B52886C00E9992E /* SSSSTPClient.h in Headers */,
+				9C7246092B52887B00E9992E /* SSProtocol.h in Headers */,
+				9CD9B0172B5E995100044F00 /* SSDirectClient.h in Headers */,
+				9C7246032B52886C00E9992E /* SSTCPClient+Private.h in Headers */,
+				9CD9B0992B5EA99200044F00 /* CCCodec.h in Headers */,
+				9C7245E42B5287E000E9992E /* sstp-pppd.h in Headers */,
+				9CD9B0962B5EA99200044F00 /* SRSIMDHelpers.h in Headers */,
+				9C7245DC2B5287E000E9992E /* sstp-private.h in Headers */,
+				9C7246012B52886C00E9992E /* NWRunLoop.h in Headers */,
+				9C0000AA2B70000100E9992E /* SSAuthCapabilities.h in Headers */,
+				CC0001002B80000100E9992E /* SSProxySupport.h in Headers */,
+				CC0001102B80000100E9992E /* SSProxyResolver.h in Headers */,
+				CC0002002B80000100E9992E /* SSLog.h in Headers */,
+				CC0002102B80000100E9992E /* SSOuterTls.h in Headers */,
+				CC0002202B80000100E9992E /* SSNetOptions.h in Headers */,
+				9C7245EC2B5287E000E9992E /* sstp-http.h in Headers */,
+				9C7245E92B5287E000E9992E /* sstp-state.h in Headers */,
+				9C7246C32B5295D300E9992E /* x_lwip.h in Headers */,
+				C7F38F2B74ACFA73E4AEE0A2 /* SRPSoftEtherClient.h in Headers */,
+				F12A8B84BAAA1B0EDEABED94 /* SRPOpenConnectClient.h in Headers */,
+				BDDCE81F91BE8C39CB5E1194 /* SRPSSHClient.h in Headers */,
+				59CDE2BE3FF990F4145E4C4D /* SRPOpenVPNClient.h in Headers */,
+				DD21A5D1020D68C7F15A7AB8 /* SRPWireGuardClient.h in Headers */,
+				650C3CE80462F77479D436E3 /* SRPWGKeys.h in Headers */,
+				9625D59A007B6C1ADE67D9B3 /* SRPAetherClient.h in Headers */,
+				A10000000000000000000002 /* SRPWaterWallClient.h in Headers */,
+				A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */,
+				D322DD21A4484AE6B840D582 /* SRPPsiphonClient.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		9C7243E02B527A3200E9992E /* SRPCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9C7243E82B527A3200E9992E /* Build configuration list for PBXNativeTarget "SRPCore" */;
+			buildPhases = (
+				9C7243DC2B527A3200E9992E /* Headers */,
+				9C7243DD2B527A3200E9992E /* Sources */,
+				9C7243DE2B527A3200E9992E /* Frameworks */,
+				9C7243DF2B527A3200E9992E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SRPCore;
+			productName = SRPCore;
+			productReference = 9C7243E12B527A3200E9992E /* SRPCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9C7243D82B527A3200E9992E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1520;
+				TargetAttributes = {
+					9C7243E02B527A3200E9992E = {
+						CreatedOnToolsVersion = 15.2;
+					};
+				};
+			};
+			buildConfigurationList = 9C7243DB2B527A3200E9992E /* Build configuration list for PBXProject "SRPCore" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9C7243D72B527A3200E9992E;
+			productRefGroup = 9C7243E22B527A3200E9992E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9C7243E02B527A3200E9992E /* SRPCore */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9C7243DF2B527A3200E9992E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9C7243DD2B527A3200E9992E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C7245E22B5287E000E9992E /* sstp-fcs.c in Sources */,
+				9C7245ED2B5287E000E9992E /* sstp-util.c in Sources */,
+				9C7245E52B5287E000E9992E /* sstp-buff.c in Sources */,
+				9C7246C72B5295D300E9992E /* x_utils.m in Sources */,
+				9C7245F32B5287E000E9992E /* sstp-pppd.c in Sources */,
+				9CD9B0942B5EA99200044F00 /* CCWebSocket.m in Sources */,
+				9CD9B0242B5E995100044F00 /* SSDirectClient.m in Sources */,
+				9C7245DB2B5287E000E9992E /* sstp-state.c in Sources */,
+				9C7246C22B5295D300E9992E /* lwIP.m in Sources */,
+				9CD9B0892B5E9C1C00044F00 /* TCPHandler.m in Sources */,
+				9CD9B0982B5EA99200044F00 /* SRSIMDHelpers.m in Sources */,
+				9C7245E32B5287E000E9992E /* sstp-chap.c in Sources */,
+				9C7246CF2B52985600E9992E /* SSBuffer.m in Sources */,
+				9C7245F62B52881900E9992E /* utils.c in Sources */,
+				9C7246052B52886C00E9992E /* SSSSTPClient.m in Sources */,
+				9C7245E12B5287E000E9992E /* sstp-packet.c in Sources */,
+				9C7246D42B52993400E9992E /* SSData.m in Sources */,
+				9C7245DF2B5287E000E9992E /* sstp-http.c in Sources */,
+				9C7245E62B5287E000E9992E /* sstp-task.c in Sources */,
+				9C7245E82B5287E000E9992E /* sstp-stream.c in Sources */,
+				9CD9B0952B5EA99200044F00 /* CCCodec.m in Sources */,
+				9C7246022B52886C00E9992E /* NWRunLoop.m in Sources */,
+				9C0000AB2B70000100E9992E /* SSAuthCapabilities.m in Sources */,
+				CC0001012B80000100E9992E /* SSProxySupport.m in Sources */,
+				CC0001112B80000100E9992E /* SSProxyResolver.m in Sources */,
+				CC0002012B80000100E9992E /* SSLog.m in Sources */,
+				CC0002112B80000100E9992E /* SSOuterTls.m in Sources */,
+				CC0002212B80000100E9992E /* SSNetOptions.m in Sources */,
+				9C7246002B52886C00E9992E /* SSTCPClient.m in Sources */,
+				9C7246C52B5295D300E9992E /* LPHelper.m in Sources */,
+				9CD9B08C2B5E9C1C00044F00 /* UDPHandler.m in Sources */,
+				9C7245E72B5287E000E9992E /* sstp-cmac.c in Sources */,
+				9C7246082B52887B00E9992E /* SSProtocol.m in Sources */,
+				A363CECE7F6D736730C9CD56 /* SRPSoftEtherClient.m in Sources */,
+				3D0EF821BEBA9B45DA736749 /* SRPOpenConnectClient.m in Sources */,
+				B7E18F62A5D4EDC092E7FC81 /* SRPSSHBridge.c in Sources */,
+				63C7EC4805B398A761B6C717 /* SRPSSHClient.m in Sources */,
+				E8EA6C45844A1B62826E35DA /* SRPOpenVPNClient.mm in Sources */,
+				2F7983497E9C7F7A18E2C829 /* SRPWireGuardClient.m in Sources */,
+				2823DBBC069C3C81087CA0C8 /* x25519.c in Sources */,
+				EE760C18C380304B1EAF68A2 /* key.c in Sources */,
+				F3577F33367C6419912B5208 /* SRPWGKeys.m in Sources */,
+				2C4AC42940C47669C948F408 /* SSFragTLSChannel.m in Sources */,
+				59A10ADC031E0D8A246AB706 /* SRPAetherClient.m in Sources */,
+				A10000000000000000000001 /* SRPWaterWallClient.m in Sources */,
+				A10000000000000000000021 /* SRPWaterWallChainConfig.m in Sources */,
+				72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		9C7243E62B527A3200E9992E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		9C7243E72B527A3200E9992E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		9C7243E92B527A3200E9992E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"${PROJECT_DIR}/SRPCore",
+					"${PROJECT_DIR}/SRPCore/include",
+					"${SRCROOT}/../LwIP/lwip/include",
+					"${SRCROOT}/../LwIP/lwip/custom",
+					"$(SRCROOT)/../SoftEther/bridge",
+					"$(SRCROOT)/../OpenConnect/upstream",
+					"$(SRCROOT)/../SSH/libssh2/include",
+					"$(SRCROOT)/../SSH/upstream/src",
+					"$(SRCROOT)/../SSH/upstream/src/core/src",
+					"$(SRCROOT)/../SSH/build",
+					"$(SRCROOT)/../OpenVPN/upstream",
+					"$(SRCROOT)/../OpenVPN/upstream/client",
+					"$(SRCROOT)/../OpenVPN/asio/include",
+					"$(SRCROOT)/../OpenVPN/lz4/lib",
+					"$(SRCROOT)/../OpenVPN/jsoncpp/include",
+					"$(SRCROOT)/../SoftEther/openssl/$(PLATFORM_NAME)/include",
+					"$(SRCROOT)/../WireGuard",
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.badwin.SRPCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		9C7243EA2B527A3200E9992E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"${PROJECT_DIR}/SRPCore",
+					"${PROJECT_DIR}/SRPCore/include",
+					"${SRCROOT}/../LwIP/lwip/include",
+					"${SRCROOT}/../LwIP/lwip/custom",
+					"$(SRCROOT)/../SoftEther/bridge",
+					"$(SRCROOT)/../OpenConnect/upstream",
+					"$(SRCROOT)/../SSH/libssh2/include",
+					"$(SRCROOT)/../SSH/upstream/src",
+					"$(SRCROOT)/../SSH/upstream/src/core/src",
+					"$(SRCROOT)/../SSH/build",
+					"$(SRCROOT)/../OpenVPN/upstream",
+					"$(SRCROOT)/../OpenVPN/upstream/client",
+					"$(SRCROOT)/../OpenVPN/asio/include",
+					"$(SRCROOT)/../OpenVPN/lz4/lib",
+					"$(SRCROOT)/../OpenVPN/jsoncpp/include",
+					"$(SRCROOT)/../SoftEther/openssl/$(PLATFORM_NAME)/include",
+					"$(SRCROOT)/../WireGuard",
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.badwin.SRPCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9C7243DB2B527A3200E9992E /* Build configuration list for PBXProject "SRPCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C7243E62B527A3200E9992E /* Debug */,
+				9C7243E72B527A3200E9992E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9C7243E82B527A3200E9992E /* Build configuration list for PBXNativeTarget "SRPCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C7243E92B527A3200E9992E /* Debug */,
+				9C7243EA2B527A3200E9992E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9C7243D82B527A3200E9992E /* Project object */;
+}

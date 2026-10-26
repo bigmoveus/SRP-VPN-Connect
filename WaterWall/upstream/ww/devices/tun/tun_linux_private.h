@@ -1,0 +1,118 @@
+#pragma once
+
+/* Backend-private state. The coordinator owns native descriptors and the
+ * reader-session reference. Linux reads/writes borrow them through generation
+ * gates; BSD retains its joined external reader. Queued work owns its buffers
+ * and session credits independently. */
+#include "devices/device_reader_session.h"
+#include "devices/tun/tun_lifecycle.h"
+#include "devices/tun/tun_writer.h"
+#include "tun.h"
+#include "wthread.h"
+
+enum
+{
+    kMaxReadDistributeQueueSize    = 512,
+    kTunReaderStopPollMs           = 100,
+    kTunPacketFailureLogIntervalMs = 5000,
+    kTunCommandTimeoutMs           = 7000,
+    kTunCommandTerminateGraceMs    = 250,
+    kTunCommandMaxOutputBytes      = 64 * 1024,
+#ifdef OS_LINUX
+    kTunReaderMessageBatchCapacity   = 1,
+    kTunOffloadPacketStorageCapacity = 65536,
+    kTunOffloadPendingPacketLimit    = 512,
+    kTunOffloadPendingChargeLimit    = 8 * 1024 * 1024,
+    kTunOffloadLogIntervalMs         = 5000,
+#else
+    kTunReaderMessageBatchCapacity = kMaxReadDistributeQueueSize,
+#endif
+    kLinuxRouteFlagUp     = 0x1,
+    kLinuxRouteFlagReject = 0x200
+};
+
+static_assert(kMaxReadDistributeQueueSize <= UINT16_MAX, "TUN read batch count must fit in the reader session");
+
+struct tun_device_s
+{
+    char *name;
+    int   handle;
+#ifndef OS_LINUX
+    int linux_pipe_fds[2]; // BSD reader stop signal
+#endif
+
+    void *userdata;
+#ifndef OS_LINUX
+    wthread_t       read_thread;
+    wthread_routine routine_reader;
+#endif
+
+    device_reader_session_t *reader_session;
+    buffer_pool_t           *reader_buffer_pool;
+
+    TunReadEventHandle read_event_callback;
+
+    tun_writer_t writer;
+    uint16_t     mtu;
+    bool         checksum_offload_enabled;
+    bool         gso_enabled;
+#ifdef OS_LINUX
+    struct tun_reader_generation_s *reader;
+    atomic_uintptr_t                reader_notify;
+    uint16_t                        queue_count;
+    int                             queue_fds[UINT8_MAX + 1U];
+    bool                            trusted_checksums;
+    atomic_bool                     gso_write_disabled;
+    /* Validated before publication; each active reader owns its actual scratch. */
+    uint32_t offload_scratch_capacity;
+    uint16_t offload_scratch_padding;
+    size_t   offload_scratch_charge;
+    /* Output allowance and this chain's padding, captured before publication. */
+    size_t               gso_output_charge[UINT8_MAX + 1U];
+    uint16_t             offload_output_padding[UINT8_MAX + 1U];
+    atomic_uint_fast64_t gso_generated_segments;
+    atomic_uint_fast64_t gso_intact_aggregates;
+#endif
+
+    atomic_int lifecycle;
+
+    // Whether read_thread holds a started, unjoined thread. This
+    // -- not `up` -- decides what bring-down must join, so a device whose thread
+    // already exited on its own is still torn down completely. Owner-thread only.
+#ifndef OS_LINUX
+    bool reader_joinable;
+#endif
+    bool reader_generation_open;
+    // The most recent configuration mutation may have completed before its
+    // supervisor lost control. The immediate policy caller consumes this flag.
+    bool command_outcome_unknown;
+    bool dns_outcome_unknown;
+    bool dns_cleanup_needed;
+#ifdef OS_LINUX
+    bool                       interface_preexisting;
+    struct tun_dns_snapshot_s *dns_snapshot;
+#endif
+};
+
+static inline uint16_t tunDeviceMtu(const tun_device_t *tdev)
+{
+    return tdev->mtu;
+}
+
+bool tunSetMtuByName(const char *name, uint16_t mtu);
+bool tunSetStateByName(const char *name, bool up);
+void tunDeliverPacket(void *device, sbuf_t *buf, wid_t wid);
+#ifndef OS_LINUX
+WTHREAD_ROUTINE(routineReadFromTun);
+#endif
+bool tunWriteBatch(void *context, worker_t *worker, sbuf_t **buffers, size_t count);
+#ifdef OS_LINUX
+bool tunReaderOpen(tun_device_t *tdev);
+void tunReaderCloseRequest(tun_device_t *tdev);
+void tunReaderCloseWait(tun_device_t *tdev);
+void tunReaderCapacityReady(void *context);
+bool tunConfigureWorkerOffload(tun_device_t *tdev);
+bool tunConfigureWorkerGso(tun_device_t *tdev);
+/* Final destruction releases snapshot storage after the policy owner attempts cleanup. */
+void tunLinuxDnsDropSnapshot(tun_device_t *tdev);
+#endif

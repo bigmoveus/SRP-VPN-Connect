@@ -1,0 +1,141 @@
+#include "structure.h"
+
+#include "DomainResolver/interface.h"
+
+#include "loggers/network_logger.h"
+
+static bool routerLoadResolveDomains(router_tstate_t *ts, const cJSON *settings)
+{
+    ts->resolve_domains = false;
+
+    if (settings == NULL)
+    {
+        return true;
+    }
+
+    const cJSON *resolve_domains = cJSON_GetObjectItemCaseSensitive(settings, "resolve-domains");
+    if (resolve_domains == NULL)
+    {
+        return true;
+    }
+
+    if (! cJSON_IsBool(resolve_domains))
+    {
+        LOGF("JSON Error: Router->settings->resolve-domains (boolean field) : expected a boolean");
+        return false;
+    }
+
+    ts->resolve_domains = cJSON_IsTrue(resolve_domains);
+    return true;
+}
+
+static bool routerCreateInternalDomainResolver(tunnel_t *t, node_t *node)
+{
+    router_tstate_t *ts = tunnelGetState(t);
+
+    if (! ts->resolve_domains)
+    {
+        return true;
+    }
+
+    if (! nodeConfigureChild(
+            &ts->domain_resolver_node, nodeDomainResolverGet(), node, ".domain-resolver", kNodeChildLinkNone, NULL))
+    {
+        LOGF("Router: failed to configure internal DomainResolver node");
+        return false;
+    }
+    ts->domain_resolver_tunnel = nodemanagerCreateTunnelInstance(&ts->domain_resolver_node);
+    if (ts->domain_resolver_tunnel == NULL)
+    {
+        LOGF("Router: failed to create internal DomainResolver");
+        return false;
+    }
+
+    domainresolverTunnelAllowMissingDestination(ts->domain_resolver_tunnel, true);
+    ts->domain_resolver_node.instance = ts->domain_resolver_tunnel;
+    return true;
+}
+
+tunnel_t *routerTunnelCreate(node_t *node)
+{
+    tunnel_t *t = tunnelCreate(node, sizeof(router_tstate_t), sizeof(router_lstate_t));
+    if (! t)
+    {
+        return NULL;
+    }
+
+    t->fnInitU    = &routerTunnelUpStreamInit;
+    t->fnFinU     = &routerTunnelUpStreamFinish;
+    t->fnPayloadU = &routerTunnelUpStreamPayload;
+    t->fnPauseU   = &routerTunnelUpStreamPause;
+    t->fnResumeU  = &routerTunnelUpStreamResume;
+    t->fnFinD = &routerTunnelDownStreamFinish;
+
+    t->onChain   = &routerTunnelOnChain;
+
+    t->onDestroy = &routerTunnelDestroy;
+
+    if (! nodeHasNext(node))
+    {
+        LOGF("Router: must have a \"next\" fallback node (the default route)");
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    const cJSON *settings = node->node_settings_json;
+    if (settings != NULL && ! cJSON_IsObject(settings))
+    {
+        LOGF("JSON Error: Router->settings (object field) : expected an object");
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    router_tstate_t *ts = tunnelGetState(t);
+    if (! routerLoadResolveDomains(ts, settings))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (! routerCreateInternalDomainResolver(t, node))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (! routerLoadSniffing(ts, settings))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (settings != NULL && ! routerRuleTableLoad(ts, node, settings))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (ts->needs_http_upgrade_attribute && (ts->sniffing_modes & kRouterSniffHttp1) == 0)
+    {
+        LOGW("Router: attribute \"http_upgrade_present\" requires root sniffing mode \"http1\" to match");
+    }
+
+    if (! routerGeositeOpenIfNeeded(ts, settings))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (! routerGeoipOpenIfNeeded(ts, settings))
+    {
+        routerTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
+
+    if (ts->rules_count == 0)
+    {
+        LOGW("Router: no routing rules configured; all connections use the default \"next\" route");
+    }
+
+    return t;
+}

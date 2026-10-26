@@ -1,0 +1,387 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+static void authenticationserverBytesToHex(const uint8_t *src, size_t src_len, uint8_t *hex)
+{
+    static const uint8_t digits[] = "0123456789abcdef";
+
+    for (size_t i = 0; i < src_len; ++i)
+    {
+        hex[i * 2U]      = digits[src[i] >> 4U];
+        hex[i * 2U + 1U] = digits[src[i] & 0x0FU];
+    }
+}
+
+static bool authenticationserverTokenIsZero(const uint8_t token[kAuthenticationServerSessionTokenSize])
+{
+    uint8_t zero[kAuthenticationServerSessionTokenSize] = {0};
+
+    return memoryEqual(token, zero, sizeof(zero));
+}
+
+static void authenticationserverSessionDestroyFields(authenticationserver_session_t *session)
+{
+    assert(session != NULL);
+
+    memoryFree(session->client_name);
+    memoryZero(session->token, sizeof(session->token));
+    memoryZero(session, sizeof(*session));
+}
+
+static void authenticationserverSessionFree(authenticationserver_tstate_t *ts, authenticationserver_session_t *session)
+{
+    assert(session != NULL);
+
+    authenticationserverSnapshotRelease(ts, session);
+    authenticationserverSessionDestroyFields(session);
+    memoryFree(session);
+}
+
+static bool authenticationserverSessionCompareExchangeLastActivity(authenticationserver_session_t *session,
+                                                                   uint32_t *expected, uint32_t desired)
+{
+    w_atomic_uint_value_t expected_value = (w_atomic_uint_value_t) *expected;
+    const bool            exchanged      = atomic_compare_exchange_weak_explicit(&session->last_activity_ms,
+                                                                 &expected_value,
+                                                                 (w_atomic_uint_value_t) desired,
+                                                                 memory_order_relaxed,
+                                                                 memory_order_relaxed);
+    *expected                            = (uint32_t) expected_value;
+    return exchanged;
+}
+
+static authenticationserver_auth_client_t *authenticationserverFindAuthClient(authenticationserver_tstate_t *ts,
+                                                                              const char *name, const char *secret)
+{
+    assert(ts != NULL && name != NULL && secret != NULL);
+
+    for (uint32_t i = 0; i < ts->auth_clients_count; ++i)
+    {
+        authenticationserver_auth_client_t *client = &ts->auth_clients[i];
+
+        if (stringCompare(client->name, name) != 0)
+        {
+            continue;
+        }
+
+        size_t expected_len = stringLength(client->secret);
+        size_t actual_len   = stringLength(secret);
+        if (LIKELY(expected_len == actual_len && wCryptoEqual(client->secret, secret, expected_len)))
+        {
+            return client;
+        }
+    }
+
+    return NULL;
+}
+
+authenticationserver_session_t *authenticationserverSessionFindByTokenLocked(
+    tunnel_t *t, const uint8_t token[kAuthenticationServerSessionTokenSize])
+{
+    authenticationserver_tstate_t *ts = tunnelGetState(t);
+
+    assert(token != NULL);
+
+    if (UNLIKELY(authenticationserverTokenIsZero(token)))
+    {
+        return NULL;
+    }
+
+    for (uint32_t i = 0; i < ts->sessions_count; ++i)
+    {
+        authenticationserver_session_t *session = ts->sessions[i];
+        if (wCryptoEqual(session->token, token, kAuthenticationServerSessionTokenSize))
+        {
+            return session;
+        }
+    }
+
+    return NULL;
+}
+
+static bool authenticationserverGenerateUniqueToken(tunnel_t *t, uint8_t token[kAuthenticationServerSessionTokenSize])
+{
+    uint8_t raw[kAuthenticationServerSessionTokenSize / 2U];
+
+    for (uint32_t attempt = 0; attempt < 16U; ++attempt)
+    {
+        if (UNLIKELY(! secureRandomBytes(raw, sizeof(raw))))
+        {
+            memoryZero(raw, sizeof(raw));
+            return false;
+        }
+
+        authenticationserverBytesToHex(raw, sizeof(raw), token);
+        if (LIKELY(authenticationserverSessionFindByTokenLocked(t, token) == NULL))
+        {
+            memoryZero(raw, sizeof(raw));
+            return true;
+        }
+    }
+
+    memoryZero(raw, sizeof(raw));
+    return false;
+}
+
+static bool authenticationserverEnsureSessionCapacity(authenticationserver_tstate_t *ts)
+{
+    if (LIKELY(ts->sessions_count < ts->sessions_capacity))
+    {
+        return true;
+    }
+
+    if (UNLIKELY(ts->sessions_capacity > UINT32_MAX / 2U))
+        return false;
+    uint32_t new_capacity = ts->sessions_capacity == 0 ? 4U : ts->sessions_capacity * 2U;
+    size_t   bytes;
+    if (UNLIKELY(! memoryTryComputeArraySize(new_capacity, sizeof(*ts->sessions), &bytes)))
+        return false;
+    authenticationserver_session_t **new_sessions = memoryReAllocate(ts->sessions, bytes);
+
+    memoryZero(&new_sessions[ts->sessions_capacity],
+               sizeof(*new_sessions) * (size_t) (new_capacity - ts->sessions_capacity));
+    ts->sessions          = new_sessions;
+    ts->sessions_capacity = new_capacity;
+    return true;
+}
+
+static void authenticationserverSessionsRemoveClientLocked(authenticationserver_tstate_t *ts, const char *client_name);
+
+authenticationserver_session_t *authenticationserverSessionCreate(tunnel_t *t, const char *name, const char *secret,
+                                                                  const uint8_t *resume_epoch, const char **error)
+{
+    assert(name != NULL && secret != NULL);
+
+    authenticationserver_tstate_t            *ts     = tunnelGetState(t);
+    authenticationserver_auth_client_t       *client = authenticationserverFindAuthClient(ts, name, secret);
+    *error                                           = "authentication-failed";
+
+    if (UNLIKELY(client == NULL))
+    {
+        if (ts->authentication_failures != UINT64_MAX)
+            ++ts->authentication_failures;
+        const uint64_t now_ms = getHRTimeUs() / 1000U;
+        if (now_ms >= ts->authentication_failure_log_at_ms)
+        {
+            LOGW("AuthenticationServer: producer authentication rejected; total failures=%" PRIu64,
+                 ts->authentication_failures);
+            ts->authentication_failure_log_at_ms = now_ms + 5000U;
+        }
+        return NULL;
+    }
+
+    *error = "session-unavailable";
+
+    if (resume_epoch != NULL &&
+        (client->accounting_epoch[0] == 0 ||
+         ! memoryEqual(resume_epoch, client->accounting_epoch, sizeof(client->accounting_epoch))))
+    {
+        *error = "accounting-continuity-lost";
+        return NULL;
+    }
+
+    if (UNLIKELY(! authenticationserverEnsureSessionCapacity(ts)))
+    {
+        return NULL;
+    }
+
+    authenticationserver_session_t *session = memoryAllocateZero(sizeof(*session));
+
+    if (UNLIKELY(! authenticationserverGenerateUniqueToken(t, session->token)))
+    {
+        authenticationserverSessionFree(ts, session);
+        return NULL;
+    }
+
+    session->client_name = stringDuplicate(client->name);
+
+    session->allow_stats_push        = client->allow_stats_push;
+    session->allow_user_pull         = client->allow_user_pull;
+    session->allow_user_write        = client->allow_user_write;
+    session->session_idle_timeout_ms = client->session_idle_timeout_ms;
+    atomicStoreRelaxed(&session->last_activity_ms, getTickMS());
+
+    if (resume_epoch == NULL)
+    {
+        uint8_t epoch[64];
+        if (! authenticationserverGenerateUniqueToken(t, epoch))
+        {
+            authenticationserverSessionFree(ts, session);
+            return NULL;
+        }
+        memoryCopy(client->accounting_epoch, epoch, sizeof(epoch));
+        client->last_sequence = 0;
+        memoryZero(client->last_digest, sizeof(client->last_digest));
+    }
+    session->accounting_client = client;
+    memoryCopy(session->accounting_epoch, client->accounting_epoch, sizeof(session->accounting_epoch));
+    authenticationserverSessionsRemoveClientLocked(ts, client->name);
+
+    ts->sessions[ts->sessions_count] = session;
+    ts->sessions_count += 1U;
+    if (ts->verbose)
+    {
+        LOGD("AuthenticationServer: session for auth client \"%s\" permissions stats-push=%s user-pull=%s "
+             "user-write=%s idle-timeout-ms=%u",
+             client->name,
+             boolToTrueFalse(client->allow_stats_push),
+             boolToTrueFalse(client->allow_user_pull),
+             boolToTrueFalse(client->allow_user_write),
+             (unsigned int) client->session_idle_timeout_ms);
+    }
+    LOGI("AuthenticationServer: authenticated auth client \"%s\"", client->name);
+    return session;
+}
+
+void authenticationserverSessionTouch(authenticationserver_session_t *session, uint32_t now_ms)
+{
+    if (LIKELY(session != NULL))
+    {
+        uint32_t observed = (uint32_t) atomicLoadRelaxed(&session->last_activity_ms);
+
+        while ((int32_t) (now_ms - observed) > 0)
+        {
+            if (authenticationserverSessionCompareExchangeLastActivity(session, &observed, now_ms))
+            {
+                break;
+            }
+        }
+    }
+}
+
+static void authenticationserverSessionRemoveAtLocked(authenticationserver_tstate_t *ts, uint32_t index)
+{
+    assert(ts != NULL);
+    assert(index < ts->sessions_count);
+
+    // sessions[0..sessions_count) is compact and populated; active-range loops rely on this.
+    authenticationserverSessionFree(ts, ts->sessions[index]);
+
+    const uint32_t last_index = ts->sessions_count - 1U;
+    if (LIKELY(index < last_index))
+    {
+        memoryMove(
+            &ts->sessions[index], &ts->sessions[index + 1U], sizeof(*ts->sessions) * (size_t) (last_index - index));
+    }
+
+    ts->sessions_count               = last_index;
+    ts->sessions[ts->sessions_count] = NULL;
+}
+
+static void authenticationserverSessionsRemoveClientLocked(authenticationserver_tstate_t *ts, const char *client_name)
+{
+    assert(client_name != NULL);
+
+    uint32_t removed_count = 0;
+    for (uint32_t i = 0; i < ts->sessions_count;)
+    {
+        authenticationserver_session_t *session = ts->sessions[i];
+        if (LIKELY(session->client_name != NULL) && stringCompare(session->client_name, client_name) == 0)
+        {
+            authenticationserverSessionRemoveAtLocked(ts, i);
+            ++removed_count;
+            continue;
+        }
+        ++i;
+    }
+
+    if (UNLIKELY(removed_count > 0))
+    {
+        LOGD("AuthenticationServer: removed %u previous session(s) for auth client \"%s\"",
+             (unsigned int) removed_count,
+             client_name);
+    }
+}
+
+void authenticationserverSessionsExpireIdle(tunnel_t *t)
+{
+    authenticationserver_tstate_t *ts            = tunnelGetState(t);
+    uint32_t                       expired_count = 0;
+
+    rwlockWriteLock(&ts->state_lock);
+    const uint32_t now_ms = getTickMS();
+    authenticationserverSnapshotsExpire(ts, getHRTimeUs() / 1000U);
+    for (uint32_t i = 0; i < ts->sessions_count;)
+    {
+        authenticationserver_session_t *session          = ts->sessions[i];
+        const uint32_t                  last_activity_ms = (uint32_t) atomicLoadRelaxed(&session->last_activity_ms);
+        const uint32_t                  idle_ms          = now_ms - last_activity_ms;
+
+        if (LIKELY(idle_ms < session->session_idle_timeout_ms))
+        {
+            ++i;
+            continue;
+        }
+
+        LOGI("AuthenticationServer: deauthenticated inactive auth client \"%s\" after %u ms idle",
+             session->client_name != NULL ? session->client_name : "",
+             (unsigned int) idle_ms);
+        authenticationserverSessionRemoveAtLocked(ts, i);
+        ++expired_count;
+    }
+    rwlockWriteUnlock(&ts->state_lock);
+
+    if (UNLIKELY(expired_count > 0))
+    {
+        LOGD("AuthenticationServer: expired %u inactive session(s)", (unsigned int) expired_count);
+    }
+}
+
+void authenticationserverSessionExpiryTimerCallback(wtimer_t *timer)
+{
+    tunnel_t *t = weventGetUserdata(timer);
+    if (UNLIKELY(t == NULL))
+    {
+        return;
+    }
+
+    authenticationserverSessionsExpireIdle(t);
+}
+
+void authenticationserverSessionsDestroy(authenticationserver_tstate_t *ts)
+{
+    assert(ts != NULL);
+
+    if (ts->sessions == NULL)
+    {
+        return;
+    }
+
+    for (uint32_t i = 0; i < ts->sessions_count; ++i)
+    {
+        authenticationserverSessionFree(ts, ts->sessions[i]);
+        ts->sessions[i] = NULL;
+    }
+
+    memoryFree(ts->sessions);
+    ts->sessions          = NULL;
+    ts->sessions_count    = 0;
+    ts->sessions_capacity = 0;
+}
+
+void authenticationserverAuthClientsDestroy(authenticationserver_tstate_t *ts)
+{
+    assert(ts != NULL);
+
+    if (ts->auth_clients == NULL)
+    {
+        return;
+    }
+
+    for (uint32_t i = 0; i < ts->auth_clients_count; ++i)
+    {
+        authenticationserver_auth_client_t *client = &ts->auth_clients[i];
+        memoryFree(client->name);
+        if (LIKELY(client->secret != NULL))
+        {
+            memorySecureZero(client->secret, stringLength(client->secret));
+        }
+        memoryFree(client->secret);
+        memoryZero(client, sizeof(*client));
+    }
+
+    memoryFree(ts->auth_clients);
+    ts->auth_clients       = NULL;
+    ts->auth_clients_count = 0;
+}

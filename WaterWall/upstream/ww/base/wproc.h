@@ -1,0 +1,420 @@
+#ifndef WW_PROC_H_
+#define WW_PROC_H_
+
+/**
+ * @file wproc.h
+ * @brief Process/thread spawning helpers and command execution utilities.
+ *
+ * This module provides a small cross-platform abstraction for launching work
+ * in a child process (Unix) or worker thread (Windows), plus utility helpers
+ * for command execution and privilege checks.
+ */
+
+#include "wlibc.h"
+
+#ifdef OS_UNIX
+#include <poll.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#if defined(OS_LINUX)
+#include <sys/syscall.h>
+#endif
+#endif
+
+/**
+ * @brief Runtime context used by procSpawn/procRun callbacks.
+ */
+typedef struct proc_ctx_s
+{
+    pid_t       pid; // tid in Windows
+    time_t      start_time;
+    int         spawn_cnt;
+    procedure_t init;
+    void       *init_userdata;
+    procedure_t proc;
+    void       *proc_userdata;
+    procedure_t exit;
+    void       *exit_userdata;
+} proc_ctx_t;
+
+/**
+ * @brief Execute callbacks from a process context in init/proc/exit order.
+ *
+ * @param ctx Process context containing callback pointers and user data.
+ */
+static inline void procRun(proc_ctx_t *ctx)
+{
+    if (ctx->init)
+    {
+        ctx->init(ctx->init_userdata);
+    }
+    if (ctx->proc)
+    {
+        ctx->proc(ctx->proc_userdata);
+    }
+    if (ctx->exit)
+    {
+        ctx->exit(ctx->exit_userdata);
+    }
+}
+
+#ifdef OS_UNIX
+// unix use multi-processes
+/**
+ * @brief Spawn execution for a process context.
+ *
+ * On Unix this uses `fork`; in the child it runs `procRun` and exits.
+ *
+ * @param ctx Process context to execute.
+ * @return Child pid in the parent process, `0` in the child path before exit,
+ *         or `-1` on failure.
+ */
+static inline int procSpawn(proc_ctx_t *ctx)
+{
+    ++ctx->spawn_cnt;
+    ctx->start_time = time(NULL);
+    pid_t pid       = fork();
+    if (pid < 0)
+    {
+        printError("fork");
+        return -1;
+    }
+    else if (pid == 0)
+    {
+        // child process
+        ctx->pid = getpid();
+        procRun(ctx);
+        exit(0);
+    }
+    else if (pid > 0)
+    {
+        // parent process
+        ctx->pid = pid;
+    }
+    return pid;
+}
+#elif defined(OS_WIN)
+// win32 use multi-threads
+static void win_thread(void *userdata)
+{
+    proc_ctx_t *ctx = (proc_ctx_t *) userdata;
+    ctx->pid        = GetCurrentThreadId(); // tid in Windows
+    procRun(ctx);
+}
+/**
+ * @brief Spawn execution for a process context.
+ *
+ * On Windows this starts a worker thread that runs `procRun`.
+ *
+ * @param ctx Process context to execute.
+ * @return Thread id on success, or `-1` on failure.
+ */
+static inline int procSpawn(proc_ctx_t *ctx)
+{
+    ++ctx->spawn_cnt;
+    ctx->start_time = time(NULL);
+    HANDLE h        = (HANDLE) _beginthread(win_thread, 0, ctx);
+    if (h == NULL)
+    {
+        return -1;
+    }
+    ctx->pid = (pid_t) GetThreadId(h); // tid in Windows
+    return (int) ctx->pid;
+}
+#endif
+
+typedef struct
+{
+    char output[2048];
+    int  exit_code;
+} cmd_result_t;
+
+#ifdef OS_UNIX
+static inline long execCmdOpenMax(void)
+{
+    long open_max = sysconf(_SC_OPEN_MAX);
+    if (open_max < 0)
+    {
+        open_max = 1024;
+    }
+    return open_max;
+}
+
+static inline void execCmdCloseInheritedFds(long open_max)
+{
+#if defined(OS_LINUX) && defined(__NR_close_range)
+    if (syscall(__NR_close_range, 3U, ~0U, 0U) == 0)
+    {
+        return;
+    }
+#endif
+
+    for (long fd = 3; fd < open_max; ++fd)
+    {
+        close((int) fd);
+    }
+}
+#endif
+
+/* Run every progress registration on this thread. Returns whether registrations
+ * exist. The same bounded, nonblocking and non-reentrant callback contract as
+ * procCommandProgressRegister() applies. */
+bool procCommandProgressRun(void);
+
+// blocking io
+/**
+ * @brief Execute a shell command and capture a short prefix of its output.
+ *
+ * @param str Shell command string.
+ * @return Command output buffer and exit code.
+ */
+static cmd_result_t execCmd(const char *str)
+{
+    cmd_result_t result = (cmd_result_t) {{0}, -1};
+#if defined(OS_UNIX)
+    int output_pipe[2];
+    if (pipe(output_pipe) != 0)
+    {
+        printf("Failed to create command pipe for \"%s\"\n", str);
+        return result;
+    }
+
+    long  open_max = execCmdOpenMax();
+    pid_t pid      = fork();
+    if (pid < 0)
+    {
+        close(output_pipe[0]);
+        close(output_pipe[1]);
+        printf("Failed to run command \"%s\"\n", str);
+        return result;
+    }
+
+    if (pid == 0)
+    {
+        close(output_pipe[0]);
+        if (output_pipe[1] != STDOUT_FILENO)
+        {
+            if (dup2(output_pipe[1], STDOUT_FILENO) < 0)
+            {
+                _exit(127);
+            }
+            close(output_pipe[1]);
+        }
+        execCmdCloseInheritedFds(open_max);
+        execl("/bin/sh", "sh", "-c", str, (char *) NULL);
+        _exit(127);
+    }
+
+    close(output_pipe[1]);
+
+    size_t used = 0;
+    for (;;)
+    {
+        if (procCommandProgressRun())
+        {
+            struct pollfd output = {.fd = output_pipe[0], .events = POLLIN};
+            const int     ready  = poll(&output, 1, 5);
+            if (ready == 0 || (ready < 0 && errno == EINTR))
+                continue;
+            if (ready < 0)
+                break;
+        }
+        char    read_buf[256];
+        ssize_t nread = read(output_pipe[0], read_buf, sizeof(read_buf));
+        if (nread > 0)
+        {
+            size_t available = (sizeof(result.output) - 1) - used;
+            if (available > 0)
+            {
+                size_t copy_len = (size_t) nread < available ? (size_t) nread : available;
+                memoryCopy(result.output + used, read_buf, copy_len);
+                used += copy_len;
+                result.output[used] = '\0';
+            }
+            continue;
+        }
+        if (nread == 0)
+        {
+            break;
+        }
+        if (errno == EINTR)
+        {
+            continue;
+        }
+        break;
+    }
+
+    close(output_pipe[0]);
+
+    int status = 0;
+    for (;;)
+    {
+        const bool  progress = procCommandProgressRun();
+        const pid_t reaped   = waitpid(pid, &status, progress ? WNOHANG : 0);
+        if (reaped == pid)
+            break;
+        if (reaped == 0)
+        {
+            usleep(5000);
+            continue;
+        }
+        if (errno == EINTR)
+        {
+            continue;
+        }
+        return result;
+    }
+
+    if (WIFEXITED(status))
+    {
+        result.exit_code = WEXITSTATUS(status);
+    }
+    else if (WIFSIGNALED(status))
+    {
+        result.exit_code = 128 + WTERMSIG(status);
+    }
+#else
+    FILE *fp = _popen(str, "r");
+    if (fp == NULL)
+    {
+        printf("Failed to run command \"%s\"\n", str);
+        return result;
+    }
+    int     read = fscanf(fp, "%2047s", result.output);
+    discard read;
+    result.exit_code = _pclose(fp);
+#endif
+
+    return result;
+    /* close */
+    // return 0 == pclose(fp);
+}
+
+/**
+ * @brief Check if a command is available in the current shell environment.
+ *
+ * @param app Executable name to search for.
+ * @return `true` if command lookup succeeds, otherwise `false`.
+ */
+static bool checkCommandAvailable(const char *app)
+{
+    char b[300];
+    sprintf(b, "command -v %288s", app);
+    cmd_result_t result = execCmd(b);
+    return (result.exit_code == 0 && stringLength(result.output) > 0);
+}
+
+/**
+ * @brief Captured result of a deadline-supervised command.
+ *
+ * `output` is dynamically owned by the result and, when non-NULL, is always
+ * NUL-terminated; `output_len` excludes that NUL. Every result handed back by
+ * procRunArgvWithDeadline() must be released exactly once with
+ * procCommandResultDrop(), including on failure.
+ */
+typedef struct proc_command_result_s
+{
+    char  *output;
+    size_t output_len;
+    /** `-1` until the child is reaped; then WEXITSTATUS, or 128 + signal. */
+    int  exit_code;
+    bool output_too_large;
+    /** Pipe/fork/fcntl/poll/read failure on the parent side. */
+    bool spawn_failed;
+    /** True only when the monotonic command deadline expired. */
+    bool timed_out;
+} proc_command_result_t;
+
+/* Caller-owned progress registration for command waits on one coordinator
+ * thread. Register and unregister on that same thread; keep the record and its
+ * context alive while registered. The runner owns `next`. Callbacks perform
+ * bounded, nonblocking work and must not modify registrations, reap command
+ * children or recursively invoke command/progress functions. POSIX execCmd()
+ * and procRunArgvWithDeadline() service registrations during their parent waits.
+ * No worker thread is created. */
+typedef struct proc_command_progress_s
+{
+    void (*callback)(void *context);
+    void                           *context;
+    struct proc_command_progress_s *next;
+} proc_command_progress_t;
+
+void procCommandProgressRegister(proc_command_progress_t *progress);
+void procCommandProgressUnregister(proc_command_progress_t *progress);
+
+/**
+ * @brief Policy knobs for procRunArgvWithDeadline().
+ *
+ * `timeout_ms` is the monotonic command deadline covering both stdout draining
+ * and child reaping; zero means an immediate deadline, never "wait forever".
+ * `terminate_grace_ms` is additional cleanup time granted *after* that deadline:
+ * the child process group is sent SIGTERM, observed for this long, then sent
+ * SIGKILL. The total wall-clock call duration is therefore the command deadline
+ * plus, on failure, up to the termination grace and normal scheduler overhead.
+ * `max_output_bytes` is a hard stdout byte limit and must be nonzero; it stops
+ * an always-readable producer from keeping the drain loop busy indefinitely.
+ *
+ * Optional `progress` runs on the calling parent thread between bounded output
+ * batches and throughout child waiting, including termination and reaping after
+ * failure, in addition to every registration on that thread. If either exists,
+ * waits are sliced to at most 5 ms (excluding scheduler delays). It has the same
+ * nonblocking/non-reentrant contract as registered progress; keep its context
+ * alive and `options` unchanged until return. Callback time counts against the
+ * command deadline. With neither callback nor registration, ordinary waiting
+ * has no periodic progress wakes.
+ */
+typedef struct proc_command_options_s
+{
+    uint32_t timeout_ms;
+    uint32_t terminate_grace_ms;
+    size_t   max_output_bytes;
+    void (*progress)(void *context);
+    void *progress_context;
+} proc_command_options_t;
+
+/**
+ * @brief Run `file` with `argv` directly (no shell) under a parent-enforced deadline.
+ *
+ * `argv[0]` is supplied by the caller and `argv` must be NULL-terminated.
+ * Execution uses `execvp()`, so the current `PATH` still resolves bare tool
+ * names. Only stdout is captured; stderr stays inherited unless the caller
+ * explicitly invokes `/bin/sh -c` with its own redirection. An `execvp()`
+ * failure surfaces as a child exit status of `127`, not as a spawn failure.
+ *
+ * The child is placed in its own process group so a timeout terminates the
+ * command and every descendant together. On a returned failure the group is signalled
+ * and the direct child is reaped before returning; no post-fork return path
+ * leaves a known live or zombie direct child behind.
+ *
+ * @param file    Executable to run (resolved through `PATH` by `execvp`).
+ * @param argv    NULL-terminated argument vector, including `argv[0]`.
+ * @param options Deadline, termination grace, and output cap. Required.
+ * @param out     Result to fill. Required; always safe to drop afterwards.
+ * @return `true` only after pipe EOF and direct-child reaping with a clean zero
+ *         exit and none of `spawn_failed`, `timed_out`, or `output_too_large`.
+ */
+bool procRunArgvWithDeadline(const char *file, const char *const argv[], const proc_command_options_t *options,
+                             proc_command_result_t *out);
+
+/**
+ * @brief Release a command result. Accepts NULL, zeroes the result, idempotent.
+ */
+void procCommandResultDrop(proc_command_result_t *out);
+
+/**
+ * @brief Attempts to elevate the privileges of the current process.
+ *
+ * @param app_name The executable name of the application.
+ * @param fail_msg The error message to display if elevation fails.
+ * @return bool true on success, false otherwise.
+ */
+bool elevatePrivileges(const char *app_name, char *fail_msg);
+
+/**
+ * @brief Check whether the current process has administrator/root privileges.
+ *
+ * @return `true` when running with elevated privileges.
+ */
+bool isAdmin(void);
+
+#endif // WW_PROC_H_

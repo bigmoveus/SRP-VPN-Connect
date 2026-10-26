@@ -1,0 +1,146 @@
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void tundeviceTunnelOnStart(tunnel_t *t)
+{
+    tundevice_tstate_t *state     = tunnelGetState(t);
+    bool                device_up = false;
+    bool                cancelled = false;
+    const char         *failure   = NULL;
+
+    if (! packettunnelLifecycleAnchorBind(t))
+    {
+        LOGF("TunDevice: packet publication side is not chained");
+        startupFailureRecord(1);
+        return;
+    }
+
+#ifdef OS_WIN
+    if (state->gso_requested)
+    {
+        LOGW("TunDevice: GSO requested but unavailable on this platform; using ordinary TUN framing");
+    }
+    state->tdev = tundeviceCreateOwned(state->name,
+                                       false,
+                                       state->multi_queue_requested,
+                                       state->mtu,
+                                       t,
+                                       tundeviceOnIPPacketReceived,
+                                       state->fragment_policy,
+                                       &state->windows_ownership);
+#elif defined(OS_LINUX)
+    state->tdev = tundeviceCreate(state->name,
+                                  state->gso_requested,
+                                  state->multi_queue_requested,
+                                  state->mtu,
+                                  t,
+                                  tundeviceOnIPPacketReceived,
+                                  state->fragment_policy);
+#else
+    if (state->gso_requested)
+    {
+        LOGW("TunDevice: GSO requested but unavailable on this platform; using ordinary TUN framing");
+    }
+    state->tdev = tundeviceCreate(state->name,
+                                  false,
+                                  state->multi_queue_requested,
+                                  state->mtu,
+                                  t,
+                                  tundeviceOnIPPacketReceived,
+                                  state->fragment_policy);
+#endif
+
+    if (state->tdev == NULL)
+    {
+        failure = "TunDevice: could not create device";
+        goto rollback;
+    }
+
+    /* Final topology and actual device framing are now known. Publish before
+     * BringUp starts either producer; PTC routes read this lazily on workers. */
+    if (packettunnelTrustedChecksumPairEligible(t, t->next) && tundeviceEnableTrustedReceiveChecksums(state->tdev))
+    {
+        packettunnelActivateTrustedReceiveChecksumPair(t, t->next);
+        LOGI("TunDevice: %s enabled direct-pair trusted receive checksums", state->name);
+        if (tundeviceEnableTrustedChecksums(state->tdev))
+        {
+            packettunnelActivateTrustedChecksumPair(t, t->next);
+            LOGI("TunDevice: %s enabled direct-pair trusted transport checksums", state->name);
+        }
+    }
+
+    if (! tundeviceAssignIP(state->tdev, state->ip_present, (unsigned int) state->subnet_mask))
+    {
+        failure = "TunDevice: could not assign device IP";
+        goto rollback;
+    }
+
+    if (! tundeviceBringUp(state->tdev))
+    {
+        failure = "TunDevice: could not bring device up";
+        goto rollback;
+    }
+    device_up = true;
+
+#ifdef OS_LINUX
+    /*
+     * Reverse path filtering drops packets whose source address does not route
+     * back out of the interface they arrived on. Traffic injected into the TUN
+     * regularly trips that check, and it does so whether or not this instance
+     * installs the system routes itself, so disable it for every Linux TUN
+     * rather than only for the native-system-route configuration.
+     */
+    if (! tundeviceDisableReversePathFiltering(state->name))
+    {
+        LOGW("TunDevice: could not disable Linux reverse path filtering for %s; continuing", state->name);
+    }
+#endif
+
+    if (! tundeviceApplySystemRoutes(state))
+    {
+        failure = "TunDevice: could not install system routes";
+        goto rollback;
+    }
+    if (! tundeviceApplyDnsSettings(state))
+    {
+#ifdef OS_WIN
+        cancelled = tundeviceWindowsDnsWasCancelled(state->tdev);
+#endif
+        failure = "TunDevice: could not configure DNS servers";
+        goto rollback;
+    }
+
+    if (state->post_up_script != NULL && execCmd(state->post_up_script).exit_code != 0)
+    {
+        failure = "TunDevice: post-up-script failed";
+        goto rollback;
+    }
+    state->pre_down_pending = state->pre_down_script != NULL;
+    return;
+
+rollback:
+    /* Attempt partial installations too. Failed entries stay owned until a
+     * later cleanup succeeds or the
+     * exclusively owned adapter is destroyed. */
+    tundeviceCleanupDnsSettings(state);
+    tundeviceCleanupSystemRoutes(state);
+    tundeviceClearEgressPinIfPublished(state);
+    if (device_up && ! tundeviceBringDown(state->tdev))
+    {
+        LOGW("TunDevice: bring-down during startup rollback completed with cleanup errors");
+        state->policy_cleanup_failed = true;
+    }
+    /* Keep the device for the normal owner teardown, including another bounded
+     * cleanup pass for unresolved
+     * policy. A stop is not a startup failure. */
+    if (! cancelled || state->policy_cleanup_failed)
+    {
+        if (! cancelled)
+        {
+            LOGF("%s", failure);
+        }
+        startupFailureRecord(1);
+    }
+    return;
+}

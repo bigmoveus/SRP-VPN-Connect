@@ -1,0 +1,844 @@
+/**
+ * @file wsocket.c
+ * @brief Implementation of cross-platform socket/address helper routines.
+ *
+ * Contains resolver/address formatting utilities, connect/listen helpers,
+ * socket-pair fallback logic, and basic IP/interface validation helpers.
+ */
+
+#include "wsocket.h"
+
+#include "shiftbuffer.h"
+
+#include "loggers/internal_logger.h"
+#include "werr.h"
+
+#ifdef OS_WIN
+#include <iphlpapi.h>
+#include <winsock2.h>
+
+static atomic_flag s_wsa_initialized = ATOMIC_FLAG_INIT;
+void               WSAInit(void)
+{
+    if (! atomicFlagTestAndSet(&s_wsa_initialized))
+    {
+        WSADATA wsadata;
+        WSAStartup(MAKEWORD(2, 2), &wsadata);
+    }
+}
+
+void WSADeinit(void)
+{
+    if (atomicFlagTestAndSet(&s_wsa_initialized))
+    {
+        atomicFlagClear(&s_wsa_initialized);
+        WSACleanup();
+    }
+}
+#else
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <poll.h>
+
+#endif
+
+/**
+ * @brief Return current socket error as a negative value and close fd on error path.
+ *
+ * @param sockfd Socket descriptor to close when valid.
+ * @return Negative error code.
+ */
+static inline int socketErrnoNegative(int sockfd)
+{
+    int err = socketERRNO();
+    if (sockfd >= 0)
+        closesocket(sockfd);
+    return err > 0 ? -err : -1;
+}
+
+const char *socketStrError(int err)
+{
+#ifdef OS_WIN
+    static char buffer[128];
+
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                   0,
+                   ABS((DWORD) err),
+                   0,
+                   buffer,
+                   sizeof(buffer),
+                   NULL);
+
+    return buffer;
+#else
+    return strerror(ABS(err));
+#endif
+}
+
+int resolveAddr(const char *host, sockaddr_u *addr)
+{
+#ifdef OS_WIN
+    WSAInit();
+#endif
+    if (inet_pton(AF_INET, host, &addr->sin.sin_addr) == 1)
+    {
+        addr->sa.sa_family = AF_INET; // host is ipv4, so easy ;)
+        return 0;
+    }
+
+    if (inet_pton(AF_INET6, host, &addr->sin6.sin6_addr) == 1)
+    {
+        addr->sa.sa_family = AF_INET6; // host is ipv6
+    }
+
+    struct addrinfo *ais = NULL;
+    int              ret = getaddrinfo(host, NULL, NULL, &ais);
+    if (ret != 0 || ais == NULL || ais->ai_addr == NULL || ais->ai_addrlen == 0)
+    {
+        printd("unknown host: %s err:%d:%s\n", host, ret, gai_strerror(ret));
+        return ret;
+    }
+    struct addrinfo *pai = ais;
+    while (pai != NULL)
+    {
+        if (pai->ai_family == AF_INET)
+            break;
+        pai = pai->ai_next;
+    }
+    if (pai == NULL)
+        pai = ais;
+    memoryCopy(addr, pai->ai_addr, (size_t) pai->ai_addrlen);
+    freeaddrinfo(ais);
+    return 0;
+}
+
+const char *sockaddrIp(sockaddr_u *addr, char *ip, int len)
+{
+    if (addr->sa.sa_family == AF_INET)
+    {
+        return inet_ntop(AF_INET, &addr->sin.sin_addr, ip, (socklen_t) len);
+    }
+    else if (addr->sa.sa_family == AF_INET6)
+    {
+        return inet_ntop(AF_INET6, &addr->sin6.sin6_addr, ip, (socklen_t) len);
+    }
+    return ip;
+}
+
+uint16_t sockaddrPort(sockaddr_u *addr)
+{
+    uint16_t port = 0;
+    if (addr->sa.sa_family == AF_INET)
+    {
+        port = ntohs(addr->sin.sin_port);
+    }
+    else if (addr->sa.sa_family == AF_INET6)
+    {
+        port = ntohs(addr->sin6.sin6_port);
+    }
+    return port;
+}
+
+int sockaddrSetIpAddress(sockaddr_u *addr, const char *host)
+{
+    if (! host || *host == '\0')
+    {
+        addr->sin.sin_family      = AF_INET;
+        addr->sin.sin_addr.s_addr = htonl(INADDR_ANY);
+        return 0;
+    }
+    return resolveAddr(host, addr);
+}
+
+void sockaddrSetPort(sockaddr_u *addr, int port)
+{
+    if (addr->sa.sa_family == AF_INET)
+    {
+        addr->sin.sin_port = htons((unsigned short) port);
+    }
+    else if (addr->sa.sa_family == AF_INET6)
+    {
+        addr->sin6.sin6_port = htons((unsigned short) port);
+    }
+}
+
+int sockaddrSetIpAddressPort(sockaddr_u *addr, const char *host, int port)
+{
+#ifdef ENABLE_UDS
+    if (port < 0)
+    {
+        sockaddr_set_path(addr, host);
+        return 0;
+    }
+#endif
+    int ret = sockaddrSetIpAddress(addr, host);
+    if (ret != 0)
+        return ret;
+    sockaddrSetPort(addr, port);
+    // SOCKADDR_PRINT(addr);
+    return 0;
+}
+
+socklen_t sockaddrLen(sockaddr_u *addr)
+{
+    if (addr->sa.sa_family == AF_INET)
+    {
+        return sizeof(struct sockaddr_in);
+    }
+    else if (addr->sa.sa_family == AF_INET6)
+    {
+        return sizeof(struct sockaddr_in6);
+    }
+#ifdef ENABLE_UDS
+    else if (addr->sa.sa_family == AF_UNIX)
+    {
+        return sizeof(struct sockaddr_un);
+    }
+#endif
+    return sizeof(sockaddr_u);
+}
+
+const char *sockaddrStr(sockaddr_u *addr, char *buf, int len)
+{
+    char     ip[SOCKADDR_STRLEN] = {0};
+    uint16_t port                = 0;
+    if (addr->sa.sa_family == AF_INET)
+    {
+        inet_ntop(AF_INET, &addr->sin.sin_addr, ip, (socklen_t) len);
+        port = ntohs(addr->sin.sin_port);
+        snprintf(buf, (size_t) len, "%s:%d", ip, port);
+    }
+    else if (addr->sa.sa_family == AF_INET6)
+    {
+        inet_ntop(AF_INET6, &addr->sin6.sin6_addr, ip, (socklen_t) len);
+        port = ntohs(addr->sin6.sin6_port);
+        snprintf(buf, (size_t) len, "[%s]:%d", ip, port);
+    }
+#ifdef ENABLE_UDS
+    else if (addr->sa.sa_family == AF_UNIX)
+    {
+        snprintf(buf, len, "%s", addr->sun.sun_path);
+    }
+#endif
+    return buf;
+}
+
+/**
+ * @brief Create and bind a socket for a prepared local address.
+ *
+ * @param localaddr Local address to bind.
+ * @param type Socket type.
+ * @return Bound socket fd or negative error.
+ */
+static int sockaddrBind(sockaddr_u *localaddr, int type)
+{
+    // socket -> setsockopt -> bind
+#ifdef SOCK_CLOEXEC
+    type |= SOCK_CLOEXEC;
+#endif
+    int sockfd = socketToFd(socket(localaddr->sa.sa_family, type, 0));
+    if (sockfd < 0)
+    {
+        printError("syscall return error, call: socket , value: %d\n", sockfd);
+        goto error;
+    }
+
+    socketOptionServerAddressUse(sockfd);
+    // so_reuseport(sockfd, 1);
+
+    if (localaddr->sa.sa_family == AF_INET6)
+    {
+        ipV6Only(sockfd, 0);
+    }
+
+    if (bind(sockfd, &localaddr->sa, sockaddrLen(localaddr)) < 0)
+    {
+        printError("syscall return error, call: bind , value: %d\n", -1);
+        goto error;
+    }
+
+    return sockfd;
+error:
+    return socketErrnoNegative(sockfd);
+}
+
+/**
+ * @brief Create and connect a TCP socket to a prepared peer address.
+ *
+ * @param peeraddr Remote address.
+ * @param nonblock Non-zero to use non-blocking connect.
+ * @return Socket fd or negative error.
+ */
+static int sockaddrConnect(sockaddr_u *peeraddr, int nonblock)
+{
+    // socket -> nonblocking -> connect
+    int ret    = 0;
+    int connfd = socketToFd(socket(peeraddr->sa.sa_family, SOCK_STREAM, 0));
+    if (connfd < 0)
+    {
+        printError("socket");
+        goto error;
+    }
+
+    if (nonblock)
+    {
+        nonBlocking(connfd);
+    }
+
+    ret = connect(connfd, &peeraddr->sa, sockaddrLen(peeraddr));
+#ifdef OS_WIN
+    if (ret < 0 && socketERRNO() != WSAEWOULDBLOCK)
+    {
+#else
+    if (ret < 0 && socketERRNO() != EINPROGRESS)
+    {
+#endif
+        // printError("connect");
+        goto error;
+    }
+
+    return connfd;
+error:
+    return socketErrnoNegative(connfd);
+}
+
+/**
+ * @brief Put an existing socket into listening state.
+ *
+ * @param sockfd Bound socket descriptor.
+ * @return Listening fd or negative error.
+ */
+static int listenFD(int sockfd)
+{
+    if (sockfd < 0)
+        return sockfd;
+    if (listen(sockfd, SOMAXCONN) < 0)
+    {
+
+        printError("syscall return error, call: listen , value: %d\n", -1);
+        return socketErrnoNegative(sockfd);
+    }
+    return sockfd;
+}
+
+/**
+ * @brief Wait for non-blocking connect completion with timeout.
+ *
+ * @param connfd Socket descriptor currently connecting.
+ * @param ms Timeout in milliseconds.
+ * @return Connected fd or negative error.
+ */
+static int ConnectFDTimeout(int connfd, int ms)
+{
+    int       err    = 0;
+    socklen_t optlen = sizeof(err);
+
+#ifdef OS_UNIX
+    // Use poll() to avoid FD_SETSIZE limit (fd >= 1024 crashes with select)
+    struct pollfd pfd;
+    pfd.fd      = connfd;
+    pfd.events  = POLLOUT;
+    pfd.revents = 0;
+    int ret     = poll(&pfd, 1, ms);
+    if (ret < 0)
+    {
+        perror("poll");
+        goto error;
+    }
+#else
+    // Windows: select() is safe (fd_set uses different implementation)
+    struct timeval tv = {ms / 1000, (ms % 1000) * 1000};
+    fd_set         writefds;
+    FD_ZERO(&writefds);
+#if defined(OS_UNIX)
+    FD_SET(connfd, &writefds);
+#else
+    FD_SET((unsigned long long) connfd, &writefds);
+#endif
+    int ret = select(connfd + 1, 0, &writefds, 0, &tv);
+    if (ret < 0)
+    {
+        printError("select");
+        goto error;
+    }
+#endif
+    if (ret == 0)
+    {
+        errno = ETIMEDOUT;
+        goto error;
+    }
+    if (getsockopt(connfd, SOL_SOCKET, SO_ERROR, (char *) &err, &optlen) < 0 || err != 0)
+    {
+        if (err != 0)
+            errno = err;
+        goto error;
+    }
+    blocking(connfd);
+    return connfd;
+error:
+    return socketErrnoNegative(connfd);
+}
+
+int Bind(int port, const char *host, int type)
+{
+#ifdef OS_WIN
+    WSAInit();
+#endif
+    sockaddr_u localaddr;
+    memoryZero(&localaddr, sizeof(localaddr));
+    int ret = sockaddrSetIpAddressPort(&localaddr, host, port);
+    if (ret != 0)
+    {
+        return NABS(ret);
+    }
+    return sockaddrBind(&localaddr, type);
+}
+
+int wwListen(int port, const char *host)
+{
+    int sockfd = Bind(port, host, SOCK_STREAM);
+    if (sockfd < 0)
+        return sockfd;
+    return listenFD(sockfd);
+}
+
+int wwConnect(const char *host, int port, int nonblock)
+{
+#ifdef OS_WIN
+    WSAInit();
+#endif
+    sockaddr_u peeraddr;
+    memoryZero(&peeraddr, sizeof(peeraddr));
+    int ret = sockaddrSetIpAddressPort(&peeraddr, host, port);
+    if (ret != 0)
+    {
+        return NABS(ret);
+    }
+    return sockaddrConnect(&peeraddr, nonblock);
+}
+
+int ConnectNonblock(const char *host, int port)
+{
+    return wwConnect(host, port, 1);
+}
+
+int ConnectTimeout(const char *host, int port, int ms)
+{
+    unsigned int start_time = getTickMS();
+    int          connfd     = wwConnect(host, port, 1);
+    if (connfd < 0)
+        return connfd;
+    unsigned int elapsed   = getTickMS() - start_time;
+    int          remaining = ms - (int) elapsed;
+    if (remaining <= 0)
+    {
+        closesocket(connfd);
+        return -ETIMEDOUT;
+    }
+    return ConnectFDTimeout(connfd, remaining);
+}
+
+#ifdef ENABLE_UDS
+int BindUnix(const char *path, int type)
+{
+    sockaddr_u localaddr;
+    memoryZero(&localaddr, sizeof(localaddr));
+    sockaddr_set_path(&localaddr, path);
+    return sockaddrBind(&localaddr, type);
+}
+
+int wwListenUnix(const char *path)
+{
+    int sockfd = BindUnix(path, SOCK_STREAM);
+    if (sockfd < 0)
+        return sockfd;
+    return listenFD(sockfd);
+}
+
+int ConnectUnix(const char *path, int nonblock)
+{
+    sockaddr_u peeraddr;
+    memoryZero(&peeraddr, sizeof(peeraddr));
+    sockaddr_set_path(&peeraddr, path);
+    return sockaddrConnect(&peeraddr, nonblock);
+}
+
+int ConnectUnixNonblock(const char *path)
+{
+    return ConnectUnix(path, 1);
+}
+
+int ConnectUnixTimeout(const char *path, int ms)
+{
+    int connfd = ConnectUnix(path, 1);
+    if (connfd < 0)
+        return connfd;
+    return ConnectFDTimeout(connfd, ms);
+}
+#endif
+
+int createSocketPair(int family, int type, int protocol, int sv[2])
+{
+#if defined(OS_UNIX) && HAVE_SOCKETPAIR
+    return socketpair(AF_LOCAL, type, protocol, sv);
+#endif
+    if (family != AF_INET || type != SOCK_STREAM)
+    {
+        return -1;
+    }
+#ifdef OS_WIN
+    discard protocol;
+    WSAInit();
+#endif
+    int listenfd, connfd, acceptfd;
+    listenfd = connfd = acceptfd = -1;
+    struct sockaddr_in localaddr;
+    socklen_t          addrlen = sizeof(localaddr);
+    memoryZero(&localaddr, (size_t) addrlen);
+    localaddr.sin_family      = AF_INET;
+    localaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    localaddr.sin_port        = 0;
+    // listener
+    listenfd = socketToFd(socket(AF_INET, SOCK_STREAM, 0));
+    if (listenfd < 0)
+    {
+        printError("syscall return error, call: socket , value: %d\n", (int) listenfd);
+        goto error;
+    }
+    if (bind(listenfd, (struct sockaddr *) &localaddr, addrlen) < 0)
+    {
+        printError("syscall return error, call: bind , value: %d\n", -1);
+        goto error;
+    }
+    if (listen(listenfd, 1) < 0)
+    {
+        printError("syscall return error, call: listen , value: %d\n", -1);
+        goto error;
+    }
+    if (getsockname(listenfd, (struct sockaddr *) &localaddr, &addrlen) < 0)
+    {
+        printError("syscall return error, call: getsockname , value: %d\n", -1);
+        goto error;
+    }
+    // connector
+    connfd = socketToFd(socket(AF_INET, SOCK_STREAM, 0));
+    if (connfd < 0)
+    {
+        printError("syscall return error, call: socket , value: %d\n", (int) connfd);
+        goto error;
+    }
+    if (connect(connfd, (struct sockaddr *) &localaddr, addrlen) < 0)
+    {
+        printError("syscall return error, call: connect , value: %d\n", -1);
+        goto error;
+    }
+    // acceptor
+    acceptfd = socketToFd(accept(listenfd, (struct sockaddr *) &localaddr, &addrlen));
+    if (acceptfd < 0)
+    {
+        printError("syscall return error, call: accept , value: %d\n", -1);
+        goto error;
+    }
+
+    closesocket(listenfd);
+    sv[0] = connfd;
+    sv[1] = acceptfd;
+    return 0;
+error:
+    if (listenfd != -1)
+    {
+        closesocket(listenfd);
+    }
+    if (connfd != -1)
+    {
+        closesocket(connfd);
+    }
+    if (acceptfd != -1)
+    {
+        closesocket(acceptfd);
+    }
+    return -1;
+}
+
+bool verifyIPPort(const char *ipp)
+{
+    if (ipp == NULL || ipp[0] == '\0')
+    {
+        LOGE("verifyIPPort Error: ip:port value was empty or null");
+        return false;
+    }
+
+    const char *host_begin;
+    const char *host_end; // one past the final host character
+    const char *port_text;
+    bool        is_ipv6;
+
+    if (ipp[0] == '[')
+    {
+        // Bracketed IPv6: [host]:port. Brackets are required so the address
+        // colons are not ambiguous with the port separator.
+        const char *close = stringChr(ipp, ']');
+        if (close == NULL)
+        {
+            LOGE("verifyIPPort Error: missing ']' in bracketed address, value was: %s", ipp);
+            return false;
+        }
+        if (close[1] != ':')
+        {
+            LOGE("verifyIPPort Error: expected ':' after ']', value was: %s", ipp);
+            return false;
+        }
+        host_begin = ipp + 1;
+        host_end   = close;
+        port_text  = close + 2;
+        is_ipv6    = true;
+    }
+    else
+    {
+        // Unbracketed IPv4: host:port with exactly one separator.
+        const char *colon = stringChr(ipp, ':');
+        if (colon == NULL)
+        {
+            LOGE("verifyIPPort Error: could not find ':' in ip:port, value was: %s", ipp);
+            return false;
+        }
+        if (stringChr(colon + 1, ':') != NULL)
+        {
+            LOGE("verifyIPPort Error: unexpected extra ':' in ip:port, value was: %s", ipp);
+            return false;
+        }
+        host_begin = ipp;
+        host_end   = colon;
+        port_text  = colon + 1;
+        is_ipv6    = false;
+    }
+
+    // Copy the host slice into a local buffer; the caller's string is never modified.
+    const size_t host_len = (size_t) (host_end - host_begin);
+    char         host[INET6_ADDRSTRLEN];
+    if (host_len == 0 || host_len >= sizeof(host))
+    {
+        LOGE("verifyIPPort Error: host is empty or too long, value was: %s", ipp);
+        return false;
+    }
+    memoryCopy(host, host_begin, host_len);
+    host[host_len] = '\0';
+
+    // Strict presentation-form validation. inet_pton() accepts only canonical
+    // dotted-quad IPv4 / RFC 4291 IPv6 text and rejects the shorthand, octal,
+    // hexadecimal, and partially consumed forms that the lenient lwIP parsers
+    // (addressIsIp4/addressIsIp6) tolerate. The scratch outputs never escape.
+#ifdef OS_WIN
+    WSAInit();
+#endif
+    struct in_addr  parsed_ipv4;
+    struct in6_addr parsed_ipv6;
+    if (is_ipv6 ? (inet_pton(AF_INET6, host, &parsed_ipv6) != 1) : (inet_pton(AF_INET, host, &parsed_ipv4) != 1))
+    {
+        LOGE("verifyIPPort Error: \"%s\" is not a valid ip address", ipp);
+        return false;
+    }
+
+    // Strict decimal port parse over the inclusive range 0..65535.
+    if (port_text[0] == '\0')
+    {
+        LOGE("verifyIPPort Error: missing port, value was: %s", ipp);
+        return false;
+    }
+    uint32_t port = 0;
+    for (const char *p = port_text; *p != '\0'; ++p)
+    {
+        if (*p < '0' || *p > '9')
+        {
+            LOGE("verifyIPPort Error: \"%s\" is not a valid port number", ipp);
+            return false;
+        }
+        port = port * 10U + (uint32_t) (*p - '0');
+        if (port > UINT16_MAX)
+        {
+            LOGE("verifyIPPort Error: \"%s\" is not a valid port number", ipp);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool verifyIPCdir(const char *ipc)
+{
+    ip_addr_t ip;
+    ip_addr_t subnet_mask;
+
+    int family = parseIPWithSubnetMask(ipc, &ip, &subnet_mask);
+    if (family != 4 && family != 6)
+    {
+        LOGE("verifyIPCdir Error: \"%s\" is not a valid CIDR", ipc != NULL ? ipc : "<null>");
+        return false;
+    }
+    return true;
+}
+
+bool getInterfaceIp(const char *if_name, ip4_addr_t *ip_buffer, size_t buflen)
+{
+    discard buflen;
+
+    if (! if_name || if_name[0] == '\0' || ! ip_buffer)
+    {
+        return false;
+    }
+
+#ifdef OS_WIN
+    WSAInit();
+
+    ULONG                 flags    = GAA_FLAG_INCLUDE_PREFIX;
+    ULONG                 family   = AF_INET;
+    PIP_ADAPTER_ADDRESSES adapters = NULL;
+    ULONG                 size     = 0;
+
+    // Size, then fetch. The adapter set can grow between the two calls, so retry
+    // a bounded number of times instead of failing on a racing overflow.
+    ULONG result = GetAdaptersAddresses(family, flags, NULL, NULL, &size);
+    for (int attempt = 0; attempt < 3 && result == ERROR_BUFFER_OVERFLOW; ++attempt)
+    {
+        memoryFree(adapters);
+        adapters = (PIP_ADAPTER_ADDRESSES) memoryAllocate(size);
+        result = GetAdaptersAddresses(family, flags, NULL, adapters, &size);
+    }
+
+    if (result != NO_ERROR)
+    {
+        memoryFree(adapters);
+        return false;
+    }
+
+    // FriendlyName is UTF-16; the configured name is narrow UTF-8. Casting the
+    // narrow pointer to wchar_t* reinterprets bytes instead of converting them,
+    // so it never matches a real adapter name and can read past the terminator.
+    // Convert once here and compare the converted string below.
+    wchar_t  *if_name_w = NULL;
+    const int wide_len  = MultiByteToWideChar(CP_UTF8, 0, if_name, -1, NULL, 0);
+    if (wide_len > 0)
+    {
+        if_name_w = (wchar_t *) memoryAllocate((size_t) wide_len * sizeof(wchar_t));
+        if (MultiByteToWideChar(CP_UTF8, 0, if_name, -1, if_name_w, wide_len) <= 0)
+        {
+            memoryFree(if_name_w);
+            if_name_w = NULL;
+        }
+    }
+    if (if_name_w == NULL)
+    {
+        // Not fatal: GUID matching still works. Log it, because the caller
+        // terminates the program when no adapter matches.
+        LOGW("getInterfaceIp: could not convert interface name \"%s\" to UTF-16; "
+             "only adapter GUID matching is available",
+             if_name);
+    }
+
+    PIP_ADAPTER_ADDRESSES adapter = adapters;
+    for (; adapter; adapter = adapter->Next)
+    {
+        if (strcmp(adapter->AdapterName, if_name) == 0 ||
+            (if_name_w != NULL && adapter->FriendlyName != NULL &&
+             CompareStringOrdinal(adapter->FriendlyName, -1, if_name_w, -1, TRUE) == CSTR_EQUAL))
+        {
+            PIP_ADAPTER_UNICAST_ADDRESS ua = adapter->FirstUnicastAddress;
+            for (; ua; ua = ua->Next)
+            {
+                struct sockaddr_in *sa = (struct sockaddr_in *) ua->Address.lpSockaddr;
+                if (sa->sin_family == AF_INET)
+                {
+                    ip4AddrSetU32(ip_buffer, sa->sin_addr.S_un.S_addr);
+                    memoryFree(if_name_w);
+                    memoryFree(adapters);
+                    return true;
+                }
+            }
+        }
+    }
+
+    memoryFree(if_name_w);
+    memoryFree(adapters);
+    return false;
+
+#elif defined(OS_ANDROID)
+
+    int          fd;
+    struct ifreq ifr;
+
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd == -1)
+    {
+        printError("socket");
+        return false;
+    }
+
+    stringCopyN(ifr.ifr_name, if_name, IFNAMSIZ - 1);
+    ifr.ifr_name[IFNAMSIZ - 1] = '\0';
+
+    if (ioctl(fd, SIOCGIFADDR, &ifr) == -1)
+    {
+        printError("ioctl");
+        close(fd);
+        return false;
+    }
+
+    struct sockaddr_in *ipaddr = (struct sockaddr_in *) &ifr.ifr_addr;
+    ip4AddrSetU32(ip_buffer, ipaddr->sin_addr.s_addr);
+    close(fd);
+
+    return true;
+
+#else
+    struct ifaddrs *ifaddr, *ifa;
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        return false;
+    }
+
+    for (ifa = ifaddr; ifa; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == NULL)
+        {
+            continue;
+        }
+        if ((ifa->ifa_addr->sa_family == AF_INET) && strcmp(ifa->ifa_name, if_name) == 0)
+        {
+            struct sockaddr_in *sa = (struct sockaddr_in *) ifa->ifa_addr;
+            if (sa->sin_family == AF_INET)
+            {
+                ip4AddrSetU32(ip_buffer, sa->sin_addr.s_addr);
+                freeifaddrs(ifaddr);
+                return true;
+            }
+        }
+    }
+
+    freeifaddrs(ifaddr);
+    return false;
+#endif
+}
+
+bool getInterfaceIpString(const char *if_name, char *host_buffer, size_t host_buffer_len)
+{
+    if (host_buffer == NULL || host_buffer_len < INET_ADDRSTRLEN)
+    {
+        return false;
+    }
+
+    ip4_addr_t if_ip;
+    if (! getInterfaceIp(if_name, &if_ip, 0))
+    {
+        return false;
+    }
+
+    const char *ip_str = ip4AddrNetworkToAddress(&if_ip);
+    if (ip_str == NULL || stringLength(ip_str) + 1 > host_buffer_len)
+    {
+        return false;
+    }
+
+    stringCopy(host_buffer, ip_str);
+    return true;
+}

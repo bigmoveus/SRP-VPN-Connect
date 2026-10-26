@@ -1,0 +1,180 @@
+{
+    "version": 4,
+    "include": [
+        "base.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "android",
+            "inherits": [
+                "host-not-windows",
+                "target-android",
+                "ninja",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "android-arm32",
+            "inherits": [
+                "host-not-windows",
+                "target-android-arm32",
+                "ninja",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "android-arm64",
+            "inherits": [
+                "host-not-windows",
+                "target-android-arm64",
+                "ninja",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "android-x86",
+            "inherits": [
+                "host-not-windows",
+                "target-android-x86",
+                "ninja",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        },
+        {
+            "name": "android-x86-64",
+            "inherits": [
+                "host-not-windows",
+                "target-android-x86-64",
+                "ninja",
+                "ccache",
+                "unity",
+                "default"
+            ]
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "android",
+            "configurePreset": "android",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-debug",
+            "configurePreset": "android",
+            "configuration": "Debug",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-rwd",
+            "configurePreset": "android",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm32",
+            "configurePreset": "android-arm32",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm32-debug",
+            "configurePreset": "android-arm32",
+            "configuration": "Debug",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm32-rwd",
+            "configurePreset": "android-arm32",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm64",
+            "configurePreset": "android-arm64",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm64-debug",
+            "configurePreset": "android-arm64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-arm64-rwd",
+            "configurePreset": "android-arm64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86",
+            "configurePreset": "android-x86",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86-debug",
+            "configurePreset": "android-x86",
+            "configuration": "Debug",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86-rwd",
+            "configurePreset": "android-x86",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86-64",
+            "configurePreset": "android-x86-64",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86-64-debug",
+            "configurePreset": "android-x86-64",
+            "configuration": "Debug",
+            "inherits": [
+                "host-not-windows"
+            ]
+        },
+        {
+            "name": "android-x86-64-rwd",
+            "configurePreset": "android-x86-64",
+            "configuration": "RelWithDebInfo",
+            "inherits": [
+                "host-not-windows"
+            ]
+        }
+    ]
+}

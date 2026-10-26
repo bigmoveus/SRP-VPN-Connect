@@ -1,0 +1,776 @@
+#pragma once
+
+/*
+ * sbuf_t API for padded, shiftable byte buffers used across bufio components.
+ */
+
+#include "wlibc.h"
+
+/*
+    Buffer with length and capacity parameters.
+    Designed for use with buffer_pool.h for efficient memory management.
+    it will be aligned to 32 bytes boundary which will help memoryCopyAVX2 to use Aligned memory copy
+*/
+
+enum
+{
+    /**
+     * Represent kernel-backed payload with a splice sbuf wrapper whose actual
+     * payload storage is 32 bytes. Private metadata at the original payload
+     * start (buf + l_pad) holds an exclusively leased inventory pipe;
+     * the preceding bytes remain reserved left padding. The metadata stays
+     * at that fixed offset when a tunnel prepends bytes by shifting left.
+     * Length and capacity account for that logical payload, not the wrapper's
+     * physical storage, and must not be used as bounds for accessing buf bytes.
+     * Any claimed body bytes must already be in the private pipe. Empty bodies
+     * may have an uninitialized or empty pipe.
+     *
+     * The splice path may supply these wrappers to ordinary Payload callbacks. Event-loop
+     * I/O and splice-aware adapters (initially TcpListener and TcpConnector)
+     * interpret the descriptor. Tunnels that forward buffers synchronously
+     * and opaquely, using only size-based accounting, can usually keep their
+     * Payload code unchanged.
+     * Participating tunnels trust the sizes without inspecting or modifying
+     * the kernel-backed body or its pipe descriptors.
+     *
+     * NIO fills the private pipe before invoking the read callback and reports
+     * the actual transferred length. Delivered wrappers contain no source socket
+     * pointer or reservation and survive source reclamation. Splice-aware code
+     * may defer them immediately, retaining exclusive ownership and stream order.
+     * Consume bodies through the dedicated pipe helpers. Recycling caches the
+     * complete empty buffer; direct destruction returns pooled entries to the
+     * shared master from any thread. See splice_buffer.h.
+     *
+     * Reserved left padding remains real, writable storage. A tunnel may use
+     * sbufShiftLeft() and write its prefix within the available, advertised
+     * headroom; the prefix precedes the kernel-backed body and the metadata
+     * stays at its original offset. This permission does not extend to the
+     * descriptor or to the body represented by it.
+     *
+     * Accessors such as sbufGetMutablePtr() deliberately perform no splice-flag
+     * checks or assertions. A returned pointer is not evidence that the logical
+     * body is resident in memory. Violating this contract can corrupt the
+     * descriptor pointer, break I/O, or crash the process; a crash is not guaranteed.
+     */
+    kSbufFlagSplice = 1U << 0,
+    /* A complete shared inventory entry, retained while healthy. */
+    kSbufFlagSplicePooled = 1U << 1,
+    /* An ordinary packet has an outstanding request for full checksum repair. */
+    kSbufFlagRecalculateChecksum = 1U << 2
+};
+
+struct sbuf_s
+{
+    uint32_t curpos;
+    uint32_t len;
+    uint32_t capacity;
+    uint16_t l_pad; // constant when created, indicates how much bytes are available for switching left at the beginning
+                    // something like leave-room in lwip pbuf
+
+    uint16_t flags;
+
+    MSVC_ATTR_ALIGNED_32 uint8_t buf[] GNU_ATTR_ALIGNED_32;
+};
+
+typedef struct sbuf_s sbuf_t;
+
+#define SIZEOF_STRUCT_SBUF (sizeof(struct sbuf_s))
+
+static_assert(SIZEOF_STRUCT_SBUF == 32, "sbuf_s size should be 32 bytes, buf array is flexible");
+static_assert(_Alignof(sbuf_t) == 32, "sbuf_s alignment should be 32 bytes");
+static_assert(offsetof(sbuf_t, buf) == 32, "sbuf_s buf array should start at offset 32");
+
+/** Whether this valid buffer currently uses the splice representation. */
+static inline bool sbufIsSplice(const sbuf_t *buf)
+{
+    return (buf->flags & kSbufFlagSplice) != 0;
+}
+
+/** Set this ordinary packet's outstanding checksum-repair request. */
+static inline void sbufSetRecalculateChecksum(sbuf_t *buf, bool requested)
+{
+    assert(! requested || ! sbufIsSplice(buf));
+    if (requested)
+        buf->flags |= kSbufFlagRecalculateChecksum;
+    else
+        buf->flags &= (uint16_t) ~kSbufFlagRecalculateChecksum;
+}
+
+/** A clear request does not imply that the packet's checksums are valid. */
+static inline bool sbufGetRecalculateChecksum(const sbuf_t *buf)
+{
+    return (buf->flags & kSbufFlagRecalculateChecksum) != 0;
+}
+
+enum
+{
+    // Alignment sbuf allocation requests so AVX copies can use aligned
+    // loads and stores. memoryAllocateAligned() over-allocates by exactly this
+    // much to place the aligned pointer and its back-pointer, so it is part of
+    // the real allocation size and must be accounted for in the limit checks.
+    kSbufAllocationAlignment = 32
+};
+
+/** Whether this buffer belongs to the bounded shared inventory. */
+static inline bool sbufIsPooledSplice(const sbuf_t *buf)
+{
+    return (buf->flags & kSbufFlagSplicePooled) != 0;
+}
+
+/**
+ * @brief sbufTryComputeCapacity() against an explicit allocation-size ceiling.
+ *
+ * Split out from sbufTryComputeCapacity() only so the size_t boundary can be
+ * exercised on any host: the real ceiling is SIZE_MAX, which on a 64-bit build
+ * is unreachable, leaving the 32-bit-target behaviour untestable otherwise.
+ * Production code should call sbufTryComputeCapacity().
+ *
+ * @param minimum_capacity Requested writable capacity. Deliberately uint64_t so
+ *                         an already-overflowing computation can be handed
+ *                         straight in without a lossy narrowing first.
+ * @param pad_left Requested left padding, before alignment.
+ * @param size_max Largest byte count the target's size_t can represent.
+ * @param out_capacity Receives the total allocation capacity on success.
+ * @return true when the request is representable; false otherwise, leaving
+ *         *out_capacity untouched.
+ */
+static inline bool sbufTryComputeCapacityWithin(uint64_t minimum_capacity, uint16_t pad_left, uint64_t size_max,
+                                                uint32_t *out_capacity)
+{
+    const uint64_t aligned_pad = (((uint64_t) pad_left) + 31U) & ~UINT64_C(31);
+    if (aligned_pad > (uint64_t) UINT16_MAX)
+    {
+        return false;
+    }
+
+    /*
+     * Range-check *before* rounding, not after. Rounding up first is the whole
+     * bug: for any value within kCpuLineCacheSizeMin1 of the type's maximum, the
+     * round-up wraps back to a small number and every later check passes. That
+     * is true in 64-bit arithmetic just as it was in 32-bit, so widening the
+     * type alone would only have moved the boundary.
+     */
+    if (minimum_capacity > (uint64_t) UINT32_MAX)
+    {
+        return false;
+    }
+
+    // Bounded above by UINT32_MAX, so the round-up below cannot wrap a uint64_t.
+    uint64_t capacity = minimum_capacity;
+    if (capacity != 0 && (capacity % (uint64_t) kCpuLineCacheSize) != 0)
+    {
+        if (capacity < (uint64_t) kCpuLineCacheSize)
+        {
+            capacity = (uint64_t) kCpuLineCacheSize;
+        }
+        capacity = (capacity + (uint64_t) kCpuLineCacheSizeMin1) & ~(uint64_t) kCpuLineCacheSizeMin1;
+    }
+
+    const uint64_t total = capacity + aligned_pad;
+    if (total > (uint64_t) UINT32_MAX)
+    {
+        return false;
+    }
+
+    /*
+     * The real allocation is larger than the capacity in two ways: it carries
+     * the sbuf_t header, and memoryAllocateAligned() over-allocates by
+     * kSbufAllocationAlignment. size_t is 32 bits on the supported 32-bit
+     * targets (Windows x86/ARM32, Android x86/ARM32), so all three have to fit
+     * there or a request this helper accepted still fails inside the allocator.
+     *
+     * Both parts matter. Omitting the header let the largest aligned capacity
+     * plus 32 bytes of padding reach exactly 2^32, allocating zero bytes while
+     * reporting a 4 GiB capacity. Omitting the alignment left a narrower window
+     * where memoryAllocateAligned() returns NULL instead, which is not a
+     * silent corruption but still turns a locally-recoverable rejection into a
+     * process-wide failure - the caller was told the request was satisfiable.
+     */
+    const uint64_t allocation_overhead = (uint64_t) sizeof(sbuf_t) + (uint64_t) kSbufAllocationAlignment;
+    if (size_max < allocation_overhead || total > size_max - allocation_overhead)
+    {
+        return false;
+    }
+
+    *out_capacity = (uint32_t) total;
+    return true;
+}
+
+/**
+ * @brief Compute the real allocation capacity sbufCreateWithPadding() would use.
+ *
+ * The allocator rounds the requested capacity up to a cache line, adds the
+ * aligned left padding, and then allocates that plus the sbuf_t header and the
+ * aligned-allocation overhead. Every step is range-checked here in 64-bit
+ * arithmetic, so a request that cannot be represented is *rejected* rather than
+ * wrapping. A true result means sbufCreateWithPadding() can satisfy it.
+ *
+ * Neither wrap is theoretical. Rounding UINT32_MAX up to a 64-byte boundary in
+ * 32-bit arithmetic yields 0, and on a 32-bit target the header pushes the
+ * largest accepted capacity to exactly 2^32. Both produced a near-empty
+ * allocation whose reported capacity then satisfied every later bounds check.
+ *
+ * Callers that size a buffer from an attacker-influenced length must call this
+ * *before* committing to sbufSetLength(), and fail locally when it returns
+ * false. sbufCreateWithPadding() itself treats a false result as unsatisfiable
+ * and aborts, because by then there is no way to report failure to the caller.
+ *
+ * @param minimum_capacity Requested writable capacity. Deliberately uint64_t so
+ *                         an already-overflowing computation can be handed
+ *                         straight in without a lossy narrowing first.
+ * @param pad_left Requested left padding, before alignment.
+ * @param out_capacity Receives the total allocation capacity on success.
+ * @return true when the request is representable; false otherwise, leaving
+ *         *out_capacity untouched.
+ */
+static inline bool sbufTryComputeCapacity(uint64_t minimum_capacity, uint16_t pad_left, uint32_t *out_capacity)
+{
+    return sbufTryComputeCapacityWithin(minimum_capacity, pad_left, (uint64_t) SIZE_MAX, out_capacity);
+}
+
+/**
+ * @brief Copy a small byte range without relying on aligned copy routines.
+ *
+ * @param dst Destination memory.
+ * @param src Source memory.
+ * @param n Number of bytes to copy.
+ */
+static inline void sbufByteCopy(void *restrict dst, const void *restrict src, const uint32_t n)
+{
+    uint8_t       *d = (uint8_t *) dst;
+    const uint8_t *s = (const uint8_t *) src;
+    for (uint32_t i = 0; i < n; ++i)
+    {
+        d[i] = s[i];
+    }
+}
+
+/**
+ * @brief Align requested left padding to the allocator's internal boundary.
+ *
+ * @param pad_left Requested left padding in bytes.
+ * @return uint16_t Aligned padding value.
+ */
+uint16_t sbufAlignLeftPadding(uint16_t pad_left);
+
+/**
+ * @brief Release a buffer; healthy splice inventory entries return to the master.
+ *
+ * @param b Buffer to destroy.
+ */
+void sbufDestroy(sbuf_t *b);
+
+/** Allocation charge for this sbuf's own userspace storage, in bytes.
+ * Ordinary: header + total capacity (including padding) + alignment overhead.
+ * Splice: header + original left padding + fixed control storage + alignment overhead,
+ * independent of logical length/capacity and whether its private pipe is initialized.
+ * Excludes kernel pipe memory, allocator bookkeeping
+ * beyond explicit alignment overhead, and pool/queue storage; this is not RSS.
+ * Valid allocated-buffer geometry is required. O(1), without allocation or syscalls.
+ */
+size_t sbufGetAllocationCharge(const sbuf_t *buf);
+
+/** Queue policy: sbuf header + capacity (including padding) + allocation alignment.
+ * Ordinary capacity is resident storage; splice capacity is logical geometry.
+ * This is not a bound on kernel resources or physical memory. Checked forms leave
+ * the result unchanged on overflow; the internal getter requires representability. */
+bool   sbufTryComputeQueueCharge(uint32_t capacity, size_t *charge);
+bool   sbufTryGetQueueCharge(const sbuf_t *buf, size_t *charge);
+size_t sbufGetQueueCharge(const sbuf_t *buf);
+
+/**
+ * @brief Reset a buffer for pool reuse.
+ *
+ * @param b Buffer to reset.
+ */
+static inline void sbufReset(sbuf_t *b)
+{
+    b->flags  = 0;
+    b->len    = 0;
+    b->curpos = b->l_pad;
+}
+
+/**
+ * @brief Create a new buffer with explicit payload capacity and left padding.
+ *
+ * @param minimum_capacity Minimum payload capacity excluding left padding.
+ * @param pad_left Requested left padding in bytes.
+ * @return sbuf_t* Newly allocated buffer.
+ */
+sbuf_t *sbufCreateWithPadding(uint32_t minimum_capacity, uint16_t pad_left);
+
+/**
+ * @brief Create a new buffer with zero left padding.
+ *
+ * @param minimum_capacity Minimum payload capacity.
+ * @return sbuf_t* Newly allocated buffer.
+ */
+sbuf_t *sbufCreate(uint32_t minimum_capacity);
+
+/**
+ * @brief Allocate an unmanaged empty splice representation with control storage and padding.
+ *
+ * @param pad_left Requested left padding in bytes, rounded up to a 32-byte boundary.
+ * @return sbuf_t* Empty wrapper with only kSbufFlagSplice set and no pipe.
+ * This does not draw from or grow the shared inventory. Normal I/O uses the pool.
+ */
+sbuf_t *sbufCreateSplice(uint16_t pad_left);
+
+/* Publish the shared control object before imports can copy global state.
+ * Allocates no pipes/buffers. Returns false on unsupported builds or mutex initialization refusal;
+ * heap allocation failure terminates the process. */
+bool sbufSplicePoolPrepare(void);
+/* Exclusive startup after all chain padding is finalized, before producers.
+ * Configure an empty master and fixed resource limits without creating pipes or
+ * complete buffers. Returns false on unsupported builds or master/control
+ * metadata initialization refusal; a configured zero pipe budget succeeds.
+ * Padding is aligned once and immutable. Uses the published control object;
+ * standalone callers may omit Prepare when no state copies have been shared. */
+bool sbufSplicePoolInitialize(uint64_t capacity_limit, uint32_t pipe_capacity, uint32_t max_pipe_count,
+                              uint16_t padding);
+/* Configured byte ceiling; current capacity/count include active and cached pipes. */
+uint64_t sbufSplicePoolCapacityLimit(void);
+uint64_t sbufSplicePoolCapacity(void);
+uint32_t sbufSplicePoolCount(void);
+uint16_t sbufSplicePoolPadding(void);
+/* Fatal in every build if an existing inventory's padding differs. */
+void sbufSplicePoolCheckPadding(uint16_t padding);
+void sbufSpliceCheckBuffer(const sbuf_t *buf);
+/* Exclusive final teardown after all users and local caches have returned. */
+void sbufSplicePoolDestroy(void);
+/* Take complete empty entries, lazily creating missing entries within fixed byte
+ * and count ceilings. A kernel creation/sizing refusal stops this refill and
+ * suppresses further growth for one monotonic second across all callers.
+ * A miss returns NULL/zero with ENOBUFS (ENOSYS on unsupported builds).
+ * Bulk checkout may return fewer than count entries. Retirement does not restore
+ * the lifetime creation budget; healthy entries remain until final teardown. */
+sbuf_t  *sbufSplicePoolGet(uint16_t padding);
+uint32_t sbufSplicePoolGetBuffers(sbuf_t **buffers, uint32_t count, uint16_t padding);
+/* Permanently retire a failed owned pipe; it is never replaced during runtime. */
+void sbufSpliceClosePipe(sbuf_t *buf);
+/* Discard an exclusively owned splice payload before recycling. Drains the private
+ * pipe using the startup discard sink with a read fallback, or closes it on drain
+ * failure; clears length/cursor without freeing the wrapper.
+ * Empty unused wrappers are valid. */
+void sbufSpliceDiscard(sbuf_t *buf);
+/* Checks kernel emptiness as well as logical settlement; reset never drains. */
+bool sbufSpliceIsReusable(const sbuf_t *buf);
+/* Return a healthy inventory buffer to the global master from any thread.
+ * Retired entries and unmanaged wrappers are physically freed. */
+void sbufDestroySplice(sbuf_t *buf);
+
+/**
+ * @brief Append an ordinary buffer's payload to another ordinary buffer.
+ *
+ * The source remains unchanged and caller-owned. The destination may be
+ * replaced and freed; the caller owns only the returned destination afterward.
+ * The buffers must be distinct. Preserves the destination's checksum request;
+ * appending bytes does not infer a request from the source.
+ *
+ * @param root Destination buffer that receives data.
+ * @param buf Source buffer to append.
+ * @return sbuf_t* Destination buffer (may be reallocated).
+ */
+sbuf_t *sbufConcat(sbuf_t *restrict root, const sbuf_t *restrict buf);
+
+/**
+ * @brief Move bytes from an ordinary source's head into an ordinary destination's tail.
+ *
+ * Requires distinct buffers, at least bytes in source and bytes of destination
+ * tail capacity. Advances source's cursor and reduces its length. Neither
+ * allocation is replaced or freed; both remain caller-owned. Preserves each
+ * buffer's checksum request without transferring packet metadata for the range.
+ *
+ * @param dest Destination buffer.
+ * @param source Source buffer.
+ * @param bytes Number of bytes to move.
+ * @return sbuf_t* Destination buffer.
+ */
+sbuf_t *sbufMoveTo(sbuf_t *restrict dest, sbuf_t *restrict source, uint32_t bytes);
+
+/**
+ * @brief Consume a leading ordinary payload slice into a new ordinary buffer.
+ *
+ * Requires bytes <= source length. The result starts with the source's full
+ * original padding available. Advances the source cursor and reduces its length;
+ * the source remains caller-owned, including when empty. The caller owns both
+ * allocations after return. The slice starts without a checksum request;
+ * the source retains its existing request.
+ *
+ * @param b Source buffer.
+ * @param bytes Number of bytes to slice.
+ * @return sbuf_t* New buffer containing sliced bytes.
+ */
+sbuf_t *sbufSlice(sbuf_t *b, uint32_t bytes);
+
+/**
+ * @brief Duplicate an ordinary buffer's complete payload, cursor and padding layout.
+ *
+ * The checksum-repair request is copied independently. The source remains
+ * unchanged and caller-owned. The caller owns the new result.
+ *
+ * @param b Source buffer.
+ * @return sbuf_t* New duplicated buffer.
+ */
+sbuf_t *sbufDuplicate(sbuf_t *b);
+
+/**
+ * @brief Copy an ordinary buffer's complete payload and cursor into a distinct ordinary destination.
+ *
+ * The destination is left unchanged when it cannot represent the source's
+ * cursor and complete payload. On success the destination payload is replaced;
+ * its allocation capacity and original padding remain unchanged. The source is
+ * never consumed, and both allocations remain caller-owned. Copies the source's
+ * checksum-repair request, preserving all other destination flags.
+ *
+ * @param b Source buffer.
+ * @param dest Destination buffer.
+ * @return true when the complete source was copied; false when the destination
+ *         is too small.
+ */
+bool sbufDuplicateTo(const sbuf_t *b, sbuf_t *dest);
+
+/**
+ * Gets the buffer's capacity metadata. For ordinary buffers, this is a constant
+ * allocation capacity; kSbufFlagSplice instead gives it a logical meaning.
+ */
+static inline uint32_t sbufGetTotalCapacity(const sbuf_t *const b)
+{
+    return b->capacity;
+}
+
+/**
+ * Gets total capacity excluding padding.
+ */
+static inline uint32_t sbufGetTotalCapacityNoPadding(sbuf_t *const b)
+{
+    return b->capacity - (b->l_pad);
+}
+
+/**
+ * Gets left capacity of the buffer. (This means how much space is left, it gets reduced if you shift left)
+ */
+static inline uint32_t sbufGetLeftCapacity(const sbuf_t *const b)
+{
+    return b->curpos;
+}
+
+/**
+ * Gets the maximum total payload length that can be addressed from the current cursor.
+ *
+ * Important: this is not the spare growth available beyond the current payload length.
+ * For ordinary-buffer append space, use sbufGetTailCapacity().
+ * These writable-storage guarantees apply to ordinary buffers. With
+ * kSbufFlagSplice, the result is logical and does not describe physical storage.
+ */
+static inline uint32_t sbufGetMaximumWriteableSize(const sbuf_t *const b)
+{
+    return (b->capacity - b->curpos);
+}
+
+/**
+ * Gets spare writable bytes after an ordinary buffer's current payload.
+ * Requires valid ordinary-buffer geometry; splice capacity is not resident storage.
+ */
+static inline uint32_t sbufGetTailCapacity(const sbuf_t *const b)
+{
+    assert(b != NULL && ! sbufIsSplice(b));
+    assert(b->curpos <= b->capacity);
+    assert(b->len <= b->capacity - b->curpos);
+    return b->capacity - b->curpos - b->len;
+}
+
+/**
+ * Gets the original left padding, rounded to 32 bytes when allocated and unchanged afterward.
+ */
+static inline uint16_t sbufGetLeftPadding(const sbuf_t *const b)
+{
+    return b->l_pad;
+}
+
+/**
+ * Shifts the buffer left by specified bytes.
+ */
+static inline void sbufShiftLeft(sbuf_t *const b, const uint32_t bytes)
+{
+    assert(sbufGetLeftCapacity(b) >= bytes);
+    b->curpos -= bytes;
+    b->len += bytes;
+}
+
+/**
+ * Shifts the buffer right by specified bytes.
+ */
+static inline void sbufShiftRight(sbuf_t *const b, const uint32_t bytes)
+{
+    assert(b->len >= bytes);
+    b->curpos += bytes;
+    b->len -= bytes;
+}
+
+/**
+ * Sets the length of the buffer.
+ */
+static inline void sbufSetLength(sbuf_t *const b, const uint32_t bytes)
+{
+    assert(b->curpos + bytes <= b->capacity);
+    b->len = bytes;
+}
+
+/**
+ * Gets the length of the buffer.
+ */
+static inline uint32_t sbufGetLength(const sbuf_t *const b)
+{
+    return b->len;
+}
+
+/**
+ * Consumes specified bytes from the buffer.
+ */
+static inline void sbufConsume(sbuf_t *const b, const uint32_t bytes)
+{
+    assert(bytes <= b->len);
+    sbufSetLength(b, sbufGetLength(b) - bytes);
+}
+
+/**
+ * Gets raw pointer to buffer data.
+ */
+static inline const void *sbufGetRawPtr(const sbuf_t *const b)
+{
+    return (void *) &(b->buf[b->curpos]);
+}
+
+/**
+ * Gets mutable pointer to buffer data without splice-specific validation.
+ * With kSbufFlagSplice, only a prefix exposed within reserved left padding may
+ * be written by a forwarding tunnel; see the flag's representation contract.
+ */
+static inline unsigned char *sbufGetMutablePtr(const sbuf_t *const b)
+{
+    return (void *) &(b->buf[b->curpos]);
+}
+
+/**
+ * Reads data from buffer into destination.
+ */
+static inline void sbufRead(const sbuf_t *const b, void *const dest, const uint32_t byte)
+{
+    memoryCopy(dest, sbufGetRawPtr(b), byte);
+}
+
+/**
+ * Writes data to buffer from source.
+ */
+static inline void sbufWrite(sbuf_t *restrict const b, const void *restrict const buffer, const uint32_t len)
+{
+    memoryCopy(sbufGetMutablePtr(b), buffer, len);
+}
+
+/**
+ * Writes data to buffer from source. but optimal for large buffers.
+ */
+static inline void sbufWriteLarge(sbuf_t *restrict const b, const void *restrict const buffer, const uint32_t len)
+{
+    memoryCopyLarge(sbufGetMutablePtr(b), buffer, len);
+}
+
+/**
+ * Writes zeros to buffer.
+ */
+static inline void sbufWriteZeros(sbuf_t *restrict const b, const uint32_t len)
+{
+    memoryZero(sbufGetMutablePtr(b), len);
+}
+
+/**
+ * Copies length bytes from one ordinary buffer's payload into a distinct ordinary
+ * destination at its current cursor. Requires sufficient source length and
+ * destination writable capacity. Does not change either cursor or length;
+ * both allocations remain caller-owned. Copies bytes only, preserving each
+ * buffer's checksum request.
+ */
+static inline void sbufWriteBuf(sbuf_t *restrict const to, sbuf_t *restrict const from, uint32_t length)
+{
+    assert(sbufGetMaximumWriteableSize(to) >= length);
+    memoryCopyLarge(sbufGetMutablePtr(to), sbufGetRawPtr(from), length);
+}
+
+/**
+ * Ensures an ordinary buffer has writable capacity for the requested total payload.
+ * The bytes argument is a required total size from the cursor, not an increment
+ * or spare-tail count.
+ * Preserves existing payload, length and checksum-repair request. If growth is
+ * needed, frees the old allocation and returns a replacement with the full
+ * original padding available.
+ * The caller owns only the returned buffer and must use that pointer afterward.
+ */
+static inline sbuf_t *sbufReserveSpace(sbuf_t *const b, const uint32_t bytes)
+{
+    uint32_t current_length = sbufGetLength(b);
+
+    if (sbufGetMaximumWriteableSize(b) < bytes)
+    {
+        uint32_t needed_writable = max(current_length, bytes);
+        sbuf_t  *bigger_buf      = sbufCreateWithPadding(needed_writable, b->l_pad);
+        sbufSetLength(bigger_buf, current_length);
+        sbufWriteBuf(bigger_buf, b, current_length);
+        sbufSetRecalculateChecksum(bigger_buf, sbufGetRecalculateChecksum(b));
+        sbufDestroy(b);
+        return bigger_buf;
+    }
+    return b;
+}
+
+/**
+ * Appends an ordinary source's complete payload to a distinct ordinary destination
+ * without growth. Requires sufficient destination tail capacity. The source is
+ * unchanged; both allocations remain caller-owned and neither is replaced.
+ */
+static inline void sbufConcatNoCheck(sbuf_t *restrict root, const sbuf_t *restrict buf)
+{
+    uint32_t root_length   = sbufGetLength(root);
+    uint32_t append_length = sbufGetLength(buf);
+    sbufSetLength(root, root_length + append_length);
+    memoryCopy(sbufGetMutablePtr(root) + root_length, sbufGetRawPtr(buf), append_length);
+}
+
+/**
+ * Writes a 8-bit unsigned integer.
+ */
+static inline void sbufWriteUI8(sbuf_t *const b, const uint8_t data)
+{
+    *sbufGetMutablePtr(b) = data;
+}
+
+/**
+ * Reads a 8-bit unsigned integer.
+ */
+static inline uint8_t sbufReadUI8(const sbuf_t *const b)
+{
+    return *(uint8_t *) sbufGetRawPtr(b);
+}
+
+// UnAligned
+
+/**
+ * Reads an unaligned 16-bit unsigned integer.
+ */
+static inline void sbufReadUnAlignedUI16(const sbuf_t *const b, uint16_t *const dest)
+{
+    sbufByteCopy(dest, sbufGetRawPtr(b), (uint32_t) sizeof(*dest));
+}
+
+/**
+ * Reads an unaligned 64-bit unsigned integer.
+ */
+static inline void sbufReadUnAlignedUI64(const sbuf_t *const b, uint64_t *const dest)
+{
+    sbufByteCopy(dest, sbufGetRawPtr(b), (uint32_t) sizeof(*dest));
+}
+
+/**
+ * Writes an unaligned 32-bit signed integer.
+ */
+static inline void sbufWriteUnAlignedI32(sbuf_t *const b, const int32_t data)
+{
+    sbufByteCopy(sbufGetMutablePtr(b), &data, (uint32_t) sizeof(data));
+}
+
+/**
+ * Writes an unaligned 32-bit unsigned integer.
+ */
+static inline void sbufWriteUnAlignedUI32(sbuf_t *const b, const uint32_t data)
+{
+    sbufByteCopy(sbufGetMutablePtr(b), &data, (uint32_t) sizeof(data));
+}
+
+/**
+ * Writes an unaligned 16-bit signed integer.
+ */
+static inline void sbufWriteUnAlignedI16(sbuf_t *const b, const int16_t data)
+{
+    sbufByteCopy(sbufGetMutablePtr(b), &data, (uint32_t) sizeof(data));
+}
+
+/**
+ * Writes an unaligned 16-bit unsigned integer.
+ */
+static inline void sbufWriteUnAlignedUI16(sbuf_t *const b, const uint16_t data)
+{
+    sbufByteCopy(sbufGetMutablePtr(b), &data, (uint32_t) sizeof(data));
+}
+
+// Aligned
+
+/**
+ * Reads an aligned 16-bit unsigned integer.
+ */
+static inline void sbufReadUI16(const sbuf_t *const b, uint16_t *const dest)
+{
+    *dest = *(uint16_t *) sbufGetRawPtr(b);
+}
+
+/**
+ * Reads an aligned 64-bit unsigned integer.
+ */
+static inline void sbufReadUI64(const sbuf_t *const b, uint64_t *const dest)
+{
+    *dest = *(uint64_t *) sbufGetRawPtr(b);
+}
+
+/**
+ * Writes an aligned 32-bit signed integer.
+ */
+static inline void sbufWriteI32(sbuf_t *const b, const int32_t data)
+{
+    *(int32_t *) sbufGetMutablePtr(b) = data;
+}
+
+/**
+ * Writes an aligned 32-bit unsigned integer.
+ */
+static inline void sbufWriteUI32(sbuf_t *const b, const uint32_t data)
+{
+    *(uint32_t *) sbufGetMutablePtr(b) = data;
+}
+
+/**
+ * Writes an aligned 16-bit signed integer.
+ */
+static inline void sbufWriteI16(sbuf_t *const b, const int16_t data)
+{
+    *(int16_t *) sbufGetMutablePtr(b) = data;
+}
+
+/**
+ * Writes an aligned 16-bit unsigned integer.
+ */
+static inline void sbufWriteUI16(sbuf_t *const b, const uint16_t data)
+{
+    *(uint16_t *) sbufGetMutablePtr(b) = data;
+}
+
+#ifdef DEBUG
+
+/**
+ * @brief Duplicate and destroy a buffer in debug builds to catch stale usage.
+ *
+ * @param b Buffer to replace.
+ * @return sbuf_t* Duplicated replacement buffer.
+ */
+static sbuf_t *debugBufferWontBeReused(sbuf_t *b)
+{
+    sbuf_t *nbuf = sbufDuplicate(b);
+    sbufDestroy(b);
+    return nbuf;
+}
+
+#define BUFFER_WONT_BE_REUSED(x) ((x) = debugBufferWontBeReused(x))
+
+#else
+
+#define BUFFER_WONT_BE_REUSED(x)
+
+#endif
