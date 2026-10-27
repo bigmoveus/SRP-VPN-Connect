@@ -79,7 +79,7 @@ static BOOL SRPGeoIPCountryEntryIsValid(MMDB_entry_s *entry) {
     if (lstat(url.fileSystemRepresentation, &info) != 0 || !S_ISREG(info.st_mode) || S_ISLNK(info.st_mode) ||
         info.st_size <= 0 || (unsigned long long)info.st_size > SRPGeoIPMaximumBytes) {
         if (error) *error = SRPGeoIPError(SRPGeoIPDatabaseErrorInvalidFile,
-                                         @"Choose a nonempty MaxMind country MMDB file no larger than 128 MB.");
+                                         @"Choose a nonempty MaxMind Country MMDB file no larger than 128 MB.");
         return NO;
     }
     MMDB_s database;
@@ -91,8 +91,11 @@ static BOOL SRPGeoIPCountryEntryIsValid(MMDB_entry_s *entry) {
     }
     NSString *failure = nil;
     const char *type = database.metadata.database_type;
-    if (type == NULL || strcasestr(type, "Country") == NULL || (database.metadata.ip_version != 4 && database.metadata.ip_version != 6)) {
-        failure = @"The database must be a GeoIP2 or GeoLite2 Country MMDB.";
+    BOOL supportedType = type != NULL && strcasestr(type, "Country") != NULL;
+    if (!supportedType || (database.metadata.ip_version != 4 && database.metadata.ip_version != 6)) {
+        NSString *detectedType = type != NULL ? [NSString stringWithUTF8String:type] : nil;
+        failure = [NSString stringWithFormat:@"The database type '%@' is unsupported. Use a GeoIP2 or GeoLite2 Country MMDB.",
+                   detectedType ?: @"unknown"];
     } else {
         int addressError = 0;
         int lookupError = MMDB_SUCCESS;
@@ -117,7 +120,7 @@ static BOOL SRPGeoIPCountryEntryIsValid(MMDB_entry_s *entry) {
             return [self validateDatabaseAtURL:self.databaseURL error:error];
         }
         if (self.bundledDatabaseURL == nil) {
-            if (error) *error = SRPGeoIPError(SRPGeoIPDatabaseErrorUnavailable, @"The bundled GeoIP country database is unavailable. Upload or download a country MMDB.");
+            if (error) *error = SRPGeoIPError(SRPGeoIPDatabaseErrorUnavailable, @"The bundled GeoIP country database is unavailable. Upload or download a Country MMDB.");
             return NO;
         }
         return [self installDatabaseAtURL:self.bundledDatabaseURL error:error];
@@ -171,7 +174,7 @@ static BOOL SRPGeoIPCountryEntryIsValid(MMDB_entry_s *entry) {
     NSURL *url = nil;
     if (!SRPGeoIPHTTPSURL(urlString, &url)) {
         NSError *error = SRPGeoIPError(SRPGeoIPDatabaseErrorInvalidURL,
-                                      @"Enter a valid HTTPS link without embedded credentials. The file must be a MaxMind country MMDB.");
+                                      @"Enter a valid HTTPS link without embedded credentials. The file must be a MaxMind Country MMDB.");
         dispatch_async(dispatch_get_main_queue(), ^{ completion(error); });
         return;
     }

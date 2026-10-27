@@ -636,6 +636,21 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertEqualObjects([store databaseInfo][@"source"], @"Updated");
     XCTAssertTrue([[store databaseInfo][@"type"] containsString:@"Country"]);
 
+    NSMutableData *unsupportedData = [original mutableCopy];
+    NSData *countryType = [@"GeoLite2-Country" dataUsingEncoding:NSUTF8StringEncoding];
+    NSRange typeRange = [unsupportedData rangeOfData:countryType options:0 range:NSMakeRange(0, unsupportedData.length)];
+    XCTAssertNotEqual(typeRange.location, NSNotFound);
+    if (typeRange.location == NSNotFound) return;
+    NSData *unsupportedType = [@"GeoLite2-ASNxxxx" dataUsingEncoding:NSUTF8StringEncoding];
+    XCTAssertEqual(unsupportedType.length, countryType.length);
+    [unsupportedData replaceBytesInRange:typeRange withBytes:unsupportedType.bytes length:unsupportedType.length];
+    NSURL *unsupported = [NSURL fileURLWithPath:[directory stringByAppendingPathComponent:@"unsupported.mmdb"]];
+    XCTAssertTrue([unsupportedData writeToURL:unsupported atomically:YES]);
+    error = nil;
+    XCTAssertFalse([store validateDatabaseAtURL:unsupported error:&error]);
+    XCTAssertTrue([error.localizedDescription containsString:@"GeoLite2-ASNxxxx"]);
+    XCTAssertTrue([error.localizedDescription containsString:@"Country MMDB"]);
+
     NSURL *invalid = [NSURL fileURLWithPath:[directory stringByAppendingPathComponent:@"invalid.mmdb"]];
     XCTAssertTrue([@"not a MaxMind database" writeToURL:invalid atomically:YES encoding:NSUTF8StringEncoding error:nil]);
     error = nil;
@@ -1780,20 +1795,35 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     Class viewClass = NSClassFromString(@"SRPGeoIPCountryViewController");
     XCTAssertNotNil(viewClass);
     __block NSSet<NSString *> *selected = nil;
-    id controller = [[viewClass alloc] initWithSelectedCodes:[NSSet setWithObject:@"IR"]
+    __block BOOL enabled = NO;
+    id controller = [[viewClass alloc] initWithSelectedCodes:[NSSet set]
+                                                geoIPEnabled:NO
+                                           enabledDidChange:^BOOL(BOOL value) {
+        enabled = value;
+        return YES;
+    }
                                                   completion:^(NSSet<NSString *> *codes) {
         selected = codes;
     }];
     [controller loadViewIfNeeded];
     UITableView *table = [controller tableView];
-    XCTAssertGreaterThan([controller tableView:table numberOfRowsInSection:0], (NSInteger)200);
+    XCTAssertEqual([controller tableView:table numberOfRowsInSection:0], (NSInteger)1);
+    XCTAssertGreaterThan([controller tableView:table numberOfRowsInSection:1], (NSInteger)200);
     XCTAssertNotNil([controller navigationItem].rightBarButtonItem);
+
+    UITableViewCell *toggleCell = [controller tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    UISwitch *routingSwitch = (UISwitch *)toggleCell.accessoryView;
+    XCTAssertFalse(routingSwitch.on);
+    routingSwitch.on = YES;
+    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
+    XCTAssertTrue(enabled);
+    XCTAssertEqualObjects(selected, ([NSSet setWithObject:@"IR"]));
 
     UISearchController *search = [controller navigationItem].searchController;
     search.searchBar.text = @"Germany";
     [controller updateSearchResultsForSearchController:search];
-    XCTAssertEqual([controller tableView:table numberOfRowsInSection:0], (NSInteger)1);
-    NSIndexPath *path = [NSIndexPath indexPathForRow:0 inSection:0];
+    XCTAssertEqual([controller tableView:table numberOfRowsInSection:1], (NSInteger)1);
+    NSIndexPath *path = [NSIndexPath indexPathForRow:0 inSection:1];
     UITableViewCell *cell = [controller tableView:table cellForRowAtIndexPath:path];
     XCTAssertTrue([cell.textLabel.text containsString:@"Germany"]);
     XCTAssertTrue([cell.textLabel.text containsString:@"(DE)"]);
@@ -1801,6 +1831,31 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertEqualObjects(selected, ([NSSet setWithObjects:@"IR", @"DE", nil]));
     cell = [controller tableView:table cellForRowAtIndexPath:path];
     XCTAssertEqual(cell.accessoryType, UITableViewCellAccessoryCheckmark);
+
+    toggleCell = [controller tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    routingSwitch = (UISwitch *)toggleCell.accessoryView;
+    routingSwitch.on = NO;
+    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
+    XCTAssertFalse(enabled);
+    XCTAssertEqual(selected.count, 0u);
+
+    __block NSSet<NSString *> *rejectedSelection = nil;
+    id rejecting = [[viewClass alloc] initWithSelectedCodes:[NSSet set]
+                                               geoIPEnabled:NO
+                                          enabledDidChange:^BOOL(BOOL value) {
+        (void)value;
+        return NO;
+    }
+                                                 completion:^(NSSet<NSString *> *codes) {
+        rejectedSelection = codes;
+    }];
+    [rejecting loadViewIfNeeded];
+    toggleCell = [rejecting tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    routingSwitch = (UISwitch *)toggleCell.accessoryView;
+    routingSwitch.on = YES;
+    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
+    XCTAssertFalse(routingSwitch.on);
+    XCTAssertNil(rejectedSelection);
 }
 #endif
 

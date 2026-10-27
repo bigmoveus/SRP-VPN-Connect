@@ -455,8 +455,7 @@
 }
 
 - (NSArray<NSString *> *)geoIPRows {
-    NSMutableArray<NSString *> *rows = [NSMutableArray arrayWithObject:@"geoip-enabled"];
-    if ([self geoIPCountries].count > 0) [rows addObject:@"countries"];
+    NSMutableArray<NSString *> *rows = [NSMutableArray arrayWithObjects:@"geoip-enabled", @"countries", nil];
     [rows addObjectsFromArray:@[@"database", @"update-url", @"upload", @"download"]];
     return rows;
 }
@@ -494,24 +493,27 @@
     __weak SRPWaterWallConfigViewController *weakSelf = self;
     SRPGeoIPCountryViewController *controller =
         [[SRPGeoIPCountryViewController alloc] initWithSelectedCodes:[NSSet setWithArray:[self geoIPCountries]]
+                                                        geoIPEnabled:[self geoIPCountries].count > 0
+                                                   enabledDidChange:^BOOL(BOOL enabled) {
+        return [weakSelf setGeoIPEnabled:enabled];
+    }
                                                           completion:^(NSSet<NSString *> *selectedCodes) {
         [weakSelf setGeoIPCountries:selectedCodes];
     }];
     [self.navigationController pushViewController:controller animated:YES];
 }
 
-- (void)geoIPChanged:(UISwitch *)sender {
-    if (sender.isOn) {
+- (BOOL)setGeoIPEnabled:(BOOL)enabled {
+    if (enabled) {
         NSError *error = nil;
         if (![SRPGeoIPDatabase.sharedDatabase installBundledDatabaseIfNeeded:&error]) {
-            [self showGeoIPMessage:error.localizedDescription ?: @"Upload or download a valid country MMDB before enabling GeoIP routing."];
-            [self.tableView reloadData];
-            return;
+            [self showGeoIPMessage:error.localizedDescription ?: @"Upload or download a valid Country MMDB before enabling GeoIP routing."];
+            return NO;
         }
     }
     NSMutableDictionary *configuration = [self.configuration mutableCopy];
     NSMutableDictionary *geoIP = [self mutableGeoIPConfiguration];
-    if (sender.isOn) {
+    if (enabled) {
         NSArray<NSString *> *selected = [self geoIPCountries];
         geoIP[@"countries"] = selected.count > 0 ? selected : @[@"IR"];
     } else {
@@ -520,6 +522,12 @@
     if (geoIP.count == 0) [configuration removeObjectForKey:@"geoip"];
     else configuration[@"geoip"] = geoIP;
     [self applyConfiguration:configuration];
+    [self.tableView reloadData];
+    return YES;
+}
+
+- (void)geoIPChanged:(UISwitch *)sender {
+    [self setGeoIPEnabled:sender.isOn];
     [self.tableView reloadData];
 }
 
@@ -647,7 +655,7 @@
         cell.textLabel.text = @"Country Database";
         if (info != nil) {
             NSString *bytes = [NSByteCountFormatter stringFromByteCount:[info[@"bytes"] longLongValue] countStyle:NSByteCountFormatterCountStyleFile];
-            cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %@", info[@"source"], bytes];
+            cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %@ · %@", info[@"type"], info[@"source"], bytes];
         } else {
             cell.detailTextLabel.text = @"No valid database";
         }
