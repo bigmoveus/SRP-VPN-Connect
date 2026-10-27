@@ -1,5 +1,6 @@
 #pragma once
 
+#include "packet_affinity.h"
 #include "wwapi.h"
 
 #include "lwip/priv/tcp_priv.h"
@@ -193,6 +194,7 @@ typedef struct ptc_fake_dns_result_s
 typedef struct ptc_tstate_s
 {
     uint16_t                    mtu; // Immutable configured packet budget.
+    packet_affinity_t          *input_affinity;
     interface_route_context_t **routes_v4;
     uint32_t                    route_worker_count;
     uint32_t                    max_pending_bytes;
@@ -232,7 +234,10 @@ typedef struct ptc_lstate_s
      * reference. At most TCP_WND bytes may join the pending delivery. */
     sbuf_t *rx_delivery;
 
-    wtimer_t *udp_idle_timer;
+    wtimer_t      *udp_idle_timer;
+    buffer_queue_t udp_pending;
+    uint32_t       udp_pending_bytes;
+    bool           udp_delivery_started;
     /*
      * Exact bytes this line still owns for acknowledgement or retry: the sum of
      * `total` over every live `ack_queue` record. `pause_queue` alone is not that
@@ -304,6 +309,7 @@ void ptcTunnelOnWorkerStop(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t 
 void ptcTunnelUpStreamInit(tunnel_t *t, line_t *l);
 void ptcTunnelUpStreamFinish(tunnel_t *t, line_t *l);
 void ptcTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void ptcTunnelUpStreamPayloadAfterAffinity(tunnel_t *t, line_t *l, sbuf_t *buf);
 void ptcTunnelUpStreamPause(tunnel_t *t, line_t *l);
 void ptcTunnelUpStreamResume(tunnel_t *t, line_t *l);
 
@@ -380,6 +386,7 @@ void ptcCancelUdpIdleTimer(ptc_lstate_t *ls);
 bool ptcEnsureNextInit(tunnel_t *t, line_t *l, ptc_lstate_t *ls);
 void ptcOpenLineTask(tunnel_t *t, line_t *l);
 void ptcDeliverPayloadTask(tunnel_t *t, line_t *l, sbuf_t *buf);
+void ptcFlushInitialUdp(tunnel_t *t, line_t *l);
 void ptcCloseLineTask(tunnel_t *t, line_t *l);
 void ptcResumeUpstreamTask(tunnel_t *t, line_t *l);
 void ptcWriteRetryTask(tunnel_t *t, line_t *l);

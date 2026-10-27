@@ -79,7 +79,6 @@ static int createAndBindSocket(int family, const udpconnector_tstate_t *ts)
         closesocket(sockfd);
         return -1;
     }
-
     if (socketOptionBindToDevice(sockfd, ts->interface_name) != 0)
     {
         LOGE("UdpConnector: setsockopt SO_BINDTODEVICE error");
@@ -445,6 +444,7 @@ udpconnector_binding_t *udpconnectorAcquireBinding(tunnel_t *t, line_t *l, udpco
     ++candidate->active_bindings_count;
     ++worker_pool->active_bindings_count;
     ++ls->bindings_count;
+    udpconnectorSocketBindingAttached(candidate, ls);
 
     return binding;
 }
@@ -476,6 +476,7 @@ void udpconnectorBindingDetach(udpconnector_binding_t *binding, udpconnector_det
     --sock->active_bindings_count;
     --pool->active_bindings_count;
     binding->socket_linked = false;
+    udpconnectorSocketBindingDetached(sock, ls);
 
     if (ls->fixed_binding == binding)
     {

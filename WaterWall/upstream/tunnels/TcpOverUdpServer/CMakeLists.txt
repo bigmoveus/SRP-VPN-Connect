@@ -13,6 +13,8 @@ add_library(TcpOverUdpServer STATIC
                     upstream/resume.c
                     downstream/fin.c
                     downstream/payload.c
+                    downstream/pause.c
+                    downstream/resume.c
   
 )
 

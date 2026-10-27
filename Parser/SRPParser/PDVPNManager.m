@@ -351,6 +351,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
     if (safeServer[@"wg_conf"]) safeServer[@"wg_conf"] = @"***";
     if (safeServer[@"wg_private_key"]) safeServer[@"wg_private_key"] = @"***";
     if (safeServer[@"wg_preshared_key"]) safeServer[@"wg_preshared_key"] = @"***";
+    if (safeServer[@"ww_config"]) safeServer[@"ww_config"] = @"***";
     NSLog(@"connect>>%@", safeServer);
     // TLS pre-check with a user dialog on untrusted certificates applies to
     // all protocols: SSTP, SoftEther and OpenConnect (AnyConnect/F5/...).
@@ -431,7 +432,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
                       @"allowInsecure", @"ww_secret_ref", @"ww_outer_secret_ref", @"wg_conf",
                       @"wg_private_key", @"wg_peer_public_key", @"wg_address",
                       @"wg_keepalive", @"log_level", @"tls_frag", @"tls_frag_first",
-                      @"tls_frag_following", @"ww_fake_dns", @"ww_smart_routing", @"ww_test_id"];
+                      @"tls_frag_following", @"ww_fake_dns", @"ww_smart_routing", @"ww_geoip_db_path", @"ww_test_id"];
     NSMutableDictionary *configuration = [NSMutableDictionary new];
     for (NSString *key in keys) {
         if (server[key] != nil) configuration[key] = server[key];

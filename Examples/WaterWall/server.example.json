@@ -1,0 +1,57 @@
+{
+  "name": "Matching VLESS BGP4 TLS KCP server",
+  "nodes": [
+    {
+      "name": "listener",
+      "type": "UdpListener",
+      "settings": {
+        "address": "0.0.0.0",
+        "port": 443
+      },
+      "next": "kcp"
+    },
+    {
+      "name": "kcp",
+      "type": "TcpOverUdpServer",
+      "settings": {
+        "kcp-recv-window": 512,
+        "kcp-send-buffer-limit": 512
+      },
+      "next": "tls"
+    },
+    {
+      "name": "tls",
+      "type": "TlsServer",
+      "settings": {
+        "cert-file": "/etc/waterwall/server-cert.pem",
+        "key-file": "/etc/waterwall/server-key.pem",
+        "select-alpns": ["http/1.1"]
+      },
+      "next": "bgp4"
+    },
+    {
+      "name": "bgp4",
+      "type": "Bgp4Server",
+      "settings": {},
+      "next": "vless"
+    },
+    {
+      "name": "vless",
+      "type": "VlessServer",
+      "settings": {
+        "uuid": "00000000-0000-4000-8000-000000000000"
+      },
+      "next": "out"
+    },
+    {
+      "name": "out",
+      "type": "TcpUdpConnector",
+      "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+      }
+    }
+  ]
+}

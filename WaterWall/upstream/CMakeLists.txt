@@ -15,7 +15,7 @@ endif()
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 500)
 
 project(Waterwall
-  VERSION 1.5.1
+  VERSION 1.5.2
   DESCRIPTION "A fast and secure VPN tunnel"
   HOMEPAGE_URL "https://github.com/radkesvat/waterwall"
   LANGUAGES C CXX
@@ -309,6 +309,7 @@ if(WW_MINIMAL_NODES)
     INCLUDE_VLESS_CLIENT
     INCLUDE_VMESS_CLIENT
     INCLUDE_TROJAN_CLIENT
+    INCLUDE_BGP4_CLIENT
     INCLUDE_SOCKS5_CLIENT
     INCLUDE_HTTP_PROXY_CLIENT
     INCLUDE_TLS_CLIENT
@@ -604,7 +605,8 @@ target_link_libraries(${WATERWALL_APPLICATION_TARGET} ww)
 
 # Xcode/iOS simulator links are more reliable when the final executable links
 # the imported OpenSSL targets directly instead of only through the static ww
-# library's transitive link interface.
+# library's transitive link interface. The final link below repeats these
+# archives after the tunnel archives for single-pass static linkers.
 if(TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSL::SSL OpenSSL::Crypto)
   if(TARGET OpenSSL::applink)
@@ -1412,6 +1414,13 @@ if(INCLUDE_SOFT_IP_LIMITER)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SoftIpLimiter)
   target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/SoftIpLimiter)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} SoftIpLimiter)
+endif()
+
+if(TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSL::SSL OpenSSL::Crypto)
+  if(TARGET OpenSSL::applink)
+    target_link_libraries(${WATERWALL_APPLICATION_TARGET} OpenSSL::applink)
+  endif()
 endif()
 
 #--------------------------------------------------------------------------------

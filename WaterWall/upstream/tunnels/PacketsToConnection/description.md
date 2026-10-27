@@ -9,6 +9,14 @@ Sync note: Any change to this file must also be applied to WaterWall/WaterWall-D
 
 It accepts raw IPv4 packets on the packet side, injects them into lwIP, and exposes the resulting transport flows as normal Waterwall `line_t` connections toward the next tunnel.
 
+Before entering lwIP, the node establishes TCP/UDP worker affinity from the
+current packet tuple, after any preceding address or port transformations.
+Receive placement is not a flow-ownership requirement. The internal dispatcher
+uses bounded per-destination FIFOs; it does not insert another tunnel between
+TunDevice and PTC, so direct checksum and output capabilities remain available.
+Replies retain their existing connection owner. Affinity serializes admitted
+work but does not reconstruct packet order lost before admission.
+
 ## Instance MTU
 
 Optional integer `mtu` defaults to core `misc.mtu` at construction (core fallback
@@ -120,6 +128,11 @@ the node first detaches the PCB, timer, and flow-map entry inside the owner engi
 preallocated terminal-reconciliation registry, and then requests orderly shutdown as escalation. Cleanup therefore does
 not depend on the refused queue or on Stop discovering a still-registered flow. A later payload refusal is still an
 ordinary UDP drop because the timer already bounds the flow.
+
+Before the first successful upstream delivery, a paused flow retains its initial datagrams in FIFO order, capped at 64
+datagrams and 65,536 payload bytes. Resume schedules those datagrams through the ordinary owner-worker delivery path;
+close releases any that remain. Once upstream delivery has started, a pause still drops datagrams rather than creating an
+unbounded UDP queue. This preserves first-packet DNS handshakes without turning UDP into a reliable stream.
 
 Downstream payload from the next tunnel is sent back through the connected UDP PCB, using the original local destination address and port as the packet source.
 

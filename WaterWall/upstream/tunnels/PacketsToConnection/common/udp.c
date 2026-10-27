@@ -145,5 +145,8 @@ void ptcUdpReceived(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_ad
     /* Init and Payload are queued, so no neighbour can close this line here.
      * UDP is intentionally lossy when the worker queue refuses admission. */
     const line_task_submit_result_e result = lineScheduleTaskWithBuf(line, ptcDeliverPayloadTask, t, buf, NULL);
-    discard                         result;
+    if (result != kLineTaskSubmitAcceptedAsync)
+    {
+        LOGD("PacketsToConnection: UDP payload scheduling was rejected (%d)", (int) result);
+    }
 }

@@ -196,6 +196,47 @@ int main(void) {
       "{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":"
       "\"127.0.0.1\",\"port\":9}}]}";
 
+  static const char bgp4[] =
+      "{\"name\":\"bgp4\",\"nodes\":["
+      "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{},\"next\":"
+      "\"ptc\"},"
+      "{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"settings\":{},"
+      "\"next\":\"router\"},"
+      "{\"name\":\"router\",\"type\":\"Router\",\"settings\":{"
+      "\"resolve-domains\":false,\"rules\":[{\"destination-ip\":[\"10.0.0.0/"
+      "8\"],"
+      "\"target\":\"direct-local\"}]},\"next\":\"vless\"},"
+      "{\"name\":\"direct-local\",\"type\":\"TcpUdpConnector\",\"settings\":{"
+      "\"address\":\"dest_context->address\",\"port\":\"dest_context->port\","
+      "\"domain-strategy\":\"prefer-ipv4\",\"nodelay\":true}},"
+      "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{\"uuid\":"
+      "\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"example.com\","
+      "\"port\":80,\"protocol\":\"tcp\"},\"next\":\"bgp4\"},"
+      "{\"name\":\"bgp4\",\"type\":\"Bgp4Client\",\"settings\":{},\"next\":"
+      "\"out\"},"
+      "{\"name\":\"out\",\"type\":\"TcpConnector\",\"settings\":{\"address\":"
+      "\"127.0.0.1\",\"port\":9}}]}";
+  static const char bgp4_kcp[] =
+      "{\"name\":\"bgp4-kcp\",\"nodes\":["
+      "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{},\"next\":"
+      "\"ptc\"},"
+      "{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"settings\":{},"
+      "\"next\":\"router\"},"
+      "{\"name\":\"router\",\"type\":\"Router\",\"settings\":{"
+      "\"resolve-domains\":false},\"next\":\"vless\"},"
+      "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{\"uuid\":"
+      "\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"example.com\","
+      "\"port\":80,\"protocol\":\"tcp\"},\"next\":\"bgp4\"},"
+      "{\"name\":\"bgp4\",\"type\":\"Bgp4Client\",\"settings\":{},\"next\":"
+      "\"kcp\"},"
+      "{\"name\":\"kcp\",\"type\":\"TcpOverUdpClient\",\"settings\":{},"
+      "\"next\":"
+      "\"out\"},"
+      "{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":"
+      "\"127.0.0.1\",\"port\":9}}]}";
+
+  checkChain("BGP4 Router VLESS TCP", bgp4);
+  checkChain("BGP4 Router VLESS KCP", bgp4_kcp);
   checkChain("Raw IPv4 Reality", raw_reality);
   checkChain("AEAD", aead);
   checkChain("VLESS QUIC", quic);

@@ -145,6 +145,8 @@ struct udpconnector_pool_socket_s
     wio_t                           *io;
     udpconnector_peer_binding_map_t  peer_map;
     uint32_t                         active_bindings_count;
+    uint32_t                         read_paused_count;
+    bool                             read_stopped;
     bool                             linked;
 
     udpconnector_pool_socket_t *prev;
@@ -336,6 +338,9 @@ udpconnector_worker_pool_t *udpconnectorGetLineWorkerPool(udpconnector_tstate_t 
 
 udpconnector_pool_socket_t *udpconnectorPoolSocketCreate(tunnel_t *t, udpconnector_worker_pool_t *pool, int family);
 void                        udpconnectorPoolSocketRetire(udpconnector_pool_socket_t *sock);
+void                        udpconnectorSetReadPaused(udpconnector_lstate_t *ls, bool paused);
+void udpconnectorSocketBindingAttached(udpconnector_pool_socket_t *sock, const udpconnector_lstate_t *ls);
+void udpconnectorSocketBindingDetached(udpconnector_pool_socket_t *sock, const udpconnector_lstate_t *ls);
 
 /* Borrows an active binding; Closing refuses sends, Draining preserves them. */
 bool                    udpconnectorBindingCanSend(const udpconnector_binding_t *binding);

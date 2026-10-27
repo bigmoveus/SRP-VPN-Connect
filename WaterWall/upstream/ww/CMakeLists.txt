@@ -879,6 +879,19 @@ endif()
 if(PROJECT_REQUIRES_OPENSSL)
     if(NOT TARGET OpenSSL::SSL OR NOT TARGET OpenSSL::Crypto)
         set(WW_OPENSSL_CONFIGURE_OPTIONS ${OPENSSL_CONFIGURE_OPTIONS})
+        if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            set(WW_OPENSSL_MACOS_SDK macosx)
+            if(CMAKE_OSX_SYSROOT)
+                set(WW_OPENSSL_MACOS_SDK "${CMAKE_OSX_SYSROOT}")
+            endif()
+            find_program(WW_XCRUN_EXECUTABLE xcrun REQUIRED)
+            execute_process(
+                COMMAND "${WW_XCRUN_EXECUTABLE}" --sdk "${WW_OPENSSL_MACOS_SDK}" --show-sdk-path
+                OUTPUT_VARIABLE WW_OPENSSL_SDK_PATH
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                COMMAND_ERROR_IS_FATAL ANY)
+            list(APPEND WW_OPENSSL_CONFIGURE_OPTIONS "-isysroot ${WW_OPENSSL_SDK_PATH}")
+        endif()
         # OpenSSL compiles outside CMake's target graph. Configure its own
         # static-library and assembly policy instead of flagging imported targets.
         if((CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT ANDROID AND NOT ENABLE_TSAN)
@@ -1018,17 +1031,20 @@ if(PROJECT_REQUIRES_OPENSSL)
         # Pin the source archive and wrapper beside the consumer. Keeping the
         # immutable identities here is sufficient; no separate verifier-owned
         # dependency manifest is needed.
+        set(WW_OPENSSL_PREV_CPM_SOURCE_CACHE "${CPM_SOURCE_CACHE}")
+        set(CPM_SOURCE_CACHE "${CMAKE_CURRENT_BINARY_DIR}/openssl-cache")
         CPMAddPackage(
             NAME openssl-source
             URL https://github.com/openssl/openssl/releases/download/openssl-4.0.1/openssl-4.0.1.tar.gz
             URL_HASH SHA256=2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09
             DOWNLOAD_ONLY True
         )
+        set(CPM_SOURCE_CACHE "${WW_OPENSSL_PREV_CPM_SOURCE_CACHE}")
         set(OPENSSL_SOURCE "${openssl-source_SOURCE_DIR}")
         find_package(Python3 COMPONENTS Interpreter REQUIRED)
         set(SRP_OPENSSL_PREFIX_HEADER "${CMAKE_CURRENT_BINARY_DIR}/srp_openssl_prefix.h")
         execute_process(
-            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/generate_openssl_prefix.py"
+            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/../../generate_openssl_prefix.py"
                     "${openssl-source_SOURCE_DIR}" "${SRP_OPENSSL_PREFIX_HEADER}"
             COMMAND_ERROR_IS_FATAL ANY)
         list(APPEND OPENSSL_CONFIGURE_OPTIONS "-include srp_openssl_prefix.h")
@@ -1062,6 +1078,16 @@ if(PROJECT_REQUIRES_OPENSSL)
                 file(WRITE "${WW_OPENSSL_MAKEFILE}" "${WW_OPENSSL_MAKEFILE_CONTENT}")
             endif()
         endif()
+
+        # Consumers may need capability checks before the wrapper generates
+        # opensslv.h. Record the version of the source archive we actually own;
+        # externally supplied OpenSSL targets do not receive this assertion.
+        get_target_property(WW_OPENSSL_CRYPTO_REAL_TARGET OpenSSL::Crypto ALIASED_TARGET)
+        if(NOT WW_OPENSSL_CRYPTO_REAL_TARGET)
+            set(WW_OPENSSL_CRYPTO_REAL_TARGET OpenSSL::Crypto)
+        endif()
+        set_property(TARGET ${WW_OPENSSL_CRYPTO_REAL_TARGET}
+                     PROPERTY WW_PINNED_OPENSSL_VERSION "4.0.1")
 
         # Consumers may need capability checks before the wrapper generates
         # opensslv.h. Record the version of the source archive we actually own;
@@ -1124,7 +1150,7 @@ if(PROJECT_REQUIRES_OPENSSL)
         set(WW_OPENSSL_BUILD_DIR "${openssl-cmake_BINARY_DIR}/openssl-source-build")
         find_program(WW_OPENSSL_MAKE_EXECUTABLE NAMES gmake make REQUIRED)
         add_custom_target(srp_openssl_full_prefix
-            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/generate_openssl_prefix.py"
+            COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/../../generate_openssl_prefix.py"
                     "${openssl-source_SOURCE_DIR}" "${SRP_OPENSSL_PREFIX_HEADER}" "${WW_OPENSSL_BUILD_DIR}"
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${SRP_OPENSSL_PREFIX_HEADER}"
                     "${WW_OPENSSL_BUILD_DIR}/srp_openssl_prefix.h"
@@ -1139,6 +1165,13 @@ if(PROJECT_REQUIRES_OPENSSL)
         endif()
     endif()
 
+    if(SRP_OPENSSL_PREFIX_HEADER)
+        set(SRP_OPENSSL_PREFIX_HEADER "${SRP_OPENSSL_PREFIX_HEADER}" PARENT_SCOPE)
+        target_compile_options(ww PRIVATE "SHELL:-include \"${SRP_OPENSSL_PREFIX_HEADER}\"")
+        if(TARGET srp_openssl_full_prefix)
+            add_dependencies(ww srp_openssl_full_prefix)
+        endif()
+    endif()
     list(APPEND LIBS OpenSSL::SSL OpenSSL::Crypto)
     if(TARGET OpenSSL::applink)
         list(APPEND LIBS OpenSSL::applink)

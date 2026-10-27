@@ -11,5 +11,6 @@ void tcpoverudpclientTunnelDownStreamPause(tunnel_t *t, line_t *l)
         return;
     }
 
+    ls->downstream_paused = true;
     tunnelPrevDownStreamPause(t, l);
 }

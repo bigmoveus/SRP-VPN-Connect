@@ -13,25 +13,16 @@ void tcpoverudpclientTunnelUpStreamFinish(tunnel_t *t, line_t *l)
     tcpoverudpclient_tstate_t *state = tunnelGetState(t);
     if (UNLIKELY(atomicLoadRelaxed(&state->stopping)))
     {
+        const bool drain_held = ls->close_drain_held;
         tcpoverudpclientLinestateDestroy(ls);
         tunnelNextUpStreamFinish(t, l);
+        tcpoverudpclientCompleteCloseDrain(t, l, drain_held);
         lineUnref(l);
         return;
     }
 
-    ls->can_downstream = false;
-
-    uint8_t close_buf[kFrameHeaderLength] = {kFrameFlagClose};
-    ikcp_send(ls->k_handle, (const char *) close_buf, (int) sizeof(close_buf));
-
-    if (! tcpoverudpclientUpdateKcp(ls, true))
-    {
-        lineUnref(l);
-        return;
-    }
-
-    tcpoverudpclientLinestateDestroy(ls);
-    tunnelNextUpStreamFinish(t, l);
+    tcpoverudpclientBeginClose(ls);
+    discard tcpoverudpclientUpdateKcp(ls, true);
 
     lineUnref(l);
 }

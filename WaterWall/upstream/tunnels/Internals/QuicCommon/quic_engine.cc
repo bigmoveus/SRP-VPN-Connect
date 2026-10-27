@@ -1061,9 +1061,14 @@ try
             PEM_read_bio_PrivateKey(bio.get(), nullptr, +[](char *, int, int, void *) { return 0; }, nullptr));
         auto leaf = quic::CertificateView::ParseSingleCertificate(
             absl::string_view(config->certificates.front().data(), config->certificates.front().size()));
-        if (! config->key || ! leaf)
+        if (! config->key)
         {
-            SetError(error, error_size, "key-file/cert-file: malformed QUIC server key or leaf certificate");
+            SetError(error, error_size, "key-file: malformed or unsupported QUIC server private key");
+            return nullptr;
+        }
+        if (! leaf)
+        {
+            SetError(error, error_size, "cert-file: QUICHE could not parse the leaf certificate");
             return nullptr;
         }
         EVP_PKEY_up_ref(config->key.get());

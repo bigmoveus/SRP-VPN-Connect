@@ -37,6 +37,60 @@ void ptcOpenLineTask(tunnel_t *t, line_t *l)
     ptcNextGateLeave(t);
 }
 
+static bool ptcQueueUdpStartup(ptc_lstate_t *ls, sbuf_t *buf)
+{
+    enum
+    {
+        kUdpStartupMaxBytes     = 64U * 1024U,
+        kUdpStartupMaxDatagrams = 64U
+    };
+    if (ls->udp_delivery_started)
+    {
+        return false;
+    }
+    const uint32_t length = sbufGetLength(buf);
+    if (length > kUdpStartupMaxBytes || ls->udp_pending_bytes > kUdpStartupMaxBytes - length ||
+        bufferqueueGetBufCount(&ls->udp_pending) >= kUdpStartupMaxDatagrams ||
+        ! bufferqueueTryPushBack(&ls->udp_pending, &buf))
+    {
+        LOGD("PacketsToConnection: UDP startup queue is full; dropping a datagram");
+        return false;
+    }
+    ls->udp_pending_bytes += length;
+    return true;
+}
+
+void ptcFlushInitialUdp(tunnel_t *t, line_t *l)
+{
+    if (! lineIsAlive(l))
+    {
+        return;
+    }
+    lineRef(l);
+    ptc_lstate_t *ls = lineGetState(l, t);
+    while (ls->udp_pending_bytes > 0 && ! ls->read_paused)
+    {
+        sbuf_t *buf = bufferqueuePopFront(&ls->udp_pending);
+        if (buf == NULL)
+        {
+            ls->udp_pending_bytes = 0;
+            break;
+        }
+        ls->udp_pending_bytes -= sbufGetLength(buf);
+        const line_task_submit_result_e result = lineScheduleTaskWithBuf(l, ptcDeliverPayloadTask, t, buf, NULL);
+        if (result != kLineTaskSubmitAcceptedAsync)
+        {
+            LOGD("PacketsToConnection: queued UDP startup delivery was rejected (%d)", (int) result);
+        }
+        if (! lineIsAlive(l))
+        {
+            break;
+        }
+        ls = lineGetState(l, t);
+    }
+    lineUnref(l);
+}
+
 void ptcDeliverPayloadTask(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     buffer_pool_t *pool = lineGetBufferPool(l);
@@ -62,6 +116,9 @@ void ptcDeliverPayloadTask(tunnel_t *t, line_t *l, sbuf_t *buf)
 
     if (ls->kind == kPtcLineKindUdp)
     {
+        LOGD("PacketsToConnection: UDP delivery length=%u paused=%u",
+             (unsigned int) tcp_read,
+             ls->read_paused ? 1U : 0U);
         if (! ptcArmUdpIdleOnOwnerThread(ls))
         {
             bufferpoolReuseBuffer(pool, buf);
@@ -71,10 +128,14 @@ void ptcDeliverPayloadTask(tunnel_t *t, line_t *l, sbuf_t *buf)
         }
         if (ls->read_paused)
         {
-            lineReuseBuffer(l, buf);
+            if (! ptcQueueUdpStartup(ls, buf))
+            {
+                lineReuseBuffer(l, buf);
+            }
             ptcNextGateLeave(t);
             return;
         }
+        ls->udp_delivery_started = true;
     }
 
     if (! lineCallWithRefWithBuf(l, tunnelNextUpStreamPayload, t, buf))

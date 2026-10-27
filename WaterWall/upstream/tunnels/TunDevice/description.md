@@ -1,5 +1,5 @@
 <!--
-Documentation version: 164
+Documentation version: 165
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TunDevice.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TunDevice.mdx, and all files must keep the same documentation version.
 -->
 
@@ -37,25 +37,29 @@ CPU. Ordinary increments advance the cursor without atomic operations, and a
 CPU-ID offset avoids starting every CPU at queue zero. Overlapping updates can
 lose a step; this policy does not promise exact global order or equal queue counts.
 Unsupported per-CPU map or steering setup falls back to one reader.
-With one receive queue, opaque processing uses a device-local round-robin sequence
-across the configured workers. No new setting or downstream-chain inspection is
-needed. A decoder that restores inner TCP/UDP selects that inner flow's worker.
+With multiple receive queues, complete packets continue on their reader worker.
+With one queue, complete native TCP/UDP packets with visible ports use the
+symmetric flow hash, keeping ordered packets of one flow on one worker FIFO.
+Opaque or unclassifiable packets use a session-local round-robin sequence across
+configured workers. Stateful consumers still establish ownership from the tuple
+they actually consume; no downstream-chain inspection is needed.
 
 All IPv4 fragments and TCP/UDP packets too short to contain both ports retain the
 address-pair/protocol fallback. Every fragment of one datagram keeps one reader;
 fragmented and ordinary packets of one connection can still have different
 readers and reorder. The shared fragment table retains its staging and preserved
-fragment affinity; a reassembled opaque packet follows the ordinary opaque
-processing policy. Opaque round robin can also reorder packets across readers.
+fragment affinity; a reassembled datagram follows ordinary complete-packet
+distribution. Parallel receive can reorder packets across readers.
 Malformed packets and unsupported IP versions retain queue-zero selection for
 downstream validation. Startup logs the active queue count. Queue selection is
 independent of `gso`. Set `multi-queue: false` to use one receive queue owned by
-worker 0 while retaining all configured processing workers. Other platforms keep
-their existing receive and processing policies.
+worker 0 while retaining all configured processing workers.
 
 Windows receives on worker 0 using Wintun event notifications. Linux and Windows
-have no dedicated application TUN reader thread. Reads use bounded batches;
-TCP/UDP retains its flow ownership across the configured processing workers.
+have no dedicated application TUN reader thread. Reads use bounded batches.
+Windows and Darwin/BSD use the same single-reader policy: visible native TCP/UDP
+flows stay on a consistent worker, while opaque packets rotate across workers.
+Consumers establish required flow ownership after transformations.
 Darwin/BSD use external reader threads with their own buffer pools.
 
 Windows, macOS and BSD limit queued receive packets to 8 MiB of retained buffer
@@ -168,10 +172,26 @@ Full-route example with local ranges excluded:
   automatically falls back to one queue owned by worker 0.
 
   `false` disables multiqueue setup and uses one queue owned by worker 0.
-  Other workers still process their assigned flows; the configured worker count
+  Other workers still process their assigned packets; the configured worker count
   does not change. Reads and writes use the resulting TUN queue set. This option
   is independent of `gso`. Invalid types, including `null`, are rejected on every
   platform. Non-Linux platforms accept the boolean and ignore it.
+
+- `kernel-queue-tune` `(boolean)`
+  Tune the Linux kernel receive queue at startup. Default: `true` on Linux,
+  `false` elsewhere. `false` leaves the existing kernel queue length unchanged;
+  startup still reports it. Valid values have no effect on other platforms.
+
+- `kernel-queue-length` `(integer)`
+  Requested Linux TUN queue length in packets **per receive queue**. Omit this
+  field to select the RAM-profile default described below. The value must be a
+  whole number in `1..2147483647` (`INT_MAX`); `0` does not mean automatic.
+  An existing larger queue is preserved. The override is applied only when
+  `kernel-queue-tune` is enabled.
+
+  Both queue settings are type-checked on every platform, including when tuning
+  is disabled. Fractional numbers, strings, booleans and `null` are invalid for
+  `kernel-queue-length`; `kernel-queue-tune` requires a boolean.
 
 - `gso` `(boolean)`
   Request Linux TCPv4 segmentation offload. The default remains `true`;
@@ -302,6 +322,36 @@ During `onStart`, `TunDevice`:
 
 The actual device creation is deferred until start time because the tunnel needs chain context to know which side should receive packets.
 
+### Linux kernel receive queue sizing
+
+After queue setup and any single-queue fallback, `kernel-queue-tune` selects a
+startup `txqueuelen` target using the final receive queue count:
+
+| Configured RAM profile | Automatic packets per queue |
+| --- | ---: |
+| S1 / S2 | 1,024 |
+| M1 (`client`) | 2,048 |
+| M2 (`client-larger`) | 4,096 |
+| L1 / L2 (`server`) | 8,192 |
+
+The automatic target is capped at `131072 / active_queue_count`, using integer
+division. `kernel-queue-length` replaces that automatic target and is not subject
+to its cap. Neither choice lowers a larger existing `txqueuelen`. These profiles
+express the configured memory policy; WaterWall does not choose them by detecting
+host RAM. Each TUN device has its own allowance.
+
+Tuning is best effort: a refused change or unavailable query produces a warning
+and leaves usable queues running. Startup reports the active queue count, source
+(`auto`, `override` or `disabled`), and old, requested and read-back queue lengths,
+identifying unavailable readings. Logging also runs with tuning disabled.
+
+This setting affects packets waiting in the kernel for WaterWall to read them.
+The shared userspace receive FIFO, read and write batch sizes, and output backlog
+limits remain separate. Queue counts and packet limits are not allocated RSS or
+payload-byte limits. Larger queues can absorb bursts but can also increase
+latency and memory use; they do not guarantee throughput. This tuning introduces
+no global sysctl changes and is independent of core `misc.tcp-tune`.
+
 ### Packet input path
 
 When the TUN device produces a packet:
@@ -314,12 +364,12 @@ When the TUN device produces a packet:
   handling retain the reader path; `GSO_NONE` records, including IPv6, retain
   their existing admission policy without an IPv4-only preflight
 - for TCPv4 GSO, the reader validates the aggregate and transfers its buffer
-  to the flow's worker; that worker allocates independent MTU-sized packets,
+  to a selected receive-processing worker; that worker allocates independent MTU-sized packets,
   copies their headers and payload, and completes IPv4 and TCP checksums before
   normal TunDevice delivery, logging, or packet publication in ordinary mode
 - ordinary batches and GSO aggregates share a bounded FIFO for each worker;
   unfinished segmentation stays ahead of later packets and continues in bounded
-  callbacks, preserving flow order without blocking the worker for queue capacity
+  callbacks, preserving admitted FIFO order without blocking the worker for queue capacity
 - with ordinary TUN framing, unfragmented kernel-produced packets remain
   trusted at this adapter boundary; downstream consumers retain their validation
   policy except for the direct receive-trust pair below. Fragmented IPv4 packets

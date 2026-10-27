@@ -373,6 +373,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if ([configuration[@"obfuscator"] boolValue]) [parts addObject:@"XOR"];
     if ([configuration[@"http"] isEqualToString:@"websocket"]) [parts addObject:@"WebSocket"];
     else if ([configuration[@"http"] isEqualToString:@"http"]) [parts addObject:@"HTTP"];
+    if ([configuration[@"bgp4"] boolValue] && ![configuration[@"outer"] isEqualToString:@"bgp4"]) [parts addObject:@"BGP4"];
     NSString *outer = configuration[@"outer"];
     if ([outer isEqualToString:@"quic"] && [configuration[@"quic-carrier"] isEqualToString:@"stream"]) [parts addObject:@"QUIC Stream"];
     else [parts addObject:[outer isEqualToString:@"aead"] ? @"AEAD" : [outer isEqualToString:@"none"] ? @"none" : outer.uppercaseString];
@@ -384,7 +385,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (![configuration isKindOfClass:NSDictionary.class]) return @"WaterWall configuration must be a JSON object.";
     configuration = SRPWWMigrateConfiguration(configuration);
     NSSet *topKeys = [NSSet setWithArray:@[@"version", @"mode", @"input", @"application", @"mux", @"outer", @"http",
-                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options"]];
+                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options", @"geoip", @"bgp4"]];
     for (NSString *key in configuration) if (![topKeys containsObject:key]) return [NSString stringWithFormat:@"Unknown configuration key: %@", key];
     if (![configuration[@"version"] isEqual:@3]) return @"Unsupported WaterWall configuration version.";
     for (NSString *key in @[@"mode", @"input", @"application", @"outer", @"http", @"carrier", @"quic-carrier"]) {
@@ -401,6 +402,32 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     NSString *http = nil;
     NSString *carrier = nil;
     NSString *quicCarrier = nil;
+    id geoIP = configuration[@"geoip"];
+    if (geoIP != nil) {
+        if (![geoIP isKindOfClass:NSDictionary.class]) return @"geoip must be an object.";
+        NSSet *allowed = [NSSet setWithArray:@[@"iran-direct", @"update-url"]];
+        for (NSString *key in (NSDictionary *)geoIP) {
+            if (![allowed containsObject:key]) return [NSString stringWithFormat:@"Unsupported geoip setting: %@", key];
+        }
+        if (![mode isEqualToString:@"chain"] || ![configuration[@"input"] isEqualToString:@"connections"]) {
+            return @"GeoIP routing requires Chain mode with Connections input.";
+        }
+        if (geoIP[@"iran-direct"] != nil && !SRPWWBoolean(geoIP[@"iran-direct"])) return @"geoip.iran-direct must be a boolean.";
+        id updateURL = geoIP[@"update-url"];
+        if (updateURL != nil) {
+            if (![updateURL isKindOfClass:NSString.class] || [updateURL length] == 0 || [updateURL length] > 2048 ||
+                ![updateURL isEqualToString:[updateURL stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet]]) {
+                return @"geoip.update-url must be a nonempty HTTPS link of at most 2048 characters.";
+            }
+            NSURLComponents *components = [NSURLComponents componentsWithString:updateURL];
+            if (![components.scheme.lowercaseString isEqualToString:@"https"] || components.host.length == 0 ||
+                components.user != nil || components.password != nil || components.fragment != nil) {
+                return @"geoip.update-url must use HTTPS and cannot contain embedded credentials or a fragment.";
+            }
+        }
+    }
+    if (configuration[@"bgp4"] != nil && !SRPWWBoolean(configuration[@"bgp4"])) return @"BGP4 must be a boolean.";
+    if ((direct || wireGuard) && [configuration[@"bgp4"] boolValue]) return @"BGP4 framing requires Chain mode.";
     if (!direct && !wireGuard) {
         NSString *input = configuration[@"input"];
         if (![input isKindOfClass:NSString.class]) return @"WaterWall input must be a string.";
@@ -413,7 +440,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         if (raw && application.length > 0) return @"Raw IPv4 cannot be combined with an application protocol.";
         outer = configuration[@"outer"];
         if (![outer isKindOfClass:NSString.class]) return @"WaterWall outer must be a string.";
-        if (![@[@"none", @"tls", @"reality", @"aead", @"quic"] containsObject:outer]) return @"Select none, TLS, Reality, AEAD or QUIC.";
+        if (![@[@"none", @"tls", @"reality", @"aead", @"quic", @"bgp4"] containsObject:outer]) return @"Select none, TLS, Reality, AEAD, QUIC or BGP4.";
         http = configuration[@"http"];
         carrier = configuration[@"carrier"];
         quicCarrier = configuration[@"quic-carrier"];
@@ -428,8 +455,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         if ([outer isEqualToString:@"quic"] && [carrier isEqualToString:@"kcp"]) return @"QUIC cannot be combined with the KCP carrier.";
         if ([outer isEqualToString:@"quic"] && ![http isEqualToString:@"off"]) return @"HTTP cannot run over QUIC.";
         if ([outer isEqualToString:@"quic"] && [configuration[@"mux"] boolValue] && ![quicCarrier isEqualToString:@"stream"]) return @"MUX over QUIC requires the stream carrier.";
+        if ([outer isEqualToString:@"quic"] && [configuration[@"bgp4"] boolValue] && ![quicCarrier isEqualToString:@"stream"]) return @"BGP4 over QUIC requires the stream carrier.";
         if ([application isEqualToString:@"socks5"] && (![outer isEqualToString:@"none"] || ![http isEqualToString:@"off"] ||
-            [configuration[@"mux"] boolValue] || [configuration[@"obfuscator"] boolValue] || [carrier isEqualToString:@"kcp"])) {
+            [configuration[@"mux"] boolValue] || [configuration[@"obfuscator"] boolValue] || [configuration[@"bgp4"] boolValue] || [carrier isEqualToString:@"kcp"])) {
             return @"SOCKS5 TCP and UDP require the TCP carrier with no MUX, outer transport, HTTP or obfuscation.";
         }
         if ([application isEqualToString:@"http-proxy"] && ([configuration[@"mux"] boolValue] || ![http isEqualToString:@"off"] || [carrier isEqualToString:@"kcp"])) {
@@ -776,20 +804,22 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     NSString *application = configuration[@"application"];
     NSString *outer = configuration[@"outer"];
     NSDictionary *advanced = configuration[@"node-options"] ?: @{};
-    NSString *afterObfuscator = hasHTTP ? @"http" : hasOuter ? outer : kcp ? @"kcp" : @"connector";
+    BOOL bgp4 = [configuration[@"bgp4"] boolValue] && ![outer isEqualToString:@"bgp4"];
+    NSString *afterBGP4 = hasOuter ? outer : kcp ? @"kcp" : @"connector";
+    NSString *afterObfuscator = bgp4 ? @"bgp4" : hasHTTP ? @"http" : afterBGP4;
     NSString *afterApplication = obfuscator ? @"obfuscator" : afterObfuscator;
     NSString *afterInput = raw ? afterApplication : application;
     NSMutableArray *nodes = [NSMutableArray arrayWithObject:@{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}, @"next": direct || !raw ? @"ptc" : @"pts"}];
     if (direct || !raw) {
         NSMutableDictionary *required = [NSMutableDictionary new];
-        if ([options[@"ww_fake_dns"] boolValue] && !direct) {
+        if ((options[@"ww_fake_dns"] == nil || [options[@"ww_fake_dns"] boolValue]) && !direct) {
             required[@"fake-dns"] = @{@"enabled": @YES, @"address": @"198.18.0.2", @"port": @53, @"network": @"100.64.0.0",
                                       @"netmask": @"255.192.0.0", @"cache-size": @10000, @"ttl": @1};
         }
         NSMutableDictionary *settings = [[self settings:@{@"mtu": @1420, @"max-pending-bytes": @1048576}
                                               overrides:advanced[@"packet"] required:required] mutableCopy];
         if (required[@"fake-dns"] != nil) [settings removeObjectsForKeys:@[@"mapdns", @"fake_dns"]];
-        NSString *first = direct ? @"connector" : [options[@"ww_smart_routing"] boolValue] ? @"router" : afterInput;
+        NSString *first = direct ? @"connector" : raw ? afterInput : @"router";
         [nodes addObject:@{@"name": @"ptc", @"type": @"PacketsToConnection", @"settings": settings, @"next": first}];
     }
     if (direct) {
@@ -820,9 +850,20 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                         [application isEqualToString:@"trojan"] ? @"TrojanClient" : socks ? @"Socks5Client" : @"HttpProxyClient";
             [nodes addObject:@{@"name": application, @"type": applicationType,
                                @"settings": applicationSettings, @"next": mux ? @"mux" : afterApplication}];
+            BOOL directIran = [configuration[@"geoip"][@"iran-direct"] boolValue];
+            if (directIran && [options[@"ww_geoip_db_path"] length] == 0) return nil;
+            NSMutableDictionary *routerSettings = [@{@"resolve-domains": @(directIran)} mutableCopy];
+            NSMutableArray *rules = [NSMutableArray new];
             if ([options[@"ww_smart_routing"] boolValue]) {
-                [nodes addObject:@{@"name": @"router", @"type": @"Router", @"settings": @{@"resolve-domains": @NO, @"rules": @[@{
-                    @"destination-ip": @[@"10.0.0.0/8", @"172.16.0.0/12", @"192.168.0.0/16"], @"target": @"direct-local"}]}, @"next": application}];
+                [rules addObject:@{@"destination-ip": @[@"10.0.0.0/8", @"172.16.0.0/12", @"192.168.0.0/16"], @"target": @"direct-local"}];
+            }
+            if (directIran) {
+                routerSettings[@"geoip-db-path"] = options[@"ww_geoip_db_path"];
+                [rules addObject:@{@"destination-ip": @[@"geoip:ir"], @"target": @"direct-local"}];
+            }
+            if (rules.count > 0) routerSettings[@"rules"] = rules;
+            [nodes addObject:@{@"name": @"router", @"type": @"Router", @"settings": routerSettings, @"next": application}];
+            if (rules.count > 0) {
                 [nodes addObject:@{@"name": @"direct-local", @"type": @"TcpUdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port", @"domain-strategy": @"prefer-ipv4", @"nodelay": @YES}}];
             }
         } else {
@@ -857,6 +898,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                                       @"http-version": httpVersionValue,
                                                       @"websocket": @([configuration[@"http"] isEqualToString:@"websocket"])}];
             [nodes addObject:@{@"name": @"http", @"type": @"HttpClient", @"settings": settings, @"next": hasOuter ? outer : kcp ? @"kcp" : @"connector"}];
+        }
+        if (bgp4) {
+            [nodes addObject:@{@"name": @"bgp4", @"type": @"Bgp4Client", @"settings": @{}, @"next": afterBGP4}];
         }
         if (hasOuter) {
             NSMutableDictionary *outerSettings = [NSMutableDictionary new];
@@ -896,11 +940,15 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             if ([outer isEqualToString:@"reality"] || [outer isEqualToString:@"aead"]) outerSettings[@"password"] = outerSecret;
             if (quic) outerSettings[@"carrier-mode"] = configuration[@"quic-carrier"];
             NSString *outerType = [outer isEqualToString:@"tls"] ? @"TlsClient" : [outer isEqualToString:@"reality"] ? @"RealityClient" :
-                                  [outer isEqualToString:@"aead"] ? @"EncryptionClient" : @"QuicClient";
+                                  [outer isEqualToString:@"aead"] ? @"EncryptionClient" :
+                                  [outer isEqualToString:@"bgp4"] ? @"Bgp4Client" : @"QuicClient";
             [nodes addObject:@{@"name": outer, @"type": outerType, @"settings": outerSettings, @"next": kcp ? @"kcp" : @"connector"}];
         }
         if (kcp) {
-            [nodes addObject:@{@"name": @"kcp", @"type": @"TcpOverUdpClient", @"settings": advanced[@"kcp"] ?: @{}, @"next": @"connector"}];
+            [nodes addObject:@{@"name": @"kcp", @"type": @"TcpOverUdpClient",
+                               @"settings": [self settings:@{@"kcp-recv-window": @512, @"kcp-send-buffer-limit": @512}
+                                              overrides:advanced[@"kcp"]
+                                              required:@{}], @"next": @"connector"}];
         }
         NSSet *fixedProtocols = [NSSet setWithArray:@[@"tcp", @"connect", @"udp", @"udp-associate"]];
         NSString *applicationProtocol = advanced[@"application"][@"protocol"] ?: advanced[@"application"][@"proto"];

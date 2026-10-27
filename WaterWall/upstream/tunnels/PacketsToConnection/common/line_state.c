@@ -2,7 +2,6 @@
 
 #include "loggers/network_logger.h"
 
-/* Only TCP lines retain payloads; UDP initializes no queues. */
 void ptcLinestateInitialize(ptc_lstate_t *ls, tunnel_t *t, line_t *l, ptc_line_kind_t kind, void *pcb)
 {
     lineRef(l);
@@ -26,7 +25,8 @@ void ptcLinestateInitialize(ptc_lstate_t *ls, tunnel_t *t, line_t *l, ptc_line_k
     }
     else if (kind == kPtcLineKindUdp)
     {
-        ls->udp_pcb = pcb;
+        ls->udp_pcb     = pcb;
+        ls->udp_pending = bufferqueueCreate(8);
     }
 
     ptcOwnedLineRegister(ls);
@@ -97,6 +97,11 @@ void ptcLinestateDestroy(ptc_lstate_t *ls)
         }
         ptcReleasePauseQueue(ls, pool);
         ptcReleaseAckQueue(ls, pool);
+    }
+    else if (ls->kind == kPtcLineKindUdp)
+    {
+        bufferqueueDestroy(&ls->udp_pending);
+        ls->udp_pending_bytes = 0;
     }
 
 #ifdef DEBUG

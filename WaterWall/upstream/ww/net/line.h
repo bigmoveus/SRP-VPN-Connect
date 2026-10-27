@@ -136,7 +136,7 @@ static inline void lineUnref(line_t *const line)
 /**
  * @brief Mark the line logically dead and release its creator reference.
  *
- * @param l Pointer to the line.
+ * During a close drain, the first request is deferred until lineEndCloseDrain().
  */
 static inline void lineDestroy(line_t *const l)
 {
@@ -146,8 +146,49 @@ static inline void lineDestroy(line_t *const l)
         printError("lineDestroy: duplicate line destruction or line is not alive");
         abortProgramNow(1);
     }
+    if (l->close_drain_count > 0)
+    {
+        l->close_deferred = true;
+        return;
+    }
     l->alive = false;
     lineUnref(l);
+}
+
+/**
+ * @brief Retain a line through a bounded protocol close drain.
+ *
+ * The owner worker holds one physical reference for each drain. Destruction is
+ * deferred while that drain is active; transport resources stay available.
+ */
+static inline void lineBeginCloseDrain(line_t *const line)
+{
+    if (UNLIKELY(line->close_drain_count == UINT32_MAX))
+    {
+        printError("lineBeginCloseDrain: drain reference count overflow");
+        abortProgramNow(1);
+    }
+    lineRef(line);
+    ++line->close_drain_count;
+}
+
+/**
+ * @brief Release a close drain and report deferred teardown work.
+ *
+ * The caller must complete the returned deferred Finish before destroying the
+ * line. This preserves transport resources through the last protocol callback.
+ */
+static inline bool lineEndCloseDrain(line_t *const line)
+{
+    assert(line->close_drain_count > 0);
+    --line->close_drain_count;
+    const bool deferred = line->close_drain_count == 0 && line->close_deferred;
+    if (line->close_drain_count == 0)
+    {
+        line->close_deferred = false;
+    }
+    lineUnref(line);
+    return deferred;
 }
 
 /**

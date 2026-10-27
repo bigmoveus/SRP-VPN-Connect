@@ -178,8 +178,12 @@ int iowatcherPollEvents(wloop_t *loop, int timeout)
         ts.tv_nsec = (timeout % 1000) * 1000000;
         tp         = &ts;
     }
-    int nkqueue = kevent(
-        kqueue_ctx->kqfd, kqueue_ctx->changes, kqueue_ctx->nchanges, kqueue_ctx->events, kqueue_ctx->nchanges, tp);
+    int nkqueue;
+    do
+    {
+        nkqueue = kevent(
+            kqueue_ctx->kqfd, kqueue_ctx->changes, kqueue_ctx->nchanges, kqueue_ctx->events, kqueue_ctx->nchanges, tp);
+    } while (nkqueue < 0 && errno == EINTR);
     if (nkqueue < 0)
     {
         printError("kevent");

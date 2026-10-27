@@ -122,19 +122,31 @@ ACK ingress. A finite pause can recover; a sufficiently long pause may expire
 QUIC deadlines. Both nodes block splice and do not implement connection pooling,
 migration across carrier lines, NAT-rebinding reassociation, resumption or 0-RTT.
 
-Receiving `Finish` retires local protocol state and cancels timers before
-forwarding only away from the sender. Application-side Finish makes one bounded
-synchronous attempt to hand already queued ready packets to the still-open
-carrier, respecting congestion control and pacing. A borrowed line cannot remain alive while waiting asynchronously
-for final QUIC acknowledgments. Final delivery after local teardown is not
-guaranteed; lost final packets resolve through the peer's
-finite timeout. QUIC stream FIN/reset closes the whole association after
-already-decoded bytes; application half-close is not provided.
+Receiving `Finish` rejects new application input and starts a final wire drain.
+If accepted application bytes still need acknowledgement, the borrowed line and
+carrier remain available for up to five seconds while ACK processing and loss
+recovery continue. The line closes when accepted bytes are acknowledged and wire
+queues drain, or when that deadline expires; its close-drain reference is released
+on success and on every error path. There is no unbounded wait for final delivery.
+QUIC stream FIN/reset closes the whole association after already-decoded bytes;
+application half-close is not provided.
 
-## Node metadata
+## Node Metadata
 
 Both nodes are ordinary Layer 4 middle transforms: they allow previous and next
 nodes, advertise `kNodeFlagBlocksSplice`, and require zero additional left
 padding. They do not inspect or reject neighboring adapter types. Google QUICHE
 and its runtime dependencies are linked statically through the shared prefixed
 BoringSSL provider.
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagBlocksSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4` |
+| `layer_group_next_node` | `kNodeLayer4` |
+| `required_padding_left` | `0` bytes |

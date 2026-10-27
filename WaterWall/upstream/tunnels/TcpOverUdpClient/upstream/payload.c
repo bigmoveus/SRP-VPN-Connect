@@ -7,6 +7,11 @@ void tcpoverudpclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     tcpoverudpclient_lstate_t *ls = lineGetState(l, t);
 
     assert(ls->k_handle != NULL);
+    if (ls->close_initiated)
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
 
     // Admit the complete input in MTU-sized chunks before a pressure callback can reenter.
 

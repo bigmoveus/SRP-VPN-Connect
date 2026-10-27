@@ -45,6 +45,9 @@
 		B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */; };
 		E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */; };
 		A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000072 /* SRPWaterWallConfigViewController.m */; };
+		A40000000000000000000002 /* GeoIP in Resources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* GeoIP */; };
+		A40000000000000000000004 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* SRPGeoIPDatabase.m */; };
+		A40000000000000000000005 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* SRPGeoIPDatabase.m */; };
 		BB0000E12B70000100000001 /* SRPEapConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E32B70000100000001 /* SRPEapConfig.m */; };
 		BB0000E22B70000100000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
 		BB0000F12B70000200000001 /* SRPEapConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000F42B70000200000001 /* SRPEapConfigViewController.m */; };
@@ -240,6 +243,8 @@
 		A10000000000000000000073 /* SRPWaterWallConfigViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallConfigViewController.h; sourceTree = "<group>"; };
 		A20000000000000000000001 /* SRPProfileLatencyTester.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPProfileLatencyTester.m; sourceTree = "<group>"; };
 		A20000000000000000000002 /* SRPProfileLatencyTester.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPProfileLatencyTester.h; sourceTree = "<group>"; };
+		A40000000000000000000001 /* GeoIP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "SRP-VPN-Connect/GeoIP"; sourceTree = SOURCE_ROOT; };
+		A40000000000000000000003 /* SRPGeoIPDatabase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Core/SRPCore/SRPGeoIPDatabase.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -387,6 +392,7 @@
 				791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */,
 				A10000000000000000000073 /* SRPWaterWallConfigViewController.h */,
 				A10000000000000000000072 /* SRPWaterWallConfigViewController.m */,
+				A40000000000000000000001 /* GeoIP */,
 			);
 			path = "SRP-VPN-Connect";
 			sourceTree = "<group>";
@@ -572,6 +578,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				92321B2E59E947528883DC55 /* PrivacyInfo.xcprivacy in Resources */,
+				A40000000000000000000002 /* GeoIP in Resources */,
 				224181FD2B553CB200F06C7C /* HelpMenu.xib in Resources */,
 				224181F82B553C7300F06C7C /* HelpView.xib in Resources */,
 				9C8629892B4E9A1C00945639 /* LaunchScreen.storyboard in Resources */,
@@ -709,6 +716,7 @@
 				A20000000000000000000012 /* SRPProfileLatencyTester.m in Sources */,
 				BB0005532B70000600000001 /* SSNetOptions.m in Sources */,
 				A10000000000000000000031 /* SRPWaterWallChainConfig.m in Sources */,
+				A40000000000000000000004 /* SRPGeoIPDatabase.m in Sources */,
 				BB0004302B70000500000001 /* chap_ms.c in Sources */,
 				BB0004312B70000500000001 /* pppcrypt.c in Sources */,
 				BB0004322B70000500000001 /* magic.c in Sources */,
@@ -739,6 +747,7 @@
 				A20000000000000000000013 /* SRPProfileLatencyTester.m in Sources */,
 				BB0005552B70000600000001 /* SSNetOptions.m in Sources */,
 				A10000000000000000000032 /* SRPWaterWallChainConfig.m in Sources */,
+				A40000000000000000000005 /* SRPGeoIPDatabase.m in Sources */,
 				BB0004502B70000500000001 /* chap_ms.c in Sources */,
 				BB0004512B70000500000001 /* pppcrypt.c in Sources */,
 				BB0004522B70000500000001 /* magic.c in Sources */,
@@ -926,6 +935,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2.0;
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -962,6 +973,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2.0;
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -1002,8 +1015,11 @@
 					"$(SRCROOT)/WaterWall/build/ios",
 				);
 				MARKETING_VERSION = 1.2.0;
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-lmaxminddb",
 					"-lSECore",
 					"-lsrpse_ssl",
 					"-lsrpse_crypto",
@@ -1055,8 +1071,11 @@
 					"$(SRCROOT)/WaterWall/build/ios",
 				);
 				MARKETING_VERSION = 1.2.0;
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-lmaxminddb",
 					"-lSECore",
 					"-lsrpse_ssl",
 					"-lsrpse_crypto",
@@ -1091,8 +1110,11 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1115,8 +1137,11 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
+				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1138,6 +1163,8 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
@@ -1146,9 +1173,12 @@
 					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
 				);
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-lmaxminddb",
 					"-lssl",
 					"-lcrypto",
 					"-lSECore",
@@ -1176,6 +1206,8 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
@@ -1184,9 +1216,12 @@
 					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
 				);
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
+					"-lmaxminddb",
 					"-lssl",
 					"-lcrypto",
 					"-lSECore",

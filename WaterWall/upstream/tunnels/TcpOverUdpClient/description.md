@@ -219,9 +219,9 @@ On the receive side, it feeds incoming packet payloads into KCP, drains complete
 
 ### Close and timeout behavior
 
-If the previous side finishes, `TcpOverUdpClient` sends an internal close frame through KCP, flushes pending KCP output, destroys its line state, and finishes the next side.
+A local Finish admits one close frame and stops further application output, while already received input can still drain. The node retains its KCP state and transport through the final delivery window, then finishes the next side after the send queue is acknowledged or `no-recv-timeout-ms` expires. A local Finish does not suppress downstream Pause/Resume needed by that delivery.
 
-If a close frame is received from the remote side, it destroys line state and finishes both directions.
+A remote close flushes its KCP acknowledgement and is propagated to the application side. No further application input is accepted afterward; protocol close processing and retransmission continue until the bounded teardown completes.
 
 If no data is received for too long:
 

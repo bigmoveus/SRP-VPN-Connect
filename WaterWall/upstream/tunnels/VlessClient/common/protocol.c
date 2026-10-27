@@ -1,5 +1,7 @@
 #include "internal.h"
 
+#include "loggers/network_logger.h"
+
 enum
 {
     kVlessVersion    = 0x00,
@@ -67,6 +69,10 @@ bool vlessclientSendInitialRequest(tunnel_t *t, line_t *l, vlessclient_lstate_t 
     uint32_t       udp_header_len =
         body != NULL && ls->kind == kVlessClientLineKindUdpCarrier ? kVlessClientUdpHeaderLen : 0U;
     uint64_t       total          = (uint64_t) header_len + udp_header_len + body_len;
+    if (ts->verbose)
+    {
+        LOGD("VlessClient: initial request kind=%d body length=%u", (int) ls->kind, (unsigned int) body_len);
+    }
     buffer_pool_t *pool           = lineGetBufferPool(l);
     uint16_t       padding        = bufferpoolGetLargeBufferPadding(pool);
     bool reuse_body = body != NULL && ! sbufIsSplice(body) && sbufGetLeftCapacity(body) >= header_len + udp_header_len;

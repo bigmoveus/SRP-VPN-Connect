@@ -7,6 +7,12 @@ void udplistenerTunnelDownStreamFinish(tunnel_t *t, line_t *l)
     udplistenerRequireCurrentLineWorker(l, "downstream Finish");
     udplistener_lstate_t *lstate = lineGetState(l, t);
 
+    if (l->close_drain_count > 0)
+    {
+        l->close_deferred = true;
+        return;
+    }
+
     if (lstate->source_kind == kUdpListenerSourceDynamic)
     {
         udplistener_tstate_t *ts  = tunnelGetState(t);

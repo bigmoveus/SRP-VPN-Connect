@@ -93,6 +93,11 @@ void tcplistenerTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     tcplistener_tstate_t *ts = tunnelGetState(t);
     tcplistener_lstate_t *ls = lineGetState(l, t);
+    if (ls->io == NULL || wioIsClosed(ls->io))
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
 
     tcplistenerApplyReadPreference(ls);
     if (ls->write_paused)

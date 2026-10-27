@@ -16,6 +16,8 @@
 		A10000000000000000000002 /* SRPWaterWallClient.h in Headers */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* SRPWaterWallClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A10000000000000000000021 /* SRPWaterWallChainConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000023 /* SRPWaterWallChainConfig.m */; };
 		A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A10000000000000000000024 /* SRPWaterWallChainConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A30000000000000000000001 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000011 /* SRPGeoIPDatabase.m */; };
+		A30000000000000000000002 /* SRPGeoIPDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = A30000000000000000000012 /* SRPGeoIPDatabase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */; };
 		59CDE2BE3FF990F4145E4C4D /* SRPOpenVPNClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C2735650B7713FB50B1166F /* SRPOpenVPNClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		63C7EC4805B398A761B6C717 /* SRPSSHClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F880DFCD8A162EA26A588D54 /* SRPSSHClient.m */; };
@@ -119,6 +121,8 @@
 		A10000000000000000000014 /* SRPWaterWallBridge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallBridge.h; sourceTree = "<group>"; };
 		A10000000000000000000023 /* SRPWaterWallChainConfig.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWaterWallChainConfig.m; sourceTree = "<group>"; };
 		A10000000000000000000024 /* SRPWaterWallChainConfig.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallChainConfig.h; sourceTree = "<group>"; };
+		A30000000000000000000011 /* SRPGeoIPDatabase.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPGeoIPDatabase.m; sourceTree = "<group>"; };
+		A30000000000000000000012 /* SRPGeoIPDatabase.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPGeoIPDatabase.h; sourceTree = "<group>"; };
 		02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPPsiphonClient.m; sourceTree = "<group>"; };
 		1C193248F081DA3AE623B197 /* key.c */ = {isa = PBXFileReference; includeInIndex = 1; path = key.c; sourceTree = "<group>"; };
 		29A3B1423B25633AD7867F0D /* SRPWGKeys.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWGKeys.m; sourceTree = "<group>"; };
@@ -309,6 +313,8 @@
 				A10000000000000000000014 /* SRPWaterWallBridge.h */,
 				A10000000000000000000024 /* SRPWaterWallChainConfig.h */,
 				A10000000000000000000023 /* SRPWaterWallChainConfig.m */,
+				A30000000000000000000012 /* SRPGeoIPDatabase.h */,
+				A30000000000000000000011 /* SRPGeoIPDatabase.m */,
 				DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */,
 				02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */,
 			);
@@ -456,6 +462,7 @@
 				9625D59A007B6C1ADE67D9B3 /* SRPAetherClient.h in Headers */,
 				A10000000000000000000002 /* SRPWaterWallClient.h in Headers */,
 				A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */,
+				A30000000000000000000002 /* SRPGeoIPDatabase.h in Headers */,
 				D322DD21A4484AE6B840D582 /* SRPPsiphonClient.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -574,6 +581,7 @@
 				59A10ADC031E0D8A246AB706 /* SRPAetherClient.m in Sources */,
 				A10000000000000000000001 /* SRPWaterWallClient.m in Sources */,
 				A10000000000000000000021 /* SRPWaterWallChainConfig.m in Sources */,
+				A30000000000000000000001 /* SRPGeoIPDatabase.m in Sources */,
 				72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -742,7 +750,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MACH_O_TYPE = staticlib;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
@@ -797,7 +809,11 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MACH_O_TYPE = staticlib;
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";

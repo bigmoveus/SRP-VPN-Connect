@@ -11,10 +11,23 @@
 #import "CheckConnectData.h"
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
+#import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
+
+@interface SRPGeoIPTestStore : SRPGeoIPDatabase
+@property (nonatomic, strong) NSURL *fixtureURL;
+@end
+
+@implementation SRPGeoIPTestStore
+- (NSURL *)bundledDatabaseURL {
+    return _fixtureURL;
+}
+@end
+
 #import <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 #import "HomeProtocolView.h"
+#import <SRPParser/SRPParser.h>
 
 static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     if ([view isKindOfClass:UILabel.class] && [((UILabel *)view).text isEqualToString:text]) {
@@ -300,6 +313,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 - (void)testWaterWallMigrationDefaultsAndLegacyConfigurations {
     NodeModel *empty = [CheckConnectData getModalForDic:@{@"type": @"waterwall"}];
     XCTAssertNotNil(empty);
+    XCTAssertTrue(empty.waterwallFakeDNS);
     XCTAssertNil(empty.waterwallSecretRef);
     XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:empty.waterwallConfigJSON],
                           [SRPWaterWallChainConfig defaultConfiguration]);
@@ -352,7 +366,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
             XCTAssertEqualObjects(byName[@"pts"][@"next"], outer, @"%@", name);
         } else {
             XCTAssertEqualObjects(byName[@"ptc"][@"type"], @"PacketsToConnection", @"%@", name);
-            XCTAssertEqualObjects(byName[@"ptc"][@"next"], application, @"%@", name);
+            XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router", @"%@", name);
             NSDictionary *applicationNode = byName[application];
             XCTAssertEqualObjects(applicationNode[@"type"], [application isEqualToString:@"vless"] ? @"VlessClient" : @"TrojanClient", @"%@", name);
             XCTAssertEqualObjects(applicationNode[@"next"], mux ? @"mux" : outer, @"%@", name);
@@ -524,6 +538,109 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
             XCTAssertEqualObjects(cuts[1][0], @288);
         }
     }
+}
+
+- (void)testGeoIPConfigurationBuildsDirectIranRuleAndKeepsFakeDNS {
+    NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    configuration[@"geoip"] = @{@"iran-direct": @YES, @"update-url": @"https://example.com/GeoLite2-Country.mmdb"};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    NSString *roundTrip = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:roundTrip], configuration);
+    NSString *path = @"/tmp/GeoLite2-Country.mmdb";
+    NSDictionary *root = [self waterWallRootForConfiguration:configuration options:@{
+        @"ww_fake_dns": @YES, @"ww_smart_routing": @YES, @"ww_geoip_db_path": path,
+    }];
+    NSDictionary *byName = [self waterWallNodesByName:root[@"nodes"]];
+    NSDictionary *router = byName[@"router"][@"settings"];
+    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
+    XCTAssertNotNil(byName[@"ptc"][@"settings"][@"fake-dns"]);
+    XCTAssertEqualObjects(router[@"resolve-domains"], @YES);
+    XCTAssertEqualObjects(router[@"geoip-db-path"], path);
+    NSArray *rules = router[@"rules"];
+    XCTAssertEqual(rules.count, 2u);
+    XCTAssertEqualObjects(router[@"rules"][1][@"destination-ip"], @[@"geoip:ir"]);
+    XCTAssertEqualObjects(router[@"rules"][1][@"target"], @"direct-local");
+    XCTAssertEqualObjects(byName[@"direct-local"][@"type"], @"TcpUdpConnector");
+    XCTAssertNil([SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
+                                                            server:@"waterwall.example.com"
+                                                              port:18443
+                                                               sni:@"edge.example.com"
+                                                         verifyTLS:YES
+                                                            secret:@"00112233-4455-6677-8899-aabbccddeeff"
+                                                       outerSecret:@"outer-secret"
+                                                           options:@{@"ww_fake_dns": @YES}]);
+
+    root = [self waterWallRootForConfiguration:[SRPWaterWallChainConfig defaultConfiguration] options:nil];
+    router = [self waterWallNodesByName:root[@"nodes"]][@"router"][@"settings"];
+    XCTAssertNil(router[@"rules"]);
+    XCTAssertEqualObjects(router[@"resolve-domains"], @NO);
+    configuration[@"mode"] = @"direct";
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    configuration[@"geoip"] = @{@"update-url": @"http://example.com/GeoLite2-Country.mmdb"};
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+}
+
+- (void)testGeoIPDatabaseValidationAndAtomicReplacement {
+    NSURL *fixture = [NSURL fileURLWithPath:[[NSString stringWithUTF8String:__FILE__].stringByDeletingLastPathComponent
+        stringByAppendingPathComponent:@"../SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"]];
+    NSString *directory = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil]);
+    SRPGeoIPTestStore *store = [[SRPGeoIPTestStore alloc] initWithDirectory:[NSURL fileURLWithPath:directory isDirectory:YES]];
+    store.fixtureURL = fixture;
+    NSError *error = nil;
+    XCTAssertTrue([store validateDatabaseAtURL:fixture error:&error], @"%@", error);
+    XCTAssertTrue([store installBundledDatabaseIfNeeded:&error], @"%@", error);
+    XCTAssertEqualObjects(store.currentDatabaseURL, store.databaseURL);
+    NSData *original = [NSData dataWithContentsOfURL:store.databaseURL];
+    XCTAssertNotNil(original);
+    XCTAssertEqualObjects([store databaseInfo][@"source"], @"Updated");
+    XCTAssertTrue([[store databaseInfo][@"type"] containsString:@"Country"]);
+
+    NSURL *invalid = [NSURL fileURLWithPath:[directory stringByAppendingPathComponent:@"invalid.mmdb"]];
+    XCTAssertTrue([@"not a MaxMind database" writeToURL:invalid atomically:YES encoding:NSUTF8StringEncoding error:nil]);
+    error = nil;
+    XCTAssertFalse([store installDatabaseAtURL:invalid error:&error]);
+    XCTAssertNotNil(error);
+    XCTAssertEqualObjects([NSData dataWithContentsOfURL:store.databaseURL], original);
+
+    NSURL *oversized = [NSURL fileURLWithPath:[directory stringByAppendingPathComponent:@"oversized.mmdb"]];
+    XCTAssertTrue([NSFileManager.defaultManager createFileAtPath:oversized.path contents:nil attributes:nil]);
+    NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:oversized.path];
+    [handle truncateFileAtOffset:129ULL * 1024ULL * 1024ULL];
+    [handle closeFile];
+    XCTAssertFalse([store installDatabaseAtURL:oversized error:nil]);
+    XCTAssertEqualObjects([NSData dataWithContentsOfURL:store.databaseURL], original);
+    [NSFileManager.defaultManager removeItemAtPath:directory error:nil];
+}
+
+- (void)testGeoIPRejectsInvalidDownloadLink {
+    for (NSString *value in @[@"http://example.com/db.mmdb", @"https://username@example.com/db.mmdb"]) {
+        SRPGeoIPDatabase *store = [[SRPGeoIPDatabase alloc] initWithDirectory:[NSURL fileURLWithPath:NSTemporaryDirectory()]];
+        XCTestExpectation *expectation = [self expectationWithDescription:@"Reject unsafe GeoIP URL"];
+        [store downloadDatabaseFromURLString:value completion:^(NSError *error) {
+            XCTAssertEqualObjects(error.domain, SRPGeoIPDatabaseErrorDomain);
+            XCTAssertEqual(error.code, SRPGeoIPDatabaseErrorInvalidURL);
+            [expectation fulfill];
+        }];
+        [self waitForExpectations:@[expectation] timeout:2];
+    }
+}
+
+- (void)testGeoIPDownloadFromConfiguredHTTPS {
+    NSString *url = NSProcessInfo.processInfo.environment[@"SRP_GEOIP_TEST_URL"];
+    XCTSkipIf(url.length == 0, @"Set SRP_GEOIP_TEST_URL to run the real HTTPS download test.");
+    NSString *directory = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+    SRPGeoIPDatabase *store = [[SRPGeoIPDatabase alloc] initWithDirectory:[NSURL fileURLWithPath:directory isDirectory:YES]];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Download and validate country MMDB"];
+    [store downloadDatabaseFromURLString:url completion:^(NSError *error) {
+        XCTAssertNil(error, @"%@", error);
+        [expectation fulfill];
+    }];
+    [self waitForExpectations:@[expectation] timeout:45];
+    NSError *error = nil;
+    XCTAssertTrue([store validateDatabaseAtURL:store.databaseURL error:&error], @"%@", error);
+    [NSFileManager.defaultManager removeItemAtPath:directory error:nil];
 }
 
 - (void)testWaterWallLogLevelsAndSeparateAEADOuterSecret {
@@ -849,28 +966,40 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     configuration[@"node-options"] = @{@"obfuscator": @{@"tls_record_header": @YES}, @"kcp": @{@"mtu": @1400}};
     NSDictionary *root = [self waterWallRootForConfiguration:configuration options:nil];
     NSArray *nodes = root[@"nodes"];
-    NSArray *names = @[@"ne", @"ptc", @"vless", @"mux", @"obfuscator", @"http", @"reality", @"kcp", @"connector"];
-    NSArray *types = @[@"NEPacketDevice", @"PacketsToConnection", @"VlessClient", @"MuxClient", @"ObfuscatorClient",
+    NSArray *names = @[@"ne", @"ptc", @"vless", @"router", @"mux", @"obfuscator", @"http", @"reality", @"kcp", @"connector"];
+    NSArray *types = @[@"NEPacketDevice", @"PacketsToConnection", @"VlessClient", @"Router", @"MuxClient", @"ObfuscatorClient",
                        @"HttpClient", @"RealityClient", @"TcpOverUdpClient", @"UdpConnector"];
     XCTAssertEqual(nodes.count, names.count);
     for (NSUInteger index = 0; index < names.count; index++) {
         XCTAssertEqualObjects(nodes[index][@"name"], names[index]);
         XCTAssertEqualObjects(nodes[index][@"type"], types[index]);
-        if (index + 1 < names.count) XCTAssertEqualObjects(nodes[index][@"next"], names[index + 1]);
+        if (index + 1 < names.count) {
+            NSString *expectedNext;
+            if ([nodes[index][@"name"] isEqualToString:@"ptc"]) {
+                expectedNext = names[index + 2];
+            } else if ([nodes[index][@"name"] isEqualToString:@"router"]) {
+                expectedNext = names[index - 1];
+            } else if ([nodes[index][@"name"] isEqualToString:configuration[@"application"]]) {
+                expectedNext = names[index + 2];
+            } else {
+                expectedNext = names[index + 1];
+            }
+            XCTAssertEqualObjects(nodes[index][@"next"], expectedNext);
+        }
     }
-    NSDictionary *http = nodes[5][@"settings"];
+    NSDictionary *http = nodes[6][@"settings"];
     XCTAssertEqualObjects(http[@"host"], @"edge.example.com");
     XCTAssertEqualObjects(http[@"path"], @"/");
     XCTAssertEqualObjects(http[@"scheme"], @"https");
     XCTAssertEqualObjects(http[@"port"], @18443);
     XCTAssertEqualObjects(http[@"http-version"], @2);
     XCTAssertEqualObjects(http[@"websocket"], @YES);
-    XCTAssertEqualObjects(nodes[6][@"settings"][@"alpns"], (@[@"h2"]));
-    XCTAssertEqualObjects(nodes[4][@"settings"][@"method"], @"xor");
-    XCTAssertEqualObjects(nodes[4][@"settings"][@"xor_key"], @90);
-    XCTAssertEqualObjects(nodes[4][@"settings"][@"skip"], @"none");
-    XCTAssertEqualObjects(nodes[4][@"settings"][@"tls_record_header"], @YES);
-    XCTAssertEqualObjects(nodes[7][@"settings"][@"mtu"], @1400);
+    XCTAssertEqualObjects(nodes[7][@"settings"][@"alpns"], (@[@"h2"]));
+    XCTAssertEqualObjects(nodes[5][@"settings"][@"method"], @"xor");
+    XCTAssertEqualObjects(nodes[5][@"settings"][@"xor_key"], @90);
+    XCTAssertEqualObjects(nodes[5][@"settings"][@"skip"], @"none");
+    XCTAssertEqualObjects(nodes[5][@"settings"][@"tls_record_header"], @YES);
+    XCTAssertEqualObjects(nodes[8][@"settings"][@"mtu"], @1400);
     XCTAssertNil(nodes.lastObject[@"settings"][@"protocol"]);
 
     configuration[@"http-version"] = @1;
@@ -878,21 +1007,21 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     configuration[@"node-options"] = @{@"obfuscator": @{@"tls_record_header": @YES}};
     root = [self waterWallRootForConfiguration:configuration options:nil];
     nodes = root[@"nodes"];
-    XCTAssertEqualObjects(nodes[6][@"settings"][@"alpns"], (@[@"http/1.1"]));
+    XCTAssertEqualObjects(nodes[7][@"settings"][@"alpns"], (@[@"http/1.1"]));
     XCTAssertEqualObjects(nodes.lastObject[@"type"], @"TcpConnector");
 }
 
 - (void)testWaterWallNoneKCPAndQUICCarrierGraphs {
     NSMutableDictionary *none = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"none"] mutableCopy];
     NSArray *nodes = [self waterWallRootForConfiguration:none options:nil][@"nodes"];
-    XCTAssertEqual(nodes.count, 4);
+    XCTAssertEqual(nodes.count, 5);
     XCTAssertEqualObjects(nodes[2][@"next"], @"connector");
     XCTAssertEqualObjects(nodes.lastObject[@"type"], @"TcpConnector");
     XCTAssertNil(nodes.lastObject[@"settings"][@"protocol"]);
     none[@"http"] = @"http";
     nodes = [self waterWallRootForConfiguration:none options:nil][@"nodes"];
-    XCTAssertEqualObjects(nodes[3][@"type"], @"HttpClient");
-    XCTAssertEqualObjects(nodes[3][@"settings"][@"scheme"], @"http");
+    XCTAssertEqualObjects(nodes[4][@"type"], @"HttpClient");
+    XCTAssertEqualObjects(nodes[4][@"settings"][@"scheme"], @"http");
 
     NSMutableDictionary *rawKCP = [[self waterWallConfigurationWithInput:@"raw-ipv4" application:@"" mux:NO outer:@"none" nodeOptions:@{}] mutableCopy];
     rawKCP[@"carrier"] = @"kcp";
@@ -905,12 +1034,12 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSMutableDictionary *stream = [[self waterWallConfigurationWithApplication:@"vless" mux:YES outer:@"quic"] mutableCopy];
     stream[@"quic-carrier"] = @"stream";
     nodes = [self waterWallRootForConfiguration:stream options:nil][@"nodes"];
-    XCTAssertEqualObjects(nodes[4][@"settings"][@"carrier-mode"], @"stream");
+    XCTAssertEqualObjects(nodes[5][@"settings"][@"carrier-mode"], @"stream");
     XCTAssertEqualObjects(nodes.lastObject[@"type"], @"TcpConnector");
     stream[@"mux"] = @NO;
     stream[@"quic-carrier"] = @"datagram";
     nodes = [self waterWallRootForConfiguration:stream options:nil][@"nodes"];
-    XCTAssertEqualObjects(nodes[3][@"settings"][@"carrier-mode"], @"datagram");
+    XCTAssertEqualObjects(nodes[4][@"settings"][@"carrier-mode"], @"datagram");
     XCTAssertEqualObjects(nodes.lastObject[@"type"], @"UdpConnector");
     stream[@"http"] = @"http";
     XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:stream]);
@@ -964,6 +1093,14 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     kcp[@"carrier"] = @"kcp";
     kcp[@"node-options"] = @{@"kcp": validKCP};
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:kcp]);
+    NSDictionary *kcpByName = [self waterWallNodesByName:[self waterWallRootForConfiguration:kcp options:nil][@"nodes"]];
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-recv-window"], @100);
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-buffer-limit"], @0);
+    kcp[@"node-options"] = @{};
+    kcpByName = [self waterWallNodesByName:[self waterWallRootForConfiguration:kcp options:nil][@"nodes"]];
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-recv-window"], @512);
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-buffer-limit"], @512);
+    kcp[@"node-options"] = @{@"kcp": validKCP};
     NSArray *invalidKCP = @[@{@"mtu": @77}, @{@"mtu": @85, @"fec": @YES}, @{@"fec-data-shards": @0},
         @{@"fec-data-shards": @255, @"fec-parity-shards": @1}, @{@"kcp-interval-ms": @9}, @{@"kcp-resend": @-1},
         @{@"kcp-send-window": @0}, @{@"kcp-initial-cwnd": @9000}, @{@"kcp-rx-minrto-ms": @0},
@@ -1184,14 +1321,14 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
                                                                server:@"waterwall.example.com" port:443 sni:nil
                                                             verifyTLS:YES secret:uuid outerSecret:nil options:nil];
     NSArray *nodes = [self waterWallJSONObject:json][@"nodes"];
-    XCTAssertEqualObjects([nodes valueForKey:@"type"], (@[@"NEPacketDevice", @"PacketsToConnection", @"VmessClient",
+    XCTAssertEqualObjects([nodes valueForKey:@"type"], (@[@"NEPacketDevice", @"PacketsToConnection", @"VmessClient", @"Router",
                                                            @"MuxClient", @"HttpClient", @"TlsClient", @"TcpConnector"]));
     XCTAssertEqualObjects(nodes[2][@"settings"][@"uuid"], uuid);
     XCTAssertEqualObjects(nodes[2][@"settings"][@"security"], @"chacha20-poly1305");
     XCTAssertEqualObjects(nodes[2][@"settings"][@"protocol"], @"dest_context->protocol");
-    XCTAssertEqualObjects(nodes[3][@"next"], @"http");
-    XCTAssertEqualObjects(nodes[4][@"next"], @"tls");
-    XCTAssertEqualObjects(nodes[5][@"settings"][@"alpns"], (@[@"http/1.1"]));
+    XCTAssertEqualObjects(nodes[3][@"next"], @"vmess");
+    XCTAssertEqualObjects(nodes[4][@"next"], @"http");
+    XCTAssertEqualObjects(nodes[6][@"settings"][@"alpns"], (@[@"http/1.1"]));
 
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForApplicationSecret:uuid forConfiguration:configuration]);
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForApplicationSecret:@"waterwall" forConfiguration:configuration]);
@@ -1245,7 +1382,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
                                                            outerSecret:nil
                                                                options:@{@"username": @"test-user"}];
     NSDictionary *byName = [self waterWallNodesByName:[self waterWallJSONObject:json][@"nodes"]];
-    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"socks5");
+    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
     XCTAssertEqualObjects(byName[@"socks5"][@"type"], @"Socks5Client");
     XCTAssertEqualObjects(byName[@"socks5"][@"settings"][@"address"], @"dest_context->address");
     XCTAssertEqualObjects(byName[@"socks5"][@"settings"][@"port"], @"dest_context->port");
@@ -1324,10 +1461,264 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertFalse([SRPProfileLatencyTester isSuccessfulResponse:nil error:nil]);
 }
 
+- (void)testWaterWallBGP4UsesTheRegisteredOuterChain {
+    NSDictionary *configuration = [self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"bgp4"];
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    XCTAssertFalse([SRPWaterWallChainConfig configurationUsesTLS:configuration]);
+    XCTAssertFalse([SRPWaterWallChainConfig configurationNeedsOuterSecret:configuration]);
+    XCTAssertEqualObjects([SRPWaterWallChainConfig summaryForConfiguration:configuration], @"VLESS + BGP4");
+
+    NSDictionary *root = [self waterWallRootForConfiguration:configuration options:@{@"ww_smart_routing": @YES}];
+    NSDictionary *byName = [self waterWallNodesByName:root[@"nodes"]];
+    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
+    XCTAssertEqualObjects(byName[@"ptc"][@"settings"][@"fake-dns"][@"enabled"], @YES);
+    XCTAssertEqualObjects(byName[@"ptc"][@"settings"][@"fake-dns"][@"address"], @"198.18.0.2");
+    XCTAssertEqualObjects(byName[@"router"][@"settings"][@"resolve-domains"], @NO);
+    XCTAssertEqualObjects(byName[@"router"][@"next"], @"vless");
+    XCTAssertEqualObjects(byName[@"vless"][@"next"], @"bgp4");
+    XCTAssertEqualObjects(byName[@"bgp4"][@"type"], @"Bgp4Client");
+    XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"connector");
+    XCTAssertEqualObjects(byName[@"connector"][@"type"], @"TcpConnector");
+    XCTAssertNil(byName[@"bgp4"][@"settings"][@"sni"]);
+    XCTAssertNil(byName[@"bgp4"][@"settings"][@"verify"]);
+    XCTAssertNil(byName[@"bgp4"][@"settings"][@"password"]);
+    XCTAssertEqual([byName[@"router"][@"settings"][@"rules"] count], 1u);
+
+    root = [self waterWallRootForConfiguration:configuration options:nil];
+    byName = [self waterWallNodesByName:root[@"nodes"]];
+    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
+    XCTAssertEqualObjects(byName[@"router"][@"next"], @"vless");
+    XCTAssertNil(byName[@"router"][@"settings"][@"rules"]);
+    XCTAssertNil(byName[@"direct-local"]);
+
+    root = [self waterWallRootForConfiguration:configuration options:@{@"ww_fake_dns": @NO}];
+    byName = [self waterWallNodesByName:root[@"nodes"]];
+    XCTAssertNil(byName[@"ptc"][@"settings"][@"fake-dns"]);
+
+    NSMutableDictionary *kcp = [configuration mutableCopy];
+    kcp[@"carrier"] = @"kcp";
+    root = [self waterWallRootForConfiguration:kcp options:nil];
+    byName = [self waterWallNodesByName:root[@"nodes"]];
+    XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"kcp");
+    XCTAssertEqualObjects(byName[@"kcp"][@"type"], @"TcpOverUdpClient");
+    XCTAssertEqualObjects(byName[@"connector"][@"type"], @"UdpConnector");
+    XCTAssertEqualObjects([SRPWaterWallChainConfig summaryForConfiguration:kcp], @"VLESS + BGP4 + KCP");
+}
+
+- (void)testWaterWallBGP4IndependentComposition {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"tls"] mutableCopy];
+    configuration[@"bgp4"] = @YES;
+    configuration[@"carrier"] = @"kcp";
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    XCTAssertEqualObjects([SRPWaterWallChainConfig summaryForConfiguration:configuration], @"VLESS + BGP4 + TLS + KCP");
+    NSString *json = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:json][@"bgp4"], @YES);
+    NSDictionary *byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"vless"][@"next"], @"bgp4");
+    XCTAssertEqualObjects(byName[@"bgp4"][@"type"], @"Bgp4Client");
+    XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"tls");
+    XCTAssertEqualObjects(byName[@"tls"][@"next"], @"kcp");
+    XCTAssertEqualObjects(byName[@"connector"][@"type"], @"UdpConnector");
+    XCTAssertEqual([byName.allValues filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSDictionary *node, NSDictionary *bindings) {
+        (void)bindings;
+        return [node[@"type"] isEqualToString:@"Bgp4Client"];
+    }]].count, 1u);
+
+    configuration[@"outer"] = @"bgp4";
+    byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]];
+    XCTAssertEqual([byName.allValues filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSDictionary *node, NSDictionary *bindings) {
+        (void)bindings;
+        return [node[@"type"] isEqualToString:@"Bgp4Client"];
+    }]].count, 1u);
+
+    configuration[@"outer"] = @"quic";
+    configuration[@"carrier"] = @"tcp";
+    configuration[@"quic-carrier"] = @"datagram";
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    configuration[@"quic-carrier"] = @"stream";
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"quic");
+    configuration[@"mode"] = @"direct";
+    XCTAssertEqualObjects(configuration[@"mode"], @"direct");
+    XCTAssertEqualObjects(configuration[@"bgp4"], @YES);
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    configuration[@"mode"] = @"wireguard";
+    XCTAssertEqualObjects(configuration[@"mode"], @"wireguard");
+    XCTAssertEqualObjects(configuration[@"bgp4"], @YES);
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    configuration[@"bgp4"] = @1;
+    XCTAssertEqualObjects(configuration[@"bgp4"], @1);
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+}
+
 #if TARGET_OS_IPHONE
+- (BOOL)waterWallLiveHTTPS204:(NodeModel *)model {
+    XCTestExpectation *expectation = [self expectationWithDescription:@"HTTPS 204 through WaterWall"];
+    __block NSString *result;
+    SRPProfileLatencyTester *tester = [SRPProfileLatencyTester new];
+    [tester measureProfile:model update:^(NSString *nodeID, NSString *text) {
+        (void)nodeID;
+        result = text;
+    } finished:^{
+        [expectation fulfill];
+    }];
+    [self waitForExpectations:@[expectation] timeout:35];
+    return [result hasPrefix:@"Ping:"];
+}
+
+- (void)testWaterWallLiveConnectionAndThroughputWhenConfigured {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_BGP4_LIVE_TEST"] isEqualToString:@"1"]) return;
+    NSString *address = environment[@"SRP_BGP4_SERVER"];
+    NSString *port = environment[@"SRP_BGP4_PORT"];
+    NSString *uuid = environment[@"SRP_BGP4_UUID"];
+    NSString *carrier = environment[@"SRP_BGP4_CARRIER"] ?: @"tcp";
+    NSString *application = environment[@"SRP_WW_APPLICATION"] ?: @"vless";
+    NSString *outer = environment[@"SRP_WW_OUTER"] ?: @"bgp4";
+    if (address.length == 0 || uuid.length == 0 || port.integerValue < 1 || port.integerValue > 65535 ||
+        ![@[@"tcp", @"kcp"] containsObject:carrier] || ![@[@"vless", @"vmess"] containsObject:application] ||
+        ![@[@"none", @"tls", @"bgp4"] containsObject:outer]) {
+        XCTFail(@"Live testing requires valid server, UUID, application, outer and carrier settings.");
+        return;
+    }
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
+        manager.status == YDVPNStatusDisconnecting) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.nodeId = @"live-waterwall-test";
+    model.desc = @"WaterWall live test";
+    model.server = address;
+    model.port = port;
+    model.password = uuid;
+    model.customSni = environment[@"SRP_WW_SNI"];
+    model.TLS = [environment[@"SRP_WW_INSECURE"] boolValue];
+    model.logLevel = 2;
+    model.waterwallFakeDNS = YES;
+    model.waterwallSmartRouting = YES;
+    NSDictionary *nodeOptions = @{};
+    NSString *nodeOptionsJSON = environment[@"SRP_WW_NODE_OPTIONS"];
+    if (nodeOptionsJSON.length > 0) {
+        NSError *parseError = nil;
+        id parsed = [NSJSONSerialization JSONObjectWithData:[nodeOptionsJSON dataUsingEncoding:NSUTF8StringEncoding]
+                                                    options:0
+                                                      error:&parseError];
+        if (![parsed isKindOfClass:NSDictionary.class]) {
+            XCTFail(@"Invalid SRP_WW_NODE_OPTIONS: %@", parseError);
+            return;
+        }
+        nodeOptions = parsed;
+    }
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{
+        @"version": @3, @"mode": @"chain", @"input": @"connections", @"application": application,
+        @"mux": @NO, @"outer": outer, @"http": @"off", @"http-version": @1,
+        @"obfuscator": @NO, @"carrier": carrier, @"quic-carrier": @"datagram", @"node-options": nodeOptions,
+        @"bgp4": @([environment[@"SRP_WW_BGP4"] boolValue])
+    }];
+    NSDictionary *server = [CheckConnectData checkConnectParmer:model];
+    __block BOOL issuedStart = NO;
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    NSDate *startedAt = NSDate.date;
+    XCTNSNotificationExpectation *stateChange =
+        [[XCTNSNotificationExpectation alloc] initWithName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
+    stateChange.handler = ^BOOL(NSNotification *notification) {
+        (void)notification;
+        if (!issuedStart) return NO;
+        if (manager.status == YDVPNStatusConnected) return YES;
+        if (manager.status != YDVPNStatusDisconnected) return NO;
+        NSDate *date = [shared objectForKey:@"SRPLastError"][@"date"];
+        return [date isKindOfClass:NSDate.class] && [date compare:startedAt] != NSOrderedAscending;
+    };
+    issuedStart = YES;
+    BOOL started = [manager connectUsing:server auth:^(YDUnsafeAuthResponse response) {
+        if (response) response(NO);
+    }];
+    if (!started) {
+        XCTFail(@"The app rejected the generated WaterWall profile.");
+        return;
+    }
+    [self waitForExpectations:@[stateChange] timeout:75];
+    if (manager.status != YDVPNStatusConnected) {
+        NSString *message = [[[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"] objectForKey:@"SRPLastError"][@"message"];
+        [manager disconnect];
+        XCTFail(@"WaterWall did not connect: %@", message ?: @"connection status timed out");
+        return;
+    }
+    if (![self waterWallLiveHTTPS204:model]) {
+        [manager disconnect];
+        XCTFail(@"WaterWall did not return an HTTPS 204 response.");
+        return;
+    }
+
+    long long stressBytes = [environment[@"SRP_WW_STRESS_BYTES"] longLongValue];
+    if (stressBytes > 0) {
+        NSString *urlString = environment[@"SRP_WW_STRESS_URL"];
+        NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
+        if (urlString.length == 0 || connections < 1 || connections > 8 || stressBytes > 512 * 1024 * 1024) {
+            [manager disconnect];
+            XCTFail(@"The stress URL and one to eight connections are required.");
+            return;
+        }
+        NSURL *baseURL = [NSURL URLWithString:urlString];
+        XCTestExpectation *load = [self expectationWithDescription:@"Parallel WaterWall downloads"];
+        load.expectedFulfillmentCount = connections;
+        __block unsigned long long downloaded = 0;
+        __block NSMutableArray<NSString *> *errors = [NSMutableArray new];
+        NSLock *resultsLock = [NSLock new];
+        NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+        configuration.HTTPMaximumConnectionsPerHost = connections;
+        configuration.timeoutIntervalForResource = 120;
+        NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+        id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
+                                                                          object:nil
+                                                                           queue:nil
+                                                                      usingBlock:^(NSNotification *notification) {
+            (void)notification;
+            if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
+        }];
+        for (NSUInteger index = 0; index < connections; index++) {
+            NSURLComponents *components = [NSURLComponents componentsWithURL:baseURL resolvingAgainstBaseURL:NO];
+            components.queryItems = [components.queryItems ?: @[] arrayByAddingObject:
+                [NSURLQueryItem queryItemWithName:@"srp-live" value:@(index).stringValue]];
+            [[session downloadTaskWithURL:components.URL completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+                unsigned long long size = [(NSNumber *)[NSFileManager.defaultManager attributesOfItemAtPath:location.path error:nil][NSFileSize] unsignedLongLongValue];
+                NSInteger statusCode = [response isKindOfClass:NSHTTPURLResponse.class] ? ((NSHTTPURLResponse *)response).statusCode : 0;
+                NSLog(@"WaterWall download %lu: %llu bytes, HTTP %ld, error: %@",
+                      (unsigned long)index, size, (long)statusCode, error.localizedDescription ?: @"none");
+                [resultsLock lock];
+                downloaded += size;
+                if (error != nil) [errors addObject:error.localizedDescription];
+                else if (statusCode != 200) [errors addObject:[NSString stringWithFormat:@"HTTP %ld", (long)statusCode]];
+                else if (size < (unsigned long long)stressBytes) [errors addObject:@"Short download"];
+                [resultsLock unlock];
+                [load fulfill];
+            }] resume];
+        }
+        [self waitForExpectations:@[load] timeout:180];
+        [NSNotificationCenter.defaultCenter removeObserver:lostObserver];
+        [session invalidateAndCancel];
+        if (manager.status != YDVPNStatusConnected) {
+            [manager disconnect];
+            XCTFail(@"WaterWall disconnected during the throughput test.");
+            return;
+        }
+        XCTAssertEqual(errors.count, 0u, @"%@", errors);
+        XCTAssertGreaterThanOrEqual(downloaded, (unsigned long long)(stressBytes * (long long)connections));
+    }
+    BOOL responsive = [self waterWallLiveHTTPS204:model];
+    [manager disconnect];
+    XCTAssertTrue(responsive, @"WaterWall did not return HTTPS 204 after the throughput test.");
+}
+
 - (void)testProfileLatencyCardLayout {
+    Class viewClass = NSClassFromString(@"HomeProtocolView");
+    XCTAssertNotNil(viewClass);
     for (NSNumber *width in @[@320, @390, @1024]) {
-        HomeProtocolView *cell = [[HomeProtocolView alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+        HomeProtocolView *cell = [[viewClass alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.frame = CGRectMake(0, 0, width.doubleValue, 140);
         [cell configureWithTitle:@"Test profile"
                         subtitle:@"server.example.com:443"
@@ -1346,5 +1737,48 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     }
 }
 #endif
+
+- (void)testWaterWallMatrixGenerationForLocalTesting {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    NSString *inputPath = environment[@"SRP_MATRIX_INPUT"];
+    NSString *outputPath = environment[@"SRP_MATRIX_OUTPUT"];
+    XCTSkipIf(inputPath.length == 0 && outputPath.length == 0,
+              @"Set SRP_MATRIX_INPUT and SRP_MATRIX_OUTPUT to generate configurations with the app builder.");
+    XCTAssertTrue(inputPath.length > 0 && outputPath.length > 0);
+    if (inputPath.length == 0 || outputPath.length == 0) return;
+    NSError *error = nil;
+    NSData *input = [NSData dataWithContentsOfFile:inputPath options:0 error:&error];
+    XCTAssertNotNil(input, @"%@", error);
+    if (input == nil) return;
+    id inputJSON = [NSJSONSerialization JSONObjectWithData:input options:0 error:&error];
+    XCTAssertTrue([inputJSON isKindOfClass:NSArray.class], @"%@", error);
+    if (![inputJSON isKindOfClass:NSArray.class]) return;
+    NSMutableArray *results = [NSMutableArray new];
+    for (id entry in (NSArray *)inputJSON) {
+        XCTAssertTrue([entry isKindOfClass:NSDictionary.class]);
+        if (![entry isKindOfClass:NSDictionary.class]) return;
+        NSDictionary *caseInput = entry;
+        NSString *nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:caseInput[@"configuration"]
+            server:caseInput[@"server"]
+            port:[caseInput[@"port"] integerValue]
+            sni:caseInput[@"sni"]
+            verifyTLS:caseInput[@"verifyTLS"] == nil || [caseInput[@"verifyTLS"] boolValue]
+            secret:caseInput[@"secret"]
+            outerSecret:caseInput[@"outerSecret"]
+            options:caseInput[@"options"]];
+        XCTAssertNotNil(nodesJSON, @"Builder rejected matrix input %@", caseInput[@"configuration"]);
+        if (nodesJSON == nil) return;
+        NSDictionary *nodes = [NSJSONSerialization JSONObjectWithData:[nodesJSON dataUsingEncoding:NSUTF8StringEncoding]
+                                                               options:0
+                                                                 error:&error];
+        XCTAssertNotNil(nodes, @"%@", error);
+        if (nodes == nil) return;
+        [results addObject:nodes];
+    }
+    NSData *output = [NSJSONSerialization dataWithJSONObject:results options:NSJSONWritingPrettyPrinted error:&error];
+    XCTAssertNotNil(output, @"%@", error);
+    if (output == nil) return;
+    XCTAssertTrue([output writeToFile:outputPath options:NSDataWritingAtomic error:&error], @"%@", error);
+}
 
 @end

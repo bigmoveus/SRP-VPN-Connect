@@ -216,9 +216,9 @@ Outgoing stream payload is split into KCP-friendly chunks, tagged as data frames
 
 ### Close and timeout behavior
 
-If a close frame is received from the remote peer, `TcpOverUdpServer` destroys line state and finishes both directions.
+A remote close flushes its KCP acknowledgement and is propagated to the service-facing side. No further application input is accepted afterward.
 
-If the service-facing side finishes, `TcpOverUdpServer` sends a close frame over KCP, flushes KCP output, destroys line state, and finishes the previous side.
+A service-facing Finish admits one close frame and stops further application output, while already received input can still drain. The node retains KCP and transport state until the send queue is acknowledged or `no-recv-timeout-ms` expires, then finishes the previous side. Downstream Pause/Resume can hold application delivery during this window without stopping KCP acknowledgement and retransmission.
 
 Idle handling is the same basic model as the client side:
 

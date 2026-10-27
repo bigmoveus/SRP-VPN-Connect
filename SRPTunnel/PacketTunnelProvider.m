@@ -1,6 +1,7 @@
 
 #import "PacketTunnelProvider.h"
 #import <SRPCore/SRPCore.h>
+#import <SRPCore/SRPGeoIPDatabase.h>
 #import <SRPParser/SRPParser.h>
 #import "SRPKeychain.h"
 #import <arpa/inet.h>
@@ -816,6 +817,20 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The WaterWall configuration is invalid."}]);
         return;
     }
+    if ([configuration[@"geoip"][@"iran-direct"] boolValue]) {
+        NSURL *databaseURL = SRPGeoIPDatabase.sharedDatabase.currentDatabaseURL;
+        NSError *databaseError = nil;
+        if (databaseURL == nil || ![SRPGeoIPDatabase.sharedDatabase validateDatabaseAtURL:databaseURL error:&databaseError]) {
+            NSString *message = databaseError.localizedDescription ?: @"A valid GeoIP country database is required.";
+            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{
+                NSLocalizedDescriptionKey: [@"GeoIP is enabled but its database is unavailable: " stringByAppendingString:message]
+            }]);
+            return;
+        }
+        NSMutableDictionary *options = [v mutableCopy];
+        options[@"ww_geoip_db_path"] = databaseURL.path;
+        v = options;
+    }
 #if DEBUG
     if ([v[@"ww_test_id"] length] > 0) {
         NSURL *container = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
@@ -883,7 +898,8 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     client.nodesJSON = nodesJSON;
     client.remoteAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
     client.probeAddress = [v[@"ww_probe_ip"] length] > 0 ? v[@"ww_probe_ip"] : @"1.1.1.1";
-    BOOL fakeDNS = [v[@"ww_fake_dns"] boolValue] && [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
+    BOOL fakeDNS = (v[@"ww_fake_dns"] == nil || [v[@"ww_fake_dns"] boolValue]) &&
+                   [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
     client.dnsProbeAddress = fakeDNS ? @"198.18.0.2" :
                              [v[@"ww_dns_probe_ip"] length] > 0 ? v[@"ww_dns_probe_ip"] : client.probeAddress;
     if (fakeDNS) client.dnsServers = @[@"198.18.0.2"];

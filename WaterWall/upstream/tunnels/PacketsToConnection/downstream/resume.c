@@ -11,8 +11,14 @@ void ptcTunnelDownStreamResume(tunnel_t *t, line_t *l)
         return;
     }
 
+    LOGD("PacketsToConnection: resume requested kind=%u", (unsigned int) ls->kind);
     ls->read_paused = false;
 
+    if (ls->kind == kPtcLineKindUdp)
+    {
+        ptcFlushInitialUdp(t, l);
+        return;
+    }
     if (ls->kind != kPtcLineKindTcp || ls->read_paused_len == 0)
     {
         return;

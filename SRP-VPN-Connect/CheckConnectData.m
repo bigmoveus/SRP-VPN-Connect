@@ -278,7 +278,7 @@
         }
         modal.waterwallProbeIP = selectDic[@"ww_probe_ip"];
         modal.waterwallDNSProbeIP = selectDic[@"ww_dns_probe_ip"];
-        modal.waterwallFakeDNS = [selectDic[@"ww_fake_dns"] boolValue];
+        modal.waterwallFakeDNS = selectDic[@"ww_fake_dns"] != nil ? [selectDic[@"ww_fake_dns"] boolValue] : YES;
         modal.waterwallSmartRouting = [selectDic[@"ww_smart_routing"] boolValue];
         modal.psiphonMode = selectDic[@"psi_mode"];
         modal.psiphonServerEntry = selectDic[@"psi_entry"];

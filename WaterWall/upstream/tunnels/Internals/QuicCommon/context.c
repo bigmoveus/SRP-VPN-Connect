@@ -58,7 +58,7 @@ static void quicCarrierDeallocate(void *owner, void *pointer, size_t length)
     bufferbudgetRelease(&context->input_budget, (buffer_budget_cost_t) {.charge = length, .entries = 1});
 }
 
-static void quicDetach(quic_context_t *context)
+void quicDetach(quic_context_t *context)
 {
     assert(context->attached);
     context->attached = false;
@@ -102,6 +102,7 @@ void quicFail(quic_context_t *context, const char *reason)
     bool           finish_down      = context->finish_down;
     quic_tstate_t *state            = tunnelGetState(t);
     LOGW("%s: closing association: %s", state->client ? "QuicClient" : "QuicServer", reason);
+    quicReleaseFinalDrain(context);
     quicDetach(context);
     if (next_initialized && ! finish_down)
     {
@@ -197,9 +198,13 @@ quic_finish_scope_t quicBeginFinish(tunnel_t *t, line_t *l, quic_finish_side_t s
         context->finish_down = true;
     }
     quicCancelTimer(context);
-    if (was_finishing)
+    if (context->final_flush)
     {
-        // The other still-open side finished during final wire delivery.
+        quicArm(context, true);
+        return scope;
+    }
+    if (was_finishing && mode != kQuicFinishFlushApplication)
+    {
         quicDetach(context);
     }
     else
@@ -210,6 +215,21 @@ quic_finish_scope_t quicBeginFinish(tunnel_t *t, line_t *l, quic_finish_side_t s
         }
         if (quicSurvived(context))
         {
+            if (mode == kQuicFinishFlushApplication)
+            {
+                ww_quic_storage_t storage;
+                ww_quic_engine_storage(context->engine, &storage);
+                if (storage.send_bytes > 0 || storage.plaintext_bytes > 0 || context->active_application != NULL ||
+                    bufferqueueGetBufCount(&context->application) > 0)
+                {
+                    context->final_flush       = true;
+                    context->final_deadline_us = ww_quic_now_us() + 5000000;
+                    context->close_drain_held  = true;
+                    lineBeginCloseDrain(context->line);
+                    quicArm(context, true);
+                    return scope;
+                }
+            }
             scope.forward = sender == kQuicFinishFromNext || context->next_init_sent;
             quicDetach(context);
         }
@@ -242,10 +262,16 @@ void quicQuiesceWorker(tunnel_t *t, wid_t wid)
 {
     assert(currentThreadOwnsWorker(wid));
     quic_tstate_t *state = tunnelGetState(t);
-    for (quic_context_t *session = state->workers[wid]; session != NULL; session = session->next)
+    while (state->workers[wid] != NULL)
     {
+        quic_context_t *session = state->workers[wid];
         assert(! session->driving);
-        quicCancelTimer(session);
+        quicReleaseFinalDrain(session);
+        quicDetach(session);
+        if (lineIsAlive(session->line))
+        {
+            tunnelBypassLine(t, session->line);
+        }
     }
 }
 

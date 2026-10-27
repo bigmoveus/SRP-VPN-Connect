@@ -53,6 +53,58 @@ bool tcpoverudpclientInputKcpPacket(void *ctx, const uint8_t *packet, size_t pac
     return ikcp_input(ls->k_handle, (const char *) packet, (long) packet_len) >= 0;
 }
 
+void tcpoverudpclientBeginClose(tcpoverudpclient_lstate_t *ls)
+{
+    if (ls->close_initiated)
+    {
+        return;
+    }
+    ls->close_initiated = true;
+    lineBeginCloseDrain(ls->line);
+    ls->close_drain_held                        = true;
+    const tcpoverudpclient_tstate_t *ts         = tunnelGetState(ls->tunnel);
+    const uint64_t                   now        = wloopNowMS(getWorkerLoop(lineGetWID(ls->line)));
+    ls->close_deadline                          = now + ts->no_recv_timeout_ms;
+    const uint8_t close_buf[kFrameHeaderLength] = {kFrameFlagClose};
+    if (ikcp_send(ls->k_handle, (const char *) close_buf, (int) sizeof(close_buf)) != sizeof(close_buf))
+    {
+        LOGW("TcpOverUdpClient: failed to queue the KCP close frame");
+        ls->close_deadline = now;
+    }
+}
+
+void tcpoverudpclientCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held)
+{
+    if (drain_held && lineEndCloseDrain(l))
+    {
+        if (lineIsAlive(l))
+        {
+            tunnelNextUpStreamFinish(t, l);
+        }
+        if (lineIsAlive(l))
+        {
+            lineDestroy(l);
+        }
+    }
+}
+
+static void tcpoverudpclientFinishCloseIfSettled(tunnel_t *t, line_t *l, tcpoverudpclient_lstate_t *ls,
+                                                 uint64_t current_time)
+{
+    if (! ls->close_initiated || (ikcp_waitsnd(ls->k_handle) > 0 && current_time < ls->close_deadline))
+    {
+        return;
+    }
+    if (ikcp_waitsnd(ls->k_handle) > 0)
+    {
+        LOGW("TcpOverUdpClient: KCP close delivery deadline expired");
+    }
+    const bool drain_held = ls->close_drain_held;
+    tcpoverudpclientLinestateDestroy(ls);
+    tunnelNextUpStreamFinish(t, l);
+    tcpoverudpclientCompleteCloseDrain(t, l, drain_held);
+}
+
 bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush)
 {
     assert(ls != NULL && ls->k_handle != NULL && ls->line != NULL && lineIsAlive(ls->line));
@@ -93,6 +145,10 @@ bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush)
             tunnelPrevDownStreamResume(t, l);
         }
     }
+    if (lineIsAlive(l) && ls->k_handle != NULL)
+    {
+        tcpoverudpclientFinishCloseIfSettled(t, l, ls, current_time);
+    }
     const bool alive = lineIsAlive(l) && ls->k_handle != NULL;
 
     lineUnref(l);
@@ -104,8 +160,15 @@ static uint32_t tcpoverudpclientGetNextKcpDelay(tcpoverudpclient_lstate_t *ls, u
     IUINT32 current32        = (IUINT32) current_time;
     IUINT32 next_update_time = ikcp_check(ls->k_handle, current32);
     IINT32  delay            = (IINT32) (next_update_time - current32);
-
-    return delay <= 0 ? 1U : (uint32_t) delay;
+    if (delay <= 0)
+    {
+        return 1U;
+    }
+    if (ls->close_initiated && ls->close_deadline > current_time)
+    {
+        return (uint32_t) min((uint64_t) delay, ls->close_deadline - current_time);
+    }
+    return (uint32_t) delay;
 }
 
 void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer)
@@ -119,12 +182,10 @@ void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer)
     uint64_t                   current_time = wloopNowMS(getWorkerLoop(lineGetWID(ls->line)));
     tcpoverudpclient_tstate_t *ts           = tunnelGetState(ls->tunnel);
 
-    if ((current_time - ls->last_recv) > ts->ping_interval_ms)
+    if (! ls->close_initiated && (current_time - ls->last_recv) > ts->ping_interval_ms)
     {
         if (! ls->ping_sent)
         {
-            // LOGD("TcpOverUdpClient -> KCP[%d]: sending ping", ls->k_handle->conv);
-
             ls->ping_sent                        = true;
             uint8_t ping_buf[kFrameHeaderLength] = {kFrameFlagPing};
             ikcp_send(ls->k_handle, (const char *) ping_buf, (int) sizeof(ping_buf));
@@ -135,12 +196,14 @@ void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer)
 
             tunnel_t *t = ls->tunnel;
             line_t   *l = ls->line;
+            tcpoverudpclientBeginClose(ls);
+            ls->close_deadline = current_time;
 
             lineRef(l);
-            tunnelUpStreamFin(t, l);
+            tunnelPrevDownStreamFinish(t, l);
             if (lineIsAlive(l))
             {
-                tunnelPrevDownStreamFinish(t, l);
+                discard tcpoverudpclientUpdateKcp(ls, true);
             }
             lineUnref(l);
             return;

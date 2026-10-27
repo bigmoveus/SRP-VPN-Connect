@@ -72,7 +72,15 @@ Psiphon uses the clientlib engine with private encoded server entries and the tr
 
 ### WaterWall VPN
 
-WaterWall provides a general editor for building compatible client-side chains. Available building blocks include VLESS, VMess, Trojan, SOCKS5, HTTP CONNECT, TLS, Reality, AEAD, QUIC, HTTP/WebSocket, MUX, KCP, raw IPv4, and WireGuard. The editor validates combinations and allows supported per-node overrides without requiring a separate preset for every chain. Server installations and chain configuration files are not included.
+WaterWall provides a general editor for building compatible client-side chains. Available building blocks include VLESS, VMess, Trojan, SOCKS5, HTTP CONNECT, TLS, Reality, AEAD, QUIC, BGP4, HTTP/WebSocket, MUX, KCP, raw IPv4, and WireGuard. The editor validates combinations and allows supported per-node overrides without requiring a separate preset for every chain. No server installation or account is included.
+
+For connection input, the app places Router after PacketsToConnection. Smart Routing controls whether local/private destinations bypass the tunnel. Fake-IP DNS is enabled by default and can be disabled per profile. Optional GeoIP routing sends Iranian destinations to a direct TCP/UDP connector while other destinations follow the proxy chain. When GeoIP is enabled, Router resolves destination domains as needed for matching; otherwise it leaves them unresolved. BGP4 adds BGP-like stream framing before the selected carrier; it is not BGP routing and does not provide encryption.
+
+The **BGP4 Framing** switch inserts BGP4 between the application and the outer protocol. For example, VLESS, BGP4, TLS and KCP can be combined without treating BGP4 as a replacement for TLS. Profiles saved by older versions that use BGP4 as the outer protocol remain supported.
+
+The [client example](Examples/WaterWall/client.example.json) and [matching server example](Examples/WaterWall/server.example.json) demonstrate that combination with placeholder hostnames, credentials and certificate paths. Replace those placeholders with your own values. The client example is the node configuration consumed by the app; it is not a standalone desktop launcher or a ready-to-use VPN account. For a standalone server, reference `server.example.json` from the `configs` array in a WaterWall core configuration and build with the server nodes enabled. Both peers must use the same protocol order. UDP port 443 must be reachable for the KCP example; TLS runs inside KCP, not as a substitute for it.
+
+The WaterWall configuration screen includes a bundled GeoLite2 Country database. You can replace it by uploading a MaxMind country MMDB file or entering an HTTPS download link. Updates are validated and installed atomically, so a rejected file does not replace the working database. The bundled data is provided by MaxMind; see the attribution in `THIRD_PARTY_NOTICES.md`.
 
 ## Build from source
 

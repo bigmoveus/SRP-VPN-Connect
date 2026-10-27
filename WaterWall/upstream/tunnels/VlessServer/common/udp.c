@@ -1,5 +1,7 @@
 #include "internal.h"
 
+#include "loggers/network_logger.h"
+
 void vlessserverSetUdpBackendPaused(tunnel_t *t, line_t *remote_l, bool paused)
 {
     vlessserver_lstate_t *remote   = lineGetState(remote_l, t);
@@ -101,6 +103,10 @@ bool vlessserverDrainUdpPackets(tunnel_t *t, line_t *l, vlessserver_lstate_t *ls
         uint16_t packet_size = ((uint16_t) ls->header[0] << 8U) | ls->header[1];
         if (ls->input_bytes - 2U < packet_size)
             return true;
+        if (((vlessserver_tstate_t *) tunnelGetState(t))->verbose)
+        {
+            LOGD("VlessServer: UDP datagram length=%u", (unsigned int) packet_size);
+        }
         buffer_pool_t *pool   = lineGetBufferPool(l);
         sbuf_t        *packet = vlessserverExtractUdpBody(ls, packet_size);
 

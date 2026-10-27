@@ -7,6 +7,7 @@ FOUNDATION_EXPORT double SRPCoreVersionNumber;
 //! Project version string for SRPCore.
 FOUNDATION_EXPORT const unsigned char SRPCoreVersionString[];
 
+#import <SRPCore/SRPGeoIPDatabase.h>
 #import <SRPCore/SSTCPClient.h>
 #import <SRPCore/SSSSTPClient.h>
 #import <SRPCore/NWRunLoop.h>

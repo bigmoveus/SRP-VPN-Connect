@@ -1,0 +1,83 @@
+{
+  "name": "VLESS with independent BGP4 framing over TLS and KCP",
+  "nodes": [
+    {
+      "name": "ne",
+      "type": "NEPacketDevice",
+      "settings": {},
+      "next": "ptc"
+    },
+    {
+      "name": "ptc",
+      "type": "PacketsToConnection",
+      "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576,
+        "fake-dns": {
+          "enabled": true,
+          "address": "198.18.0.2",
+          "port": 53,
+          "network": "100.64.0.0",
+          "netmask": "255.192.0.0",
+          "cache-size": 10000,
+          "ttl": 1
+        }
+      },
+      "next": "router"
+    },
+    {
+      "name": "router",
+      "type": "Router",
+      "settings": {
+        "resolve-domains": false
+      },
+      "next": "vless"
+    },
+    {
+      "name": "vless",
+      "type": "VlessClient",
+      "settings": {
+        "uuid": "00000000-0000-4000-8000-000000000000",
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "protocol": "dest_context->protocol",
+        "domain-strategy": "do-not-resolve-domains"
+      },
+      "next": "bgp4"
+    },
+    {
+      "name": "bgp4",
+      "type": "Bgp4Client",
+      "settings": {},
+      "next": "tls"
+    },
+    {
+      "name": "tls",
+      "type": "TlsClient",
+      "settings": {
+        "sni": "vpn.example.com",
+        "verify": true,
+        "alpns": ["http/1.1"]
+      },
+      "next": "kcp"
+    },
+    {
+      "name": "kcp",
+      "type": "TcpOverUdpClient",
+      "settings": {
+        "kcp-recv-window": 512,
+        "kcp-send-buffer-limit": 512
+      },
+      "next": "connector"
+    },
+    {
+      "name": "connector",
+      "type": "UdpConnector",
+      "settings": {
+        "address": "vpn.example.com",
+        "port": 443,
+        "nodelay": true
+      }
+    }
+  ]
+}

@@ -166,6 +166,10 @@ bool vlessserverHandleInitialRequest(tunnel_t *t, line_t *l, vlessserver_lstate_
     ls->header_filled = 0;
 
     vlessserverRecordLineUser(l, ls);
+    if (((vlessserver_tstate_t *) tunnelGetState(t))->verbose)
+    {
+        LOGD("VlessServer: accepted %s request destination port=%u", cmd == kVlessCmdUdp ? "udp" : "tcp", target.port);
+    }
 
     bool ok =
         cmd == kVlessCmdTcp ? vlessserverStartTcpBranch(t, l, &target) : vlessserverStartUdpBranch(t, l, ls, &target);

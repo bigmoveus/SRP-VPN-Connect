@@ -42,6 +42,7 @@ target_compile_definitions(SRPWaterWallBridge PRIVATE
     INCLUDE_VLESS_CLIENT=1
     INCLUDE_VMESS_CLIENT=1
     INCLUDE_TROJAN_CLIENT=1
+    INCLUDE_BGP4_CLIENT=1
     INCLUDE_SOCKS5_CLIENT=1
     INCLUDE_HTTP_PROXY_CLIENT=1
     INCLUDE_TLS_CLIENT=1
@@ -78,6 +79,7 @@ target_link_libraries(SRPWaterWallBridge PUBLIC
     VmessClient
     VmessCommon
     TrojanClient
+    Bgp4Client
     Socks5Client
     HttpProxyClient
     TlsClient
@@ -147,6 +149,7 @@ add_custom_command(
         $<TARGET_FILE:VmessClient>
         $<TARGET_FILE:VmessCommon>
         $<TARGET_FILE:TrojanClient>
+        $<TARGET_FILE:Bgp4Client>
         $<TARGET_FILE:Socks5Client>
         $<TARGET_FILE:HttpProxyClient>
         $<TARGET_FILE:HttpProxyCommon>
@@ -201,6 +204,7 @@ add_custom_command(
         VmessClient
         VmessCommon
         TrojanClient
+        Bgp4Client
         Socks5Client
         HttpProxyClient
         HttpProxyCommon

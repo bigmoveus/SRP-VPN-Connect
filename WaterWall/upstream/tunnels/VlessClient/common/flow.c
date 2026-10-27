@@ -1,5 +1,7 @@
 #include "internal.h"
 
+#include "loggers/network_logger.h"
+
 bool vlessclientAssociationAlive(tunnel_t *t, line_t *next_line, line_t *prev_line)
 {
     /* A nested TCP exchange can retire our state while the line stays alive. */
@@ -119,6 +121,10 @@ void vlessclientSetNextPaused(tunnel_t *t, line_t *l, bool paused)
     vlessclient_lstate_t *ls = lineGetState(l, t);
     if (ls->phase == kVlessClientPhaseClosed || ls->kind == kVlessClientLineKindUdpApplication)
         return;
+    if (((vlessclient_tstate_t *) tunnelGetState(t))->verbose)
+    {
+        LOGD("VlessClient: transport pause=%u kind=%d", paused ? 1U : 0U, (int) ls->kind);
+    }
     if (ls->kind == kVlessClientLineKindDirect)
     {
         if (paused)

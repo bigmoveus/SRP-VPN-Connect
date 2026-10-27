@@ -37,6 +37,7 @@ A common layout is:
   "name": "mux-server",
   "type": "MuxServer",
   "settings": {
+    "max-live-children": 0,
     "detached-buffer-limit": 268435456,
     "detached-child-limit": 12000
   },
@@ -171,19 +172,21 @@ from `parent-buffer-limit`, which bounds incoming assembly plus attached child q
 
 - `max-children` `(integer, optional)`
   Hard maximum attached live children on one parent transport. Default: `10000`.
-  It must be positive and no greater than `max-live-children`.
+  It must be positive and, when `max-live-children` is nonzero, no greater than that limit.
 
 - `max-live-children` `(integer, optional)`
   Hard maximum reserved or initialized children across this MuxServer instance,
-  all parents, and all workers. Default: `262144`. Draining and detached children
-  remain counted until their MuxServer line state is destroyed.
+  all parents, and all workers. Default: `0`, which disables this aggregate count
+  ceiling. Memory pressure, per-parent limits, and the memory-snapshot fallback
+  ceiling remain active. Draining and detached children remain counted until
+  their MuxServer line state is destroyed.
 
 - `initial-child-idle-timeout-ms` / `active-child-idle-timeout-ms` `(integer, milliseconds, optional)`
   Two-phase child idle timeouts. Defaults: `10000` and `300000`. Both must be
   positive, and the active timeout must be at least the initial timeout.
 
 - `memory-high-watermark-percent` / `memory-low-watermark-percent` `(integer, optional)`
-  Memory admission hysteresis. Defaults: `85` and `75`. Both must be in
+  Memory admission hysteresis. Defaults: `85` and `80`. Both must be in
   `[1, 99]`, and low must be strictly below high.
 
 - `memory-reserve` `(integer, bytes, optional)`
@@ -194,7 +197,9 @@ from `parent-buffer-limit`, which bounds incoming assembly plus attached child q
 - `memory-fallback-max-live-children` `(integer, optional)`
   Aggregate ceiling used while the cached memory snapshot is unavailable,
   unsupported, or older than one second. The default follows the RAM-profile
-  child table below. It must be positive and no greater than `max-live-children`.
+  child table below. It must be positive and, when `max-live-children` is nonzero,
+  no greater than that limit. This fallback ceiling also applies when
+  `max-live-children` is `0`.
 
 - `detached-buffer-limit` `(integer, bytes, optional)`
   Per-worker queue-capacity-charge limit for blocked child queues kept after parent loss. The default depends on the global
@@ -218,18 +223,18 @@ from `parent-buffer-limit`, which bounds incoming assembly plus attached child q
   Defaults are linearly interpolated over the six ordered RAM-profile tiers, with the charge limit rounded to the
   nearest whole MiB. An explicit setting overrides the profile-derived value independently for that limit.
 
-  The memory admission reserve uses the byte values above. The independent
-  `memory-fallback-max-live-children` defaults apply across all parents and workers
-  of one MuxServer instance:
+  Memory admission has separate defaults for `memory-reserve` and
+  `memory-fallback-max-live-children`, shared across all parents and workers
+  of one MuxServer instance. Explicit settings override these defaults independently:
 
-  | RAM profile | Default fallback live children |
-  | --- | ---: |
-  | S1 (`minimal` / `ultralow`) | `20480` |
-  | S2 | `28385` |
-  | M1 (`client`) | `36290` |
-  | M2 (`client-larger`) | `44190` |
-  | L1 | `52095` |
-  | L2 (`server`, the global default) | `60000` |
+  | RAM profile | Default memory reserve | Default fallback live children |
+  | --- | ---: | ---: |
+  | S1 (`minimal` / `ultralow`) | `16777216` (`16 MiB`) | `20480` |
+  | S2 | `40370176` (`38.5 MiB`) | `28385` |
+  | M1 (`client`) | `63963136` (`61 MiB`) | `36290` |
+  | M2 (`client-larger`) | `87031808` (`83 MiB`) | `44190` |
+  | L1 | `110624768` (`105.5 MiB`) | `52095` |
+  | L2 (`server`, the global default) | `134217728` (`128 MiB`) | `60000` |
 
 - `log-main-line-stats` `(boolean, optional)`
   When `true`, each active parent transport line logs best-effort mux diagnostics every `5` seconds. Parent logical
@@ -257,7 +262,7 @@ Each child line is keyed by the `cid` carried in the frame header.
 When an `Open` frame arrives:
 
 - `MuxServer` performs average-O(1) duplicate lookup and applies the parent,
-  instance, and cached-memory admission gates
+  configured instance count ceiling, and cached-memory admission gates
 - an admitted Open reserves capacity and creates a child line on the same worker
 - initializes line state for that child
 - links it to the parent line
@@ -278,7 +283,9 @@ cgroup v2/v1 level; `MemAvailable` still bounds effective headroom. Ambiguous or
 hidden cgroup constraints use the conservative fallback. Windows uses available
 physical memory. Workers consume only the cached atomic tuple. Stale or
 unsupported data uses the profile fallback ceiling and never reopens a
-pressure-closed gate.
+pressure-closed gate. With fresh memory data, `max-live-children: 0` removes the
+aggregate child-count ceiling while keeping memory admission and `max-children`
+in force; it does not disable the fallback ceiling when fresh data is unavailable.
 
 ### Child idle lifetime
 

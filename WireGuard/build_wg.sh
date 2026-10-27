@@ -11,6 +11,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 PSIPHON_PIN="d5b23279c4"
 
+# Keep psiphon-tls layout checks on the Go version declared in go.mod.
+export GOTOOLCHAIN=go1.26.0+auto
+
 # The psiphon-tunnel-core vendor tree is gitignored (78MB): clone the pinned
 # commit into the bridge dir if missing (go.mod replaces the module with it)
 if [ ! -d "$SCRIPT_DIR/bridge/psiphon-tunnel-core/psiphon" ]; then
@@ -24,11 +27,13 @@ fi
 # Paths with spaces break the Makefile's CURDIR-based rules — build in /tmp
 # and copy the artifacts back.
 WORK=/tmp/srpwg-bridge-build
+if [ -d "$WORK/.tmp" ]; then chmod -R u+w "$WORK/.tmp"; fi
 rm -rf "$WORK"
 cp -R "$SCRIPT_DIR/bridge" "$WORK"
 cd "$WORK"
 
 # iOS device (arm64)
+if [ -d .tmp ]; then chmod -R u+w .tmp; fi
 rm -rf .tmp
 make ARCHS=arm64 PLATFORM_NAME=iphoneos \
      DEPLOYMENT_TARGET_CLANG_FLAG_NAME=miphoneos-version-min \
@@ -39,6 +44,7 @@ mkdir -p "$SCRIPT_DIR/lib/iphoneos"
 cp out-ios/libsrpwg-go.a "$SCRIPT_DIR/lib/iphoneos/libsrpwg-go.a"
 
 # macOS (for local harness tests)
+if [ -d .tmp ]; then chmod -R u+w .tmp; fi
 rm -rf .tmp
 make ARCHS=arm64 PLATFORM_NAME=macosx \
      DEPLOYMENT_TARGET_CLANG_FLAG_NAME=mmacosx-version-min \

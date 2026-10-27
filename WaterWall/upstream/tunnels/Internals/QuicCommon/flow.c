@@ -68,10 +68,10 @@ static bool quicDeliverEvent(quic_context_t *context)
     ww_quic_engine_consume(context->engine);
     ww_quic_storage_t storage;
     ww_quic_engine_storage(context->engine, &storage);
-    size_t retained = (wire ? storage.wire_bytes : storage.plaintext_bytes) +
-                      ((size_t) state->max_buffers + 1) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
-    uint32_t          length  = (uint32_t) event.length + prefix;
-    uint16_t          padding = bufferpoolGetLargeBufferPadding(context->pool);
+    size_t            retained = (wire ? storage.wire_bytes : storage.plaintext_bytes) +
+                                 ((size_t) state->max_buffers + 1) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
+    uint32_t          length   = (uint32_t) event.length + prefix;
+    uint16_t          padding  = bufferpoolGetLargeBufferPadding(context->pool);
     buffer_pool_fit_t fit;
     if (! bufferpoolQueryBestFit(context->pool, length, padding, &fit) ||
         fit.allocation_charge + retained > (size_t) state->max_bytes * 2)
@@ -193,12 +193,15 @@ void quicPump(quic_context_t *context)
     }
     if (quicSurvived(context))
     {
-        quicArm(context, work == kQuicPumpWork || generation != context->input_generation);
+        quicReconcileFinal(context);
+    }
+    if (quicSurvived(context))
+    {
+        quicArm(context, context->final_flush || work == kQuicPumpWork || generation != context->input_generation);
     }
 }
 
-/* WaterWall Finish cannot wait for ACKs. The application-side handler has
- * already closed its direction before this bounded synchronous wire drain. */
+/* The final write pump does not itself wait for peer acknowledgements. */
 void quicFinalWire(quic_context_t *context)
 {
     bool flushed = false;
@@ -207,14 +210,7 @@ void quicFinalWire(quic_context_t *context)
         ww_quic_event_t event;
         if (ww_quic_engine_peek(context->engine, &event))
         {
-            if (event.type == WW_QUIC_EVENT_DATAGRAM)
-            {
-                quicDeliverEvent(context);
-            }
-            else
-            {
-                ww_quic_engine_consume(context->engine);
-            }
+            quicDeliverEvent(context);
             continue;
         }
         if (ww_quic_engine_closed(context->engine))
@@ -233,4 +229,60 @@ void quicFinalWire(quic_context_t *context)
         }
         break;
     }
+}
+
+void quicReleaseFinalDrain(quic_context_t *context)
+{
+    if (! context->close_drain_held)
+    {
+        return;
+    }
+    tunnel_t *t = context->tunnel;
+    line_t   *l = context->line;
+    lineRef(l);
+    context->close_drain_held = false;
+    if (lineEndCloseDrain(l))
+    {
+        if (lineIsAlive(l))
+        {
+            tunnelNextUpStreamFinish(t, l);
+        }
+        if (lineIsAlive(l))
+        {
+            lineDestroy(l);
+        }
+    }
+    lineUnref(l);
+}
+
+void quicReconcileFinal(quic_context_t *context)
+{
+    if (! context->final_flush)
+    {
+        return;
+    }
+    ww_quic_storage_t storage;
+    ww_quic_engine_storage(context->engine, &storage);
+    if (storage.send_bytes == 0 && storage.wire_bytes == 0 && storage.plaintext_bytes == 0 &&
+        context->active_application == NULL && bufferqueueGetBufCount(&context->application) == 0)
+    {
+        tunnel_t  *t         = context->tunnel;
+        line_t    *l         = context->line;
+        const bool finish_up = context->finish_up;
+        context->final_flush = false;
+        quicReleaseFinalDrain(context);
+        quicDetach(context);
+        if (! finish_up && lineIsAlive(l))
+        {
+            tunnelPrevDownStreamFinish(t, l);
+        }
+        return;
+    }
+    if (ww_quic_now_us() < context->final_deadline_us)
+    {
+        return;
+    }
+    context->final_flush = false;
+    quicReleaseFinalDrain(context);
+    quicFail(context, "graceful close acknowledgement deadline exceeded");
 }

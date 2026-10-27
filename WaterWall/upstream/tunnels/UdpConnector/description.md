@@ -275,12 +275,9 @@ peers and routed to the originating line.
 
 ### Pause behavior
 
-When paused, `UdpConnector` does not queue received datagrams.
+Each line keeps its own pause state and its bindings keep a per-socket paused-binding count. When every binding on a socket is paused, that socket's read registration is stopped so ingress remains in the bounded kernel receive queue. Once any binding resumes, reads are re-enabled. Adding or removing a binding reconciles the same count; a socket with no active bindings is retired normally.
 
-If a datagram arrives while reads are paused:
-
-- that datagram is dropped
-- reads continue again after resume
+While at least one binding remains unpaused, a datagram addressed to a paused binding is dropped rather than added to a userspace queue. Pause is advisory, so protocol reliability and the socket's hard receive limits remain necessary.
 
 ### Idle timeout behavior
 
@@ -298,7 +295,7 @@ With `"packet"` balance mode, a `random(x,y)` port is selected when that destina
 - Domain resolution in this path is asynchronous and keeps pre-resolution datagrams queued up to the connector queue limit.
 - `fwmark` and device binding are platform-dependent. `fwmark` is not available on Windows.
 - Connection-init DNS resolution is handled by an internal `DomainResolver`; `UdpConnector` keeps its own public `domain-strategy` vocabulary.
-- Paused reads drop inbound datagrams instead of buffering them.
+- When all bindings on a socket are paused, socket reads stop until a binding resumes. A datagram addressed to a paused binding on a socket that is still active for another binding is dropped, not buffered in userspace.
 - Local source ports are connector-managed and must not be used as line
   identifiers.
 - `PacketsToStream` currently bridges self-consistent IPv4 packets and does not

@@ -1,5 +1,5 @@
 <!--
-Documentation version: 157
+Documentation version: 158
 Sync note: Keep this file aligned with WaterWall-Docs/docs/02-noderefs/PingClient.mdx.
 -->
 
@@ -11,12 +11,12 @@ Request. It is a pure packet tunnel (`packettunnelCreate()`), has no line
 state, and uses one bounded synchronized correlation and replay tracker for the
 whole node.
 
-After decoding an Echo Request, inner TCP/UDP packets use the shared transport
-flow worker before forwarding downstream. Correlation, replay checks and any
-generated Echo Reply remain on the arrival worker. Preserved inner fragments
-share the complete flow's worker; later fragments wait for the leading fragment
-to identify its ports. A single worker needs no handoff. Other decoded protocols
-and unrelated or unmatched ICMP retain their current worker and packet bytes.
+After decoding an Echo Request, inner packets are forwarded downstream on
+the arrival worker. Correlation, replay checks and any generated Echo Reply also
+stay on that worker; the shared tracker does not require transport-flow affinity.
+Inner fragments are forwarded immediately with their bytes and boundaries intact,
+without waiting for the leading fragment. A later stateful consumer establishes
+its own flow ownership. Unrelated or unmatched ICMP retains its packet bytes.
 
 Use it with `PingServer` in this order:
 
@@ -79,8 +79,8 @@ For PingClient the callback behavior is:
 | `send-replies` | no | `false` | Boolean. Send exact Echo Replies for received peer requests when true; false or omission skips reply generation. |
 | `identifier` | no | `"random"` | Local request-session identifier. An integer `0..65535` is a deterministic override. The random default is nonzero and stable for this node lifetime. |
 | `sequence-start` | no | `1` | First sequence number placed on the wire. Range: `0..65535`; wrap is valid. |
-| `ttl` | no | `64` | TTL for locally generated packets. |
-| `tos` | no | `0` | TOS for locally generated requests. Replies copy the peer request TOS. |
+| `ttl` | no | `64` | TTL for locally generated packets. Integer `0..255`. |
+| `tos` | no | `0` | TOS for locally generated requests. Integer `0..255`; replies copy the peer request TOS. |
 
 PingClient and PingServer intentionally have separate local identifiers. A
 reply always mirrors the identifier and sequence of the request it answers;
@@ -153,9 +153,16 @@ not wire-compatible with the removed formats.
 
 ## Node Metadata
 
+Source-backed metadata:
+
 | Property | Value |
 | --- | --- |
-| version | `2` |
-| layer | `kNodeLayer3` on both sides |
-| required left padding | `28` bytes |
+| `version` | `2` |
+| node flags | `kNodeFlagNone` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer3` |
+| `layer_group_prev_node` | `kNodeLayer3` |
+| `layer_group_next_node` | `kNodeLayer3` |
+| `required_padding_left` | `28` bytes |
 | line state | none |

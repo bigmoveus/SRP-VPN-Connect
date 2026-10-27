@@ -5,6 +5,10 @@
 #import <arpa/inet.h>
 #import <errno.h>
 #import <netdb.h>
+#import <os/proc.h>
+#import <mach/task.h>
+#import <mach/task_info.h>
+#import <mach/mach_init.h>
 
 @interface SRPWaterWallClient () {
     SRPWaterWallBridge *_bridge;
@@ -18,6 +22,7 @@
     NSInteger _probeStage;
     uint16_t _probeDnsId;
     NSInteger _probeAttempts;
+    NSUInteger _packetsSinceMemorySample;
     dispatch_source_t _probeTimer;
 }
 @end
@@ -87,17 +92,24 @@ static NSData *SRPWWDnsPacket(NSString *source, uint16_t identifier, NSString *d
 static void SRPWWPacket(void *context, const uint8_t *packet, size_t length) {
     SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
     if (client == nil || packet == NULL || length < 20) return;
-    NSData *data = [NSData dataWithBytes:packet length:length];
-    int family = (packet[0] >> 4) == 6 ? AF_INET6 : AF_INET;
+    @autoreleasepool {
+        NSData *data = [NSData dataWithBytes:packet length:length];
+        int family = (packet[0] >> 4) == 6 ? AF_INET6 : AF_INET;
 #if DEBUG
-    if (client->_probeStage > 0 && client->_probeStage < 3) {
-        NSLog(@"WaterWall: callback v=%u proto=%u src=%u.%u.%u.%u sport=%u dport=%u flags=%x stage=%ld",
-              packet[0] >> 4, packet[9], packet[16], packet[17], packet[18], packet[19],
-              (packet[20] << 8) | packet[21], (packet[22] << 8) | packet[23], packet[33], (long)client->_probeStage);
-    }
+        static NSUInteger outputPackets = 0;
+        outputPackets++;
+        if (outputPackets % 1000 == 0) SRPWWMemoryUsage();
+        if (client->_probeStage > 0 && client->_probeStage < 3) {
+            NSLog(@"WaterWall: callback v=%u proto=%u src=%u.%u.%u.%u sport=%u dport=%u flags=%x stage=%ld",
+                  packet[0] >> 4, packet[9], packet[16], packet[17], packet[18], packet[19],
+                  (packet[20] << 8) | packet[21], (packet[22] << 8) | packet[23], packet[33], (long)client->_probeStage);
+        }
 #endif
-    if (client->_outputCb) client->_outputCb(data, family);
-    dispatch_async(client->_worker, ^{ [client handleProbePacket:data]; });
+        if (client->_outputCb) client->_outputCb(data, family);
+        if (!client->_closed && client->_probeStage > 0 && client->_probeStage < 3) {
+            dispatch_async(client->_worker, ^{ [client handleProbePacket:data]; });
+        }
+    }
 }
 
 static void SRPWWLog(void *context, int level, const char *message, size_t length) {
@@ -119,6 +131,18 @@ static void SRPWWLog(void *context, int level, const char *message, size_t lengt
     (void)level;
     (void)message;
     (void)length;
+#endif
+}
+
+static void SRPWWMemoryUsage(void) {
+#if DEBUG
+    task_vm_info_data_t info = {0};
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS) {
+        NSLog(@"WaterWall memory: %.1f MiB; available: %.1f MiB",
+              (double)info.phys_footprint / (1024.0 * 1024.0),
+              (double)os_proc_available_memory() / (1024.0 * 1024.0));
+    }
 #endif
 }
 
@@ -178,6 +202,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 
 - (void)beginDataPlaneProbe {
     NSLog(@"WaterWall: native chain ready; starting data-plane probe");
+    SRPWWMemoryUsage();
+    _packetsSinceMemorySample = 0;
     _probeStage = _probeTCP ? 1 : 2;
     _probeAttempts = 0;
     _probeDnsId = arc4random_uniform(65535) + 1;
@@ -371,6 +397,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     if (family != AF_INET || packet.length < 20 || packet.length > 65535) return;
     dispatch_async(_worker, ^{
         if (self->_closed || self->_bridge == NULL) return;
+#if DEBUG
+        self->_packetsSinceMemorySample++;
+        if (self->_packetsSinceMemorySample % 1000 == 1) SRPWWMemoryUsage();
+#endif
         int result = SRPWaterWallBridgeSubmitPacket(self->_bridge, packet.bytes, packet.length);
         if (result != 0 && result != -EAGAIN && result != -ENOTCONN) {
             SSLogE(@"WaterWall: packet submission failed (%d)", result);

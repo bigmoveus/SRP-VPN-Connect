@@ -59,7 +59,9 @@ typedef struct routing_context_s
 typedef struct line_s
 {
     line_refc_t       refc;
+    uint32_t          close_drain_count;
     bool              alive;
+    bool              close_deferred;
     wid_t             wid;
     uint64_t          active_tunnels_mask; // One bit per chain index; cleared bits permanently bypass callbacks.
     line_user_auth_t  user_auths[kLineMaxUsers];

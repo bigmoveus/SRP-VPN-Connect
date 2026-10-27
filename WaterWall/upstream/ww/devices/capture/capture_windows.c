@@ -168,7 +168,7 @@ static void captureDeliverPacket(void *device, sbuf_t *buf, wid_t wid)
 
 static void distributePacketPayload(capture_device_t *cdev, sbuf_t *buf)
 {
-    deviceFlowAffinityPostBatch(cdev->reader_session, &buf, 1);
+    deviceReaderDistributeBatch(cdev->reader_session, &buf, 1);
 }
 static WTHREAD_ROUTINE(routineReadFromCapture) // NOLINT
 {
@@ -656,6 +656,15 @@ void capturedeviceSetMultiQueue(capture_device_t *cdev, bool enabled)
 {
     discard cdev;
     discard enabled;
+}
+
+void capturedeviceConfigureKernelQueue(capture_device_t *cdev, bool enabled, uint32_t packet_total,
+                                       uint32_t receive_bytes_total)
+{
+    discard cdev;
+    discard enabled;
+    discard packet_total;
+    discard receive_bytes_total;
 }
 
 void capturedeviceWorkerQuiesce(capture_device_t *cdev, wid_t wid)

@@ -28,17 +28,22 @@ typedef struct tcpoverudpserver_tstate_s
 
 typedef struct tcpoverudpserver_lstate_s
 {
-    tunnel_t                 *tunnel;       // our tunnel
-    line_t                   *line;         // our line
-    ikcpcb                   *k_handle;     // kcp handle
-    wtimer_t                 *k_timer;      // kcp processing loop timer
-    tcpoverudp_fec_encoder_t *fec_encoder;  // optional fec encoder
-    tcpoverudp_fec_decoder_t *fec_decoder;  // optional fec decoder
-    uint64_t                  last_recv;    // last received timestamp
-    context_queue_t           cq_d;         // context queue downstream
-    bool                      source_paused; // our KCP send-queue pressure
-    bool                      can_upstream; // can upstream data
-    bool                      ping_sent;    // ping sent state
+    tunnel_t                 *tunnel;            // our tunnel
+    line_t                   *line;              // our line
+    ikcpcb                   *k_handle;          // kcp handle
+    wtimer_t                 *k_timer;           // kcp processing loop timer
+    tcpoverudp_fec_encoder_t *fec_encoder;       // optional fec encoder
+    tcpoverudp_fec_decoder_t *fec_decoder;       // optional fec decoder
+    uint64_t                  last_recv;         // last received timestamp
+    uint64_t                  close_deadline;    // bounded final KCP delivery window
+    context_queue_t           cq_d;              // context queue downstream
+    bool                      source_paused;     // our KCP send-queue pressure
+    bool                      downstream_paused; // downstream consumer hold; KCP control continues
+    bool                      can_upstream;      // can upstream data
+    bool                      close_initiated;   // close frame admitted; application output is closed
+    bool                      close_drain_held;  // line reference held until final transport Finish
+    bool                      close_notified;    // remote close was propagated to the application side
+    bool                      ping_sent;         // ping sent state
 
 } tcpoverudpserver_lstate_t;
 
@@ -53,7 +58,7 @@ enum
     kTcpOverUdpServerFecDefaultDataShards   = 10,
     kTcpOverUdpServerFecDefaultParityShards = 3,
     // the smallest MTU ikcp_setmtu() accepts; anything below it is rejected with -1
-    kTcpOverUdpServerKcpMinimumMtu = 50,
+    kTcpOverUdpServerKcpMinimumMtu  = 50,
     kTcpOverUdpServerIpv4HeaderSize = 20,
     kTcpOverUdpServerUdpHeaderSize  = 8,
     kTcpOverUdpServerKcpHeaderSize  = 24,
@@ -118,6 +123,8 @@ void tcpoverudpserverTunnelUpStreamResume(tunnel_t *t, line_t *l);
 
 void tcpoverudpserverTunnelDownStreamFinish(tunnel_t *t, line_t *l);
 void tcpoverudpserverTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void tcpoverudpserverTunnelDownStreamPause(tunnel_t *t, line_t *l);
+void tcpoverudpserverTunnelDownStreamResume(tunnel_t *t, line_t *l);
 
 bool tcpoverudpserverLinestateInitialize(tcpoverudpserver_lstate_t *ls, line_t *l, tunnel_t *t);
 void tcpoverudpserverLinestateDestroy(tcpoverudpserver_lstate_t *ls);
@@ -126,4 +133,7 @@ int  tcpoverudpserverKUdpOutput(const char *data, int len, ikcpcb *kcp, void *us
 bool tcpoverudpserverInputKcpPacket(void *ctx, const uint8_t *packet, size_t packet_len);
 
 void tcpoverudpserverKcpLoopIntervalCallback(wtimer_t *timer);
+void tcpoverudpserverDeliverReceived(tunnel_t *t, line_t *l);
+void tcpoverudpserverBeginClose(tcpoverudpserver_lstate_t *ls);
+void tcpoverudpserverCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held);
 bool tcpoverudpserverUpdateKcp(tcpoverudpserver_lstate_t *ls, bool flush);

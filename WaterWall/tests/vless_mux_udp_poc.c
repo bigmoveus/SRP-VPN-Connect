@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +31,7 @@ typedef struct test_state_s {
   uint16_t port;
   pthread_t server_thread;
   uint16_t dns_id;
+  uint16_t dns_port;
 } test_state_t;
 
 static uint64_t nowMilliseconds(void) {
@@ -52,7 +54,8 @@ static void readyCallback(void *context) {
 }
 
 static void failureCallback(void *context, int code, const char *message) {
-  (void)message;
+  fprintf(stderr, "runtime failure %d: %s\n", code,
+          message != NULL ? message : "(no message)");
   test_state_t *state = context;
   atomic_store(&state->failure, code == 0 ? 1 : code);
 }
@@ -76,9 +79,9 @@ static void packetCallback(void *context, const uint8_t *packet,
     return;
   }
   const uint8_t *dns = packet + ihl + 8;
-  if (ntohs(*(const uint16_t *)(packet + ihl)) == 53 &&
+  if (ntohs(*(const uint16_t *)(packet + ihl)) == state->dns_port &&
       ntohs(*(const uint16_t *)dns) == state->dns_id && (dns[2] & 0x80U) != 0) {
-    atomic_store(&state->response, 1);
+    atomic_fetch_add(&state->response, 1);
   }
 }
 
@@ -211,11 +214,18 @@ static size_t makeDnsQuery(test_state_t *state, uint8_t *packet) {
   packet[9] = 17;
   packet[12] = 10;
   packet[15] = 2;
-  packet[16] = 192;
-  packet[18] = 2;
-  packet[19] = 53;
+  if (getenv("POC_DNS_IP") != NULL) {
+    CHECK(inet_pton(AF_INET,
+                    getenv("POC_DNS_IP") != NULL ? getenv("POC_DNS_IP")
+                                                 : "127.0.0.1",
+                    packet + 16) == 1);
+  } else {
+    packet[16] = 192;
+    packet[18] = 2;
+    packet[19] = 53;
+  }
   const uint16_t source_port = htons(5353);
-  const uint16_t dest_port = htons(53);
+  const uint16_t dest_port = htons(state->dns_port);
   const uint16_t udp_length = htons((uint16_t)(8 + dns_length));
   memcpy(packet + 20, &source_port, 2);
   memcpy(packet + 22, &dest_port, 2);
@@ -250,54 +260,139 @@ static void startServer(test_state_t *state) {
 
 int main(void) {
   test_state_t state = {0};
-  startServer(&state);
-  char nodes[4096];
-  const int count =
-      snprintf(nodes, sizeof(nodes),
-               "{\"name\":\"vless-mux-udp\",\"nodes\":["
-               "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{},"
-               "\"next\":\"ptc\"},"
-               "{\"name\":\"ptc\",\"type\":\"PacketsToConnection\","
-               "\"settings\":{},\"next\":\"vless\"},"
-               "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{"
-               "\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":"
-               "\"192.0.2.53\",\"port\":53,"
-               "\"protocol\":\"udp\",\"domain-strategy\":\"do-not-resolve-"
-               "domains\"},\"next\":\"mux\"},"
-               "{\"name\":\"mux\",\"type\":\"MuxClient\",\"settings\":{"
-               "\"mode\":\"counter\",\"connection-capacity\":1},"
-               "\"next\":\"out\"},"
-               "{\"name\":\"out\",\"type\":\"TcpUdpConnector\",\"settings\":{"
-               "\"address\":\"127.0.0.1\",\"port\":%u,"
-               "\"nodelay\":true}}]}",
-               (unsigned int)state.port);
+  const bool bgp4 = getenv("POC_BGP4") != NULL;
+  const bool kcp = bgp4 && getenv("POC_BGP4_KCP") != NULL;
+  const char *config_path = getenv("POC_REMOTE_CONFIG");
+  const bool remote = config_path != NULL;
+  state.dns_port = 53;
+  if (remote) {
+    const char *peer = getenv("POC_REMOTE_PORT");
+    CHECK(peer != NULL);
+    const long port = strtol(peer, NULL, 10);
+    CHECK(port > 0 && port <= 65535);
+    state.port = (uint16_t)port;
+  } else if (bgp4) {
+    const char *peer = getenv("POC_BGP4_PORT");
+    CHECK(peer != NULL);
+    const long port = strtol(peer, NULL, 10);
+    CHECK(port > 0 && port <= 65535);
+    state.port = (uint16_t)port;
+    const char *dns = getenv("POC_DNS_PORT");
+    CHECK(dns != NULL);
+    const long dns_port = strtol(dns, NULL, 10);
+    CHECK(dns_port > 0 && dns_port <= 65535);
+    state.dns_port = (uint16_t)dns_port;
+  } else {
+    startServer(&state);
+  }
+  if (getenv("POC_DNS_PORT") != NULL) {
+    const long dns_port = strtol(getenv("POC_DNS_PORT"), NULL, 10);
+    CHECK(dns_port > 0 && dns_port <= 65535);
+    state.dns_port = (uint16_t)dns_port;
+  }
+  char nodes[32768];
+  const char *router =
+      bgp4 ? "{\"name\":\"router\",\"type\":\"Router\",\"settings\":{"
+             "\"resolve-domains\":false},\"next\":\"vless\"},"
+           : "";
+  const char *outer =
+      bgp4 ? "{\"name\":\"bgp4\",\"type\":\"Bgp4Client\",\"settings\":{},"
+             "\"next\":\"%s\"},%s"
+           : "{\"name\":\"mux\",\"type\":\"MuxClient\",\"settings\":{"
+             "\"mode\":\"counter\",\"connection-capacity\":1},"
+             "\"next\":\"out\"},";
+  char outer_json[512];
+  if (bgp4) {
+    snprintf(outer_json, sizeof(outer_json), outer, kcp ? "kcp" : "out",
+             kcp ? "{\"name\":\"kcp\",\"type\":\"TcpOverUdpClient\","
+                   "\"settings\":{},\"next\":\"out\"},"
+                 : "");
+  } else {
+    snprintf(outer_json, sizeof(outer_json), "%s", outer);
+  }
+  int count;
+  if (config_path != NULL) {
+    FILE *config = fopen(config_path, "rb");
+    CHECK(config != NULL);
+    count = (int)fread(nodes, 1, sizeof(nodes) - 1, config);
+    fclose(config);
+    CHECK(count > 0 && (size_t)count < sizeof(nodes) - 1);
+    nodes[count] = '\0';
+  } else {
+    count = snprintf(
+        nodes, sizeof(nodes),
+        "{\"name\":\"vless-udp\",\"nodes\":["
+        "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{},"
+        "\"next\":\"ptc\"},"
+        "{\"name\":\"ptc\",\"type\":\"PacketsToConnection\","
+        "\"settings\":{\"fake-dns\":{\"enabled\":true}},\"next\":\"%s\"},"
+        "%s"
+        "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{"
+        "\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":"
+        "\"%s\",\"port\":%u,"
+        "\"protocol\":\"%s\",\"verbose\":true,\"domain-strategy\":\"do-not-"
+        "resolve-"
+        "domains\"},\"next\":\"%s\"},%s"
+        "{\"name\":\"out\",\"type\":\"%s\",\"settings\":{"
+        "\"address\":\"127.0.0.1\",\"port\":%u,"
+        "\"nodelay\":true}}]}",
+        bgp4 ? "router" : "vless", router,
+        getenv("POC_DNS_IP") != NULL ? getenv("POC_DNS_IP")
+                                     : (bgp4 ? "127.0.0.1" : "192.0.2.53"),
+        (unsigned int)state.dns_port, bgp4 ? "dest_context->protocol" : "udp",
+        bgp4 ? "bgp4" : "mux", outer_json,
+        kcp ? "UdpConnector" : "TcpUdpConnector", (unsigned int)state.port);
+  }
   CHECK(count > 0 && (size_t)count < sizeof(nodes));
   SRPWaterWallCallbacks callbacks = {.packet = packetCallback,
                                      .log = logCallback,
                                      .ready = readyCallback,
                                      .failure = failureCallback,
                                      .context = &state};
-  SRPWaterWallConfig config = {.core_json = NULL, .nodes_json = nodes};
+  SRPWaterWallConfig config = {
+      .core_json =
+          getenv("POC_MINIMAL") != NULL
+              ? "{\"log\":{\"network\":{\"loglevel\":\"DEBUG\","
+                "\"console\":true}},\"misc\":{\"workers\":1,"
+                "\"ram-profile\":\"minimal\",\"splice\":false,"
+                "\"try-enabling-bbr\":false,\"tcp-tune\":false},"
+                "\"configs\":[\"hosted-nodes.json\"]}"
+              : "{\"log\":{\"network\":{\"loglevel\":\"DEBUG\","
+                "\"console\":true}},\"configs\":[\"hosted-nodes.json\"]}",
+      .nodes_json = nodes};
   SRPWaterWallBridge *bridge = SRPWaterWallBridgeStart(&config, &callbacks);
   CHECK(bridge != NULL);
   waitFor(&state.ready);
   CHECK(atomic_load(&state.failure) == 0);
-  uint8_t packet[128];
-  const size_t packet_length = makeDnsQuery(&state, packet);
-  CHECK(SRPWaterWallBridgeSubmitPacket(bridge, packet, packet_length) == 0);
-  const uint64_t deadline = nowMilliseconds() + 10000U;
-  while (atomic_load(&state.response) == 0 &&
-         atomic_load(&state.server_failure) == 0 &&
-         nowMilliseconds() < deadline) {
-    usleep(10000);
+  unsigned expected_responses = 1;
+  if (remote && getenv("POC_UDP_REPEAT") != NULL) {
+    const long repeat = strtol(getenv("POC_UDP_REPEAT"), NULL, 10);
+    CHECK(repeat >= 1 && repeat <= 64);
+    expected_responses = (unsigned)repeat;
   }
-  CHECK(atomic_load(&state.response) != 0 ||
-        atomic_load(&state.server_failure) != 0);
-  CHECK(pthread_join(state.server_thread, NULL) == 0);
+  uint8_t packet[128];
+  for (unsigned i = 0; i < expected_responses; ++i) {
+    const size_t packet_length = makeDnsQuery(&state, packet);
+    CHECK(SRPWaterWallBridgeSubmitPacket(bridge, packet, packet_length) == 0);
+    const uint64_t deadline = nowMilliseconds() + 10000U;
+    while (atomic_load(&state.response) < (int)(i + 1) &&
+           atomic_load(&state.server_failure) == 0 &&
+           nowMilliseconds() < deadline) {
+      usleep(10000);
+    }
+    CHECK(atomic_load(&state.response) >= (int)(i + 1) ||
+          atomic_load(&state.server_failure) != 0);
+  }
+  if (!remote && !bgp4) {
+    CHECK(pthread_join(state.server_thread, NULL) == 0);
+  }
   CHECK(atomic_load(&state.server_failure) == 0);
-  CHECK(atomic_load(&state.response) != 0);
+  CHECK(atomic_load(&state.response) >= (int)expected_responses);
   CHECK(SRPWaterWallBridgeStop(bridge) == 0);
-  close(state.listen_fd);
-  fprintf(stderr, "VLESS MUX native UDP response passed\n");
+  if (!remote && !bgp4) {
+    close(state.listen_fd);
+  }
+  fprintf(stderr, "%s native UDP response passed\n",
+          bgp4 ? "BGP4 VLESS" : "VLESS MUX");
   return 0;
 }

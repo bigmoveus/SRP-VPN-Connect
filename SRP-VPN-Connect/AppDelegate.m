@@ -1,5 +1,6 @@
 
 #import "AppDelegate.h"
+#import <SRPCore/SRPGeoIPDatabase.h>
 #import <IQKeyboardManager.h>
 #import <SRPParser/SRPParser.h>
 
@@ -14,6 +15,12 @@
     // Override point for customization after application launch.
 
     [PDVPNManager setGroupID:@"group.tr.com.srp.vpn"];
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        NSError *error = nil;
+        if (![SRPGeoIPDatabase.sharedDatabase installBundledDatabaseIfNeeded:&error]) {
+            NSLog(@"GeoIP database unavailable: %@", error.localizedDescription);
+        }
+    });
 
     // IQKeyboardManager is enabled by default
     [[IQKeyboardManager sharedManager] setEnable:YES];

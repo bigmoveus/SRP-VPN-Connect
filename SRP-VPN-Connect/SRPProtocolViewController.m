@@ -51,7 +51,7 @@
     if ([type isEqualToString:@"wireguard"]) return @"WireGuard — fast modern UDP";
     if ([type isEqualToString:@"amnezia"]) return @"AmneziaWG — obfuscated for strict firewalls";
     if ([type isEqualToString:@"aether"]) return @"Cloudflare WARP — no server needed, automatic";
-    if ([type isEqualToString:@"waterwall"]) return @"Composable VLESS, Trojan, TLS and packet tunnels";
+    if ([type isEqualToString:@"waterwall"]) return @"VLESS, VMess, Trojan, BGP4 and packet tunnels";
     if ([type isEqualToString:@"psiphon"]) return @"Censorship-resistant network (multi-transport)";
     return @"Microsoft SSTP over TLS";
 }

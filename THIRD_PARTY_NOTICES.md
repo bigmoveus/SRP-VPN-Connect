@@ -21,6 +21,8 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | libssh2 | [libssh2](https://libssh2.org/) | See `SSH/libssh2/COPYING` |
 | IQKeyboardManager | [hackiftekhar/IQKeyboardManager](https://github.com/hackiftekhar/IQKeyboardManager) | MIT; see `Licenses/IQKeyboardManager/LICENSE.md` |
 | Toast | [scalessec/Toast](https://github.com/scalessec/Toast) | MIT; see `Licenses/Toast/LICENSE` |
+| libmaxminddb | [maxmind/libmaxminddb](https://github.com/maxmind/libmaxminddb) | Apache License 2.0; see the notice in the vendored dependency |
+| GeoLite2 Country data | [MaxMind GeoLite2](https://www.maxmind.com/en/geolite2/signup) | This product includes GeoLite2 data created by MaxMind, available from [maxmind.com](https://www.maxmind.com), under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/). |
 
 JSONCPP, LZ4, Asio, BoringSSL, OpenSSL, and other bundled dependencies retain their notices in their source directories. The OpenVPN build also uses the license files supplied by those components.
 

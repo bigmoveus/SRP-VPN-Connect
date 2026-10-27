@@ -155,6 +155,8 @@ tunnel_t *tcpoverudpserverTunnelCreate(node_t *node)
     t->fnResumeU  = &tcpoverudpserverTunnelUpStreamResume;
     t->fnFinD     = &tcpoverudpserverTunnelDownStreamFinish;
     t->fnPayloadD = &tcpoverudpserverTunnelDownStreamPayload;
+    t->fnPauseD   = &tcpoverudpserverTunnelDownStreamPause;
+    t->fnResumeD  = &tcpoverudpserverTunnelDownStreamResume;
 
     t->onQuiesceRequest = &tcpoverudpserverTunnelOnQuiesceRequest;
 
