@@ -1,5 +1,6 @@
 #include "structure.h"
 
+#include "../../Internals/Bgp4Common/stream.h"
 #include "loggers/network_logger.h"
 
 void tcpoverudpserverDeliverReceived(tunnel_t *t, line_t *l)
@@ -9,12 +10,23 @@ void tcpoverudpserverDeliverReceived(tunnel_t *t, line_t *l)
     lineRef(l);
     while (ls->k_handle != NULL && ! ls->downstream_paused && ! ls->close_initiated)
     {
-        sbuf_t *large_buf = bufferpoolGetLargeBuffer(lineGetBufferPool(l));
-        int     read      = ikcp_recv(
-            ls->k_handle, (void *) sbufGetMutablePtr(large_buf), (int) sbufGetMaximumWriteableSize(large_buf));
+        buffer_pool_t *pool = lineGetBufferPool(l);
+        const int pending = ikcp_peeksize(ls->k_handle);
+        if (pending > kBgpMaxWireFrame + kFrameHeaderLength)
+        {
+            LOGW("TcpOverUdpServer: rejecting oversized KCP message (%d bytes)", pending);
+            tcpoverudpserverBeginClose(ls);
+            break;
+        }
+        sbuf_t *large_buf = pending > (int) bufferpoolGetLargeBufferSize(pool)
+            ? sbufCreateWithPadding((uint32_t) pending, bufferpoolGetLargeBufferPadding(pool))
+            : bufferpoolGetLargeBuffer(pool);
+        int read = ikcp_recv(ls->k_handle, (void *) sbufGetMutablePtr(large_buf),
+                             (int) sbufGetMaximumWriteableSize(large_buf));
 
         if (read <= 0)
         {
+            if (read == -3) LOGW("TcpOverUdpServer: KCP message exceeds the receive buffer");
             lineReuseBuffer(l, large_buf);
             break;
         }

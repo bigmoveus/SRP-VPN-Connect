@@ -58,7 +58,8 @@ typedef void(^SRPAetherConnectedCallback)(void);
                connectedCallback:(nullable SRPAetherConnectedCallback)connected
                  failureCallback:(SRPAetherFailureCallback)failure;
 
-- (void)injectPacket:(NSData *)packet family:(int)family;
+// One provider batch is in flight at a time; completion resumes packetFlow.
+- (void)injectPackets:(NSArray<NSData *> *)packets completion:(nullable dispatch_block_t)completion;
 
 /// YES when the WARP WireGuard transport drives the session — the WG engine
 /// owns the utun fd then (the provider must not pump packetFlow).

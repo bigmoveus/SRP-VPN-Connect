@@ -24,6 +24,10 @@
     NSInteger _probeAttempts;
     NSUInteger _packetsSinceMemorySample;
     dispatch_source_t _probeTimer;
+    NSArray<NSData *> *_pendingPackets;
+    NSUInteger _pendingPacketIndex;
+    dispatch_block_t _injectionCompletion;
+    BOOL _retryScheduled;
 }
 @end
 
@@ -393,18 +397,48 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     return settings;
 }
 
-- (void)injectPacket:(NSData *)packet family:(int)family {
-    if (family != AF_INET || packet.length < 20 || packet.length > 65535) return;
-    dispatch_async(_worker, ^{
-        if (self->_closed || self->_bridge == NULL) return;
+- (void)drainInjectedPacketsLocked {
+    _retryScheduled = NO;
+    if (_closed || _bridge == NULL) return;
+    while (_pendingPacketIndex < _pendingPackets.count) {
+        NSData *packet = _pendingPackets[_pendingPacketIndex];
 #if DEBUG
-        self->_packetsSinceMemorySample++;
-        if (self->_packetsSinceMemorySample % 1000 == 1) SRPWWMemoryUsage();
+        _packetsSinceMemorySample++;
+        if (_packetsSinceMemorySample % 1000 == 1) SRPWWMemoryUsage();
 #endif
-        int result = SRPWaterWallBridgeSubmitPacket(self->_bridge, packet.bytes, packet.length);
-        if (result != 0 && result != -EAGAIN && result != -ENOTCONN) {
-            SSLogE(@"WaterWall: packet submission failed (%d)", result);
+        int result = SRPWaterWallBridgeSubmitPacket(_bridge, packet.bytes, packet.length);
+        if (result == 0) {
+            _pendingPacketIndex++;
+            continue;
         }
+        if (result == -EAGAIN) {
+            if (!_retryScheduled) {
+                _retryScheduled = YES;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC), _worker, ^{
+                    [self drainInjectedPacketsLocked];
+                });
+            }
+            return;
+        }
+        if (_failureCb) {
+            _failureCb([NSString stringWithFormat:@"WaterWall packet channel stopped (%d)", result]);
+        }
+        return;
+    }
+    _pendingPackets = nil;
+    _pendingPacketIndex = 0;
+    dispatch_block_t completion = _injectionCompletion;
+    _injectionCompletion = nil;
+    if (completion) completion();
+}
+
+- (void)injectPackets:(NSArray<NSData *> *)packets completion:(dispatch_block_t)completion {
+    dispatch_async(_worker, ^{
+        if (self->_closed || self->_pendingPackets != nil) return;
+        self->_pendingPackets = packets;
+        self->_pendingPacketIndex = 0;
+        self->_injectionCompletion = completion;
+        [self drainInjectedPacketsLocked];
     });
 }
 
@@ -423,6 +457,9 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _closed = YES;
     dispatch_sync(_worker, ^{
         [self stopProbe];
+        self->_pendingPackets = nil;
+        self->_pendingPacketIndex = 0;
+        self->_injectionCompletion = nil;
         if (self->_bridge != NULL) {
             int result = SRPWaterWallBridgeStop(self->_bridge);
             if (result != 0) SSLogE(@"WaterWall: stop returned %d", result);

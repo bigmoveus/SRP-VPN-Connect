@@ -1,5 +1,7 @@
 #include "SRPWaterWallBridge.h"
 
+#include "libc/wlibc.h"
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -517,7 +519,16 @@ int main(void) {
   atomic_store(&state.ready, 0);
   bridge = startRuntime(&state, nodes);
   waitFor(&state.ready);
+  CHECK(requestProgramShutdown(0));
+  waitFor(&state.failure);
   CHECK(SRPWaterWallBridgeStop(bridge) == 0);
+
+  atomic_store(&state.ready, 0);
+  atomic_store(&state.failure, 0);
+  bridge = startRuntime(&state, nodes);
+  waitFor(&state.ready);
+  CHECK(SRPWaterWallBridgeStop(bridge) == 0);
+  CHECK(atomic_load(&state.failure) == 0);
   puts("host PoC passed");
   return 0;
 }

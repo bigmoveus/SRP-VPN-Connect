@@ -1119,8 +1119,22 @@
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
+				);
 				MARKETING_VERSION = 1.2.0;
-				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lmaxminddb",
+					"-lsrpwg-go",
+					"-laether",
+					"-lSRPSSHEngine",
+					"-lSRPSSH2",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -1146,8 +1160,22 @@
 				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
+					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
+				);
 				MARKETING_VERSION = 1.2.0;
-				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lmaxminddb",
+					"-lsrpwg-go",
+					"-laether",
+					"-lSRPSSHEngine",
+					"-lSRPSSH2",
+					"-lc++",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

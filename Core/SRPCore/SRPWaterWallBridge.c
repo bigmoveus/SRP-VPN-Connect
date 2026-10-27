@@ -73,9 +73,10 @@ static void *srpBridgeMain(void *context) {
       bridge->core_json, bridge->nodes_json, srpBridgeReady,
       srpBridgeStopRequested, srpBridgeLog);
   atomic_store(&bridge->runtime_exited, true);
-  if (result != 0 && bridge->callbacks.failure != NULL) {
+  if (!atomic_load(&bridge->stop_requested) && bridge->callbacks.failure != NULL) {
     bridge->callbacks.failure(bridge->callbacks.context, result,
-                              "WaterWall runtime stopped with an error");
+                              result == 0 ? "WaterWall runtime stopped" :
+                                            "WaterWall runtime stopped with an error");
   }
   return NULL;
 }

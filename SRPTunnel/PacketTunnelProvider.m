@@ -8,6 +8,7 @@
 
 @interface PacketTunnelProvider ()
 @property (nonatomic) NSInteger onSleepMode;   // 0=off 1=pause 2=stay (from the profile)
+@property (nonatomic) BOOL sstpActive;
 @property (nonatomic, strong) SRPSoftEtherClient *seClient;   // non-nil while a SoftEther session is active
 @property (nonatomic, strong) SRPOpenConnectClient *ocClient;  // non-nil while an OpenConnect session is active
 @property (nonatomic, strong) SRPSSHClient *sshClient;  // non-nil while an SSH session is active
@@ -108,6 +109,7 @@ static void logIPv4(NSString *dir, NSData *pkt, long n);
     NSString *logLevel = v[@"log_level"];
     p.logLevel = [logLevel isEqualToString:@"expert"] ? 1 : [logLevel isEqualToString:@"debug"] ? 2 : 0;
 
+    self.sstpActive = YES;
     [[lwIP shared] setup:p];
 
     __weak PacketTunnelProvider *weakSelf = self;
@@ -770,24 +772,31 @@ static void logIPv4(NSString *dir, NSData *pkt, long n);
             finish(nil);
         }];
     } connectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"Aether connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"Aether connection failed"}];
+        if (finished) {
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
 -(void)readPacketsAE {
     [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> * _Nonnull packets, NSArray<NSNumber *> * _Nonnull protocols) {
+        NSMutableArray<NSData *> *validPackets = [NSMutableArray arrayWithCapacity:packets.count];
         for (NSInteger i = 0; i < packets.count; i ++) {
             int fam = protocols[i].intValue;
-            if (fam != AF_INET && fam != AF_INET6) {
-                continue;
-            }
+            if (fam != AF_INET && fam != AF_INET6) continue;
             g_aeInPackets++;
             if (g_aeInPackets <= 20 || g_aeInPackets % 100 == 0) {
                 logIPv4(@"ae-from-phone", packets[i], g_aeInPackets);
             }
-            [self.aeClient injectPacket:packets[i] family:fam];
+            [validPackets addObject:packets[i]];
         }
-        [self readPacketsAE];
+        [self.aeClient injectPackets:validPackets completion:^{
+            [self readPacketsAE];
+        }];
     }];
 }
 
@@ -938,19 +947,29 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
             finish(nil);
         }];
     } connectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason}];
+        if (finished) {
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
 - (void)readPacketsWW {
     [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> *packets, NSArray<NSNumber *> *protocols) {
+        NSMutableArray<NSData *> *validPackets = [NSMutableArray arrayWithCapacity:packets.count];
         for (NSInteger i = 0; i < packets.count; i++) {
             int family = protocols[i].intValue;
+            if (family != AF_INET) continue;
             g_wwInPackets++;
             if (g_wwInPackets <= 20 || g_wwInPackets % 100 == 0) logIPv4(@"ww-from-phone", packets[i], g_wwInPackets);
-            [self.wwClient injectPacket:packets[i] family:family];
+            [validPackets addObject:packets[i]];
         }
-        [self readPacketsWW];
+        [self.wwClient injectPackets:validPackets completion:^{
+            [self readPacketsWW];
+        }];
     }];
 }
 
@@ -1185,7 +1204,8 @@ static void SRPTunnelLogCap(NSString *path) {
     self.psiClient = nil;
     [self.wwClient closeAndWait];
     self.wwClient = nil;
-    BOOL v = [[lwIP shared] close];
+    BOOL v = self.sstpActive && [[lwIP shared] close];
+    self.sstpActive = NO;
     if (v) {
         sleep(1);
     }
@@ -1214,9 +1234,6 @@ static void SRPTunnelLogCap(NSString *path) {
 
 - (void)sleepWithCompletionHandler:(void (^)(void))completionHandler {
     NSLog(@"[SRP] sleepWithCompletionHandler called (onSleepMode=%ld)", (long)self.onSleepMode);
-    // On Sleep option: stay = keep the connection; pause = close the SSTP
-    // client and reconnect on wake; off = drop the connection (reconnect on
-    // wake only when Auto Reconnect is on)
     if (self.onSleepMode != 2) {
         [self.seClient pauseForSleep];
         [self.ocClient pauseForSleep];
@@ -1225,7 +1242,7 @@ static void SRPTunnelLogCap(NSString *path) {
         [self.wgClient pauseForSleep];
         [self.aeClient pauseForSleep];
         [self.wwClient pauseForSleep];
-        [[lwIP shared] pauseForSleep];
+        if (self.sstpActive) [[lwIP shared] pauseForSleep];
     }
     completionHandler();
 }
@@ -1239,7 +1256,7 @@ static void SRPTunnelLogCap(NSString *path) {
     [self.wgClient wakeFromSleep];
     [self.aeClient wakeFromSleep];
     [self.wwClient wakeFromSleep];
-    [[lwIP shared] wakeFromSleep];
+    if (self.sstpActive) [[lwIP shared] wakeFromSleep];
 }
 
 - (void) setupUDPSession: (NEPacketTunnelNetworkSettings *) setting{

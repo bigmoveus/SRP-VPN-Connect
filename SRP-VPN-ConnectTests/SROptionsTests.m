@@ -28,7 +28,11 @@
 #if TARGET_OS_IPHONE
 #import "HomeProtocolView.h"
 #import "SRPGeoIPCountryViewController.h"
+#import "SRPAetherClient.h"
 #import <SRPParser/SRPParser.h>
+#import <fcntl.h>
+#import <sys/socket.h>
+#import <unistd.h>
 
 static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     if ([view isKindOfClass:UILabel.class] && [((UILabel *)view).text isEqualToString:text]) {
@@ -621,8 +625,11 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 }
 
 - (void)testGeoIPDatabaseValidationAndAtomicReplacement {
-    NSURL *fixture = [NSURL fileURLWithPath:[[NSString stringWithUTF8String:__FILE__].stringByDeletingLastPathComponent
-        stringByAppendingPathComponent:@"../SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"]];
+    NSURL *fixture = [NSBundle.mainBundle URLForResource:@"GeoLite2-Country" withExtension:@"mmdb" subdirectory:@"GeoIP"];
+    if (fixture == nil) {
+        fixture = [NSURL fileURLWithPath:[[NSString stringWithUTF8String:__FILE__].stringByDeletingLastPathComponent
+            stringByAppendingPathComponent:@"../SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"]];
+    }
     NSString *directory = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
     XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil]);
     SRPGeoIPTestStore *store = [[SRPGeoIPTestStore alloc] initWithDirectory:[NSURL fileURLWithPath:directory isDirectory:YES]];
@@ -1607,6 +1614,129 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 }
 
 #if TARGET_OS_IPHONE
+- (BOOL)waitForLiveVPNConnection:(PDVPNManager *)manager server:(NSDictionary *)server error:(NSString **)error {
+    __block BOOL issuedStart = NO;
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    NSDate *startedAt = NSDate.date;
+    XCTNSNotificationExpectation *stateChange =
+        [[XCTNSNotificationExpectation alloc] initWithName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
+    stateChange.handler = ^BOOL(NSNotification *notification) {
+        (void)notification;
+        if (!issuedStart) return NO;
+        if (manager.status == YDVPNStatusConnected) return YES;
+        if (manager.status != YDVPNStatusDisconnected) return NO;
+        NSDate *date = [shared objectForKey:@"SRPLastError"][@"date"];
+        return [date isKindOfClass:NSDate.class] && [date compare:startedAt] != NSOrderedAscending;
+    };
+    issuedStart = YES;
+    if (![manager connectUsing:server auth:^(YDUnsafeAuthResponse response) {
+        if (response) response(NO);
+    }]) {
+        if (error) *error = @"The app rejected the generated profile.";
+        return NO;
+    }
+    [self waitForExpectations:@[stateChange] timeout:90];
+    if (manager.status == YDVPNStatusConnected) return YES;
+    if (error) {
+        NSString *message = [shared objectForKey:@"SRPLastError"][@"message"];
+        *error = message ?: @"Connection status timed out";
+    }
+    [manager disconnect];
+    return NO;
+}
+
+- (void)waitForLiveVPNDisconnect:(PDVPNManager *)manager {
+    [manager disconnect];
+    if (manager.status == YDVPNStatusDisconnected) return;
+    XCTNSNotificationExpectation *stateChange =
+        [[XCTNSNotificationExpectation alloc] initWithName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
+    stateChange.handler = ^BOOL(NSNotification *notification) {
+        (void)notification;
+        return manager.status == YDVPNStatusDisconnected;
+    };
+    [self waitForExpectations:@[stateChange] timeout:30];
+}
+
+- (BOOL)performLiveStressDownloads:(PDVPNManager *)manager environment:(NSDictionary *)environment {
+    long long stressBytes = [environment[@"SRP_WW_STRESS_BYTES"] longLongValue];
+    if (stressBytes <= 0) return YES;
+    NSString *urlString = environment[@"SRP_WW_STRESS_URL"];
+    NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
+    if (urlString.length == 0 || connections < 1 || connections > 8 || stressBytes > 512 * 1024 * 1024) return NO;
+    NSURL *baseURL = [NSURL URLWithString:urlString];
+    XCTestExpectation *load = [self expectationWithDescription:@"Parallel live downloads"];
+    load.expectedFulfillmentCount = connections;
+    __block unsigned long long downloaded = 0;
+    __block NSMutableArray<NSString *> *errors = [NSMutableArray new];
+    NSLock *resultsLock = [NSLock new];
+    NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    configuration.HTTPMaximumConnectionsPerHost = connections;
+    configuration.timeoutIntervalForResource = 120;
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+    id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
+                                                                      object:nil
+                                                                       queue:nil
+                                                                  usingBlock:^(NSNotification *notification) {
+        (void)notification;
+        if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
+    }];
+    for (NSUInteger index = 0; index < connections; index++) {
+        NSURLComponents *components = [NSURLComponents componentsWithURL:baseURL resolvingAgainstBaseURL:NO];
+        components.queryItems = [components.queryItems ?: @[] arrayByAddingObject:
+            [NSURLQueryItem queryItemWithName:@"srp-live" value:@(index).stringValue]];
+        [[session downloadTaskWithURL:components.URL completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+            unsigned long long size = [(NSNumber *)[NSFileManager.defaultManager attributesOfItemAtPath:location.path error:nil][NSFileSize] unsignedLongLongValue];
+            NSInteger statusCode = [response isKindOfClass:NSHTTPURLResponse.class] ? ((NSHTTPURLResponse *)response).statusCode : 0;
+            NSLog(@"Live download %lu: %llu bytes, HTTP %ld, error: %@",
+                  (unsigned long)index, size, (long)statusCode, error.localizedDescription ?: @"none");
+            [resultsLock lock];
+            downloaded += size;
+            if (error != nil) [errors addObject:error.localizedDescription];
+            else if (statusCode != 200) [errors addObject:[NSString stringWithFormat:@"HTTP %ld", (long)statusCode]];
+            else if (size < (unsigned long long)stressBytes) [errors addObject:@"Short download"];
+            [resultsLock unlock];
+            [load fulfill];
+        }] resume];
+    }
+    [self waitForExpectations:@[load] timeout:180];
+    [NSNotificationCenter.defaultCenter removeObserver:lostObserver];
+    [session invalidateAndCancel];
+    if (manager.status != YDVPNStatusConnected || errors.count > 0) {
+        NSLog(@"Live stress failed: %@; downloaded=%llu, status=%ld", errors, downloaded, (long)manager.status);
+        return NO;
+    }
+    return downloaded >= (unsigned long long)(stressBytes * (long long)connections);
+}
+
+- (BOOL)runLiveConnectionRoundsForModel:(NodeModel *)model manager:(PDVPNManager *)manager environment:(NSDictionary *)environment {
+    NSUInteger rounds = MAX(1, [environment[@"SRP_STRESS_ROUNDS"] integerValue] ?: 3);
+    for (NSUInteger connectionRound = 0; connectionRound < rounds; connectionRound++) {
+        NSLog(@"Live connection round %lu/%lu starting", (unsigned long)(connectionRound + 1), (unsigned long)rounds);
+        NSString *error = nil;
+        if (![self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error]) {
+            NSLog(@"Live connection failed: %@", error);
+            return NO;
+        }
+        for (NSUInteger downloadRound = 0; downloadRound < rounds; downloadRound++) {
+            if (![self waterWallLiveHTTPS204:model] || ![self performLiveStressDownloads:manager environment:environment] ||
+                ![self waterWallLiveHTTPS204:model]) {
+                [self waitForLiveVPNDisconnect:manager];
+                return NO;
+            }
+            NSLog(@"Live connection %lu, download round %lu passed; VPN remains connected",
+                  (unsigned long)(connectionRound + 1), (unsigned long)(downloadRound + 1));
+        }
+        [self waitForLiveVPNDisconnect:manager];
+        if (manager.status != YDVPNStatusDisconnected) {
+            NSLog(@"Live disconnect failed after connection %lu", (unsigned long)(connectionRound + 1));
+            return NO;
+        }
+    }
+    NSLog(@"Live stress finished: %lu connections, %lu download rounds per connection",
+          (unsigned long)rounds, (unsigned long)rounds);
+    return YES;
+}
+
 - (BOOL)waterWallLiveHTTPS204:(NodeModel *)model {
     XCTestExpectation *expectation = [self expectationWithDescription:@"HTTPS 204 through WaterWall"];
     __block NSString *result;
@@ -1673,99 +1803,76 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         @"obfuscator": @NO, @"carrier": carrier, @"quic-carrier": @"datagram", @"node-options": nodeOptions,
         @"bgp4": @([environment[@"SRP_WW_BGP4"] boolValue])
     }];
-    NSDictionary *server = [CheckConnectData checkConnectParmer:model];
-    __block BOOL issuedStart = NO;
-    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
-    NSDate *startedAt = NSDate.date;
-    XCTNSNotificationExpectation *stateChange =
-        [[XCTNSNotificationExpectation alloc] initWithName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
-    stateChange.handler = ^BOOL(NSNotification *notification) {
-        (void)notification;
-        if (!issuedStart) return NO;
-        if (manager.status == YDVPNStatusConnected) return YES;
-        if (manager.status != YDVPNStatusDisconnected) return NO;
-        NSDate *date = [shared objectForKey:@"SRPLastError"][@"date"];
-        return [date isKindOfClass:NSDate.class] && [date compare:startedAt] != NSOrderedAscending;
-    };
-    issuedStart = YES;
-    BOOL started = [manager connectUsing:server auth:^(YDUnsafeAuthResponse response) {
-        if (response) response(NO);
-    }];
-    if (!started) {
-        XCTFail(@"The app rejected the generated WaterWall profile.");
-        return;
-    }
-    [self waitForExpectations:@[stateChange] timeout:75];
-    if (manager.status != YDVPNStatusConnected) {
-        NSString *message = [[[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"] objectForKey:@"SRPLastError"][@"message"];
-        [manager disconnect];
-        XCTFail(@"WaterWall did not connect: %@", message ?: @"connection status timed out");
-        return;
-    }
-    if (![self waterWallLiveHTTPS204:model]) {
-        [manager disconnect];
-        XCTFail(@"WaterWall did not return an HTTPS 204 response.");
-        return;
-    }
+    XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+}
 
-    long long stressBytes = [environment[@"SRP_WW_STRESS_BYTES"] longLongValue];
-    if (stressBytes > 0) {
-        NSString *urlString = environment[@"SRP_WW_STRESS_URL"];
-        NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
-        if (urlString.length == 0 || connections < 1 || connections > 8 || stressBytes > 512 * 1024 * 1024) {
-            [manager disconnect];
-            XCTFail(@"The stress URL and one to eight connections are required.");
-            return;
-        }
-        NSURL *baseURL = [NSURL URLWithString:urlString];
-        XCTestExpectation *load = [self expectationWithDescription:@"Parallel WaterWall downloads"];
-        load.expectedFulfillmentCount = connections;
-        __block unsigned long long downloaded = 0;
-        __block NSMutableArray<NSString *> *errors = [NSMutableArray new];
-        NSLock *resultsLock = [NSLock new];
-        NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
-        configuration.HTTPMaximumConnectionsPerHost = connections;
-        configuration.timeoutIntervalForResource = 120;
-        NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
-        id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
-                                                                          object:nil
-                                                                           queue:nil
-                                                                      usingBlock:^(NSNotification *notification) {
-            (void)notification;
-            if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
-        }];
-        for (NSUInteger index = 0; index < connections; index++) {
-            NSURLComponents *components = [NSURLComponents componentsWithURL:baseURL resolvingAgainstBaseURL:NO];
-            components.queryItems = [components.queryItems ?: @[] arrayByAddingObject:
-                [NSURLQueryItem queryItemWithName:@"srp-live" value:@(index).stringValue]];
-            [[session downloadTaskWithURL:components.URL completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
-                unsigned long long size = [(NSNumber *)[NSFileManager.defaultManager attributesOfItemAtPath:location.path error:nil][NSFileSize] unsignedLongLongValue];
-                NSInteger statusCode = [response isKindOfClass:NSHTTPURLResponse.class] ? ((NSHTTPURLResponse *)response).statusCode : 0;
-                NSLog(@"WaterWall download %lu: %llu bytes, HTTP %ld, error: %@",
-                      (unsigned long)index, size, (long)statusCode, error.localizedDescription ?: @"none");
-                [resultsLock lock];
-                downloaded += size;
-                if (error != nil) [errors addObject:error.localizedDescription];
-                else if (statusCode != 200) [errors addObject:[NSString stringWithFormat:@"HTTP %ld", (long)statusCode]];
-                else if (size < (unsigned long long)stressBytes) [errors addObject:@"Short download"];
-                [resultsLock unlock];
-                [load fulfill];
-            }] resume];
-        }
-        [self waitForExpectations:@[load] timeout:180];
-        [NSNotificationCenter.defaultCenter removeObserver:lostObserver];
-        [session invalidateAndCancel];
-        if (manager.status != YDVPNStatusConnected) {
-            [manager disconnect];
-            XCTFail(@"WaterWall disconnected during the throughput test.");
-            return;
-        }
-        XCTAssertEqual(errors.count, 0u, @"%@", errors);
-        XCTAssertGreaterThanOrEqual(downloaded, (unsigned long long)(stressBytes * (long long)connections));
+- (void)testAetherLiveConnectionAndThroughputWhenConfigured {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_AETHER_LIVE_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
+        manager.status == YDVPNStatusDisconnecting) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
     }
-    BOOL responsive = [self waterWallLiveHTTPS204:model];
-    [manager disconnect];
-    XCTAssertTrue(responsive, @"WaterWall did not return HTTPS 204 after the throughput test.");
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"aether";
+    model.nodeId = @"live-aether-test";
+    model.desc = @"Aether live test";
+    model.server = @"public";
+    model.port = @"443";
+    model.aetherMode = @"public";
+    model.aetherTransport = environment[@"SRP_AETHER_TRANSPORT"] ?: @"masque";
+    model.aetherScan = environment[@"SRP_AETHER_SCAN"] ?: @"balanced";
+    model.aetherTor = @"off";
+    model.logLevel = 2;
+    XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+}
+
+- (void)testAetherIngressBackpressurePreservesPackets {
+    int sockets[2];
+    XCTAssertEqual(socketpair(AF_UNIX, SOCK_DGRAM, 0, sockets), 0);
+    int bufferSize = 32 * 1024;
+    XCTAssertEqual(setsockopt(sockets[0], SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize)), 0);
+    XCTAssertEqual(fcntl(sockets[0], F_SETFL, O_NONBLOCK), 0);
+    SRPAetherClient *client = [SRPAetherClient new];
+    [client setValue:@(sockets[0]) forKey:@"tunFd"];
+    NSMutableArray<NSData *> *packets = [NSMutableArray new];
+    for (NSUInteger index = 0; index < 128; index++) {
+        uint8_t bytes[1400] = {0};
+        memset(bytes, (int)(index % 251), sizeof(bytes));
+        bytes[0] = 0x45;
+        [packets addObject:[NSData dataWithBytes:bytes length:sizeof(bytes)]];
+    }
+    __block BOOL completed = NO;
+    XCTestExpectation *completion = [self expectationWithDescription:@"The socket accepts the complete batch"];
+    [client injectPackets:packets completion:^{
+        completed = YES;
+        [completion fulfill];
+    }];
+    XCTestExpectation *blocked = [self expectationWithDescription:@"Backpressure pauses packetFlow"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 200 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertFalse(completed);
+        [blocked fulfill];
+    });
+    [self waitForExpectations:@[blocked] timeout:2];
+    NSMutableData *received = [NSMutableData new];
+    int readFD = sockets[1];
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        uint8_t bytes[65535];
+        while (received.length < packets.count * 1404) {
+            ssize_t count = read(readFD, bytes, sizeof(bytes));
+            if (count > 0) [received appendBytes:bytes length:(NSUInteger)count];
+        }
+    });
+    [self waitForExpectations:@[completion] timeout:5];
+    XCTAssertTrue(completed);
+    XCTAssertEqual(received.length, packets.count * 1404);
+    for (NSUInteger index = 0; index < packets.count; index++) {
+        NSData *packet = [received subdataWithRange:NSMakeRange(index * 1404 + 4, 1400)];
+        XCTAssertEqualObjects(packet, packets[index], @"Packet %lu", (unsigned long)index);
+    }
+    [client closeAndWait];
+    close(sockets[1]);
 }
 
 - (void)testProfileLatencyCardLayout {

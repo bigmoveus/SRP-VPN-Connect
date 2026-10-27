@@ -281,10 +281,14 @@ typedef void(^YDFetchCompletion)(NETunnelProviderManager *manager);
             [_providerManager saveToPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
                 if (error) {
                     NSLog(@"saveToPreferencesWithCompletionHandler:%@", error);
+                    complection(nil);
+                    return;
                 }
+                complection(_providerManager);
             }];
+        } else {
+            complection(_providerManager);
         }
-        complection(_providerManager);
     }
     else {
         [self setupVPNManager:^(NETunnelProviderManager *manager) {
@@ -315,7 +319,6 @@ static NSString *SRPMaskedURI(NSString *uri) {
         }
         NETunnelProviderSession *session = (NETunnelProviderSession *)_providerManager.connection;
         NSString *uri = url;
-        NSError *error;
         NSDictionary *providerConfiguration = @{@"type":@(0), @"uri":uri, @"global":@(self.isGlobalMode), @"udp_socks":@(self.udpSocks),
                                                 @"node_id":_requestedNodeID ?: @""};
         NETunnelProviderProtocol *protocolConfiguration = (NETunnelProviderProtocol *)_providerManager.protocolConfiguration;
@@ -329,12 +332,18 @@ static NSString *SRPMaskedURI(NSString *uri) {
         [_providerManager saveToPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
             if (error) {
                 NSLog(@"saveToPreferencesWithCompletionHandler:%@", error);
+                NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
+                [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+                return;
+            }
+            NSError *startError = nil;
+            [session startVPNTunnelWithOptions:providerConfiguration andReturnError:&startError];
+            if (startError) {
+                NSLog(@"startVPNTunnelWithOptions:%@", startError);
+                NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
+                [shared setObject:@{@"message": startError.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
             }
         }];
-        [session startVPNTunnelWithOptions:providerConfiguration andReturnError:&error];
-        if (error) {
-            NSLog(@"startVPNTunnelWithOptions:%@", error);
-        }
     }];
 
 }

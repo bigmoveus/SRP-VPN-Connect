@@ -48,6 +48,11 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     SRPAetherFailureCallback _failureCb;
     dispatch_queue_t _worker;
     dispatch_source_t _readSource;
+    dispatch_source_t _monitorTimer;
+    BOOL _retryScheduled;
+    NSArray<NSData *> *_pendingPackets;
+    NSUInteger _pendingPacketIndex;
+    dispatch_block_t _injectionCompletion;
     NSString *_endpointIP;
     int _tunFd;             // our end of the hev channel
     int _socksPort;         // hev's SOCKS5 upstream (engine or WG relay)
@@ -309,6 +314,25 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     return endpoint;
 }
 
+- (void)monitorTunnelJobLocked {
+    if (_monitorTimer || _tunnelJobId == 0 || _closed) return;
+    _monitorTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
+    dispatch_source_set_timer(_monitorTimer, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), 5 * NSEC_PER_SEC, NSEC_PER_SEC);
+    dispatch_source_set_event_handler(_monitorTimer, ^{
+        if (self->_closed || self->_tunnelJobId == 0) return;
+        uint64_t jobId = self->_tunnelJobId;
+        NSDictionary *poll = [self callJson:^{ return aether_job_poll(jobId); }];
+        if (![poll[@"state"] isEqualToString:@"done"]) return;
+        self->_tunnelJobId = 0;
+        aether_job_free(jobId);
+        dispatch_source_cancel(self->_monitorTimer);
+        self->_monitorTimer = nil;
+        self->_up = NO;
+        if (self->_failureCb) self->_failureCb(@"Aether: the tunnel stopped unexpectedly");
+    });
+    dispatch_resume(_monitorTimer);
+}
+
 - (BOOL)startMasqueTunnelLocked:(NSString *)endpoint usingH2:(BOOL)h2 {
     NSMutableDictionary *tunnelPayload = [@{
         @"peer": endpoint,
@@ -327,13 +351,11 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     if (![self startHevLocked]) return NO;
 
     if (_settingsCb) _settingsCb([self buildSettings:_endpointIP]);
+    _up = YES;
     if (_connectedCb) _connectedCb();
+    [self monitorTunnelJobLocked];
     SSLogM(@"Aether: session established over MASQUE %@", h2 ? @"H2" : @"H3");
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(12 * NSEC_PER_SEC)), _worker, ^{
-        if (self->_closed || self->_tunnelJobId == 0) return;
-        NSDictionary *poll = [self callJson:^{ return aether_job_poll(self->_tunnelJobId); }];
-        SSLogM(@"Aether: tunnel job state: %@", poll);
-    });
+    [self monitorTunnelJobLocked];
     return YES;
 }
 
@@ -385,7 +407,9 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
         return;
     }
     if (_settingsCb) _settingsCb([self buildSettings:@""]);
+    _up = YES;
     if (_connectedCb) _connectedCb();
+    [self monitorTunnelJobLocked];
     SSLogM(@"Aether: session established (tor-only)");
 }
 
@@ -434,7 +458,9 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
         return;
     }
     if (_settingsCb) _settingsCb([self buildSettings:_endpointIP]);
+    _up = YES;
     if (_connectedCb) _connectedCb();
+    [self monitorTunnelJobLocked];
     SSLogM(@"Aether: session established (private)");
 }
 
@@ -727,20 +753,61 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     return _usingWireGuardEngine;
 }
 
-- (void)injectPacket:(NSData *)packet family:(int)family {
-    if (_usingWireGuardEngine) return;   // the WG engine reads the utun itself
-    if (packet.length < 20 || packet.length > 2048) return;
-    // The hev core speaks the Darwin utun format: 4-byte header + IP packet
-    NSMutableData *d = [NSMutableData dataWithCapacity:packet.length + 4];
-    uint32_t zero = 0;
-    [d appendBytes:&zero length:4];
-    [d appendBytes:packet.bytes length:packet.length];
-    dispatch_async(_worker, ^{
-        if (self->_tunFd < 0) return;
-        ssize_t n = write(self->_tunFd, d.bytes, d.length);
-        if (n < 0 && errno != EAGAIN) {
-            SSLogE(@"Aether: tunnel write failed (%d)", errno);
+- (void)finishInjectionLocked {
+    _pendingPackets = nil;
+    _pendingPacketIndex = 0;
+    dispatch_block_t completion = _injectionCompletion;
+    _injectionCompletion = nil;
+    if (completion) completion();
+}
+
+- (void)drainInjectedPacketsLocked {
+    _retryScheduled = NO;
+    if (_closed || _tunFd < 0) return;
+    while (_pendingPacketIndex < _pendingPackets.count) {
+        NSData *packet = _pendingPackets[_pendingPacketIndex];
+        ssize_t written = write(_tunFd, packet.bytes, packet.length);
+        if (written == (ssize_t)packet.length) {
+            _pendingPacketIndex++;
+            continue;
         }
+        if (written < 0 && errno == EINTR) continue;
+        if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOBUFS)) {
+            if (!_retryScheduled) {
+                _retryScheduled = YES;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC), _worker, ^{
+                    [self drainInjectedPacketsLocked];
+                });
+            }
+            return;
+        }
+        SSLogE(@"Aether: tunnel write failed (%d)", errno);
+        if (_failureCb) _failureCb(@"Aether: the packet channel stopped accepting data");
+        return;
+    }
+    [self finishInjectionLocked];
+}
+
+- (void)injectPackets:(NSArray<NSData *> *)packets completion:(dispatch_block_t)completion {
+    dispatch_async(_worker, ^{
+        if (self->_closed || self->_pendingPackets != nil) return;
+        if (self->_usingWireGuardEngine) {
+            if (completion) completion();
+            return;
+        }
+        NSMutableArray<NSData *> *framed = [NSMutableArray arrayWithCapacity:packets.count];
+        for (NSData *packet in packets) {
+            if (packet.length < 20 || packet.length > 2048) continue;
+            NSMutableData *data = [NSMutableData dataWithCapacity:packet.length + 4];
+            uint32_t header = 0;
+            [data appendBytes:&header length:4];
+            [data appendData:packet];
+            [framed addObject:data];
+        }
+        self->_pendingPackets = framed;
+        self->_pendingPacketIndex = 0;
+        self->_injectionCompletion = completion;
+        [self drainInjectedPacketsLocked];
     });
 }
 
@@ -834,6 +901,13 @@ next_attempt:
 }
 
 - (void)closeLocked {
+    if (_monitorTimer) {
+        dispatch_source_cancel(_monitorTimer);
+        _monitorTimer = nil;
+    }
+    _pendingPackets = nil;
+    _pendingPacketIndex = 0;
+    _injectionCompletion = nil;
     [_wgClient closeAndWait];
     _wgClient = nil;
     if (_nsHandle >= 0) {

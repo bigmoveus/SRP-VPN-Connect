@@ -30,7 +30,8 @@ typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
          networkSettingsCallback:(SRPWaterWallNetworkSettingsCallback)settings
                connectedCallback:(nullable SRPWaterWallConnectedCallback)connected
                  failureCallback:(SRPWaterWallFailureBlock)failure;
-- (void)injectPacket:(NSData *)packet family:(int)family;
+// One provider batch is in flight at a time; completion resumes packetFlow.
+- (void)injectPackets:(NSArray<NSData *> *)packets completion:(nullable dispatch_block_t)completion;
 - (void)close;
 - (void)closeAndWait;
 - (void)pauseForSleep;
