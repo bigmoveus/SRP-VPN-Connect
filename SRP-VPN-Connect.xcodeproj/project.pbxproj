@@ -48,6 +48,7 @@
 		A40000000000000000000002 /* GeoIP in Resources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* GeoIP */; };
 		A40000000000000000000004 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* SRPGeoIPDatabase.m */; };
 		A40000000000000000000005 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* SRPGeoIPDatabase.m */; };
+		A40000000000000000000008 /* SRPGeoIPCountryViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000007 /* SRPGeoIPCountryViewController.m */; };
 		BB0000E12B70000100000001 /* SRPEapConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E32B70000100000001 /* SRPEapConfig.m */; };
 		BB0000E22B70000100000001 /* SRPKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000E42B70000100000001 /* SRPKeychain.m */; };
 		BB0000F12B70000200000001 /* SRPEapConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = BB0000F42B70000200000001 /* SRPEapConfigViewController.m */; };
@@ -245,6 +246,8 @@
 		A20000000000000000000002 /* SRPProfileLatencyTester.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPProfileLatencyTester.h; sourceTree = "<group>"; };
 		A40000000000000000000001 /* GeoIP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "SRP-VPN-Connect/GeoIP"; sourceTree = SOURCE_ROOT; };
 		A40000000000000000000003 /* SRPGeoIPDatabase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Core/SRPCore/SRPGeoIPDatabase.m; sourceTree = "<group>"; };
+		A40000000000000000000006 /* SRPGeoIPCountryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPGeoIPCountryViewController.h; sourceTree = "<group>"; };
+		A40000000000000000000007 /* SRPGeoIPCountryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPGeoIPCountryViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -392,6 +395,8 @@
 				791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */,
 				A10000000000000000000073 /* SRPWaterWallConfigViewController.h */,
 				A10000000000000000000072 /* SRPWaterWallConfigViewController.m */,
+				A40000000000000000000006 /* SRPGeoIPCountryViewController.h */,
+				A40000000000000000000007 /* SRPGeoIPCountryViewController.m */,
 				A40000000000000000000001 /* GeoIP */,
 			);
 			path = "SRP-VPN-Connect";
@@ -686,6 +691,7 @@
 				B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */,
 				E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */,
 				A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */,
+				A40000000000000000000008 /* SRPGeoIPCountryViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

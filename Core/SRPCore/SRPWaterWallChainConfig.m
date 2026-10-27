@@ -275,18 +275,50 @@ static BOOL SRPWWNonnegativeIntegerString(id value, NSInteger *result) {
     return YES;
 }
 
-static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
-    if (![configuration isKindOfClass:NSDictionary.class] || ![configuration[@"version"] isEqual:@2]) return configuration;
-    NSMutableDictionary *migrated = [configuration mutableCopy];
-    migrated[@"version"] = @3;
-    if ([migrated[@"mode"] isEqualToString:@"chain"]) {
-        NSDictionary *defaults = @{@"http": @"off", @"http-version": @1, @"obfuscator": @NO,
-                                   @"carrier": @"tcp", @"quic-carrier": @"datagram"};
-        for (NSString *key in defaults) {
-            if (migrated[key] == nil) migrated[key] = defaults[key];
-        }
+static NSArray<NSString *> *SRPWWGeoIPCountries(id value) {
+    if (value == nil) return @[];
+    if (![value isKindOfClass:NSArray.class]) return nil;
+    NSMutableSet<NSString *> *countries = [NSMutableSet new];
+    for (id item in (NSArray *)value) {
+        if (![item isKindOfClass:NSString.class]) return nil;
+        NSString *code = [item uppercaseString];
+        if (code.length != 2) return nil;
+        unichar first = [code characterAtIndex:0];
+        unichar second = [code characterAtIndex:1];
+        if (first < 'A' || first > 'Z' || second < 'A' || second > 'Z') return nil;
+        [countries addObject:code];
     }
-    return migrated;
+    return [countries.allObjects sortedArrayUsingSelector:@selector(compare:)];
+}
+
+static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
+    if (![configuration isKindOfClass:NSDictionary.class]) return configuration;
+    NSDictionary *migrated = configuration;
+    if ([migrated[@"version"] isEqual:@2]) {
+        NSMutableDictionary *versioned = [migrated mutableCopy];
+        versioned[@"version"] = @3;
+        if ([versioned[@"mode"] isEqualToString:@"chain"]) {
+            NSDictionary *defaults = @{@"http": @"off", @"http-version": @1, @"obfuscator": @NO,
+                                       @"carrier": @"tcp", @"quic-carrier": @"datagram"};
+            for (NSString *key in defaults) {
+                if (versioned[key] == nil) versioned[key] = defaults[key];
+            }
+        }
+        migrated = versioned;
+    }
+    if (![migrated[@"geoip"] isKindOfClass:NSDictionary.class]) return migrated;
+    NSMutableDictionary *result = [migrated mutableCopy];
+    NSMutableDictionary *geoIP = [migrated[@"geoip"] mutableCopy];
+    id legacy = geoIP[@"iran-direct"];
+    if (legacy != nil && SRPWWBoolean(legacy)) {
+        if (geoIP[@"countries"] == nil && [legacy boolValue]) geoIP[@"countries"] = @[@"IR"];
+        [geoIP removeObjectForKey:@"iran-direct"];
+    }
+    NSArray<NSString *> *countries = SRPWWGeoIPCountries(geoIP[@"countries"]);
+    if (countries != nil && geoIP[@"countries"] != nil) geoIP[@"countries"] = countries;
+    if (geoIP.count == 0) [result removeObjectForKey:@"geoip"];
+    else result[@"geoip"] = geoIP;
+    return result;
 }
 
 @implementation SRPWaterWallChainConfig
@@ -405,7 +437,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     id geoIP = configuration[@"geoip"];
     if (geoIP != nil) {
         if (![geoIP isKindOfClass:NSDictionary.class]) return @"geoip must be an object.";
-        NSSet *allowed = [NSSet setWithArray:@[@"iran-direct", @"update-url"]];
+        NSSet *allowed = [NSSet setWithArray:@[@"iran-direct", @"countries", @"update-url"]];
         for (NSString *key in (NSDictionary *)geoIP) {
             if (![allowed containsObject:key]) return [NSString stringWithFormat:@"Unsupported geoip setting: %@", key];
         }
@@ -413,6 +445,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             return @"GeoIP routing requires Chain mode with Connections input.";
         }
         if (geoIP[@"iran-direct"] != nil && !SRPWWBoolean(geoIP[@"iran-direct"])) return @"geoip.iran-direct must be a boolean.";
+        if (geoIP[@"countries"] != nil && SRPWWGeoIPCountries(geoIP[@"countries"]) == nil) {
+            return @"geoip.countries must be an array of two-letter country codes.";
+        }
         id updateURL = geoIP[@"update-url"];
         if (updateURL != nil) {
             if (![updateURL isKindOfClass:NSString.class] || [updateURL length] == 0 || [updateURL length] > 2048 ||
@@ -850,16 +885,18 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                         [application isEqualToString:@"trojan"] ? @"TrojanClient" : socks ? @"Socks5Client" : @"HttpProxyClient";
             [nodes addObject:@{@"name": application, @"type": applicationType,
                                @"settings": applicationSettings, @"next": mux ? @"mux" : afterApplication}];
-            BOOL directIran = [configuration[@"geoip"][@"iran-direct"] boolValue];
-            if (directIran && [options[@"ww_geoip_db_path"] length] == 0) return nil;
-            NSMutableDictionary *routerSettings = [@{@"resolve-domains": @(directIran)} mutableCopy];
+            NSArray<NSString *> *directCountries = SRPWWGeoIPCountries(configuration[@"geoip"][@"countries"]);
+            if (directCountries.count > 0 && [options[@"ww_geoip_db_path"] length] == 0) return nil;
+            NSMutableDictionary *routerSettings = [@{@"resolve-domains": directCountries.count > 0 ? @YES : @NO} mutableCopy];
             NSMutableArray *rules = [NSMutableArray new];
             if ([options[@"ww_smart_routing"] boolValue]) {
                 [rules addObject:@{@"destination-ip": @[@"10.0.0.0/8", @"172.16.0.0/12", @"192.168.0.0/16"], @"target": @"direct-local"}];
             }
-            if (directIran) {
+            if (directCountries.count > 0) {
                 routerSettings[@"geoip-db-path"] = options[@"ww_geoip_db_path"];
-                [rules addObject:@{@"destination-ip": @[@"geoip:ir"], @"target": @"direct-local"}];
+                for (NSString *country in directCountries) {
+                    [rules addObject:@{@"destination-ip": @[[@"geoip:" stringByAppendingString:country.lowercaseString]], @"target": @"direct-local"}];
+                }
             }
             if (rules.count > 0) routerSettings[@"rules"] = rules;
             [nodes addObject:@{@"name": @"router", @"type": @"Router", @"settings": routerSettings, @"next": application}];

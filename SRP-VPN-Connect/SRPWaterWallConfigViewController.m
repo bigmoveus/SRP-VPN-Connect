@@ -1,4 +1,5 @@
 #import "SRPWaterWallConfigViewController.h"
+#import "SRPGeoIPCountryViewController.h"
 #import "NodeModel.h"
 #import <SRPCore/SRPGeoIPDatabase.h>
 #import <SRPCore/SRPWaterWallChainConfig.h>
@@ -454,7 +455,15 @@
 }
 
 - (NSArray<NSString *> *)geoIPRows {
-    return @[@"iran-direct", @"database", @"update-url", @"upload", @"download"];
+    NSMutableArray<NSString *> *rows = [NSMutableArray arrayWithObject:@"geoip-enabled"];
+    if ([self geoIPCountries].count > 0) [rows addObject:@"countries"];
+    [rows addObjectsFromArray:@[@"database", @"update-url", @"upload", @"download"]];
+    return rows;
+}
+
+- (NSArray<NSString *> *)geoIPCountries {
+    id countries = self.configuration[@"geoip"][@"countries"];
+    return [countries isKindOfClass:NSArray.class] ? countries : @[];
 }
 
 - (void)showGeoIPMessage:(NSString *)message {
@@ -467,19 +476,49 @@
     return [self.configuration[@"geoip"] mutableCopy] ?: [NSMutableDictionary new];
 }
 
+- (void)setGeoIPCountries:(NSSet<NSString *> *)countries {
+    NSMutableDictionary *configuration = [self.configuration mutableCopy];
+    NSMutableDictionary *geoIP = [self mutableGeoIPConfiguration];
+    if (countries.count > 0) {
+        geoIP[@"countries"] = [countries.allObjects sortedArrayUsingSelector:@selector(compare:)];
+    } else {
+        [geoIP removeObjectForKey:@"countries"];
+    }
+    if (geoIP.count == 0) [configuration removeObjectForKey:@"geoip"];
+    else configuration[@"geoip"] = geoIP;
+    [self applyConfiguration:configuration];
+    [self.tableView reloadData];
+}
+
+- (void)beginGeoIPCountries {
+    __weak SRPWaterWallConfigViewController *weakSelf = self;
+    SRPGeoIPCountryViewController *controller =
+        [[SRPGeoIPCountryViewController alloc] initWithSelectedCodes:[NSSet setWithArray:[self geoIPCountries]]
+                                                          completion:^(NSSet<NSString *> *selectedCodes) {
+        [weakSelf setGeoIPCountries:selectedCodes];
+    }];
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
 - (void)geoIPChanged:(UISwitch *)sender {
     if (sender.isOn) {
         NSError *error = nil;
         if (![SRPGeoIPDatabase.sharedDatabase installBundledDatabaseIfNeeded:&error]) {
-            [self showGeoIPMessage:error.localizedDescription ?: @"Upload or download a valid country MMDB before enabling Iran-direct routing."];
+            [self showGeoIPMessage:error.localizedDescription ?: @"Upload or download a valid country MMDB before enabling GeoIP routing."];
             [self.tableView reloadData];
             return;
         }
     }
     NSMutableDictionary *configuration = [self.configuration mutableCopy];
     NSMutableDictionary *geoIP = [self mutableGeoIPConfiguration];
-    geoIP[@"iran-direct"] = @(sender.isOn);
-    configuration[@"geoip"] = geoIP;
+    if (sender.isOn) {
+        NSArray<NSString *> *selected = [self geoIPCountries];
+        geoIP[@"countries"] = selected.count > 0 ? selected : @[@"IR"];
+    } else {
+        [geoIP removeObjectForKey:@"countries"];
+    }
+    if (geoIP.count == 0) [configuration removeObjectForKey:@"geoip"];
+    else configuration[@"geoip"] = geoIP;
     [self applyConfiguration:configuration];
     [self.tableView reloadData];
 }
@@ -566,11 +605,20 @@
 }
 
 - (UITableViewCell *)geoIPCellForRow:(NSString *)row {
-    if ([row isEqualToString:@"iran-direct"]) {
-        return [self switchCellWithTitle:@"Direct Iran (GeoIP)"
-                                     on:[self.configuration[@"geoip"][@"iran-direct"] boolValue]
+    if ([row isEqualToString:@"geoip-enabled"]) {
+        return [self switchCellWithTitle:@"GeoIP Routing"
+                                     on:[self geoIPCountries].count > 0
                                  action:@selector(geoIPChanged:)
-                   accessibilityIdentifier:@"WWGeoIPIranDirect"];
+                   accessibilityIdentifier:@"WWGeoIPEnabled"];
+    }
+    if ([row isEqualToString:@"countries"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:nil];
+        NSUInteger count = [self geoIPCountries].count;
+        cell.textLabel.text = @"Countries";
+        cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu %@", (unsigned long)count, count == 1 ? @"country" : @"countries"];
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        cell.accessibilityIdentifier = @"WWGeoIPCountries";
+        return cell;
     }
     if ([row isEqualToString:@"update-url"]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
@@ -699,7 +747,7 @@
         return @"Build the connection chain by selecting each layer independently.";
     }
     if (section == 1) return @"Optional per-node JSON objects. Leave them empty to use WaterWall defaults.";
-    return @"GeoLite2 Country data by MaxMind. Uploaded and downloaded files are validated before atomic replacement. Iran matches use a direct TCP/UDP connector; other destinations use the proxy chain. Fake-IP resolution happens before routing.";
+    return @"GeoLite2 Country data by MaxMind. Uploaded and downloaded files are validated before atomic replacement. Selected-country matches use a direct TCP/UDP connector; other destinations use the proxy chain. Fake-IP resolution happens before routing.";
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -812,7 +860,8 @@
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     if (indexPath.section == 2) {
         NSString *row = [self geoIPRows][indexPath.row];
-        if ([row isEqualToString:@"upload"]) [self beginGeoIPUpload];
+        if ([row isEqualToString:@"countries"]) [self beginGeoIPCountries];
+        else if ([row isEqualToString:@"upload"]) [self beginGeoIPUpload];
         else if ([row isEqualToString:@"download"]) [self beginGeoIPDownload];
         return;
     }

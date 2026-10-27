@@ -55,6 +55,7 @@ CASES = [
     ("raw-aead", "", "aead", False, "off", False, "tcp", "datagram", "raw-ipv4"),
     ("geoip-direct-iran", "vless", "tls", False, "off", False, "tcp", "datagram", "connections"),
     ("geoip-default-proxy", "vless", "tls", False, "off", False, "tcp", "datagram", "connections"),
+    ("geoip-multi-countries", "vless", "tls", False, "off", False, "tcp", "datagram", "connections"),
 ]
 
 
@@ -93,7 +94,7 @@ def configuration(spec, port):
     if outer in ("reality", "aead"):
         entry["outerSecret"] = OUTER_SECRET
     if name.startswith("geoip-"):
-        config["geoip"] = {"iran-direct": True}
+        config["geoip"] = {"countries": ["IR", "US"]} if name == "geoip-multi-countries" else {"iran-direct": True}
         entry["options"]["ww_geoip_db_path"] = str(GEO_DATABASE)
     if "bgp4" in name and outer != "bgp4":
         config["bgp4"] = True
@@ -429,15 +430,21 @@ class Matrix:
         self.results.append(result)
         print(f"{name}: TCP={result['tcp']} UDP={result['udp']} teardown={result['teardown']}", flush=True)
 
-    def geo_case(self, spec, client_path, iranian):
-        ip = "5.52.0.1" if iranian else "192.0.2.1"
+    def geo_case(self, spec, client_path, direct):
+        if spec[0] == "geoip-multi-countries":
+            ip, expected_country = "8.8.8.8", "US"
+        elif direct:
+            ip, expected_country = "5.52.0.1", "IR"
+        else:
+            ip, expected_country = "192.0.2.1", None
         lookup = shutil.which("mmdblookup") or os.environ.get("SRP_GEOIP_LOOKUP", "/tmp/srp-geoip-lookup")
         lookup_result = subprocess.run([str(lookup), "--file", str(GEO_DATABASE), "--ip", ip],
                                        capture_output=True, text=True)
         if lookup_result.returncode not in (0, 3):
             raise RuntimeError(f"GeoIP lookup failed for {ip}: {lookup_result.stdout} {lookup_result.stderr}")
-        is_iran = lookup_result.returncode == 0 and (lookup_result.stdout.strip() == "IR" or '"IR"' in lookup_result.stdout)
-        if is_iran != iranian:
+        matches = lookup_result.returncode == 0 and expected_country is not None and (
+            lookup_result.stdout.strip() == expected_country or f'"{expected_country}"' in lookup_result.stdout)
+        if matches != direct:
             raise RuntimeError(f"Unexpected GeoIP lookup for {ip}: {lookup_result.stdout}")
         root = json.loads(client_path.read_text())
         port = root["nodes"][-1]["settings"]["port"]
@@ -447,12 +454,12 @@ class Matrix:
         core = self.work / f"{spec[0]}-core.json"
         for node in root["nodes"]:
             if node["name"] == "direct-local":
-                node["settings"].update({"address": "127.0.0.1", "port": http_port if iranian else unused_port})
+                node["settings"].update({"address": "127.0.0.1", "port": http_port if direct else unused_port})
         write_json(client_path, root)
         nodes = peer_nodes(root, port, self.cert, self.key, free_port())
         for node in nodes:
             if node["name"] == "out":
-                node["settings"].update({"address": "127.0.0.1", "port": unused_port if iranian else http_port})
+                node["settings"].update({"address": "127.0.0.1", "port": unused_port if direct else http_port})
         write_json(main_nodes, {"name": f"{spec[0]}-peer", "nodes": nodes})
         write_json(core, {"misc": {"workers": 1, "ram-profile": "minimal"}, "configs": [str(main_nodes)]})
         log = self.work / f"{spec[0]}-peer.log"
@@ -475,7 +482,7 @@ class Matrix:
             handler.server_close()
             thread.join(timeout=3)
             result = {"name": spec[0], "destination": ip,
-                      "expected": "direct" if iranian else "proxy",
+                      "expected": "direct" if direct else "proxy",
                       "passed": status == 0, "error": "" if status == 0 else tail(test_log),
                       "teardown": stop_peer_status(process)}
             process = None
@@ -505,7 +512,7 @@ class Matrix:
         clients = self.generate_clients(selected)
         for spec in selected:
             if spec[0].startswith("geoip-"):
-                self.geo_case(spec, clients[spec[0]], spec[0] == "geoip-direct-iran")
+                self.geo_case(spec, clients[spec[0]], spec[0] != "geoip-default-proxy")
             else:
                 self.run_case(spec, clients[spec[0]])
         write_json(self.work / "results.json", self.results)

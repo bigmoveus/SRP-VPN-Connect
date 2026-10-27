@@ -27,6 +27,7 @@
 #import <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 #import "HomeProtocolView.h"
+#import "SRPGeoIPCountryViewController.h"
 #import <SRPParser/SRPParser.h>
 
 static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
@@ -542,7 +543,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 
 - (void)testGeoIPConfigurationBuildsDirectIranRuleAndKeepsFakeDNS {
     NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
-    configuration[@"geoip"] = @{@"iran-direct": @YES, @"update-url": @"https://example.com/GeoLite2-Country.mmdb"};
+    configuration[@"geoip"] = @{@"countries": @[@"IR"], @"update-url": @"https://example.com/GeoLite2-Country.mmdb"};
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
     NSString *roundTrip = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
     XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:roundTrip], configuration);
@@ -579,6 +580,44 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
     configuration[@"geoip"] = @{@"update-url": @"http://example.com/GeoLite2-Country.mmdb"};
     XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+}
+
+- (void)testGeoIPMultipleCountriesAndLegacyMigration {
+    NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    configuration[@"geoip"] = @{@"iran-direct": @YES};
+    NSString *legacyJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    NSDictionary *migrated = [SRPWaterWallChainConfig configurationWithJSON:legacyJSON];
+    XCTAssertEqualObjects(migrated[@"geoip"][@"countries"], (@[@"IR"]));
+    XCTAssertNil(migrated[@"geoip"][@"iran-direct"]);
+
+    configuration[@"geoip"] = @{@"countries": @[@"us", @"IR", @"us"]};
+    NSDictionary *normalized = [SRPWaterWallChainConfig configurationWithJSON:
+        [SRPWaterWallChainConfig JSONWithConfiguration:configuration]];
+    XCTAssertEqualObjects(normalized[@"geoip"][@"countries"], (@[@"IR", @"US"]));
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:normalized]);
+    NSDictionary *root = [self waterWallRootForConfiguration:normalized options:@{
+        @"ww_geoip_db_path": @"/tmp/GeoLite2-Country.mmdb",
+    }];
+    NSDictionary *byName = [self waterWallNodesByName:root[@"nodes"]];
+    NSDictionary *router = byName[@"router"][@"settings"];
+    XCTAssertEqualObjects(router[@"resolve-domains"], @YES);
+    XCTAssertEqual(CFGetTypeID((__bridge CFTypeRef)router[@"resolve-domains"]), CFBooleanGetTypeID());
+    XCTAssertEqual([router[@"rules"] count], 2u);
+    XCTAssertEqualObjects(router[@"rules"][0][@"destination-ip"], (@[@"geoip:ir"]));
+    XCTAssertEqualObjects(router[@"rules"][1][@"destination-ip"], (@[@"geoip:us"]));
+    XCTAssertNotNil(byName[@"ptc"][@"settings"][@"fake-dns"]);
+
+    for (id invalid in @[@"I", @"1A", @[@"IR", @1], @"IR"]) {
+        configuration[@"geoip"] = @{@"countries": invalid};
+        XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    }
+    configuration[@"geoip"] = @{@"countries": @[]};
+    root = [self waterWallRootForConfiguration:configuration options:nil];
+    byName = [self waterWallNodesByName:root[@"nodes"]];
+    router = byName[@"router"][@"settings"];
+    XCTAssertEqualObjects(router[@"resolve-domains"], @NO);
+    XCTAssertNil(router[@"rules"]);
+    XCTAssertNil(byName[@"direct-local"]);
 }
 
 - (void)testGeoIPDatabaseValidationAndAtomicReplacement {
@@ -1735,6 +1774,33 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         XCTAssertLessThanOrEqual(CGRectGetMaxY(badge.frame), CGRectGetMinY(latency.frame));
         XCTAssertLessThanOrEqual(CGRectGetMaxX(latency.frame), CGRectGetWidth(cell.contentView.bounds));
     }
+}
+
+- (void)testGeoIPCountryScreenSearchAndMultipleSelection {
+    Class viewClass = NSClassFromString(@"SRPGeoIPCountryViewController");
+    XCTAssertNotNil(viewClass);
+    __block NSSet<NSString *> *selected = nil;
+    id controller = [[viewClass alloc] initWithSelectedCodes:[NSSet setWithObject:@"IR"]
+                                                  completion:^(NSSet<NSString *> *codes) {
+        selected = codes;
+    }];
+    [controller loadViewIfNeeded];
+    UITableView *table = [controller tableView];
+    XCTAssertGreaterThan([controller tableView:table numberOfRowsInSection:0], (NSInteger)200);
+    XCTAssertNotNil([controller navigationItem].rightBarButtonItem);
+
+    UISearchController *search = [controller navigationItem].searchController;
+    search.searchBar.text = @"Germany";
+    [controller updateSearchResultsForSearchController:search];
+    XCTAssertEqual([controller tableView:table numberOfRowsInSection:0], (NSInteger)1);
+    NSIndexPath *path = [NSIndexPath indexPathForRow:0 inSection:0];
+    UITableViewCell *cell = [controller tableView:table cellForRowAtIndexPath:path];
+    XCTAssertTrue([cell.textLabel.text containsString:@"Germany"]);
+    XCTAssertTrue([cell.textLabel.text containsString:@"(DE)"]);
+    [controller tableView:table didSelectRowAtIndexPath:path];
+    XCTAssertEqualObjects(selected, ([NSSet setWithObjects:@"IR", @"DE", nil]));
+    cell = [controller tableView:table cellForRowAtIndexPath:path];
+    XCTAssertEqual(cell.accessoryType, UITableViewCellAccessoryCheckmark);
 }
 #endif
 
