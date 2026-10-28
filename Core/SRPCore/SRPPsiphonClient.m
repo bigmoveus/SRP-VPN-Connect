@@ -45,6 +45,7 @@ extern void srpssh_hev_socks5_tunnel_quit(void);
     self = [super init];
     if (self) {
         _worker = dispatch_queue_create("srp.psiphon", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_set_specific(_worker, (__bridge const void *)self, (__bridge void *)self, NULL);
         _tunFd = -1;
     }
     return self;
@@ -327,7 +328,11 @@ extern void srpssh_hev_socks5_tunnel_quit(void);
 
 - (void)closeAndWait {
     _closed = YES;
-    dispatch_sync(_worker, ^{ [self closeLocked]; });
+    if (dispatch_get_specific((__bridge const void *)self)) {
+        [self closeLocked];
+    } else {
+        dispatch_sync(_worker, ^{ [self closeLocked]; });
+    }
 }
 
 - (void)closeLocked {
@@ -340,6 +345,10 @@ extern void srpssh_hev_socks5_tunnel_quit(void);
         close(_tunFd);
         _tunFd = -1;
     }
+    _outputCb = nil;
+    _settingsCb = nil;
+    _connectedCb = nil;
+    _failureCb = nil;
 }
 
 - (void)dealloc {

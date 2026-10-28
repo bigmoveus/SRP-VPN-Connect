@@ -97,7 +97,10 @@ static bool kdfHash(EVP_MD_CTX *ctx, const vmess_kdf_segment_t *keys, size_t dep
         inner_pad[i] ^= key->data[i];
         outer_pad[i] ^= key->data[i];
     }
-    assert(count <= 5);
+    if (count > 5)
+    {
+        return false;
+    }
     vmess_kdf_segment_t spans[6];
     spans[0] = (vmess_kdf_segment_t) {inner_pad, sizeof(inner_pad)};
     memcpy(spans + 1, message, count * sizeof(*message));

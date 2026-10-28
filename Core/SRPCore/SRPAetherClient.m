@@ -41,6 +41,23 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     SSLogM(@"[wg-ns] %s", msg);
 }
 
+#if DEBUG
+#import <os/proc.h>
+#import <mach/task.h>
+#import <mach/task_info.h>
+#import <mach/mach_init.h>
+
+static void SRPAMemoryUsage(void) {
+    task_vm_info_data_t info = {0};
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS) {
+        NSLog(@"Aether memory: %.1f MiB; available: %.1f MiB",
+              (double)info.phys_footprint / (1024.0 * 1024.0),
+              (double)os_proc_available_memory() / (1024.0 * 1024.0));
+    }
+}
+#endif
+
 @implementation SRPAetherClient {
     SRPAetherOutputCallback _outputCb;
     SRPAetherNetworkSettingsCallback _settingsCb;
@@ -52,6 +69,7 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     BOOL _retryScheduled;
     NSArray<NSData *> *_pendingPackets;
     NSUInteger _pendingPacketIndex;
+    NSUInteger _packetsSinceMemorySample;
     dispatch_block_t _injectionCompletion;
     NSString *_endpointIP;
     int _tunFd;             // our end of the hev channel
@@ -71,6 +89,7 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     self = [super init];
     if (self) {
         _worker = dispatch_queue_create("srp.aether", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_set_specific(_worker, (__bridge const void *)self, (__bridge void *)self, NULL);
         _transport = @"masque";
         _scanProfile = @"balanced";
         _tunFd = -1;
@@ -140,6 +159,7 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
     _failureCb = failure;
     _closed = NO;
     SSLogSetLevel((SSLogLevel)_logLevel);
+    setenv("AETHER_PERF_PROFILE", "low", 1);
     // Engine logs (env_logger) go to stderr -> the tunnel log
     setenv("RUST_LOG", _logLevel >= 2 ? "trace" : "info", 1);
     // SPKI pinning on — the upstream default is NO verification (spec P0)
@@ -542,12 +562,18 @@ static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
         uint8_t buf[65535];
         ssize_t n;
         while ((n = read(strongSelf->_tunFd, buf, sizeof(buf))) > 0) {
-            if (n < 24) continue;
-            // strip the 4-byte Darwin utun header the hev core prepends
-            uint8_t *pkt = buf + 4;
-            int fam = (pkt[0] >> 4) == 6 ? AF_INET6 : AF_INET;
-            if (strongSelf->_outputCb)
-                strongSelf->_outputCb([NSData dataWithBytes:pkt length:(NSUInteger)(n - 4)], fam);
+            @autoreleasepool {
+                if (n < 24) continue;
+                // strip the 4-byte Darwin utun header the hev core prepends
+                uint8_t *pkt = buf + 4;
+                int fam = (pkt[0] >> 4) == 6 ? AF_INET6 : AF_INET;
+                if (strongSelf->_outputCb)
+                    strongSelf->_outputCb([NSData dataWithBytes:pkt length:(NSUInteger)(n - 4)], fam);
+#if DEBUG
+                strongSelf->_packetsSinceMemorySample++;
+                if (strongSelf->_packetsSinceMemorySample % 10000 == 0) SRPAMemoryUsage();
+#endif
+            }
         }
     });
     dispatch_source_set_cancel_handler(_readSource, ^{
@@ -897,7 +923,11 @@ next_attempt:
 
 - (void)closeAndWait {
     _closed = YES;
-    dispatch_sync(_worker, ^{ [self closeLocked]; });
+    if (dispatch_get_specific((__bridge const void *)self)) {
+        [self closeLocked];
+    } else {
+        dispatch_sync(_worker, ^{ [self closeLocked]; });
+    }
 }
 
 - (void)closeLocked {
@@ -923,6 +953,10 @@ next_attempt:
         close(_tunFd);
         _tunFd = -1;
     }
+    _outputCb = nil;
+    _settingsCb = nil;
+    _connectedCb = nil;
+    _failureCb = nil;
 }
 
 - (void)pauseForSleep { [_wgClient pauseForSleep]; }

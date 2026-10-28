@@ -303,6 +303,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     self = [super init];
     if (self) {
         _worker = dispatch_queue_create("srp.waterwall", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_set_specific(_worker, (__bridge const void *)self, (__bridge void *)self, NULL);
         _remoteAddress = @"127.0.0.1";
         _tunnelAddress = @"10.89.0.1";
         _probeAddress = @"1.1.1.1";
@@ -444,28 +445,32 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 
 - (void)close {
     _closed = YES;
-    dispatch_async(_worker, ^{
-        [self stopProbe];
-        if (self->_bridge != NULL) {
-            SRPWaterWallBridgeStop(self->_bridge);
-            self->_bridge = NULL;
-        }
-    });
+    dispatch_async(_worker, ^{ [self closeLocked]; });
 }
 
 - (void)closeAndWait {
     _closed = YES;
-    dispatch_sync(_worker, ^{
-        [self stopProbe];
-        self->_pendingPackets = nil;
-        self->_pendingPacketIndex = 0;
-        self->_injectionCompletion = nil;
-        if (self->_bridge != NULL) {
-            int result = SRPWaterWallBridgeStop(self->_bridge);
-            if (result != 0) SSLogE(@"WaterWall: stop returned %d", result);
-            self->_bridge = NULL;
-        }
-    });
+    if (dispatch_get_specific((__bridge const void *)self)) {
+        [self closeLocked];
+    } else {
+        dispatch_sync(_worker, ^{ [self closeLocked]; });
+    }
+}
+
+- (void)closeLocked {
+    [self stopProbe];
+    _pendingPackets = nil;
+    _pendingPacketIndex = 0;
+    _injectionCompletion = nil;
+    if (_bridge != NULL) {
+        int result = SRPWaterWallBridgeStop(_bridge);
+        if (result != 0) SSLogE(@"WaterWall: stop returned %d", result);
+        _bridge = NULL;
+    }
+    _outputCb = nil;
+    _settingsCb = nil;
+    _connectedCb = nil;
+    _failureCb = nil;
 }
 
 - (void)pauseForSleep {

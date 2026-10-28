@@ -1061,7 +1061,10 @@ if(PROJECT_REQUIRES_OPENSSL)
         file(READ "${openssl-source_SOURCE_DIR}/crypto/cpuid.c" WW_OPENSSL_CPUID_SOURCE)
         string(REGEX REPLACE "#[ \t]*undef[ \t]+CRYPTO_memcmp" "" WW_OPENSSL_CPUID_SOURCE "${WW_OPENSSL_CPUID_SOURCE}")
         file(WRITE "${openssl-source_SOURCE_DIR}/crypto/cpuid.c" "${WW_OPENSSL_CPUID_SOURCE}")
-        foreach(WW_OPENSSL_HASH_SOURCE IN ITEMS "${openssl-source_SOURCE_DIR}/crypto/md5/md5_dgst.c" "${openssl-source_SOURCE_DIR}/crypto/ripemd/rmd_dgst.c")
+        foreach(WW_OPENSSL_HASH_SOURCE IN ITEMS
+            "${openssl-source_SOURCE_DIR}/crypto/md4/md4_dgst.c"
+            "${openssl-source_SOURCE_DIR}/crypto/md5/md5_dgst.c"
+            "${openssl-source_SOURCE_DIR}/crypto/ripemd/rmd_dgst.c")
             file(READ "${WW_OPENSSL_HASH_SOURCE}" WW_OPENSSL_HASH_CONTENT)
             string(REGEX REPLACE "#[ \t]*ifndef[ \t]+[A-Za-z0-9_]*block_data_order" "#if 1" WW_OPENSSL_HASH_CONTENT "${WW_OPENSSL_HASH_CONTENT}")
             file(WRITE "${WW_OPENSSL_HASH_SOURCE}" "${WW_OPENSSL_HASH_CONTENT}")
@@ -1167,7 +1170,6 @@ if(PROJECT_REQUIRES_OPENSSL)
 
     if(SRP_OPENSSL_PREFIX_HEADER)
         set(SRP_OPENSSL_PREFIX_HEADER "${SRP_OPENSSL_PREFIX_HEADER}" PARENT_SCOPE)
-        target_compile_options(ww PRIVATE "SHELL:-include \"${SRP_OPENSSL_PREFIX_HEADER}\"")
         if(TARGET srp_openssl_full_prefix)
             add_dependencies(ww srp_openssl_full_prefix)
         endif()

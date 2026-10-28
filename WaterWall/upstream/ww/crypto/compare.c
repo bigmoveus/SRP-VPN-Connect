@@ -2,6 +2,7 @@
 #include "wcrypto.h"
 
 #if defined(WCRYPTO_BACKEND_OPENSSL)
+#include "srp_openssl_prefix.h"
 #include <openssl/crypto.h>
 #elif defined(WCRYPTO_BACKEND_SODIUM)
 #include <sodium.h>

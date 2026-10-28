@@ -1,6 +1,7 @@
 #include "private/crypto_backends.h"
 #include "private/crypto_validation.h"
 
+#include "srp_openssl_prefix.h"
 #include <openssl/evp.h>
 
 wcrypto_status_t wCryptoOpenSSLChacha20Poly1305Encrypt(unsigned char *dst, size_t dst_capacity,

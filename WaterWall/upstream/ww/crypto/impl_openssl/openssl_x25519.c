@@ -1,6 +1,7 @@
 #include "private/crypto_backends.h"
 #include "private/crypto_validation.h"
 
+#include "srp_openssl_prefix.h"
 #include <openssl/evp.h>
 
 wcrypto_status_t wCryptoOpenSSLX25519(unsigned char       out[WCRYPTO_X25519_KEY_SIZE],

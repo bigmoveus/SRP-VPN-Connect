@@ -28,8 +28,25 @@ if output.exists():
         match = re.fullmatch(r"#define ([A-Za-z_][A-Za-z0-9_]*) srpww_\1", line)
         if match:
             symbols.add(match.group(1))
+
+header_dirs = (source / "include" / "openssl",)
+macro_names = set()
+for directory in header_dirs:
+    if not directory.is_dir():
+        continue
+    for header in directory.glob("*.h"):
+        if header.name == "prefix_symbols.h":
+            continue
+        for line in header.read_text().splitlines():
+            match = re.match(r"\s*#\s*define\s+([A-Za-z_][A-Za-z0-9_]*)", line)
+            if match:
+                macro_names.add(match.group(1))
+symbols.difference_update(macro_names)
+
 with output.open("w") as handle:
     handle.write("#ifndef SRP_WW_OPENSSL_PREFIX_H\n#define SRP_WW_OPENSSL_PREFIX_H\n")
     for symbol in sorted(symbols):
+        handle.write(f"#ifndef {symbol}\n")
         handle.write(f"#define {symbol} srpww_{symbol}\n")
+        handle.write("#endif\n")
     handle.write("#endif\n")

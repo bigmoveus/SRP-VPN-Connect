@@ -29,10 +29,33 @@
 #import "HomeProtocolView.h"
 #import "SRPGeoIPCountryViewController.h"
 #import "SRPAetherClient.h"
+#import "SRPPsiphonClient.h"
+#import "SRPWaterWallClient.h"
+#import "SRPWaterWallBridge.h"
 #import <SRPParser/SRPParser.h>
 #import <fcntl.h>
 #import <sys/socket.h>
 #import <unistd.h>
+
+// Lifecycle tests never start a bridge; the app test bundle has no engine linkage.
+__attribute__((weak)) SRPWaterWallBridge *SRPWaterWallBridgeStart(const SRPWaterWallConfig *config,
+                                                                 const SRPWaterWallCallbacks *callbacks) {
+    (void)config;
+    (void)callbacks;
+    return NULL;
+}
+
+__attribute__((weak)) int SRPWaterWallBridgeSubmitPacket(SRPWaterWallBridge *bridge, const void *packet, size_t length) {
+    (void)bridge;
+    (void)packet;
+    (void)length;
+    return 0;
+}
+
+__attribute__((weak)) int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge) {
+    (void)bridge;
+    return 0;
+}
 
 static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     if ([view isKindOfClass:UILabel.class] && [((UILabel *)view).text isEqualToString:text]) {
@@ -1662,7 +1685,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     if (stressBytes <= 0) return YES;
     NSString *urlString = environment[@"SRP_WW_STRESS_URL"];
     NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
-    if (urlString.length == 0 || connections < 1 || connections > 8 || stressBytes > 512 * 1024 * 1024) return NO;
+    if (urlString.length == 0 || connections < 1 || connections > 32 || stressBytes > 512 * 1024 * 1024) return NO;
     NSURL *baseURL = [NSURL URLWithString:urlString];
     XCTestExpectation *load = [self expectationWithDescription:@"Parallel live downloads"];
     load.expectedFulfillmentCount = connections;
@@ -1823,9 +1846,60 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     model.aetherMode = @"public";
     model.aetherTransport = environment[@"SRP_AETHER_TRANSPORT"] ?: @"masque";
     model.aetherScan = environment[@"SRP_AETHER_SCAN"] ?: @"balanced";
+    model.tlsFragMode = [environment[@"SRP_AETHER_TLS_FRAG"] integerValue];
     model.aetherTor = @"off";
     model.logLevel = 2;
     XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+}
+
+- (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {
+    __weak SRPPsiphonClient *weakClient;
+    @autoreleasepool {
+        SRPPsiphonClient *client = [SRPPsiphonClient new];
+        weakClient = client;
+        [client setValue:^{ (void)[client description]; } forKey:@"outputCb"];
+        [client close];
+    }
+    XCTestExpectation *released = [self expectationWithDescription:@"Psiphon closes without reentering its worker synchronously"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertNil(weakClient);
+        [released fulfill];
+    });
+    [self waitForExpectations:@[released] timeout:2];
+}
+
+- (void)testAetherCloseCanReleaseTheProviderOnItsWorker {
+    __weak SRPAetherClient *weakClient;
+    @autoreleasepool {
+        SRPAetherClient *client = [SRPAetherClient new];
+        weakClient = client;
+        [client setValue:@[[NSData data]] forKey:@"pendingPackets"];
+        [client setValue:^{ (void)[client description]; } forKey:@"injectionCompletion"];
+        [client close];
+    }
+    XCTestExpectation *released = [self expectationWithDescription:@"Aether closes without reentering its worker synchronously"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertNil(weakClient);
+        [released fulfill];
+    });
+    [self waitForExpectations:@[released] timeout:2];
+}
+
+- (void)testWaterWallCloseCanReleaseTheProviderOnItsWorker {
+    __weak SRPWaterWallClient *weakClient;
+    @autoreleasepool {
+        SRPWaterWallClient *client = [SRPWaterWallClient new];
+        weakClient = client;
+        [client setValue:@[[NSData data]] forKey:@"pendingPackets"];
+        [client setValue:^{ (void)[client description]; } forKey:@"injectionCompletion"];
+        [client close];
+    }
+    XCTestExpectation *released = [self expectationWithDescription:@"WaterWall closes without reentering its worker synchronously"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertNil(weakClient);
+        [released fulfill];
+    });
+    [self waitForExpectations:@[released] timeout:2];
 }
 
 - (void)testAetherIngressBackpressurePreservesPackets {

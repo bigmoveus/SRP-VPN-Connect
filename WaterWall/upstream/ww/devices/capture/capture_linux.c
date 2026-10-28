@@ -235,7 +235,7 @@ static bool captureOpenQueues(capture_device_t *cdev)
     return true;
 }
 
-static void captureLogQueueLimits(capture_device_t *cdev)
+bool capturedeviceReaderOperational(capture_device_t *cdev)
 {
     if (! captureLifecycleIsActive(captureLifecycleLoad(&cdev->lifecycle)) || ! cdev->queue_restartable ||
         cdev->reader == NULL)

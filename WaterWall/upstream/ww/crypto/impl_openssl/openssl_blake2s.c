@@ -1,6 +1,7 @@
 #include "private/crypto_backends.h"
 #include "private/crypto_validation.h"
 
+#include "srp_openssl_prefix.h"
 #include <openssl/core_names.h>
 #include <openssl/evp.h>
 

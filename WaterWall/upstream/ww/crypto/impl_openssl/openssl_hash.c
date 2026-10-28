@@ -1,6 +1,7 @@
 #include "private/crypto_backends.h"
 #include "private/crypto_validation.h"
 
+#include "srp_openssl_prefix.h"
 #include <openssl/evp.h>
 
 static wcrypto_status_t opensslDigest(unsigned char *out, size_t outlen, const EVP_MD *md, const unsigned char *in,
