@@ -142,6 +142,7 @@ sbuf_t *wireguarddeviceDecryptTransportPayload(buffer_pool_t *pool, const uint8_
     if (UNLIKELY(! wireguardDecryptPacket(
             sbufGetMutablePtr(buf), sbufGetMaximumWriteableSize(buf), ciphertext, ciphertext_len, nonce, keypair)))
     {
+        LOGW("WireGuardDevice: transport packet decryption failed, nonce=%llu", (unsigned long long) nonce);
         bufferpoolReuseBuffer(pool, buf);
         return NULL;
     }
@@ -186,6 +187,7 @@ static void wireguardifProcessDataMessage(wireguard_device_t *device, wireguard_
     {
         if (UNLIKELY(! wireguardCheckReplay(keypair, nonce)))
         {
+            LOGW("WireGuardDevice: transport packet rejected by replay check, nonce=%llu", (unsigned long long) nonce);
             goto finish;
         }
 
@@ -273,7 +275,7 @@ static void wireguardifProcessResponseMessage(wireguard_device_t *device, wiregu
     }
     else
     {
-        // Packet bad
+        LOGW("WireGuardDevice: handshake response cryptographic validation failed");
     }
 }
 

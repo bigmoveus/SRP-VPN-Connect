@@ -2,6 +2,7 @@
 
 #include "SRPNEPacketDevice.h"
 #include "hosted_runtime.h"
+#include "global_state.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -57,6 +58,14 @@ static void srpBridgeLog(int level, const char *message, int length) {
   }
 }
 
+static void srpNEPacketLog(void *context, int level, const char *message,
+                           size_t length) {
+  SRPWaterWallBridge *bridge = context;
+  if (bridge->callbacks.log != NULL) {
+    bridge->callbacks.log(bridge->callbacks.context, level, message, length);
+  }
+}
+
 static void srpBridgeReady(void) {
   SRPWaterWallBridge *bridge = srpBridgeActive;
   if (bridge != NULL && !atomic_load(&bridge->stop_requested)) {
@@ -106,7 +115,7 @@ SRPWaterWallBridgeStart(const SRPWaterWallConfig *config,
                                 : config->core_json);
   bridge->nodes_json = srpBridgeDuplicate(config->nodes_json);
   if (bridge->core_json == NULL || bridge->nodes_json == NULL ||
-      !srpNEPacketDeviceConfigure(srpBridgePacket, NULL, bridge)) {
+      !srpNEPacketDeviceConfigure(srpBridgePacket, srpNEPacketLog, bridge)) {
     free(bridge->core_json);
     free(bridge->nodes_json);
     free(bridge);

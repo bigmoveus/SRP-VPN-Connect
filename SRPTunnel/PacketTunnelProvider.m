@@ -17,6 +17,9 @@
 @property (nonatomic, strong) SRPAetherClient *aeClient;    // non-nil while an Aether session is active
 @property (nonatomic, strong) SRPPsiphonClient *psiClient;  // non-nil while a Psiphon session is active
 @property (nonatomic, strong) SRPWaterWallClient *wwClient;
+@property (nonatomic) NSInteger wwReadGeneration;
+@property (nonatomic) BOOL wwReadInFlight;
+@property (nonatomic) NSUInteger wwReadRequestID;
 
 @end
 
@@ -826,7 +829,9 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The WaterWall configuration is invalid."}]);
         return;
     }
-    if ([configuration[@"geoip"][@"iran-direct"] boolValue]) {
+    BOOL requiresGeoIP = [configuration[@"geoip"][@"iran-direct"] boolValue] ||
+                         [configuration[@"geoip"][@"countries"] count] > 0;
+    if (requiresGeoIP) {
         NSURL *databaseURL = SRPGeoIPDatabase.sharedDatabase.currentDatabaseURL;
         NSError *databaseError = nil;
         if (databaseURL == nil || ![SRPGeoIPDatabase.sharedDatabase validateDatabaseAtURL:databaseURL error:&databaseError]) {
@@ -843,7 +848,12 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
 #if DEBUG
     if ([v[@"ww_test_id"] length] > 0) {
         NSURL *container = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
-        NSString *path = [container.path stringByAppendingPathComponent:@"Library/ww-native.log"];
+        NSString *base = container ? container.path : NSHomeDirectory();
+        NSString *path = [base stringByAppendingPathComponent:@"Library/ww-native-current.log"];
+        if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
+            NSString *backup = [path stringByAppendingFormat:@".%.0f.previous", NSDate.date.timeIntervalSince1970];
+            [NSFileManager.defaultManager moveItemAtPath:path toPath:backup error:nil];
+        }
         NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:path];
         NSString *message = [NSString stringWithFormat:@"WaterWall test profile: %@\n", v[@"ww_test_id"]];
         [handle seekToEndOfFile];
@@ -864,6 +874,20 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         }
     }
     if ([configuration[@"input"] isEqualToString:@"raw-ipv4"] || [configuration[@"outer"] isEqualToString:@"aead"]) client.tunnelAddress = @"10.44.0.4";
+    NSString *serverAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
+    NSString *endpointAddress = v[@"endpoint_ip"];
+    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration] &&
+        ![SRPWaterWallChainConfig isDirectConfiguration:configuration]) {
+        endpointAddress = [client resolvedAddressForHost:endpointAddress.length > 0 ? endpointAddress : serverAddress];
+        if (endpointAddress.length == 0) {
+            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{
+                NSLocalizedDescriptionKey: @"The WaterWall server address could not be resolved."
+            }]);
+            return;
+        }
+        client.endpointIP = endpointAddress;
+        client.endpointIPs = @[endpointAddress];
+    }
     NSString *nodesJSON;
     if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
         NSDictionary *wg;
@@ -890,9 +914,9 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
             outerSecret = [SRPKeychain passwordForKey:v[@"ww_outer_secret_ref"]] ?: outerSecret;
         }
         nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
-                                                                server:v[@"address"] ?: @""
+                                                                server:endpointAddress.length > 0 ? endpointAddress : serverAddress
                                                                   port:[v[@"port"] integerValue]
-                                                                   sni:v[@"sni"]
+                                                                   sni:[v[@"sni"] length] > 0 ? v[@"sni"] : serverAddress
                                                              verifyTLS:![v[@"allowInsecure"] boolValue]
                                                                 secret:secret
                                                            outerSecret:outerSecret
@@ -902,7 +926,20 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The WaterWall profile is incomplete or invalid."}]);
         return;
     }
+    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
+        NSDictionary *graph = [NSJSONSerialization JSONObjectWithData:[nodesJSON dataUsingEncoding:NSUTF8StringEncoding]
+                                                               options:0
+                                                                 error:nil];
+        NSArray<NSDictionary *> *nodes = graph[@"nodes"];
+        client.probeUDP = client.probeUDP && [nodes.lastObject[@"type"] isEqualToString:@"TcpUdpConnector"];
+    }
     client.logLevel = [v[@"log_level"] isEqualToString:@"debug"] ? 2 : [v[@"log_level"] isEqualToString:@"expert"] ? 1 : 0;
+    client.autoReconnect = v[@"auto_reconnect"] ? [v[@"auto_reconnect"] boolValue] : YES;
+    client.retryTimes = [v[@"retry_times"] integerValue];
+    client.switchToWifi = v[@"switch_to_wifi"] ? [v[@"switch_to_wifi"] boolValue] : YES;
+    NSString *onSleep = v[@"on_sleep"];
+    client.onSleep = [onSleep isEqualToString:@"off"] ? 0 : [onSleep isEqualToString:@"pause"] ? 1 : 2;
+    self.onSleepMode = client.onSleep;
     client.coreJSON = [SRPWaterWallChainConfig coreJSONWithLogLevel:client.logLevel];
     client.nodesJSON = nodesJSON;
     client.remoteAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
@@ -931,19 +968,19 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         }
         completionHandler(error);
     };
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"WaterWall data-plane validation timed out."}]);
-    });
-
     __weak PacketTunnelProvider *weakSelf = self;
     [client startWithOutputCallback:^(NSData *packet, int family) {
         g_wwOutPackets++;
         if (g_wwOutPackets <= 20 || g_wwOutPackets % 100 == 0) logIPv4(@"ww-to-phone", packet, g_wwOutPackets);
         [weakSelf.packetFlow writePackets:@[packet] withProtocols:@[@(family)]];
-    } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
+    } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting, void (^applied)(NSError *error)) {
         [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError *error) {
+            if (error) SSLogE(@"WaterWall: setTunnelNetworkSettings failed: %@", error);
+            applied(error);
             if (error) return finish(error);
-            [weakSelf readPacketsWW];
+            weakSelf.wwReadGeneration++;
+            SSLogM(@"WaterWall read generation advanced to %ld", (long)weakSelf.wwReadGeneration);
+            [weakSelf readPacketsWWForGeneration:weakSelf.wwReadGeneration];
             finish(nil);
         }];
     } connectedCallback:nil failureCallback:^(NSString *reason) {
@@ -957,8 +994,30 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     }];
 }
 
-- (void)readPacketsWW {
+- (void)finishWWReadRequest:(NSUInteger)requestID {
+    @synchronized (self) {
+        if (self.wwReadRequestID != requestID) return;
+        self.wwReadInFlight = NO;
+    }
+    [self readPacketsWWForGeneration:self.wwReadGeneration];
+}
+
+- (void)readPacketsWWForGeneration:(NSInteger)generation {
+    if (generation != self.wwReadGeneration) return;
+    SRPWaterWallClient *client = self.wwClient;
+    if (client == nil) return;
+    NSUInteger requestID;
+    @synchronized (self) {
+        if (self.wwReadInFlight) return;
+        self.wwReadInFlight = YES;
+        requestID = ++self.wwReadRequestID;
+    }
     [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> *packets, NSArray<NSNumber *> *protocols) {
+        if (generation != self.wwReadGeneration || client != self.wwClient) {
+            SSLogM(@"WaterWall read generation changed from %ld to %ld", (long)generation, (long)self.wwReadGeneration);
+            [self finishWWReadRequest:requestID];
+            return;
+        }
         NSMutableArray<NSData *> *validPackets = [NSMutableArray arrayWithCapacity:packets.count];
         for (NSInteger i = 0; i < packets.count; i++) {
             int family = protocols[i].intValue;
@@ -967,8 +1026,8 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
             if (g_wwInPackets <= 20 || g_wwInPackets % 100 == 0) logIPv4(@"ww-from-phone", packets[i], g_wwInPackets);
             [validPackets addObject:packets[i]];
         }
-        [self.wwClient injectPackets:validPackets completion:^{
-            [self readPacketsWW];
+        [client injectPackets:validPackets completion:^{
+            [self finishWWReadRequest:requestID];
         }];
     }];
 }
@@ -1202,6 +1261,11 @@ static void SRPTunnelLogCap(NSString *path) {
     self.aeClient = nil;
     [self.psiClient closeAndWait];  // stop the Psiphon core and bridge
     self.psiClient = nil;
+    self.wwReadGeneration++;
+    @synchronized (self) {
+        self.wwReadRequestID++;
+        self.wwReadInFlight = NO;
+    }
     [self.wwClient closeAndWait];
     self.wwClient = nil;
     BOOL v = self.sstpActive && [[lwIP shared] close];
@@ -1228,6 +1292,54 @@ static void SRPTunnelLogCap(NSString *path) {
             [NWRunLoop setup:PDVPNManager.mmdb];
         }
     }
+#if DEBUG
+    if (type == 100) {
+        NSString *command = app[@"command"];
+        if ([command isEqualToString:@"sleep"]) {
+            [self sleepWithCompletionHandler:^{ completionHandler(messageData); }];
+            return;
+        }
+        if ([command isEqualToString:@"wake"]) {
+            [self wake];
+            completionHandler(messageData);
+            return;
+        }
+        if ([command isEqualToString:@"state"]) {
+            NSDictionary *state = @{
+                @"up": @([self.wwClient valueForKey:@"up"] != nil && [[self.wwClient valueForKey:@"up"] boolValue]),
+                @"sleepPaused": @([[self.wwClient valueForKey:@"sleepPaused"] boolValue]),
+                @"reconnectPending": @([[self.wwClient valueForKey:@"reconnectPending"] boolValue]),
+                @"failedAttempts": [self.wwClient valueForKey:@"failedAttempts"] ?: @0,
+                @"pendingPacketIndex": [self.wwClient valueForKey:@"pendingPacketIndex"] ?: @0,
+                @"pendingPacketCount": @([[self.wwClient valueForKey:@"pendingPackets"] count]),
+                @"retryScheduled": @([[self.wwClient valueForKey:@"retryScheduled"] boolValue]),
+                @"probeStage": [self.wwClient valueForKey:@"probeStage"] ?: @0,
+                @"settingsGeneration": @(self.wwReadGeneration),
+            };
+            completionHandler([NSJSONSerialization dataWithJSONObject:state options:0 error:nil]);
+            return;
+        }
+        if ([command isEqualToString:@"native-log"] || [command isEqualToString:@"tunnel-log"]) {
+            NSURL *container = [NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
+            NSString *name = [command isEqualToString:@"native-log"] ? @"ww-native-current.log" : @"srptunnel.log";
+            NSString *base = container ? container.path : NSHomeDirectory();
+            NSString *path = [base stringByAppendingPathComponent:[@"Library/" stringByAppendingString:name]];
+            NSFileHandle *file = [NSFileHandle fileHandleForReadingAtPath:path];
+            unsigned long long size = file ? [file seekToEndOfFile] : 0;
+            [file seekToFileOffset:size > 262144 ? size - 262144 : 0];
+            NSData *data = file ? [file readDataToEndOfFile] : [NSData data];
+            [file closeFile];
+            completionHandler(data);
+            return;
+        }
+        if ([command isEqualToString:@"fail-runtime"]) {
+            extern int requestProgramShutdown(int);
+            requestProgramShutdown(0);
+            completionHandler(messageData);
+            return;
+        }
+    }
+#endif
 
     completionHandler(messageData);
 }

@@ -6,6 +6,7 @@ void ptcDetachTcpPcbLocked(ptc_lstate_t *ls)
 {
     struct tcp_pcb *pcb = ls->tcp_pcb;
 
+    ptcTcpBudgetRelease(tunnelGetState(ls->tunnel), &ls->tcp_budget_reserved);
     if (pcb == NULL)
     {
         return;
@@ -154,6 +155,12 @@ static void ptcCloseOwnedLine(tunnel_t *t, line_t *l, bool graceful_tcp, bool fi
     lineRef(l);
 
     ptc_lstate_t *ls = lineGetState(l, t);
+    if (ls->tunnel != t || ls->line != l || ls->engine == NULL ||
+        (ls->kind != kPtcLineKindTcp && ls->kind != kPtcLineKindUdp))
+    {
+        lineUnref(l);
+        return;
+    }
 
     ww_lwip_engine_t *previous;
     const bool        entered = wwLwipEngineEnter(ls->engine, &previous);
@@ -180,6 +187,7 @@ static void ptcCloseOwnedLine(tunnel_t *t, line_t *l, bool graceful_tcp, bool fi
     wwLwipEngineLeave(ls->engine, previous);
 
     const bool send_finish = finish_next && ls->next_init_sent;
+    ptcTcpBudgetRelease(tunnelGetState(ls->tunnel), &ls->tcp_budget_reserved);
     ptcLinestateDestroy(ls);
 
     if (send_finish)

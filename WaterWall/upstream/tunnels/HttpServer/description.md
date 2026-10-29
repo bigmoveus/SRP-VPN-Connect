@@ -1,5 +1,5 @@
 <!--
-Documentation version: 153
+Documentation version: 154
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/HttpServer.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/HttpServer.mdx, and all files must keep the same documentation version.
 -->
 
@@ -378,6 +378,11 @@ Response payload from the next tunnel is turned into HTTP/2 DATA frames on the s
 Response headers are generated internally from the configured `status`, `content-type`, and `headers`.
 
 Extra streams can be rejected with `RST_STREAM REFUSED_STREAM`.
+
+When the next tunnel finishes, `END_STREAM` is queued, but downstream `Finish` is deferred until nghttp2 reports that
+final frame as emitted. Incoming flow-control updates resume that path even when `nghttp2_session_want_write()` is zero
+because the stream window is exhausted. The response is not torn down before its remaining DATA frames are emitted.
+This is a write-drain guarantee, not a transport half-close.
 
 ### `h2c` upgrade behavior
 

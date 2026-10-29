@@ -113,18 +113,18 @@ static worker_quiesce_request_result_e workerRequestQuiesceInternal(worker_t    
     }
 
     worker_lifecycle_e lifecycle;
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     lifecycle = workerGetLifecycle(worker);
     if (lifecycle >= kWorkerLifecycleTeardownRequested || worker->loop == NULL)
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         return kWorkerQuiesceRequestUnavailable;
     }
     const bool already_requested = lifecycle >= kWorkerLifecycleQuiesceRequested;
     if (already_requested && (! worker->lifecycle_context_set || worker->lifecycle_context.scope != context->scope ||
                               worker->lifecycle_context.close_policy != context->close_policy))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         return kWorkerQuiesceRequestUnavailable;
     }
     if (! worker->lifecycle_context_set)
@@ -135,7 +135,7 @@ static worker_quiesce_request_result_e workerRequestQuiesceInternal(worker_t    
     workerPublishLifecycleLocked(worker, kWorkerLifecycleQuiesceRequested);
     workerMessagesCloseAdmissionLocked(worker);
     const bool woken = wloopRequestQuiesce(worker->loop);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
     if (already_requested)
     {
         return kWorkerQuiesceRequestAlreadyAccepted;
@@ -181,14 +181,14 @@ static bool workerRequestPhase(worker_t *worker, worker_lifecycle_e required, wo
         return false;
     }
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     const worker_lifecycle_e current = workerGetLifecycle(worker);
     const bool               valid   = current >= required;
     if (valid)
     {
         workerPublishLifecycleLocked(worker, requested);
     }
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
     return valid;
 }
 
@@ -237,9 +237,9 @@ static void workerWaitForPhaseIndefinite(worker_t *worker, worker_lifecycle_e ph
 
 static void workerPublishLifecycle(worker_t *worker, worker_lifecycle_e phase)
 {
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     workerPublishLifecycleLocked(worker, phase);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 }
 
 void workerPerformQuiesce(worker_t *worker, const ww_lifecycle_context_t *context)
@@ -428,7 +428,7 @@ bool workerInit(worker_t *worker, wid_t wid)
 {
     *worker = (worker_t) {.wid = wid};
 
-    mutexInit(&worker->control_mutex);
+    timedmutexInit(&worker->control_mutex);
     condmutexInit(&worker->control_condition_mutex);
     condvarInit(&worker->control_condition);
     atomicStoreRelaxed(&worker->lifecycle, (w_atomic_int_value_t) kWorkerLifecycleInitialized);
@@ -519,14 +519,14 @@ void workerRun(worker_t *worker)
         return;
     }
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     if (! worker->lifecycle_context_set)
     {
         worker->lifecycle_context     = *wwLifecycleProcessShutdown();
         worker->lifecycle_context_set = true;
     }
     const ww_lifecycle_context_t context = worker->lifecycle_context;
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 
     workerPerformQuiesce(worker, &context);
     workerWaitForPhaseIndefinite(worker, kWorkerLifecycleDrainRequested);

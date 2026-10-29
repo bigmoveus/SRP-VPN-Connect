@@ -97,7 +97,11 @@ static void tcpoverudpclientFinishCloseIfSettled(tunnel_t *t, line_t *l, tcpover
     }
     if (ikcp_waitsnd(ls->k_handle) > 0)
     {
-        LOGW("TcpOverUdpClient: KCP close delivery deadline expired");
+        LOGW("TcpOverUdpClient: KCP close delivery deadline expired: queued=%d snd_buf=%u snd_queue=%u "
+             "snd_una=%u snd_nxt=%u rcv_nxt=%u source_paused=%d downstream_paused=%d can_downstream=%d",
+             ikcp_waitsnd(ls->k_handle), ls->k_handle->nsnd_buf, ls->k_handle->nsnd_que,
+             ls->k_handle->snd_una, ls->k_handle->snd_nxt, ls->k_handle->rcv_nxt,
+             ls->source_paused, ls->downstream_paused, ls->can_downstream);
     }
     const bool drain_held = ls->close_drain_held;
     tcpoverudpclientLinestateDestroy(ls);

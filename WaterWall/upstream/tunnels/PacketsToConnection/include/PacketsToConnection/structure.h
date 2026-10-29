@@ -112,9 +112,12 @@ enum
      * cooperative one. The default covers lwIP's full send capacity because
      * this budget includes bytes copied into lwIP but not yet acknowledged.
      */
-    kPtcDefaultMaxPendingBytes = TCP_SND_BUF,
-    kPtcMinMaxPendingBytes     = 1024U,
-    kPtcMaxMaxPendingBytes     = 67108864U,
+    kPtcDefaultMaxPendingBytes      = TCP_SND_BUF,
+    kPtcMinMaxPendingBytes          = 1024U,
+    kPtcMaxMaxPendingBytes          = 67108864U,
+    kPtcDefaultMaxTotalPendingBytes = 4194304U,
+    kPtcMinMaxTotalPendingBytes     = 65536U,
+    kPtcMaxMaxTotalPendingBytes     = 67108864U,
     /* Fixed headroom for already-delivered input; not a pool allocation size. */
     kPtcPendingDeliveryHeadroom = 1024U * 1024U,
 
@@ -198,6 +201,8 @@ typedef struct ptc_tstate_s
     interface_route_context_t **routes_v4;
     uint32_t                    route_worker_count;
     uint32_t                    max_pending_bytes;
+    uint32_t                    max_total_pending_bytes;
+    atomic_uint                 tcp_reserved_bytes;
     uint32_t                    max_pending_entries;
     uint32_t                    udp_idle_timeout_ms;
     ptc_fake_dns_t              fake_dns;
@@ -261,6 +266,7 @@ typedef struct ptc_lstate_s
     bool               write_poll_armed;
     bool               write_retry_queued;
     bool               owned_registered;
+    bool               tcp_budget_reserved;
     /* Set inside the owner engine after required scheduled control is
      * refused. The existing owned-line registry is the allocation-free final
      * owner; the owner worker clears this flag while closing the line. */
@@ -472,6 +478,9 @@ err_t ptcTcpPollCallback(void *arg, struct tcp_pcb *tpcb);
 err_t ptcTcpSendFinLocked(struct tcp_pcb *pcb);
 ptc_tcp_drain_adopt_result_t ptcTcpDrainAdoptLocked(tunnel_t *t, ptc_lstate_t *ls);
 void                         ptcTcpDrainDestroyRoute(interface_route_context_t *route);
+bool                         ptcTcpBudgetReserve(ptc_tstate_t *ts);
+void                         ptcTcpBudgetRelease(ptc_tstate_t *ts, bool *reserved);
+void                         ptcTcpBudgetTransfer(bool *from, bool *to);
 
 /* Shared node allowance; never hold this mutex across stack work or allocation. */
 bool ptcDrainBudgetReserve(ptc_tstate_t *ts, uint32_t bytes);

@@ -4,9 +4,16 @@
 
 static void ptcDeliverTcpReceiveTask(tunnel_t *t, line_t *l)
 {
-    ptc_lstate_t *ls  = lineGetState(l, t);
-    sbuf_t       *buf = ls->rx_delivery;
-    assert(buf != NULL);
+    ptc_lstate_t *ls = lineGetState(l, t);
+    if (! lineIsAlive(l) || ls->kind != kPtcLineKindTcp)
+    {
+        return;
+    }
+    sbuf_t *buf = ls->rx_delivery;
+    if (buf == NULL)
+    {
+        return;
+    }
     /* Publish the empty slot before Init/Payload can reenter or finish this
      * line. Later input gets its own deferred delivery and FIFO position. */
     ls->rx_delivery = NULL;
@@ -40,6 +47,7 @@ void lwipThreadPtcTcpConnectionErrorCallback(void *arg, err_t err)
         return;
     }
 
+    ptcTcpBudgetRelease(tunnelGetState(ls->tunnel), &ls->tcp_budget_reserved);
     ls->tcp_pcb   = NULL;
     ls->route_ctx = NULL;
 
@@ -232,11 +240,18 @@ err_t lwipThreadPtcTcpAccptCallback(void *arg, struct tcp_pcb *newpcb, err_t err
         return ERR_ABRT;
     }
 
-    tunnel_t     *t  = route_ctx->tunnel;
+    tunnel_t *t = route_ctx->tunnel;
+    if (! ptcTcpBudgetReserve(tunnelGetState(t)))
+    {
+        LOGW("PacketsToConnection: TCP aggregate pending-byte budget is full; refusing a new flow");
+        tcp_abort(newpcb);
+        return ERR_MEM;
+    }
     line_t       *l  = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), owner_wid);
     ptc_lstate_t *ls = lineGetState(l, t);
 
     ptcLinestateInitialize(ls, t, l, kPtcLineKindTcp, newpcb);
+    ls->tcp_budget_reserved = true;
 
     ls->route_ctx = route_ctx;
 

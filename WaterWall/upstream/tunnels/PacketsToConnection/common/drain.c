@@ -50,6 +50,7 @@ struct ptc_tcp_drain_s
     uint32_t         written;
     uint8_t          phase;
     bool             peer_finished;
+    bool             tcp_budget_reserved;
 };
 
 static atomic_log_rate_limiter_t g_ptc_drain_budget_log;
@@ -96,6 +97,7 @@ static void ptcDrainFreeLocked(ptc_tcp_drain_t *drain)
 
     ptcDrainUnlinkLocked(drain);
     ptcDrainBudgetRelease(ts, drain->len);
+    ptcTcpBudgetRelease(ts, &drain->tcp_budget_reserved);
     memoryFree(drain->bytes);
     memoryFree(drain);
 }
@@ -453,6 +455,7 @@ ptc_tcp_drain_adopt_result_t ptcTcpDrainAdoptLocked(tunnel_t *t, ptc_lstate_t *l
 
     tcp_output(ls->tcp_pcb);
 
+    ptcTcpBudgetTransfer(&ls->tcp_budget_reserved, &drain->tcp_budget_reserved);
     ptcDetachTcpPcbLocked(ls);
     ptcDrainInstallCallbacksLocked(drain);
     discard ptcDrainAdvanceLocked(drain, ptcDrainNowMs());

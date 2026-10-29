@@ -170,6 +170,12 @@ static void nio_connect(wio_t *io)
     if (ret < 0)
     {
         io->error = socketERRNO();
+        int       socket_error = 0;
+        socklen_t error_len    = sizeof(socket_error);
+        if (getsockopt(wioGetFD(io), SOL_SOCKET, SO_ERROR, &socket_error, &error_len) == 0 && socket_error != 0)
+        {
+            io->error = socket_error;
+        }
         goto connect_error;
     }
     else
@@ -548,7 +554,10 @@ write:
         }
         else
         {
-            // printError("write");
+            if (UNLIKELY((io->io_type & WIO_TYPE_SOCK_DGRAM) != 0))
+            {
+                LOGE("UDP write failed: fd=%d error=%s:%d", wioGetFD(io), socketStrError(err), err);
+            }
             io->error = err;
             goto write_error;
         }

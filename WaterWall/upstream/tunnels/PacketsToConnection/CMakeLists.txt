@@ -8,6 +8,7 @@ add_library(PacketsToConnection STATIC
                     instance/pre_stop.c
                     instance/stop.c
                     common/helpers.c
+                    common/budget.c
                     common/line_lifecycle.c
                     common/write.c
                     common/delivery.c

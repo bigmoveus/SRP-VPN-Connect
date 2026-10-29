@@ -1,5 +1,5 @@
 <!--
-Documentation version: 153
+Documentation version: 154
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TcpListener.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TcpListener.mdx, and all files must keep the same documentation version.
 -->
 
@@ -214,6 +214,14 @@ writes retain the active allocation charge until completion. Overflow closes thi
 connection through its line owner.
 
 This protects the process from unbounded buffering when the client is slow or stalled.
+
+### Downstream close and lingering drain
+
+A normal downstream finish flushes queued output before the accepted socket is closed. On Linux, when the worker and
+socket are healthy, the listener then half-closes the socket's write side with `shutdown(SHUT_WR)` and drains remaining
+client input. The drain ends when the peer closes, after 5 seconds without input, or at the 30-second overall deadline.
+Socket errors and worker shutdown skip this lingering drain. On non-Linux platforms, the listener closes the socket after
+the queued-output flush instead.
 
 ### Idle timeout behavior
 

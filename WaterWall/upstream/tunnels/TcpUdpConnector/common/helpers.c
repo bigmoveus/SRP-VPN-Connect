@@ -68,11 +68,5 @@ tunnel_t *tcpudpconnectorGetSelectedUpStreamTunnel(tunnel_t *t, line_t *l)
 {
     tcpudpconnector_lstate_t *ls = lineGetState(l, t);
 
-    if (ls->selected_connector == NULL)
-    {
-        LOGF("TcpUdpConnector: upstream callback received before init selected a connector");
-        abortProgramNow(1);
-    }
-
     return ls->selected_connector;
 }

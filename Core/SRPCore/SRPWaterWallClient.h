@@ -5,7 +5,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 typedef void(^SRPWaterWallOutputCallback)(NSData *ipPacket, int family);
-typedef void(^SRPWaterWallNetworkSettingsCallback)(NEPacketTunnelNetworkSettings *setting);
+typedef void(^SRPWaterWallNetworkSettingsCallback)(NEPacketTunnelNetworkSettings *setting,
+                                                    void(^completion)(NSError *_Nullable error));
 typedef void(^SRPWaterWallConnectedCallback)(void);
 typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
 
@@ -25,12 +26,17 @@ typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
 @property (nonatomic, copy, nullable) NSString *allowedIPs;
 @property (nonatomic) NSUInteger mtu;
 @property (nonatomic) NSInteger logLevel;
+@property (nonatomic) BOOL autoReconnect;
+@property (nonatomic) NSInteger retryTimes;
+@property (nonatomic) BOOL switchToWifi;
+@property (nonatomic) NSInteger onSleep;
 
+- (nullable NSString *)resolvedAddressForHost:(NSString *)value;
 - (void)startWithOutputCallback:(SRPWaterWallOutputCallback)output
          networkSettingsCallback:(SRPWaterWallNetworkSettingsCallback)settings
                connectedCallback:(nullable SRPWaterWallConnectedCallback)connected
                  failureCallback:(SRPWaterWallFailureBlock)failure;
-// One provider batch is in flight at a time; completion resumes packetFlow.
+// Provider batches are injected FIFO; each completion resumes its packetFlow read.
 - (void)injectPackets:(NSArray<NSData *> *)packets completion:(nullable dispatch_block_t)completion;
 - (void)close;
 - (void)closeAndWait;
