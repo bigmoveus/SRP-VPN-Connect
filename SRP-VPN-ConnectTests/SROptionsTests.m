@@ -13,6 +13,7 @@
 #import "SRPWaterWallChainConfig.h"
 #import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
+#import <SRPParser/PDVPNManager.h>
 
 @interface SRPGeoIPTestStore : SRPGeoIPDatabase
 @property (nonatomic, strong) NSURL *fixtureURL;
@@ -33,23 +34,85 @@
 #import "SRPWaterWallClient.h"
 #import "SRPWaterWallBridge.h"
 #import <SRPParser/SRPParser.h>
+#import <Network/Network.h>
+#import <CommonCrypto/CommonDigest.h>
+#import <dispatch/data.h>
 #import <fcntl.h>
 #import <sys/socket.h>
 #import <unistd.h>
 
+@interface SRPWaterWallClient (SRPLifecycleTesting)
+- (void)startRuntimeLocked;
+- (void)stopRuntimeLocked;
+- (void)handleRuntimeFailure:(NSString *)reason;
+- (void)drainInjectedPacketsLocked;
+- (void)submitProbePacket:(NSData *)packet;
+- (void)beginDataPlaneProbe;
+- (void)finishProbe;
+- (void)handleProbePacket:(NSData *)packet;
+- (void)startHealthMonitor;
+- (void)healthProbeFailed:(NSString *)reason;
+- (BOOL)runtimeCanAcceptPackets;
+- (int)submitPacketToRuntime:(NSData *)packet;
+@end
+
+@interface SRPWaterWallLifecycleTestClient : SRPWaterWallClient
+@property (nonatomic) NSInteger runtimeStarts;
+@property (nonatomic) NSInteger runtimeStops;
+@property (nonatomic) NSInteger failuresBeforeSuccess;
+@property (nonatomic) NSInteger submittedPackets;
+@property (nonatomic, strong) NSData *lastProbePacket;
+@end
+
+@implementation SRPWaterWallLifecycleTestClient
+- (void)startRuntimeLocked {
+    self.runtimeStarts++;
+    if (self.runtimeStarts <= self.failuresBeforeSuccess) {
+        [self handleRuntimeFailure:@"Injected runtime failure"];
+        return;
+    }
+    [self setValue:@YES forKey:@"up"];
+    [self setValue:@3 forKey:@"probeStage"];
+}
+
+- (void)stopRuntimeLocked {
+    self.runtimeStops++;
+}
+
+- (BOOL)runtimeCanAcceptPackets {
+    return ![[self valueForKey:@"closed"] boolValue] &&
+           ![[self valueForKey:@"sleepPaused"] boolValue] &&
+           [[self valueForKey:@"up"] boolValue];
+}
+
+- (int)submitPacketToRuntime:(NSData *)packet {
+    (void)packet;
+    self.submittedPackets++;
+    return 0;
+}
+
+- (void)submitProbePacket:(NSData *)packet {
+    self.lastProbePacket = packet;
+    self.submittedPackets++;
+}
+@end
+
 // Lifecycle tests never start a bridge; the app test bundle has no engine linkage.
 __attribute__((weak)) SRPWaterWallBridge *SRPWaterWallBridgeStart(const SRPWaterWallConfig *config,
                                                                  const SRPWaterWallCallbacks *callbacks) {
-    (void)config;
     (void)callbacks;
-    return NULL;
+    return (SRPWaterWallBridge *)config;
 }
+
+static int SRPTestWWSubmitResult;
+static NSUInteger SRPTestWWSubmitCalls;
 
 __attribute__((weak)) int SRPWaterWallBridgeSubmitPacket(SRPWaterWallBridge *bridge, const void *packet, size_t length) {
     (void)bridge;
     (void)packet;
     (void)length;
-    return 0;
+    SRPTestWWSubmitCalls++;
+    return SRPTestWWSubmitResult;
 }
 
 __attribute__((weak)) int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge) {
@@ -69,10 +132,42 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 }
 #endif
 
-@interface SROptionsTests : XCTestCase
+@interface SRPTestVPNConnection : NEVPNConnection
+@property (nonatomic) NEVPNStatus status;
+@end
+
+@implementation SRPTestVPNConnection {
+    NEVPNStatus _testStatus;
+}
+
+- (NEVPNStatus)status {
+    return _testStatus;
+}
+
+- (void)setStatus:(NEVPNStatus)status {
+    _testStatus = status;
+}
+@end
+
+@interface SROptionsTests : XCTestCase <NSURLSessionDelegate>
 @end
 
 @implementation SROptionsTests
+
+- (void)testVPNStatusUsesNotifyingConnection {
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    YDVPNStatus originalStatus = manager.status;
+    @try {
+        [manager setValue:@(YDVPNStatusConnected) forKey:@"status"];
+        SRPTestVPNConnection *connection = [SRPTestVPNConnection new];
+        connection.status = NEVPNStatusDisconnected;
+        NSNotification *notification = [NSNotification notificationWithName:NEVPNStatusDidChangeNotification object:connection];
+        [manager performSelector:@selector(connectionStatusDidChangeNotification:) withObject:notification];
+        XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+    } @finally {
+        [manager setValue:@(originalStatus) forKey:@"status"];
+    }
+}
 
 - (void)testOptionDefaults {
     NodeModel *m = [NodeModel new];
@@ -1182,7 +1277,9 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-buffer-limit"], @0);
     kcp[@"node-options"] = @{};
     kcpByName = [self waterWallNodesByName:[self waterWallRootForConfiguration:kcp options:nil][@"nodes"]];
-    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-recv-window"], @512);
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-window"], @128);
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-recv-window"], @128);
+    XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-initial-cwnd"], @16);
     XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-buffer-limit"], @512);
     kcp[@"node-options"] = @{@"kcp": validKCP};
     NSArray *invalidKCP = @[@{@"mtu": @77}, @{@"mtu": @85, @"fec": @YES}, @{@"fec-data-shards": @0},
@@ -1636,8 +1733,33 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
 }
 
+- (void)testWaterWallTCPAggregateBudgetDefaults {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vmess" mux:NO outer:@"none"] mutableCopy];
+    NSDictionary *packet = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]][@"ptc"][@"settings"];
+    XCTAssertEqualObjects(packet[@"max-pending-bytes"], @65536);
+    XCTAssertEqualObjects(packet[@"max-total-pending-bytes"], @4194304);
+    configuration[@"node-options"] = @{@"packet": @{@"max-pending-bytes": @8192, @"max-total-pending-bytes": @65536}};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    packet = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]][@"ptc"][@"settings"];
+    XCTAssertEqualObjects(packet[@"max-pending-bytes"], @8192);
+    XCTAssertEqualObjects(packet[@"max-total-pending-bytes"], @65536);
+}
+
 #if TARGET_OS_IPHONE
+- (BOOL)waitForLiveVPNManagerReady:(PDVPNManager *)manager {
+    if ([manager valueForKey:@"providerManager"] == nil) [manager setupVPNManager];
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:30];
+    while ([manager valueForKey:@"providerManager"] == nil && NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+    }
+    return [manager valueForKey:@"providerManager"] != nil;
+}
+
 - (BOOL)waitForLiveVPNConnection:(PDVPNManager *)manager server:(NSDictionary *)server error:(NSString **)error {
+    if (![self waitForLiveVPNManagerReady:manager]) {
+        if (error) *error = @"The Network Extension manager did not become ready";
+        return NO;
+    }
     __block BOOL issuedStart = NO;
     NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
     NSDate *startedAt = NSDate.date;
@@ -1668,7 +1790,18 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     return NO;
 }
 
+- (BOOL)waitForLiveVPNDisconnectedStatus:(PDVPNManager *)manager timeout:(NSTimeInterval)timeout {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
+    while (NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        if (manager.status == YDVPNStatusDisconnected) return YES;
+        [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+    }
+    return manager.status == YDVPNStatusDisconnected;
+}
+
 - (void)waitForLiveVPNDisconnect:(PDVPNManager *)manager {
+    if (![self waitForLiveVPNManagerReady:manager]) return;
+    if (manager.status == YDVPNStatusDisconnected) return;
     [manager disconnect];
     if (manager.status == YDVPNStatusDisconnected) return;
     XCTNSNotificationExpectation *stateChange =
@@ -1695,7 +1828,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
     configuration.HTTPMaximumConnectionsPerHost = connections;
     configuration.timeoutIntervalForResource = 120;
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
     id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
                                                                       object:nil
                                                                        queue:nil
@@ -1731,20 +1864,502 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     return downloaded >= (unsigned long long)(stressBytes * (long long)connections);
 }
 
+- (void)startSustainedDownloadForIndex:(NSUInteger)index
+                             sequence:(NSUInteger)sequence
+                              session:(NSURLSession *)session
+                              baseURL:(NSURL *)baseURL
+                             deadline:(NSDate *)deadline
+                          stressBytes:(unsigned long long)stressBytes
+                          expectation:(XCTestExpectation *)load
+                               errors:(NSMutableArray<NSString *> *)errors
+                          resultsLock:(NSLock *)resultsLock
+                           statistics:(NSMutableArray<NSMutableDictionary *> *)statistics {
+    if ([NSDate.date compare:deadline] != NSOrderedAscending) {
+        [resultsLock lock];
+        statistics[index][@"finished"] = @YES;
+        [resultsLock unlock];
+        [load fulfill];
+        return;
+    }
+    NSURLComponents *components = [NSURLComponents componentsWithURL:baseURL resolvingAgainstBaseURL:NO];
+    NSString *requestID = [NSString stringWithFormat:@"%lu-%lu", (unsigned long)index, (unsigned long)sequence];
+    components.queryItems = [components.queryItems ?: @[] arrayByAddingObject:
+        [NSURLQueryItem queryItemWithName:@"srp-live" value:requestID]];
+    [[session downloadTaskWithURL:components.URL completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+        unsigned long long size = [(NSNumber *)[NSFileManager.defaultManager attributesOfItemAtPath:location.path error:nil][NSFileSize] unsignedLongLongValue];
+        NSInteger statusCode = [response isKindOfClass:NSHTTPURLResponse.class] ? ((NSHTTPURLResponse *)response).statusCode : 0;
+        NSString *failure = error.localizedDescription;
+        if (!failure && statusCode != 200) failure = [NSString stringWithFormat:@"HTTP %ld", (long)statusCode];
+        if (!failure && size != stressBytes) failure = @"Short download";
+        [resultsLock lock];
+        NSMutableDictionary *statistic = statistics[index];
+        statistic[@"requests"] = @([statistic[@"requests"] unsignedIntegerValue] + 1);
+        if (failure) {
+            [errors addObject:failure];
+            statistic[@"errors"] = @([statistic[@"errors"] unsignedIntegerValue] + 1);
+            if (error.code == NSURLErrorTimedOut) {
+                statistic[@"timeouts"] = @([statistic[@"timeouts"] unsignedIntegerValue] + 1);
+            }
+            statistic[@"finished"] = @YES;
+        } else {
+            statistic[@"bytes"] = @([statistic[@"bytes"] unsignedLongLongValue] + size);
+        }
+        [resultsLock unlock];
+        if (failure) {
+            [load fulfill];
+            return;
+        }
+        [self startSustainedDownloadForIndex:index
+                                    sequence:sequence + 1
+                                     session:session
+                                     baseURL:baseURL
+                                    deadline:deadline
+                                 stressBytes:stressBytes
+                                 expectation:load
+                                      errors:errors
+                                 resultsLock:resultsLock
+                                  statistics:statistics];
+    }] resume];
+}
+
+- (void)startSustainedUploadForIndex:(NSUInteger)index
+                           sequence:(NSUInteger)sequence
+                            session:(NSURLSession *)session
+                            baseURL:(NSURL *)baseURL
+                           deadline:(NSDate *)deadline
+                            payload:(NSData *)payload
+                    expectedDigest:(NSString *)expectedDigest
+                        expectation:(XCTestExpectation *)load
+                             errors:(NSMutableArray<NSString *> *)errors
+                        resultsLock:(NSLock *)resultsLock
+                         statistics:(NSMutableArray<NSMutableDictionary *> *)statistics {
+    if ([NSDate.date compare:deadline] != NSOrderedAscending) {
+        [resultsLock lock];
+        statistics[index][@"finished"] = @YES;
+        [resultsLock unlock];
+        [load fulfill];
+        return;
+    }
+    NSURLComponents *components = [NSURLComponents componentsWithURL:baseURL resolvingAgainstBaseURL:NO];
+    NSString *requestID = [NSString stringWithFormat:@"upload-%lu-%lu", (unsigned long)index, (unsigned long)sequence];
+    components.queryItems = [components.queryItems ?: @[] arrayByAddingObject:
+        [NSURLQueryItem queryItemWithName:@"srp-live" value:requestID]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:components.URL];
+    request.HTTPMethod = @"POST";
+    [[session uploadTaskWithRequest:request fromData:payload completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        (void)data;
+        NSHTTPURLResponse *httpResponse = [response isKindOfClass:NSHTTPURLResponse.class] ? (NSHTTPURLResponse *)response : nil;
+        NSString *actualDigest = [httpResponse.allHeaderFields[@"X-Upload-SHA256"] description];
+        unsigned long long actualBytes = [httpResponse.allHeaderFields[@"X-Upload-Bytes"] longLongValue];
+        NSString *failure = error.localizedDescription;
+        if (!failure && httpResponse.statusCode != 200) failure = [NSString stringWithFormat:@"HTTP %ld", (long)httpResponse.statusCode];
+        if (!failure && actualBytes != payload.length) failure = @"Short upload";
+        if (!failure && [actualDigest caseInsensitiveCompare:expectedDigest] != NSOrderedSame) failure = @"Upload digest mismatch";
+        [resultsLock lock];
+        NSMutableDictionary *statistic = statistics[index];
+        statistic[@"requests"] = @([statistic[@"requests"] unsignedIntegerValue] + 1);
+        if (failure) {
+            [errors addObject:failure];
+            statistic[@"errors"] = @([statistic[@"errors"] unsignedIntegerValue] + 1);
+            if (error.code == NSURLErrorTimedOut) {
+                statistic[@"timeouts"] = @([statistic[@"timeouts"] unsignedIntegerValue] + 1);
+            }
+            statistic[@"finished"] = @YES;
+        } else {
+            statistic[@"bytes"] = @([statistic[@"bytes"] unsignedLongLongValue] + actualBytes);
+        }
+        [resultsLock unlock];
+        if (failure) {
+            [load fulfill];
+            return;
+        }
+        [self startSustainedUploadForIndex:index
+                                  sequence:sequence + 1
+                                   session:session
+                                   baseURL:baseURL
+                                  deadline:deadline
+                                   payload:payload
+                           expectedDigest:expectedDigest
+                               expectation:load
+                                    errors:errors
+                               resultsLock:resultsLock
+                                statistics:statistics];
+    }] resume];
+}
+
+- (BOOL)performSustainedLiveFullDuplex:(PDVPNManager *)manager environment:(NSDictionary *)environment {
+    unsigned long long stressBytes = [environment[@"SRP_WW_STRESS_BYTES"] longLongValue];
+    NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
+    NSTimeInterval duration = [environment[@"SRP_STRESS_DURATION"] doubleValue];
+    NSURL *baseURL = [NSURL URLWithString:environment[@"SRP_WW_STRESS_URL"] ?: @""];
+    if (baseURL == nil || connections < 1 || connections > 16 || stressBytes == 0 ||
+        stressBytes > 64 * 1024 * 1024 || duration < 1 || duration > 3600) return NO;
+    NSData *payload = [NSMutableData dataWithLength:(NSUInteger)stressBytes];
+    unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+    CC_SHA256(payload.bytes, (CC_LONG)payload.length, digest);
+    NSMutableString *expectedDigest = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
+    for (NSUInteger index = 0; index < CC_SHA256_DIGEST_LENGTH; index++) {
+        [expectedDigest appendFormat:@"%02x", digest[index]];
+    }
+    NSDate *startedAt = NSDate.date;
+    NSDate *deadline = [startedAt dateByAddingTimeInterval:duration];
+    XCTestExpectation *load = [self expectationWithDescription:@"Sustained parallel live downloads and verified uploads"];
+    load.expectedFulfillmentCount = connections * 2;
+    NSMutableArray<NSString *> *errors = [NSMutableArray new];
+    NSLock *resultsLock = [NSLock new];
+    NSMutableArray<NSMutableDictionary *> *downloads = [NSMutableArray new];
+    NSMutableArray<NSMutableDictionary *> *uploads = [NSMutableArray new];
+    for (NSUInteger index = 0; index < connections; index++) {
+        [downloads addObject:[@{@"bytes": @0, @"requests": @0, @"errors": @0, @"timeouts": @0, @"finished": @NO} mutableCopy]];
+        [uploads addObject:[@{@"bytes": @0, @"requests": @0, @"errors": @0, @"timeouts": @0, @"finished": @NO} mutableCopy]];
+    }
+    NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    configuration.HTTPMaximumConnectionsPerHost = connections * 2;
+    configuration.timeoutIntervalForRequest = 45;
+    configuration.timeoutIntervalForResource = MAX(120, duration + 60);
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+    id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
+                                                                      object:nil
+                                                                       queue:nil
+                                                                  usingBlock:^(NSNotification *notification) {
+        (void)notification;
+        if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
+    }];
+    for (NSUInteger index = 0; index < connections; index++) {
+        [self startSustainedDownloadForIndex:index sequence:0 session:session baseURL:baseURL deadline:deadline
+                                 stressBytes:stressBytes expectation:load errors:errors resultsLock:resultsLock statistics:downloads];
+        [self startSustainedUploadForIndex:index sequence:0 session:session baseURL:baseURL deadline:deadline
+                                   payload:payload expectedDigest:expectedDigest expectation:load errors:errors
+                               resultsLock:resultsLock statistics:uploads];
+    }
+    [self waitForExpectations:@[load] timeout:duration + 120];
+    [NSNotificationCenter.defaultCenter removeObserver:lostObserver];
+    [session finishTasksAndInvalidate];
+    unsigned long long downloaded = 0;
+    unsigned long long uploaded = 0;
+    NSUInteger finished = 0;
+    NSUInteger timeouts = 0;
+    NSUInteger downloadRequests = 0;
+    NSUInteger uploadRequests = 0;
+    for (NSArray<NSMutableDictionary *> *statistics in @[downloads, uploads]) {
+        for (NSMutableDictionary *statistic in statistics) {
+            if (statistics == downloads) {
+                downloaded += [statistic[@"bytes"] unsignedLongLongValue];
+                downloadRequests += [statistic[@"requests"] unsignedIntegerValue];
+            } else {
+                uploaded += [statistic[@"bytes"] unsignedLongLongValue];
+                uploadRequests += [statistic[@"requests"] unsignedIntegerValue];
+            }
+            finished += [statistic[@"finished"] boolValue] ? 1 : 0;
+            timeouts += [statistic[@"timeouts"] unsignedIntegerValue];
+        }
+    }
+    NSTimeInterval actualDuration = -startedAt.timeIntervalSinceNow;
+    NSLog(@"Sustained full-duplex: %.2f seconds, downloaded=%llu, uploaded=%llu, download_requests=%lu, upload_requests=%lu, errors=%@, finished=%lu/%lu, timeouts=%lu",
+          actualDuration, downloaded, uploaded, (unsigned long)downloadRequests, (unsigned long)uploadRequests,
+          errors, (unsigned long)finished, (unsigned long)(connections * 2), (unsigned long)timeouts);
+    return manager.status == YDVPNStatusConnected && errors.count == 0 && timeouts == 0 &&
+           actualDuration >= duration && finished == connections * 2 && downloaded > 0 && uploaded > 0;
+}
+
+- (BOOL)performSustainedLiveUDPProbes:(NSDictionary *)environment {
+    NSURLComponents *components = [NSURLComponents componentsWithString:environment[@"SRP_WW_STRESS_URL"]];
+    NSTimeInterval duration = [environment[@"SRP_STRESS_DURATION"] doubleValue];
+    if (components.host.length == 0 || duration < 1 || duration > 3600) return NO;
+    NSString *port = environment[@"SRP_WW_UDP_PORT"] ?: @"28481";
+    nw_endpoint_t endpoint = nw_endpoint_create_host(components.host.UTF8String, port.UTF8String);
+    nw_connection_t connection = nw_connection_create(endpoint,
+        nw_parameters_create_secure_udp(NW_PARAMETERS_DISABLE_PROTOCOL, NW_PARAMETERS_DEFAULT_CONFIGURATION));
+    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
+    nw_connection_set_queue(connection, queue);
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Sustained real UDP/DNS responses"];
+    NSDate *startedAt = NSDate.date;
+    __block NSDate *firstResponseAt = nil;
+    __block NSDate *deadline = nil;
+    __block NSDate *lastSendAt = nil;
+    NSLock *lock = [NSLock new];
+    __block NSUInteger sent = 0;
+    __block NSUInteger received = 0;
+    __block NSUInteger errors = 0;
+    __block NSUInteger timeouts = 0;
+    __block BOOL completed = NO;
+    __block BOOL succeeded = NO;
+    __block NSUInteger inflightIdentifier = 0;
+    __block NSTimeInterval rttTotal = 0;
+    __block NSTimeInterval jitterTotal = 0;
+    __block NSTimeInterval previousRTT = -1;
+    __block NSTimeInterval maximumRTT = 0;
+    __block dispatch_block_t sendNext;
+    void (^finish)(BOOL) = ^(BOOL success) {
+        [lock lock];
+        if (completed) {
+            [lock unlock];
+            return;
+        }
+        completed = YES;
+        succeeded = success;
+        NSTimeInterval elapsed = firstResponseAt != nil ? -firstResponseAt.timeIntervalSinceNow : -startedAt.timeIntervalSinceNow;
+        BOOL passed = success && errors == 0 && sent == received && sent >= (NSUInteger)(duration * 10) && elapsed >= duration;
+        NSTimeInterval averageRTT = received > 0 ? rttTotal / received * 1000 : 0;
+        NSTimeInterval averageJitter = received > 1 ? jitterTotal / (received - 1) * 1000 : 0;
+        NSLog(@"Sustained UDP: %.2f seconds, sent=%lu, received=%lu, errors=%lu, timeouts=%lu, passed=%d, rtt_ms=%.3f, jitter_ms=%.3f, max_rtt_ms=%.3f",
+              elapsed, (unsigned long)sent, (unsigned long)received, (unsigned long)errors, (unsigned long)timeouts, passed,
+              averageRTT, averageJitter, maximumRTT * 1000);
+        [lock unlock];
+        nw_connection_cancel(connection);
+        sendNext = nil;
+        [expectation fulfill];
+    };
+    sendNext = ^{
+        [lock lock];
+        BOOL minimumComplete = sent >= (NSUInteger)(duration * 10) && received >= sent;
+        BOOL shouldStop = completed || (firstResponseAt != nil && NSDate.date.timeIntervalSince1970 >= deadline.timeIntervalSince1970 && minimumComplete);
+        [lock unlock];
+        if (shouldStop) {
+            finish(YES);
+            return;
+        }
+        uint16_t identifier = (uint16_t)(sent + 1);
+        uint8_t query[29] = {
+            identifier >> 8, identifier & 0xff, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            7, 'e','x','a','m','p','l','e', 3, 'c','o','m', 0, 0x00, 0x01, 0x00, 0x01
+        };
+        [lock lock];
+        sent++;
+        inflightIdentifier = identifier;
+        lastSendAt = NSDate.date;
+        [lock unlock];
+        dispatch_data_t packet = dispatch_data_create(query, sizeof(query), NULL, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+        nw_connection_send(connection, packet, NULL, true, ^(nw_error_t error) {
+            if (error) {
+                [lock lock];
+                errors++;
+                [lock unlock];
+                finish(NO);
+            }
+        });
+        nw_connection_receive_message(connection, ^(dispatch_data_t content, nw_content_context_t context, bool isComplete, nw_error_t error) {
+            (void)context;
+            (void)isComplete;
+            if (error) {
+                [lock lock];
+                errors++;
+                [lock unlock];
+                finish(NO);
+                return;
+            }
+            if (content == NULL) {
+                [lock lock];
+                errors++;
+                [lock unlock];
+                finish(NO);
+                return;
+            }
+            const uint8_t *bytes = NULL;
+            size_t contentLength = 0;
+            dispatch_data_t mapped = dispatch_data_create_map(content, (const void **)&bytes, &contentLength);
+            BOOL valid = contentLength >= 12 && bytes[0] == (identifier >> 8) && bytes[1] == (identifier & 0xff) &&
+                (bytes[2] & 0x80) && (bytes[3] & 0x0f) == 0;
+            [lock lock];
+            BOOL expectedResponse = valid && !completed && inflightIdentifier == identifier;
+            if (expectedResponse) {
+                inflightIdentifier = 0;
+                if (firstResponseAt == nil) {
+                    firstResponseAt = NSDate.date;
+                    deadline = [firstResponseAt dateByAddingTimeInterval:duration];
+                }
+                received++;
+                NSTimeInterval rtt = -lastSendAt.timeIntervalSinceNow;
+                rttTotal += rtt;
+                maximumRTT = MAX(maximumRTT, rtt);
+                if (previousRTT >= 0) jitterTotal += ABS(rtt - previousRTT);
+                previousRTT = rtt;
+            }
+            NSTimeInterval delay = lastSendAt != nil ? MAX(0, 0.1 + lastSendAt.timeIntervalSinceNow) : 0;
+            int64_t delayNanoseconds = (int64_t)(delay * NSEC_PER_SEC);
+            [lock unlock];
+            if (expectedResponse) {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, delayNanoseconds), queue, sendNext);
+            } else if (!valid) {
+                [lock lock];
+                errors++;
+                [lock unlock];
+                finish(NO);
+            }
+        });
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), queue, ^{
+            [lock lock];
+            BOOL timedOut = !completed && inflightIdentifier == identifier;
+            if (timedOut) {
+                timeouts++;
+                errors++;
+            }
+            [lock unlock];
+            if (timedOut) finish(NO);
+        });
+    };
+    nw_connection_set_state_changed_handler(connection, ^(nw_connection_state_t state, nw_error_t error) {
+        if (state == nw_connection_state_ready) {
+            sendNext();
+        } else if (state == nw_connection_state_failed || state == nw_connection_state_cancelled) {
+            if (error) {
+                [lock lock];
+                errors++;
+                [lock unlock];
+            }
+            finish(NO);
+        }
+    });
+    nw_connection_start(connection);
+    [self waitForExpectations:@[expectation] timeout:duration + 20];
+    [lock lock];
+    BOOL passed = completed && succeeded && errors == 0 && sent == received && sent >= (NSUInteger)(duration * 10);
+    [lock unlock];
+    return passed;
+}
+
+- (void)URLSession:(NSURLSession *)session
+    didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
+      completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
+    (void)session;
+    NSString *encoded = NSProcessInfo.processInfo.environment[@"SRP_WW_STRESS_TRUSTED_CERT"];
+    if (![challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] || encoded.length == 0) {
+        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);
+        return;
+    }
+    NSData *expected = [[NSData alloc] initWithBase64EncodedString:encoded options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    SecTrustRef trust = challenge.protectionSpace.serverTrust;
+    NSArray *certificates = trust ? CFBridgingRelease(SecTrustCopyCertificateChain(trust)) : nil;
+    NSData *actual = nil;
+    if (certificates.count > 0) {
+        SecCertificateRef certificate = (__bridge SecCertificateRef)certificates.firstObject;
+        actual = (__bridge_transfer NSData *)SecCertificateCopyData(certificate);
+    }
+    BOOL matches = trust != NULL && expected != nil && [actual isEqualToData:expected];
+    NSLog(@"Stress certificate pin: expectedLength=%lu actualLength=%lu accepted=%d",
+          (unsigned long)expected.length, (unsigned long)actual.length, matches);
+    if (matches) {
+        completionHandler(NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:trust]);
+    } else {
+        completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, nil);
+    }
+}
+
+- (BOOL)performSustainedLiveStressDownloads:(PDVPNManager *)manager environment:(NSDictionary *)environment {
+    long long stressBytes = [environment[@"SRP_WW_STRESS_BYTES"] longLongValue];
+    NSUInteger connections = [environment[@"SRP_WW_STRESS_CONNECTIONS"] integerValue] ?: 4;
+    NSTimeInterval duration = [environment[@"SRP_STRESS_DURATION"] doubleValue];
+    NSString *urlString = environment[@"SRP_WW_STRESS_URL"];
+    if (stressBytes <= 0 || stressBytes > 512 * 1024 * 1024 || connections < 1 || connections > 32 ||
+        duration < 1 || duration > 3600 || urlString.length == 0) return NO;
+    NSURL *baseURL = [NSURL URLWithString:urlString];
+    NSDate *startedAt = NSDate.date;
+    NSDate *deadline = [startedAt dateByAddingTimeInterval:duration];
+    XCTestExpectation *load = [self expectationWithDescription:@"Sustained parallel live downloads"];
+    load.expectedFulfillmentCount = connections;
+    __block NSMutableArray<NSString *> *errors = [NSMutableArray new];
+    NSLock *resultsLock = [NSLock new];
+    NSMutableArray<NSMutableDictionary *> *statistics = [NSMutableArray new];
+    for (NSUInteger index = 0; index < connections; index++) {
+        [statistics addObject:[@{@"bytes": @0, @"requests": @0, @"errors": @0, @"timeouts": @0, @"finished": @NO} mutableCopy]];
+    }
+    NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    configuration.HTTPMaximumConnectionsPerHost = connections;
+    configuration.timeoutIntervalForRequest = 45;
+    configuration.timeoutIntervalForResource = MAX(120, duration + 60);
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+    id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
+                                                                      object:nil
+                                                                       queue:nil
+                                                                  usingBlock:^(NSNotification *notification) {
+        (void)notification;
+        if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
+    }];
+    BOOL requiresTCP = environment[@"SRP_WW_TCP_STRESS"] ? [environment[@"SRP_WW_TCP_STRESS"] boolValue] : YES;
+    if (!requiresTCP && ![environment[@"SRP_WW_UDP_STRESS"] boolValue]) return NO;
+    if (requiresTCP) {
+        for (NSUInteger index = 0; index < connections; index++) {
+            [self startSustainedDownloadForIndex:index
+                                        sequence:0
+                                         session:session
+                                         baseURL:baseURL
+                                        deadline:deadline
+                                     stressBytes:(unsigned long long)stressBytes
+                                     expectation:load
+                                          errors:errors
+                                     resultsLock:resultsLock
+                                      statistics:statistics];
+        }
+    }
+    XCTestExpectation *udpExpectation;
+    __block BOOL udpPassed = YES;
+    if ([environment[@"SRP_WW_UDP_STRESS"] boolValue]) {
+        udpExpectation = [self expectationWithDescription:@"UDP transfer completes alongside TCP"];
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            udpPassed = [self performSustainedLiveUDPProbes:environment];
+            [udpExpectation fulfill];
+        });
+    }
+    NSMutableArray<XCTestExpectation *> *expectations = [NSMutableArray new];
+    if (requiresTCP) [expectations addObject:load];
+    if (udpExpectation) [expectations addObject:udpExpectation];
+    [self waitForExpectations:expectations timeout:duration + 120];
+    [NSNotificationCenter.defaultCenter removeObserver:lostObserver];
+    [session finishTasksAndInvalidate];
+    NSTimeInterval actualDuration = -startedAt.timeIntervalSinceNow;
+    unsigned long long downloaded = 0;
+    NSUInteger requests = 0;
+    NSUInteger finished = 0;
+    NSUInteger timeouts = 0;
+    for (NSUInteger index = 0; index < connections; index++) {
+        NSDictionary *statistic = statistics[index];
+        downloaded += [statistic[@"bytes"] unsignedLongLongValue];
+        requests += [statistic[@"requests"] unsignedIntegerValue];
+        finished += [statistic[@"finished"] boolValue] ? 1 : 0;
+        timeouts += [statistic[@"timeouts"] unsignedIntegerValue];
+        NSLog(@"Sustained connection %lu: %@ bytes, %@ requests, %@ errors, %@ timeouts",
+              (unsigned long)(index + 1), statistic[@"bytes"], statistic[@"requests"], statistic[@"errors"], statistic[@"timeouts"]);
+    }
+    if (!requiresTCP) finished = connections;
+    NSLog(@"Sustained stress: %.2f seconds, %llu bytes, %lu requests, errors: %@, VPN status: %ld, finished: %lu/%lu, timeouts: %lu",
+          actualDuration, downloaded, (unsigned long)requests, errors, (long)manager.status,
+          (unsigned long)finished, (unsigned long)connections, (unsigned long)timeouts);
+    return manager.status == YDVPNStatusConnected && (!requiresTCP || errors.count == 0) &&
+           actualDuration >= duration && finished == connections && udpPassed;
+}
+
 - (BOOL)runLiveConnectionRoundsForModel:(NodeModel *)model manager:(PDVPNManager *)manager environment:(NSDictionary *)environment {
     NSUInteger rounds = MAX(1, [environment[@"SRP_STRESS_ROUNDS"] integerValue] ?: 3);
     for (NSUInteger connectionRound = 0; connectionRound < rounds; connectionRound++) {
         NSLog(@"Live connection round %lu/%lu starting", (unsigned long)(connectionRound + 1), (unsigned long)rounds);
         NSString *error = nil;
-        if (![self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error]) {
+        NSMutableDictionary *server = [[CheckConnectData checkConnectParmer:model] mutableCopy];
+        if ([environment[@"SRP_WW_TEST_ID"] length] > 0) {
+            server[@"ww_test_id"] = environment[@"SRP_WW_TEST_ID"];
+        }
+        if (![self waitForLiveVPNConnection:manager server:server error:&error]) {
             NSLog(@"Live connection failed: %@", error);
             return NO;
         }
         for (NSUInteger downloadRound = 0; downloadRound < rounds; downloadRound++) {
-            if (![self waterWallLiveHTTPS204:model] || ![self performLiveStressDownloads:manager environment:environment] ||
-                ![self waterWallLiveHTTPS204:model]) {
+            BOOL stressPassed = [environment[@"SRP_STRESS_DURATION"] doubleValue] > 0
+                ? [self performSustainedLiveStressDownloads:manager environment:environment]
+                : [self performLiveStressDownloads:manager environment:environment];
+            BOOL requiresTCP = environment[@"SRP_WW_TCP_STRESS"] ? [environment[@"SRP_WW_TCP_STRESS"] boolValue] : YES;
+            BOOL connectivityPassed = requiresTCP
+                ? [self waterWallLiveHTTPS204:model] && stressPassed && [self waterWallLiveHTTPS204:model]
+                : stressPassed;
+            if (!connectivityPassed) {
+                if ([environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) {
+                    [self logWaterWallProviderFile:@"native-log" manager:manager];
+                    [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+                }
                 [self waitForLiveVPNDisconnect:manager];
                 return NO;
+            }
+            if ([environment[@"SRP_FETCH_LOGS"] boolValue]) {
+                [self logWaterWallProviderFile:@"native-log" manager:manager];
+                [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
             }
             NSLog(@"Live connection %lu, download round %lu passed; VPN remains connected",
                   (unsigned long)(connectionRound + 1), (unsigned long)(downloadRound + 1));
@@ -1771,42 +2386,47 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         [expectation fulfill];
     }];
     [self waitForExpectations:@[expectation] timeout:35];
+    NSLog(@"Live HTTPS 204: %@", result ?: @"no result");
     return [result hasPrefix:@"Ping:"];
 }
 
-- (void)testWaterWallLiveConnectionAndThroughputWhenConfigured {
+- (NodeModel *)liveWaterWallModelFromEnvironment {
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
-    if (![environment[@"SRP_BGP4_LIVE_TEST"] isEqualToString:@"1"]) return;
     NSString *address = environment[@"SRP_BGP4_SERVER"];
     NSString *port = environment[@"SRP_BGP4_PORT"];
     NSString *uuid = environment[@"SRP_BGP4_UUID"];
     NSString *carrier = environment[@"SRP_BGP4_CARRIER"] ?: @"tcp";
     NSString *application = environment[@"SRP_WW_APPLICATION"] ?: @"vless";
     NSString *outer = environment[@"SRP_WW_OUTER"] ?: @"bgp4";
-    if (address.length == 0 || uuid.length == 0 || port.integerValue < 1 || port.integerValue > 65535 ||
-        ![@[@"tcp", @"kcp"] containsObject:carrier] || ![@[@"vless", @"vmess"] containsObject:application] ||
-        ![@[@"none", @"tls", @"bgp4"] containsObject:outer]) {
-        XCTFail(@"Live testing requires valid server, UUID, application, outer and carrier settings.");
-        return;
+    NSString *customConfig = environment[@"SRP_WW_CONFIG_JSON"];
+    if (address.length == 0 || (!customConfig.length && uuid.length == 0) || port.integerValue < 1 || port.integerValue > 65535 ||
+        (!customConfig.length && (![@[@"tcp", @"kcp"] containsObject:carrier] ||
+         ![@[@"vless", @"vmess"] containsObject:application] || ![@[@"none", @"tls", @"bgp4"] containsObject:outer]))) {
+        NSLog(@"Live model diagnostics: addressLength=%lu port=%@ credentialLength=%lu carrier=%@ application=%@ outer=%@ customConfig=%d",
+              (unsigned long)address.length, port, (unsigned long)uuid.length, carrier, application, outer, customConfig.length > 0);
+        return nil;
     }
-    PDVPNManager *manager = PDVPNManager.sharedManager;
-    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
-        manager.status == YDVPNStatusDisconnecting) {
-        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
-    }
-
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
-    model.nodeId = @"live-waterwall-test";
+    model.nodeId = environment[@"SRP_WW_TEST_ID"] ?: @"live-waterwall-test";
     model.desc = @"WaterWall live test";
     model.server = address;
     model.port = port;
     model.password = uuid;
+    model.username = environment[@"SRP_WW_USERNAME"];
+    model.waterwallOuterSecret = environment[@"SRP_WW_OUTER_SECRET"];
+    model.wgConfig = environment[@"SRP_WW_WG_CONFIG"];
     model.customSni = environment[@"SRP_WW_SNI"];
     model.TLS = [environment[@"SRP_WW_INSECURE"] boolValue];
-    model.logLevel = 2;
-    model.waterwallFakeDNS = YES;
+    model.logLevel = environment[@"SRP_WW_LOG_LEVEL"] ? [environment[@"SRP_WW_LOG_LEVEL"] integerValue] : 2;
+    model.waterwallFakeDNS = environment[@"SRP_WW_FAKE_DNS"] ? [environment[@"SRP_WW_FAKE_DNS"] boolValue] : YES;
     model.waterwallSmartRouting = YES;
+    model.waterwallProbeIP = environment[@"SRP_WW_PROBE_IP"];
+    model.waterwallDNSProbeIP = environment[@"SRP_WW_DNS_PROBE_IP"];
+    model.autoReconnect = environment[@"SRP_AUTO_RECONNECT"] ? [environment[@"SRP_AUTO_RECONNECT"] boolValue] : YES;
+    model.retryTimes = [environment[@"SRP_RETRY_TIMES"] integerValue];
+    model.switchToWifi = environment[@"SRP_SWITCH_WIFI"] ? [environment[@"SRP_SWITCH_WIFI"] boolValue] : YES;
+    model.onSleep = environment[@"SRP_ON_SLEEP"] ? [environment[@"SRP_ON_SLEEP"] integerValue] : 2;
     NSDictionary *nodeOptions = @{};
     NSString *nodeOptionsJSON = environment[@"SRP_WW_NODE_OPTIONS"];
     if (nodeOptionsJSON.length > 0) {
@@ -1814,19 +2434,355 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         id parsed = [NSJSONSerialization JSONObjectWithData:[nodeOptionsJSON dataUsingEncoding:NSUTF8StringEncoding]
                                                     options:0
                                                       error:&parseError];
-        if (![parsed isKindOfClass:NSDictionary.class]) {
-            XCTFail(@"Invalid SRP_WW_NODE_OPTIONS: %@", parseError);
-            return;
-        }
+        if (![parsed isKindOfClass:NSDictionary.class]) return nil;
         nodeOptions = parsed;
     }
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{
+    model.waterwallConfigJSON = customConfig.length > 0 ? customConfig : [SRPWaterWallChainConfig JSONWithConfiguration:@{
         @"version": @3, @"mode": @"chain", @"input": @"connections", @"application": application,
         @"mux": @NO, @"outer": outer, @"http": @"off", @"http-version": @1,
         @"obfuscator": @NO, @"carrier": carrier, @"quic-carrier": @"datagram", @"node-options": nodeOptions,
         @"bgp4": @([environment[@"SRP_WW_BGP4"] boolValue])
     }];
-    XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+    if ([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON] == nil) return nil;
+    return model;
+}
+
+- (void)testWaterWallLiveConnectionAndThroughputWhenConfigured {
+    if (![NSProcessInfo.processInfo.environment[@"SRP_BGP4_LIVE_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
+        manager.status == YDVPNStatusDisconnecting) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    NodeModel *model = [self liveWaterWallModelFromEnvironment];
+    XCTAssertNotNil(model);
+    if (model == nil) return;
+    XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:NSProcessInfo.processInfo.environment]);
+}
+
+- (void)testWaterWallLiveFullDuplexWhenConfigured {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_FULL_DUPLEX_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
+        manager.status == YDVPNStatusDisconnecting) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    NodeModel *model = [self liveWaterWallModelFromEnvironment];
+    XCTAssertNotNil(model);
+    if (model == nil) return;
+    model.autoReconnect = NO;
+    @try {
+        NSString *error = nil;
+        BOOL connected = [self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error];
+        XCTAssertTrue(connected, @"%@", error);
+        if (!connected) return;
+        XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+        XCTAssertTrue([self performSustainedLiveFullDuplex:manager environment:environment]);
+        XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+}
+
+- (void)testStopAnyLiveVPNWhenConfigured {
+    if (![NSProcessInfo.processInfo.environment[@"SRP_STOP_LIVE_VPN"] isEqualToString:@"1"]) return;
+    [self waitForLiveVPNDisconnect:PDVPNManager.sharedManager];
+    XCTAssertEqual(PDVPNManager.sharedManager.status, YDVPNStatusDisconnected);
+}
+
+#if DEBUG
+- (NSDictionary *)waterWallProviderCommand:(NSString *)command manager:(PDVPNManager *)manager {
+    NETunnelProviderManager *provider = [manager valueForKey:@"providerManager"];
+    NETunnelProviderSession *session = (NETunnelProviderSession *)provider.connection;
+    XCTestExpectation *response = [self expectationWithDescription:command];
+    __block NSDictionary *result;
+    __block NSError *sendError;
+    [session sendProviderMessage:[NSJSONSerialization dataWithJSONObject:@{@"type": @100, @"command": command}
+                                                                  options:0
+                                                                    error:nil]
+                    returnError:&sendError
+                responseHandler:^(NSData *responseData) {
+        if (responseData != nil) {
+            result = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:nil];
+        }
+        [response fulfill];
+    }];
+    [self waitForExpectations:@[response] timeout:10];
+    XCTAssertNil(sendError);
+    if ([command isEqualToString:@"state"] && [NSProcessInfo.processInfo.environment[@"SRP_TRACE_STATE"] boolValue]) {
+        NSLog(@"WaterWall test state: %@", result);
+    }
+    return result;
+}
+
+- (BOOL)waitForWaterWallState:(NSString *)key value:(BOOL)value manager:(PDVPNManager *)manager timeout:(NSTimeInterval)timeout {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
+    while (NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        NSDictionary *state = [self waterWallProviderCommand:@"state" manager:manager];
+        if ([state[key] boolValue] == value) return YES;
+        [NSThread sleepForTimeInterval:0.1];
+    }
+    return NO;
+}
+#endif
+
+- (void)logWaterWallProviderFile:(NSString *)command manager:(PDVPNManager *)manager {
+#if DEBUG
+    NETunnelProviderManager *provider = [manager valueForKey:@"providerManager"];
+    NETunnelProviderSession *session = (NETunnelProviderSession *)provider.connection;
+    XCTestExpectation *response = [self expectationWithDescription:command];
+    [session sendProviderMessage:[NSJSONSerialization dataWithJSONObject:@{@"type": @100, @"command": command}
+                                                                  options:0
+                                                                    error:nil]
+                    returnError:nil
+                responseHandler:^(NSData *responseData) {
+        NSLog(@"%@:\n%@", command, [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding]);
+        [response fulfill];
+    }];
+    [self waitForExpectations:@[response] timeout:15];
+#endif
+}
+
+- (void)testWaterWallLiveLogsWhenConfigured {
+    if (![NSProcessInfo.processInfo.environment[@"SRP_FETCH_LOGS"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+    [self logWaterWallProviderFile:@"native-log" manager:manager];
+    if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+}
+
+- (void)testWaterWallLiveSleepAndRuntimeRecoveryWhenConfigured {
+#if DEBUG
+    if (![NSProcessInfo.processInfo.environment[@"SRP_RECOVERY_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    @try {
+        NodeModel *model = [self liveWaterWallModelFromEnvironment];
+        XCTAssertNotNil(model);
+        if (model == nil) return;
+        model.onSleep = 1;
+        model.autoReconnect = YES;
+        model.retryTimes = 2;
+        NSDictionary *environment = NSProcessInfo.processInfo.environment;
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        [self waterWallProviderCommand:@"sleep" manager:manager];
+        XCTAssertTrue([self waitForWaterWallState:@"sleepPaused" value:YES manager:manager timeout:5]);
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:2]);
+        [self waterWallProviderCommand:@"wake" manager:manager];
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:25]);
+        XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);
+        if ([environment[@"SRP_RECOVERY_SLEEP_ONLY"] boolValue]) return;
+        [self waterWallProviderCommand:@"fail-runtime" manager:manager];
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+        XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);
+        [self waitForLiveVPNDisconnect:manager];
+        [NSThread sleepForTimeInterval:3];
+        XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Runtime recovery instrumentation requires a Debug build.");
+#endif
+}
+
+- (void)testWaterWallLiveRetryBudgetWhenConfigured {
+#if DEBUG
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_RETRY_LIVE_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    @try {
+        NodeModel *model = [self liveWaterWallModelFromEnvironment];
+        XCTAssertNotNil(model);
+        if (model == nil) return;
+        model.retryTimes = 1;
+        model.autoReconnect = ![environment[@"SRP_RETRY_DISABLE_AUTORECONNECT"] boolValue];
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        if ([environment[@"SRP_REAL_PEER_RETRY"] boolValue]) {
+            NSLog(@"SRP peer-failure test ready");
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:45]);
+            if (!model.autoReconnect) {
+                XCTAssertTrue([self waitForLiveVPNDisconnectedStatus:manager timeout:15]);
+                return;
+            }
+            if (![environment[@"SRP_RETRY_NO_RECOVERY"] boolValue]) {
+                XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:45]);
+                XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:30]);
+            }
+        } else {
+            [self waterWallProviderCommand:@"fail-runtime" manager:manager];
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:30]);
+            if (!model.autoReconnect) {
+                XCTAssertTrue([self waitForLiveVPNDisconnectedStatus:manager timeout:15]);
+                return;
+            }
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+            [self waterWallProviderCommand:@"fail-runtime" manager:manager];
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:30]);
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+            [self waitForLiveVPNDisconnect:manager];
+            XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+            return;
+        }
+        NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:90];
+        while (manager.status != YDVPNStatusDisconnected && NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+            [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
+        }
+        if ([environment[@"SRP_TRACE_STATE"] boolValue] && manager.status != YDVPNStatusDisconnected) {
+            NSLog(@"Retry budget final provider state: %@", [self waterWallProviderCommand:@"state" manager:manager]);
+        }
+        XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+        NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+        NSString *message = [shared objectForKey:@"SRPLastError"][@"message"];
+        XCTAssertTrue([message containsString:@"after 1 attempts"], @"%@", message);
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Runtime recovery instrumentation requires a Debug build.");
+#endif
+}
+
+- (void)testWaterWallLivePeerRecoveryWhenConfigured {
+#if DEBUG
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_PEER_RECOVERY_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    @try {
+        NodeModel *model = [self liveWaterWallModelFromEnvironment];
+        XCTAssertNotNil(model);
+        if (model == nil) return;
+        model.retryTimes = 2;
+        model.autoReconnect = YES;
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        NSLog(@"SRP peer-failure test ready");
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:30]);
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:45]);
+        XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+        XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);
+        [self waitForLiveVPNDisconnect:manager];
+        [NSThread sleepForTimeInterval:3];
+        XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Runtime recovery instrumentation requires a Debug build.");
+#endif
+}
+
+#if TARGET_OS_IPHONE
+- (BOOL)waitForPhysicalWiFi:(BOOL)wifi currentPath:(id __strong *)currentPath timeout:(NSTimeInterval)timeout {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
+    while (NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        nw_path_t path = (nw_path_t)*currentPath;
+        if (path != nil && nw_path_get_status(path) == nw_path_status_satisfied &&
+            nw_path_uses_interface_type(path, nw_interface_type_wifi) == wifi &&
+            (wifi || nw_path_uses_interface_type(path, nw_interface_type_cellular))) return YES;
+        [NSThread sleepForTimeInterval:0.2];
+    }
+    return NO;
+}
+#if DEBUG
+- (BOOL)waitForWaterWallSettingsAfter:(NSInteger)generation manager:(PDVPNManager *)manager timeout:(NSTimeInterval)timeout {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
+    while (NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        NSDictionary *state = [self waterWallProviderCommand:@"state" manager:manager];
+        if ([state[@"settingsGeneration"] integerValue] > generation && [state[@"up"] boolValue]) return YES;
+        [NSThread sleepForTimeInterval:0.1];
+    }
+    return NO;
+}
+#endif
+#endif
+
+- (void)testWaterWallLiveNetworkTransitionWhenConfigured {
+#if TARGET_OS_IPHONE
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_NETWORK_TRANSITION_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    nw_path_monitor_t monitor = nw_path_monitor_create();
+    __block id currentPath;
+    nw_path_monitor_set_queue(monitor, dispatch_queue_create("srp.live-network-path", DISPATCH_QUEUE_SERIAL));
+    nw_path_monitor_set_update_handler(monitor, ^(nw_path_t path) {
+        currentPath = path;
+    });
+    nw_path_monitor_start(monitor);
+    @try {
+        NodeModel *model = [self liveWaterWallModelFromEnvironment];
+        XCTAssertNotNil(model);
+        if (model == nil) return;
+        model.autoReconnect = YES;
+        model.retryTimes = 2;
+        model.switchToWifi = YES;
+        NSLog(@"Network transition: turn Wi-Fi OFF on the device; cellular data must remain available");
+        if (![self waitForPhysicalWiFi:NO currentPath:&currentPath timeout:300]) {
+            XCTFail(@"Physical Wi-Fi did not turn off");
+            return;
+        }
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        for (NSUInteger phase = 0; phase < 4; ++phase) {
+            if (phase > 0) {
+#if DEBUG
+                NSInteger generation = [[self waterWallProviderCommand:@"state" manager:manager][@"settingsGeneration"] integerValue];
+#endif
+                BOOL wifi = phase % 2 == 1;
+                NSLog(@"Network transition %lu/3: turn Wi-Fi %@", (unsigned long)phase, wifi ? @"ON" : @"OFF");
+                if (![self waitForPhysicalWiFi:wifi currentPath:&currentPath timeout:300]) {
+                    XCTFail(@"Physical Wi-Fi transition was not observed");
+                    return;
+                }
+#if DEBUG
+                if (![self waitForWaterWallSettingsAfter:generation manager:manager timeout:30]) {
+                    XCTFail(@"The new tunnel network settings were not applied");
+                    return;
+                }
+#endif
+            }
+            NSLog(@"Network traffic phase %lu/4 starting", (unsigned long)(phase + 1));
+            if (![self performSustainedLiveStressDownloads:manager environment:environment]) {
+                XCTFail(@"Traffic failed during a network transition phase");
+                return;
+            }
+            if (manager.status != YDVPNStatusConnected) {
+                XCTFail(@"VPN disconnected during a network transition phase");
+                return;
+            }
+        }
+        [self waitForLiveVPNDisconnect:manager];
+        XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+    } @finally {
+        nw_path_monitor_cancel(monitor);
+        currentPath = nil;
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Physical network-transition testing requires an iOS device.");
+#endif
 }
 
 - (void)testAetherLiveConnectionAndThroughputWhenConfigured {
@@ -1900,6 +2856,299 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         [released fulfill];
     });
     [self waitForExpectations:@[released] timeout:2];
+}
+
+- (void)startWaterWallLifecycleClient:(SRPWaterWallLifecycleTestClient *)client
+                             failure:(SRPWaterWallFailureBlock)failure {
+    client.switchToWifi = NO;
+    [client startWithOutputCallback:^(NSData *packet, int family) {
+        (void)packet;
+        (void)family;
+    } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting, void (^completion)(NSError *error)) {
+        (void)setting;
+        completion(nil);
+    } connectedCallback:nil failureCallback:failure];
+}
+
+- (void)testWaterWallRetryLimitAndManualDisconnect {
+    SRPWaterWallLifecycleTestClient *limited = [SRPWaterWallLifecycleTestClient new];
+    limited.retryTimes = 2;
+    limited.failuresBeforeSuccess = NSIntegerMax;
+    XCTestExpectation *terminal = [self expectationWithDescription:@"WaterWall exhausts its configured retry budget"];
+    __block NSString *terminalReason;
+    [self startWaterWallLifecycleClient:limited failure:^(NSString *reason) {
+        terminalReason = reason;
+        [terminal fulfill];
+    }];
+    [self waitForExpectations:@[terminal] timeout:7];
+    XCTAssertEqual(limited.runtimeStarts, 3);
+    XCTAssertTrue([terminalReason containsString:@"after 2 attempts"]);
+    XCTAssertTrue([[limited valueForKey:@"closed"] boolValue]);
+
+    SRPWaterWallLifecycleTestClient *manual = [SRPWaterWallLifecycleTestClient new];
+    manual.retryTimes = 5;
+    manual.failuresBeforeSuccess = NSIntegerMax;
+    __block NSString *manualFailure;
+    [self startWaterWallLifecycleClient:manual failure:^(NSString *reason) {
+        manualFailure = reason;
+    }];
+    XCTestExpectation *pending = [self expectationWithDescription:@"A retry is pending before the user disconnects"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertTrue([[manual valueForKey:@"reconnectPending"] boolValue]);
+        [manual closeAndWait];
+        [pending fulfill];
+    });
+    [self waitForExpectations:@[pending] timeout:2];
+    XCTestExpectation *suppressed = [self expectationWithDescription:@"The pending retry is cancelled"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2400 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertEqual(manual.runtimeStarts, 1);
+        XCTAssertNil(manualFailure);
+        [suppressed fulfill];
+    });
+    [self waitForExpectations:@[suppressed] timeout:4];
+}
+
+- (void)testWaterWallReconnectCanBeDisabled {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.autoReconnect = NO;
+    client.retryTimes = 5;
+    client.failuresBeforeSuccess = NSIntegerMax;
+    XCTestExpectation *terminal = [self expectationWithDescription:@"Disabled auto-reconnect reports a terminal failure"];
+    [self startWaterWallLifecycleClient:client failure:^(NSString *reason) {
+        XCTAssertTrue([reason containsString:@"Injected runtime failure"]);
+        [terminal fulfill];
+    }];
+    [self waitForExpectations:@[terminal] timeout:2];
+    XCTAssertEqual(client.runtimeStarts, 1);
+    XCTAssertTrue([[client valueForKey:@"closed"] boolValue]);
+}
+
+- (void)testWaterWallHealthProbeDoesNotDisconnectActiveTraffic {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.autoReconnect = NO;
+    __block NSString *failure;
+    [client setValue:[^(NSString *reason) { failure = reason; } copy] forKey:@"failureCb"];
+    [client setValue:@YES forKey:@"up"];
+    [client setValue:@4 forKey:@"probeStage"];
+    [client setValue:@(NSProcessInfo.processInfo.systemUptime) forKey:@"lastOutputAt"];
+    [client healthProbeFailed:@"synthetic probe failure"];
+    XCTAssertNil(failure);
+    XCTAssertEqual([[client valueForKey:@"probeStage"] integerValue], 3);
+
+    [client setValue:@(NSProcessInfo.processInfo.systemUptime - 20) forKey:@"lastOutputAt"];
+    [client setValue:@4 forKey:@"probeStage"];
+    [client healthProbeFailed:@"idle probe failure"];
+    XCTAssertEqualObjects(failure, @"idle probe failure");
+    XCTAssertTrue([[client valueForKey:@"closed"] boolValue]);
+}
+
+- (void)testWaterWallProbeBackpressureRetriesWithoutReconnect {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.coreJSON = @"{}";
+    client.nodesJSON = @"{}";
+    [client startRuntimeLocked];
+    [client setValue:@YES forKey:@"up"];
+    SRPTestWWSubmitCalls = 0;
+    SRPTestWWSubmitResult = -EAGAIN;
+    NSMutableData *packet = [NSMutableData dataWithLength:40];
+    ((uint8_t *)packet.mutableBytes)[0] = 0x45;
+    [client submitProbePacket:packet];
+    XCTAssertEqual([[client valueForKey:@"pendingProbePackets"] count], 1U);
+    XCTAssertFalse([[client valueForKey:@"closed"] boolValue]);
+    SRPTestWWSubmitResult = 0;
+    XCTestExpectation *drained = [self expectationWithDescription:@"A queued health probe drains after backpressure"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 20 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertEqual(SRPTestWWSubmitCalls, 2U);
+        XCTAssertEqual([[client valueForKey:@"pendingProbePackets"] count], 0U);
+        XCTAssertTrue([[client valueForKey:@"up"] boolValue]);
+        XCTAssertFalse([[client valueForKey:@"closed"] boolValue]);
+        XCTAssertFalse([[client valueForKey:@"reconnectPending"] boolValue]);
+        XCTAssertEqualObjects([client valueForKey:@"failedAttempts"], @0);
+        [client closeAndWait];
+        [drained fulfill];
+    });
+    [self waitForExpectations:@[drained] timeout:2];
+}
+
+- (void)testWaterWallStartupRequiresRealHTTPAndDNSResponses {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    [client beginDataPlaneProbe];
+    NSMutableData *synAck = [client.lastProbePacket mutableCopy];
+    XCTAssertEqual(synAck.length, 40U);
+    uint8_t *bytes = synAck.mutableBytes;
+    uint8_t addresses[8], ports[4];
+    memcpy(addresses, bytes + 12, 8);
+    memcpy(bytes + 12, addresses + 4, 4);
+    memcpy(bytes + 16, addresses, 4);
+    memcpy(ports, bytes + 20, 4);
+    memcpy(bytes + 20, ports + 2, 2);
+    memcpy(bytes + 22, ports, 2);
+    bytes[33] = 0x12;
+    [client handleProbePacket:synAck];
+    XCTAssertFalse([[client valueForKey:@"up"] boolValue]);
+    XCTAssertGreaterThan(client.lastProbePacket.length, 44U);
+    XCTAssertEqual(memcmp(client.lastProbePacket.bytes + 40, "GET /", 5), 0);
+
+    NSMutableData *response = [client.lastProbePacket mutableCopy];
+    bytes = response.mutableBytes;
+    memcpy(addresses, bytes + 12, 8);
+    memcpy(bytes + 12, addresses + 4, 4);
+    memcpy(bytes + 16, addresses, 4);
+    memcpy(ports, bytes + 20, 4);
+    memcpy(bytes + 20, ports + 2, 2);
+    memcpy(bytes + 22, ports, 2);
+    uint32_t sequence = 0;
+    for (NSUInteger index = 0; index < 4; ++index) sequence = (sequence << 8) | bytes[28 + index];
+    for (NSUInteger index = 0; index < 4; ++index) bytes[24 + index] = sequence >> (24 - index * 8);
+    memcpy(bytes + 40, "HTTP/", 5);
+    [client handleProbePacket:response];
+    XCTAssertFalse([[client valueForKey:@"up"] boolValue]);
+    XCTAssertEqualObjects([client valueForKey:@"probeStage"], @2);
+
+    NSMutableData *dnsResponse = [client.lastProbePacket mutableCopy];
+    bytes = dnsResponse.mutableBytes;
+    memcpy(addresses, bytes + 12, 8);
+    memcpy(bytes + 12, addresses + 4, 4);
+    memcpy(bytes + 16, addresses, 4);
+    memcpy(ports, bytes + 20, 4);
+    memcpy(bytes + 20, ports + 2, 2);
+    memcpy(bytes + 22, ports, 2);
+    bytes[30] |= 0x80;
+    bytes[31] |= 0x80;
+    bytes[35] = 1;
+    [client handleProbePacket:dnsResponse];
+    XCTNSPredicateExpectation *applied = [[XCTNSPredicateExpectation alloc]
+        initWithPredicate:[NSPredicate predicateWithFormat:@"up == YES"] object:client];
+    [self waitForExpectations:@[applied] timeout:2];
+    XCTAssertTrue([[client valueForKey:@"up"] boolValue]);
+    [client closeAndWait];
+}
+
+- (void)testWaterWallConnectedWaitsForNetworkSettings {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    __block void (^apply)(NSError *error);
+    __block NSUInteger connected = 0;
+    [client setValue:[^(NEPacketTunnelNetworkSettings *settings, void (^completion)(NSError *error)) {
+        (void)settings;
+        apply = [completion copy];
+    } copy] forKey:@"settingsCb"];
+    [client setValue:[^{ connected++; } copy] forKey:@"connectedCb"];
+    [client finishProbe];
+    XCTAssertFalse([[client valueForKey:@"up"] boolValue]);
+    XCTAssertEqual(connected, 0U);
+    XCTAssertNotNil(apply);
+    XCTestExpectation *ready = [self expectationWithDescription:@"Applied network settings complete the connection"];
+    [client setValue:[^{ connected++; [ready fulfill]; } copy] forKey:@"connectedCb"];
+    apply(nil);
+    [self waitForExpectations:@[ready] timeout:2];
+    XCTAssertTrue([[client valueForKey:@"up"] boolValue]);
+    XCTAssertEqual(connected, 1U);
+    [client closeAndWait];
+}
+
+- (void)testWaterWallNetworkSettingsFailureDoesNotConnect {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.autoReconnect = NO;
+    __block void (^apply)(NSError *error);
+    __block NSUInteger connected = 0;
+    [client setValue:[^(NEPacketTunnelNetworkSettings *settings, void (^completion)(NSError *error)) {
+        (void)settings;
+        apply = [completion copy];
+    } copy] forKey:@"settingsCb"];
+    [client setValue:[^{ connected++; } copy] forKey:@"connectedCb"];
+    XCTestExpectation *failed = [self expectationWithDescription:@"Settings errors surface as a connection failure"];
+    [client setValue:[^(NSString *reason) {
+        XCTAssertTrue([reason containsString:@"Synthetic settings error"]);
+        [failed fulfill];
+    } copy] forKey:@"failureCb"];
+    [client finishProbe];
+    apply([NSError errorWithDomain:@"SRPTests" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Synthetic settings error"}]);
+    [self waitForExpectations:@[failed] timeout:2];
+    XCTAssertFalse([[client valueForKey:@"up"] boolValue]);
+    XCTAssertEqual(connected, 0U);
+    [client closeAndWait];
+}
+
+- (void)testWaterWallHealthMonitorStarts {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.autoReconnect = NO;
+    [client setValue:@YES forKey:@"up"];
+    [client setValue:@3 forKey:@"probeStage"];
+    [client startHealthMonitor];
+    XCTestExpectation *probe = [self expectationWithDescription:@"Health monitor submits a probe"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 17 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        XCTAssertGreaterThan(client.submittedPackets, 0);
+        [probe fulfill];
+    });
+    [self waitForExpectations:@[probe] timeout:19];
+    [client closeAndWait];
+}
+
+- (void)testWaterWallSleepModes {
+    for (NSNumber *mode in @[@2, @1, @0]) {
+        SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+        client.onSleep = mode.integerValue;
+        client.autoReconnect = NO;
+        [self startWaterWallLifecycleClient:client failure:nil];
+        [client pauseForSleep];
+        [client wakeFromSleep];
+        XCTestExpectation *transition = [self expectationWithDescription:@"Sleep mode transition"];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 150 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            XCTAssertEqual(client.runtimeStarts, mode.integerValue == 1 ? 2 : 1);
+            XCTAssertEqual([[client valueForKey:@"up"] boolValue], mode.integerValue != 0);
+            XCTAssertFalse([[client valueForKey:@"sleepPaused"] boolValue]);
+            [client closeAndWait];
+            [transition fulfill];
+        });
+        [self waitForExpectations:@[transition] timeout:2];
+    }
+}
+
+- (void)testWaterWallSleepResumePreservesPendingPackets {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.onSleep = 1;
+    [self startWaterWallLifecycleClient:client failure:nil];
+    [client pauseForSleep];
+    XCTestExpectation *resumed = [self expectationWithDescription:@"Paused injection resumes after the runtime is ready"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        NSMutableData *packet = [NSMutableData dataWithLength:40];
+        ((uint8_t *)packet.mutableBytes)[0] = 0x45;
+        [client injectPackets:@[packet] completion:^{
+            [resumed fulfill];
+        }];
+        [client wakeFromSleep];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            [client drainInjectedPacketsLocked];
+            XCTAssertEqual(client.runtimeStarts, 2);
+            XCTAssertEqual(client.submittedPackets, 1);
+            XCTAssertNil([client valueForKey:@"pendingPackets"]);
+            [client closeAndWait];
+        });
+    });
+    [self waitForExpectations:@[resumed] timeout:3];
+}
+
+- (void)testWaterWallOverlappingInjectionPreservesBothReadBatches {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.onSleep = 1;
+    [self startWaterWallLifecycleClient:client failure:nil];
+    [client pauseForSleep];
+    XCTestExpectation *both = [self expectationWithDescription:@"Both read generations complete after resume"];
+    both.expectedFulfillmentCount = 2;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        NSMutableData *packet = [NSMutableData dataWithLength:40];
+        ((uint8_t *)packet.mutableBytes)[0] = 0x45;
+        [client injectPackets:@[packet] completion:^{ [both fulfill]; }];
+        [client injectPackets:@[packet] completion:^{ [both fulfill]; }];
+        [client wakeFromSleep];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+            [client drainInjectedPacketsLocked];
+        });
+    });
+    [self waitForExpectations:@[both] timeout:2];
+    XCTAssertEqual(client.submittedPackets, 2);
+    XCTAssertNil([client valueForKey:@"pendingPackets"]);
+    [client closeAndWait];
 }
 
 - (void)testAetherIngressBackpressurePreservesPackets {
@@ -2055,29 +3304,50 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     id inputJSON = [NSJSONSerialization JSONObjectWithData:input options:0 error:&error];
     XCTAssertTrue([inputJSON isKindOfClass:NSArray.class], @"%@", error);
     if (![inputJSON isKindOfClass:NSArray.class]) return;
+    BOOL validate = [environment[@"SRP_MATRIX_VALIDATE"] isEqualToString:@"1"];
     NSMutableArray *results = [NSMutableArray new];
     for (id entry in (NSArray *)inputJSON) {
         XCTAssertTrue([entry isKindOfClass:NSDictionary.class]);
         if (![entry isKindOfClass:NSDictionary.class]) return;
         NSDictionary *caseInput = entry;
-        NSString *nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:caseInput[@"configuration"]
-            server:caseInput[@"server"]
-            port:[caseInput[@"port"] integerValue]
-            sni:caseInput[@"sni"]
-            verifyTLS:caseInput[@"verifyTLS"] == nil || [caseInput[@"verifyTLS"] boolValue]
-            secret:caseInput[@"secret"]
-            outerSecret:caseInput[@"outerSecret"]
-            options:caseInput[@"options"]];
-        XCTAssertNotNil(nodesJSON, @"Builder rejected matrix input %@", caseInput[@"configuration"]);
+        NSDictionary *configuration = caseInput[@"configuration"];
+        if (validate) {
+            NSString *validationError = [SRPWaterWallChainConfig validationErrorForConfiguration:configuration];
+            if (validationError != nil) {
+                [results addObject:@{@"id": caseInput[@"id"] ?: @"", @"supported": @NO,
+                                     @"configuration": configuration, @"reason": validationError}];
+                continue;
+            }
+        }
+        NSString *nodesJSON;
+        if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration] && caseInput[@"wireguard"] != nil) {
+            nodesJSON = [SRPWaterWallChainConfig wireGuardConfigurationWithConfig:caseInput[@"wireguard"]][@"nodesJSON"];
+        } else {
+            nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
+                server:caseInput[@"server"]
+                port:[caseInput[@"port"] integerValue]
+                sni:caseInput[@"sni"]
+                verifyTLS:caseInput[@"verifyTLS"] == nil || [caseInput[@"verifyTLS"] boolValue]
+                secret:caseInput[@"secret"]
+                outerSecret:caseInput[@"outerSecret"]
+                options:caseInput[@"options"]];
+        }
+        XCTAssertNotNil(nodesJSON, @"Builder rejected matrix input %@", configuration);
         if (nodesJSON == nil) return;
         NSDictionary *nodes = [NSJSONSerialization JSONObjectWithData:[nodesJSON dataUsingEncoding:NSUTF8StringEncoding]
                                                                options:0
                                                                  error:&error];
         XCTAssertNotNil(nodes, @"%@", error);
         if (nodes == nil) return;
-        [results addObject:nodes];
+        if (validate) {
+            [results addObject:@{@"id": caseInput[@"id"] ?: @"", @"supported": @YES,
+                                 @"configuration": configuration, @"nodes": nodes}];
+        } else {
+            [results addObject:nodes];
+        }
     }
-    NSData *output = [NSJSONSerialization dataWithJSONObject:results options:NSJSONWritingPrettyPrinted error:&error];
+    id result = validate ? @{@"cases": results} : results;
+    NSData *output = [NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingPrettyPrinted error:&error];
     XCTAssertNotNil(output, @"%@", error);
     if (output == nil) return;
     XCTAssertTrue([output writeToFile:outputPath options:NSDataWritingAtomic error:&error], @"%@", error);

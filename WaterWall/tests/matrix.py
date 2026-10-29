@@ -236,11 +236,11 @@ def local_ipv4():
         return sock.getsockname()[0]
 
 
-def start_udp_responder(port, address=None):
+def start_udp_responder(port, address=None, expected=None):
     address = address or os.environ.get("SRP_MATRIX_DNS_IP") or local_ipv4()
-    expected = int(os.environ.get("SRP_MATRIX_UDP_REPEAT", "1"))
-    if not 1 <= expected <= 64:
-        raise ValueError("SRP_MATRIX_UDP_REPEAT must be between 1 and 64")
+    expected = expected if expected is not None else int(os.environ.get("SRP_MATRIX_UDP_REPEAT", "1"))
+    if not 1 <= expected <= 36000:
+        raise ValueError("SRP_MATRIX_UDP_REPEAT must be between 1 and 36000")
     ready = threading.Event()
     failure = []
     bound_port = []
@@ -320,7 +320,7 @@ class Matrix:
                      "-DINCLUDE_VMESS_SERVER=ON", "-DINCLUDE_VMESS_CLIENT=ON",
                      "-DOPENSSL_CONFIGURE_OPTIONS=no-asm", "-DWCRYPTO_BACKEND_OPENSSL=OFF",
                      "-Drouter_enable_quic_sniffing=OFF", "-Drouter_enable_http2_sniffing=OFF"]
-        if run_logged(configure, self.work / "peer-configure.log", timeout=180) != 0:
+        if run_logged(configure, self.work / "peer-configure.log", timeout=600) != 0:
             raise RuntimeError(tail(self.work / "peer-configure.log"))
         if run_logged(["cmake", "--build", str(self.peer_build), "--target", "Waterwall", "-j8"],
                       self.work / "peer-build.log", timeout=600) != 0:

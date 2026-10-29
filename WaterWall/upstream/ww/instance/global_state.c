@@ -320,7 +320,7 @@ static void globalstateRollbackConstruction(wid_t constructed_workers, bool ares
         }
         contvarDestroy(&worker->control_condition);
         condmutexDestroy(&worker->control_condition_mutex);
-        mutexDestroy(&worker->control_mutex);
+        timedmutexDestroy(&worker->control_mutex);
     }
 
     memoryFree(WORKERS);
@@ -916,7 +916,7 @@ WW_EXPORT void destroyGlobalState(void)
         {
             contvarDestroy(&getWorker(wi)->control_condition);
             condmutexDestroy(&getWorker(wi)->control_condition_mutex);
-            mutexDestroy(&getWorker(wi)->control_mutex);
+            timedmutexDestroy(&getWorker(wi)->control_mutex);
         }
     }
 

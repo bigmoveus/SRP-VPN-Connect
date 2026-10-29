@@ -37,6 +37,7 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
     {
         if (pos >= packet_len)
         {
+            LOGD("FakeDNS name boundary pos=%u len=%u", (unsigned int) pos, (unsigned int) packet_len);
             return false;
         }
 
@@ -48,6 +49,7 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
 
         if ((label_len & 0xC0U) != 0 || label_len > 63U || pos + label_len > packet_len)
         {
+            LOGD("FakeDNS invalid label=%u pos=%u len=%u", label_len, (unsigned int) pos, (unsigned int) packet_len);
             return false;
         }
 
@@ -55,6 +57,7 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
         {
             if (out >= 253U)
             {
+                LOGD("FakeDNS domain too long out=%u", (unsigned int) out);
                 return false;
             }
             domain[out++] = '.';
@@ -62,6 +65,7 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
 
         if (out + label_len > 253U)
         {
+            LOGD("FakeDNS label exceeds domain out=%u label=%u", (unsigned int) out, label_len);
             return false;
         }
 
@@ -73,7 +77,10 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
              * a literal dot inside a label cannot become a label separator. */
             if (! ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' ||
                    ch == '_'))
+            {
+                LOGD("FakeDNS invalid character=%02x at %u", ch, (unsigned int) (pos + i));
                 return false;
+            }
             domain[out++] = asciiLower((char) ch);
         }
         pos += label_len;
@@ -81,6 +88,7 @@ static bool ptcDnsReadQuestionName(const uint8_t *packet, uint32_t packet_len, u
 
     if (out == 0 || out > UINT8_MAX)
     {
+        LOGD("FakeDNS empty domain out=%u", (unsigned int) out);
         return false;
     }
 

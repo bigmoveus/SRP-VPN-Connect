@@ -41,7 +41,6 @@ bool tcpoverudpclientLinestateInitialize(tcpoverudpclient_lstate_t *ls, line_t *
     k_handle->cwnd = (IUINT32) ts->kcp_initial_cwnd;
 
     k_handle->writelog = kcpPrintLog;
-    // k_handle->logmask = 0x0FFFFFFF; // Enable all logs
 
     k_handle->rx_minrto = (IINT32) ts->kcp_rx_minrto_ms;
 

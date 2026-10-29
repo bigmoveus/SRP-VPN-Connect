@@ -47,6 +47,18 @@ static bool ptcLoadSettings(ptc_tstate_t *ts, const cJSON *settings)
     }
 
     ts->max_pending_bytes = (uint32_t) max_pending_bytes;
+
+    int64_t max_total_pending_bytes = (int64_t) kPtcDefaultMaxTotalPendingBytes;
+    if (! ptcLoadOptionalInteger(settings,
+                                 "max-total-pending-bytes",
+                                 (int64_t) kPtcMinMaxTotalPendingBytes,
+                                 (int64_t) kPtcMaxMaxTotalPendingBytes,
+                                 &max_total_pending_bytes,
+                                 "PacketsToConnection->settings->max-total-pending-bytes"))
+    {
+        return false;
+    }
+    ts->max_total_pending_bytes = (uint32_t) max_total_pending_bytes;
     return ptcFakeDnsLoadSettings(ts, settings);
 }
 
@@ -82,8 +94,9 @@ tunnel_t *ptcTunnelCreate(node_t *node)
     t->onDestroy        = &ptcTunnelDestroy;
 
     *ts = (ptc_tstate_t) {
-        .max_pending_bytes   = kPtcDefaultMaxPendingBytes,
-        .max_pending_entries = kPtcMaxPendingEntries,
+        .max_pending_bytes       = kPtcDefaultMaxPendingBytes,
+        .max_total_pending_bytes = kPtcDefaultMaxTotalPendingBytes,
+        .max_pending_entries     = kPtcMaxPendingEntries,
         .udp_idle_timeout_ms = kPtcDefaultUdpIdleTimeoutMs,
     };
     if (settings != NULL && ! cJSON_IsObject(settings))

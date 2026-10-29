@@ -1,5 +1,5 @@
 <!--
-Documentation version: 153
+Documentation version: 154
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TcpUdpConnector.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TcpUdpConnector.mdx, and all files must keep the same documentation version.
 -->
 
@@ -115,6 +115,10 @@ The internal child connectors are the real socket adapters:
 
 `TcpUdpConnector` has only a small selected-child line state. It clears that state before forwarding downstream `Finish`
 or before forwarding upstream `Finish` into the selected child. It never calls `lineDestroy()`.
+
+If a line is rejected during protocol selection, or an upstream callback arrives after its selected-child state has been
+cleared, that callback is ignored instead of aborting the process. A discarded payload buffer is returned to the line's
+buffer pool. Valid callbacks continue to use the selected child described above.
 
 ## Notes And Caveats
 

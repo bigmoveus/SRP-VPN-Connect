@@ -88,6 +88,7 @@ typedef struct httpserver_lstate_s
     bool h2_request_rejected;
 
     bool fin_sent;
+    bool h2_end_stream_emitted;
     bool prev_finished;
     bool next_finished;
 

@@ -524,7 +524,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                             [NSString stringWithFormat:@"Advanced node setting %@ is unavailable or is not an object.", layer];
         }
     }
-    NSArray *connectionPacketKeys = @[@"mtu", @"udp-idle-timeout-ms", @"max-pending-bytes", @"fake-dns", @"mapdns", @"fake_dns"];
+    NSArray *connectionPacketKeys = @[@"mtu", @"udp-idle-timeout-ms", @"max-pending-bytes", @"max-total-pending-bytes",
+                                      @"fake-dns", @"mapdns", @"fake_dns"];
     NSArray *applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"domain-strategy"];
     if ([application isEqualToString:@"vmess"]) {
         applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"domain-strategy", @"security",
@@ -570,7 +571,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         !SRPWWBooleans(mux, [NSSet setWithArray:@[@"log-main-line-stats", @"keepalive"]]) ||
         !SRPWWBooleans(outerOptions, [NSSet setWithArray:@[@"x25519mlkem768", @"verbose"]])) return @"A boolean node setting has the wrong type.";
     NSArray *ranges = @[
-        @[packet, @"mtu", @68, @65535], @[packet, @"udp-idle-timeout-ms", @1, @4294967295LL], @[packet, @"max-pending-bytes", @1024, @67108864],
+        @[packet, @"mtu", @68, @65535], @[packet, @"udp-idle-timeout-ms", @1, @4294967295LL],
+        @[packet, @"max-pending-bytes", @1024, @67108864], @[packet, @"max-total-pending-bytes", @65536, @67108864],
         @[packet, @"interval-ms", @1, @4294967295LL], @[packet, @"tolerance-ms", @1, @4294967295LL],
         @[app, @"first-payload-timeout-ms", @0, @4294967295LL],
         @[app, @"max-header-bytes", @1024, @65536], @[app, @"header-timeout-ms", @1, @2147483647],
@@ -851,7 +853,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             required[@"fake-dns"] = @{@"enabled": @YES, @"address": @"198.18.0.2", @"port": @53, @"network": @"100.64.0.0",
                                       @"netmask": @"255.192.0.0", @"cache-size": @10000, @"ttl": @1};
         }
-        NSMutableDictionary *settings = [[self settings:@{@"mtu": @1420, @"max-pending-bytes": @1048576}
+        NSMutableDictionary *settings = [[self settings:@{@"mtu": @1420, @"max-pending-bytes": @65536,
+                                                           @"max-total-pending-bytes": @4194304}
                                               overrides:advanced[@"packet"] required:required] mutableCopy];
         if (required[@"fake-dns"] != nil) [settings removeObjectsForKeys:@[@"mapdns", @"fake_dns"]];
         NSString *first = direct ? @"connector" : raw ? afterInput : @"router";
@@ -983,7 +986,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         }
         if (kcp) {
             [nodes addObject:@{@"name": @"kcp", @"type": @"TcpOverUdpClient",
-                               @"settings": [self settings:@{@"kcp-recv-window": @512, @"kcp-send-buffer-limit": @512}
+                               @"settings": [self settings:@{@"kcp-send-window": @128, @"kcp-recv-window": @128,
+                                                             @"kcp-initial-cwnd": @16, @"kcp-send-buffer-limit": @512}
                                               overrides:advanced[@"kcp"]
                                               required:@{}], @"next": @"connector"}];
         }

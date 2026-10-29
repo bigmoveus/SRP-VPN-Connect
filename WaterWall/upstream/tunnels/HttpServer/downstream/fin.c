@@ -113,6 +113,12 @@ void httpserverTunnelDownStreamFinish(tunnel_t *t, line_t *l)
         }
     }
 
+    if (ls->runtime_proto == kHttpServerRuntimeHttp2 && ls->session != NULL && ! ls->h2_end_stream_emitted)
+    {
+        lineUnref(l);
+        return;
+    }
+
     // A final-byte send above can re-enter through an upstream Finish from prev (a middle
     // tunnel that keeps the line alive). In that case prev is already finished and must not
     // receive a reflected Finish; we still own the single state destruction here.

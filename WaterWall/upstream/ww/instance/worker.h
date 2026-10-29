@@ -67,7 +67,7 @@ typedef struct worker_s
     worker_message_queue_t *message_queue; // Worker-owned queued/timed messages.
     wthread_t               thread;        // Thread associated with the worker.
     // Lifetime lock for loop/message_queue and the worker phase protocol.
-    wmutex_t               control_mutex;
+    wtimed_mutex_t         control_mutex;
     wcond_mutex_t          control_condition_mutex;
     wcondvar_t             control_condition;
     atomic_int             lifecycle;           // worker_lifecycle_e

@@ -64,10 +64,10 @@ static atomic_bool                           g_worker_message_close_timer_instal
 size_t workerMessagesTestQueueCapacity(worker_t *worker)
 {
     assert(worker != NULL);
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     assert(worker->message_queue != NULL);
     const size_t capacity = (size_t) worker_msg_deque_t_capacity(&worker->message_queue->queued);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
     return capacity;
 }
 
@@ -289,18 +289,18 @@ static void workerMessageDrainQueue(worker_t *worker)
         queued_worker_msg_t batch[kWorkerMessageDrainBatchSize];
         size_t              batch_count = 0;
 
-        mutexLock(&worker->control_mutex);
+        timedmutexLock(&worker->control_mutex);
         worker_message_queue_t *queue = worker->message_queue;
         wloop_t                *loop  = worker->loop;
         if (UNLIKELY(queue == NULL || loop == NULL))
         {
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
         if (UNLIKELY(! wloopNormalDispatchAllowed(loop)))
         {
             queue->wakeup_pending = false;
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
 
@@ -311,12 +311,12 @@ static void workerMessageDrainQueue(worker_t *worker)
         if (batch_count == 0)
         {
             queue->wakeup_pending = false;
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
         /* Keep wakeup_pending set while this local snapshot executes. A
          * producer therefore cannot create a second concurrent drain root. */
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
 
         size_t i = 0;
         for (; i < batch_count; ++i)
@@ -333,22 +333,22 @@ static void workerMessageDrainQueue(worker_t *worker)
             batch[i].cleanup = NULL;
         }
 
-        mutexLock(&worker->control_mutex);
+        timedmutexLock(&worker->control_mutex);
         if (UNLIKELY(worker->message_queue != queue || worker->loop != loop))
         {
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
         if (worker_msg_deque_t_is_empty(&queue->queued))
         {
             queue->wakeup_pending = false;
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
         if (UNLIKELY(! wloopNormalDispatchAllowed(loop)))
         {
             queue->wakeup_pending = false;
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
 
@@ -357,21 +357,21 @@ static void workerMessageDrainQueue(worker_t *worker)
          * between bounded worker-message snapshots. */
         if (LIKELY(workerMessagePostWakeup(worker, loop)))
         {
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
 
         if (UNLIKELY(! wloopNormalDispatchAllowed(loop)))
         {
             queue->wakeup_pending = false;
-            mutexUnlock(&worker->control_mutex);
+            timedmutexUnlock(&worker->control_mutex);
             return;
         }
 
         /* A hard wake failure cannot revoke already accepted work. Preserve
          * ownership and make progress from the admitted current callback; this
          * rare fallback intentionally trades fairness for settlement. */
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
     }
 }
 
@@ -388,9 +388,9 @@ void workerMessagesCloseAdmission(worker_t *worker)
         return;
     }
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     workerMessagesCloseAdmissionLocked(worker);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 }
 
 static void workerMessageReceived(wevent_t *ev)
@@ -465,7 +465,7 @@ bool workerMessagesOpenAdmission(worker_t *worker)
         return false;
     }
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     const bool ready = worker->loop != NULL && worker->message_queue != NULL &&
                        ! atomicLoadExplicit(&worker->resources_destroyed, memory_order_relaxed) &&
                        atomicLoadExplicit(&worker->lifecycle, memory_order_relaxed) ==
@@ -473,11 +473,11 @@ bool workerMessagesOpenAdmission(worker_t *worker)
                        ! atomicLoadExplicit(&worker->message_admission_open, memory_order_relaxed);
     if (! ready)
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         return false;
     }
     atomicStoreExplicit(&worker->message_admission_open, true, memory_order_relaxed);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
     return true;
 }
 
@@ -487,13 +487,13 @@ void workerMessagesCloseAdmissionAndDetach(worker_t *worker, wloop_t **loop, wor
     assert(loop != NULL);
     assert(queue != NULL);
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     workerMessagesCloseAdmissionLocked(worker);
     *loop                 = worker->loop;
     *queue                = worker->message_queue;
     worker->loop          = NULL;
     worker->message_queue = NULL;
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 }
 
 static void workerMessagesTakePending(worker_message_queue_t *queue, worker_msg_deque_t *queued,
@@ -566,13 +566,13 @@ void workerMessagesCleanupPending(worker_t *worker)
     struct list_head   timed;
     list_init(&timed);
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     worker_message_queue_t *queue = worker->message_queue;
     if (queue != NULL)
     {
         workerMessagesTakePending(queue, &queued, &timed);
     }
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 
     workerMessagesCleanupCollections(&queued, &timed, kWorkerMessageCancelQuiesced);
 }
@@ -679,13 +679,13 @@ static worker_message_submit_result_e sendWorkerMessageForceQueueTransactional(w
      * wake publication as one transaction. It is intentionally retained over
      * wloopPostEvent(), whose lock order continues normal-admission then
      * custom-events. */
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     worker_message_queue_t *queue = worker->message_queue;
     wloop_t                *loop  = worker->loop;
     if (UNLIKELY(! atomicLoadExplicit(&worker->message_admission_open, memory_order_relaxed) || loop == NULL ||
                  queue == NULL))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         if (! retain_on_refusal)
         {
             runQueuedWorkerMessageCleanup(&msg, kWorkerMessageCancelAdmissionClosed);
@@ -702,7 +702,7 @@ static worker_message_submit_result_e sendWorkerMessageForceQueueTransactional(w
     const size_t maximum_entries = (size_t) PTRDIFF_MAX / (2U * sizeof(queued_worker_msg_t));
     if (UNLIKELY((size_t) worker_msg_deque_t_size(&queue->queued) >= maximum_entries))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         if (! retain_on_refusal)
         {
             runQueuedWorkerMessageCleanup(&msg, kWorkerMessageCancelEnqueueFailure);
@@ -715,7 +715,7 @@ static worker_message_submit_result_e sendWorkerMessageForceQueueTransactional(w
 
     if (queue->wakeup_pending)
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         return kWorkerMessageSubmitAccepted;
     }
 
@@ -723,7 +723,7 @@ static worker_message_submit_result_e sendWorkerMessageForceQueueTransactional(w
     if (LIKELY(! workerMessagesEnqueueTestRefuse(kWorkerMessageEnqueueFailWakeupPost) &&
                workerMessagePostWakeup(worker, loop)))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         return kWorkerMessageSubmitAccepted;
     }
 
@@ -734,7 +734,7 @@ static worker_message_submit_result_e sendWorkerMessageForceQueueTransactional(w
         LOGF("sendWorkerMessageForceQueueTransactional: queued message mismatch during refusal rollback");
         abortProgramNow(1);
     }
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 
     if (! retain_on_refusal)
     {
@@ -760,16 +760,16 @@ worker_message_submit_result_e sendWorkerMessageForceQueueRetainOnRefusal(wid_t 
 static void workerTimedMessageDetachFromOwner(worker_t *worker, wloop_t *loop, timed_worker_msg_t *timed_msg,
                                               const char *context)
 {
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     worker_message_queue_t *queue = worker->message_queue;
     if (UNLIKELY(queue == NULL || worker->loop != loop))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         LOGF("runTimedTask: worker message queue detached during %s", context);
         abortProgramNow(1);
     }
     workerTimedMessageUnlinkLocked(queue, timed_msg);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
 }
 
 static void runTimedTask(wtimer_t *timer)
@@ -843,13 +843,13 @@ static bool setupTimedTaskChecked(worker_t *worker, void *arg1, void *arg2, void
      * it; both mean the timer is armed on its own loop's thread. */
     assert(currentThreadOwnsWorker(worker->wid));
 
-    mutexLock(&worker->control_mutex);
+    timedmutexLock(&worker->control_mutex);
     worker_message_queue_t *queue = worker->message_queue;
     wloop_t                *loop  = worker->loop;
     if (UNLIKELY(! atomicLoadExplicit(&worker->message_admission_open, memory_order_relaxed) || loop == NULL ||
                  queue == NULL || ! wloopNormalDispatchAllowed(loop)))
     {
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         if (retain_on_refusal)
         {
             reuseTimedWorkerMessage(timed_msg);
@@ -873,7 +873,7 @@ static bool setupTimedTaskChecked(worker_t *worker, void *arg1, void *arg2, void
     {
         /* Timer allocation is fail-fast; only admission closure can refuse
          * this owner-worker call with an already validated positive delay. */
-        mutexUnlock(&worker->control_mutex);
+        timedmutexUnlock(&worker->control_mutex);
         if (retain_on_refusal)
         {
             reuseTimedWorkerMessage(timed_msg);
@@ -891,7 +891,7 @@ static bool setupTimedTaskChecked(worker_t *worker, void *arg1, void *arg2, void
     assert(timed_msg->detached_timer == NULL);
     assert(list_empty(&timed_msg->timed_node));
     list_add_tail(&timed_msg->timed_node, &queue->timed);
-    mutexUnlock(&worker->control_mutex);
+    timedmutexUnlock(&worker->control_mutex);
     return true;
 }
 

@@ -187,11 +187,31 @@ typedef void(^YDFetchCompletion)(NETunnelProviderManager *manager);
     [self setupVPNManager:^(NETunnelProviderManager *manager) { [self setupConnection:manager]; }];
 }
 
+-(void)updateStatusForConnection:(NEVPNConnection *)connection {
+    switch (connection.status) {
+        case NEVPNStatusInvalid:
+        case NEVPNStatusDisconnected:
+        case NEVPNStatusReasserting:
+            _status = YDVPNStatusDisconnected;
+            break;
+        case NEVPNStatusConnected:
+            _status = YDVPNStatusConnected;
+            break;
+        case NEVPNStatusConnecting:
+            _status = YDVPNStatusConnecting;
+            break;
+        case NEVPNStatusDisconnecting:
+            _status = YDVPNStatusDisconnecting;
+            break;
+    }
+}
+
 -(void)setupConnection:(NETunnelProviderManager *)manager {
+    if (manager == nil) return;
     _providerManager = manager;
     NEVPNConnection *connection = manager.connection;
+    [self updateStatusForConnection:connection];
     if (connection.status == NEVPNStatusConnected) {
-        _status = YDVPNStatusConnected;
         NETunnelProviderProtocol *protocolConfiguration = (NETunnelProviderProtocol *)_providerManager.protocolConfiguration;
         NSDictionary *copy = protocolConfiguration.providerConfiguration;
         NSDictionary *configuration = copy[@"configuration"];
@@ -199,8 +219,8 @@ typedef void(^YDFetchCompletion)(NETunnelProviderManager *manager);
         _connectedNodeID = configuration[@"node_id"];
         _requestedNodeID = _connectedNodeID;
         _connectedDate = [_userDefaults objectForKey:@"connectedDate"];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
     }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
 }
 
 -(void)setupExtenstionApplication {
@@ -317,7 +337,6 @@ static NSString *SRPMaskedURI(NSString *uri) {
         if (!manager){
             return;
         }
-        NETunnelProviderSession *session = (NETunnelProviderSession *)_providerManager.connection;
         NSString *uri = url;
         NSDictionary *providerConfiguration = @{@"type":@(0), @"uri":uri, @"global":@(self.isGlobalMode), @"udp_socks":@(self.udpSocks),
                                                 @"node_id":_requestedNodeID ?: @""};
@@ -330,19 +349,25 @@ static NSString *SRPMaskedURI(NSString *uri) {
         NSLog(@"connect using: %@", safeConfig);
         protocolConfiguration.providerConfiguration = copy;
         [_providerManager saveToPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
+            NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
             if (error) {
                 NSLog(@"saveToPreferencesWithCompletionHandler:%@", error);
-                NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
                 [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
                 return;
             }
-            NSError *startError = nil;
-            [session startVPNTunnelWithOptions:providerConfiguration andReturnError:&startError];
-            if (startError) {
-                NSLog(@"startVPNTunnelWithOptions:%@", startError);
-                NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
-                [shared setObject:@{@"message": startError.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
-            }
+            [self setupVPNManager:^(NETunnelProviderManager *freshManager) {
+                if (!freshManager) {
+                    [shared setObject:@{@"message": @"The VPN configuration could not be loaded.", @"date": NSDate.date} forKey:@"SRPLastError"];
+                    return;
+                }
+                [self setupConnection:freshManager];
+                NSError *startError = nil;
+                [(NETunnelProviderSession *)freshManager.connection startVPNTunnelWithOptions:providerConfiguration andReturnError:&startError];
+                if (startError) {
+                    NSLog(@"startVPNTunnelWithOptions:%@", startError);
+                    [shared setObject:@{@"message": startError.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+                }
+            }];
         }];
     }];
 
@@ -441,7 +466,8 @@ static NSString *SRPMaskedURI(NSString *uri) {
                       @"allowInsecure", @"ww_secret_ref", @"ww_outer_secret_ref", @"wg_conf",
                       @"wg_private_key", @"wg_peer_public_key", @"wg_address",
                       @"wg_keepalive", @"log_level", @"tls_frag", @"tls_frag_first",
-                      @"tls_frag_following", @"ww_fake_dns", @"ww_smart_routing", @"ww_geoip_db_path", @"ww_test_id"];
+                      @"tls_frag_following", @"ww_fake_dns", @"ww_smart_routing", @"ww_geoip_db_path", @"ww_test_id",
+                      @"ww_outer_secret", @"auto_reconnect", @"retry_times", @"switch_to_wifi", @"on_sleep"];
     NSMutableDictionary *configuration = [NSMutableDictionary new];
     for (NSString *key in keys) {
         if (server[key] != nil) configuration[key] = server[key];
@@ -458,13 +484,25 @@ static NSString *SRPMaskedURI(NSString *uri) {
         copy[@"configuration"] = providerConfiguration;
         protocolConfiguration.providerConfiguration = copy;
         [manager saveToPreferencesWithCompletionHandler:^(NSError *error) {
+            NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:__groundID__];
             if (error) {
                 NSLog(@"saveToPreferencesWithCompletionHandler:%@", error);
+                [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
                 return;
             }
-            NSError *startError;
-            [(NETunnelProviderSession *)manager.connection startVPNTunnelWithOptions:providerConfiguration andReturnError:&startError];
-            if (startError) NSLog(@"startVPNTunnelWithOptions:%@", startError);
+            [self setupVPNManager:^(NETunnelProviderManager *freshManager) {
+                if (!freshManager) {
+                    [shared setObject:@{@"message": @"The VPN configuration could not be loaded.", @"date": NSDate.date} forKey:@"SRPLastError"];
+                    return;
+                }
+                [self setupConnection:freshManager];
+                NSError *startError = nil;
+                [(NETunnelProviderSession *)freshManager.connection startVPNTunnelWithOptions:providerConfiguration andReturnError:&startError];
+                if (startError) {
+                    NSLog(@"startVPNTunnelWithOptions:%@", startError);
+                    [shared setObject:@{@"message": startError.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+                }
+            }];
         }];
     }];
 }
@@ -809,42 +847,14 @@ static NSString *SRPMaskedURI(NSString *uri) {
 }
 
 -(void)connectionStatusDidChangeNotification:(NSNotification *)notification {
-    NEVPNConnection *connection = _providerManager.connection;
-    switch (connection.status) {
-        case NEVPNStatusInvalid:
-            _status = YDVPNStatusDisconnected;
-            break;
-            
-        case NEVPNStatusConnected:{
-            NSDictionary *configuration = ((NETunnelProviderProtocol *)_providerManager.protocolConfiguration).providerConfiguration[@"configuration"];
-            NSString *nodeID = configuration[@"node_id"];
-            _connectedNodeID = nodeID.length > 0 ? nodeID : _requestedNodeID;
-            _status = YDVPNStatusConnected;
-            _connectedDate = NSDate.date;
-        }
-            break;
-            
-        case NEVPNStatusConnecting: {
-            _status = YDVPNStatusConnecting;
-        }
-            break;
-            
-        case NEVPNStatusDisconnected:{
-            _status = YDVPNStatusDisconnected;
-        }
-            break;
-            
-        case NEVPNStatusReasserting:{
-            _status = YDVPNStatusDisconnected;
-        }
-            break;
-        case NEVPNStatusDisconnecting: {
-            _status = YDVPNStatusDisconnecting;
-        }
-            break;
-            
-        default:
-            break;
+    NEVPNConnection *connection = [notification.object isKindOfClass:NEVPNConnection.class] ? notification.object : _providerManager.connection;
+    if (connection == nil) return;
+    [self updateStatusForConnection:connection];
+    if (connection.status == NEVPNStatusConnected) {
+        NSDictionary *configuration = ((NETunnelProviderProtocol *)_providerManager.protocolConfiguration).providerConfiguration[@"configuration"];
+        NSString *nodeID = configuration[@"node_id"];
+        _connectedNodeID = nodeID.length > 0 ? nodeID : _requestedNodeID;
+        _connectedDate = NSDate.date;
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"kApplicationVPNStatusDidChangeNotification" object:nil];
 }

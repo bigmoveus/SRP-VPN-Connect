@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
@@ -31,7 +32,13 @@ typedef struct test_state_s {
   uint16_t port;
   pthread_t server_thread;
   uint16_t dns_id;
+  uint16_t expected_response_id;
   uint16_t dns_port;
+  atomic_uint_fast64_t query_started_at;
+  atomic_uint_fast64_t total_rtt_ms;
+  atomic_uint_fast64_t max_rtt_ms;
+  atomic_uint_fast64_t previous_rtt_ms;
+  atomic_uint_fast64_t total_jitter_ms;
 } test_state_t;
 
 static uint64_t nowMilliseconds(void) {
@@ -80,8 +87,39 @@ static void packetCallback(void *context, const uint8_t *packet,
   }
   const uint8_t *dns = packet + ihl + 8;
   if (ntohs(*(const uint16_t *)(packet + ihl)) == state->dns_port &&
-      ntohs(*(const uint16_t *)dns) == state->dns_id && (dns[2] & 0x80U) != 0) {
-    atomic_fetch_add(&state->response, 1);
+      ntohs(*(const uint16_t *)dns) == state->expected_response_id &&
+      (dns[2] & 0x80U) != 0 && (dns[3] & 0x0fU) == 0) {
+    const uint64_t rtt = nowMilliseconds() - atomic_load(&state->query_started_at);
+    const unsigned previous_response = (unsigned)atomic_fetch_add(&state->response, 1);
+    atomic_fetch_add(&state->total_rtt_ms, rtt);
+    uint64_t maximum = atomic_load(&state->max_rtt_ms);
+    while (maximum < rtt && !atomic_compare_exchange_weak(&state->max_rtt_ms, &maximum, rtt)) {
+    }
+    const uint64_t previous_rtt = atomic_exchange(&state->previous_rtt_ms, rtt);
+    if (previous_response > 0) {
+      atomic_fetch_add(&state->total_jitter_ms, rtt > previous_rtt ? rtt - previous_rtt : previous_rtt - rtt);
+    }
+  }
+}
+
+static void reportResults(test_state_t *state, unsigned expected, uint64_t started) {
+  const unsigned responses = (unsigned)atomic_load(&state->response);
+  fprintf(stderr, "UDP responses: %u of %u in %llu ms\n", responses, expected,
+          (unsigned long long)(nowMilliseconds() - started));
+  fprintf(stderr, "UDP timing: average_rtt_ms=%.3f max_rtt_ms=%llu average_jitter_ms=%.3f\n",
+          responses > 0 ? (double)atomic_load(&state->total_rtt_ms) / responses : 0.0,
+          (unsigned long long)atomic_load(&state->max_rtt_ms),
+          responses > 1 ? (double)atomic_load(&state->total_jitter_ms) / (responses - 1) : 0.0);
+  struct rusage usage = {0};
+  if (getrusage(RUSAGE_SELF, &usage) == 0) {
+#ifdef __APPLE__
+    const unsigned long long max_rss_kib = (unsigned long long)usage.ru_maxrss / 1024U;
+#else
+    const unsigned long long max_rss_kib = (unsigned long long)usage.ru_maxrss;
+#endif
+    fprintf(stderr, "Resources: max_rss_kib=%llu user_cpu_ms=%llu system_cpu_ms=%llu\n", max_rss_kib,
+            (unsigned long long)usage.ru_utime.tv_sec * 1000U + (unsigned long long)usage.ru_utime.tv_usec / 1000U,
+            (unsigned long long)usage.ru_stime.tv_sec * 1000U + (unsigned long long)usage.ru_stime.tv_usec / 1000U);
   }
 }
 
@@ -199,7 +237,7 @@ static uint16_t checksum(const uint8_t *bytes, size_t length) {
 }
 
 static size_t makeDnsQuery(test_state_t *state, uint8_t *packet) {
-  state->dns_id = 0x4242;
+  state->dns_id = htons(state->expected_response_id);
   uint8_t dns[12 + 13 + 4] = {0};
   memcpy(dns, &state->dns_id, 2);
   dns[2] = 1;
@@ -214,6 +252,9 @@ static size_t makeDnsQuery(test_state_t *state, uint8_t *packet) {
   packet[9] = 17;
   packet[12] = 10;
   packet[15] = 2;
+  if (getenv("POC_SOURCE_IP") != NULL) {
+    CHECK(inet_pton(AF_INET, getenv("POC_SOURCE_IP"), packet + 12) == 1);
+  }
   if (getenv("POC_DNS_IP") != NULL) {
     CHECK(inet_pton(AF_INET,
                     getenv("POC_DNS_IP") != NULL ? getenv("POC_DNS_IP")
@@ -364,25 +405,50 @@ int main(void) {
   CHECK(bridge != NULL);
   waitFor(&state.ready);
   CHECK(atomic_load(&state.failure) == 0);
-  unsigned expected_responses = 1;
-  if (remote && getenv("POC_UDP_REPEAT") != NULL) {
+  const uint64_t duration =
+      getenv("POC_UDP_DURATION") != NULL
+          ? strtoull(getenv("POC_UDP_DURATION"), NULL, 10)
+          : 0;
+  CHECK(duration <= 3600);
+  unsigned expected_responses = duration > 0 ? (unsigned)duration * 10U : 1;
+  if (remote && getenv("POC_UDP_REPEAT") != NULL && duration == 0) {
     const long repeat = strtol(getenv("POC_UDP_REPEAT"), NULL, 10);
     CHECK(repeat >= 1 && repeat <= 64);
     expected_responses = (unsigned)repeat;
   }
+  const uint64_t started = nowMilliseconds();
   uint8_t packet[128];
   for (unsigned i = 0; i < expected_responses; ++i) {
+    atomic_store(&state.query_started_at, nowMilliseconds());
+    state.expected_response_id = (uint16_t)(i + 1);
     const size_t packet_length = makeDnsQuery(&state, packet);
-    CHECK(SRPWaterWallBridgeSubmitPacket(bridge, packet, packet_length) == 0);
     const uint64_t deadline = nowMilliseconds() + 10000U;
+    uint64_t next_send = nowMilliseconds();
     while (atomic_load(&state.response) < (int)(i + 1) &&
            atomic_load(&state.server_failure) == 0 &&
            nowMilliseconds() < deadline) {
+      if (nowMilliseconds() >= next_send) {
+        const int result = SRPWaterWallBridgeSubmitPacket(bridge, packet, packet_length);
+        CHECK(result == 0 || result == -EAGAIN || result == -ENOTCONN);
+        next_send = nowMilliseconds() + 200U;
+      }
       usleep(10000);
     }
-    CHECK(atomic_load(&state.response) >= (int)(i + 1) ||
-          atomic_load(&state.server_failure) != 0);
+    if (atomic_load(&state.response) < (int)(i + 1) && atomic_load(&state.server_failure) == 0) {
+      reportResults(&state, expected_responses, started);
+      CHECK(SRPWaterWallBridgeStop(bridge) == 0);
+      return 1;
+    }
+    if (duration > 0) {
+      const uint64_t target = started + (uint64_t)(i + 1) * 100U;
+      const uint64_t remaining = target > nowMilliseconds() ? target - nowMilliseconds() : 0;
+      if (remaining > 0) {
+        usleep((useconds_t)remaining * 1000U);
+      }
+    }
   }
+  CHECK(nowMilliseconds() - started >= duration * 1000U);
+  reportResults(&state, expected_responses, started);
   if (!remote && !bgp4) {
     CHECK(pthread_join(state.server_thread, NULL) == 0);
   }
