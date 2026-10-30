@@ -26,6 +26,7 @@ typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
 @property (nonatomic, copy, nullable) NSString *allowedIPs;
 @property (nonatomic) NSUInteger mtu;
 @property (nonatomic) NSInteger logLevel;
+@property (nonatomic) BOOL liveDiagnostics;
 @property (nonatomic) BOOL autoReconnect;
 @property (nonatomic) NSInteger retryTimes;
 @property (nonatomic) BOOL switchToWifi;

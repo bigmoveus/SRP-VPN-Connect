@@ -164,23 +164,30 @@ static NSString *SRPWWNativeLogPath(void) {
 }
 
 static void SRPWWLog(void *context, int level, const char *message, size_t length) {
-#if DEBUG
-    (void)context;
-    (void)level;
+    SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
+    if (!client.liveDiagnostics) return;
     @autoreleasepool {
         if (message == NULL) return;
+        if (level < 4) {
+            static const char *const prefixes[] = {
+                "VmessClient:", "TcpConnector: received close", "PacketsToConnection: closing flow",
+                "PacketsToConnection: closing TCP flow",
+            };
+            BOOL keep = NO;
+            for (NSUInteger index = 0; index < sizeof(prefixes) / sizeof(prefixes[0]); index++) {
+                if (strstr(message, prefixes[index]) != NULL) {
+                    keep = YES;
+                    break;
+                }
+            }
+            if (!keep) return;
+        }
         FILE *file = fopen(SRPWWNativeLogPath().fileSystemRepresentation, "a");
         if (file != NULL) {
             fprintf(file, "%.*s\n", (int)length, message);
             fclose(file);
         }
     }
-#else
-    (void)context;
-    (void)level;
-    (void)message;
-    (void)length;
-#endif
 }
 
 static void SRPWWReady(void *context) {
@@ -300,7 +307,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 - (void)healthProbeFailed:(NSString *)reason {
     if (_closed || _sleepPaused || _probeStage < 4) return;
     NSTimeInterval age = NSProcessInfo.processInfo.systemUptime -
-        atomic_load_explicit(&_lastOutputAt, memory_order_relaxed);
+        atomic_load_explicit(&self->_lastOutputAt, memory_order_relaxed);
     if (age >= 0 && age < 15) {
         [self finishHealthCheck];
         return;

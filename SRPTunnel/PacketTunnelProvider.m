@@ -847,7 +847,6 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         options[@"ww_geoip_db_path"] = databaseURL.path;
         v = options;
     }
-#if DEBUG
     if ([v[@"ww_test_id"] length] > 0) {
         NSURL *container = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
         NSString *base = container ? container.path : NSHomeDirectory();
@@ -863,9 +862,9 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         [handle writeData:[message dataUsingEncoding:NSUTF8StringEncoding]];
         [handle closeFile];
     }
-#endif
     NSString *secret = [v[@"ww_secret_ref"] length] > 0 ? [SRPKeychain passwordForKey:v[@"ww_secret_ref"]] : v[@"password"];
     SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.liveDiagnostics = [v[@"ww_test_id"] length] > 0;
     if ([configuration[@"mode"] isEqualToString:@"chain"]) {
         NSDictionary *application = configuration[@"node-options"][@"application"];
         NSString *protocol = application[@"protocol"] ?: application[@"proto"];

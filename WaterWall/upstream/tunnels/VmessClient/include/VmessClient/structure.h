@@ -29,11 +29,15 @@ typedef enum vmessclient_close_origin_e
 } vmessclient_close_origin_t;
 enum
 {
-    kVmessClientMaxOrderBytes   = 4 * 1024 * 1024,
-    kVmessClientMaxOrderEntries = 1024,
-    kVmessClientMaxOrderCharge  = 8 * 1024 * 1024,
-    kVmessClientUuidLen         = 16,
-    kVmessClientTcpRecordSize   = 16384
+    kVmessClientMaxOrderBytes     = 4 * 1024 * 1024,
+    kVmessClientMaxOrderEntries   = 1024,
+    kVmessClientMaxOrderCharge    = 8 * 1024 * 1024,
+    kVmessClientUuidLen           = 16,
+    kVmessClientTcpRecordSize     = 16384,
+    kVmessClientInputPauseBytes   = 512 * 1024,
+    kVmessClientInputPauseCharge  = 1 * 1024 * 1024,
+    kVmessClientInputResumeBytes  = 256 * 1024,
+    kVmessClientInputResumeCharge = 512 * 1024
 };
 typedef enum vmessclient_reason_e
 {
@@ -87,7 +91,7 @@ typedef struct vmessclient_lstate_s
     wtimer_t               *first_payload_timer;
     uint64_t                first_payload_deadline_us;
     bool                    request_sent, est_notifying, carrier_paused, next_paused, first_payload_due;
-    bool                    response_complete, transmitting, receiving, closing;
+    bool response_complete, transmitting, receiving, closing, upstream_pause_sent, downstream_pause_sent;
     /* Storage belongs to the outer synchronous close frame. */
     struct vmessclient_close_context_s *close_context;
     bool                                prev_finished, next_finished, stats_counted, reason_recorded;

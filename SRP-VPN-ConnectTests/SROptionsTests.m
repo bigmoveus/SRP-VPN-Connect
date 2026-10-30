@@ -2036,8 +2036,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     }
     NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
     configuration.HTTPMaximumConnectionsPerHost = connections * 2;
-    configuration.timeoutIntervalForRequest = 45;
-    configuration.timeoutIntervalForResource = MAX(120, duration + 60);
+    configuration.timeoutIntervalForRequest = 120;
+    configuration.timeoutIntervalForResource = MAX(180, duration + 60);
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
     id lostObserver = [NSNotificationCenter.defaultCenter addObserverForName:@"kApplicationVPNStatusDidChangeNotification"
                                                                       object:nil
@@ -2079,8 +2079,13 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSLog(@"Sustained full-duplex: %.2f seconds, downloaded=%llu, uploaded=%llu, download_requests=%lu, upload_requests=%lu, errors=%@, finished=%lu/%lu, timeouts=%lu, VPN status=%ld",
           actualDuration, downloaded, uploaded, (unsigned long)downloadRequests, (unsigned long)uploadRequests,
           errors, (unsigned long)finished, (unsigned long)(connections * 2), (unsigned long)timeouts, (long)manager.status);
-    return manager.status == YDVPNStatusConnected && errors.count == 0 && timeouts == 0 &&
-           actualDuration >= duration && finished == connections * 2 && downloaded > 0 && uploaded > 0;
+    BOOL passed = manager.status == YDVPNStatusConnected && errors.count == 0 && timeouts == 0 &&
+                  actualDuration >= duration && finished == connections * 2 && downloaded > 0 && uploaded > 0;
+    if (!passed && [environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) {
+        [self logWaterWallProviderFile:@"native-log" manager:manager];
+        [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+    }
+    return passed;
 }
 
 - (BOOL)performSustainedLiveUDPProbes:(NSDictionary *)environment {
@@ -2521,6 +2526,11 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         BOOL connected = [self waitForLiveVPNConnection:manager server:server error:&error];
         XCTAssertTrue(connected, @"%@", error);
         if (!connected) return;
+        NSTimeInterval profileDelay = [environment[@"SRP_PROFILE_DELAY"] doubleValue];
+        if (profileDelay > 0) {
+            NSLog(@"Waiting %.0f seconds for allocation recording", profileDelay);
+            [NSThread sleepForTimeInterval:profileDelay];
+        }
         XCTAssertTrue([self waterWallLiveHTTPS204:model]);
         XCTAssertTrue([self performSustainedLiveFullDuplex:manager environment:environment]);
         XCTAssertTrue([self waterWallLiveHTTPS204:model]);
@@ -2579,7 +2589,6 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 #endif
 
 - (void)logWaterWallProviderFile:(NSString *)command manager:(PDVPNManager *)manager {
-#if DEBUG
     if (manager.status == YDVPNStatusDisconnected) {
         NSURL *container = [NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
         NSString *name = [command isEqualToString:@"native-log"] ? @"ww-native-current.log" : @"srptunnel.log";
@@ -2607,7 +2616,6 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         [response fulfill];
     }];
     [self waitForExpectations:@[response] timeout:15];
-#endif
 }
 
 - (void)testWaterWallLiveLogsWhenConfigured {

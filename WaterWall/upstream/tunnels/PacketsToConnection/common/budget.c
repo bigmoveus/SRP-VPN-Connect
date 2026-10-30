@@ -12,9 +12,11 @@ bool ptcTcpBudgetReserve(ptc_tstate_t *ts)
         {
             return false;
         }
-        if (atomic_compare_exchange_weak_explicit(&ts->tcp_reserved_bytes, &current,
+        if (atomic_compare_exchange_weak_explicit(&ts->tcp_reserved_bytes,
+                                                  &current,
                                                   current + ts->max_pending_bytes,
-                                                  memory_order_acq_rel, memory_order_relaxed))
+                                                  memory_order_acq_rel,
+                                                  memory_order_relaxed))
         {
             return true;
         }
@@ -28,9 +30,8 @@ void ptcTcpBudgetRelease(ptc_tstate_t *ts, bool *reserved)
         return;
     }
     *reserved = false;
-    const uint32_t previous = atomic_fetch_sub_explicit(&ts->tcp_reserved_bytes,
-                                                        ts->max_pending_bytes,
-                                                        memory_order_acq_rel);
+    const uint32_t previous =
+        atomic_fetch_sub_explicit(&ts->tcp_reserved_bytes, ts->max_pending_bytes, memory_order_acq_rel);
     if (UNLIKELY(previous < ts->max_pending_bytes))
     {
         LOGF("PacketsToConnection: TCP aggregate budget reservation underflow");

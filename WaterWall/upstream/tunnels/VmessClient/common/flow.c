@@ -1,5 +1,7 @@
 #include "internal.h"
 
+#include "loggers/network_logger.h"
+
 bool vmessclientAssociationAlive(tunnel_t *t, line_t *next_line, line_t *prev_line)
 {
     /* A nested TCP exchange can retire our state while the line stays alive. */
@@ -103,6 +105,77 @@ void vmessclientOnNextEstablished(tunnel_t *t, line_t *l, vmessclient_lstate_t *
     lineUnref(l);
 }
 
+void vmessclientRefreshUpstreamPause(tunnel_t *t, line_t *l)
+{
+    vmessclient_lstate_t *ls = lineGetState(l, t);
+    if (ls->phase == kVmessClientPhaseClosed || ls->closing || ls->kind == kVmessClientLineKindUdpApplication)
+        return;
+
+    const buffer_budget_cost_t usage = bufferbudgetGetUsage(&ls->upstream_budget);
+    if (usage.bytes >= 2 * kVmessClientInputPauseBytes || usage.charge >= 4 * kVmessClientInputPauseCharge ||
+        usage.entries >= 768)
+    {
+        LOGE("VmessClient: upstream pressure: bytes=%zu charge=%zu entries=%zu transport_paused=%u pause_sent=%u",
+             usage.bytes,
+             usage.charge,
+             usage.entries,
+             ls->next_paused ? 1U : 0U,
+             ls->upstream_pause_sent ? 1U : 0U);
+    }
+    const bool full    = usage.bytes >= kVmessClientInputPauseBytes || usage.charge >= kVmessClientInputPauseCharge;
+    const bool drained = usage.bytes <= kVmessClientInputResumeBytes && usage.charge <= kVmessClientInputResumeCharge;
+    const bool transport_paused = ls->kind == kVmessClientLineKindDirect ? ls->next_paused : ls->carrier_paused;
+    const bool paused           = transport_paused || (ls->upstream_pause_sent ? ! drained : full);
+    if (paused == ls->upstream_pause_sent)
+        return;
+
+    line_t *application = ls->kind == kVmessClientLineKindUdpCarrier ? ls->application_line : l;
+    lineRef(l);
+    if (application != l)
+        lineRef(application);
+    ls->upstream_pause_sent = paused;
+    if (paused)
+        tunnelPrevDownStreamPause(t, application);
+    else
+        tunnelPrevDownStreamResume(t, application);
+    if (application != l)
+        lineUnref(application);
+    lineUnref(l);
+}
+
+void vmessclientRefreshDownstreamPause(tunnel_t *t, line_t *l)
+{
+    vmessclient_lstate_t *ls = lineGetState(l, t);
+    if (ls->phase == kVmessClientPhaseClosed || ls->closing || ls->kind == kVmessClientLineKindUdpApplication)
+        return;
+
+    const buffer_budget_cost_t usage = bufferbudgetGetUsage(&ls->downstream_budget);
+    if (usage.bytes >= 2 * kVmessClientInputPauseBytes || usage.charge >= 4 * kVmessClientInputPauseCharge ||
+        usage.entries >= 768)
+    {
+        LOGE("VmessClient: downstream pressure: bytes=%zu charge=%zu entries=%zu transport_paused=%u pause_sent=%u",
+             usage.bytes,
+             usage.charge,
+             usage.entries,
+             ls->next_paused ? 1U : 0U,
+             ls->downstream_pause_sent ? 1U : 0U);
+    }
+    const bool full    = usage.bytes >= kVmessClientInputPauseBytes || usage.charge >= kVmessClientInputPauseCharge;
+    const bool drained = usage.bytes <= kVmessClientInputResumeBytes && usage.charge <= kVmessClientInputResumeCharge;
+    const bool transport_paused = ls->kind == kVmessClientLineKindDirect ? ls->next_paused : ls->carrier_paused;
+    const bool paused           = transport_paused || (ls->downstream_pause_sent ? ! drained : full);
+    if (paused == ls->downstream_pause_sent)
+        return;
+
+    lineRef(l);
+    ls->downstream_pause_sent = paused;
+    if (paused)
+        tunnelNextUpStreamPause(t, l);
+    else
+        tunnelNextUpStreamResume(t, l);
+    lineUnref(l);
+}
+
 void vmessclientSetNextPaused(tunnel_t *t, line_t *l, bool paused)
 {
     vmessclient_lstate_t *ls = lineGetState(l, t);
@@ -112,15 +185,10 @@ void vmessclientSetNextPaused(tunnel_t *t, line_t *l, bool paused)
     {
         ls->next_paused = paused;
         lineRef(l);
-        if (paused)
-            tunnelPrevDownStreamPause(t, l);
-        else
-        {
-            if (vmessclientAssociationAlive(t, l, l))
-                vmessclientTransmit(t, l);
-            if (! ls->next_paused && vmessclientAssociationAlive(t, l, l))
-                tunnelPrevDownStreamResume(t, l);
-        }
+        if (! paused && vmessclientAssociationAlive(t, l, l))
+            vmessclientTransmit(t, l);
+        vmessclientRefreshUpstreamPause(t, l);
+        vmessclientRefreshDownstreamPause(t, l);
         lineUnref(l);
         return;
     }
@@ -128,17 +196,12 @@ void vmessclientSetNextPaused(tunnel_t *t, line_t *l, bool paused)
         return;
     line_t *application = ls->application_line;
     ls->carrier_paused  = paused;
-    if (paused)
-    {
-        tunnelPrevDownStreamPause(t, application);
-        return;
-    }
     lineRef(l);
     lineRef(application);
-    if (vmessclientAssociationAlive(t, l, application))
+    if (! paused && vmessclientAssociationAlive(t, l, application))
         vmessclientTransmit(t, l);
-    if (! ls->carrier_paused && vmessclientAssociationAlive(t, l, application))
-        tunnelPrevDownStreamResume(t, application);
+    vmessclientRefreshUpstreamPause(t, l);
+    vmessclientRefreshDownstreamPause(t, l);
     lineUnref(application);
     lineUnref(l);
 }
@@ -155,10 +218,11 @@ void vmessclientTransmit(tunnel_t *t, line_t *l)
     lineRef(l);
     if (application != l)
         lineRef(application);
-    ls->transmitting = true;
+    ls->transmitting   = true;
     size_t batch_bytes = 0;
-    while (vmessclientAssociationAlive(t, l, application) &&
-           (! (ls->kind == kVmessClientLineKindDirect ? ls->next_paused : ls->carrier_paused) || batch_bytes < 256 * 1024))
+    while (
+        vmessclientAssociationAlive(t, l, application) &&
+        (! (ls->kind == kVmessClientLineKindDirect ? ls->next_paused : ls->carrier_paused) || batch_bytes < 256 * 1024))
     {
         if (ls->transmit_head == NULL)
             ls->transmit_head = bufferqueuePopFrontReserved(&ls->pending_up, &ls->transmit_reservation);
@@ -231,7 +295,10 @@ void vmessclientTransmit(tunnel_t *t, line_t *l)
         batch_bytes += prefix + written;
     }
     if (vmessclientAssociationAlive(t, l, application))
+    {
         ls->transmitting = false;
+        vmessclientRefreshUpstreamPause(t, l);
+    }
     if (application != l)
         lineUnref(application);
     lineUnref(l);

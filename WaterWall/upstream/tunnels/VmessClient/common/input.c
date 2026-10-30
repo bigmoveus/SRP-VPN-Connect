@@ -128,12 +128,12 @@ static bool drainRecords(tunnel_t *t, line_t *l, line_t *application, vmessclien
         bool             eof     = false;
         const uint32_t   ordinal = ls->input_crypto.counter;
         wcrypto_status_t status  = vmessBodyOpen(&ls->input_crypto,
-                                                sbufGetRawPtr(out),
-                                                ls->body_length,
-                                                sbufGetMutablePtr(out),
-                                                ls->body_length,
-                                                &length,
-                                                &eof);
+                                                 sbufGetRawPtr(out),
+                                                 ls->body_length,
+                                                 sbufGetMutablePtr(out),
+                                                 ls->body_length,
+                                                 &length,
+                                                 &eof);
         bufferbudgetReservationRelease(&ls->body_reservation);
         if (status != kWCryptoOk)
         {
@@ -216,7 +216,10 @@ void vmessclientReceive(tunnel_t *t, line_t *l)
     if (ready && vmessclientAssociationAlive(t, l, application))
         discard drainRecords(t, l, application, ls);
     if (vmessclientAssociationAlive(t, l, application))
+    {
         ls->receiving = false;
+        vmessclientRefreshDownstreamPause(t, l);
+    }
     if (application != l)
         lineUnref(application);
     lineUnref(l);
