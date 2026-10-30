@@ -1,1 +1,59 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCi8vICNkZWZpbmUgT1BFTlZQTl9IVFRQX0hFQURFUlNfTk9fUkVEQUNUCgojaW5jbHVkZSA8b3BlbnZwbi9odHRwL2hlYWRyZWRhY3QuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpzdGF0aWMgY29uc3Qgc3RkOjpzdHJpbmcgaW4xID0gIkhFQURFUlM6IFBPU1QgL3BnIEhUVFAvMS4xXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBIb3N0OiAzLjkxLjEwNi4xNzhcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIFVzZXItQWdlbnQ6IGphcGljbGlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEF1dGhvcml6YXRpb246IEJhc2ljIGNHYzZjSEpxTjFoS1FVcHVSa1JzWjJWNU1YWkxhVmxWY0doTFxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBDb250ZW50LUxlbmd0aDogNDlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEFjY2VwdC1FbmNvZGluZzogbHo0XHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBBY2NlcHQ6ICovKlxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgXHJcbiI7CgpzdGF0aWMgY29uc3Qgc3RkOjpzdHJpbmcgb3V0MSA9ICJIRUFERVJTOiBQT1NUIC9wZyBIVFRQLzEuMVxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEhvc3Q6IDMuOTEuMTA2LjE3OFxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIFVzZXItQWdlbnQ6IGphcGljbGlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBBdXRob3JpemF0aW9uOiBCYXNpYyBbUkVEQUNURURdXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgQ29udGVudC1MZW5ndGg6IDQ5XHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgQWNjZXB0LUVuY29kaW5nOiBsejRcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBBY2NlcHQ6ICovKlxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIFxyXG4iOwoKc3RhdGljIGNvbnN0IHN0ZDo6c3RyaW5nIGluMiA9ICJIRUFERVJTOiBQT1NUIC9wZyBIVFRQLzEuMVxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgSG9zdDogMy45MS4xMDYuMTc4XHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBVc2VyLUFnZW50OiBqYXBpY2xpXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBhdXRob3JpemF0aW9uPWJhc2ljIGNHYzZjSEpxTjFoS1FVcHVSa1JzWjJWNU1YWkxhVmxWY0doTFxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBDb250ZW50LUxlbmd0aDogNDlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEFjY2VwdC1FbmNvZGluZzogbHo0XHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBBY2NlcHQ6ICovKlxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgXHJcbiI7CgpzdGF0aWMgY29uc3Qgc3RkOjpzdHJpbmcgb3V0MiA9ICJIRUFERVJTOiBQT1NUIC9wZyBIVFRQLzEuMVxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEhvc3Q6IDMuOTEuMTA2LjE3OFxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIFVzZXItQWdlbnQ6IGphcGljbGlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBhdXRob3JpemF0aW9uPWJhc2ljIFtSRURBQ1RFRF1cclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2pzb25cclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBDb250ZW50LUxlbmd0aDogNDlcclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIgICAgICAgICBBY2NlcHQtRW5jb2Rpbmc6IGx6NFxyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiAgICAgICAgIEFjY2VwdDogKi8qXHJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICAgICAgICAgXHJcbiI7CgpURVNUKGh0dHAsIGhlYWRyZWRhY3QxKQp7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBvdXQgPSBIVFRQOjpoZWFkZXJzX3JlZGFjdChpbjEpOwogICAgQVNTRVJUX0VRKG91dCwgb3V0MSk7Cn0KClRFU1QoaHR0cCwgaGVhZHJlZGFjdDIpCnsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIG91dCA9IEhUVFA6OmhlYWRlcnNfcmVkYWN0KGluMik7CiAgICBBU1NFUlRfRVEob3V0LCBvdXQyKTsKfQo=
+#include "test_common.hpp"
+
+// #define OPENVPN_HTTP_HEADERS_NO_REDACT
+
+#include <openvpn/http/headredact.hpp>
+
+using namespace openvpn;
+
+static const std::string in1 = "HEADERS: POST /pg HTTP/1.1\r\n"
+                               "         Host: 3.91.106.178\r\n"
+                               "         User-Agent: japicli\r\n"
+                               "         Authorization: Basic cGc6cHJqN1hKQUpuRkRsZ2V5MXZLaVlVcGhL\r\n"
+                               "         Content-Type: application/json\r\n"
+                               "         Content-Length: 49\r\n"
+                               "         Accept-Encoding: lz4\r\n"
+                               "         Accept: */*\r\n"
+                               "         \r\n";
+
+static const std::string out1 = "HEADERS: POST /pg HTTP/1.1\r\n"
+                                "         Host: 3.91.106.178\r\n"
+                                "         User-Agent: japicli\r\n"
+                                "         Authorization: Basic [REDACTED]\r\n"
+                                "         Content-Type: application/json\r\n"
+                                "         Content-Length: 49\r\n"
+                                "         Accept-Encoding: lz4\r\n"
+                                "         Accept: */*\r\n"
+                                "         \r\n";
+
+static const std::string in2 = "HEADERS: POST /pg HTTP/1.1\r\n"
+                               "         Host: 3.91.106.178\r\n"
+                               "         User-Agent: japicli\r\n"
+                               "         authorization=basic cGc6cHJqN1hKQUpuRkRsZ2V5MXZLaVlVcGhL\r\n"
+                               "         Content-Type: application/json\r\n"
+                               "         Content-Length: 49\r\n"
+                               "         Accept-Encoding: lz4\r\n"
+                               "         Accept: */*\r\n"
+                               "         \r\n";
+
+static const std::string out2 = "HEADERS: POST /pg HTTP/1.1\r\n"
+                                "         Host: 3.91.106.178\r\n"
+                                "         User-Agent: japicli\r\n"
+                                "         authorization=basic [REDACTED]\r\n"
+                                "         Content-Type: application/json\r\n"
+                                "         Content-Length: 49\r\n"
+                                "         Accept-Encoding: lz4\r\n"
+                                "         Accept: */*\r\n"
+                                "         \r\n";
+
+TEST(http, headredact1)
+{
+    const std::string out = HTTP::headers_redact(in1);
+    ASSERT_EQ(out, out1);
+}
+
+TEST(http, headredact2)
+{
+    const std::string out = HTTP::headers_redact(in2);
+    ASSERT_EQ(out, out2);
+}

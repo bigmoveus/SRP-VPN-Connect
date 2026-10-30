@@ -1,1 +1,166 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwovLwoKI2luY2x1ZGUgPHN0cmluZz4KCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCiNpbmNsdWRlICJvcGVudnBuL3NzbC9wZWVyX2ZpbmdlcnByaW50LmhwcCIKCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKbmFtZXNwYWNlIHVuaXR0ZXN0cyB7CgpzdGQ6OnZlY3Rvcjx1aW50OF90PiB0ZXN0X2ZpbmdlcnByaW50ID0gewogICAgLy8gY2xhbmctZm9ybWF0IG9mZgogICAgMHg0NCwgMHhGNSwgMHhBNiwgMHg0RCwgMHg0QSwgMHhDQiwgMHg2NSwgMHhFMSwgMHg4QSwgMHg5RiwgMHg1NSwgMHg4OSwgMHg3RiwgMHg3NywgMHhBMCwgMHg3OSwKICAgIDB4QUEsIDB4RkIsIDB4Q0MsIDB4QTEsIDB4MzcsIDB4MkYsIDB4RDgsIDB4QjMsIDB4NDcsIDB4QUEsIDB4OUQsIDB4RTMsIDB4RDAsIDB4NzYsIDB4QjEsIDB4NDQKICAgIC8vIGNsYW5nLWZvcm1hdCBvbgp9OwoKVEVTVChQZWVyRmluZ2VycHJpbnQsIHBhcnNlX2NvbmZpZykKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInBlZXItZmluZ2VycHJpbnQgMDE6RjU6QTY6NEQ6NEE6Q0I6NjU6RTE6OEE6OUY6NTU6ODk6N0Y6Nzc6QTA6Nzk6QUE6RkI6Q0M6QTE6Mzc6MkY6RDg6QjM6NDc6QUE6OUQ6RTM6RDA6NzY6QjE6NDRcbiIKICAgICAgICAiPHBlZXItZmluZ2VycHJpbnQ+XG4iCiAgICAgICAgIiAgXG4iCiAgICAgICAgIjAyOkY1OkE2OjREOjRBOkNCOjY1OkUxOjhBOjlGOjU1Ojg5OjdGOjc3OkEwOjc5OkFBOkZCOkNDOkExOjM3OjJGOkQ4OkIzOjQ3OkFBOjlEOkUzOkQwOjc2OkIxOjQ0XG4iCiAgICAgICAgIiMgY29tbWVudFxuIgogICAgICAgICIwMzpGNTpBNjo0RDo0QTpDQjo2NTpFMTo4QTo5Rjo1NTo4OTo3Rjo3NzpBMDo3OTpBQTpGQjpDQzpBMTozNzoyRjpEODpCMzo0NzpBQTo5RDpFMzpEMDo3NjpCMTo0NCBcbiIKICAgICAgICAiICA7IGNvbW1lbnRcbiIKICAgICAgICAiMDQ6RjU6QTY6NEQ6NEE6Q0I6NjU6RTE6OEE6OUY6NTU6ODk6N0Y6Nzc6QTA6Nzk6QUE6RkI6Q0M6QTE6Mzc6MkY6RDg6QjM6NDc6QUE6OUQ6RTM6RDA6NzY6QjE6NDQgIFxuIgogICAgICAgICI8L3BlZXItZmluZ2VycHJpbnQ+XG4iCiAgICAgICAgInBlZXItZmluZ2VycHJpbnQgMDU6RjU6QTY6NEQ6NEE6Q0I6NjU6RTE6OEE6OUY6NTU6ODk6N0Y6Nzc6QTA6Nzk6QUE6RkI6Q0M6QTE6Mzc6MkY6RDg6QjM6NDc6QUE6OUQ6RTM6RDA6NzY6QjE6NDQgXG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBzdHJ1Y3QgVGVzdFBlZXJGaW5nZXJwcmludHMgOiBwdWJsaWMgUGVlckZpbmdlcnByaW50cwogICAgewogICAgICAgIFRlc3RQZWVyRmluZ2VycHJpbnRzKGNvbnN0IE9wdGlvbkxpc3QgJm9wdCwgc3RkOjpzaXplX3QgZnBfc2l6ZSkKICAgICAgICAgICAgOiBQZWVyRmluZ2VycHJpbnRzKG9wdCwgZnBfc2l6ZSkKICAgICAgICB7CiAgICAgICAgfQogICAgICAgIHN0ZDo6c2l6ZV90IHNpemUoKQogICAgICAgIHsKICAgICAgICAgICAgcmV0dXJuIGZpbmdlcnByaW50c18uc2l6ZSgpOwogICAgICAgIH0KICAgIH07CgogICAgVGVzdFBlZXJGaW5nZXJwcmludHMgZnBzKGNmZywgdGVzdF9maW5nZXJwcmludC5zaXplKCkpOwogICAgQVNTRVJUX0VRKGZwcy5zaXplKCksIDV1KTsKCiAgICBmb3IgKHN0ZDo6c2l6ZV90IGkgPSAxOyBpIDw9IGZwcy5zaXplKCk7ICsraSkKICAgIHsKICAgICAgICBhdXRvIGZpbmdlcnByaW50ID0gdGVzdF9maW5nZXJwcmludDsKICAgICAgICBmaW5nZXJwcmludFswXSA9IHN0YXRpY19jYXN0PHVuc2lnbmVkIGNoYXI+KGkpOwogICAgICAgIFBlZXJGaW5nZXJwcmludCBmcChmaW5nZXJwcmludCk7CiAgICAgICAgQVNTRVJUX0VRKGZwcy5tYXRjaChmcCksIHRydWUpOwogICAgfQp9CgoKVEVTVChQZWVyRmluZ2VycHJpbnQsIG1hbGZvcm1lZCkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInBlZXItZmluZ2VycHJpbnQgMDE6RjU6QTY6NEQ6NEE6Q0I6NjU6RTE6OEE6OUY6NTU6ODk6N0Y6Nzc6QTA6Nzk6QUE6RkI6Q0M6QTE6Mzc6MkY6RDg6QjM6NDc6QUE6OUQ6RTM6RDA6NzY6QjFcbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwogICAgRVhQRUNUX1RIUk9XKFBlZXJGaW5nZXJwcmludHMoY2ZnLCB0ZXN0X2ZpbmdlcnByaW50LnNpemUoKSksIG9wdGlvbl9lcnJvcik7CgogICAgY2ZnLmNsZWFyKCk7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInBlZXItZmluZ2VycHJpbnQgMDE6RjU6QTY6NEQ6NEE6Q0I6NjU6RTE6OEE6OUY6NTU6ODk6N0Y6Nzc6QTA6Nzk6QUE6RkI6Q0M6QTE6Mzc6MkY6RDg6QjM6NDc6QUE6OUQ6RTM6RDA6NzY6QjE6NTU6RkZcbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwogICAgRVhQRUNUX1RIUk9XKFBlZXJGaW5nZXJwcmludHMoY2ZnLCB0ZXN0X2ZpbmdlcnByaW50LnNpemUoKSksIG9wdGlvbl9lcnJvcik7CgogICAgY2ZnLmNsZWFyKCk7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInBlZXItZmluZ2VycHJpbnQgMTAxOkY1OkE2OjREOjRBOkNCOjY1OkUxOjhBOjlGOjU1Ojg5OjdGOjc3OkEwOjc5OkFBOkZCOkNDOkExOjM3OjJGOkQ4OkIzOjQ3OkFBOjlEOkUzOkQwOjc2OkIxOjU1XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgIEVYUEVDVF9USFJPVyhQZWVyRmluZ2VycHJpbnRzKGNmZywgdGVzdF9maW5nZXJwcmludC5zaXplKCkpLCBvcHRpb25fZXJyb3IpOwoKICAgIGNmZy5jbGVhcigpOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICJwZWVyLWZpbmdlcnByaW50IDExOkY1OkE2OjREOjRBOjFDQjo2NTpFMTo4QTo5Rjo1NTo4OTo3Rjo3NzpBMDo3OTpBQTpGQjpDQzpBMTozNzoyRjpEODpCMzo0NzpBQTo5RDpFMzpEMDo3NjpCMTo1NVxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICBFWFBFQ1RfVEhST1coUGVlckZpbmdlcnByaW50cyhjZmcsIHRlc3RfZmluZ2VycHJpbnQuc2l6ZSgpKSwgb3B0aW9uX2Vycm9yKTsKCiAgICBjZmcuY2xlYXIoKTsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicGVlci1maW5nZXJwcmludCAxMS9GNS9BNi80RC80QS9DQi82NS9FMS84QS85Ri81NS84OS83Ri83Ny9BMC83OS9BQS9GQi9DQy9BMS8zNy8yRi9EOC9CMy80Ny9BQS85RC9FMy9EMC83Ni9CMS81NVxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICBFWFBFQ1RfVEhST1coUGVlckZpbmdlcnByaW50cyhjZmcsIHRlc3RfZmluZ2VycHJpbnQuc2l6ZSgpKSwgb3B0aW9uX2Vycm9yKTsKCiAgICBjZmcuY2xlYXIoKTsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAiPHBlZXItZmluZ2VycHJpbnQ+XG4iCiAgICAgICAgIiAwMjpGNTpBNjo0RDo0QTpDQjo2NTpFMTo4QTo5Rjo1NTo4OTo3Rjo3NzpBMDo3OTpBQTpGQjpDQzpBMTozNzoyRjpEODpCMzo0NzpBQTo5RDpFMzpEMDo3NjpCMTo0NFxuIgogICAgICAgICI8L3BlZXItZmluZ2VycHJpbnQ+XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgIEVYUEVDVF9USFJPVyhQZWVyRmluZ2VycHJpbnRzKGNmZywgdGVzdF9maW5nZXJwcmludC5zaXplKCkpLCBvcHRpb25fZXJyb3IpOwp9CgoKVEVTVChQZWVyRmluZ2VycHJpbnQsIHN0cmluZ2lmeSkKewogICAgc3RkOjpzdHJpbmcgaGV4X2ZwKCIwMTpmNTphNjo0ZDo0YTpjYjo2NTplMTo4YTo5Zjo1NTo4OTo3Zjo3NzphMDo3OTphYTpmYjpjYzphMTozNzoyZjpkODpiMzo0NzphYTo5ZDplMzpkMDo3NjpiMTo1NSIpOwogICAgUGVlckZpbmdlcnByaW50IGZwKGhleF9mcCwgdGVzdF9maW5nZXJwcmludC5zaXplKCkpOwogICAgQVNTRVJUX0VRKGZwLnN0cigpLCBoZXhfZnApOwp9CgoKVEVTVChQZWVyRmluZ2VycHJpbnQsIG1hdGNoX2VtcHR5KQp7CiAgICBQZWVyRmluZ2VycHJpbnQgZnAodGVzdF9maW5nZXJwcmludCk7CiAgICBQZWVyRmluZ2VycHJpbnRzIGZwczsKICAgIEFTU0VSVF9GQUxTRShmcHMpOwogICAgQVNTRVJUX0VRKGZwcy5tYXRjaChmcCksIGZhbHNlKTsKfQoKClRFU1QoUGVlckZpbmdlcnByaW50LCBtYXRjaCkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgIjxwZWVyLWZpbmdlcnByaW50PlxuIgogICAgICAgICJBNDpFNTpBNzoxRDpBQTpFMzo2NTpFMTozQTo2RTo0NTo4OTo4MDo2NjpBMDo3OTpCQjpFMzpFQzo0MTozNDoyRjowODo4Mzo5NzpBQTo5MTozMzpERjoxMTozMTpBQVxuIgogICAgICAgICI0NDpGNTpBNjo0RDo0QTpDQjo2NTpFMTo4QTo5Rjo1NTo4OTo3Rjo3NzpBMDo3OTpBQTpGQjpDQzpBMTozNzoyRjpEODpCMzo0NzpBQTo5RDpFMzpEMDo3NjpCMTo0NFxuIgogICAgICAgICI8L3BlZXItZmluZ2VycHJpbnQ+XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBQZWVyRmluZ2VycHJpbnQgZnAodGVzdF9maW5nZXJwcmludCk7CiAgICBQZWVyRmluZ2VycHJpbnRzIGZwcyhjZmcsIHRlc3RfZmluZ2VycHJpbnQuc2l6ZSgpKTsKICAgIEFTU0VSVF9FUShmcHMubWF0Y2goZnApLCB0cnVlKTsKfQoKVEVTVChQZWVyRmluZ2VycHJpbnQsIG5vX21hdGNoKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicGVlci1maW5nZXJwcmludCBBNDpFNTpBNzoxRDpBQTpFMzo2NTpFMTozQTo2RTo0NTo4OTo4MDo2NjpBMDo3OTpCQjpFMzpFQzo0MTozNDoyRjowODo4Mzo5NzpBQTo5MTozMzpERjoxMTozMTpBQVxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUGVlckZpbmdlcnByaW50IGZwKHRlc3RfZmluZ2VycHJpbnQpOwogICAgUGVlckZpbmdlcnByaW50cyBmcHMoY2ZnLCB0ZXN0X2ZpbmdlcnByaW50LnNpemUoKSk7CiAgICBBU1NFUlRfRVEoZnBzLm1hdGNoKGZwKSwgZmFsc2UpOwp9CgoKfSAvLyBuYW1lc3BhY2UgdW5pdHRlc3RzCg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+//
+
+#include <string>
+
+#include "test_common.hpp"
+#include "openvpn/ssl/peer_fingerprint.hpp"
+
+using namespace openvpn;
+
+namespace unittests {
+
+std::vector<uint8_t> test_fingerprint = {
+    // clang-format off
+    0x44, 0xF5, 0xA6, 0x4D, 0x4A, 0xCB, 0x65, 0xE1, 0x8A, 0x9F, 0x55, 0x89, 0x7F, 0x77, 0xA0, 0x79,
+    0xAA, 0xFB, 0xCC, 0xA1, 0x37, 0x2F, 0xD8, 0xB3, 0x47, 0xAA, 0x9D, 0xE3, 0xD0, 0x76, 0xB1, 0x44
+    // clang-format on
+};
+
+TEST(PeerFingerprint, parse_config)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "peer-fingerprint 01:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44\n"
+        "<peer-fingerprint>\n"
+        "  \n"
+        "02:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44\n"
+        "# comment\n"
+        "03:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44 \n"
+        "  ; comment\n"
+        "04:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44  \n"
+        "</peer-fingerprint>\n"
+        "peer-fingerprint 05:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44 \n",
+        nullptr);
+    cfg.update_map();
+
+    struct TestPeerFingerprints : public PeerFingerprints
+    {
+        TestPeerFingerprints(const OptionList &opt, std::size_t fp_size)
+            : PeerFingerprints(opt, fp_size)
+        {
+        }
+        std::size_t size()
+        {
+            return fingerprints_.size();
+        }
+    };
+
+    TestPeerFingerprints fps(cfg, test_fingerprint.size());
+    ASSERT_EQ(fps.size(), 5u);
+
+    for (std::size_t i = 1; i <= fps.size(); ++i)
+    {
+        auto fingerprint = test_fingerprint;
+        fingerprint[0] = static_cast<unsigned char>(i);
+        PeerFingerprint fp(fingerprint);
+        ASSERT_EQ(fps.match(fp), true);
+    }
+}
+
+
+TEST(PeerFingerprint, malformed)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "peer-fingerprint 01:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+
+    cfg.clear();
+    cfg.parse_from_config(
+        "peer-fingerprint 01:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:55:FF\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+
+    cfg.clear();
+    cfg.parse_from_config(
+        "peer-fingerprint 101:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:55\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+
+    cfg.clear();
+    cfg.parse_from_config(
+        "peer-fingerprint 11:F5:A6:4D:4A:1CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:55\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+
+    cfg.clear();
+    cfg.parse_from_config(
+        "peer-fingerprint 11/F5/A6/4D/4A/CB/65/E1/8A/9F/55/89/7F/77/A0/79/AA/FB/CC/A1/37/2F/D8/B3/47/AA/9D/E3/D0/76/B1/55\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+
+    cfg.clear();
+    cfg.parse_from_config(
+        "<peer-fingerprint>\n"
+        " 02:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44\n"
+        "</peer-fingerprint>\n",
+        nullptr);
+    cfg.update_map();
+    EXPECT_THROW(PeerFingerprints(cfg, test_fingerprint.size()), option_error);
+}
+
+
+TEST(PeerFingerprint, stringify)
+{
+    std::string hex_fp("01:f5:a6:4d:4a:cb:65:e1:8a:9f:55:89:7f:77:a0:79:aa:fb:cc:a1:37:2f:d8:b3:47:aa:9d:e3:d0:76:b1:55");
+    PeerFingerprint fp(hex_fp, test_fingerprint.size());
+    ASSERT_EQ(fp.str(), hex_fp);
+}
+
+
+TEST(PeerFingerprint, match_empty)
+{
+    PeerFingerprint fp(test_fingerprint);
+    PeerFingerprints fps;
+    ASSERT_FALSE(fps);
+    ASSERT_EQ(fps.match(fp), false);
+}
+
+
+TEST(PeerFingerprint, match)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "<peer-fingerprint>\n"
+        "A4:E5:A7:1D:AA:E3:65:E1:3A:6E:45:89:80:66:A0:79:BB:E3:EC:41:34:2F:08:83:97:AA:91:33:DF:11:31:AA\n"
+        "44:F5:A6:4D:4A:CB:65:E1:8A:9F:55:89:7F:77:A0:79:AA:FB:CC:A1:37:2F:D8:B3:47:AA:9D:E3:D0:76:B1:44\n"
+        "</peer-fingerprint>\n",
+        nullptr);
+    cfg.update_map();
+
+    PeerFingerprint fp(test_fingerprint);
+    PeerFingerprints fps(cfg, test_fingerprint.size());
+    ASSERT_EQ(fps.match(fp), true);
+}
+
+TEST(PeerFingerprint, no_match)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "peer-fingerprint A4:E5:A7:1D:AA:E3:65:E1:3A:6E:45:89:80:66:A0:79:BB:E3:EC:41:34:2F:08:83:97:AA:91:33:DF:11:31:AA\n",
+        nullptr);
+    cfg.update_map();
+
+    PeerFingerprint fp(test_fingerprint);
+    PeerFingerprints fps(cfg, test_fingerprint.size());
+    ASSERT_EQ(fps.match(fp), false);
+}
+
+
+} // namespace unittests

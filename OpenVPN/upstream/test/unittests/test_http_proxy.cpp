@@ -1,1 +1,72 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi90cmFuc3BvcnQvY2xpZW50L2h0dHBjbGkuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpURVNUKEh0dHBQcm94eUNsaWVudCwgT3B0aW9ucykKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgImh0dHAtcHJveHkgcHJveHlob3N0IDMxMjggYXV0b1xuIgogICAgICAgICJodHRwLXByb3h5LW9wdGlvbiBWRVJTSU9OIDEuMVxuIgogICAgICAgICJodHRwLXByb3h5LW9wdGlvbiBBR0VOVCBNb3NhaWMvMC45XG4iCiAgICAgICAgImh0dHAtcHJveHktb3B0aW9uIENVU1RPTS1IRUFERVIgWC1HcmVldGluZyBcIkhpIG1vbSFcIlxuIgogICAgICAgICI8aHR0cC1wcm94eS11c2VyLXBhc3M+XG4iCiAgICAgICAgInV6ZXJuYW1lXG4iCiAgICAgICAgInBhenp3b3JkXG4iCiAgICAgICAgIjwvaHR0cC1wcm94eS11c2VyLXBhc3M+XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgIGF1dG8gcG8gPSBIVFRQUHJveHlUcmFuc3BvcnQ6Ok9wdGlvbnM6OnBhcnNlKGNmZyk7CiAgICBBU1NFUlRfRVEocG8tPmFsbG93X2NsZWFydGV4dF9hdXRoLCB0cnVlKTsKICAgIEFTU0VSVF9FUShwby0+YXV0aF9tZXRob2QsIEhUVFBQcm94eVRyYW5zcG9ydDo6QXV0aE1ldGhvZDo6QW55KTsKICAgIEFTU0VSVF9FUShwby0+dXNlcm5hbWUsICJ1emVybmFtZSIpOwogICAgQVNTRVJUX0VRKHBvLT5wYXNzd29yZCwgInBhenp3b3JkIik7CiAgICBBU1NFUlRfRVEocG8tPmh0dHBfdmVyc2lvbiwgIjEuMSIpOwogICAgQVNTRVJUX0VRKHBvLT51c2VyX2FnZW50LCAiTW9zYWljLzAuOSIpOwogICAgQVNTRVJUX0VRKHBvLT5oZWFkZXJzLnNpemUoKSwgMXUpOwogICAgQVNTRVJUX0VRKHBvLT5oZWFkZXJzLmF0KDApLT5wMSwgIlgtR3JlZXRpbmciKTsKICAgIEFTU0VSVF9FUShwby0+aGVhZGVycy5hdCgwKS0+cDIsICJIaSBtb20hIik7CgogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKCJodHRwLXByb3h5IHByb3h5aG9zdCAzMTI4IG5vbmVcbiIsIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgIHBvID0gSFRUUFByb3h5VHJhbnNwb3J0OjpPcHRpb25zOjpwYXJzZShjZmcpOwogICAgQVNTRVJUX0VRKHBvLT5hdXRoX21ldGhvZCwgSFRUUFByb3h5VHJhbnNwb3J0OjpBdXRoTWV0aG9kOjpOb25lKTsKCiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoImh0dHAtcHJveHkgcHJveHlob3N0IDMxMjggYmFzaWNcbiIsIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgIHBvID0gSFRUUFByb3h5VHJhbnNwb3J0OjpPcHRpb25zOjpwYXJzZShjZmcpOwogICAgQVNTRVJUX0VRKHBvLT5hbGxvd19jbGVhcnRleHRfYXV0aCwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocG8tPmF1dGhfbWV0aG9kLCBIVFRQUHJveHlUcmFuc3BvcnQ6OkF1dGhNZXRob2Q6OkJhc2ljKTsKCiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoImh0dHAtcHJveHkgcHJveHlob3N0IDMxMjggZGlnZXN0XG4iLCBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICBwbyA9IEhUVFBQcm94eVRyYW5zcG9ydDo6T3B0aW9uczo6cGFyc2UoY2ZnKTsKICAgIEFTU0VSVF9FUShwby0+YWxsb3dfY2xlYXJ0ZXh0X2F1dGgsIGZhbHNlKTsKICAgIEFTU0VSVF9FUShwby0+YXV0aF9tZXRob2QsIEhUVFBQcm94eVRyYW5zcG9ydDo6QXV0aE1ldGhvZDo6RGlnZXN0KTsKCiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoImh0dHAtcHJveHkgcHJveHlob3N0IDMxMjggbnRsbVxuIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwogICAgcG8gPSBIVFRQUHJveHlUcmFuc3BvcnQ6Ok9wdGlvbnM6OnBhcnNlKGNmZyk7CiAgICBBU1NFUlRfRVEocG8tPmFsbG93X2NsZWFydGV4dF9hdXRoLCBmYWxzZSk7CiAgICBBU1NFUlRfRVEocG8tPmF1dGhfbWV0aG9kLCBIVFRQUHJveHlUcmFuc3BvcnQ6OkF1dGhNZXRob2Q6Ok50bG0pOwoKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygiaHR0cC1wcm94eSBwcm94eWhvc3QgMzEyOCBhdXRvLW5jdFxuIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwogICAgcG8gPSBIVFRQUHJveHlUcmFuc3BvcnQ6Ok9wdGlvbnM6OnBhcnNlKGNmZyk7CiAgICBBU1NFUlRfRVEocG8tPmFsbG93X2NsZWFydGV4dF9hdXRoLCBmYWxzZSk7CiAgICBBU1NFUlRfRVEocG8tPmF1dGhfbWV0aG9kLCBIVFRQUHJveHlUcmFuc3BvcnQ6OkF1dGhNZXRob2Q6OkFueSk7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/transport/client/httpcli.hpp>
+
+using namespace openvpn;
+
+TEST(HttpProxyClient, Options)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "http-proxy proxyhost 3128 auto\n"
+        "http-proxy-option VERSION 1.1\n"
+        "http-proxy-option AGENT Mosaic/0.9\n"
+        "http-proxy-option CUSTOM-HEADER X-Greeting \"Hi mom!\"\n"
+        "<http-proxy-user-pass>\n"
+        "uzername\n"
+        "pazzword\n"
+        "</http-proxy-user-pass>\n",
+        nullptr);
+    cfg.update_map();
+    auto po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->allow_cleartext_auth, true);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::Any);
+    ASSERT_EQ(po->username, "uzername");
+    ASSERT_EQ(po->password, "pazzword");
+    ASSERT_EQ(po->http_version, "1.1");
+    ASSERT_EQ(po->user_agent, "Mosaic/0.9");
+    ASSERT_EQ(po->headers.size(), 1u);
+    ASSERT_EQ(po->headers.at(0)->p1, "X-Greeting");
+    ASSERT_EQ(po->headers.at(0)->p2, "Hi mom!");
+
+    cfg.parse_from_config("http-proxy proxyhost 3128 none\n", nullptr);
+    cfg.update_map();
+    po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::None);
+
+    cfg.parse_from_config("http-proxy proxyhost 3128 basic\n", nullptr);
+    cfg.update_map();
+    po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->allow_cleartext_auth, true);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::Basic);
+
+    cfg.parse_from_config("http-proxy proxyhost 3128 digest\n", nullptr);
+    cfg.update_map();
+    po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->allow_cleartext_auth, false);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::Digest);
+
+    cfg.parse_from_config("http-proxy proxyhost 3128 ntlm\n", nullptr);
+    cfg.update_map();
+    po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->allow_cleartext_auth, false);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::Ntlm);
+
+    cfg.parse_from_config("http-proxy proxyhost 3128 auto-nct\n", nullptr);
+    cfg.update_map();
+    po = HTTPProxyTransport::Options::parse(cfg);
+    ASSERT_EQ(po->allow_cleartext_auth, false);
+    ASSERT_EQ(po->auth_method, HTTPProxyTransport::AuthMethod::Any);
+}

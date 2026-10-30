@@ -1,1 +1,43 @@
-IyBUaGlzIGZpbGUgaXMgYSBoZWxwZXIgZmlsZSB0byBnZW5lcmF0ZSB0aGUgdGVzdCBwYXR0ZXJuIGZvciB0ZXN0X2lwLmNwcCBzaGlmdCB0ZXN0cwppbXBvcnQgcmFuZG9tCgphbGxzaGlmdHMgPSBbMCwgMSwgMzEsIDMyLCAzMywgNDUsIDYzLCA2NCwgNjcsIDgwLCA5NywgMTI3LCAxMjhdCgoKZGVmIGdlbl9sZWZ0X3NoaWZ0cyhvcmlnaXApOgogICAgZm9yIHNoaWZ0IGluIGFsbHNoaWZ0czoKICAgICAgICBsZWZ0X3NoaWZ0ZWQgPSBvcmlnaXAgPDwgc2hpZnQKCiAgICAgICAgIyBtYXNrIHdpdGggMTI4Yml0IG1hc2sKICAgICAgICBsZWZ0X3NoaWZ0ZWQgPSBsZWZ0X3NoaWZ0ZWQgJiAoMiAqKiAxMjggLSAxKQogICAgICAgIHByaW50X2J5dGVzKHNoaWZ0LCBsZWZ0X3NoaWZ0ZWQpCgoKZGVmIGdlbl9yaWdodF9zaGlmdHMob3JpZ2lwKToKICAgIGZvciBzaGlmdCBpbiBhbGxzaGlmdHM6CiAgICAgICAgcmlnaHRfc2hpZnRlZCA9IG9yaWdpcCA+PiBzaGlmdAoKICAgICAgICBwcmludF9ieXRlcyhzaGlmdCwgcmlnaHRfc2hpZnRlZCkKCgpkZWYgcHJpbnRfYnl0ZXMoc2hpZnQsIGlwKToKICAgIHByaW50KCJ7ICVkLCAiICUgc2hpZnQsIGVuZD0nJykKCiAgICBieXRlcyA9IFtdCiAgICBmb3IgXyBpbiByYW5nZSgwLCAxNik6CiAgICAgICAgYnl0ZXMuYXBwZW5kKCIweCV4IiAlIChpcCAmIDB4ZmYpKQogICAgICAgIGlwID0gaXAgPj4gOAoKICAgICMgbmVlZCB0aGUgaGlnaGVzdCBieXRlIGZpcnN0CiAgICBieXRlcy5yZXZlcnNlKCkKICAgIHByaW50KCJ7ICVzIH19LCIgJSAiLCAiLmpvaW4oYnl0ZXMpKQoKCmlmIF9fbmFtZV9fID09ICdfX21haW5fXyc6CiAgICBvcmlnaXAgPSAweDExMjIzMzQ0NTU2Njc3ODg5OTAwYWFiYmNjZGRlZWZmCiAgICByYW5kaXAgPSByYW5kb20uZ2V0cmFuZGJpdHMoMTI4KQogICAgZ2VuX2xlZnRfc2hpZnRzKG9yaWdpcCkKICAgIGdlbl9sZWZ0X3NoaWZ0cyhyYW5kaXApCgogICAgZ2VuX3JpZ2h0X3NoaWZ0cyhvcmlnaXApCiAgICBnZW5fcmlnaHRfc2hpZnRzKHJhbmRpcCkK
+# This file is a helper file to generate the test pattern for test_ip.cpp shift tests
+import random
+
+allshifts = [0, 1, 31, 32, 33, 45, 63, 64, 67, 80, 97, 127, 128]
+
+
+def gen_left_shifts(origip):
+    for shift in allshifts:
+        left_shifted = origip << shift
+
+        # mask with 128bit mask
+        left_shifted = left_shifted & (2 ** 128 - 1)
+        print_bytes(shift, left_shifted)
+
+
+def gen_right_shifts(origip):
+    for shift in allshifts:
+        right_shifted = origip >> shift
+
+        print_bytes(shift, right_shifted)
+
+
+def print_bytes(shift, ip):
+    print("{ %d, " % shift, end='')
+
+    bytes = []
+    for _ in range(0, 16):
+        bytes.append("0x%x" % (ip & 0xff))
+        ip = ip >> 8
+
+    # need the highest byte first
+    bytes.reverse()
+    print("{ %s }}," % ", ".join(bytes))
+
+
+if __name__ == '__main__':
+    origip = 0x11223344556677889900aabbccddeeff
+    randip = random.getrandbits(128)
+    gen_left_shifts(origip)
+    gen_left_shifts(randip)
+
+    gen_right_shifts(origip)
+    gen_right_shifts(randip)

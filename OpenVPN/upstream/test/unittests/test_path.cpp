@@ -1,1 +1,180 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxpb3N0cmVhbT4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9wYXRoLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKLy8gVWdseSBoYWNrCnN0YXRpYyBzdGQ6OnN0cmluZ3N0cmVhbSBvdXQ7Cgp2b2lkIHRlc3RfYmFzZW5hbWUoY29uc3Qgc3RkOjpzdHJpbmcgJnBhdGgpCnsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHJlcyA9IHBhdGg6OmJhc2VuYW1lKHBhdGgpOwogICAgb3V0IDw8ICJiYXNlbmFtZSgnIiA8PCBwYXRoIDw8ICInKSA9ICciIDw8IHJlcyA8PCAiJyIgPDwgc3RkOjplbmRsOwp9Cgp2b2lkIGRpcm5hbWUoY29uc3Qgc3RkOjpzdHJpbmcgJnBhdGgpCnsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHJlcyA9IHBhdGg6OmRpcm5hbWUocGF0aCk7CiAgICBvdXQgPDwgImRpcm5hbWUoJyIgPDwgcGF0aCA8PCAiJykgPSAnIiA8PCByZXMgPDwgIiciIDw8IHN0ZDo6ZW5kbDsKfQoKdm9pZCBleHQoY29uc3Qgc3RkOjpzdHJpbmcgJnBhdGgpCnsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHJlcyA9IHBhdGg6OmV4dChwYXRoKTsKICAgIG91dCA8PCAiZXh0KCciIDw8IHBhdGggPDwgIicpID0gJyIgPDwgcmVzIDw8ICInIiA8PCBzdGQ6OmVuZGw7Cn0KCnZvaWQgaXNfZmxhdChjb25zdCBzdGQ6OnN0cmluZyAmcGF0aCkKewogICAgY29uc3QgYm9vbCByZXMgPSBwYXRoOjppc19mbGF0KHBhdGgpOwogICAgb3V0IDw8ICJpc19mbGF0KCciIDw8IHBhdGggPDwgIicpID0gIiA8PCByZXMgPDwgc3RkOjplbmRsOwp9Cgp2b2lkIGpvaW4oY29uc3Qgc3RkOjpzdHJpbmcgJnAxLCBjb25zdCBzdGQ6OnN0cmluZyAmcDIpCnsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHJlcyA9IHBhdGg6OmpvaW4ocDEsIHAyKTsKICAgIG91dCA8PCAiam9pbignIiA8PCBwMSA8PCAiJywgJyIgPDwgcDIgPDwgIicpID0gJyIgPDwgcmVzIDw8ICInIiA8PCBzdGQ6OmVuZGw7Cn0KCnZvaWQgam9pbjMoY29uc3Qgc3RkOjpzdHJpbmcgJnAxLCBjb25zdCBzdGQ6OnN0cmluZyAmcDIsIGNvbnN0IHN0ZDo6c3RyaW5nICZwMykKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgcmVzID0gcGF0aDo6am9pbihwMSwgcDIsIHAzKTsKICAgIG91dCA8PCAiam9pbignIiA8PCBwMSA8PCAiJywgJyIgPDwgcDIgPDwgIicsICciIDw8IHAzIDw8ICInKSA9ICciIDw8IHJlcyA8PCAiJyIgPDwgc3RkOjplbmRsOwp9Cgp2b2lkIGpvaW40KGNvbnN0IHN0ZDo6c3RyaW5nICZwMSwgY29uc3Qgc3RkOjpzdHJpbmcgJnAyLCBjb25zdCBzdGQ6OnN0cmluZyAmcDMsIGNvbnN0IHN0ZDo6c3RyaW5nICZwNCkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgcmVzID0gcGF0aDo6am9pbihwMSwgcDIsIHAzLCBwNCk7CiAgICBvdXQgPDwgImpvaW4oJyIgPDwgcDEgPDwgIicsICciIDw8IHAyIDw8ICInLCAnIiA8PCBwMyA8PCAiJywgJyIgPDwgcDQgPDwgIicpID0gJyIgPDwgcmVzIDw8ICInIiA8PCBzdGQ6OmVuZGw7Cn0KCnZvaWQgc3BsaXRqb2luKGNvbnN0IHN0ZDo6c3RyaW5nICZwMSkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgZCA9IHBhdGg6OmRpcm5hbWUocDEpOwogICAgY29uc3Qgc3RkOjpzdHJpbmcgYiA9IHBhdGg6OmJhc2VuYW1lKHAxKTsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHAyID0gcGF0aDo6am9pbihkLCBiKTsKICAgIG91dCA8PCAic3BsaXRqb2luIHAxPSciIDw8IHAxIDw8ICInIGRpcj0nIiA8PCBkIDw8ICInIGJuPSciIDw8IGIgPDwgIicgcDI9JyIgPDwgcDIgPDwgIiciIDw8IHN0ZDo6ZW5kbDsKfQoKVEVTVChwYXRoLCB0ZXN0MSkKewogICAgb3V0LmNsZWFyKCk7CiAgICBvdXQuc3RyKCIiKTsKICAgIC8vIGJhc2VuYW1lCiAgICB0ZXN0X2Jhc2VuYW1lKCIiKTsKICAgIHRlc3RfYmFzZW5hbWUoIi8iKTsKICAgIHRlc3RfYmFzZW5hbWUoIi9mb28iKTsKICAgIHRlc3RfYmFzZW5hbWUoIi9mb28vYmFyIik7CiAgICB0ZXN0X2Jhc2VuYW1lKCJmb28vYmFyL2JvbyIpOwogICAgdGVzdF9iYXNlbmFtZSgiZm9vL2Jhci8iKTsKICAgIHRlc3RfYmFzZW5hbWUoImZvb1xcYmFyXFxib28iKTsKCiAgICAvLyBkaXJuYW1lCiAgICBkaXJuYW1lKCIiKTsKICAgIGRpcm5hbWUoIi8iKTsKICAgIGRpcm5hbWUoIi9mb28iKTsKICAgIGRpcm5hbWUoIi9mb28vYmFyIik7CiAgICBkaXJuYW1lKCJmb28vYmFyL2JvbyIpOwogICAgZGlybmFtZSgiZm9vL2Jhci8iKTsKICAgIGRpcm5hbWUoImZvb1xcYmFyXFxib28iKTsKCiAgICAvLyBpc19mbGF0CiAgICBpc19mbGF0KCIiKTsKICAgIGlzX2ZsYXQoIi8iKTsKICAgIGlzX2ZsYXQoImZvby5iYXIiKTsKICAgIGlzX2ZsYXQoImZvby9iYXIiKTsKICAgIGlzX2ZsYXQoImM6L2ZvbyIpOwogICAgaXNfZmxhdCgiYzpmb28iKTsKICAgIGlzX2ZsYXQoIno6XFxmb28iKTsKICAgIGlzX2ZsYXQoIi4iKTsKICAgIGlzX2ZsYXQoIi4uIik7CiAgICBpc19mbGF0KCIuL2ZvbyIpOwoKICAgIC8vIGpvaW4KICAgIGpvaW4oImZvbyIsICJiYXIiKTsKICAgIGpvaW4oImZvbyIsICIiKTsKICAgIGpvaW4oIiIsICJmb28vYmFyIik7CiAgICBqb2luKCIiLCAiYmFyIik7CiAgICBqb2luKCJmb28iLCAiL2JhciIpOwogICAgam9pbigiLyIsICJiYXIiKTsKCiAgICAvLyBqb2luICgzIG9yIG1vcmUgcGFybXMpCiAgICBqb2luMygiIiwgIiIsICJ0aHJlZSIpOwogICAgam9pbjMoIm9uZSIsICJ0d28iLCAidGhyZWUiKTsKICAgIGpvaW4zKCJvbmUiLCAiL3R3byIsICJ0aHJlZSIpOwogICAgam9pbjQoIm9uZSIsICJ0d28iLCAidGhyZWUiLCAiZm91ciIpOwogICAgam9pbjQoIm9uZSIsICJ0d28iLCAiIiwgImZvdXIiKTsKCiAgICAvLyBleHQKICAgIGV4dCgiIik7CiAgICBleHQoImZvbyIpOwogICAgZXh0KCJmb28uYmFyIik7CiAgICBleHQoImZvby5iYXIubW9vIik7CiAgICBleHQoImZvby4iKTsKICAgIGV4dCgiLmZvbyIpOwoKICAgIC8vIHNwbGl0am9pbgogICAgc3BsaXRqb2luKCIiKTsKICAgIHNwbGl0am9pbigiLyIpOwogICAgc3BsaXRqb2luKCIvZm9vIik7CiAgICBzcGxpdGpvaW4oIi9mb28vIik7CiAgICBzcGxpdGpvaW4oIi9mb28vYmFyIik7CiAgICBzcGxpdGpvaW4oIi9mb28vYmFyLyIpOwoKI2lmZGVmIFdJTjMyCiAgICBBU1NFUlRfRVEoZ2V0RXhwZWN0ZWRPdXRwdXQoInRlc3RfcGF0aF93aW4zMi50eHQiKSwgb3V0LnN0cigpKTsKI2Vsc2UKICAgIEFTU0VSVF9FUShnZXRFeHBlY3RlZE91dHB1dCgidGVzdF9wYXRoLnR4dCIpLCBvdXQuc3RyKCkpOwojZW5kaWYKfQoKdm9pZCB0ZXN0X2NvbnRhaW5lZChjb25zdCBzdGQ6OnN0cmluZyAmcGF0aCwgY29uc3QgYm9vbCBleHBlY3RlZCkKewogICAgY29uc3QgYm9vbCBjb250YWluZWQgPSBwYXRoOjppc19jb250YWluZWQocGF0aCk7CiAgICBBU1NFUlRfRVEoY29udGFpbmVkLCBleHBlY3RlZCk7Cn0KClRFU1QocGF0aCwgdGVzdDIpCnsKICAgIHRlc3RfY29udGFpbmVkKCIiLCBmYWxzZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiLiIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoIi4uIiwgZmFsc2UpOwogICAgdGVzdF9jb250YWluZWQoIi4ueCIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoInguLiIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoIi4uLiIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoIi4uLyIsIGZhbHNlKTsKICAgIHRlc3RfY29udGFpbmVkKCIvLi4iLCBmYWxzZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiL2ZvbyIsIGZhbHNlKTsKICAgIHRlc3RfY29udGFpbmVkKCJmb28iLCB0cnVlKTsKICAgIHRlc3RfY29udGFpbmVkKCJmb28vYmFyIiwgdHJ1ZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiZm9vLy9iYXIiLCB0cnVlKTsKICAgIHRlc3RfY29udGFpbmVkKCJmb28vYmFyLyIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoImZvby9iYXIvLyIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoIi4uZm9vIiwgdHJ1ZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiLmZvbyIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoIi4vZm9vIiwgdHJ1ZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiLi4vZm9vIiwgZmFsc2UpOwogICAgdGVzdF9jb250YWluZWQoIi4uLy9mb28iLCBmYWxzZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiLi4uL2ZvbyIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoImZvby8uLiIsIGZhbHNlKTsKICAgIHRlc3RfY29udGFpbmVkKCJmb28vLiIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoImZvby8vLi4iLCBmYWxzZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiZm9vLy4uLiIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoImZvby8uL2JhciIsIHRydWUpOwogICAgdGVzdF9jb250YWluZWQoImZvby8uLi9iYXIiLCBmYWxzZSk7CiAgICB0ZXN0X2NvbnRhaW5lZCgiZm9vLy4uLi9iYXIiLCB0cnVlKTsKfQoKdm9pZCB0ZXN0X2pvaW5fc3BlZWQoKQp7CiAgICBzaXplX3QgY291bnQgPSAwOwogICAgZm9yIChpbnQgaSA9IDA7IGkgPCAxMDAwMDAwMDsgKytpKQogICAgewogICAgICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHMgPSBwYXRoOjpqb2luKCJvbmUiLCAidHdvIiwgInRocmVlIiwgImZvdXIiKTsKICAgICAgICBjb3VudCArPSBzLmxlbmd0aCgpOwogICAgfQogICAgc3RkOjpjb3V0IDw8IGNvdW50IDw8IHN0ZDo6ZW5kbDsKfQ==
+#include "test_common.hpp"
+
+#include <iostream>
+
+#include <openvpn/common/path.hpp>
+
+using namespace openvpn;
+
+// Ugly hack
+static std::stringstream out;
+
+void test_basename(const std::string &path)
+{
+    const std::string res = path::basename(path);
+    out << "basename('" << path << "') = '" << res << "'" << std::endl;
+}
+
+void dirname(const std::string &path)
+{
+    const std::string res = path::dirname(path);
+    out << "dirname('" << path << "') = '" << res << "'" << std::endl;
+}
+
+void ext(const std::string &path)
+{
+    const std::string res = path::ext(path);
+    out << "ext('" << path << "') = '" << res << "'" << std::endl;
+}
+
+void is_flat(const std::string &path)
+{
+    const bool res = path::is_flat(path);
+    out << "is_flat('" << path << "') = " << res << std::endl;
+}
+
+void join(const std::string &p1, const std::string &p2)
+{
+    const std::string res = path::join(p1, p2);
+    out << "join('" << p1 << "', '" << p2 << "') = '" << res << "'" << std::endl;
+}
+
+void join3(const std::string &p1, const std::string &p2, const std::string &p3)
+{
+    const std::string res = path::join(p1, p2, p3);
+    out << "join('" << p1 << "', '" << p2 << "', '" << p3 << "') = '" << res << "'" << std::endl;
+}
+
+void join4(const std::string &p1, const std::string &p2, const std::string &p3, const std::string &p4)
+{
+    const std::string res = path::join(p1, p2, p3, p4);
+    out << "join('" << p1 << "', '" << p2 << "', '" << p3 << "', '" << p4 << "') = '" << res << "'" << std::endl;
+}
+
+void splitjoin(const std::string &p1)
+{
+    const std::string d = path::dirname(p1);
+    const std::string b = path::basename(p1);
+    const std::string p2 = path::join(d, b);
+    out << "splitjoin p1='" << p1 << "' dir='" << d << "' bn='" << b << "' p2='" << p2 << "'" << std::endl;
+}
+
+TEST(path, test1)
+{
+    out.clear();
+    out.str("");
+    // basename
+    test_basename("");
+    test_basename("/");
+    test_basename("/foo");
+    test_basename("/foo/bar");
+    test_basename("foo/bar/boo");
+    test_basename("foo/bar/");
+    test_basename("foo\\bar\\boo");
+
+    // dirname
+    dirname("");
+    dirname("/");
+    dirname("/foo");
+    dirname("/foo/bar");
+    dirname("foo/bar/boo");
+    dirname("foo/bar/");
+    dirname("foo\\bar\\boo");
+
+    // is_flat
+    is_flat("");
+    is_flat("/");
+    is_flat("foo.bar");
+    is_flat("foo/bar");
+    is_flat("c:/foo");
+    is_flat("c:foo");
+    is_flat("z:\\foo");
+    is_flat(".");
+    is_flat("..");
+    is_flat("./foo");
+
+    // join
+    join("foo", "bar");
+    join("foo", "");
+    join("", "foo/bar");
+    join("", "bar");
+    join("foo", "/bar");
+    join("/", "bar");
+
+    // join (3 or more parms)
+    join3("", "", "three");
+    join3("one", "two", "three");
+    join3("one", "/two", "three");
+    join4("one", "two", "three", "four");
+    join4("one", "two", "", "four");
+
+    // ext
+    ext("");
+    ext("foo");
+    ext("foo.bar");
+    ext("foo.bar.moo");
+    ext("foo.");
+    ext(".foo");
+
+    // splitjoin
+    splitjoin("");
+    splitjoin("/");
+    splitjoin("/foo");
+    splitjoin("/foo/");
+    splitjoin("/foo/bar");
+    splitjoin("/foo/bar/");
+
+#ifdef WIN32
+    ASSERT_EQ(getExpectedOutput("test_path_win32.txt"), out.str());
+#else
+    ASSERT_EQ(getExpectedOutput("test_path.txt"), out.str());
+#endif
+}
+
+void test_contained(const std::string &path, const bool expected)
+{
+    const bool contained = path::is_contained(path);
+    ASSERT_EQ(contained, expected);
+}
+
+TEST(path, test2)
+{
+    test_contained("", false);
+    test_contained(".", true);
+    test_contained("..", false);
+    test_contained("..x", true);
+    test_contained("x..", true);
+    test_contained("...", true);
+    test_contained("../", false);
+    test_contained("/..", false);
+    test_contained("/foo", false);
+    test_contained("foo", true);
+    test_contained("foo/bar", true);
+    test_contained("foo//bar", true);
+    test_contained("foo/bar/", true);
+    test_contained("foo/bar//", true);
+    test_contained("..foo", true);
+    test_contained(".foo", true);
+    test_contained("./foo", true);
+    test_contained("../foo", false);
+    test_contained("..//foo", false);
+    test_contained(".../foo", true);
+    test_contained("foo/..", false);
+    test_contained("foo/.", true);
+    test_contained("foo//..", false);
+    test_contained("foo/...", true);
+    test_contained("foo/./bar", true);
+    test_contained("foo/../bar", false);
+    test_contained("foo/.../bar", true);
+}
+
+void test_join_speed()
+{
+    size_t count = 0;
+    for (int i = 0; i < 10000000; ++i)
+    {
+        const std::string s = path::join("one", "two", "three", "four");
+        count += s.length();
+    }
+    std::cout << count << std::endl;
+}

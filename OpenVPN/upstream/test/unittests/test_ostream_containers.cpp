@@ -1,1 +1,145 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9vc3RyZWFtX2NvbnRhaW5lcnMuaHBwPgojaW5jbHVkZSA8bGlzdD4KI2luY2x1ZGUgPGNvbXBsZXg+CiNpbmNsdWRlIDxkZXF1ZT4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKLy8gc2ltcGxlIHVzZSBjYXNlIGV4YW1wbGU7IGNhc2VzIHdpbGwgbW9zdGx5IGxvb2sgbGlrZSB0aGlzClRFU1Qob3N0cmVhbV9jb250YWluZXIsIHNpbXBsZV92ZWN0b3JfaW50KQp7CiAgICBzdGQ6OnZlY3RvcjxpbnQ+IHZpezIsIDQsIDYsIDh9OwogICAgc3RkOjpvc3RyaW5nc3RyZWFtIG9zczsKCiAgICBvc3MgPDwgQzJvczo6Y2FzdCh2aSk7CgogICAgQVNTRVJUX0VRKG9zcy5zdHIoKSwgc3RkOjpzdHJpbmcoIlsyLCA0LCA2LCA4XSIpKTsKfQoKLy8gVGVzdEl0ZW0gYW5kIGdlbmVyaWNfdGVzdCgpIGFsbG93IHNob3J0IGltcGxlbWVudGF0aW9uIG9mIHRlc3RzIGZvciBhcmJpdHJhcnkKLy8gY29uZm9ybWluZyBjb250YWluZXJzIHRoYXQgaG9sZCBhcmJpdHJhcnkgY29uZm9ybWluZyB0eXBlcwp0ZW1wbGF0ZSA8dHlwZW5hbWUgQ29udGFpbmVyPgpzdHJ1Y3QgVGVzdEl0ZW0KewogICAgVGVzdEl0ZW0oQ29udGFpbmVyICYmYywgc3RkOjpzdHJpbmcgJiZzKQogICAgICAgIDogY29udGFpbmVyKHN0ZDo6bW92ZShjKSksIGV4cGVjdGVkKHN0ZDo6bW92ZShzKSkKICAgIHsKICAgIH0KCiAgICBjb25zdCBDb250YWluZXIgY29udGFpbmVyOwogICAgY29uc3Qgc3RkOjpzdHJpbmcgZXhwZWN0ZWQ7Cn07Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgVGVzdHM+CnZvaWQgZ2VuZXJpY190ZXN0KGNvbnN0IFRlc3RzICZ0ZXN0cykKewogICAgZm9yIChhdXRvICZ0ZXN0IDogdGVzdHMpCiAgICB7CiAgICAgICAgc3RkOjpvc3RyaW5nc3RyZWFtIG9zczsKCiAgICAgICAgb3NzIDw8IEMyb3M6OmNhc3QodGVzdC5jb250YWluZXIpOwoKICAgICAgICBFWFBFQ1RfRVEob3NzLnN0cigpLCB0ZXN0LmV4cGVjdGVkKTsKICAgIH0KfQoKdGVtcGxhdGUgPHRlbXBsYXRlIDx0eXBlbmFtZS4uLj4gdHlwZW5hbWUgQ29sbF9ULCB0eXBlbmFtZSBWYWxfVD4KYXV0byBjb250YWluZXJfb2ZfcG9pbnRlcnMoY29uc3QgQ29sbF9UPFZhbF9UPiAmY29sbG4pCnsKICAgIENvbGxfVDxWYWxfVCAqPiB0cmFuc2Zvcm1lZDsKICAgIHR5cGVuYW1lIENvbGxfVDxWYWxfVD46OmNvbnN0X2l0ZXJhdG9yIGluSXQgPSBjb2xsbi5iZWdpbigpLCBpbkVuZEl0ID0gY29sbG4uZW5kKCk7CiAgICAvLyB0cmFuc2Zvcm0gaGVyZQogICAgc3RkOjp0cmFuc2Zvcm0oaW5JdCwgaW5FbmRJdCwgc3RkOjpiYWNrX2luc2VydGVyKHRyYW5zZm9ybWVkKSwgW10oY29uc3QgVmFsX1QgJmluKSAtPiBWYWxfVCAqCiAgICAgICAgICAgICAgICAgICB7IHJldHVybiBjb25zdF9jYXN0PFZhbF9UICo+KCZpbik7IH0pOwoKICAgIHJldHVybiB0cmFuc2Zvcm1lZDsKfQoKdGVtcGxhdGUgPHR5cGVuYW1lIFRlc3RzPgp2b2lkIGdlbmVyaWNfcHRyX3Rlc3QoY29uc3QgVGVzdHMgJnRlc3RzKQp7CiAgICBmb3IgKGF1dG8gJnRlc3QgOiB0ZXN0cykKICAgIHsKICAgICAgICBhdXRvIHB0cl9jb2xsbiA9IGNvbnRhaW5lcl9vZl9wb2ludGVycyh0ZXN0LmNvbnRhaW5lcik7CgogICAgICAgIHN0ZDo6b3N0cmluZ3N0cmVhbSBvc3M7CgogICAgICAgIG9zcyA8PCBDMm9zOjpjYXN0X2RlcmVmKHB0cl9jb2xsbik7CgogICAgICAgIEVYUEVDVF9FUShvc3Muc3RyKCksIHRlc3QuZXhwZWN0ZWQpOwogICAgfQp9CgovLyB0ZXN0cyBmb3IgaW50L3NldCwgc3RyaW5nL2xpc3QsIGNvbXBsZXgvdmVjdG9yLCBhbmQgY3VzdG9tL2RlcXVlCnVzaW5nIHNzaSA9IHN0ZDo6c2V0PGludD47CmNvbnN0IFRlc3RJdGVtPHNzaT4gc2V0X2ludF90ZXN0c1tdID0gewogICAgVGVzdEl0ZW08c3NpPih7MywgNSwgNywgMTF9LCAiWzMsIDUsIDcsIDExXSIpLAogICAgVGVzdEl0ZW08c3NpPih7LTMsIDUsIC03LCAwfSwgIlstNywgLTMsIDAsIDVdIiksCiAgICBUZXN0SXRlbTxzc2k+KHt9LCAiW10iKSwKfTsKClRFU1Qob3N0cmVhbV9jb250YWluZXIsIHNldF9pbnQpCnsKICAgIGdlbmVyaWNfdGVzdChzZXRfaW50X3Rlc3RzKTsKCiAgICAvLyB0aGUgdGVzdCBoYXJuZXNzLCBhcyBpcywgZG9lcyBub3Qgd29yayBmb3Igc2V0cyBvZiBwb2ludGVycy4gIFRoZSBmaXJzdCByZWFzb24gaXMKICAgIC8vIHRoYXQsIGluIHRyYW5zbGF0aW5nIHRoZSBub24tcG9pbnRlciB0ZXN0IGRhdGEsIHRyYW5zZm9ybSB1c2VzIGEgYmFja19pbnNlcnRlcjsKICAgIC8vIG5vdCBzdXBwb3J0ZWQgYnkgc2V0LiAgVGhlIHNlY29uZCByZWFzb24sIHNpbmNlIHdlIGNvdWxkIHdvcmsgYXJvdW5kIHRoZSBmaXJzdAogICAgLy8gd2l0aCBhIHNwZWNpYWwgc2V0IHNwZWNpZmljIHRyYW5zZm9ybSdlciwgaXMgdGhhdCB0aGUgb3JkZXIgb2YgdGhlIFxjIGludCogJ3MKICAgIC8vIHdvdWxkIG5vdCBtYXRjaCB0aGUgb3JkZXIgb2YgdGhlIFxjIGludCAnczsgc28gd2UgY291bGQgbm90IHVzZSB0aGUgc2FtZQogICAgLy8gImV4cGVjdGVkIiB2YWx1ZS4KICAgIC8vIGdlbmVyaWNfcHRyX3Rlc3Qoc2V0X2ludF90ZXN0cyk7Cn0KCnVzaW5nIHNscyA9IHN0ZDo6bGlzdDxzdGQ6OnN0cmluZz47CmNvbnN0IFRlc3RJdGVtPHNscz4gbGlzdF9zdHJpbmdfdGVzdHNbXSA9IHsKICAgIFRlc3RJdGVtPHNscz4oeyJBbGZyZWQiLCAiRS4iLCAiTmV1bWFuIn0sICJbQWxmcmVkLCBFLiwgTmV1bWFuXSIpLAogICAgVGVzdEl0ZW08c2xzPih7Ikluc3RpdHV0ZSBoYXMiLCAidGhlIGZpbmVzdCIsICJwcm9mZXNzb3JzIn0sICJbSW5zdGl0dXRlIGhhcywgdGhlIGZpbmVzdCwgcHJvZmVzc29yc10iKSwKfTsKClRFU1Qob3N0cmVhbV9jb250YWluZXIsIGxpc3Rfc3RyaW5nKQp7CiAgICBnZW5lcmljX3Rlc3QobGlzdF9zdHJpbmdfdGVzdHMpOwogICAgZ2VuZXJpY19wdHJfdGVzdChsaXN0X3N0cmluZ190ZXN0cyk7Cn0KCnVzaW5nIHN2YyA9IHN0ZDo6dmVjdG9yPHN0ZDo6Y29tcGxleDxkb3VibGU+PjsKY29uc3QgVGVzdEl0ZW08c3ZjPiB2ZWN0b3JfY29tcGxleF90ZXN0c1tdID0gewogICAgVGVzdEl0ZW08c3ZjPih7ezEuNSwgMi4wfSwgezYuNCwgNy4yfSwgezguOSwgMC40fX0sICJbKDEuNSwyKSwgKDYuNCw3LjIpLCAoOC45LDAuNCldIiksCiAgICBUZXN0SXRlbTxzdmM+KHt7LTUsIDB9LCB7MTgsIDUwMH0sIHsxZTYsIDMyfX0sICJbKC01LDApLCAoMTgsNTAwKSwgKDFlKzA2LDMyKV0iKSwKfTsKClRFU1Qob3N0cmVhbV9jb250YWluZXIsIHZlY3Rvcl9jb21wbGV4KQp7CiAgICBnZW5lcmljX3Rlc3QodmVjdG9yX2NvbXBsZXhfdGVzdHMpOwogICAgZ2VuZXJpY19wdHJfdGVzdCh2ZWN0b3JfY29tcGxleF90ZXN0cyk7Cn0KCnN0cnVjdCBNeUNvbXBsZXggOiBwdWJsaWMgc3RkOjpjb21wbGV4PGRvdWJsZT4KewogICAgTXlDb21wbGV4KGRvdWJsZSByZSwgZG91YmxlIGltKQogICAgICAgIDogc3RkOjpjb21wbGV4PGRvdWJsZT4ocmUsIGltKQogICAgewogICAgfQp9OwoKc3RkOjpvc3RyZWFtICZvcGVyYXRvcjw8KHN0ZDo6b3N0cmVhbSAmb3MsIGNvbnN0IE15Q29tcGxleCAmbWMpCnsKICAgIG9zIDw8IG1jLnJlYWwoKSA8PCAiK2kiIDw8IG1jLmltYWcoKTsKICAgIHJldHVybiBvczsKfQoKdXNpbmcgc2RtID0gc3RkOjpkZXF1ZTxNeUNvbXBsZXg+Owpjb25zdCBUZXN0SXRlbTxzZG0+IGRlcXVlX2N1c3RvbV90ZXN0c1tdID0gewogICAgVGVzdEl0ZW08c2RtPih7ezEuNSwgMi4wfSwgezYuNCwgNy4yfSwgezguOSwgMC40fX0sICJbMS41K2kyLCA2LjQraTcuMiwgOC45K2kwLjRdIiksCiAgICBUZXN0SXRlbTxzZG0+KHt7LTUsIDB9LCB7MTgsIDUwMH0sIHsxZTYsIDMyfX0sICJbLTUraTAsIDE4K2k1MDAsIDFlKzA2K2kzMl0iKSwKfTsKClRFU1Qob3N0cmVhbV9jb250YWluZXIsIGRlcXVlX2N1c3RvbSkKewogICAgZ2VuZXJpY190ZXN0KGRlcXVlX2N1c3RvbV90ZXN0cyk7CiAgICBnZW5lcmljX3B0cl90ZXN0KGRlcXVlX2N1c3RvbV90ZXN0cyk7Cn0KLy8gZW5kOiB0ZXN0cyBmb3IgaW50L3NldCwgc3RyaW5nL2xpc3QsIGNvbXBsZXgvdmVjdG9yLCBhbmQgY3VzdG9tL2RlcXVlCg==
+#include "test_common.hpp"
+
+#include <openvpn/common/ostream_containers.hpp>
+#include <list>
+#include <complex>
+#include <deque>
+
+using namespace openvpn;
+
+// simple use case example; cases will mostly look like this
+TEST(ostream_container, simple_vector_int)
+{
+    std::vector<int> vi{2, 4, 6, 8};
+    std::ostringstream oss;
+
+    oss << C2os::cast(vi);
+
+    ASSERT_EQ(oss.str(), std::string("[2, 4, 6, 8]"));
+}
+
+// TestItem and generic_test() allow short implementation of tests for arbitrary
+// conforming containers that hold arbitrary conforming types
+template <typename Container>
+struct TestItem
+{
+    TestItem(Container &&c, std::string &&s)
+        : container(std::move(c)), expected(std::move(s))
+    {
+    }
+
+    const Container container;
+    const std::string expected;
+};
+
+template <typename Tests>
+void generic_test(const Tests &tests)
+{
+    for (auto &test : tests)
+    {
+        std::ostringstream oss;
+
+        oss << C2os::cast(test.container);
+
+        EXPECT_EQ(oss.str(), test.expected);
+    }
+}
+
+template <template <typename...> typename Coll_T, typename Val_T>
+auto container_of_pointers(const Coll_T<Val_T> &colln)
+{
+    Coll_T<Val_T *> transformed;
+    typename Coll_T<Val_T>::const_iterator inIt = colln.begin(), inEndIt = colln.end();
+    // transform here
+    std::transform(inIt, inEndIt, std::back_inserter(transformed), [](const Val_T &in) -> Val_T *
+                   { return const_cast<Val_T *>(&in); });
+
+    return transformed;
+}
+
+template <typename Tests>
+void generic_ptr_test(const Tests &tests)
+{
+    for (auto &test : tests)
+    {
+        auto ptr_colln = container_of_pointers(test.container);
+
+        std::ostringstream oss;
+
+        oss << C2os::cast_deref(ptr_colln);
+
+        EXPECT_EQ(oss.str(), test.expected);
+    }
+}
+
+// tests for int/set, string/list, complex/vector, and custom/deque
+using ssi = std::set<int>;
+const TestItem<ssi> set_int_tests[] = {
+    TestItem<ssi>({3, 5, 7, 11}, "[3, 5, 7, 11]"),
+    TestItem<ssi>({-3, 5, -7, 0}, "[-7, -3, 0, 5]"),
+    TestItem<ssi>({}, "[]"),
+};
+
+TEST(ostream_container, set_int)
+{
+    generic_test(set_int_tests);
+
+    // the test harness, as is, does not work for sets of pointers.  The first reason is
+    // that, in translating the non-pointer test data, transform uses a back_inserter;
+    // not supported by set.  The second reason, since we could work around the first
+    // with a special set specific transform'er, is that the order of the \c int* 's
+    // would not match the order of the \c int 's; so we could not use the same
+    // "expected" value.
+    // generic_ptr_test(set_int_tests);
+}
+
+using sls = std::list<std::string>;
+const TestItem<sls> list_string_tests[] = {
+    TestItem<sls>({"Alfred", "E.", "Neuman"}, "[Alfred, E., Neuman]"),
+    TestItem<sls>({"Institute has", "the finest", "professors"}, "[Institute has, the finest, professors]"),
+};
+
+TEST(ostream_container, list_string)
+{
+    generic_test(list_string_tests);
+    generic_ptr_test(list_string_tests);
+}
+
+using svc = std::vector<std::complex<double>>;
+const TestItem<svc> vector_complex_tests[] = {
+    TestItem<svc>({{1.5, 2.0}, {6.4, 7.2}, {8.9, 0.4}}, "[(1.5,2), (6.4,7.2), (8.9,0.4)]"),
+    TestItem<svc>({{-5, 0}, {18, 500}, {1e6, 32}}, "[(-5,0), (18,500), (1e+06,32)]"),
+};
+
+TEST(ostream_container, vector_complex)
+{
+    generic_test(vector_complex_tests);
+    generic_ptr_test(vector_complex_tests);
+}
+
+struct MyComplex : public std::complex<double>
+{
+    MyComplex(double re, double im)
+        : std::complex<double>(re, im)
+    {
+    }
+};
+
+std::ostream &operator<<(std::ostream &os, const MyComplex &mc)
+{
+    os << mc.real() << "+i" << mc.imag();
+    return os;
+}
+
+using sdm = std::deque<MyComplex>;
+const TestItem<sdm> deque_custom_tests[] = {
+    TestItem<sdm>({{1.5, 2.0}, {6.4, 7.2}, {8.9, 0.4}}, "[1.5+i2, 6.4+i7.2, 8.9+i0.4]"),
+    TestItem<sdm>({{-5, 0}, {18, 500}, {1e6, 32}}, "[-5+i0, 18+i500, 1e+06+i32]"),
+};
+
+TEST(ostream_container, deque_custom)
+{
+    generic_test(deque_custom_tests);
+    generic_ptr_test(deque_custom_tests);
+}
+// end: tests for int/set, string/list, complex/vector, and custom/deque

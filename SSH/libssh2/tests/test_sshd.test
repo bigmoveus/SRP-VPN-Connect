@@ -1,1 +1,169 @@
-IyEvdXNyL2Jpbi9lbnYgYmFzaAojIENvcHlyaWdodCAoQykgU2ltb24gSm9zZWZzc29uCiMgQ29weXJpZ2h0IChDKSBWaWt0b3IgU3pha2F0cwojIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBCU0QtMy1DbGF1c2UKIwojIFN0YXJ0IHNzaGQsIGludm9rZSB0ZXN0KHMpLCBzYXZpbmcgZXhpdCBjb2RlLCBraWxsIHNzaGQsIGFuZAojIHJldHVybiBleGl0IGNvZGUuCgpzZXQgLWUKc2V0IC11CgojIGh0dHBzOi8vdGVzdGFueXRoaW5nLm9yZy90YXAtc3BlY2lmaWNhdGlvbi5odG1sCgpkPSIkKGRpcm5hbWUgIiQwIikiCnVuYW1lPSIkKHVuYW1lKSIKCiMgTG9hZCBsaXN0IG9mIHRlc3RzCgppZiBbIC1uICIkezE6LX0iIF07IHRoZW4KICAjIGZvciBDTWFrZSBvciBtYW51YWwKICB0ZXN0cz0iJCoiCiAgdmlhX2FyZ3M9MQplbHNlCiAgIyBmb3IgYXV0b3Rvb2xzCiAgdmlhX2FyZ3M9MAogICMgTG9hZCBsaXN0IG9mIFNTSEQgdGVzdHMgZnJvbSBNYWtlZmlsZS5pbmMKICB0ZXN0cz0nJwogIGxvYWQ9MAogIHdoaWxlIHJlYWQgLXIgbDsgZG8KICAgIGlmIFtbICIke2x9IiA9ICdTU0hEX1RFU1RTID0nKiBdXTsgdGhlbgogICAgICBsb2FkPTEKICAgIGVsaWYgWyAiJHtsb2FkfSIgPSAnMScgXTsgdGhlbgogICAgICBbWyAiJHtsfSIgPX4gW2EtejAtOV9dKyBdXSAmJiB0ZXN0cys9IiR7dGVzdHM6KyB9Li8ke0JBU0hfUkVNQVRDSFswXX0ke0VYRUVYVDotfSIKICAgICAgW1sgISAiJHtsfSIgPSAqIlxcIiBdXSAmJiBicmVhawogICAgZmkKICBkb25lIDw8PCAiJCh0ciAtZCAkIlxyIiA8ICIke2R9L01ha2VmaWxlLmluYyIpIgpmaQoKaWYgWyAtbiAiJHtTU0hEX1RFU1RTX0xJTUlUX1RPOi19IiBdOyB0aGVuCiAgdGVzdHM9IiQoZWNobyAiJHt0ZXN0c30iIHwgY3V0IC1kICcgJyAtZiAtIiR7U1NIRF9URVNUU19MSU1JVF9UT30iKSIKICBlY2hvICIjIGxpbWl0aW5nIHRlc3RzIHRvIHRoZSBmaXJzdCAke1NTSERfVEVTVFNfTElNSVRfVE99LiIKZmkKCiMgSW5pdCBhbmQgc3RhcnQgc3NoZAoKZD0iJChjZCAiJHtkfSIgfHwgZXhpdDsgcHdkKSIgICMgc3NoZCBuZWVkcyBhYnNvbHV0ZSBwYXRocwoKU1NIRD0iJHtTU0hEOi0vdXNyL3NiaW4vc3NoZH0iCltbICIke3VuYW1lfSIgPSAqJ19OVCcqIF1dICYmIFNTSEQ9IiQoY3lncGF0aCAiJHtTU0hEfSIpIgp2ZXI9IiQoIiR7U1NIRH0iIC1WIDI+JjEgfHwgdHJ1ZSkiCmlmIFtbICIke3Zlcn0iID1+IE9wZW5TU0hfW2EtekEtWjAtOV9cIC4sXSsgXV07IHRoZW4KICB2ZXI9IiR7QkFTSF9SRU1BVENIWzBdfSIKZWxzZQogIHZlcj0nJwpmaQplY2hvICIjIHNzaGQgZXhlY3V0YWJsZTogJyR7U1NIRH0nICgke3Zlcn0pIgoKIyBmb3Igb3VyIHRlc3QgY2xpZW50czoKWyAteiAiJHtQUklWS0VZOi19IiBdICYmIGV4cG9ydCBQUklWS0VZPSIke2R9L2tleV9yc2EiClsgLXogIiR7UFVCS0VZOi19IiBdICAmJiBleHBvcnQgUFVCS0VZPSIke2R9L2tleV9yc2EucHViIgpjYWtleXM9IiR7ZH0vb3BlbnNzaF9zZXJ2ZXIvY2FfdXNlcl9rZXlzLnB1YiIKCmxvZ2ZzcnY9IiQobWt0ZW1wKSI7IHJlYWRvbmx5IGxvZ2ZzcnYKbG9nZmNsaT0iJChta3RlbXApIjsgcmVhZG9ubHkgbG9nZmNsaQoKZWNobyAiIyBzc2hkIGxvZzogJyR7bG9nZnNydn0nIgoKU1NIRF9GTEFHUz0iJHtTU0hEX0ZMQUdTOi19IgppZiBbIC1uICIke0RFQlVHOi19IiBdOyB0aGVuCiAgU1NIRF9GTEFHUys9JyAtZCAtZCcKZWxzZQogIFNTSERfRkxBR1MrPSIgLUUgJHtsb2dmc3J2fSIKZmkKCmNobW9kIGdvLXJ3eCBcCiAgIiR7ZH0iL29wZW5zc2hfc2VydmVyL3NzaF9ob3N0XyogXAogICIke2Nha2V5c30iCgojIHNoZWxsY2hlY2sgZGlzYWJsZT1TQzIwODYKIiR7U1NIRH0iIFwKICAtZiAiJHtTU0hEX0ZJWFRVUkVfQ09ORklHOi0ke2R9L29wZW5zc2hfc2VydmVyL3NzaGRfY29uZmlnfSIgXAogIC1vICdQb3J0IDQ3MTEnIFwKICAtbyAnU3RyaWN0TW9kZXMgbm8nIFwKICAtaCAiJHtkfS9vcGVuc3NoX3NlcnZlci9zc2hfaG9zdF9yc2Ffa2V5IiBcCiAgLWggIiR7ZH0vb3BlbnNzaF9zZXJ2ZXIvc3NoX2hvc3RfZWNkc2Ffa2V5IiBcCiAgLWggIiR7ZH0vb3BlbnNzaF9zZXJ2ZXIvc3NoX2hvc3RfZWQyNTUxOV9rZXkiIFwKICAtbyAnUGlkRmlsZSBzc2hkLnBpZCcgXAogIC1vICJBdXRob3JpemVkS2V5c0ZpbGUgJHtQVUJLRVl9ICR7ZH0vb3BlbnNzaF9zZXJ2ZXIvYXV0aG9yaXplZF9rZXlzIiBcCiAgLW8gIlRydXN0ZWRVc2VyQ0FLZXlzICR7Y2FrZXlzfSIgXAogIC1vICdQZXJtaXRSb290TG9naW4geWVzJyBcCiAgLUQgXAogICR7U1NIRF9GTEFHU30gJgpzc2hkcGlkPSQhCgp0cmFwICdraWxsICIke3NzaGRwaWR9IjsgZWNobyAiIyBzaWduYWwga2lsbGluZyBzc2hkIjsgZXhpdCAxOycgRVhJVCBIVVAgSU5UIFRFUk0KCjogInN0YXJ0ZWQgc3NoZCAoJHtzc2hkcGlkfSkiCgpTU0g9IiQoY29tbWFuZCAtdiAiJHtTU0g6LXNzaH0iIHx8IHRydWUpIgppZiBbIC1uICIke1NTSH0iIF07IHRoZW4KICBlY2hvICIjIHNzaCBleGVjdXRhYmxlOiAnJHtTU0h9JyAoJCgiJHtTU0h9IiAtViAyPiYxIHx8IHRydWUpKSIKICBlY2hvICIjIHNzaCBsb2c6ICcke2xvZ2ZjbGl9JyIKICBjaG1vZCBnby1yd3ggIiR7UFJJVktFWX0iCiAgaWYgW1sgIiR7dW5hbWV9IiA9IConX05UJyogXV07IHRoZW4KICAgIGV4cG9ydCBNU1lTMl9BUkdfQ09OVl9FWENMPScvcmVzZXQnCiAgICBpY2FjbHMgIiR7UFJJVktFWX0iIC9yZXNldAogICAgaWNhY2xzICIke1BSSVZLRVl9IiAvZ3JhbnQ6ciAiJHtVU0VSTkFNRX06KFIpIgogICAgaWNhY2xzICIke1BSSVZLRVl9IiAvaW5oZXJpdGFuY2U6cgogIGZpCiAgY291bnQ9MQogICMgc2hlbGxjaGVjayBkaXNhYmxlPVNDMjA4NgogIHdoaWxlICEgIiR7U1NIOi1zc2h9IiAtcSAtYSAtayBcCiAgICAgIC1GIC9kZXYvbnVsbCBcCiAgICAgIC1vICdCYXRjaE1vZGUgeWVzJyBcCiAgICAgIC1vICdTdHJpY3RIb3N0S2V5Q2hlY2tpbmcgbm8nIFwKICAgICAgLW8gJ1VzZXJLbm93bkhvc3RzRmlsZSAvZGV2L251bGwnIFwKICAgICAgLW8gJ0Nvbm5lY3RUaW1lb3V0IDMnIFwKICAgICAgLWkgIiR7UFJJVktFWX0iIFwKICAgICAgLXAgNDcxMSAke1NTSF9GTEFHUzotfSBsb2NhbGhvc3QgZXhpdCAyPj4iJHtsb2dmY2xpfSI7IGRvCiAgICAoKGNvdW50KyspKQogICAgaWYgW1sgIiR7Y291bnR9IiAtZ3QgOCBdXTsgdGhlbgogICAgICBlY2hvICcjIGdpdmluZyB1cCB3YWl0aW5nIGZvciBzc2hkLiBUZXN0cyBhcmUgZXhwZWN0ZWQgdG8gZmFpbC4nCiAgICAgIGVjaG8gJyMgc3NoZCBsb2c6JwogICAgICBzZWQgJ3MvXi8jICAvJyA8ICIke2xvZ2ZzcnZ9IgogICAgICBlY2hvICcjIHNzaCB0ZXN0IGNvbm5lY3QgbG9nOicKICAgICAgc2VkICdzL14vIyAgLycgPCAiJHtsb2dmY2xpfSIKICAgICAgYnJlYWsKICAgIGZpCiAgICBlY2hvICcjIHdhaXRpbmcgZm9yIHNzaGQuLi4nCiAgICBzbGVlcCAxCiAgZG9uZQplbHNlCiAgZWNobyAnIyBnaXZpbmcgdGltZSBmb3Igc3NoZCB0byBsYXVuY2guLi4nCiAgc2xlZXAgNQpmaQoKIyBSdW4gdGVzdHMKCmVjPTAKY291bnQ9MQp0b3RhbD0iJChlY2hvICIke3Rlc3RzfSIgfCB3YyAtdyB8IHRyIC1kICcgJykiCmFueWVycm9yPTAKCmVjaG8gIiR7Y291bnR9Li4ke3RvdGFsfSIKCmV4cG9ydCBPUEVOU1NIX05PX0RPQ0tFUj0xCgpmb3IgdGVzdCBpbiAke3Rlc3RzfTsgZG8KICBpZiAiJHt0ZXN0fSI7IHRoZW4KICAgIHJlcz0nb2snCiAgZWxzZQogICAgdGVzdGVycj0kPwogICAgYW55ZXJyb3I9MQogICAgWyAiJHt2aWFfYXJnc30iID0gJzEnIF0gJiYgWyAiJHt0b3RhbH0iID0gJzEnIF0gJiYgZWM9IiR7dGVzdGVycn0iCiAgICByZXM9J25vdCBvaycKICBmaQogIGVjaG8gIiR7cmVzfSAke2NvdW50fSAtIHNzaGQtJChiYXNlbmFtZSAiJHt0ZXN0fSIpIgogICgoY291bnQrKykpCmRvbmUKCiMgU3RvcCBzc2hkCgo6ICJraWxsaW5nIHNzaGQgKCR7c3NoZHBpZH0pIgpraWxsICIke3NzaGRwaWR9IiA+IC9kZXYvbnVsbCAyPiYxCnRyYXAgJycgRVhJVCBIVVAgSU5UIFRFUk0KClsgIiR7dmlhX2FyZ3N9IiA9ICcxJyBdICYmIFsgIiR7dG90YWx9IiAhPSAnMScgXSAmJiBlYz0iJHthbnllcnJvcn0iCgpleGl0ICIke2VjfSIK
+#!/usr/bin/env bash
+# Copyright (C) Simon Josefsson
+# Copyright (C) Viktor Szakats
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Start sshd, invoke test(s), saving exit code, kill sshd, and
+# return exit code.
+
+set -e
+set -u
+
+# https://testanything.org/tap-specification.html
+
+d="$(dirname "$0")"
+uname="$(uname)"
+
+# Load list of tests
+
+if [ -n "${1:-}" ]; then
+  # for CMake or manual
+  tests="$*"
+  via_args=1
+else
+  # for autotools
+  via_args=0
+  # Load list of SSHD tests from Makefile.inc
+  tests=''
+  load=0
+  while read -r l; do
+    if [[ "${l}" = 'SSHD_TESTS ='* ]]; then
+      load=1
+    elif [ "${load}" = '1' ]; then
+      [[ "${l}" =~ [a-z0-9_]+ ]] && tests+="${tests:+ }./${BASH_REMATCH[0]}${EXEEXT:-}"
+      [[ ! "${l}" = *"\\" ]] && break
+    fi
+  done <<< "$(tr -d $"\r" < "${d}/Makefile.inc")"
+fi
+
+if [ -n "${SSHD_TESTS_LIMIT_TO:-}" ]; then
+  tests="$(echo "${tests}" | cut -d ' ' -f -"${SSHD_TESTS_LIMIT_TO}")"
+  echo "# limiting tests to the first ${SSHD_TESTS_LIMIT_TO}."
+fi
+
+# Init and start sshd
+
+d="$(cd "${d}" || exit; pwd)"  # sshd needs absolute paths
+
+SSHD="${SSHD:-/usr/sbin/sshd}"
+[[ "${uname}" = *'_NT'* ]] && SSHD="$(cygpath "${SSHD}")"
+ver="$("${SSHD}" -V 2>&1 || true)"
+if [[ "${ver}" =~ OpenSSH_[a-zA-Z0-9_\ .,]+ ]]; then
+  ver="${BASH_REMATCH[0]}"
+else
+  ver=''
+fi
+echo "# sshd executable: '${SSHD}' (${ver})"
+
+# for our test clients:
+[ -z "${PRIVKEY:-}" ] && export PRIVKEY="${d}/key_rsa"
+[ -z "${PUBKEY:-}" ]  && export PUBKEY="${d}/key_rsa.pub"
+cakeys="${d}/openssh_server/ca_user_keys.pub"
+
+logfsrv="$(mktemp)"; readonly logfsrv
+logfcli="$(mktemp)"; readonly logfcli
+
+echo "# sshd log: '${logfsrv}'"
+
+SSHD_FLAGS="${SSHD_FLAGS:-}"
+if [ -n "${DEBUG:-}" ]; then
+  SSHD_FLAGS+=' -d -d'
+else
+  SSHD_FLAGS+=" -E ${logfsrv}"
+fi
+
+chmod go-rwx \
+  "${d}"/openssh_server/ssh_host_* \
+  "${cakeys}"
+
+# shellcheck disable=SC2086
+"${SSHD}" \
+  -f "${SSHD_FIXTURE_CONFIG:-${d}/openssh_server/sshd_config}" \
+  -o 'Port 4711' \
+  -o 'StrictModes no' \
+  -h "${d}/openssh_server/ssh_host_rsa_key" \
+  -h "${d}/openssh_server/ssh_host_ecdsa_key" \
+  -h "${d}/openssh_server/ssh_host_ed25519_key" \
+  -o 'PidFile sshd.pid' \
+  -o "AuthorizedKeysFile ${PUBKEY} ${d}/openssh_server/authorized_keys" \
+  -o "TrustedUserCAKeys ${cakeys}" \
+  -o 'PermitRootLogin yes' \
+  -D \
+  ${SSHD_FLAGS} &
+sshdpid=$!
+
+trap 'kill "${sshdpid}"; echo "# signal killing sshd"; exit 1;' EXIT HUP INT TERM
+
+: "started sshd (${sshdpid})"
+
+SSH="$(command -v "${SSH:-ssh}" || true)"
+if [ -n "${SSH}" ]; then
+  echo "# ssh executable: '${SSH}' ($("${SSH}" -V 2>&1 || true))"
+  echo "# ssh log: '${logfcli}'"
+  chmod go-rwx "${PRIVKEY}"
+  if [[ "${uname}" = *'_NT'* ]]; then
+    export MSYS2_ARG_CONV_EXCL='/reset'
+    icacls "${PRIVKEY}" /reset
+    icacls "${PRIVKEY}" /grant:r "${USERNAME}:(R)"
+    icacls "${PRIVKEY}" /inheritance:r
+  fi
+  count=1
+  # shellcheck disable=SC2086
+  while ! "${SSH:-ssh}" -q -a -k \
+      -F /dev/null \
+      -o 'BatchMode yes' \
+      -o 'StrictHostKeyChecking no' \
+      -o 'UserKnownHostsFile /dev/null' \
+      -o 'ConnectTimeout 3' \
+      -i "${PRIVKEY}" \
+      -p 4711 ${SSH_FLAGS:-} localhost exit 2>>"${logfcli}"; do
+    ((count++))
+    if [[ "${count}" -gt 8 ]]; then
+      echo '# giving up waiting for sshd. Tests are expected to fail.'
+      echo '# sshd log:'
+      sed 's/^/#  /' < "${logfsrv}"
+      echo '# ssh test connect log:'
+      sed 's/^/#  /' < "${logfcli}"
+      break
+    fi
+    echo '# waiting for sshd...'
+    sleep 1
+  done
+else
+  echo '# giving time for sshd to launch...'
+  sleep 5
+fi
+
+# Run tests
+
+ec=0
+count=1
+total="$(echo "${tests}" | wc -w | tr -d ' ')"
+anyerror=0
+
+echo "${count}..${total}"
+
+export OPENSSH_NO_DOCKER=1
+
+for test in ${tests}; do
+  if "${test}"; then
+    res='ok'
+  else
+    testerr=$?
+    anyerror=1
+    [ "${via_args}" = '1' ] && [ "${total}" = '1' ] && ec="${testerr}"
+    res='not ok'
+  fi
+  echo "${res} ${count} - sshd-$(basename "${test}")"
+  ((count++))
+done
+
+# Stop sshd
+
+: "killing sshd (${sshdpid})"
+kill "${sshdpid}" > /dev/null 2>&1
+trap '' EXIT HUP INT TERM
+
+[ "${via_args}" = '1' ] && [ "${total}" != '1' ] && ec="${anyerror}"
+
+exit "${ec}"

@@ -1,1 +1,66 @@
-IyEvdXNyL2Jpbi9lbnYgcnVieQojIEludGVncmF0ZXMgdGhlIFNvZnRFdGhlciBjb3JlIChsaWJTRUNvcmUgKyBwcmVmaXhlZCBPcGVuU1NMKSBpbnRvIHRoZSBYY29kZSBwcm9qZWN0cy4KcmVxdWlyZSAneGNvZGVwcm9qJwoKUk9PVCA9IEZpbGUuZXhwYW5kX3BhdGgoJy4uJywgX19kaXJfXykgICAgICAgICMgU1JQLVZQTi1Db25uZWN0LwoKIyAtLS0tIDEpIENvcmUvU1JQQ29yZS54Y29kZXByb2o6IGFkZCBTUlBTb2Z0RXRoZXJDbGllbnQgc291cmNlcyAtLS0tCmNvcmVfcHJval9wYXRoID0gRmlsZS5qb2luKFJPT1QsICdDb3JlL1NSUENvcmUueGNvZGVwcm9qJykKcHJvaiA9IFhjb2RlcHJvajo6UHJvamVjdC5vcGVuKGNvcmVfcHJval9wYXRoKQpjb3JlX3RhcmdldCA9IHByb2oudGFyZ2V0cy5maW5kIHsgfHR8IHQubmFtZSA9PSAnU1JQQ29yZScgfSBvciBhYm9ydCAnU1JQQ29yZSB0YXJnZXQgbm90IGZvdW5kJwpncm91cCA9IHByb2oubWFpbl9ncm91cC5maW5kX3N1YnBhdGgoJ1NSUENvcmUnLCBmYWxzZSkgcmVzY3VlIG5pbApncm91cCB8fD0gcHJvai5tYWluX2dyb3VwCiV3W1NSUFNvZnRFdGhlckNsaWVudC5oIFNSUFNvZnRFdGhlckNsaWVudC5tXS5lYWNoIGRvIHxmbmFtZXwKICBuZXh0IGlmIGdyb3VwLmZpbGVzLmFueT8geyB8ZnwgZi5kaXNwbGF5X25hbWUgPT0gZm5hbWUgfQogIHJlZiA9IGdyb3VwLm5ld19maWxlKEZpbGUuam9pbihST09ULCAnQ29yZS9TUlBDb3JlJywgZm5hbWUpKQogIGlmIGZuYW1lLmVuZF93aXRoPygnLm0nKQogICAgY29yZV90YXJnZXQuc291cmNlX2J1aWxkX3BoYXNlLmFkZF9maWxlX3JlZmVyZW5jZShyZWYpCiAgZWxzZQogICAgY29yZV90YXJnZXQuaGVhZGVyc19idWlsZF9waGFzZS5hZGRfZmlsZV9yZWZlcmVuY2UocmVmKSBpZiBjb3JlX3RhcmdldC5yZXNwb25kX3RvPyg6aGVhZGVyc19idWlsZF9waGFzZSkgJiYgY29yZV90YXJnZXQuaGVhZGVyc19idWlsZF9waGFzZQogIGVuZAplbmQKY29yZV90YXJnZXQuYnVpbGRfY29uZmlndXJhdGlvbnMuZWFjaCBkbyB8Y3wKICBoc3AgPSBjLmJ1aWxkX3NldHRpbmdzWydIRUFERVJfU0VBUkNIX1BBVEhTJ10gfHwgWyckKGluaGVyaXRlZCknXQogIGhzcCA9IFtoc3BdIHVubGVzcyBoc3AuaXNfYT8oQXJyYXkpCiAgYWRkID0gJyQoU1JDUk9PVCkvLi4vU29mdEV0aGVyL2JyaWRnZScKICBjLmJ1aWxkX3NldHRpbmdzWydIRUFERVJfU0VBUkNIX1BBVEhTJ10gPSBoc3AgdW5sZXNzIGhzcC5pbmNsdWRlPyhhZGQpCiAgaHNwIDw8IGFkZCB1bmxlc3MgaHNwLmluY2x1ZGU/KGFkZCkKICBjLmJ1aWxkX3NldHRpbmdzWydIRUFERVJfU0VBUkNIX1BBVEhTJ10gPSBoc3AKZW5kCnByb2ouc2F2ZQpwdXRzICdTUlBDb3JlIHByb2plY3QgdXBkYXRlZCcKCiMgLS0tLSAyKSBtYWluIHByb2plY3Q6IGxpbmsgU0UgbGlicyBpbnRvIGV4dGVuc2lvbiArIG1hYyB0ZXN0IHRhcmdldCAtLS0tCm1haW5fcHJval9wYXRoID0gRmlsZS5qb2luKFJPT1QsICdTUlAtVlBOLUNvbm5lY3QueGNvZGVwcm9qJykKcHJvaiA9IFhjb2RlcHJvajo6UHJvamVjdC5vcGVuKG1haW5fcHJval9wYXRoKQoKbGliX3BhdGhzID0gWwogICckKFNSQ1JPT1QpL1NvZnRFdGhlci9idWlsZC8kKEVGRkVDVElWRV9QTEFURk9STV9OQU1FKScsCiAgJyQoU1JDUk9PVCkvU29mdEV0aGVyL29wZW5zc2wvJChFRkZFQ1RJVkVfUExBVEZPUk1fTkFNRSkvbGliJywKXQpsZGZsYWdzID0gWyctbFNFQ29yZScsICctbHNycHNlX3NzbCcsICctbHNycHNlX2NyeXB0byddCgold1tTUlBUdW5uZWwgU1JQLVZQTi1Db25uZWN0VGVzdHNNYWNdLmVhY2ggZG8gfHRuYW1lfAogIHQgPSBwcm9qLnRhcmdldHMuZmluZCB7IHx4fCB4Lm5hbWUgPT0gdG5hbWUgfSBvciBhYm9ydCAiI3t0bmFtZX0gbm90IGZvdW5kIgogIHQuYnVpbGRfY29uZmlndXJhdGlvbnMuZWFjaCBkbyB8Y3wKICAgIGxzcCA9IGMuYnVpbGRfc2V0dGluZ3NbJ0xJQlJBUllfU0VBUkNIX1BBVEhTJ10gfHwgWyckKGluaGVyaXRlZCknXQogICAgbHNwID0gW2xzcF0gdW5sZXNzIGxzcC5pc19hPyhBcnJheSkKICAgIGxpYl9wYXRocy5lYWNoIHsgfHB8IGxzcCA8PCBwIHVubGVzcyBsc3AuaW5jbHVkZT8ocCkgfQogICAgYy5idWlsZF9zZXR0aW5nc1snTElCUkFSWV9TRUFSQ0hfUEFUSFMnXSA9IGxzcAoKICAgIG9sZiA9IGMuYnVpbGRfc2V0dGluZ3NbJ09USEVSX0xERkxBR1MnXSB8fCBbJyQoaW5oZXJpdGVkKSddCiAgICBvbGYgPSBbb2xmXSB1bmxlc3Mgb2xmLmlzX2E/KEFycmF5KQogICAgbGRmbGFncy5lYWNoIHsgfGZ8IG9sZiA8PCBmIHVubGVzcyBvbGYuaW5jbHVkZT8oZikgfQogICAgYy5idWlsZF9zZXR0aW5nc1snT1RIRVJfTERGTEFHUyddID0gb2xmCiAgZW5kCiAgIyBTZWN1cml0eS5mcmFtZXdvcmsgKFNlY1RydXN0IGluIFNSUFNvZnRFdGhlckNsaWVudCkKICBmd19waGFzZSA9IHQuZnJhbWV3b3Jrc19idWlsZF9waGFzZQogIHVubGVzcyBmd19waGFzZS5maWxlcy5hbnk/IHsgfGZ8IGYuZGlzcGxheV9uYW1lID09ICdTZWN1cml0eS5mcmFtZXdvcmsnIH0KICAgIGZ3ID0gcHJvai5mcmFtZXdvcmtzX2dyb3VwLm5ld19maWxlKCdTeXN0ZW0vTGlicmFyeS9GcmFtZXdvcmtzL1NlY3VyaXR5LmZyYW1ld29yaycpCiAgICBmdy5zb3VyY2VfdHJlZSA9ICdTREtST09UJwogICAgZndfcGhhc2UuYWRkX2ZpbGVfcmVmZXJlbmNlKGZ3KQogIGVuZAogIHB1dHMgIiN7dG5hbWV9IHVwZGF0ZWQiCmVuZApwcm9qLnNhdmUKcHV0cyAnbWFpbiBwcm9qZWN0IHVwZGF0ZWQnCg==
+#!/usr/bin/env ruby
+# Integrates the SoftEther core (libSECore + prefixed OpenSSL) into the Xcode projects.
+require 'xcodeproj'
+
+ROOT = File.expand_path('..', __dir__)        # SRP-VPN-Connect/
+
+# ---- 1) Core/SRPCore.xcodeproj: add SRPSoftEtherClient sources ----
+core_proj_path = File.join(ROOT, 'Core/SRPCore.xcodeproj')
+proj = Xcodeproj::Project.open(core_proj_path)
+core_target = proj.targets.find { |t| t.name == 'SRPCore' } or abort 'SRPCore target not found'
+group = proj.main_group.find_subpath('SRPCore', false) rescue nil
+group ||= proj.main_group
+%w[SRPSoftEtherClient.h SRPSoftEtherClient.m].each do |fname|
+  next if group.files.any? { |f| f.display_name == fname }
+  ref = group.new_file(File.join(ROOT, 'Core/SRPCore', fname))
+  if fname.end_with?('.m')
+    core_target.source_build_phase.add_file_reference(ref)
+  else
+    core_target.headers_build_phase.add_file_reference(ref) if core_target.respond_to?(:headers_build_phase) && core_target.headers_build_phase
+  end
+end
+core_target.build_configurations.each do |c|
+  hsp = c.build_settings['HEADER_SEARCH_PATHS'] || ['$(inherited)']
+  hsp = [hsp] unless hsp.is_a?(Array)
+  add = '$(SRCROOT)/../SoftEther/bridge'
+  c.build_settings['HEADER_SEARCH_PATHS'] = hsp unless hsp.include?(add)
+  hsp << add unless hsp.include?(add)
+  c.build_settings['HEADER_SEARCH_PATHS'] = hsp
+end
+proj.save
+puts 'SRPCore project updated'
+
+# ---- 2) main project: link SE libs into extension + mac test target ----
+main_proj_path = File.join(ROOT, 'SRP-VPN-Connect.xcodeproj')
+proj = Xcodeproj::Project.open(main_proj_path)
+
+lib_paths = [
+  '$(SRCROOT)/SoftEther/build/$(EFFECTIVE_PLATFORM_NAME)',
+  '$(SRCROOT)/SoftEther/openssl/$(EFFECTIVE_PLATFORM_NAME)/lib',
+]
+ldflags = ['-lSECore', '-lsrpse_ssl', '-lsrpse_crypto']
+
+%w[SRPTunnel SRP-VPN-ConnectTestsMac].each do |tname|
+  t = proj.targets.find { |x| x.name == tname } or abort "#{tname} not found"
+  t.build_configurations.each do |c|
+    lsp = c.build_settings['LIBRARY_SEARCH_PATHS'] || ['$(inherited)']
+    lsp = [lsp] unless lsp.is_a?(Array)
+    lib_paths.each { |p| lsp << p unless lsp.include?(p) }
+    c.build_settings['LIBRARY_SEARCH_PATHS'] = lsp
+
+    olf = c.build_settings['OTHER_LDFLAGS'] || ['$(inherited)']
+    olf = [olf] unless olf.is_a?(Array)
+    ldflags.each { |f| olf << f unless olf.include?(f) }
+    c.build_settings['OTHER_LDFLAGS'] = olf
+  end
+  # Security.framework (SecTrust in SRPSoftEtherClient)
+  fw_phase = t.frameworks_build_phase
+  unless fw_phase.files.any? { |f| f.display_name == 'Security.framework' }
+    fw = proj.frameworks_group.new_file('System/Library/Frameworks/Security.framework')
+    fw.source_tree = 'SDKROOT'
+    fw_phase.add_file_reference(fw)
+  end
+  puts "#{tname} updated"
+end
+proj.save
+puts 'main project updated'

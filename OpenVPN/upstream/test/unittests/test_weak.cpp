@@ -1,1 +1,247 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAyMC0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKLyoqCiAgIEBmaWxlCiAgIEBicmllZiBUZXN0IHdlYWsgc21hcnQgcG9pbnRlcnMKCiAgIFRlc3Qgd2VhayBzbWFydCBwb2ludGVycyBieSBoYXZpbmcgYSB2ZWN0b3Igb2YKICAgcmVmZXJlbmNlIG9iamVjdHMgKFJlZi9SZWZUeXBlKSB0aGF0IHdlYWtseSBwb2ludCBiYWNrCiAgIHRvIHRoZWlyIHBhcmVudCBvYmplY3QgKE9iamVjdCkuCiovCgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPHZlY3Rvcj4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9yYy5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCi8vLyBIaWRlIHRoZXNlIGNsYXNzZXMgZnJvbSBEb3h5Z2VuLiBFc3BlY2lhbGx5IG5hbWVzcGFjZXMgQSBhbmQgQiBsZWFkIHRvCi8vLyB1bndhbnRlZCByZWZlcmVuY2VzLgovLy8gQGNvbmQgVU5JVF9URVNUX0NMQVNTRVMKCmNsYXNzIFN0YXRpY0NvdW50ZXIKewogIHB1YmxpYzoKICAgIFN0YXRpY0NvdW50ZXIoKQogICAgewogICAgICAgICsrY291bnRfOwogICAgfQoKICAgIH5TdGF0aWNDb3VudGVyKCkKICAgIHsKICAgICAgICAtLWNvdW50XzsKICAgIH0KCiAgICBzdGF0aWMgaW50IGNvdW50KCkKICAgIHsKICAgICAgICByZXR1cm4gY291bnRfOwogICAgfQoKICBwcml2YXRlOgogICAgc3RhdGljIGludCBjb3VudF87Cn07CgppbnQgU3RhdGljQ291bnRlcjo6Y291bnRfID0gMDsKCi8vIFN0cmF0ZWd5IEEgLS0gUmVmVHlwZSBkZWNsYXJlZCBiZWZvcmUgT2JqZWN0LCBzbyB1c2UgY2xhc3MgVGVtcGxhdGUKLy8gc28gdGhhdCBSZWZUeXBlIGNhbiBiZSBzcGVjaWFsaXplZCBmb3IgT2JqZWN0Cm5hbWVzcGFjZSBBIHsKCnRlbXBsYXRlIDx0eXBlbmFtZSBQQVJFTlQ+CmNsYXNzIFJlZlR5cGUgOiBwdWJsaWMgUkNXZWFrPHRocmVhZF91bnNhZmVfcmVmY291bnQ+CnsKICBwdWJsaWM6CiAgICB0eXBlZGVmIFJDUHRyPFJlZlR5cGU+IFB0cjsKICAgIHR5cGVkZWYgUkNXZWFrUHRyPFJlZlR5cGU+IFdQdHI7CgogICAgUmVmVHlwZShzdGQ6OnN0cmluZyBuYW1lLAogICAgICAgICAgICB0eXBlbmFtZSBQQVJFTlQ6OlB0ciBwYXJlbnQpCiAgICAgICAgOiBuYW1lXyhzdGQ6Om1vdmUobmFtZSkpLAogICAgICAgICAgcGFyZW50XyhzdGQ6Om1vdmUocGFyZW50KSkKICAgIHsKICAgIH0KCiAgICB0eXBlbmFtZSBQQVJFTlQ6OlB0ciBwYXJlbnQoKSBjb25zdAogICAgewogICAgICAgIHJldHVybiBwYXJlbnRfLmxvY2soKTsKICAgIH0KCiAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgewogICAgICAgIGF1dG8gcCA9IHBhcmVudCgpOwogICAgICAgIGlmIChwKQogICAgICAgICAgICByZXR1cm4gIkkgYW0gIiArIG5hbWUoKSArICIgd2hvc2UgcGFyZW50IGlzICIgKyBwLT5uYW1lKCk7CiAgICAgICAgZWxzZQogICAgICAgICAgICByZXR1cm4gIkkgYW0gIiArIG5hbWUoKSArICIsIGFuIG9ycGhhbiI7CiAgICB9CgogICAgc3RkOjpzdHJpbmcgbmFtZSgpIGNvbnN0CiAgICB7CiAgICAgICAgcmV0dXJuIG5hbWVfOwogICAgfQoKICBwcml2YXRlOgogICAgc3RkOjpzdHJpbmcgbmFtZV87CiAgICB0eXBlbmFtZSBQQVJFTlQ6OldQdHIgcGFyZW50XzsKICAgIFN0YXRpY0NvdW50ZXIgc2NfOwp9OwoKY2xhc3MgT2JqZWN0IDogcHVibGljIFJDV2Vhazx0aHJlYWRfdW5zYWZlX3JlZmNvdW50Pgp7CiAgcHVibGljOgogICAgdHlwZWRlZiBSQ1B0cjxPYmplY3Q+IFB0cjsKICAgIHR5cGVkZWYgUkNXZWFrUHRyPE9iamVjdD4gV1B0cjsKICAgIHR5cGVkZWYgUmVmVHlwZTxPYmplY3Q+IFJlZjsKCiAgICBzdGQ6OnN0cmluZyBuYW1lKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gIlJlZ3VsYXIgSm9lIjsKICAgIH0KCiAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgewogICAgICAgIHN0ZDo6c3RyaW5nIHJldDsKICAgICAgICBmb3IgKGNvbnN0IGF1dG8gJmUgOiB2ZWMpCiAgICAgICAgewogICAgICAgICAgICByZXQgKz0gZS0+dG9fc3RyaW5nKCk7CiAgICAgICAgICAgIHJldCArPSAnXG4nOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmV0OwogICAgfQoKICAgIHN0ZDo6dmVjdG9yPFJlZjo6UHRyPiB2ZWM7CgogIHByaXZhdGU6CiAgICBTdGF0aWNDb3VudGVyIHNjXzsKfTsKCnR5cGVkZWYgT2JqZWN0OjpSZWYgUmVmOwp9IC8vIG5hbWVzcGFjZSBBCgovLyBTdHJhdGVneSBCIC0tIFJlZiBkZWNsYXJlZCBpbnNpZGUgT2JqZWN0LCBzbyBSZWYgY2FuIG1ha2UgdXNlCi8vIG9mIGV4aXN0aW5nIE9iamVjdCB0eXBlcyAoc3VjaCBhcyBQdHIgYW5kIFdQdHIpCm5hbWVzcGFjZSBCIHsKCmNsYXNzIE9iamVjdCA6IHB1YmxpYyBSQ1dlYWs8dGhyZWFkX3Vuc2FmZV9yZWZjb3VudD4KewogIHB1YmxpYzoKICAgIHR5cGVkZWYgUkNQdHI8T2JqZWN0PiBQdHI7CiAgICB0eXBlZGVmIFJDV2Vha1B0cjxPYmplY3Q+IFdQdHI7CgogICAgY2xhc3MgUmVmIDogcHVibGljIFJDV2Vhazx0aHJlYWRfdW5zYWZlX3JlZmNvdW50PgogICAgewogICAgICBwdWJsaWM6CiAgICAgICAgdHlwZWRlZiBSQ1B0cjxSZWY+IFB0cjsKICAgICAgICB0eXBlZGVmIFJDV2Vha1B0cjxSZWY+IFdQdHI7CgogICAgICAgIFJlZihzdGQ6OnN0cmluZyBuYW1lLAogICAgICAgICAgICB0eXBlbmFtZSBPYmplY3Q6OlB0ciBwYXJlbnQpCiAgICAgICAgICAgIDogbmFtZV8oc3RkOjptb3ZlKG5hbWUpKSwKICAgICAgICAgICAgICBwYXJlbnRfKHN0ZDo6bW92ZShwYXJlbnQpKQogICAgICAgIHsKICAgICAgICB9CgogICAgICAgIE9iamVjdDo6UHRyIHBhcmVudCgpIGNvbnN0CiAgICAgICAgewogICAgICAgICAgICByZXR1cm4gcGFyZW50Xy5sb2NrKCk7CiAgICAgICAgfQoKICAgICAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgICAgIHsKICAgICAgICAgICAgYXV0byBwID0gcGFyZW50KCk7CiAgICAgICAgICAgIGlmIChwKQogICAgICAgICAgICAgICAgcmV0dXJuICJJIGFtICIgKyBuYW1lKCkgKyAiIHdob3NlIHBhcmVudCBpcyAiICsgcC0+bmFtZSgpOwogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICByZXR1cm4gIkkgYW0gIiArIG5hbWUoKSArICIsIGFuIG9ycGhhbiI7CiAgICAgICAgfQoKICAgICAgICBzdGQ6OnN0cmluZyBuYW1lKCkgY29uc3QKICAgICAgICB7CiAgICAgICAgICAgIHJldHVybiBuYW1lXzsKICAgICAgICB9CgogICAgICBwcml2YXRlOgogICAgICAgIHN0ZDo6c3RyaW5nIG5hbWVfOwogICAgICAgIE9iamVjdDo6V1B0ciBwYXJlbnRfOwogICAgICAgIFN0YXRpY0NvdW50ZXIgc2NfOwogICAgfTsKCiAgICBzdGQ6OnN0cmluZyBuYW1lKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gIlJlZ3VsYXIgSm9lIjsKICAgIH0KCiAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgewogICAgICAgIHN0ZDo6c3RyaW5nIHJldDsKICAgICAgICBmb3IgKGNvbnN0IGF1dG8gJmUgOiB2ZWMpCiAgICAgICAgewogICAgICAgICAgICByZXQgKz0gZS0+dG9fc3RyaW5nKCk7CiAgICAgICAgICAgIHJldCArPSAnXG4nOwogICAgICAgIH0KICAgICAgICByZXR1cm4gcmV0OwogICAgfQoKICAgIHN0ZDo6dmVjdG9yPFJlZjo6UHRyPiB2ZWM7CgogIHByaXZhdGU6CiAgICBTdGF0aWNDb3VudGVyIHNjXzsKfTsKCnR5cGVkZWYgT2JqZWN0OjpSZWYgUmVmOwp9IC8vIG5hbWVzcGFjZSBCCgovLy8gQGVuZGNvbmQKCnRlbXBsYXRlIDx0eXBlbmFtZSBPYmplY3QsIHR5cGVuYW1lIFJlZj4Kdm9pZCB0ZXN0KCkKewogICAgQVNTRVJUX0VRKFN0YXRpY0NvdW50ZXI6OmNvdW50KCksIDApOwoKICAgIHN0ZDo6c3RyaW5nIHJlc3VsdDsKCiAgICAvLyBjcmVhdGUgbmV3IFJlZiBvYmplY3RzIHRoYXQgcG9pbnQgYmFjayB0byB0aGVpciBwYXJlbnQgKE9iamVjdCkKICAgIHR5cGVuYW1lIE9iamVjdDo6UHRyIG9iaihuZXcgT2JqZWN0KTsKICAgIG9iai0+dmVjLmVtcGxhY2VfYmFjayhuZXcgUmVmKCJPbmUiLCBvYmopKTsKICAgIG9iai0+dmVjLmVtcGxhY2VfYmFjayhuZXcgUmVmKCJUd28iLCBvYmopKTsKICAgIG9iai0+dmVjLmVtcGxhY2VfYmFjayhuZXcgUmVmKCJUaHJlZSIsIG9iaikpOwoKICAgIC8vIHZlcmlmeSBvYmoKICAgIEFTU0VSVF9FUShvYmotPnZlYy5zaXplKCksIDN1KTsKICAgIEFTU0VSVF9FUShvYmotPnZlYy5hdCgwKS0+dG9fc3RyaW5nKCksICJJIGFtIE9uZSB3aG9zZSBwYXJlbnQgaXMgUmVndWxhciBKb2UiKTsKICAgIEFTU0VSVF9FUShvYmotPnZlYy5hdCgxKS0+dG9fc3RyaW5nKCksICJJIGFtIFR3byB3aG9zZSBwYXJlbnQgaXMgUmVndWxhciBKb2UiKTsKICAgIEFTU0VSVF9FUShvYmotPnZlYy5hdCgyKS0+dG9fc3RyaW5nKCksICJJIGFtIFRocmVlIHdob3NlIHBhcmVudCBpcyBSZWd1bGFyIEpvZSIpOwoKICAgIC8vIG1ha2UgT25lIGludG8gb3JwaGFuCiAgICB0eXBlbmFtZSBSZWY6OlB0ciB0aGVfb25lID0gb2JqLT52ZWNbMF07IC8vIGdldCBPbmUKICAgIG9iai5yZXNldCgpOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gZnJlZSBwYXJlbnQKICAgIEFTU0VSVF9FUSh0aGVfb25lLT50b19zdHJpbmcoKSwgIkkgYW0gT25lLCBhbiBvcnBoYW4iKTsKCiAgICAvLyB2ZXJpZnkgbm8gbWVtb3J5IGxlYWtzCiAgICBBU1NFUlRfRVEoU3RhdGljQ291bnRlcjo6Y291bnQoKSwgMSk7CiAgICB0aGVfb25lLnJlc2V0KCk7CiAgICBBU1NFUlRfRVEoU3RhdGljQ291bnRlcjo6Y291bnQoKSwgMCk7Cn0KCi8vIHN0cmF0ZWd5IEEKVEVTVChtaXNjLCB3ZWFrX2EpCnsKICAgIHRlc3Q8QTo6T2JqZWN0LCBBOjpSZWY+KCk7Cn0KCi8vIHN0cmF0ZWd5IEIKVEVTVChtaXNjLCB3ZWFrX2IpCnsKICAgIHRlc3Q8Qjo6T2JqZWN0LCBCOjpSZWY+KCk7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2020- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+/**
+   @file
+   @brief Test weak smart pointers
+
+   Test weak smart pointers by having a vector of
+   reference objects (Ref/RefType) that weakly point back
+   to their parent object (Object).
+*/
+
+#include "test_common.hpp"
+
+#include <vector>
+
+#include <openvpn/common/rc.hpp>
+
+using namespace openvpn;
+
+/// Hide these classes from Doxygen. Especially namespaces A and B lead to
+/// unwanted references.
+/// @cond UNIT_TEST_CLASSES
+
+class StaticCounter
+{
+  public:
+    StaticCounter()
+    {
+        ++count_;
+    }
+
+    ~StaticCounter()
+    {
+        --count_;
+    }
+
+    static int count()
+    {
+        return count_;
+    }
+
+  private:
+    static int count_;
+};
+
+int StaticCounter::count_ = 0;
+
+// Strategy A -- RefType declared before Object, so use class Template
+// so that RefType can be specialized for Object
+namespace A {
+
+template <typename PARENT>
+class RefType : public RCWeak<thread_unsafe_refcount>
+{
+  public:
+    typedef RCPtr<RefType> Ptr;
+    typedef RCWeakPtr<RefType> WPtr;
+
+    RefType(std::string name,
+            typename PARENT::Ptr parent)
+        : name_(std::move(name)),
+          parent_(std::move(parent))
+    {
+    }
+
+    typename PARENT::Ptr parent() const
+    {
+        return parent_.lock();
+    }
+
+    std::string to_string() const
+    {
+        auto p = parent();
+        if (p)
+            return "I am " + name() + " whose parent is " + p->name();
+        else
+            return "I am " + name() + ", an orphan";
+    }
+
+    std::string name() const
+    {
+        return name_;
+    }
+
+  private:
+    std::string name_;
+    typename PARENT::WPtr parent_;
+    StaticCounter sc_;
+};
+
+class Object : public RCWeak<thread_unsafe_refcount>
+{
+  public:
+    typedef RCPtr<Object> Ptr;
+    typedef RCWeakPtr<Object> WPtr;
+    typedef RefType<Object> Ref;
+
+    std::string name() const
+    {
+        return "Regular Joe";
+    }
+
+    std::string to_string() const
+    {
+        std::string ret;
+        for (const auto &e : vec)
+        {
+            ret += e->to_string();
+            ret += '\n';
+        }
+        return ret;
+    }
+
+    std::vector<Ref::Ptr> vec;
+
+  private:
+    StaticCounter sc_;
+};
+
+typedef Object::Ref Ref;
+} // namespace A
+
+// Strategy B -- Ref declared inside Object, so Ref can make use
+// of existing Object types (such as Ptr and WPtr)
+namespace B {
+
+class Object : public RCWeak<thread_unsafe_refcount>
+{
+  public:
+    typedef RCPtr<Object> Ptr;
+    typedef RCWeakPtr<Object> WPtr;
+
+    class Ref : public RCWeak<thread_unsafe_refcount>
+    {
+      public:
+        typedef RCPtr<Ref> Ptr;
+        typedef RCWeakPtr<Ref> WPtr;
+
+        Ref(std::string name,
+            typename Object::Ptr parent)
+            : name_(std::move(name)),
+              parent_(std::move(parent))
+        {
+        }
+
+        Object::Ptr parent() const
+        {
+            return parent_.lock();
+        }
+
+        std::string to_string() const
+        {
+            auto p = parent();
+            if (p)
+                return "I am " + name() + " whose parent is " + p->name();
+            else
+                return "I am " + name() + ", an orphan";
+        }
+
+        std::string name() const
+        {
+            return name_;
+        }
+
+      private:
+        std::string name_;
+        Object::WPtr parent_;
+        StaticCounter sc_;
+    };
+
+    std::string name() const
+    {
+        return "Regular Joe";
+    }
+
+    std::string to_string() const
+    {
+        std::string ret;
+        for (const auto &e : vec)
+        {
+            ret += e->to_string();
+            ret += '\n';
+        }
+        return ret;
+    }
+
+    std::vector<Ref::Ptr> vec;
+
+  private:
+    StaticCounter sc_;
+};
+
+typedef Object::Ref Ref;
+} // namespace B
+
+/// @endcond
+
+template <typename Object, typename Ref>
+void test()
+{
+    ASSERT_EQ(StaticCounter::count(), 0);
+
+    std::string result;
+
+    // create new Ref objects that point back to their parent (Object)
+    typename Object::Ptr obj(new Object);
+    obj->vec.emplace_back(new Ref("One", obj));
+    obj->vec.emplace_back(new Ref("Two", obj));
+    obj->vec.emplace_back(new Ref("Three", obj));
+
+    // verify obj
+    ASSERT_EQ(obj->vec.size(), 3u);
+    ASSERT_EQ(obj->vec.at(0)->to_string(), "I am One whose parent is Regular Joe");
+    ASSERT_EQ(obj->vec.at(1)->to_string(), "I am Two whose parent is Regular Joe");
+    ASSERT_EQ(obj->vec.at(2)->to_string(), "I am Three whose parent is Regular Joe");
+
+    // make One into orphan
+    typename Ref::Ptr the_one = obj->vec[0]; // get One
+    obj.reset();                             // free parent
+    ASSERT_EQ(the_one->to_string(), "I am One, an orphan");
+
+    // verify no memory leaks
+    ASSERT_EQ(StaticCounter::count(), 1);
+    the_one.reset();
+    ASSERT_EQ(StaticCounter::count(), 0);
+}
+
+// strategy A
+TEST(misc, weak_a)
+{
+    test<A::Object, A::Ref>();
+}
+
+// strategy B
+TEST(misc, weak_b)
+{
+    test<B::Object, B::Ref>();
+}

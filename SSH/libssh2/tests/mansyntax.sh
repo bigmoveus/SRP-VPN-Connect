@@ -1,1 +1,45 @@
-IyEvYmluL3NoCiMgQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgojIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBCU0QtMy1DbGF1c2UKCnNldCAtZQpzZXQgLXUKCiMgV3JpdHRlbiBieSBNaWtoYWlsIEd1c2Fyb3YKIwojIFJ1biBzeW50YXggY2hlY2tzIGZvciBhbGwgbWFucGFnZXMgaW4gdGhlIGRvY3VtZW50YXRpb24gdHJlZS4KIwojIFJlcXVpcmVtZW50IG9uIG1hY09TOiBicmV3IGluc3RhbGwgbWFuLWRiCiMKCmNvbW1hbmQgLXYgZ21hbiA+L2Rldi9udWxsIDI+JjEgJiYgbWFuKCkgeyBnbWFuICIkQCI7IH0KCmRzdGRpcj0iJHtidWlsZGRpcjotJFBXRH0iCm1hbmRpcj0iJChkaXJuYW1lICIkMCIpLy4uL2RvY3MiCgplYz0wCgojCiMgT25seSB0ZXN0IGlmIHN1aXRhYmxlIG1hbiBpcyBhdmFpbGFibGUKIwppZiBjb21tYW5kIC12IGdyZXAgPi9kZXYvbnVsbCAyPiYxICYmIFwKICAgbWFuIC0taGVscCAyPi9kZXYvbnVsbCB8IGdyZXAgLXEgd2FybmluZ3M7IHRoZW4KCiAgdHJhcCAncm0gLWYgIiRkc3RkaXIvbWFuMyInIEVYSVQgSFVQIElOVCBURVJNCgogIGxuIC1zZiAiJG1hbmRpciIgIiRkc3RkaXIvbWFuMyIKCiAgZm9yIG1hbnBhZ2UgaW4gIiRtYW5kaXIiL2xpYnNzaDJfKi4qOyBkbwogICAgZWNobyAiJG1hbnBhZ2UiCiAgICB3YXJuaW5ncz0kKExBTkc9ZW5fVVMuVVRGLTggTUFOV0lEVEg9ODAgbWFuIC1NICIkZHN0ZGlyIiAtLXdhcm5pbmdzIFwKICAgICAgLUUgVVRGLTggLWwgIiRtYW5wYWdlIiA+L2Rldi9udWxsIDI+JjEpCiAgICBpZiBbIC1uICIkd2FybmluZ3MiIF07IHRoZW4KICAgICAgZWNobyAiJHdhcm5pbmdzIgogICAgICBlYz0xCiAgICBmaQogIGRvbmUKZWxzZQogIGVjaG8gJ21hbnN5bnRheDogUmVxdWlyZWQgdG9vbCBub3QgZm91bmQsIHNraXBwaW5nIHRlc3RzLicKZmkKCmV4aXQgIiRlYyIK
+#!/bin/sh
+# Copyright (C) The libssh2 project and its contributors.
+# SPDX-License-Identifier: BSD-3-Clause
+
+set -e
+set -u
+
+# Written by Mikhail Gusarov
+#
+# Run syntax checks for all manpages in the documentation tree.
+#
+# Requirement on macOS: brew install man-db
+#
+
+command -v gman >/dev/null 2>&1 && man() { gman "$@"; }
+
+dstdir="${builddir:-$PWD}"
+mandir="$(dirname "$0")/../docs"
+
+ec=0
+
+#
+# Only test if suitable man is available
+#
+if command -v grep >/dev/null 2>&1 && \
+   man --help 2>/dev/null | grep -q warnings; then
+
+  trap 'rm -f "$dstdir/man3"' EXIT HUP INT TERM
+
+  ln -sf "$mandir" "$dstdir/man3"
+
+  for manpage in "$mandir"/libssh2_*.*; do
+    echo "$manpage"
+    warnings=$(LANG=en_US.UTF-8 MANWIDTH=80 man -M "$dstdir" --warnings \
+      -E UTF-8 -l "$manpage" >/dev/null 2>&1)
+    if [ -n "$warnings" ]; then
+      echo "$warnings"
+      ec=1
+    fi
+  done
+else
+  echo 'mansyntax: Required tool not found, skipping tests.'
+fi
+
+exit "$ec"

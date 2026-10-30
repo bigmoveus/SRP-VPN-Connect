@@ -1,1 +1,538 @@
-LyogQ29weXJpZ2h0IChDKSBBbGV4YW5kZXIgTGFtYWlzb24KICogQWxsIHJpZ2h0cyByZXNlcnZlZC4KICoKICogUmVkaXN0cmlidXRpb24gYW5kIHVzZSBpbiBzb3VyY2UgYW5kIGJpbmFyeSBmb3JtcywKICogd2l0aCBvciB3aXRob3V0IG1vZGlmaWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92aWRlZAogKiB0aGF0IHRoZSBmb2xsb3dpbmcgY29uZGl0aW9ucyBhcmUgbWV0OgogKgogKiAgIFJlZGlzdHJpYnV0aW9ucyBvZiBzb3VyY2UgY29kZSBtdXN0IHJldGFpbiB0aGUgYWJvdmUKICogICBjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhlCiAqICAgZm9sbG93aW5nIGRpc2NsYWltZXIuCiAqCiAqICAgUmVkaXN0cmlidXRpb25zIGluIGJpbmFyeSBmb3JtIG11c3QgcmVwcm9kdWNlIHRoZSBhYm92ZQogKiAgIGNvcHlyaWdodCBub3RpY2UsIHRoaXMgbGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUgZm9sbG93aW5nCiAqICAgZGlzY2xhaW1lciBpbiB0aGUgZG9jdW1lbnRhdGlvbiBhbmQvb3Igb3RoZXIgbWF0ZXJpYWxzCiAqICAgcHJvdmlkZWQgd2l0aCB0aGUgZGlzdHJpYnV0aW9uLgogKgogKiAgIE5laXRoZXIgdGhlIG5hbWUgb2YgdGhlIGNvcHlyaWdodCBob2xkZXIgbm9yIHRoZSBuYW1lcwogKiAgIG9mIGFueSBvdGhlciBjb250cmlidXRvcnMgbWF5IGJlIHVzZWQgdG8gZW5kb3JzZSBvcgogKiAgIHByb21vdGUgcHJvZHVjdHMgZGVyaXZlZCBmcm9tIHRoaXMgc29mdHdhcmUgd2l0aG91dAogKiAgIHNwZWNpZmljIHByaW9yIHdyaXR0ZW4gcGVybWlzc2lvbi4KICoKICogVEhJUyBTT0ZUV0FSRSBJUyBQUk9WSURFRCBCWSBUSEUgQ09QWVJJR0hUIEhPTERFUlMgQU5ECiAqIENPTlRSSUJVVE9SUyAiQVMgSVMiIEFORCBBTlkgRVhQUkVTUyBPUiBJTVBMSUVEIFdBUlJBTlRJRVMsCiAqIElOQ0xVRElORywgQlVUIE5PVCBMSU1JVEVEIFRPLCBUSEUgSU1QTElFRCBXQVJSQU5USUVTCiAqIE9GIE1FUkNIQU5UQUJJTElUWSBBTkQgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UKICogQVJFIERJU0NMQUlNRUQuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBDT1BZUklHSFQgT1dORVIgT1IKICogQ09OVFJJQlVUT1JTIEJFIExJQUJMRSBGT1IgQU5ZIERJUkVDVCwgSU5ESVJFQ1QsIElOQ0lERU5UQUwsCiAqIFNQRUNJQUwsIEVYRU1QTEFSWSwgT1IgQ09OU0VRVUVOVElBTCBEQU1BR0VTIChJTkNMVURJTkcsCiAqIEJVVCBOT1QgTElNSVRFRCBUTywgUFJPQ1VSRU1FTlQgT0YgU1VCU1RJVFVURSBHT09EUyBPUgogKiBTRVJWSUNFUzsgTE9TUyBPRiBVU0UsIERBVEEsIE9SIFBST0ZJVFM7IE9SIEJVU0lORVNTCiAqIElOVEVSUlVQVElPTikgSE9XRVZFUiBDQVVTRUQgQU5EIE9OIEFOWSBUSEVPUlkgT0YgTElBQklMSVRZLAogKiBXSEVUSEVSIElOIENPTlRSQUNULCBTVFJJQ1QgTElBQklMSVRZLCBPUiBUT1JUIChJTkNMVURJTkcKICogTkVHTElHRU5DRSBPUiBPVEhFUldJU0UpIEFSSVNJTkcgSU4gQU5ZIFdBWSBPVVQgT0YgVEhFCiAqIFVTRSBPRiBUSElTIFNPRlRXQVJFLCBFVkVOIElGIEFEVklTRUQgT0YgVEhFIFBPU1NJQklMSVRZCiAqIE9GIFNVQ0ggREFNQUdFLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInNlc3Npb25fZml4dHVyZS5oIgojaW5jbHVkZSAib3BlbnNzaF9maXh0dXJlLmgiCgojaWZkZWYgSEFWRV9TWVNfU09DS0VUX0gKI2luY2x1ZGUgPHN5cy9zb2NrZXQuaD4KI2VuZGlmCiNpZmRlZiBIQVZFX1VOSVNURF9ICiNpbmNsdWRlIDx1bmlzdGQuaD4KI2VuZGlmCgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0ZGxpYi5oPiAgLyogZm9yIGdldGVudigpICovCiNpbmNsdWRlIDxhc3NlcnQuaD4KCnN0YXRpYyBMSUJTU0gyX1NFU1NJT04gKmNvbm5lY3RlZF9zZXNzaW9uID0gTlVMTDsKc3RhdGljIGxpYnNzaDJfc29ja2V0X3QgY29ubmVjdGVkX3NvY2tldCA9IExJQlNTSDJfSU5WQUxJRF9TT0NLRVQ7CgpzdGF0aWMgaW50IGNvbm5lY3RfdG9fc2VydmVyKHZvaWQpCnsKICAgIGludCByYzsKICAgIGNvbm5lY3RlZF9zb2NrZXQgPSBvcGVuX3NvY2tldF90b19vcGVuc3NoX3NlcnZlcigpOwogICAgaWYoY29ubmVjdGVkX3NvY2tldCA9PSBMSUJTU0gyX0lOVkFMSURfU09DS0VUKSB7CiAgICAgICAgcmV0dXJuIExJQlNTSDJfRVJST1JfU09DS0VUX05PTkU7CiAgICB9CgogICAgcmMgPSBsaWJzc2gyX3Nlc3Npb25faGFuZHNoYWtlKGNvbm5lY3RlZF9zZXNzaW9uLCBjb25uZWN0ZWRfc29ja2V0KTsKICAgIGlmKHJjKSB7CiAgICAgICAgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKCJsaWJzc2gyX3Nlc3Npb25faGFuZHNoYWtlIik7CiAgICAgICAgcmV0dXJuIGxpYnNzaDJfc2Vzc2lvbl9sYXN0X2Vycm5vKGNvbm5lY3RlZF9zZXNzaW9uKTsKICAgIH0KCiAgICByZXR1cm4gTElCU1NIMl9FUlJPUl9OT05FOwp9CgovKiBMaXN0IG9mIGNyeXB0byBwcm90b2NvbHMgZm9yIHdoaWNoIHRlc3RzIGFyZSBza2lwcGVkICovCnN0YXRpYyBjaGFyIGNvbnN0ICpza2lwX2NyeXB0W10gPSB7CiNpZmRlZiBMSUJTU0gyX01CRURUTFMKICAgIC8qIER1ZSB0byBhIGJ1ZyB3aXRoIG1iZWRUTFMgc3VwcG9ydCwgdGhlc2UgY3J5cHQgbWV0aG9kcyBmYWlsLgogICAgICAgVW50aWwgdGhhdCBidWcgaXMgZml4ZWQsIGRvbid0IHJ1biB0aGVtIHRoZXJlIHRvIGF2b2lkIHRoaXMKICAgICAgIGtub3duIGlzc3VlIGNhdXNpbmcgcmVkIHRlc3RzLgogICAgICAgU2VlOiBodHRwczovL2dpdGh1Yi5jb20vbGlic3NoMi9saWJzc2gyL2lzc3Vlcy83OTMKICAgICAqLwogICAgIjNkZXMtY2JjIiwKICAgICJhZXMxMjgtY2JjIiwKICAgICJhZXMxOTItY2JjIiwKICAgICJhZXMyNTYtY2JjIiwKICAgICJhZXMxMjgtZ2NtQG9wZW5zc2guY29tIiwKICAgICJhZXMyNTYtZ2NtQG9wZW5zc2guY29tIiwKICAgICJyaWpuZGFlbC1jYmNAbHlzYXRvci5saXUuc2UiLAojZW5kaWYKCiNpZiAhTElCU1NIMl8zREVTCiAgICAiM2Rlcy1jYmMiLAojZW5kaWYKCiNpZiAhTElCU1NIMl9BRVNfR0NNCiAgICAvKiBTdXBwb3J0IGZvciBBRVMtR0NNIGhhc24ndCBiZWVuIGFkZGVkIHRvIHRoZXNlIGJhY2stZW5kcyB5ZXQgKi8KICAgICJhZXMxMjgtZ2NtQG9wZW5zc2guY29tIiwKICAgICJhZXMyNTYtZ2NtQG9wZW5zc2guY29tIiwKI2VuZGlmCgogICAgTlVMTAp9OwoKLyogTGlzdCBvZiBNQUMgcHJvdG9jb2xzIGZvciB3aGljaCB0ZXN0cyBhcmUgc2tpcHBlZCAqLwpzdGF0aWMgY2hhciBjb25zdCAqc2tpcF9tYWNbXSA9IHsKI2lmICFMSUJTU0gyX01ENQogICAgImhtYWMtbWQ1IiwKICAgICJobWFjLW1kNS05NiIsCiNlbmRpZgogICAgTlVMTAp9OwoKTElCU1NIMl9TRVNTSU9OICpzdGFydF9zZXNzaW9uX2ZpeHR1cmUoaW50ICpza2lwcGVkLCBpbnQgKmVycikKewogICAgaW50IHJjOwoKICAgIGNvbnN0IGNoYXIgKmNyeXB0ID0gZ2V0ZW52KCJGSVhUVVJFX1RFU1RfQ1JZUFQiKTsKICAgIGNvbnN0IGNoYXIgKm1hYyA9IGdldGVudigiRklYVFVSRV9URVNUX01BQyIpOwoKICAgICpza2lwcGVkID0gMDsKICAgICplcnIgPSBMSUJTU0gyX0VSUk9SX05PTkU7CgogICAgaWYoY3J5cHQpIHsKICAgICAgICBjaGFyIGNvbnN0ICogY29uc3QgKnNrOwogICAgICAgIGZvcihzayA9IHNraXBfY3J5cHQ7ICpzazsgKytzaykgewogICAgICAgICAgICBpZihzdHJjbXAoKnNrLCBjcnlwdCkgPT0gMCkgewogICAgICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJ1bnN1cHBvcnRlZCBjcnlwdCBhbGdvcml0aG0gKCVzKSBza2lwcGVkLlxuIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjcnlwdCk7CiAgICAgICAgICAgICAgICAqc2tpcHBlZCA9IDE7CiAgICAgICAgICAgICAgICByZXR1cm4gTlVMTDsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KCiAgICBpZihtYWMpIHsKICAgICAgICBjaGFyIGNvbnN0ICogY29uc3QgKnNrOwogICAgICAgIGZvcihzayA9IHNraXBfbWFjOyAqc2s7ICsrc2spIHsKICAgICAgICAgICAgaWYoc3RyY21wKCpzaywgbWFjKSA9PSAwKSB7CiAgICAgICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgInVuc3VwcG9ydGVkIE1BQyBhbGdvcml0aG0gKCVzKSBza2lwcGVkLlxuIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYWMpOwogICAgICAgICAgICAgICAgKnNraXBwZWQgPSAxOwogICAgICAgICAgICAgICAgcmV0dXJuIE5VTEw7CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9CgogICAgcmMgPSBzdGFydF9vcGVuc3NoX2ZpeHR1cmUoKTsKICAgIGlmKHJjKSB7CiAgICAgICAgcmV0dXJuIE5VTEw7CiAgICB9CiAgICByYyA9IGxpYnNzaDJfaW5pdCgwKTsKICAgIGlmKHJjKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyX2luaXQgZmFpbGVkICglZClcbiIsIHJjKTsKICAgICAgICByZXR1cm4gTlVMTDsKICAgIH0KCiAgICBjb25uZWN0ZWRfc2Vzc2lvbiA9IGxpYnNzaDJfc2Vzc2lvbl9pbml0X2V4KE5VTEwsIE5VTEwsIE5VTEwsIE5VTEwpOwogICAgaWYoIWNvbm5lY3RlZF9zZXNzaW9uKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyX3Nlc3Npb25faW5pdF9leCBmYWlsZWRcbiIpOwogICAgICAgIHJldHVybiBOVUxMOwogICAgfQoKICAgIGlmKGdldGVudigiRklYVFVSRV9UUkFDRV9BTExfQ09OTkVDVCIpKSB7CiAgICAgICAgbGlic3NoMl90cmFjZShjb25uZWN0ZWRfc2Vzc2lvbiwgfjApOwogICAgICAgIGZwcmludGYoc3Rkb3V0LCAiVHJhY2UgYWxsIGVuYWJsZWQgZm9yIGNvbm5lY3RfdG9fc2VydmVyLlxuIik7CiAgICB9CiAgICBlbHNlIGlmKGdldGVudigiRklYVFVSRV9UUkFDRV9BTEwiKSkgewogICAgICAgIGxpYnNzaDJfdHJhY2UoY29ubmVjdGVkX3Nlc3Npb24sIH4wKTsKICAgICAgICBmcHJpbnRmKHN0ZG91dCwgIlRyYWNlIGFsbCBlbmFibGVkLlxuIik7CiAgICB9CgogICAgLyogT3ZlcnJpZGUgY3J5cHQgYWxnb3JpdGhtIGZvciB0aGUgdGVzdCAqLwogICAgaWYoY3J5cHQpIHsKICAgICAgICBpZihsaWJzc2gyX3Nlc3Npb25fbWV0aG9kX3ByZWYoY29ubmVjdGVkX3Nlc3Npb24sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIExJQlNTSDJfTUVUSE9EX0NSWVBUX0NTLCBjcnlwdCkgfHwKICAgICAgICAgICBsaWJzc2gyX3Nlc3Npb25fbWV0aG9kX3ByZWYoY29ubmVjdGVkX3Nlc3Npb24sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIExJQlNTSDJfTUVUSE9EX0NSWVBUX1NDLCBjcnlwdCkpIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyX3Nlc3Npb25fbWV0aG9kX3ByZWYgQ1JZUFQgZmFpbGVkICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICIocHJvYmFibHkgZGlzYWJsZWQgaW4gdGhlIGJ1aWxkKTogJyVzJ1xuIiwgY3J5cHQpOwogICAgICAgICAgICByZXR1cm4gTlVMTDsKICAgICAgICB9CiAgICB9CgogICAgLyogT3ZlcnJpZGUgbWFjIGFsZ29yaXRobSBmb3IgdGhlIHRlc3QgKi8KICAgIGlmKG1hYykgewogICAgICAgIGlmKGxpYnNzaDJfc2Vzc2lvbl9tZXRob2RfcHJlZihjb25uZWN0ZWRfc2Vzc2lvbiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTElCU1NIMl9NRVRIT0RfTUFDX0NTLCBtYWMpIHx8CiAgICAgICAgICAgbGlic3NoMl9zZXNzaW9uX21ldGhvZF9wcmVmKGNvbm5lY3RlZF9zZXNzaW9uLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBMSUJTU0gyX01FVEhPRF9NQUNfU0MsIG1hYykpIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyX3Nlc3Npb25fbWV0aG9kX3ByZWYgTUFDIGZhaWxlZCAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAiKHByb2JhYmx5IGRpc2FibGVkIGluIHRoZSBidWlsZCk6ICclcydcbiIsIG1hYyk7CiAgICAgICAgICAgIHJldHVybiBOVUxMOwogICAgICAgIH0KICAgIH0KCiAgICBsaWJzc2gyX3Nlc3Npb25fc2V0X2Jsb2NraW5nKGNvbm5lY3RlZF9zZXNzaW9uLCAxKTsKCiAgICByYyA9IGNvbm5lY3RfdG9fc2VydmVyKCk7CiAgICBpZihyYyAhPSBMSUJTU0gyX0VSUk9SX05PTkUpIHsKICAgICAgICAqZXJyID0gcmM7CiAgICAgICAgcmV0dXJuIE5VTEw7CiAgICB9CgogICAgaWYoZ2V0ZW52KCJGSVhUVVJFX1RSQUNFX0FMTF9DT05ORUNUIikpIHsKICAgICAgICBsaWJzc2gyX3RyYWNlKGNvbm5lY3RlZF9zZXNzaW9uLCAwKTsKICAgIH0KCiAgICByZXR1cm4gY29ubmVjdGVkX3Nlc3Npb247Cn0KCnZvaWQgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKGNvbnN0IGNoYXIgKmZ1bmN0aW9uKQp7CiAgICBpZihjb25uZWN0ZWRfc2Vzc2lvbikgewogICAgICAgIGNoYXIgKm1lc3NhZ2U7CiAgICAgICAgaW50IHJjID0KICAgICAgICAgICAgbGlic3NoMl9zZXNzaW9uX2xhc3RfZXJyb3IoY29ubmVjdGVkX3Nlc3Npb24sICZtZXNzYWdlLCBOVUxMLCAwKTsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIiVzIGZhaWxlZCAoJWQpOiAlc1xuIiwgZnVuY3Rpb24sIHJjLCBtZXNzYWdlKTsKICAgIH0KICAgIGVsc2UgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiTm8gc2Vzc2lvblxuIik7CiAgICB9Cn0KCnZvaWQgc3RvcF9zZXNzaW9uX2ZpeHR1cmUodm9pZCkKewogICAgaWYoY29ubmVjdGVkX3Nlc3Npb24pIHsKICAgICAgICBsaWJzc2gyX3Nlc3Npb25fZGlzY29ubmVjdChjb25uZWN0ZWRfc2Vzc2lvbiwgInRlc3QgZW5kZWQiKTsKICAgICAgICBsaWJzc2gyX3Nlc3Npb25fZnJlZShjb25uZWN0ZWRfc2Vzc2lvbik7CiAgICAgICAgY29ubmVjdGVkX3Nlc3Npb24gPSBOVUxMOwogICAgfQogICAgZWxzZSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJDYW5ub3Qgc3RvcCBzZXNzaW9uIC0gbm9uZSBzdGFydGVkXG4iKTsKICAgIH0KCiAgICBjbG9zZV9zb2NrZXRfdG9fb3BlbnNzaF9zZXJ2ZXIoY29ubmVjdGVkX3NvY2tldCk7CiAgICBjb25uZWN0ZWRfc29ja2V0ID0gTElCU1NIMl9JTlZBTElEX1NPQ0tFVDsKCiAgICBzcmNkaXJfcGF0aChOVUxMKTsgIC8qIGNsZWFudXAgYWxsb2NhdGVkIGZpbGVwYXRoICovCgogICAgbGlic3NoMl9leGl0KCk7CgogICAgc3RvcF9vcGVuc3NoX2ZpeHR1cmUoKTsKfQoKCi8qIFJldHVybiBhIHN0YXRpYyBzdHJpbmcgdGhhdCBjb250YWlucyBhIGZpbGUgcGF0aCByZWxhdGl2ZSB0byB0aGUgc3JjZGlyCiAqIHZhcmlhYmxlLCBpZiBmb3VuZC4KICovCiNkZWZpbmUgTlVNUEFUSFMgMzIKY2hhciAqc3JjZGlyX3BhdGgoY29uc3QgY2hhciAqZmlsZSkKewogICAgc3RhdGljIGNoYXIgKmZpbGVwYXRoW05VTVBBVEhTXTsKICAgIHN0YXRpYyBpbnQgY3VycGF0aDsKICAgIGNoYXIgKnAgPSBnZXRlbnYoInNyY2RpciIpOwogICAgaWYoZmlsZSkgewogICAgICAgIGludCBsZW47CiAgICAgICAgaWYoY3VycGF0aCA+PSBOVU1QQVRIUykgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgInNyY2Rpcl9wYXRoIHJhbiBvdXQgb2YgZmlsZXBhdGggc2xvdHMuXG4iKTsKICAgICAgICB9CiAgICAgICAgYXNzZXJ0KGN1cnBhdGggPCBOVU1QQVRIUyk7CiAgICAgICAgaWYocCkgewogICAgICAgICAgICBsZW4gPSBzbnByaW50ZihOVUxMLCAwLCAiJXMvJXMiLCBwLCBmaWxlKTsKICAgICAgICAgICAgaWYobGVuID4gMikgewogICAgICAgICAgICAgICAgZmlsZXBhdGhbY3VycGF0aF0gPSBjYWxsb2MoMSwgKHNpemVfdClsZW4gKyAxKTsKICAgICAgICAgICAgICAgIHNucHJpbnRmKGZpbGVwYXRoW2N1cnBhdGhdLCAoc2l6ZV90KWxlbiArIDEsICIlcy8lcyIsIHAsIGZpbGUpOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsc2UgewogICAgICAgICAgICAgICByZXR1cm4gTlVMTDsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICBlbHNlIHsKICAgICAgICAgICAgbGVuID0gc25wcmludGYoTlVMTCwgMCwgIiVzIiwgZmlsZSk7CiAgICAgICAgICAgIGlmKGxlbiA+IDApIHsKICAgICAgICAgICAgICAgIGZpbGVwYXRoW2N1cnBhdGhdID0gY2FsbG9jKDEsIChzaXplX3QpbGVuICsgMSk7CiAgICAgICAgICAgICAgICBzbnByaW50ZihmaWxlcGF0aFtjdXJwYXRoXSwgKHNpemVfdClsZW4gKyAxLCAiJXMiLCBmaWxlKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlIHsKICAgICAgICAgICAgICAgcmV0dXJuIE5VTEw7CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICAgICAgcmV0dXJuIGZpbGVwYXRoW2N1cnBhdGgrK107CiAgICB9CiAgICBlbHNlIHsKICAgICAgICBpbnQgaTsKICAgICAgICBmb3IoaSA9IDA7IGkgPCBjdXJwYXRoOyArK2kpIHsKICAgICAgICAgICAgZnJlZShmaWxlcGF0aFtjdXJwYXRoXSk7CiAgICAgICAgfQogICAgICAgIGN1cnBhdGggPSAwOwogICAgICAgIHJldHVybiBOVUxMOwogICAgfQp9CgpzdGF0aWMgY29uc3QgY2hhciAqa2JkX3Bhc3N3b3JkOwoKc3RhdGljIHZvaWQga2JkX2NhbGxiYWNrKGNvbnN0IGNoYXIgKm5hbWUsIGludCBuYW1lX2xlbiwKICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGNoYXIgKmluc3RydWN0LCBpbnQgaW5zdHJ1Y3RfbGVuLAogICAgICAgICAgICAgICAgICAgICAgICAgaW50IG51bV9wcm9tcHRzLAogICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgTElCU1NIMl9VU0VSQVVUSF9LQkRJTlRfUFJPTVBUICpwcm9tcHRzLAogICAgICAgICAgICAgICAgICAgICAgICAgTElCU1NIMl9VU0VSQVVUSF9LQkRJTlRfUkVTUE9OU0UgKnJlc3BvbnNlcywKICAgICAgICAgICAgICAgICAgICAgICAgIHZvaWQgKiphYnN0cmFjdCkKewogICAgaW50IGk7CiAgICAodm9pZClhYnN0cmFjdDsKCiAgICBmcHJpbnRmKHN0ZG91dCwgIktiLWludCBuYW1lOiAlLipzXG4iLCBuYW1lX2xlbiwgbmFtZSk7CiAgICBmcHJpbnRmKHN0ZG91dCwgIktiLWludCBpbnN0cnVjdGlvbjogJS4qc1xuIiwgaW5zdHJ1Y3RfbGVuLCBpbnN0cnVjdCk7CiAgICBmb3IoaSA9IDA7IGkgPCBudW1fcHJvbXB0czsgKytpKSB7CiAgICAgICAgZnByaW50ZihzdGRvdXQsICJLYi1pbnQgcHJvbXB0ICVkOiAlLipzXG4iLCBpLAogICAgICAgICAgICAgICAgKGludClwcm9tcHRzW2ldLmxlbmd0aCwgcHJvbXB0c1tpXS50ZXh0KTsKICAgIH0KCiAgICBpZihudW1fcHJvbXB0cyA9PSAxKSB7CiAgICAgICAgcmVzcG9uc2VzWzBdLnRleHQgPSBzdHJkdXAoa2JkX3Bhc3N3b3JkKTsKICAgICAgICByZXNwb25zZXNbMF0ubGVuZ3RoID0gKHVuc2lnbmVkIGludClzdHJsZW4oa2JkX3Bhc3N3b3JkKTsKICAgIH0KfQoKaW50IHRlc3RfYXV0aF9rZXlib2FyZChMSUJTU0gyX1NFU1NJT04gKnNlc3Npb24sIGludCBmbGFncywKICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBjaGFyICp1c2VybmFtZSwKICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBjaGFyICpwYXNzd29yZCkKewogICAgaW50IHJjOwoKICAgIGNvbnN0IGNoYXIgKnVzZXJhdXRoX2xpc3QgPQogICAgICAgIGxpYnNzaDJfdXNlcmF1dGhfbGlzdChzZXNzaW9uLCB1c2VybmFtZSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkIGludClzdHJsZW4odXNlcm5hbWUpKTsKICAgIGlmKCF1c2VyYXV0aF9saXN0KSB7CiAgICAgICAgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKCJsaWJzc2gyX3VzZXJhdXRoX2xpc3QiKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZighc3Ryc3RyKHVzZXJhdXRoX2xpc3QsICJrZXlib2FyZC1pbnRlcmFjdGl2ZSIpKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsCiAgICAgICAgICAgICAgICAiJ2tleWJvYXJkLWludGVyYWN0aXZlJyB3YXMgZXhwZWN0ZWQgaW4gdXNlcmF1dGggbGlzdDogJXNcbiIsCiAgICAgICAgICAgICAgICB1c2VyYXV0aF9saXN0KTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBrYmRfcGFzc3dvcmQgPSBwYXNzd29yZDsKCiAgICByYyA9IGxpYnNzaDJfdXNlcmF1dGhfa2V5Ym9hcmRfaW50ZXJhY3RpdmVfZXgoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBrYmRfY2FsbGJhY2spOwoKICAgIGtiZF9wYXNzd29yZCA9IE5VTEw7CgogICAgaWYoKGZsYWdzICYgVEVTVF9BVVRIX1NIT1VMREZBSUwpICE9IDApIHsKICAgICAgICBpZihyYyA9PSAwKSB7CiAgICAgICAgICAgIGZwcmludGYoc3RkZXJyLCAiS2V5Ym9hcmQtaW50ZXJhY3RpdmUgYXV0aCBzdWNjZWVkZWQgIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgIndpdGggd3JvbmcgcmVzcG9uc2VcbiIpOwogICAgICAgICAgICByZXR1cm4gMTsKICAgICAgICB9CiAgICB9CiAgICBlbHNlIHsKICAgICAgICBpZihyYykgewogICAgICAgICAgICBwcmludF9sYXN0X3Nlc3Npb25fZXJyb3IoCiAgICAgICAgICAgICAgICAibGlic3NoMl91c2VyYXV0aF9rZXlib2FyZF9pbnRlcmFjdGl2ZV9leCIpOwogICAgICAgICAgICByZXR1cm4gMTsKICAgICAgICB9CiAgICB9CgogICAgcmV0dXJuIDA7Cn0KCmludCB0ZXN0X2F1dGhfcGFzc3dvcmQoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uLCBpbnQgZmxhZ3MsCiAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgY2hhciAqdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgY2hhciAqcGFzc3dvcmQpCnsKICAgIGludCByYzsKCiAgICBjb25zdCBjaGFyICp1c2VyYXV0aF9saXN0ID0KICAgICAgICBsaWJzc2gyX3VzZXJhdXRoX2xpc3Qoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSk7CiAgICBpZighdXNlcmF1dGhfbGlzdCkgewogICAgICAgIHByaW50X2xhc3Rfc2Vzc2lvbl9lcnJvcigibGlic3NoMl91c2VyYXV0aF9saXN0Iik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgaWYoIXN0cnN0cih1c2VyYXV0aF9saXN0LCAicGFzc3dvcmQiKSkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiJ3Bhc3N3b3JkJyB3YXMgZXhwZWN0ZWQgaW4gdXNlcmF1dGggbGlzdDogJXNcbiIsCiAgICAgICAgICAgICAgICB1c2VyYXV0aF9saXN0KTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICByYyA9IGxpYnNzaDJfdXNlcmF1dGhfcGFzc3dvcmRfZXgoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkIGludClzdHJsZW4odXNlcm5hbWUpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBhc3N3b3JkLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHBhc3N3b3JkKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMKTsKCiAgICBpZigoZmxhZ3MgJiBURVNUX0FVVEhfU0hPVUxERkFJTCkgIT0gMCkgewogICAgICAgIGlmKHJjID09IDApIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJQYXNzd29yZCBhdXRoIHN1Y2NlZWRlZCB3aXRoIHdyb25nIHBhc3N3b3JkXG4iKTsKICAgICAgICAgICAgcmV0dXJuIDE7CiAgICAgICAgfQogICAgfQogICAgZWxzZSB7CiAgICAgICAgaWYocmMpIHsKICAgICAgICAgICAgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKCJsaWJzc2gyX3VzZXJhdXRoX3Bhc3N3b3JkX2V4Iik7CiAgICAgICAgICAgIHJldHVybiAxOwogICAgICAgIH0KCiAgICAgICAgaWYobGlic3NoMl91c2VyYXV0aF9hdXRoZW50aWNhdGVkKHNlc3Npb24pID09IDApIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJQYXNzd29yZCBhdXRoIGFwcGVhcmVkIHRvIHN1Y2NlZWQgYnV0ICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJsaWJzc2gyX3VzZXJhdXRoX2F1dGhlbnRpY2F0ZWQgcmV0dXJuZWQgMFxuIik7CiAgICAgICAgICAgIHJldHVybiAxOwogICAgICAgIH0KICAgIH0KCiAgICByZXR1cm4gMDsKfQoKc3RhdGljIGludCByZWFkX2ZpbGUoY29uc3QgY2hhciAqcGF0aCwgY2hhciAqKm91dF9idWZmZXIsIHNpemVfdCAqb3V0X2xlbikKewogICAgRklMRSAqZnA7CiAgICBjaGFyICpidWZmZXI7CiAgICBzc2l6ZV90IGxlbjsKCiAgICBpZighb3V0X2J1ZmZlciB8fCAhb3V0X2xlbiB8fCAhcGF0aCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiaW52YWxpZCBwYXJhbXMuXG4iKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICAqb3V0X2J1ZmZlciA9IE5VTEw7CiAgICAqb3V0X2xlbiA9IDA7CgogICAgZnAgPSBmb3BlbihwYXRoLCAiciIpOwoKICAgIGlmKCFmcCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmlsZSBjb3VsZCBub3QgYmUgcmVhZDogJXNcbiIsIHBhdGgpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIGZzZWVrKGZwLCAwTCwgU0VFS19FTkQpOwogICAgbGVuID0gZnRlbGwoZnApOwogICAgaWYobGVuIDwgMCkgewogICAgICAgIGZjbG9zZShmcCk7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJDb3VsZCBub3QgZGV0ZXJtaW5lIGlucHV0IHNpemUgb2Y6ICVzXG4iLCBwYXRoKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KICAgIHJld2luZChmcCk7CgogICAgYnVmZmVyID0gY2FsbG9jKDEsIChzaXplX3QpbGVuICsgMSk7CiAgICBpZighYnVmZmVyKSB7CiAgICAgICAgZmNsb3NlKGZwKTsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkNvdWxkIG5vdCBhbGxvYyBtZW1vcnkuXG4iKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZigxICE9IGZyZWFkKGJ1ZmZlciwgKHNpemVfdClsZW4sIDEsIGZwKSkgewogICAgICAgIGZjbG9zZShmcCk7CiAgICAgICAgZnJlZShidWZmZXIpOwogICAgICAgIGZwcmludGYoc3RkZXJyLCAiQ291bGQgbm90IHJlYWQgZmlsZSBpbnRvIG1lbW9yeS5cbiIpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIGZjbG9zZShmcCk7CgogICAgKm91dF9idWZmZXIgPSBidWZmZXI7CiAgICAqb3V0X2xlbiA9IChzaXplX3QpbGVuOwoKICAgIHJldHVybiAwOwp9CgppbnQgdGVzdF9hdXRoX3B1YmtleShMSUJTU0gyX1NFU1NJT04gKnNlc3Npb24sIGludCBmbGFncywKICAgICAgICAgICAgICAgICAgICAgY29uc3QgY2hhciAqdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGNoYXIgKnBhc3N3b3JkLAogICAgICAgICAgICAgICAgICAgICBjb25zdCBjaGFyICpmbl9wdWIsCiAgICAgICAgICAgICAgICAgICAgIGNvbnN0IGNoYXIgKmZuX3ByaXYpCnsKICAgIGludCByYzsKICAgIGNvbnN0IGNoYXIgKnVzZXJhdXRoX2xpc3Q7CgogICAgLyogSWdub3JlIG91ciBoYXJkLXdpcmVkIERvY2tlcmZpbGUgdXNlciB3aGVuIG5vdCBydW5uaW5nIHVuZGVyIERvY2tlciAqLwogICAgaWYoIW9wZW5zc2hfZml4dHVyZV9oYXZlX2RvY2tlcigpICYmIHN0cmNtcCh1c2VybmFtZSwgImxpYnNzaDIiKSA9PSAwKSB7CiAgICAgICAgdXNlcm5hbWUgPSBnZXRlbnYoIlVTRVIiKTsKICAgICAgICBpZighdXNlcm5hbWUpIHsKI2lmZGVmIF9XSU4zMgogICAgICAgICAgICB1c2VybmFtZSA9IGdldGVudigiVVNFUk5BTUUiKTsKI2Vsc2UKICAgICAgICAgICAgdXNlcm5hbWUgPSBnZXRlbnYoIkxPR05BTUUiKTsKI2VuZGlmCiAgICAgICAgfQogICAgfQoKICAgIHVzZXJhdXRoX2xpc3QgPSBsaWJzc2gyX3VzZXJhdXRoX2xpc3Qoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSk7CiAgICBpZighdXNlcmF1dGhfbGlzdCkgewogICAgICAgIHByaW50X2xhc3Rfc2Vzc2lvbl9lcnJvcigibGlic3NoMl91c2VyYXV0aF9saXN0Iik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgaWYoIXN0cnN0cih1c2VyYXV0aF9saXN0LCAicHVibGlja2V5IikpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIidwdWJsaWNrZXknIHdhcyBleHBlY3RlZCBpbiB1c2VyYXV0aCBsaXN0OiAlc1xuIiwKICAgICAgICAgICAgICAgIHVzZXJhdXRoX2xpc3QpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIGlmKChmbGFncyAmIFRFU1RfQVVUSF9GUk9NTUVNKSAhPSAwKSB7CiAgICAgICAgY2hhciAqYnVmZmVyID0gTlVMTDsKICAgICAgICBzaXplX3QgbGVuID0gMDsKCiAgICAgICAgaWYocmVhZF9maWxlKHNyY2Rpcl9wYXRoKGZuX3ByaXYpLCAmYnVmZmVyLCAmbGVuKSkgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIlJlYWRpbmcga2V5IGZpbGUgZmFpbGVkLlxuIik7CiAgICAgICAgICAgIHJldHVybiAxOwogICAgICAgIH0KCiAgICAgICAgcmMgPSBsaWJzc2gyX3VzZXJhdXRoX3B1YmxpY2tleV9mcm9tbWVtb3J5KHNlc3Npb24sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVzZXJuYW1lLCBzdHJsZW4odXNlcm5hbWUpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMLCAwLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBidWZmZXIsIGxlbiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTlVMTCk7CgogICAgICAgIGZyZWUoYnVmZmVyKTsKICAgIH0KICAgIGVsc2UgewogICAgICAgIHJjID0gbGlic3NoMl91c2VyYXV0aF9wdWJsaWNrZXlfZnJvbWZpbGVfZXgoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNyY2Rpcl9wYXRoKGZuX3B1YiksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmNkaXJfcGF0aChmbl9wcml2KSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHBhc3N3b3JkKTsKICAgIH0KCiAgICBpZigoZmxhZ3MgJiBURVNUX0FVVEhfU0hPVUxERkFJTCkgIT0gMCkgewogICAgICAgIGlmKHJjID09IDApIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJQdWJsaWMta2V5IGF1dGggc3VjY2VlZGVkIHdpdGggd3Jvbmcga2V5XG4iKTsKICAgICAgICAgICAgcmV0dXJuIDE7CiAgICAgICAgfQogICAgfQogICAgZWxzZSB7CiAgICAgICAgaWYocmMpIHsKICAgICAgICAgICAgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKCJsaWJzc2gyX3VzZXJhdXRoX3B1YmxpY2tleV9mcm9tZmlsZV9leCIpOwogICAgICAgICAgICByZXR1cm4gMTsKICAgICAgICB9CiAgICB9CgogICAgcmV0dXJuIDA7Cn0K
+/* Copyright (C) Alexander Lamaison
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *   Redistributions of source code must retain the above
+ *   copyright notice, this list of conditions and the
+ *   following disclaimer.
+ *
+ *   Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ *   Neither the name of the copyright holder nor the names
+ *   of any other contributors may be used to endorse or
+ *   promote products derived from this software without
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "session_fixture.h"
+#include "openssh_fixture.h"
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>  /* for getenv() */
+#include <assert.h>
+
+static LIBSSH2_SESSION *connected_session = NULL;
+static libssh2_socket_t connected_socket = LIBSSH2_INVALID_SOCKET;
+
+static int connect_to_server(void)
+{
+    int rc;
+    connected_socket = open_socket_to_openssh_server();
+    if(connected_socket == LIBSSH2_INVALID_SOCKET) {
+        return LIBSSH2_ERROR_SOCKET_NONE;
+    }
+
+    rc = libssh2_session_handshake(connected_session, connected_socket);
+    if(rc) {
+        print_last_session_error("libssh2_session_handshake");
+        return libssh2_session_last_errno(connected_session);
+    }
+
+    return LIBSSH2_ERROR_NONE;
+}
+
+/* List of crypto protocols for which tests are skipped */
+static char const *skip_crypt[] = {
+#ifdef LIBSSH2_MBEDTLS
+    /* Due to a bug with mbedTLS support, these crypt methods fail.
+       Until that bug is fixed, don't run them there to avoid this
+       known issue causing red tests.
+       See: https://github.com/libssh2/libssh2/issues/793
+     */
+    "3des-cbc",
+    "aes128-cbc",
+    "aes192-cbc",
+    "aes256-cbc",
+    "aes128-gcm@openssh.com",
+    "aes256-gcm@openssh.com",
+    "rijndael-cbc@lysator.liu.se",
+#endif
+
+#if !LIBSSH2_3DES
+    "3des-cbc",
+#endif
+
+#if !LIBSSH2_AES_GCM
+    /* Support for AES-GCM hasn't been added to these back-ends yet */
+    "aes128-gcm@openssh.com",
+    "aes256-gcm@openssh.com",
+#endif
+
+    NULL
+};
+
+/* List of MAC protocols for which tests are skipped */
+static char const *skip_mac[] = {
+#if !LIBSSH2_MD5
+    "hmac-md5",
+    "hmac-md5-96",
+#endif
+    NULL
+};
+
+LIBSSH2_SESSION *start_session_fixture(int *skipped, int *err)
+{
+    int rc;
+
+    const char *crypt = getenv("FIXTURE_TEST_CRYPT");
+    const char *mac = getenv("FIXTURE_TEST_MAC");
+
+    *skipped = 0;
+    *err = LIBSSH2_ERROR_NONE;
+
+    if(crypt) {
+        char const * const *sk;
+        for(sk = skip_crypt; *sk; ++sk) {
+            if(strcmp(*sk, crypt) == 0) {
+                fprintf(stderr, "unsupported crypt algorithm (%s) skipped.\n",
+                                crypt);
+                *skipped = 1;
+                return NULL;
+            }
+        }
+    }
+
+    if(mac) {
+        char const * const *sk;
+        for(sk = skip_mac; *sk; ++sk) {
+            if(strcmp(*sk, mac) == 0) {
+                fprintf(stderr, "unsupported MAC algorithm (%s) skipped.\n",
+                                mac);
+                *skipped = 1;
+                return NULL;
+            }
+        }
+    }
+
+    rc = start_openssh_fixture();
+    if(rc) {
+        return NULL;
+    }
+    rc = libssh2_init(0);
+    if(rc) {
+        fprintf(stderr, "libssh2_init failed (%d)\n", rc);
+        return NULL;
+    }
+
+    connected_session = libssh2_session_init_ex(NULL, NULL, NULL, NULL);
+    if(!connected_session) {
+        fprintf(stderr, "libssh2_session_init_ex failed\n");
+        return NULL;
+    }
+
+    if(getenv("FIXTURE_TRACE_ALL_CONNECT")) {
+        libssh2_trace(connected_session, ~0);
+        fprintf(stdout, "Trace all enabled for connect_to_server.\n");
+    }
+    else if(getenv("FIXTURE_TRACE_ALL")) {
+        libssh2_trace(connected_session, ~0);
+        fprintf(stdout, "Trace all enabled.\n");
+    }
+
+    /* Override crypt algorithm for the test */
+    if(crypt) {
+        if(libssh2_session_method_pref(connected_session,
+                                       LIBSSH2_METHOD_CRYPT_CS, crypt) ||
+           libssh2_session_method_pref(connected_session,
+                                       LIBSSH2_METHOD_CRYPT_SC, crypt)) {
+            fprintf(stderr, "libssh2_session_method_pref CRYPT failed "
+                            "(probably disabled in the build): '%s'\n", crypt);
+            return NULL;
+        }
+    }
+
+    /* Override mac algorithm for the test */
+    if(mac) {
+        if(libssh2_session_method_pref(connected_session,
+                                       LIBSSH2_METHOD_MAC_CS, mac) ||
+           libssh2_session_method_pref(connected_session,
+                                       LIBSSH2_METHOD_MAC_SC, mac)) {
+            fprintf(stderr, "libssh2_session_method_pref MAC failed "
+                            "(probably disabled in the build): '%s'\n", mac);
+            return NULL;
+        }
+    }
+
+    libssh2_session_set_blocking(connected_session, 1);
+
+    rc = connect_to_server();
+    if(rc != LIBSSH2_ERROR_NONE) {
+        *err = rc;
+        return NULL;
+    }
+
+    if(getenv("FIXTURE_TRACE_ALL_CONNECT")) {
+        libssh2_trace(connected_session, 0);
+    }
+
+    return connected_session;
+}
+
+void print_last_session_error(const char *function)
+{
+    if(connected_session) {
+        char *message;
+        int rc =
+            libssh2_session_last_error(connected_session, &message, NULL, 0);
+        fprintf(stderr, "%s failed (%d): %s\n", function, rc, message);
+    }
+    else {
+        fprintf(stderr, "No session\n");
+    }
+}
+
+void stop_session_fixture(void)
+{
+    if(connected_session) {
+        libssh2_session_disconnect(connected_session, "test ended");
+        libssh2_session_free(connected_session);
+        connected_session = NULL;
+    }
+    else {
+        fprintf(stderr, "Cannot stop session - none started\n");
+    }
+
+    close_socket_to_openssh_server(connected_socket);
+    connected_socket = LIBSSH2_INVALID_SOCKET;
+
+    srcdir_path(NULL);  /* cleanup allocated filepath */
+
+    libssh2_exit();
+
+    stop_openssh_fixture();
+}
+
+
+/* Return a static string that contains a file path relative to the srcdir
+ * variable, if found.
+ */
+#define NUMPATHS 32
+char *srcdir_path(const char *file)
+{
+    static char *filepath[NUMPATHS];
+    static int curpath;
+    char *p = getenv("srcdir");
+    if(file) {
+        int len;
+        if(curpath >= NUMPATHS) {
+            fprintf(stderr, "srcdir_path ran out of filepath slots.\n");
+        }
+        assert(curpath < NUMPATHS);
+        if(p) {
+            len = snprintf(NULL, 0, "%s/%s", p, file);
+            if(len > 2) {
+                filepath[curpath] = calloc(1, (size_t)len + 1);
+                snprintf(filepath[curpath], (size_t)len + 1, "%s/%s", p, file);
+            }
+            else {
+               return NULL;
+            }
+        }
+        else {
+            len = snprintf(NULL, 0, "%s", file);
+            if(len > 0) {
+                filepath[curpath] = calloc(1, (size_t)len + 1);
+                snprintf(filepath[curpath], (size_t)len + 1, "%s", file);
+            }
+            else {
+               return NULL;
+            }
+        }
+        return filepath[curpath++];
+    }
+    else {
+        int i;
+        for(i = 0; i < curpath; ++i) {
+            free(filepath[curpath]);
+        }
+        curpath = 0;
+        return NULL;
+    }
+}
+
+static const char *kbd_password;
+
+static void kbd_callback(const char *name, int name_len,
+                         const char *instruct, int instruct_len,
+                         int num_prompts,
+                         const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
+                         LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses,
+                         void **abstract)
+{
+    int i;
+    (void)abstract;
+
+    fprintf(stdout, "Kb-int name: %.*s\n", name_len, name);
+    fprintf(stdout, "Kb-int instruction: %.*s\n", instruct_len, instruct);
+    for(i = 0; i < num_prompts; ++i) {
+        fprintf(stdout, "Kb-int prompt %d: %.*s\n", i,
+                (int)prompts[i].length, prompts[i].text);
+    }
+
+    if(num_prompts == 1) {
+        responses[0].text = strdup(kbd_password);
+        responses[0].length = (unsigned int)strlen(kbd_password);
+    }
+}
+
+int test_auth_keyboard(LIBSSH2_SESSION *session, int flags,
+                       const char *username,
+                       const char *password)
+{
+    int rc;
+
+    const char *userauth_list =
+        libssh2_userauth_list(session, username,
+                              (unsigned int)strlen(username));
+    if(!userauth_list) {
+        print_last_session_error("libssh2_userauth_list");
+        return 1;
+    }
+
+    if(!strstr(userauth_list, "keyboard-interactive")) {
+        fprintf(stderr,
+                "'keyboard-interactive' was expected in userauth list: %s\n",
+                userauth_list);
+        return 1;
+    }
+
+    kbd_password = password;
+
+    rc = libssh2_userauth_keyboard_interactive_ex(session, username,
+                                                (unsigned int)strlen(username),
+                                                  kbd_callback);
+
+    kbd_password = NULL;
+
+    if((flags & TEST_AUTH_SHOULDFAIL) != 0) {
+        if(rc == 0) {
+            fprintf(stderr, "Keyboard-interactive auth succeeded "
+                            "with wrong response\n");
+            return 1;
+        }
+    }
+    else {
+        if(rc) {
+            print_last_session_error(
+                "libssh2_userauth_keyboard_interactive_ex");
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int test_auth_password(LIBSSH2_SESSION *session, int flags,
+                       const char *username,
+                       const char *password)
+{
+    int rc;
+
+    const char *userauth_list =
+        libssh2_userauth_list(session, username,
+                              (unsigned int)strlen(username));
+    if(!userauth_list) {
+        print_last_session_error("libssh2_userauth_list");
+        return 1;
+    }
+
+    if(!strstr(userauth_list, "password")) {
+        fprintf(stderr, "'password' was expected in userauth list: %s\n",
+                userauth_list);
+        return 1;
+    }
+
+    rc = libssh2_userauth_password_ex(session, username,
+                                      (unsigned int)strlen(username),
+                                      password,
+                                      (unsigned int)strlen(password),
+                                      NULL);
+
+    if((flags & TEST_AUTH_SHOULDFAIL) != 0) {
+        if(rc == 0) {
+            fprintf(stderr, "Password auth succeeded with wrong password\n");
+            return 1;
+        }
+    }
+    else {
+        if(rc) {
+            print_last_session_error("libssh2_userauth_password_ex");
+            return 1;
+        }
+
+        if(libssh2_userauth_authenticated(session) == 0) {
+            fprintf(stderr, "Password auth appeared to succeed but "
+                            "libssh2_userauth_authenticated returned 0\n");
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+static int read_file(const char *path, char **out_buffer, size_t *out_len)
+{
+    FILE *fp;
+    char *buffer;
+    ssize_t len;
+
+    if(!out_buffer || !out_len || !path) {
+        fprintf(stderr, "invalid params.\n");
+        return 1;
+    }
+
+    *out_buffer = NULL;
+    *out_len = 0;
+
+    fp = fopen(path, "r");
+
+    if(!fp) {
+        fprintf(stderr, "File could not be read: %s\n", path);
+        return 1;
+    }
+
+    fseek(fp, 0L, SEEK_END);
+    len = ftell(fp);
+    if(len < 0) {
+        fclose(fp);
+        fprintf(stderr, "Could not determine input size of: %s\n", path);
+        return 1;
+    }
+    rewind(fp);
+
+    buffer = calloc(1, (size_t)len + 1);
+    if(!buffer) {
+        fclose(fp);
+        fprintf(stderr, "Could not alloc memory.\n");
+        return 1;
+    }
+
+    if(1 != fread(buffer, (size_t)len, 1, fp)) {
+        fclose(fp);
+        free(buffer);
+        fprintf(stderr, "Could not read file into memory.\n");
+        return 1;
+    }
+
+    fclose(fp);
+
+    *out_buffer = buffer;
+    *out_len = (size_t)len;
+
+    return 0;
+}
+
+int test_auth_pubkey(LIBSSH2_SESSION *session, int flags,
+                     const char *username,
+                     const char *password,
+                     const char *fn_pub,
+                     const char *fn_priv)
+{
+    int rc;
+    const char *userauth_list;
+
+    /* Ignore our hard-wired Dockerfile user when not running under Docker */
+    if(!openssh_fixture_have_docker() && strcmp(username, "libssh2") == 0) {
+        username = getenv("USER");
+        if(!username) {
+#ifdef _WIN32
+            username = getenv("USERNAME");
+#else
+            username = getenv("LOGNAME");
+#endif
+        }
+    }
+
+    userauth_list = libssh2_userauth_list(session, username,
+                                          (unsigned int)strlen(username));
+    if(!userauth_list) {
+        print_last_session_error("libssh2_userauth_list");
+        return 1;
+    }
+
+    if(!strstr(userauth_list, "publickey")) {
+        fprintf(stderr, "'publickey' was expected in userauth list: %s\n",
+                userauth_list);
+        return 1;
+    }
+
+    if((flags & TEST_AUTH_FROMMEM) != 0) {
+        char *buffer = NULL;
+        size_t len = 0;
+
+        if(read_file(srcdir_path(fn_priv), &buffer, &len)) {
+            fprintf(stderr, "Reading key file failed.\n");
+            return 1;
+        }
+
+        rc = libssh2_userauth_publickey_frommemory(session,
+                                                   username, strlen(username),
+                                                   NULL, 0,
+                                                   buffer, len,
+                                                   NULL);
+
+        free(buffer);
+    }
+    else {
+        rc = libssh2_userauth_publickey_fromfile_ex(session, username,
+                                                (unsigned int)strlen(username),
+                                                    srcdir_path(fn_pub),
+                                                    srcdir_path(fn_priv),
+                                                    password);
+    }
+
+    if((flags & TEST_AUTH_SHOULDFAIL) != 0) {
+        if(rc == 0) {
+            fprintf(stderr, "Public-key auth succeeded with wrong key\n");
+            return 1;
+        }
+    }
+    else {
+        if(rc) {
+            print_last_session_error("libssh2_userauth_publickey_fromfile_ex");
+            return 1;
+        }
+    }
+
+    return 0;
+}

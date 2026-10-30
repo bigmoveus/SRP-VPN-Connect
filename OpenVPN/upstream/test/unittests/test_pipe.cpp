@@ -1,1 +1,27 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zdHJpbmcuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vcHJvY2Vzcy5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKClRFU1QobWlzYywgcGlwZSkKewogICAgUmVkaXJlY3RQaXBlOjpJbk91dCBpbzsKCiAgICB7CiAgICAgICAgQXJndiBhcmd2OwogICAgICAgIGlvLmluID0gIm9uZVxudHdvXG50aHJlZVxuZm91clxuZml2ZVxuc2l4XG5zZXZlblxuZWlnaHRcbm5pbmVcbnRlblxuIjsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjaygic29ydCIpOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCItdSIpOwogICAgICAgIC8vIE9QRU5WUE5fTE9HKGFyZ3YudG9fc3RyaW5nKCkpOwogICAgICAgIGNvbnN0IGludCBzdGF0dXMgPSBzeXN0ZW1fY21kKCIvdXNyL2Jpbi9zb3J0IiwgYXJndiwgbnVsbHB0ciwgaW8sIDAsIG51bGxwdHIpOwoKICAgICAgICBBU1NFUlRfRVEoMCwgc3RhdHVzKSA8PCAiYmFkIHNvcnQgc3RhdHVzPSIgPDwgc3RhdHVzIDw8ICIgc3RkZXJyPSIgPDwgaW8uZXJyOwoKICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyBleHBlY3RlZCA9ICJlaWdodFxuZml2ZVxuZm91clxubmluZVxub25lXG5zZXZlblxuc2l4XG50ZW5cbnRocmVlXG50d29cbiI7CiAgICAgICAgQVNTRVJUX0VRKGlvLm91dCwgZXhwZWN0ZWQpIDw8ICJiYWQgc29ydCBFWFBFQ1RFRDpcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPDwgZXhwZWN0ZWQgPDwgIkFDVFVBTDpcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPDwgaW8ub3V0OwogICAgfQp9Cg==
+#include "test_common.hpp"
+
+#include <openvpn/common/string.hpp>
+#include <openvpn/common/process.hpp>
+
+using namespace openvpn;
+
+TEST(misc, pipe)
+{
+    RedirectPipe::InOut io;
+
+    {
+        Argv argv;
+        io.in = "one\ntwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\n";
+        argv.emplace_back("sort");
+        argv.emplace_back("-u");
+        // OPENVPN_LOG(argv.to_string());
+        const int status = system_cmd("/usr/bin/sort", argv, nullptr, io, 0, nullptr);
+
+        ASSERT_EQ(0, status) << "bad sort status=" << status << " stderr=" << io.err;
+
+        const std::string expected = "eight\nfive\nfour\nnine\none\nseven\nsix\nten\nthree\ntwo\n";
+        ASSERT_EQ(io.out, expected) << "bad sort EXPECTED:\n"
+                                    << expected << "ACTUAL:\n"
+                                    << io.out;
+    }
+}

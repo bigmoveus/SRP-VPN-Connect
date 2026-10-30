@@ -1,1 +1,33 @@
-IyEvdXNyL2Jpbi9lbnYgYmFzaAoKc2V0IC1ldQoKIyBUaGlzIHNjcmlwdCBpcyBjYWxsZWQgYnkgdGhlIG9zcy1mdXp6IG1haW4gcHJvamVjdCB3aGVuIGNvbXBpbGluZyB0aGUgZnV6egojIHRhcmdldHMuIFRoaXMgc2NyaXB0IGlzIHJlZ3Jlc3Npb24gdGVzdGVkIGJ5IGNpL29zc2Z1enouc2guCgojIFNhdmUgb2ZmIHRoZSBjdXJyZW50IGZvbGRlciBhcyB0aGUgYnVpbGQgcm9vdC4KZXhwb3J0IEJVSUxEX1JPT1Q9IiRQV0QiCgplY2hvICJDQzogJENDIgplY2hvICJDWFg6ICRDWFgiCmVjaG8gIkxJQl9GVVpaSU5HX0VOR0lORTogJExJQl9GVVpaSU5HX0VOR0lORSIKZWNobyAiQ0ZMQUdTOiAkQ0ZMQUdTIgplY2hvICJDWFhGTEFHUzogJENYWEZMQUdTIgplY2hvICJPVVQ6ICRPVVQiCgpNQUtFRkxBR1MrPSItaiQobnByb2MpIgpleHBvcnQgTUFLRUZMQUdTCgojIEluc3RhbGwgZGVwZW5kZW5jaWVzCmFwdC1nZXQgLXkgaW5zdGFsbCBhdXRvbWFrZSBsaWJ0b29sIGxpYnNzbC1kZXYgemxpYjFnLWRldgoKIyBDb21waWxlIHRoZSBmdXp6ZXIuCmF1dG9yZWNvbmYgLWZpCi4vY29uZmlndXJlIC0tZGlzYWJsZS1zaGFyZWQgXAogICAgICAgICAgICAtLWVuYWJsZS1vc3NmdXp6ZXJzIFwKICAgICAgICAgICAgLS1kaXNhYmxlLWV4YW1wbGVzLWJ1aWxkIFwKICAgICAgICAgICAgLS1lbmFibGUtZGVidWcKbWFrZSBWPTEKCiMgQ29weSB0aGUgZnV6emVyIHRvIHRoZSBvdXRwdXQgZGlyZWN0b3J5LgpjcCAtdiB0ZXN0cy9vc3NmdXp6L3NzaDJfY2xpZW50X2Z1enplciAiJE9VVC8iCg==
+#!/usr/bin/env bash
+
+set -eu
+
+# This script is called by the oss-fuzz main project when compiling the fuzz
+# targets. This script is regression tested by ci/ossfuzz.sh.
+
+# Save off the current folder as the build root.
+export BUILD_ROOT="$PWD"
+
+echo "CC: $CC"
+echo "CXX: $CXX"
+echo "LIB_FUZZING_ENGINE: $LIB_FUZZING_ENGINE"
+echo "CFLAGS: $CFLAGS"
+echo "CXXFLAGS: $CXXFLAGS"
+echo "OUT: $OUT"
+
+MAKEFLAGS+="-j$(nproc)"
+export MAKEFLAGS
+
+# Install dependencies
+apt-get -y install automake libtool libssl-dev zlib1g-dev
+
+# Compile the fuzzer.
+autoreconf -fi
+./configure --disable-shared \
+            --enable-ossfuzzers \
+            --disable-examples-build \
+            --enable-debug
+make V=1
+
+# Copy the fuzzer to the output directory.
+cp -v tests/ossfuzz/ssh2_client_fuzzer "$OUT/"

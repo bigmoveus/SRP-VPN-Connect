@@ -1,1 +1,279 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAyMy0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPGNzdGRpbnQ+CgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vY2xhbXBfdHlwZXJhbmdlLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOjpudW1lcmljX3V0aWw7CgoKLyogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwovLyAgY2xhbXBfdG9fdHlwZXJhbmdlCi8qID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KCgpURVNUKGNsYW1wX3RvX3R5cGVyYW5nZSwgc2FtZV90eXBlX25vY2FzdDEpCnsKICAgIGludDMyX3QgaTMyID0gLTE7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX3R5cGVyYW5nZTxpbnQzMl90PihpMzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgaTMyKTsKfQoKVEVTVChjbGFtcF90b190eXBlcmFuZ2UsIHNpZ25fbWlzbWF0Y2hfMzJfMSkKewogICAgaW50MzJfdCBpMzIgPSAtMTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fdHlwZXJhbmdlPHVpbnQzMl90PihpMzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgMCk7Cn0KClRFU1QoY2xhbXBfdG9fdHlwZXJhbmdlLCBzaWduX21pc21hdGNoXzMyXzIpCnsKICAgIHVpbnQzMl90IHUzMiA9IHN0ZDo6bnVtZXJpY19saW1pdHM8dWludDMyX3Q+OjptYXgoKTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fdHlwZXJhbmdlPGludDMyX3Q+KHUzMik7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCBzdGQ6Om51bWVyaWNfbGltaXRzPGludDMyX3Q+OjptYXgoKSk7Cn0KClRFU1QoY2xhbXBfdG9fdHlwZXJhbmdlLCBzaWduX21pc21hdGNoXzMyXzMpCnsKICAgIHVpbnQzMl90IHUzMiA9IDA7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX3R5cGVyYW5nZTxpbnQzMl90Pih1MzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgMCk7Cn0KClRFU1QoY2xhbXBfdG9fdHlwZXJhbmdlLCBzaWduX21pc21hdGNoXzMyXzQpCnsKICAgIHVpbnQzMl90IHUzMiA9IDQyOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b190eXBlcmFuZ2U8aW50MzJfdD4odTMyKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDQyKTsKfQoKVEVTVChjbGFtcF90b190eXBlcmFuZ2UsIHNpZ25fbWlzbWF0Y2hfMzJfNSkKewogICAgdWludDMyX3QgdTMyID0gdWludDMyX3Qoc3RkOjpudW1lcmljX2xpbWl0czxpbnQzMl90Pjo6bWF4KCkpOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b190eXBlcmFuZ2U8aW50MzJfdD4odTMyKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MzJfdD46Om1heCgpKTsKfQoKVEVTVChjbGFtcF90b190eXBlcmFuZ2UsIHNpZ25fbWlzbWF0Y2hfMzJfNikKewogICAgaW50MzJfdCBzMzIgPSBzdGQ6Om51bWVyaWNfbGltaXRzPGludDMyX3Q+OjptYXgoKTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fdHlwZXJhbmdlPHVpbnQ4X3Q+KHMzMik7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQ4X3Q+OjptYXgoKSk7Cn0KClRFU1QoY2xhbXBfdG9fdHlwZXJhbmdlLCBzaWduX21pc21hdGNoXzMyXzcpCnsKICAgIGludDMyX3QgczMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX3R5cGVyYW5nZTx1aW50OF90PihzMzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgpURVNUKGNsYW1wX3RvX3R5cGVyYW5nZSwgc19yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICBpbnQ2NF90IHM2NCA9IHN0ZDo6bnVtZXJpY19saW1pdHM8aW50NjRfdD46Om1heCgpOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b190eXBlcmFuZ2U8aW50MTZfdD4oczY0KTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MTZfdD46Om1heCgpKTsKfQoKVEVTVChjbGFtcF90b190eXBlcmFuZ2UsIHNfcmFuZ2VfbWF0Y2hfMTZfNjRfMSkKewogICAgaW50NjRfdCBzNjQgPSAwOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b190eXBlcmFuZ2U8aW50MTZfdD4oczY0KTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX3RvX3R5cGVyYW5nZSwgdV9yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICB1aW50NjRfdCB1NjQgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQ2NF90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX3R5cGVyYW5nZTx1aW50MTZfdD4odTY0KTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIHN0ZDo6bnVtZXJpY19saW1pdHM8dWludDE2X3Q+OjptYXgoKSk7Cn0KCgovKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09ICovCi8vICBjbGFtcF90b19kZWZhdWx0Ci8qID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KCgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNhbWVfdHlwZV9ub2Nhc3QxKQp7CiAgICBpbnQzMl90IGkzMiA9IC0xOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b19kZWZhdWx0PGludDMyX3Q+KGkzMiwgMCk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCBpMzIpOwp9CgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNpZ25fbWlzbWF0Y2hfMzJfMSkKewogICAgaW50MzJfdCBpMzIgPSAtMTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fZGVmYXVsdDx1aW50MzJfdD4oaTMyLCA0Mik7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCA0Mik7Cn0KClRFU1QoY2xhbXBfdG9fZGVmYXVsdCwgc2lnbl9taXNtYXRjaF8zMl8yKQp7CiAgICB1aW50MzJfdCB1MzIgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQzMl90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX2RlZmF1bHQ8aW50MzJfdD4odTMyLCAxKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDEpOwp9CgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNpZ25fbWlzbWF0Y2hfMzJfMykKewogICAgdWludDMyX3QgdTMyID0gMDsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fZGVmYXVsdDxpbnQzMl90Pih1MzIsIDQyKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNpZ25fbWlzbWF0Y2hfMzJfNCkKewogICAgdWludDMyX3QgdTMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX2RlZmF1bHQ8aW50MzJfdD4odTMyLCAwKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDQyKTsKfQoKVEVTVChjbGFtcF90b19kZWZhdWx0LCBzaWduX21pc21hdGNoXzMyXzUpCnsKICAgIHVpbnQzMl90IHUzMiA9IHVpbnQzMl90KHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MzJfdD46Om1heCgpKTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fZGVmYXVsdDxpbnQzMl90Pih1MzIsIC0xKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MzJfdD46Om1heCgpKTsKfQoKVEVTVChjbGFtcF90b19kZWZhdWx0LCBzaWduX21pc21hdGNoXzMyXzYpCnsKICAgIGludDMyX3QgczMyID0gc3RkOjpudW1lcmljX2xpbWl0czxpbnQzMl90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX2RlZmF1bHQ8dWludDhfdD4oczMyLCAwKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNpZ25fbWlzbWF0Y2hfMzJfNykKewogICAgaW50MzJfdCBzMzIgPSA0MjsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfdG9fZGVmYXVsdDx1aW50OF90PihzMzIsIC0xKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDQyKTsKfQoKVEVTVChjbGFtcF90b19kZWZhdWx0LCBzX3JhbmdlX21pc21hdGNoXzE2XzY0XzEpCnsKICAgIGludDY0X3QgczY0ID0gc3RkOjpudW1lcmljX2xpbWl0czxpbnQ2NF90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX2RlZmF1bHQ8aW50MTZfdD4oczY0LCAwKTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX3RvX2RlZmF1bHQsIHNfcmFuZ2VfbWF0Y2hfMTZfNjRfMSkKewogICAgaW50NjRfdCBzNjQgPSAwOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF90b19kZWZhdWx0PGludDE2X3Q+KHM2NCwgLTEpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgMCk7Cn0KClRFU1QoY2xhbXBfdG9fZGVmYXVsdCwgdV9yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICB1aW50NjRfdCB1NjQgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQ2NF90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX3RvX2RlZmF1bHQ8dWludDE2X3Q+KHU2NCwgNDIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgovKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09ICovCi8vICBjbGFtcF9ub3RpZnkKLyogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwoKClRFU1QoY2xhbXBfbm90aWZ5LCBzYW1lX3R5cGVfbm9jYXN0MSkKewogICAgaW50MzJfdCBpMzIgPSAtMTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfbm90aWZ5PGludDMyX3Q+KGkzMiwgW10oaW50MzJfdCBpblZhbCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgcmV0dXJuIDA7IH0pOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgaTMyKTsKfQoKVEVTVChjbGFtcF9ub3RpZnksIHNpZ25fbWlzbWF0Y2hfMzJfMSkKewogICAgaW50MzJfdCBpMzIgPSAtMTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfbm90aWZ5PHVpbnQzMl90PihpMzIsIFtdKGludDMyX3QgaW5WYWwpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyByZXR1cm4gNDI7IH0pOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgpURVNUKGNsYW1wX25vdGlmeSwgc2lnbl9taXNtYXRjaF8zMl8yKQp7CiAgICB1aW50MzJfdCB1MzIgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQzMl90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTxpbnQzMl90Pih1MzIsIFtdKHVpbnQzMl90IGluVmFsKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyByZXR1cm4gMTsgfSk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCAxKTsKfQoKVEVTVChjbGFtcF9ub3RpZnksIHNpZ25fbWlzbWF0Y2hfMzJfMykKewogICAgdWludDMyX3QgdTMyID0gMDsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfbm90aWZ5PGludDMyX3Q+KHUzMiwgW10odWludDMyX3QgaW5WYWwpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IHJldHVybiA0MjsgfSk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCAwKTsKfQoKVEVTVChjbGFtcF9ub3RpZnksIHNpZ25fbWlzbWF0Y2hfMzJfNCkKewogICAgdWludDMyX3QgdTMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTxpbnQzMl90Pih1MzIsIFtdKHVpbnQzMl90IGluVmFsKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgeyByZXR1cm4gMDsgfSk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCA0Mik7Cn0KClRFU1QoY2xhbXBfbm90aWZ5LCBzaWduX21pc21hdGNoXzMyXzUpCnsKICAgIHVpbnQzMl90IHUzMiA9IHVpbnQzMl90KHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MzJfdD46Om1heCgpKTsKICAgIGF1dG8gcmVzdWx0ID0gY2xhbXBfbm90aWZ5PGludDMyX3Q+KHUzMiwgW10odWludDMyX3QgaW5WYWwpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IHJldHVybiAtMTsgfSk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCBzdGQ6Om51bWVyaWNfbGltaXRzPGludDMyX3Q+OjptYXgoKSk7Cn0KClRFU1QoY2xhbXBfbm90aWZ5LCBzaWduX21pc21hdGNoXzMyXzYpCnsKICAgIGludDMyX3QgczMyID0gc3RkOjpudW1lcmljX2xpbWl0czxpbnQzMl90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTx1aW50OF90PihzMzIsIFtdKGludDMyX3QgaW5WYWwpIC0+IHVpbnQ4X3QKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgcmV0dXJuIDA7IH0pOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgMCk7Cn0KClRFU1QoY2xhbXBfbm90aWZ5LCBzaWduX21pc21hdGNoXzMyXzcpCnsKICAgIGludDMyX3QgczMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTx1aW50OF90PihzMzIsIFtdKGludDMyX3QgaW5WYWwpIC0+IHVpbnQ4X3QKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgcmV0dXJuIDA7IH0pOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgpURVNUKGNsYW1wX25vdGlmeSwgc19yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICBpbnQ2NF90IHM2NCA9IHN0ZDo6bnVtZXJpY19saW1pdHM8aW50NjRfdD46Om1heCgpOwogICAgYXV0byByZXN1bHQgPSBjbGFtcF9ub3RpZnk8aW50MTZfdD4oczY0LCBbXShpbnQ2NF90IGluVmFsKSAtPiBpbnQxNl90CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IHJldHVybiAwOyB9KTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX25vdGlmeSwgc19yYW5nZV9tYXRjaF8xNl82NF8xKQp7CiAgICBpbnQ2NF90IHM2NCA9IDA7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTxpbnQxNl90PihzNjQsIFtdKGludDY0X3QgaW5WYWwpIC0+IGludDE2X3QKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgcmV0dXJuIC0xOyB9KTsKICAgIEVYUEVDVF9FUShyZXN1bHQsIDApOwp9CgpURVNUKGNsYW1wX25vdGlmeSwgdV9yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICB1aW50NjRfdCB1NjQgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQ2NF90Pjo6bWF4KCk7CiAgICBhdXRvIHJlc3VsdCA9IGNsYW1wX25vdGlmeTx1aW50MTZfdD4odTY0LCBbXSh1aW50NjRfdCBpblZhbCkgLT4gdWludDE2X3QKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7IHJldHVybiA0MjsgfSk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCA0Mik7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2023- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+
+#include "test_common.hpp"
+
+#include <cstdint>
+
+#include <openvpn/common/clamp_typerange.hpp>
+
+using namespace openvpn::numeric_util;
+
+
+/* ============================================================================================================= */
+//  clamp_to_typerange
+/* ============================================================================================================= */
+
+
+TEST(clamp_to_typerange, same_type_nocast1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_to_typerange<int32_t>(i32);
+    EXPECT_EQ(result, i32);
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_to_typerange<uint32_t>(i32);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_2)
+{
+    uint32_t u32 = std::numeric_limits<uint32_t>::max();
+    auto result = clamp_to_typerange<int32_t>(u32);
+    EXPECT_EQ(result, std::numeric_limits<int32_t>::max());
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_3)
+{
+    uint32_t u32 = 0;
+    auto result = clamp_to_typerange<int32_t>(u32);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_4)
+{
+    uint32_t u32 = 42;
+    auto result = clamp_to_typerange<int32_t>(u32);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_5)
+{
+    uint32_t u32 = uint32_t(std::numeric_limits<int32_t>::max());
+    auto result = clamp_to_typerange<int32_t>(u32);
+    EXPECT_EQ(result, std::numeric_limits<int32_t>::max());
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_6)
+{
+    int32_t s32 = std::numeric_limits<int32_t>::max();
+    auto result = clamp_to_typerange<uint8_t>(s32);
+    EXPECT_EQ(result, std::numeric_limits<uint8_t>::max());
+}
+
+TEST(clamp_to_typerange, sign_mismatch_32_7)
+{
+    int32_t s32 = 42;
+    auto result = clamp_to_typerange<uint8_t>(s32);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_to_typerange, s_range_mismatch_16_64_1)
+{
+    int64_t s64 = std::numeric_limits<int64_t>::max();
+    auto result = clamp_to_typerange<int16_t>(s64);
+    EXPECT_EQ(result, std::numeric_limits<int16_t>::max());
+}
+
+TEST(clamp_to_typerange, s_range_match_16_64_1)
+{
+    int64_t s64 = 0;
+    auto result = clamp_to_typerange<int16_t>(s64);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_typerange, u_range_mismatch_16_64_1)
+{
+    uint64_t u64 = std::numeric_limits<uint64_t>::max();
+    auto result = clamp_to_typerange<uint16_t>(u64);
+    EXPECT_EQ(result, std::numeric_limits<uint16_t>::max());
+}
+
+
+/* ============================================================================================================= */
+//  clamp_to_default
+/* ============================================================================================================= */
+
+
+TEST(clamp_to_default, same_type_nocast1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_to_default<int32_t>(i32, 0);
+    EXPECT_EQ(result, i32);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_to_default<uint32_t>(i32, 42);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_2)
+{
+    uint32_t u32 = std::numeric_limits<uint32_t>::max();
+    auto result = clamp_to_default<int32_t>(u32, 1);
+    EXPECT_EQ(result, 1);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_3)
+{
+    uint32_t u32 = 0;
+    auto result = clamp_to_default<int32_t>(u32, 42);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_4)
+{
+    uint32_t u32 = 42;
+    auto result = clamp_to_default<int32_t>(u32, 0);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_5)
+{
+    uint32_t u32 = uint32_t(std::numeric_limits<int32_t>::max());
+    auto result = clamp_to_default<int32_t>(u32, -1);
+    EXPECT_EQ(result, std::numeric_limits<int32_t>::max());
+}
+
+TEST(clamp_to_default, sign_mismatch_32_6)
+{
+    int32_t s32 = std::numeric_limits<int32_t>::max();
+    auto result = clamp_to_default<uint8_t>(s32, 0);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_default, sign_mismatch_32_7)
+{
+    int32_t s32 = 42;
+    auto result = clamp_to_default<uint8_t>(s32, -1);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_to_default, s_range_mismatch_16_64_1)
+{
+    int64_t s64 = std::numeric_limits<int64_t>::max();
+    auto result = clamp_to_default<int16_t>(s64, 0);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_default, s_range_match_16_64_1)
+{
+    int64_t s64 = 0;
+    auto result = clamp_to_default<int16_t>(s64, -1);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_to_default, u_range_mismatch_16_64_1)
+{
+    uint64_t u64 = std::numeric_limits<uint64_t>::max();
+    auto result = clamp_to_default<uint16_t>(u64, 42);
+    EXPECT_EQ(result, 42);
+}
+
+/* ============================================================================================================= */
+//  clamp_notify
+/* ============================================================================================================= */
+
+
+TEST(clamp_notify, same_type_nocast1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_notify<int32_t>(i32, [](int32_t inVal)
+                                        { return 0; });
+    EXPECT_EQ(result, i32);
+}
+
+TEST(clamp_notify, sign_mismatch_32_1)
+{
+    int32_t i32 = -1;
+    auto result = clamp_notify<uint32_t>(i32, [](int32_t inVal)
+                                         { return 42; });
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_notify, sign_mismatch_32_2)
+{
+    uint32_t u32 = std::numeric_limits<uint32_t>::max();
+    auto result = clamp_notify<int32_t>(u32, [](uint32_t inVal)
+                                        { return 1; });
+    EXPECT_EQ(result, 1);
+}
+
+TEST(clamp_notify, sign_mismatch_32_3)
+{
+    uint32_t u32 = 0;
+    auto result = clamp_notify<int32_t>(u32, [](uint32_t inVal)
+                                        { return 42; });
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_notify, sign_mismatch_32_4)
+{
+    uint32_t u32 = 42;
+    auto result = clamp_notify<int32_t>(u32, [](uint32_t inVal)
+                                        { return 0; });
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_notify, sign_mismatch_32_5)
+{
+    uint32_t u32 = uint32_t(std::numeric_limits<int32_t>::max());
+    auto result = clamp_notify<int32_t>(u32, [](uint32_t inVal)
+                                        { return -1; });
+    EXPECT_EQ(result, std::numeric_limits<int32_t>::max());
+}
+
+TEST(clamp_notify, sign_mismatch_32_6)
+{
+    int32_t s32 = std::numeric_limits<int32_t>::max();
+    auto result = clamp_notify<uint8_t>(s32, [](int32_t inVal) -> uint8_t
+                                        { return 0; });
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_notify, sign_mismatch_32_7)
+{
+    int32_t s32 = 42;
+    auto result = clamp_notify<uint8_t>(s32, [](int32_t inVal) -> uint8_t
+                                        { return 0; });
+    EXPECT_EQ(result, 42);
+}
+
+TEST(clamp_notify, s_range_mismatch_16_64_1)
+{
+    int64_t s64 = std::numeric_limits<int64_t>::max();
+    auto result = clamp_notify<int16_t>(s64, [](int64_t inVal) -> int16_t
+                                        { return 0; });
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_notify, s_range_match_16_64_1)
+{
+    int64_t s64 = 0;
+    auto result = clamp_notify<int16_t>(s64, [](int64_t inVal) -> int16_t
+                                        { return -1; });
+    EXPECT_EQ(result, 0);
+}
+
+TEST(clamp_notify, u_range_mismatch_16_64_1)
+{
+    uint64_t u64 = std::numeric_limits<uint64_t>::max();
+    auto result = clamp_notify<uint16_t>(u64, [](uint64_t inVal) -> uint16_t
+                                         { return 42; });
+    EXPECT_EQ(result, 42);
+}

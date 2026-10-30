@@ -1,1 +1,131 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBsaWJzc2gyIHRlc3QgcmVjZWl2aW5nIGxhcmdlIGFtb3VudHMgb2YgZGF0YSB0aHJvdWdoIGEgY2hhbm5lbAogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgojaW5jbHVkZSAib3BlbnNzaF9maXh0dXJlLmgiCgojaW5jbHVkZSA8c3RkbGliLmg+ICAvKiBmb3IgZ2V0ZW52KCkgKi8KCi8qIHNldCBpbiBEb2NrZXJmaWxlICovCnN0YXRpYyBjb25zdCBjaGFyICp1c2VybmFtZSA9ICJsaWJzc2gyIjsKc3RhdGljIGNvbnN0IGNoYXIgKmtleV9maWxlX3ByaXZhdGUgPSAia2V5X3JzYSI7CnN0YXRpYyBjb25zdCBjaGFyICprZXlfZmlsZV9wdWJsaWMgPSAia2V5X3JzYS5wdWIiOwoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiAgICBpbnQgcmM7CiAgICB1bnNpZ25lZCBsb25nIHhmZXJfYnl0ZXMgPSAwOwogICAgTElCU1NIMl9DSEFOTkVMICpjaGFubmVsOwoKICAgIC8qIFNpemUgYW5kIG51bWJlciBvZiBibG9ja3MgdG8gdHJhbnNmZXIKICAgICAqIFRoaXMgbmVlZHMgdG8gYmUgbGFyZ2UgdG8gaW5jcmVhc2UgdGhlIGNoYW5jZSBvZiB0aW1pbmcgZWZmZWN0cyBjYXVzaW5nCiAgICAgKiBkaWZmZXJlbnQgY29kZSBwYXRocyB0byBiZSBoaXQgaW4gdGhlIHVuZnJhbWluZyBjb2RlLCBidXQgbm90IHNvIGxvbmcKICAgICAqIHRoYXQgdGhlIGludGVncmF0aW9uIHRlc3RzIHRha2UgdG9vIGxvbmcuIDUgc2Vjb25kcyBvZiBydW4gdGltZSBpcwogICAgICogcHJvYmFibHkgYSByZWFzb25hYmxlIGNvbXByb21pc2UuIFRoZSBibG9jayBzaXplIGlzIGFuIG9kZCBudW1iZXIgdG8KICAgICAqIGluY3JlYXNlIHRoZSBjaGFuY2UgdGhhdCB2YXJpb3VzIGludGVybmFsIGJ1ZmZlciBhbmQgYmxvY2sgYm91bmRhcmllcwogICAgICogYXJlIG92ZXJsYXBwZWQuICovCiAgICBjb25zdCB1bnNpZ25lZCBsb25nIHhmZXJfYnMgPSA5OTc7CiAgICB1bnNpZ25lZCBsb25nIHhmZXJfY291bnQgPSAxNDAwODA7CgogICAgY2hhciByZW1vdGVfY29tbWFuZFsyNTZdOwogICAgY29uc3QgY2hhciAqZW52OwogICAgY29uc3QgY2hhciAqdXNlcmF1dGhfbGlzdDsKCiAgICAvKiBJZ25vcmUgb3VyIGhhcmQtd2lyZWQgRG9ja2VyZmlsZSB1c2VyIHdoZW4gbm90IHJ1bm5pbmcgdW5kZXIgRG9ja2VyICovCiAgICBpZighb3BlbnNzaF9maXh0dXJlX2hhdmVfZG9ja2VyKCkpIHsKICAgICAgICB1c2VybmFtZSA9IGdldGVudigiVVNFUiIpOwojaWZkZWYgX1dJTjMyCiAgICAgICAgaWYoIXVzZXJuYW1lKQogICAgICAgICAgICB1c2VybmFtZSA9IGdldGVudigiVVNFUk5BTUUiKTsKI2VuZGlmCiAgICB9CgogICAgdXNlcmF1dGhfbGlzdCA9IGxpYnNzaDJfdXNlcmF1dGhfbGlzdChzZXNzaW9uLCB1c2VybmFtZSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkIGludClzdHJsZW4odXNlcm5hbWUpKTsKICAgIGlmKCF1c2VyYXV0aF9saXN0KSB7CiAgICAgICAgcHJpbnRfbGFzdF9zZXNzaW9uX2Vycm9yKCJsaWJzc2gyX3VzZXJhdXRoX2xpc3QiKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZighc3Ryc3RyKHVzZXJhdXRoX2xpc3QsICJwdWJsaWNrZXkiKSkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiJ3B1YmxpY2tleScgd2FzIGV4cGVjdGVkIGluIHVzZXJhdXRoIGxpc3Q6ICVzXG4iLAogICAgICAgICAgICAgICAgdXNlcmF1dGhfbGlzdCk7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgcmMgPSBsaWJzc2gyX3VzZXJhdXRoX3B1YmxpY2tleV9mcm9tZmlsZV9leChzZXNzaW9uLCB1c2VybmFtZSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkIGludClzdHJsZW4odXNlcm5hbWUpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmNkaXJfcGF0aChrZXlfZmlsZV9wdWJsaWMpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmNkaXJfcGF0aChrZXlfZmlsZV9wcml2YXRlKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTlVMTCk7CiAgICBpZihyYykgewogICAgICAgIHByaW50X2xhc3Rfc2Vzc2lvbl9lcnJvcigibGlic3NoMl91c2VyYXV0aF9wdWJsaWNrZXlfZnJvbWZpbGVfZXgiKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICAvKiBSZXF1ZXN0IGEgc2Vzc2lvbiBjaGFubmVsIG9uIHdoaWNoIHRvIHJ1biBhIHNoZWxsICovCiAgICBjaGFubmVsID0gbGlic3NoMl9jaGFubmVsX29wZW5fc2Vzc2lvbihzZXNzaW9uKTsKICAgIGlmKCFjaGFubmVsKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJVbmFibGUgdG8gb3BlbiBhIHNlc3Npb25cbiIpOwogICAgICAgIGdvdG8gc2h1dGRvd247CiAgICB9CgogICAgZW52ID0gZ2V0ZW52KCJGSVhUVVJFX1hGRVJfQ09VTlQiKTsKICAgIGlmKGVudikgewogICAgICAgIHhmZXJfY291bnQgPSAodW5zaWduZWQgbG9uZylzdHJ0b2woZW52LCBOVUxMLCAwKTsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkN1c3RvbSB4ZmVyX2NvdW50OiAlbHVcbiIsIHhmZXJfY291bnQpOwogICAgfQoKICAgIC8qIGNvbW1hbmQgdG8gdHJhbnNmZXIgdGhlIGRlc2lyZWQgYW1vdW50IG9mIGRhdGEgKi8KICAgIHNucHJpbnRmKHJlbW90ZV9jb21tYW5kLCBzaXplb2YocmVtb3RlX2NvbW1hbmQpLAogICAgICAgICAgICAgImRkIGlmPS9kZXYvemVybyBicz0lbHUgY291bnQ9JWx1IHN0YXR1cz1ub25lIiwKICAgICAgICAgICAgIHhmZXJfYnMsIHhmZXJfY291bnQpOwoKICAgIC8qIFNlbmQgdGhlIGNvbW1hbmQgdG8gdHJhbnNmZXIgZGF0YSAqLwogICAgaWYobGlic3NoMl9jaGFubmVsX2V4ZWMoY2hhbm5lbCwgcmVtb3RlX2NvbW1hbmQpKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJVbmFibGUgdG8gcmVxdWVzdCBjb21tYW5kIG9uIGNoYW5uZWxcbiIpOwogICAgICAgIGdvdG8gc2h1dGRvd247CiAgICB9CgogICAgLyogUmVhZCBkYXRhICovCiAgICB3aGlsZSghbGlic3NoMl9jaGFubmVsX2VvZihjaGFubmVsKSkgewogICAgICAgIGNoYXIgYnVmWzEwMjRdOwogICAgICAgIHNzaXplX3QgZXJyID0gbGlic3NoMl9jaGFubmVsX3JlYWQoY2hhbm5lbCwgYnVmLCBzaXplb2YoYnVmKSk7CiAgICAgICAgaWYoZXJyIDwgMCkKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJVbmFibGUgdG8gcmVhZCByZXNwb25zZTogJWxkXG4iLCAobG9uZyllcnIpOwogICAgICAgIGVsc2UgewogICAgICAgICAgICB1bnNpZ25lZCBpbnQgaTsKICAgICAgICAgICAgZm9yKGkgPSAwOyBpIDwgKHVuc2lnbmVkIGxvbmcpZXJyOyArK2kpIHsKICAgICAgICAgICAgICAgIGlmKGJ1ZltpXSkgewogICAgICAgICAgICAgICAgICAgIGZwcmludGYoc3RkZXJyLCAiQmFkIGRhdGEgcmVjZWl2ZWRcbiIpOwogICAgICAgICAgICAgICAgICAgIC8qIFRlc3Qgd2lsbCBmYWlsIGJlbG93IGR1ZSB0byBiYWQgZGF0YSBsZW5ndGggKi8KICAgICAgICAgICAgICAgICAgICBicmVhazsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgICAgICB4ZmVyX2J5dGVzICs9IGk7CiAgICAgICAgfQogICAgfQoKICAgIC8qIFNodXQgZG93biAqLwogICAgaWYobGlic3NoMl9jaGFubmVsX2Nsb3NlKGNoYW5uZWwpKQogICAgICAgIGZwcmludGYoc3RkZXJyLCAiVW5hYmxlIHRvIGNsb3NlIGNoYW5uZWxcbiIpOwoKICAgIGlmKGNoYW5uZWwpIHsKICAgICAgICBsaWJzc2gyX2NoYW5uZWxfZnJlZShjaGFubmVsKTsKICAgICAgICBjaGFubmVsID0gTlVMTDsKICAgIH0KCnNodXRkb3duOgoKICAgIC8qIFRlc3QgY2hlY2sgKi8KICAgIGlmKHhmZXJfYnl0ZXMgIT0geGZlcl9jb3VudCAqIHhmZXJfYnMpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIk5vdCBlbm91Z2ggYnl0ZXMgcmVjZWl2ZWQ6ICVsdSBub3QgJWx1XG4iLAogICAgICAgICAgICAgICAgeGZlcl9ieXRlcywgeGZlcl9jb3VudCAqIHhmZXJfYnMpOwogICAgICAgIHJldHVybiAxOyAgLyogZXJyb3IgKi8KICAgIH0KICAgIHJldHVybiAwOwp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * libssh2 test receiving large amounts of data through a channel
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+#include "openssh_fixture.h"
+
+#include <stdlib.h>  /* for getenv() */
+
+/* set in Dockerfile */
+static const char *username = "libssh2";
+static const char *key_file_private = "key_rsa";
+static const char *key_file_public = "key_rsa.pub";
+
+int test(LIBSSH2_SESSION *session)
+{
+    int rc;
+    unsigned long xfer_bytes = 0;
+    LIBSSH2_CHANNEL *channel;
+
+    /* Size and number of blocks to transfer
+     * This needs to be large to increase the chance of timing effects causing
+     * different code paths to be hit in the unframing code, but not so long
+     * that the integration tests take too long. 5 seconds of run time is
+     * probably a reasonable compromise. The block size is an odd number to
+     * increase the chance that various internal buffer and block boundaries
+     * are overlapped. */
+    const unsigned long xfer_bs = 997;
+    unsigned long xfer_count = 140080;
+
+    char remote_command[256];
+    const char *env;
+    const char *userauth_list;
+
+    /* Ignore our hard-wired Dockerfile user when not running under Docker */
+    if(!openssh_fixture_have_docker()) {
+        username = getenv("USER");
+#ifdef _WIN32
+        if(!username)
+            username = getenv("USERNAME");
+#endif
+    }
+
+    userauth_list = libssh2_userauth_list(session, username,
+                                          (unsigned int)strlen(username));
+    if(!userauth_list) {
+        print_last_session_error("libssh2_userauth_list");
+        return 1;
+    }
+
+    if(!strstr(userauth_list, "publickey")) {
+        fprintf(stderr, "'publickey' was expected in userauth list: %s\n",
+                userauth_list);
+        return 1;
+    }
+
+    rc = libssh2_userauth_publickey_fromfile_ex(session, username,
+                                                (unsigned int)strlen(username),
+                                                srcdir_path(key_file_public),
+                                                srcdir_path(key_file_private),
+                                                NULL);
+    if(rc) {
+        print_last_session_error("libssh2_userauth_publickey_fromfile_ex");
+        return 1;
+    }
+
+    /* Request a session channel on which to run a shell */
+    channel = libssh2_channel_open_session(session);
+    if(!channel) {
+        fprintf(stderr, "Unable to open a session\n");
+        goto shutdown;
+    }
+
+    env = getenv("FIXTURE_XFER_COUNT");
+    if(env) {
+        xfer_count = (unsigned long)strtol(env, NULL, 0);
+        fprintf(stderr, "Custom xfer_count: %lu\n", xfer_count);
+    }
+
+    /* command to transfer the desired amount of data */
+    snprintf(remote_command, sizeof(remote_command),
+             "dd if=/dev/zero bs=%lu count=%lu status=none",
+             xfer_bs, xfer_count);
+
+    /* Send the command to transfer data */
+    if(libssh2_channel_exec(channel, remote_command)) {
+        fprintf(stderr, "Unable to request command on channel\n");
+        goto shutdown;
+    }
+
+    /* Read data */
+    while(!libssh2_channel_eof(channel)) {
+        char buf[1024];
+        ssize_t err = libssh2_channel_read(channel, buf, sizeof(buf));
+        if(err < 0)
+            fprintf(stderr, "Unable to read response: %ld\n", (long)err);
+        else {
+            unsigned int i;
+            for(i = 0; i < (unsigned long)err; ++i) {
+                if(buf[i]) {
+                    fprintf(stderr, "Bad data received\n");
+                    /* Test will fail below due to bad data length */
+                    break;
+                }
+            }
+            xfer_bytes += i;
+        }
+    }
+
+    /* Shut down */
+    if(libssh2_channel_close(channel))
+        fprintf(stderr, "Unable to close channel\n");
+
+    if(channel) {
+        libssh2_channel_free(channel);
+        channel = NULL;
+    }
+
+shutdown:
+
+    /* Test check */
+    if(xfer_bytes != xfer_count * xfer_bs) {
+        fprintf(stderr, "Not enough bytes received: %lu not %lu\n",
+                xfer_bytes, xfer_count * xfer_bs);
+        return 1;  /* error */
+    }
+    return 0;
+}

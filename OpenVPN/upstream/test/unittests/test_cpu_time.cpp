@@ -1,1 +1,234 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxOS0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCi8vIFdlIGhhdmUgdHdvIHNldCBvZiBtZWFzdXJlbWVudHMgZm9yIHRoZXNlIHRlc3RzCi8vCi8vIDEuIEEgY29hcnNlIG1lYXN1cmVtZW50IGJhc2VkIG9uIHRpbWUoKQovLyAgICBUaGVzZSBhcmUgdHJhY2tlZCBpbiAnY2hrX3N0YXJ0JyBhbmQgJ2Noa19lbmQnCi8vCi8vIDIuIEEgZmluZSBncmFpbmVkIG1lYXN1cmVtZW50IGZyb20gY3B1X3RpbWUoKQovLyAgICBUaGVzZSBhcmUgdHJhY2tlZCBpbiAnc3RhcnQnIGFuZCAnZW5kJwovLwovLyBXZSBjYWxjdWxhdGUgdGhlIGRpZmZlcmVuY2UgYmVmb3JlIGFuZCBhZnRlciBhCi8vIGEgd29ya2xvYWQgaGFzIHJ1biwgdG8gbWVhc3VyZSBob3cgbG9uZyBpdCByYW4uCi8vIFRoaXMgaXMgZG9uZSBmb3IgYm90aCBtZWFzdXJlbWVudCBhcHByb2FjaGVzLgovLyBUaGUgcnVudGltZSBpcyBzYXZlZCBpbiBydW50aW1lIGFuZCBjaGtfcnVudGltZQovLwovLyBUbyBwYXNzIHRoaXMgdGVzdCwgYWJzb2x1dGUgZGlmZmVyZW5jZSBiZXR3ZWVuCi8vIHJ1bnRpbWUgYW5kIGNoa19ydW50aW1lIG11c3QgYmUgbGVzcyB0aGFuIDEgc2Vjb25kLgovLwoKLy8gI2RlZmluZSBERUJVRyAgLy8gRGVmaW5lIHRoaXMgbWFjcm8gdG8gZ2V0IG1vcmUgZGV0YWlscwoKI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGNzdGRpbnQ+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUgPG1lbW9yeT4KI2luY2x1ZGUgPG11dGV4PgojaW5jbHVkZSA8b3BlbnZwbi90aW1lL2NwdXRpbWUuaHBwPgojaW5jbHVkZSA8YWxnb3JpdGhtPgoKI2lmZGVmIERFQlVHCiNkZWZpbmUgREVCVUdfRFVNUChtc2csIHN0LCBlbiwgcnQsIGNoc3QsIGNoZW4sIGNocnQsIG1kKSAgICAgICAgICAgICAgXAogICAgc3RkOjpjb3V0IDw8IG1zZyA8PCBzdGQ6OmVuZGwgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICAgICAgICA8PCAic3RhcnQgPSAiIDw8IHN0ZDo6dG9fc3RyaW5nKHN0KSA8PCBzdGQ6OmVuZGwgICAgICAgICBcCiAgICAgICAgICAgICAgPDwgImVuZCA9ICIgPDwgc3RkOjp0b19zdHJpbmcoZW4pIDw8IHN0ZDo6ZW5kbCAgICAgICAgICAgXAogICAgICAgICAgICAgIDw8ICJydW50aW1lID0gIiA8PCBzdGQ6OnRvX3N0cmluZyhydCkgPDwgc3RkOjplbmRsICAgICAgIFwKICAgICAgICAgICAgICA8PCAiY2hrX3N0YXJ0ID0gIiA8PCBzdGQ6OnRvX3N0cmluZyhjaHN0KSA8PCBzdGQ6OmVuZGwgICBcCiAgICAgICAgICAgICAgPDwgImNoa19lbmQgPSAiIDw8IHN0ZDo6dG9fc3RyaW5nKGNoZW4pIDw8IHN0ZDo6ZW5kbCAgICAgXAogICAgICAgICAgICAgIDw8ICJjaGtfcnVudGltZSA9ICIgPDwgc3RkOjp0b19zdHJpbmcoY2hydCkgPDwgc3RkOjplbmRsIFwKICAgICAgICAgICAgICA8PCAibWVhc3VyZW1lbnQgZGlmZmVyZW5jZSA9ICIgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgICAgICAgPDwgc3RkOjp0b19zdHJpbmcobWQpIDw8IHN0ZDo6ZW5kbCAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICAgIDw8ICItLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSIgPDwgc3RkOjplbmRsCgojZWxzZQojZGVmaW5lIERFQlVHX0RVTVAobXNnLCBzdCwgZW4sIHJ0LCBjaHN0LCBjaGVuLCBjaHJ0LCBtZCkgXAogICAgeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgfQojZW5kaWYKCiNkZWZpbmUgTUVBU1VSRSh2LCBjaGt2LCB0aHJlYWQpICAgICAgICAgIFwKICAgIGRvdWJsZSB2ID0gb3BlbnZwbjo6Y3B1X3RpbWUodGhyZWFkKTsgXAogICAgQVNTRVJUX0dFKHYsIDApOyAgICAgICAgICAgICAgICAgICAgICBcCiAgICBkb3VibGUgY2hrdiA9IHN0YXRpY19jYXN0PGRvdWJsZT4odGltZShOVUxMKSkKCiNkZWZpbmUgQ0FMQ1VMQVRFKG1zZywgc3QsIGVuLCBydCwgY2hzdCwgY2hlbiwgY2hydCwgbWQpIFwKICAgIGRvdWJsZSBydCA9IGVuIC0gc3Q7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgZG91YmxlIGNocnQgPSBjaGVuIC0gY2hzdDsgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICBkb3VibGUgbWQgPSBzdGQ6Om1heChydCwgY2hydCkgLSBzdGQ6Om1pbihydCwgY2hydCk7IFwKICAgIERFQlVHX0RVTVAobXNnLCBzdCwgZW4sIHJ0LCBjaHN0LCBjaGVuLCBjaHJ0LCBtZCkKCgp0eXBlZGVmIHN0ZDo6c2hhcmVkX3B0cjxzdGQ6OnRocmVhZD4gVGhyZWFkUHRyOwoKCi8vIEZvciBzaW1wbGljdHksIGtlZXAgdGhlIHRvdGFsIHRocmVhZCBydW50aW1lCi8vIGluIGEgZ2xvYmFsIHZhcmlhYmxlLCBwcm90ZWN0ZWQgYnkgYSBtdXRleAovLyBvbiB1cGRhdGVzCnN0ZDo6bXV0ZXggdXBkYXRlX2d1YXJkOwpkb3VibGUgdGhyZWFkX3J1bnRpbWUgPSAwOwoKdm9pZCB1cGRhdGVfdGhyZWFkX3J1bnRpbWUoZG91YmxlIHZhbCkKewogICAgc3RkOjpsb2NrX2d1YXJkPHN0ZDo6bXV0ZXg+IHVnKHVwZGF0ZV9ndWFyZCk7CiAgICB0aHJlYWRfcnVudGltZSArPSB2YWw7Cn0KCgpuYW1lc3BhY2UgdW5pdHRlc3RzIHsKc3RhdGljIHZvaWQgd29ya2xvYWQoY29uc3QgdWludDE2X3QgbXVsdGlwbGllcikKewogICAgLy8gQSB2ZXJ5IHNpbXBsZSBidXN5IGxvb3Agd29ya2xvYWQKICAgIC8vCiAgICAvLyBXZSBjYW4ndCB1c2Ugc2xlZXAoKSBvciBhbnkgc2ltaWxhciB0aW1pbmcKICAgIC8vIGFzIHRoaXMgZG9lcyBub3QgaW5jcmVhc2UgdGhlIHRyYWNrZWQgcnVudGltZQogICAgLy8gaW4gdGhlIGtlcm5lbDsgdGhlIHByb2Nlc3MgZG9lcyBub3QgcmVhbGx5IHJ1bi4KICAgIC8vCgogICAgc3RkOjpyYW5kb21fZGV2aWNlIHJkOwogICAgc3RkOjptdDE5OTM3IGdlbihyZCgpKTsgLy8gU3RhbmRhcmQgbWVyc2VubmVfdHdpc3Rlcl9lbmdpbmUgc2VlZGVkIHdpdGggcmQoKQoKCiAgICBkb3VibGUgZCA9IDA7CiAgICBmb3IgKHVuc2lnbmVkIGludCBpID0gVUlOVDE2X01BWCAqIG11bHRpcGxpZXI7IGkgPiAwOyBpLS0pCiAgICB7CiAgICAgICAgZCArPSBzdGF0aWNfY2FzdDxkb3VibGU+KGdlbigpKTsKICAgIH0KICAgICh2b2lkKWQ7Cn0KCgpURVNUKENQVVRpbWUsIGNwdV90aW1lX3BpZCkKewogICAgLy8gTWVhc3VyZSB0aGUgcnVudGltZSBvZiB0aGUgd29ya2xvYWQKICAgIE1FQVNVUkUoc3RhcnQsIGNoa19zdGFydCwgZmFsc2UpOwogICAgd29ya2xvYWQoNDAwKTsKICAgIE1FQVNVUkUoZW5kLCBjaGtfZW5kLCBmYWxzZSk7CgogICAgLy8gQ2FsY3VsYXRlIHJ1bnRpbWVzIGFuZCBkaWZmZXJlbmNlcwogICAgQ0FMQ1VMQVRFKCJzaW5nbGUgUElEIiwKICAgICAgICAgICAgICBzdGFydCwKICAgICAgICAgICAgICBlbmQsCiAgICAgICAgICAgICAgcnVudGltZSwKICAgICAgICAgICAgICBjaGtfc3RhcnQsCiAgICAgICAgICAgICAgY2hrX2VuZCwKICAgICAgICAgICAgICBjaGtfcnVudGltZSwKICAgICAgICAgICAgICBtZWFzdXJlbWVudF9kaWZmKTsKCiAgICBBU1NFUlRfTFQobWVhc3VyZW1lbnRfZGlmZiwgMTApOwp9CgoKdm9pZCB3b3JrZXJfdGhyZWFkKGNvbnN0IHVpbnQ4X3QgaWQpCnsKICAgIE1FQVNVUkUodGhyX3N0YXJ0LCBjaGtfdGhyX3N0YXJ0LCB0cnVlKTsKICAgIHdvcmtsb2FkKDQwMCk7CiAgICBNRUFTVVJFKHRocl9lbmQsIGNoa190aHJfZW5kLCB0cnVlKTsKCiAgICBDQUxDVUxBVEUoIldvcmtlciB0aHJlYWQgIiA8PCBzdGQ6OnRvX3N0cmluZyhpZCksCiAgICAgICAgICAgICAgdGhyX3N0YXJ0LAogICAgICAgICAgICAgIHRocl9lbmQsCiAgICAgICAgICAgICAgdGhyX3J1bnRpbWUsCiAgICAgICAgICAgICAgY2hrX3Rocl9zdGFydCwKICAgICAgICAgICAgICBjaGtfdGhyX2VuZCwKICAgICAgICAgICAgICBjaGtfdGhyX3J1bnRpbWUsCiAgICAgICAgICAgICAgdGhyX21lYXN1cmVtZW50X2RpZmYpOwogICAgdXBkYXRlX3RocmVhZF9ydW50aW1lKHRocl9ydW50aW1lKTsKCiAgICAvLyBTaW5jZSB0aGUgY2hrX3Rocl9ydW50aW1lIChjaGtfdGhyX2VuZCAtIGNoa190aHJfc3RhcnQpCiAgICAvLyBpcyBiYXNlZCBvbiBlcG9jIHNlY29uZHMgb2YgdGhlIHN5c3RlbSwgdGhpcyBkb2Vzbid0CiAgICAvLyBnaXZlIGEgdG9vIGdvb2QgbnVtYmVyIHdoZW4gcnVubmluZyBtdWx0aXBsZSB0aHJlYWRzLgogICAgLy8KICAgIC8vIElmIG1vcmUgdGhyZWFkcyBhcmUgcnVubmluZyBvbiB0aGUgc2FtZSBDUFUgY29yZSwKICAgIC8vIG9uZSBvZiB0aGUgdGhyZWFkcyBtaWdodCBiZSBwcmVlbXB0ZWQuICBUaGUgY2xvY2sgdGltZQogICAgLy8gKGNoa190aHJfcnVudGltZSkgd2lsbCBjb250aW51ZSB0byB0aWNrLCBidXQgdGhlIHJlYWwKICAgIC8vIHJ1bnRpbWUgKHRocl9ydW50aW1lKSB3aWxsIG5vdC4gIFdoaWNoIHdpbGwgaW5jcmVhc2UKICAgIC8vIHRoZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlIG1lYXN1cmVkIHJ1bnRpbWVzLgogICAgLy8KICAgIC8vIFRoZSB2YWx1ZSBvZiA1IGlzIGp1c3QgYW4gZWR1Y2F0ZWQgZ3Vlc3Mgb2Ygd2hhdAogICAgLy8gd2UgbWlnaHQgZmluZCBhY2NlcHRhYmxlLiAgVGhpcyBtaWdodCBiZSB0b28gaGlnaAogICAgLy8gb24gYW4gaWRsZSBzeXN0ZW0sIGJ1dCB0b28gbG93IG9uIGEgbG9hZGVkIHN5c3RlbS4KICAgIC8vCiAgICBBU1NFUlRfTFQodGhyX21lYXN1cmVtZW50X2RpZmYsIDUpOwp9CgoKdm9pZCBydW5fdGhyZWFkcyhjb25zdCB1aW50OF90IG51bV90aHJlYWRzKQp7CiAgICBzdGQ6OnZlY3RvcjxUaHJlYWRQdHI+IHRocmVhZHM7CiAgICBmb3IgKHVpbnQ4X3QgaSA9IDA7IGkgPCBudW1fdGhyZWFkczsgaSsrKQogICAgewogICAgICAgIFRocmVhZFB0ciB0cDsKICAgICAgICB0cCA9IHN0ZDo6bWFrZV9zaGFyZWQ8c3RkOjp0aHJlYWQ+KFtpZCA9IGldKCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgd29ya2VyX3RocmVhZChpZCk7IH0pOwogICAgICAgIHRocmVhZHMucHVzaF9iYWNrKHN0ZDo6bW92ZSh0cCkpOwogICAgfQoKICAgIGZvciAoY29uc3QgYXV0byAmdCA6IHRocmVhZHMpCiAgICB7CiAgICAgICAgdC0+am9pbigpOwogICAgfQp9CgoKVEVTVChDUFVUaW1lLCBjcHVfdGltZV90aHJlYWRfMSkKewogICAgLy8gTWVhc3N1cmUgcnVubmluZyBhIHNpbmdsZSB3b3JrZXIgdGhyZWFkCiAgICBNRUFTVVJFKHBhcmVudF9zdGFydCwgY2hrX3BhcmVudF9zdGFydCwgZmFsc2UpOwogICAgcnVuX3RocmVhZHMoMSk7CiAgICBNRUFTVVJFKHBhcmVudF9lbmQsIGNoa19wYXJlbnRfZW5kLCBmYWxzZSk7CgogICAgQ0FMQ1VMQVRFKCJQYXJlbnQgdGhyZWFkIC0gMSBjaGlsZCB0aHJlYWQiLAogICAgICAgICAgICAgIHBhcmVudF9zdGFydCwKICAgICAgICAgICAgICBwYXJlbnRfZW5kLAogICAgICAgICAgICAgIHJ1bnRpbWUsCiAgICAgICAgICAgICAgY2hrX3BhcmVudF9zdGFydCwKICAgICAgICAgICAgICBjaGtfcGFyZW50X2VuZCwKICAgICAgICAgICAgICBjaGtfcnVudGltZSwKICAgICAgICAgICAgICBwYXJlbnRfZGlmZik7CgogICAgQVNTRVJUX0xUKHBhcmVudF9kaWZmLCAxMCk7Cn0KCgpURVNUKENQVVRpbWUsIGNwdV90aW1lX3RocmVhZF9udW1jb3JlcykKewogICAgLy8gVXNlIG51bWJlciBvZiBhdmFpbGFibGUgY29yZXMKICAgIGF1dG8gbnVtX2NvcmVzID0gc3RkOjptaW4oc3RkOjp0aHJlYWQ6OmhhcmR3YXJlX2NvbmN1cnJlbmN5KCksIDF1KTsKCiAgICAvLyBNZWFzc3VyZSBydW5uaW5nIGEgc2luZ2xlIHdvcmtlciB0aHJlYWQKICAgIE1FQVNVUkUocGFyZW50X3N0YXJ0LCBjaGtfcGFyZW50X3N0YXJ0LCBmYWxzZSk7CiAgICBydW5fdGhyZWFkcyhzdGF0aWNfY2FzdDx1aW50OF90PihudW1fY29yZXMpKTsKICAgIE1FQVNVUkUocGFyZW50X2VuZCwgY2hrX3BhcmVudF9lbmQsIGZhbHNlKTsKCiAgICBDQUxDVUxBVEUoIlBhcmVudCB0aHJlYWQgLSAiIDw8IHN0ZDo6dG9fc3RyaW5nKG51bV9jb3JlcykgPDwgIiBjaGlsZCB0aHJlYWQiLAogICAgICAgICAgICAgIHBhcmVudF9zdGFydCwKICAgICAgICAgICAgICBwYXJlbnRfZW5kLAogICAgICAgICAgICAgIHJ1bnRpbWUsCiAgICAgICAgICAgICAgY2hrX3BhcmVudF9zdGFydCwKICAgICAgICAgICAgICBjaGtfcGFyZW50X2VuZCwKICAgICAgICAgICAgICBjaGtfcnVudGltZSwKICAgICAgICAgICAgICBwYXJlbnRfZGlmZik7CiNpZmRlZiBERUJVRwogICAgc3RkOjpjb3V0IDw8ICJUb3RhbCB0aHJlYWQgcnVudGltZTogIiA8PCBzdGQ6OnRvX3N0cmluZyh0aHJlYWRfcnVudGltZSkgPDwgc3RkOjplbmRsOwojZW5kaWYKCiAgICAvLyBUaGUgbWFpbiBwcm9jZXNzICh0aGlzIFBJRCkgd2lsbCBoYXZlIGEgdG90YWwgcnVudGltZQogICAgLy8gd2hpY2ggYWNjb3VudHMgZm9yIGFsbCBydW50aW1lIG9mIHRoZSBydW5uaW5nIHRocmVhZHMuCiAgICAvLyBXZSBzdGlsbCBnaXZlIGEgYml0IGV4dHJhIHNsYWNrLCB0byByZWR1Y2UgdGhlIHJpc2sgb2YKICAgIC8vIGZhbHNlIHBvc2l0aXZlcywgZHVlIHRvIHRoZSBwb3NzaWJpbGl0eSBvZiBwcmVtcHRpb24KICAgIC8vIChzZWUgY29tbWVudCBpbiB3b3JrZXJfdGhyZWFkKCkgZm9yIGRldGFpbHMpLiAgQnV0CiAgICAvLyB0aGUgZGlmZmVyZW5jZSBzaG91bGQgbm90IG5lY2Nlc2FyaWx5IGRldmlhdGUgYXMgbXVjaAogICAgLy8gaGVyZS4KICAgIEFTU0VSVF9MVChwYXJlbnRfZGlmZiwgMyArIHRocmVhZF9ydW50aW1lKTsKfQp9IC8vIG5hbWVzcGFjZSB1bml0dGVzdHMK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2019- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+// We have two set of measurements for these tests
+//
+// 1. A coarse measurement based on time()
+//    These are tracked in 'chk_start' and 'chk_end'
+//
+// 2. A fine grained measurement from cpu_time()
+//    These are tracked in 'start' and 'end'
+//
+// We calculate the difference before and after a
+// a workload has run, to measure how long it ran.
+// This is done for both measurement approaches.
+// The runtime is saved in runtime and chk_runtime
+//
+// To pass this test, absolute difference between
+// runtime and chk_runtime must be less than 1 second.
+//
+
+// #define DEBUG  // Define this macro to get more details
+
+#include "test_common.hpp"
+#include <cstdint>
+#include <unistd.h>
+#include <memory>
+#include <mutex>
+#include <openvpn/time/cputime.hpp>
+#include <algorithm>
+
+#ifdef DEBUG
+#define DEBUG_DUMP(msg, st, en, rt, chst, chen, chrt, md)              \
+    std::cout << msg << std::endl                                      \
+              << "start = " << std::to_string(st) << std::endl         \
+              << "end = " << std::to_string(en) << std::endl           \
+              << "runtime = " << std::to_string(rt) << std::endl       \
+              << "chk_start = " << std::to_string(chst) << std::endl   \
+              << "chk_end = " << std::to_string(chen) << std::endl     \
+              << "chk_runtime = " << std::to_string(chrt) << std::endl \
+              << "measurement difference = "                           \
+              << std::to_string(md) << std::endl                       \
+              << "--------------------------------------" << std::endl
+
+#else
+#define DEBUG_DUMP(msg, st, en, rt, chst, chen, chrt, md) \
+    {                                                     \
+    }
+#endif
+
+#define MEASURE(v, chkv, thread)          \
+    double v = openvpn::cpu_time(thread); \
+    ASSERT_GE(v, 0);                      \
+    double chkv = static_cast<double>(time(NULL))
+
+#define CALCULATE(msg, st, en, rt, chst, chen, chrt, md) \
+    double rt = en - st;                                 \
+    double chrt = chen - chst;                           \
+    double md = std::max(rt, chrt) - std::min(rt, chrt); \
+    DEBUG_DUMP(msg, st, en, rt, chst, chen, chrt, md)
+
+
+typedef std::shared_ptr<std::thread> ThreadPtr;
+
+
+// For simplicty, keep the total thread runtime
+// in a global variable, protected by a mutex
+// on updates
+std::mutex update_guard;
+double thread_runtime = 0;
+
+void update_thread_runtime(double val)
+{
+    std::lock_guard<std::mutex> ug(update_guard);
+    thread_runtime += val;
+}
+
+
+namespace unittests {
+static void workload(const uint16_t multiplier)
+{
+    // A very simple busy loop workload
+    //
+    // We can't use sleep() or any similar timing
+    // as this does not increase the tracked runtime
+    // in the kernel; the process does not really run.
+    //
+
+    std::random_device rd;
+    std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+
+
+    double d = 0;
+    for (unsigned int i = UINT16_MAX * multiplier; i > 0; i--)
+    {
+        d += static_cast<double>(gen());
+    }
+    (void)d;
+}
+
+
+TEST(CPUTime, cpu_time_pid)
+{
+    // Measure the runtime of the workload
+    MEASURE(start, chk_start, false);
+    workload(400);
+    MEASURE(end, chk_end, false);
+
+    // Calculate runtimes and differences
+    CALCULATE("single PID",
+              start,
+              end,
+              runtime,
+              chk_start,
+              chk_end,
+              chk_runtime,
+              measurement_diff);
+
+    ASSERT_LT(measurement_diff, 10);
+}
+
+
+void worker_thread(const uint8_t id)
+{
+    MEASURE(thr_start, chk_thr_start, true);
+    workload(400);
+    MEASURE(thr_end, chk_thr_end, true);
+
+    CALCULATE("Worker thread " << std::to_string(id),
+              thr_start,
+              thr_end,
+              thr_runtime,
+              chk_thr_start,
+              chk_thr_end,
+              chk_thr_runtime,
+              thr_measurement_diff);
+    update_thread_runtime(thr_runtime);
+
+    // Since the chk_thr_runtime (chk_thr_end - chk_thr_start)
+    // is based on epoc seconds of the system, this doesn't
+    // give a too good number when running multiple threads.
+    //
+    // If more threads are running on the same CPU core,
+    // one of the threads might be preempted.  The clock time
+    // (chk_thr_runtime) will continue to tick, but the real
+    // runtime (thr_runtime) will not.  Which will increase
+    // the difference between the measured runtimes.
+    //
+    // The value of 5 is just an educated guess of what
+    // we might find acceptable.  This might be too high
+    // on an idle system, but too low on a loaded system.
+    //
+    ASSERT_LT(thr_measurement_diff, 5);
+}
+
+
+void run_threads(const uint8_t num_threads)
+{
+    std::vector<ThreadPtr> threads;
+    for (uint8_t i = 0; i < num_threads; i++)
+    {
+        ThreadPtr tp;
+        tp = std::make_shared<std::thread>([id = i]()
+                                           { worker_thread(id); });
+        threads.push_back(std::move(tp));
+    }
+
+    for (const auto &t : threads)
+    {
+        t->join();
+    }
+}
+
+
+TEST(CPUTime, cpu_time_thread_1)
+{
+    // Meassure running a single worker thread
+    MEASURE(parent_start, chk_parent_start, false);
+    run_threads(1);
+    MEASURE(parent_end, chk_parent_end, false);
+
+    CALCULATE("Parent thread - 1 child thread",
+              parent_start,
+              parent_end,
+              runtime,
+              chk_parent_start,
+              chk_parent_end,
+              chk_runtime,
+              parent_diff);
+
+    ASSERT_LT(parent_diff, 10);
+}
+
+
+TEST(CPUTime, cpu_time_thread_numcores)
+{
+    // Use number of available cores
+    auto num_cores = std::min(std::thread::hardware_concurrency(), 1u);
+
+    // Meassure running a single worker thread
+    MEASURE(parent_start, chk_parent_start, false);
+    run_threads(static_cast<uint8_t>(num_cores));
+    MEASURE(parent_end, chk_parent_end, false);
+
+    CALCULATE("Parent thread - " << std::to_string(num_cores) << " child thread",
+              parent_start,
+              parent_end,
+              runtime,
+              chk_parent_start,
+              chk_parent_end,
+              chk_runtime,
+              parent_diff);
+#ifdef DEBUG
+    std::cout << "Total thread runtime: " << std::to_string(thread_runtime) << std::endl;
+#endif
+
+    // The main process (this PID) will have a total runtime
+    // which accounts for all runtime of the running threads.
+    // We still give a bit extra slack, to reduce the risk of
+    // false positives, due to the possibility of premption
+    // (see comment in worker_thread() for details).  But
+    // the difference should not neccesarily deviate as much
+    // here.
+    ASSERT_LT(parent_diff, 3 + thread_runtime);
+}
+} // namespace unittests

@@ -1,1 +1,42 @@
-Ly8KLy8gIG1haW4ubSDigJQgU1NIIHR1bm5lbCBmdWxsLXN0YWNrIHRocm91Z2hwdXQgdGVzdCAobWFjT1MsIG5lZWRzIHN1ZG8pCi8vCi8vICBSdW5zIHRoZSBlbmdpbmUgb24gYSBSRUFMIHV0dW4gKG5vIHNvY2tldHBhaXIgYnJpZGdlKSwgcm91dGVzIGEgdGVzdAovLyAgcHJlZml4IHRocm91Z2ggaXQsIGFuZCBsZXRzIHlvdSBjdXJsL3BpbmcgdGhyb3VnaCB0aGUgU1NIIHR1bm5lbC4KLy8KLy8gIFVzYWdlOiBzdWRvIC4vc3Noc3BlZWQgPHVzZXI+IDxwYXNzPiA8aG9zdD4gW3BvcnRdCi8vICBUaGVuIGluIGFub3RoZXIgc2hlbGw6IHJvdXRlIGFkZCAtbmV0IDUuNS41LjUvMzIgLWludGVyZmFjZSB1dHVuWAovLyAgb3Igc2V0IHRoZSByb3V0ZSBmb3IgdGhlIHRhcmdldCB5b3UgdGVzdC4KLy8KCiNpbXBvcnQgPEZvdW5kYXRpb24vRm91bmRhdGlvbi5oPgojaW1wb3J0IDxOZXR3b3JrRXh0ZW5zaW9uL05ldHdvcmtFeHRlbnNpb24uaD4KI2ltcG9ydCA8YXJwYS9pbmV0Lmg+CgojaW1wb3J0ICJTUlBTU0hDbGllbnQuaCIKCmludCBtYWluKGludCBhcmdjLCBjb25zdCBjaGFyICphcmd2W10pIHsKICAgIEBhdXRvcmVsZWFzZXBvb2wgewogICAgICAgIGlmIChhcmdjIDwgNCkgewogICAgICAgICAgICBOU0xvZyhAInVzYWdlOiBzdWRvIHNzaHNwZWVkIDx1c2VyPiA8cGFzcz4gPGhvc3Q+IFtwb3J0XSIpOwogICAgICAgICAgICByZXR1cm4gMjsKICAgICAgICB9CiAgICAgICAgU1JQU1NIQ2xpZW50ICpjID0gW1NSUFNTSENsaWVudCBuZXddOwogICAgICAgIGMuaG9zdCA9IEAoYXJndlszXSk7CiAgICAgICAgYy5wb3J0ID0gYXJnYyA+IDQgPyBhdG9pKGFyZ3ZbNF0pIDogMjI7CiAgICAgICAgYy51c2VybmFtZSA9IEAoYXJndlsxXSk7CiAgICAgICAgYy5wYXNzd29yZCA9IEAoYXJndlsyXSk7CiAgICAgICAgYy51ZHBFbmFibGVkID0gWUVTOwogICAgICAgIGMudXNlUmVhbFR1biA9IFlFUzsKICAgICAgICBjLmxvZ0xldmVsID0gMTsKCiAgICAgICAgW2Mgc3RhcnRXaXRoT3V0cHV0Q2FsbGJhY2s6XihOU0RhdGEgKnBrdCwgaW50IGZhbWlseSkge30KICAgICAgICAgICAgIG5ldHdvcmtTZXR0aW5nc0NhbGxiYWNrOl4oTkVQYWNrZXRUdW5uZWxOZXR3b3JrU2V0dGluZ3MgKnMpIHt9CiAgICAgICAgICAgICAgIGNvbm5lY3RlZENhbGxiYWNrOl57IE5TTG9nKEAiW3NwZWVkXSBSRUFEWSIpOyB9CiAgICAgICAgICAgIGRpc2Nvbm5lY3RlZENhbGxiYWNrOl57IE5TTG9nKEAiW3NwZWVkXSBkaXNjb25uZWN0ZWQiKTsgfQogICAgICAgICAgICAgICAgIGZhaWx1cmVDYWxsYmFjazpeKE5TU3RyaW5nICpyKSB7IE5TTG9nKEAiW3NwZWVkXSBGQUlMRUQ6ICVAIiwgcik7IH1dOwoKICAgICAgICBbW05TUnVuTG9vcCBjdXJyZW50UnVuTG9vcF0gcnVuXTsKICAgICAgICByZXR1cm4gMDsKICAgIH0KfQo=
+//
+//  main.m — SSH tunnel full-stack throughput test (macOS, needs sudo)
+//
+//  Runs the engine on a REAL utun (no socketpair bridge), routes a test
+//  prefix through it, and lets you curl/ping through the SSH tunnel.
+//
+//  Usage: sudo ./sshspeed <user> <pass> <host> [port]
+//  Then in another shell: route add -net 5.5.5.5/32 -interface utunX
+//  or set the route for the target you test.
+//
+
+#import <Foundation/Foundation.h>
+#import <NetworkExtension/NetworkExtension.h>
+#import <arpa/inet.h>
+
+#import "SRPSSHClient.h"
+
+int main(int argc, const char *argv[]) {
+    @autoreleasepool {
+        if (argc < 4) {
+            NSLog(@"usage: sudo sshspeed <user> <pass> <host> [port]");
+            return 2;
+        }
+        SRPSSHClient *c = [SRPSSHClient new];
+        c.host = @(argv[3]);
+        c.port = argc > 4 ? atoi(argv[4]) : 22;
+        c.username = @(argv[1]);
+        c.password = @(argv[2]);
+        c.udpEnabled = YES;
+        c.useRealTun = YES;
+        c.logLevel = 1;
+
+        [c startWithOutputCallback:^(NSData *pkt, int family) {}
+             networkSettingsCallback:^(NEPacketTunnelNetworkSettings *s) {}
+               connectedCallback:^{ NSLog(@"[speed] READY"); }
+            disconnectedCallback:^{ NSLog(@"[speed] disconnected"); }
+                 failureCallback:^(NSString *r) { NSLog(@"[speed] FAILED: %@", r); }];
+
+        [[NSRunLoop currentRunLoop] run];
+        return 0;
+    }
+}

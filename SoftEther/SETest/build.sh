@@ -1,1 +1,21 @@
-IyEvYmluL2Jhc2gKIyBTRVRlc3QgYnVpbGQgc2NyaXB0IOKAlCBsaW5rcyBsaWJTRUNvcmUtbWFjLmEgKyBwcmVmaXhlZCBPcGVuU1NMIGludG8gYSBtYWNPUyBoYXJuZXNzLgpzZXQgLWUKY2QgIiQoZGlybmFtZSAiJDAiKSIKU0U9IiQoZGlybmFtZSAiJFBXRCIpIiAgICAgICAgICAgICAgIyBTb2Z0RXRoZXIgZGlyClNESz0iJCh4Y3J1biAtLXNkayBtYWNvc3ggLS1zaG93LXNkay1wYXRoKSIKCkNMQU5HPSIkKHhjcnVuIC1mIGNsYW5nKSIKIiRDTEFORyIgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkU0RLIiAtbW1hY29zeC12ZXJzaW9uLW1pbj0xMi4wIFwKICAtZm9iamMtYXJjIC1PMSAtZyBcCiAgLUkiJFNFL2JyaWRnZSIgXAogIC1JIiRTRS91cHN0cmVhbSIgLUkiJFNFL3Vwc3RyZWFtL01heWFxdWEiIC1JIiRTRS91cHN0cmVhbS9DZWRhciIgXAogIC1JIiRTRS9vcGVuc3NsL21hY29zeC9pbmNsdWRlIiAtSSIkU0Uvc2hpbSIgXAogIC1pbmNsdWRlICIkU0Uvb3BlbnNzbC9vcGVuc3NsLXByZWZpeC5oIiBcCiAgbWFpbi5tIFwKICAiJFNFL2J1aWxkL21hY29zeC9saWJTRUNvcmUuYSIgXAogICIkU0Uvb3BlbnNzbC9tYWNvc3gvbGliL2xpYnNycHNlX3NzbC5hIiAiJFNFL29wZW5zc2wvbWFjb3N4L2xpYi9saWJzcnBzZV9jcnlwdG8uYSIgXAogIC1seiAtbGljb252IC1scHRocmVhZCBcCiAgLWZyYW1ld29yayBGb3VuZGF0aW9uIC1mcmFtZXdvcmsgU2VjdXJpdHkgLWZyYW1ld29yayBDb3JlRm91bmRhdGlvbiBcCiAgLW8gc2V0ZXN0CmVjaG8gQlVJTFQgc2V0ZXN0Cg==
+#!/bin/bash
+# SETest build script — links libSECore-mac.a + prefixed OpenSSL into a macOS harness.
+set -e
+cd "$(dirname "$0")"
+SE="$(dirname "$PWD")"              # SoftEther dir
+SDK="$(xcrun --sdk macosx --show-sdk-path)"
+
+CLANG="$(xcrun -f clang)"
+"$CLANG" -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+  -fobjc-arc -O1 -g \
+  -I"$SE/bridge" \
+  -I"$SE/upstream" -I"$SE/upstream/Mayaqua" -I"$SE/upstream/Cedar" \
+  -I"$SE/openssl/macosx/include" -I"$SE/shim" \
+  -include "$SE/openssl/openssl-prefix.h" \
+  main.m \
+  "$SE/build/macosx/libSECore.a" \
+  "$SE/openssl/macosx/lib/libsrpse_ssl.a" "$SE/openssl/macosx/lib/libsrpse_crypto.a" \
+  -lz -liconv -lpthread \
+  -framework Foundation -framework Security -framework CoreFoundation \
+  -o setest
+echo BUILT setest

@@ -1,1 +1,22 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiNpZiBMSUJTU0gyX1JTQV9TSEExICYmIExJQlNTSDJfQUVTX0dDTSAmJiBcCiAgICAoZGVmaW5lZChMSUJTU0gyX09QRU5TU0wpIHx8IGRlZmluZWQoTElCU1NIMl9XT0xGU1NMKSkKICAgIC8qIHNldCBpbiBEb2NrZXJmaWxlICovCiAgICByZXR1cm4gdGVzdF9hdXRoX3B1YmtleShzZXNzaW9uLCAwLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpYnNzaDIiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpYnNzaDIiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleV9yc2FfYWVzMjU2Z2NtLnB1YiIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAia2V5X3JzYV9hZXMyNTZnY20iKTsKI2Vsc2UKICAgICh2b2lkKXNlc3Npb247CiAgICByZXR1cm4gMDsKI2VuZGlmCn0K
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int test(LIBSSH2_SESSION *session)
+{
+#if LIBSSH2_RSA_SHA1 && LIBSSH2_AES_GCM && \
+    (defined(LIBSSH2_OPENSSL) || defined(LIBSSH2_WOLFSSL))
+    /* set in Dockerfile */
+    return test_auth_pubkey(session, 0,
+                            "libssh2",
+                            "libssh2",
+                            "key_rsa_aes256gcm.pub",
+                            "key_rsa_aes256gcm");
+#else
+    (void)session;
+    return 0;
+#endif
+}

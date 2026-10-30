@@ -1,1 +1,22 @@
-IyBPcGVuQ29ubmVjdCAoQW55Q29ubmVjdCkgcHJvdG9jb2wgY29yZQoKTmF0aXZlIE9wZW5Db25uZWN0IGNsaWVudCBmb3IgdGhlIFNSUFR1bm5lbCBuZXR3b3JrIGV4dGVuc2lvbiwgYnVpbHQgZnJvbSB0aGUKdmVuZG9yZWQgKipvcGVuY29ubmVjdCA5LjIxKiogc291cmNlcyAoYHVwc3RyZWFtL2AsIExHUEwtMi4xIOKAlCBzZWUKYHVwc3RyZWFtL0NPUFlJTkcuTEdQTGApLgoKLSBgYnVpbGRfb3BlbmNvbm5lY3Quc2hgIOKAlCBjb25maWd1cmVzICsgYnVpbGRzIGBidWlsZC88cGxhdGZvcm0+L2xpYlNSUE9wZW5Db25uZWN0LmFgCiAgZm9yIGBpcGhvbmVvc2AgKyBgbWFjb3N4YCAoYXJtNjQpLiBUTFMgYmFja2VuZDogdGhlIHByZWZpeGVkIE9wZW5TU0wgMy4wLjE1CiAgZnJvbSBgLi4vU29mdEV0aGVyL29wZW5zc2wvYCAoc3ltYm9scyBgc3Jwc2VfKmAsIG5vIEJvcmluZ1NTTCBjbGFzaCkuCiAgTm90ZXM6IGBhY19jdl9mdW5jX0hNQUNfQ1RYX2NvcHk9eWVzYCB3b3JrcyBhcm91bmQgYXV0b2NvbmYncyBBQ19DSEVDS19GVU5DCiAgYmVpbmcgaW5jb21wYXRpYmxlIHdpdGggc3ltYm9sIHByZWZpeGluZzsgdGhlIGBzZXJ2ZXJoYXNoYCB0b29sIGZhaWx1cmUgYXQKICB0aGUgZW5kIG9mIGBtYWtlYCBpcyBleHBlY3RlZCAod2UgYXJjaGl2ZSB0aGUgbGlicmFyeSBvYmplY3RzIG91cnNlbHZlcykuCi0gYE9DVGVzdC9gIOKAlCBtYWNPUyBFMkUgaGFybmVzcyAoYGJ1aWxkLnNoYCArIHJ1biBgLi9vY3Rlc3QgW3VzZXJdIFtwYXNzXSBbdXJsXWApLgogIFZlcmlmaWVzIGF1dGgsIENTVFAsIERUTFMsIElQIHNldHRpbmdzLCBwaW5nIGFuZCBETlMgdGhyb3VnaCB0aGUgdHVubmVsLCBwbHVzCiAgbmVnYXRpdmUgY2FzZXMgKGJhZCBob3N0bmFtZSBjZXJ0IHJlamVjdCwgd3JvbmcgcGFzc3dvcmQpLgotIFNlcnZlcjogb2NzZXJ2IG9uIGBvcGVuY29ubmVjdC5zcnAuc2VydmljZXM6NDQzYCAodXNlcnMgc3N0cC10ZXN0MS8yLAogIHBsYWluIGF1dGgsIFNlY3VyZU5BVC1zdHlsZSBOQVQsIHJhbmdlIDEwLjgyLjAuMC8yNCkuCgpUaGUgZXh0ZW5zaW9uLXNpZGUgT2JqZWN0aXZlLUMgYWRhcHRlciBpcyBgQ29yZS9TUlBDb3JlL1NSUE9wZW5Db25uZWN0Q2xpZW50LipgLgp2MSBzY29wZTogQW55Q29ubmVjdCBwcm90b2NvbCwgcGFzc3dvcmQgYXV0aCwgU2VjVHJ1c3QgdmFsaWRhdGlvbiwgRFRMUywKSVB2NCtJUHY2IHNldHRpbmdzLCBhdXRvLXJlY29ubmVjdCwgc3dpdGNoLXRvLVdpLUZpLiBDbGllbnQtY2VydCBhdXRoIGFuZApwcm94eSBhcmUgd2lyZWQgaW4gdGhlIGFkYXB0ZXIgYnV0IG5vdCBlbmFibGVkIGluIHRoZSBVSSB5ZXQuCg==
+# OpenConnect (AnyConnect) protocol core
+
+Native OpenConnect client for the SRPTunnel network extension, built from the
+vendored **openconnect 9.21** sources (`upstream/`, LGPL-2.1 — see
+`upstream/COPYING.LGPL`).
+
+- `build_openconnect.sh` — configures + builds `build/<platform>/libSRPOpenConnect.a`
+  for `iphoneos` + `macosx` (arm64). TLS backend: the prefixed OpenSSL 3.0.15
+  from `../SoftEther/openssl/` (symbols `srpse_*`, no BoringSSL clash).
+  Notes: `ac_cv_func_HMAC_CTX_copy=yes` works around autoconf's AC_CHECK_FUNC
+  being incompatible with symbol prefixing; the `serverhash` tool failure at
+  the end of `make` is expected (we archive the library objects ourselves).
+- `OCTest/` — macOS E2E harness (`build.sh` + run `./octest [user] [pass] [url]`).
+  Verifies auth, CSTP, DTLS, IP settings, ping and DNS through the tunnel, plus
+  negative cases (bad hostname cert reject, wrong password).
+- Server: ocserv on `openconnect.srp.services:443` (users sstp-test1/2,
+  plain auth, SecureNAT-style NAT, range 10.82.0.0/24).
+
+The extension-side Objective-C adapter is `Core/SRPCore/SRPOpenConnectClient.*`.
+v1 scope: AnyConnect protocol, password auth, SecTrust validation, DTLS,
+IPv4+IPv6 settings, auto-reconnect, switch-to-Wi-Fi. Client-cert auth and
+proxy are wired in the adapter but not enabled in the UI yet.

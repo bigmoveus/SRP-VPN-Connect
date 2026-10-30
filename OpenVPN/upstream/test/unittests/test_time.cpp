@@ -1,1 +1,190 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL3RpbWUvdGltZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3JhbmRvbS9tdHJhbmRhcGkuaHBwPgoKI2luY2x1ZGUgPG9wZW52cG4vdGltZS9za2V3LmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2Zvcm1hdC5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgppbnQgbXlfYWJzKGNvbnN0IGludCB2YWx1ZSkKewogICAgaWYgKHZhbHVlID49IDApCiAgICAgICAgcmV0dXJuIHZhbHVlOwogICAgZWxzZQogICAgICAgIHJldHVybiAtdmFsdWU7Cn0KCmNsYXNzIE1lYW4KewogIHB1YmxpYzoKICAgIHZvaWQgYWRkKGNvbnN0IGludCB2YWx1ZSkKICAgIHsKICAgICAgICBzdW1fICs9IHZhbHVlOwogICAgICAgICsrY291bnRfOwogICAgfQoKICAgIGludCBtZWFuKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gc3VtXyAvIGNvdW50XzsKICAgIH0KCiAgICB2b2lkIGNoZWNrX21lYW5fcmFuZ2UoY29uc3Qgc3RkOjpzdHJpbmcgJnRpdGxlLCBjb25zdCBpbnQgbG93LCBjb25zdCBpbnQgaGkpIGNvbnN0CiAgICB7CiAgICAgICAgY29uc3QgaW50IG0gPSBtZWFuKCk7CiAgICAgICAgQVNTRVJUX1RSVUUobSA+IGxvdyAmJiBtIDwgaGkpIDw8IHRpdGxlIDw8ICcgJyA8PCB0b19zdHJpbmcoKSA8PCAiIG91dHNpZGUgb2YgcmFuZ2U9KCIgPDwgbG93IDw8ICcsJyA8PCBoaSA8PCAnKSc7CiAgICB9CgogICAgaW50IGNvdW50KCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gY291bnRfOwogICAgfQoKICAgIHN0ZDo6c3RyaW5nIHRvX3N0cmluZygpIGNvbnN0CiAgICB7CiAgICAgICAgcmV0dXJuIHByaW50Zm10KCJbbWVhbj0lcyBjb3VudD0lc10iLCBtZWFuKCksIGNvdW50KCkpOwogICAgfQoKICBwcml2YXRlOgogICAgaW50IGNvdW50XyA9IDA7CiAgICBpbnQgc3VtXyA9IDA7Cn07CgpzdHJ1Y3QgTWVhbkRldgp7CiAgICBNZWFuIG1lYW47CiAgICBNZWFuIGRldjsKCiAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgewogICAgICAgIHJldHVybiBtZWFuLnRvX3N0cmluZygpICsgIiBkZXY9IiArIGRldi50b19zdHJpbmcoKTsKICAgIH0KfTsKCnZvaWQgdGVzdF9za2V3KGNvbnN0IFRpbWU6OkR1cmF0aW9uICZkdXIsCiAgICAgICAgICAgICAgIGNvbnN0IHVuc2lnbmVkIGludCBza2V3X2ZhY3RvciwKICAgICAgICAgICAgICAgTWVhbkRldiAmbWQsCiAgICAgICAgICAgICAgIGNvbnN0IGJvb2wgdmVyYm9zZSwKICAgICAgICAgICAgICAgUmFuZG9tQVBJICZwcm5nKQp7CiAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBhZnRlciA9IFRpbWVTa2V3Ojpza2V3KGR1ciwgc2tld19mYWN0b3IsIHBybmcpOwogICAgbWQubWVhbi5hZGQoc3RhdGljX2Nhc3Q8aW50PihhZnRlci50b19iaW5hcnlfbXMoKSkpOwogICAgbWQuZGV2LmFkZChteV9hYnMoaW50KGR1ci50b19iaW5hcnlfbXMoKSkgLSBpbnQoYWZ0ZXIudG9fYmluYXJ5X21zKCkpKSk7CiAgICBpZiAodmVyYm9zZSkKICAgICAgICBPUEVOVlBOX0xPRygiQkVGT1JFPSIgPDwgZHVyLnRvX2JpbmFyeV9tcygpIDw8ICIgQUZURVI9IiA8PCBhZnRlci50b19iaW5hcnlfbXMoKSk7Cn0KClRFU1QodGltZSwgdGltZXNrZXcpCnsKICAgIE1UUmFuZDo6UHRyIHBybmcobmV3IE1UUmFuZCgpKTsKICAgIE1lYW5EZXYgbWQ7CiAgICBmb3IgKGludCBpID0gMDsgaSA8IDEwMDAwOyArK2kpCiAgICB7CiAgICAgICAgdGVzdF9za2V3KFRpbWU6OkR1cmF0aW9uOjpzZWNvbmRzKDEwKSwgVGltZVNrZXc6OlBDVF8yNSwgbWQsIGZhbHNlLCAqcHJuZyk7CiAgICB9CiAgICAvLyBPUEVOVlBOX0xPRyhtZC50b19zdHJpbmcoKSk7CiAgICBtZC5tZWFuLmNoZWNrX21lYW5fcmFuZ2UoIm1lYW4iLCAxMDEwMCwgMTAzMDApOwogICAgbWQuZGV2LmNoZWNrX21lYW5fcmFuZ2UoImRldiIsIDEyNTAsIDEzNTApOwp9CgpURVNUKHRpbWUsIHRlc3QxKQp7CiAgICBUaW1lOjpyZXNldF9iYXNlKCk7CgogICAgY29uc3QgVGltZSB1bnRpbCA9IFRpbWU6Om5vdygpICsgVGltZTo6RHVyYXRpb246OnNlY29uZHMoMSk7CgogICAgVGltZTo6YmFzZV90eXBlIGxhc3Rfc2VjID0gMDsKICAgIFRpbWU6OnR5cGUgbGFzdF9mcmFjID0gMDsKCiAgICB3aGlsZSAodHJ1ZSkKICAgIHsKICAgICAgICBjb25zdCBUaW1lIHQgPSBUaW1lOjpub3coKTsKICAgICAgICBpZiAodCA+PSB1bnRpbCkKICAgICAgICAgICAgYnJlYWs7CiAgICAgICAgY29uc3QgVGltZTo6YmFzZV90eXBlIHNlYyA9IHQuc2Vjb25kc19zaW5jZV9lcG9jaCgpOwogICAgICAgIGNvbnN0IFRpbWU6OnR5cGUgZnJhYyA9IHQuZnJhY3Rpb25hbF9iaW5hcnlfbXMoKTsKICAgICAgICBpZiAoc2VjICE9IGxhc3Rfc2VjIHx8IGZyYWMgIT0gbGFzdF9mcmFjKQogICAgICAgIHsKICAgICAgICAgICAgLy8gc3RkOjpjb3V0IDw8IHNlYyA8PCAnICcgPDwgZnJhYyA8PCBzdGQ6OmVuZGw7CiAgICAgICAgICAgIGxhc3Rfc2VjID0gc2VjOwogICAgICAgICAgICBsYXN0X2ZyYWMgPSBmcmFjOwogICAgICAgIH0KICAgIH0KfQoKc3RhdGljIHZvaWQgc3ViKGNvbnN0IFRpbWUgJnQxLCBjb25zdCBUaW1lICZ0MiwgYm9vbCBsYXJnZSkKewogICAgY29uc3QgVGltZTo6RHVyYXRpb24gZCA9IHQxIC0gdDI7CiAgICAvLyBzdGQ6OmNvdXQgPDwgIlQtVCAiIDw8IHQxLnJhdygpIDw8ICIgLSAiIDw8IHQyLnJhdygpIDw8ICIgPSAiIDw8IGQucmF3KCkgPDwgc3RkOjplbmRsOwogICAgaWYgKGxhcmdlKQogICAgICAgIEFTU0VSVF9HRShkLnJhdygpLCAxMDAwMDB1KTsKICAgIGVsc2UKICAgICAgICBBU1NFUlRfRVEoZC5yYXcoKSwgMHUpOwp9CgpzdGF0aWMgdm9pZCBzdWIoY29uc3QgVGltZTo6RHVyYXRpb24gJmQxLCBjb25zdCBUaW1lOjpEdXJhdGlvbiAmZDIpCnsKICAgIGNvbnN0IFRpbWU6OkR1cmF0aW9uIGQgPSBkMSAtIGQyOwogICAgLy8gc3RkOjpjb3V0IDw8ICJELUQgIiA8PCBkMS5yYXcoKSA8PCAiIC0gIiA8PCBkMi5yYXcoKSA8PCAiID0gIiA8PCBkLnJhdygpIDw8IHN0ZDo6ZW5kbDsKICAgIFRpbWU6OkR1cmF0aW9uIHggPSBkMTsKICAgIHggLT0gZDI7CiAgICBBU1NFUlRfRVEoeCwgZCkgPDwgIkQtRCBJTkNPTlNJU1RFTkNZIERFVEVDVEVEIjsKfQoKc3RhdGljIHZvaWQgYWRkKGNvbnN0IFRpbWUgJnQxLCBjb25zdCBUaW1lOjpEdXJhdGlvbiAmZDEpCnsKICAgIGNvbnN0IFRpbWUgdCA9IHQxICsgZDE7CiAgICAvLyBzdGQ6OmNvdXQgPDwgIlQrRCAiIDw8IHQxLnJhdygpIDw8ICIgKyAiIDw8IGQxLnJhdygpIDw8ICIgPSAiIDw8IHQucmF3KCkgPDwgc3RkOjplbmRsOwogICAgVGltZSB4ID0gdDE7CiAgICB4ICs9IGQxOwogICAgQVNTRVJUX0VRKHgsIHQpIDw8ICJUK0QgSU5DT05TSVNURU5DWSBERVRFQ1RFRCI7Cn0KCnN0YXRpYyB2b2lkIGFkZChjb25zdCBUaW1lOjpEdXJhdGlvbiAmZDEsIGNvbnN0IFRpbWU6OkR1cmF0aW9uICZkMikKewogICAgY29uc3QgVGltZTo6RHVyYXRpb24gZCA9IGQxICsgZDI7CiAgICAvLyBzdGQ6OmNvdXQgPDwgIkQrRCAiIDw8IGQxLnJhdygpIDw8ICIgKyAiIDw8IGQyLnJhdygpIDw8ICIgPSAiIDw8IGQucmF3KCkgPDwgc3RkOjplbmRsOwogICAgVGltZTo6RHVyYXRpb24geCA9IGQxOwogICAgeCArPSBkMjsKICAgIEFTU0VSVF9FUSh4LCBkKSA8PCAiRCtEIElOQ09OU0lTVEVOQ1kgREVURUNURUQiOwp9CgpURVNUKHRpbWUsIHRpbWVhZGRzdWIpCnsKICAgIHsKICAgICAgICBjb25zdCBUaW1lIG5vdyA9IFRpbWU6Om5vdygpOwogICAgICAgIGNvbnN0IFRpbWUgaW5mID0gVGltZTo6aW5maW5pdGUoKTsKICAgICAgICBzdWIobm93LCBub3csIGZhbHNlKTsKICAgICAgICBzdWIoaW5mLCBub3csIHRydWUpOwogICAgICAgIHN1Yihub3csIGluZiwgZmFsc2UpOwogICAgICAgIHN1YihpbmYsIGluZiwgZmFsc2UpOwogICAgfQogICAgewogICAgICAgIGNvbnN0IFRpbWU6OkR1cmF0aW9uIHNlYyA9IFRpbWU6OkR1cmF0aW9uOjpzZWNvbmRzKDEpOwogICAgICAgIGNvbnN0IFRpbWU6OkR1cmF0aW9uIGluZiA9IFRpbWU6OkR1cmF0aW9uOjppbmZpbml0ZSgpOwogICAgICAgIHN1YihzZWMsIHNlYyk7CiAgICAgICAgc3ViKGluZiwgc2VjKTsKICAgICAgICBzdWIoc2VjLCBpbmYpOwogICAgICAgIHN1YihpbmYsIGluZik7CiAgICB9CiAgICB7CiAgICAgICAgY29uc3QgVGltZSB0ZiA9IFRpbWU6Om5vdygpOwogICAgICAgIGNvbnN0IFRpbWUgdGkgPSBUaW1lOjppbmZpbml0ZSgpOwogICAgICAgIGNvbnN0IFRpbWU6OkR1cmF0aW9uIGRmID0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoMSk7CiAgICAgICAgY29uc3QgVGltZTo6RHVyYXRpb24gZGkgPSBUaW1lOjpEdXJhdGlvbjo6aW5maW5pdGUoKTsKICAgICAgICBhZGQodGYsIGRmKTsKICAgICAgICBhZGQodGYsIGRpKTsKICAgICAgICBhZGQodGksIGRmKTsKICAgICAgICBhZGQodGksIGRpKTsKICAgIH0KICAgIHsKICAgICAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBzZWMgPSBUaW1lOjpEdXJhdGlvbjo6c2Vjb25kcygxKTsKICAgICAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBpbmYgPSBUaW1lOjpEdXJhdGlvbjo6aW5maW5pdGUoKTsKICAgICAgICBhZGQoc2VjLCBzZWMpOwogICAgICAgIGFkZChpbmYsIHNlYyk7CiAgICAgICAgYWRkKHNlYywgaW5mKTsKICAgICAgICBhZGQoaW5mLCBpbmYpOwogICAgfQp9Cg==
+#include "test_common.hpp"
+
+#include <openvpn/time/time.hpp>
+#include <openvpn/random/mtrandapi.hpp>
+
+#include <openvpn/time/skew.hpp>
+#include <openvpn/common/format.hpp>
+
+using namespace openvpn;
+using namespace openvpn;
+
+int my_abs(const int value)
+{
+    if (value >= 0)
+        return value;
+    else
+        return -value;
+}
+
+class Mean
+{
+  public:
+    void add(const int value)
+    {
+        sum_ += value;
+        ++count_;
+    }
+
+    int mean() const
+    {
+        return sum_ / count_;
+    }
+
+    void check_mean_range(const std::string &title, const int low, const int hi) const
+    {
+        const int m = mean();
+        ASSERT_TRUE(m > low && m < hi) << title << ' ' << to_string() << " outside of range=(" << low << ',' << hi << ')';
+    }
+
+    int count() const
+    {
+        return count_;
+    }
+
+    std::string to_string() const
+    {
+        return printfmt("[mean=%s count=%s]", mean(), count());
+    }
+
+  private:
+    int count_ = 0;
+    int sum_ = 0;
+};
+
+struct MeanDev
+{
+    Mean mean;
+    Mean dev;
+
+    std::string to_string() const
+    {
+        return mean.to_string() + " dev=" + dev.to_string();
+    }
+};
+
+void test_skew(const Time::Duration &dur,
+               const unsigned int skew_factor,
+               MeanDev &md,
+               const bool verbose,
+               RandomAPI &prng)
+{
+    const Time::Duration after = TimeSkew::skew(dur, skew_factor, prng);
+    md.mean.add(static_cast<int>(after.to_binary_ms()));
+    md.dev.add(my_abs(int(dur.to_binary_ms()) - int(after.to_binary_ms())));
+    if (verbose)
+        OPENVPN_LOG("BEFORE=" << dur.to_binary_ms() << " AFTER=" << after.to_binary_ms());
+}
+
+TEST(time, timeskew)
+{
+    MTRand::Ptr prng(new MTRand());
+    MeanDev md;
+    for (int i = 0; i < 10000; ++i)
+    {
+        test_skew(Time::Duration::seconds(10), TimeSkew::PCT_25, md, false, *prng);
+    }
+    // OPENVPN_LOG(md.to_string());
+    md.mean.check_mean_range("mean", 10100, 10300);
+    md.dev.check_mean_range("dev", 1250, 1350);
+}
+
+TEST(time, test1)
+{
+    Time::reset_base();
+
+    const Time until = Time::now() + Time::Duration::seconds(1);
+
+    Time::base_type last_sec = 0;
+    Time::type last_frac = 0;
+
+    while (true)
+    {
+        const Time t = Time::now();
+        if (t >= until)
+            break;
+        const Time::base_type sec = t.seconds_since_epoch();
+        const Time::type frac = t.fractional_binary_ms();
+        if (sec != last_sec || frac != last_frac)
+        {
+            // std::cout << sec << ' ' << frac << std::endl;
+            last_sec = sec;
+            last_frac = frac;
+        }
+    }
+}
+
+static void sub(const Time &t1, const Time &t2, bool large)
+{
+    const Time::Duration d = t1 - t2;
+    // std::cout << "T-T " << t1.raw() << " - " << t2.raw() << " = " << d.raw() << std::endl;
+    if (large)
+        ASSERT_GE(d.raw(), 100000u);
+    else
+        ASSERT_EQ(d.raw(), 0u);
+}
+
+static void sub(const Time::Duration &d1, const Time::Duration &d2)
+{
+    const Time::Duration d = d1 - d2;
+    // std::cout << "D-D " << d1.raw() << " - " << d2.raw() << " = " << d.raw() << std::endl;
+    Time::Duration x = d1;
+    x -= d2;
+    ASSERT_EQ(x, d) << "D-D INCONSISTENCY DETECTED";
+}
+
+static void add(const Time &t1, const Time::Duration &d1)
+{
+    const Time t = t1 + d1;
+    // std::cout << "T+D " << t1.raw() << " + " << d1.raw() << " = " << t.raw() << std::endl;
+    Time x = t1;
+    x += d1;
+    ASSERT_EQ(x, t) << "T+D INCONSISTENCY DETECTED";
+}
+
+static void add(const Time::Duration &d1, const Time::Duration &d2)
+{
+    const Time::Duration d = d1 + d2;
+    // std::cout << "D+D " << d1.raw() << " + " << d2.raw() << " = " << d.raw() << std::endl;
+    Time::Duration x = d1;
+    x += d2;
+    ASSERT_EQ(x, d) << "D+D INCONSISTENCY DETECTED";
+}
+
+TEST(time, timeaddsub)
+{
+    {
+        const Time now = Time::now();
+        const Time inf = Time::infinite();
+        sub(now, now, false);
+        sub(inf, now, true);
+        sub(now, inf, false);
+        sub(inf, inf, false);
+    }
+    {
+        const Time::Duration sec = Time::Duration::seconds(1);
+        const Time::Duration inf = Time::Duration::infinite();
+        sub(sec, sec);
+        sub(inf, sec);
+        sub(sec, inf);
+        sub(inf, inf);
+    }
+    {
+        const Time tf = Time::now();
+        const Time ti = Time::infinite();
+        const Time::Duration df = Time::Duration::seconds(1);
+        const Time::Duration di = Time::Duration::infinite();
+        add(tf, df);
+        add(tf, di);
+        add(ti, df);
+        add(ti, di);
+    }
+    {
+        const Time::Duration sec = Time::Duration::seconds(1);
+        const Time::Duration inf = Time::Duration::infinite();
+        add(sec, sec);
+        add(inf, sec);
+        add(sec, inf);
+        add(inf, inf);
+    }
+}

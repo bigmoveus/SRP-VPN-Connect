@@ -1,1 +1,554 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2J1ZmZlci9idWZzdHIuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgovLyB0ZXN0IGVxdWFsaXR5IG9mIEJ1ZmZlciBhbmQgQ29uc3RCdWZmZXIKVEVTVChidWZmZXIsIGNvbnN0X2J1ZmZlcl9yZWZfMSkKewogICAgc3RhdGljIHVuc2lnbmVkIGNoYXIgaGVsbG9bXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBCdWZmZXIgYnVmKGhlbGxvLCBzaXplb2YoaGVsbG8pIC0gMSwgdHJ1ZSk7CiAgICBDb25zdEJ1ZmZlciAmY2J1ZiA9IGNvbnN0X2J1ZmZlcl9yZWYoYnVmKTsKICAgIEVYUEVDVF9FUShjYnVmLnNpemUoKSwgMTF1KTsKICAgIEVYUEVDVF9FUShidWZfdG9fc3RyaW5nKGJ1ZiksIGJ1Zl90b19zdHJpbmcoY2J1ZikpOwp9CgovLyB0ZXN0IGVxdWFsaXR5IG9mIEJ1ZmZlckFsbG9jYXRlZFJjIGFuZCBDb25zdEJ1ZmZlcgpURVNUKGJ1ZmZlciwgY29uc3RfYnVmZmVyX3JlZl8yKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgImhlbGxvIHdvcmxkIik7CiAgICBDb25zdEJ1ZmZlciAmY2J1ZiA9IGNvbnN0X2J1ZmZlcl9yZWYoYnVmKTsKICAgIEVYUEVDVF9FUShjYnVmLnNpemUoKSwgMTF1KTsKICAgIEVYUEVDVF9FUShidWZfdG9fc3RyaW5nKGJ1ZiksIGJ1Zl90b19zdHJpbmcoY2J1ZikpOwp9CgovLyB0ZXN0IENvbnN0QnVmZmVyVHlwZSB3aXRoIGFuIGV4cGxpY2l0bHkgY29uc3QgdHlwZQpURVNUKGJ1ZmZlciwgbXlfY29uc3RfYnVmZmVyXzEpCnsKICAgIHR5cGVkZWYgQ29uc3RCdWZmZXJUeXBlPGNvbnN0IGNoYXI+IE15Q29uc3RCdWZmZXI7CiAgICBzdGF0aWMgY29uc3QgY2hhciBoZWxsb1tdID0gImhlbGxvIHdvcmxkIjsKICAgIE15Q29uc3RCdWZmZXIgY2J1ZihoZWxsbywgc2l6ZW9mKGhlbGxvKSAtIDEsIHRydWUpOwogICAgRVhQRUNUX0VRKGNidWYuc2l6ZSgpLCAxMXUpOwogICAgRVhQRUNUX0VRKHN0ZDo6c3RyaW5nKGNidWYuY19kYXRhKCksIGNidWYuc2l6ZSgpKSwgImhlbGxvIHdvcmxkIik7Cn0KCi8vIFRlc3QgcmVhZCBhY2Nlc3MgYW5kIGJvdW5kcyBjaGVjayBvbiBDb25zdEJ1ZmZlclR5cGUKVEVTVChidWZmZXIsIGNvbnN0X2J1ZmZlcl9hY2Nlc3MxKQp7CiAgICBjb25zdGV4cHIgY2hhciBkYXRhW10gPSAiaGVsbG8gd29ybGQiOwogICAgQ29uc3RCdWZmZXJUeXBlPGNoYXI+IGNidWYoZGF0YSwgc2l6ZW9mKGRhdGEpIC0gMSwgdHJ1ZSk7CiAgICBFWFBFQ1RfRVEoY2J1ZlswXSwgJ2gnKTsKICAgIEVYUEVDVF9FUShjYnVmWzEwXSwgJ2QnKTsKICAgIEVYUEVDVF9USFJPVyhjYnVmWzExXSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCByZWFkIGFjY2VzcyBhbmQgYm91bmRzIGNoZWNrIG9uIENvbnN0QnVmZmVyVHlwZQpURVNUKGJ1ZmZlciwgY29uc3RfYnVmZmVyX2FjY2VzczIpCnsKICAgIGNvbnN0ZXhwciBjaGFyIGRhdGFbXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBDb25zdEJ1ZmZlclR5cGU8Y2hhcj4gY2J1ZihkYXRhLCBzaXplb2YoZGF0YSkgLSAxLCB0cnVlKTsKCiAgICB3aGlsZSAoY2J1Zi5lbXB0eSgpID09IGZhbHNlKQogICAgewogICAgICAgIGF1dG8gYmFjayA9IGNidWZbY2J1Zi5zaXplKCkgLSAxXTsKICAgICAgICBFWFBFQ1RfRVEoY2J1Zi5wb3BfYmFjaygpLCBiYWNrKTsKICAgIH0KCiAgICBFWFBFQ1RfVEhST1coY2J1Zi5wb3BfYmFjaygpLCBCdWZmZXJFeGNlcHRpb24pOwogICAgRVhQRUNUX1RIUk9XKGNidWZbMF0sIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBFWFBFQ1RfVEhST1coY2J1ZlsxXSwgQnVmZmVyRXhjZXB0aW9uKTsKICAgIEVYUEVDVF9USFJPVyhjYnVmWzExXSwgQnVmZmVyRXhjZXB0aW9uKTsKICAgIEVYUEVDVF9USFJPVyhjYnVmWzEyXSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCByZWFkIGFjY2VzcyBhbmQgYm91bmRzIGNoZWNrIG9uIENvbnN0QnVmZmVyVHlwZQpURVNUKGJ1ZmZlciwgY29uc3RfYnVmZmVyX2FjY2VzczMpCnsKICAgIGNvbnN0ZXhwciBjaGFyIGRhdGFbXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBDb25zdEJ1ZmZlclR5cGU8Y2hhcj4gY2J1ZihkYXRhLCBzaXplb2YoZGF0YSkgLSAxLCB0cnVlKTsKCiAgICB3aGlsZSAoY2J1Zi5lbXB0eSgpID09IGZhbHNlKQogICAgewogICAgICAgIGF1dG8gZnJvbnQgPSBjYnVmWzBdOwogICAgICAgIEVYUEVDVF9FUShjYnVmLnBvcF9mcm9udCgpLCBmcm9udCk7CiAgICB9CgogICAgRVhQRUNUX1RIUk9XKGNidWYucG9wX2Zyb250KCksIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBFWFBFQ1RfVEhST1coY2J1ZlswXSwgQnVmZmVyRXhjZXB0aW9uKTsKICAgIEVYUEVDVF9USFJPVyhjYnVmWzFdLCBCdWZmZXJFeGNlcHRpb24pOwogICAgRVhQRUNUX1RIUk9XKGNidWZbMTFdLCBCdWZmZXJFeGNlcHRpb24pOwogICAgRVhQRUNUX1RIUk9XKGNidWZbMTJdLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IHJlYWQgYWNjZXNzIGFuZCBib3VuZHMgY2hlY2sKVEVTVChidWZmZXIsIGJ1ZmZlcl9hY2Nlc3MxKQp7CiAgICBjaGFyIGRhdGFbXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBCdWZmZXJUeXBlPGNoYXI+IGJ1ZihkYXRhLCBzaXplb2YoZGF0YSkgLSAxLCB0cnVlKTsKICAgIEVYUEVDVF9FUShidWZbMF0sICdoJyk7CiAgICBFWFBFQ1RfRVEoYnVmWzEwXSwgJ2QnKTsKICAgIEVYUEVDVF9USFJPVyhidWZbMTFdLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IHJlYWQvd3JpdGUgYWNjZXNzIGFuZCBib3VuZHMgY2hlY2sKVEVTVChidWZmZXIsIGJ1ZmZlcl9hY2Nlc3MyKQp7CiAgICBjaGFyIGRhdGFbXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBCdWZmZXJUeXBlPGNoYXI+IGJ1ZihkYXRhLCBzaXplb2YoZGF0YSkgLSAxLCB0cnVlKTsKICAgIGJ1ZlswXSA9ICdqJzsKICAgIEVYUEVDVF9FUShidWZbMF0sICdqJyk7CiAgICBFWFBFQ1RfRVEoYnVmWzRdLCAnbycpOwogICAgRVhQRUNUX1RIUk9XKGJ1ZlstMV0sIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBFWFBFQ1RfVEhST1coYnVmWzIwXSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCBwdXNoL3BvcCBhbmQgYm91bmRzIGNoZWNrClRFU1QoYnVmZmVyLCBidWZmZXJfYWNjZXNzMykKewogICAgY2hhciBkYXRhMVtdID0gImhlbGxvIHdvcmxkIjsKICAgIGNoYXIgZGF0YTJbc2l6ZW9mKGRhdGExKV07CiAgICBCdWZmZXJUeXBlPGNoYXI+IGJ1ZjEoZGF0YTEsIHNpemVvZihkYXRhMSkgLSAxLCB0cnVlKTsKICAgIEJ1ZmZlclR5cGU8Y2hhcj4gYnVmMihkYXRhMiwgc2l6ZW9mKGRhdGEyKSAtIDEsIGZhbHNlKTsKCiAgICBhdXRvIGl0ZW1zID0gYnVmMS5zaXplKCk7CiAgICB3aGlsZSAoaXRlbXMtLSkKICAgIHsKICAgICAgICBidWYyLnB1c2hfYmFjayhidWYxLnBvcF9mcm9udCgpKTsKICAgIH0KCiAgICBidWYyWzBdID0gJ2onOwogICAgRVhQRUNUX0VRKGJ1ZjJbMF0sICdqJyk7CiAgICBFWFBFQ1RfRVEoYnVmMls0XSwgJ28nKTsKICAgIEVYUEVDVF9USFJPVyhidWYyWy0xXSwgQnVmZmVyRXhjZXB0aW9uKTsKICAgIEVYUEVDVF9USFJPVyhidWYyWzIwXSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCBwdXNoL3BvcCBhbmQgYm91bmRzIGNoZWNrClRFU1QoYnVmZmVyLCBidWZmZXJfYWNjZXNzNCkKewogICAgY2hhciBkYXRhMVtdID0gImhlbGxvIHdvcmxkIjsKICAgIGNoYXIgZGF0YTJbc2l6ZW9mKGRhdGExKV07CiAgICBCdWZmZXJUeXBlPGNoYXI+IGJ1ZjEoZGF0YTEsIHNpemVvZihkYXRhMSkgLSAxLCB0cnVlKTsKICAgIEJ1ZmZlclR5cGU8Y2hhcj4gYnVmMihkYXRhMiwgc2l6ZW9mKGRhdGEyKSAtIDEsIGZhbHNlKTsKCiAgICBhdXRvIGl0ZW1zID0gYnVmMS5zaXplKCk7CiAgICB3aGlsZSAoaXRlbXMtLSkKICAgIHsKICAgICAgICBidWYyLnB1c2hfYmFjayhidWYxLnBvcF9mcm9udCgpKTsKICAgIH0KCiAgICBpdGVtcyA9IGJ1ZjIuc2l6ZSgpOwogICAgd2hpbGUgKGl0ZW1zLS0pCiAgICB7CiAgICAgICAgYnVmMS5wdXNoX2Zyb250KGJ1ZjIucG9wX2JhY2soKSk7CiAgICB9CgogICAgYnVmMVswXSA9ICdqJzsKICAgIEVYUEVDVF9FUShidWYxWzBdLCAnaicpOwogICAgRVhQRUNUX0VRKGJ1ZjFbNF0sICdvJyk7CiAgICBFWFBFQ1RfVEhST1coYnVmMVstMV0sIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBFWFBFQ1RfVEhST1coYnVmMVsyMF0sIEJ1ZmZlckV4Y2VwdGlvbik7Cn0KCi8vIFRlc3QgcmVhZCBhY2Nlc3MgYW5kIGJvdW5kcyBjaGVjawpURVNUKGJ1ZmZlciwgYWxsb2NfYnVmZmVyX2FjY2VzczEpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKICAgIEVYUEVDVF9FUShidWZbMF0sICdoJyk7CiAgICBFWFBFQ1RfRVEoYnVmWzEwXSwgJ2QnKTsKICAgIEVYUEVDVF9USFJPVyhidWZbMTFdLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IHJlYWQvd3JpdGUgYWNjZXNzIGFuZCBib3VuZHMgY2hlY2sKVEVTVChidWZmZXIsIGFsbG9jX2J1ZmZlcl9hY2Nlc3MyKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCBCdWZBbGxvY0ZsYWdzOjpDT05TVFJVQ1RfWkVSTyB8IEJ1ZkFsbG9jRmxhZ3M6OkRFU1RSVUNUX1pFUk8pOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKCiAgICBidWZbMF0gPSAnaic7CiAgICBFWFBFQ1RfRVEoYnVmWzBdLCAnaicpOwogICAgRVhQRUNUX0VRKGJ1Zls0XSwgJ28nKTsKICAgIEVYUEVDVF9USFJPVyhidWZbLTFdLCBCdWZmZXJFeGNlcHRpb24pOwogICAgRVhQRUNUX1RIUk9XKGJ1ZlsyMF0sIEJ1ZmZlckV4Y2VwdGlvbik7Cn0KCi8vIFRlc3QgcmVhZC93cml0ZSBhY2Nlc3MgYW5kIGJvdW5kcyBjaGVjawpURVNUKGJ1ZmZlciwgYWxsb2NfYnVmZmVyX2FjY2VzczMpCnsKICAgIGNoYXIgZGF0YVtdID0gImhlbGxvIHdvcmxkIjsKICAgIEJ1ZmZlclR5cGU8Y2hhcj4gYnVmMShkYXRhLCBzaXplb2YoZGF0YSkgLSAxLCB0cnVlKTsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoc2l6ZW9mKGRhdGEpLCAwKTsKCiAgICBhdXRvIGl0ZW1zID0gYnVmMS5zaXplKCk7CiAgICB3aGlsZSAoaXRlbXMtLSkKICAgIHsKICAgICAgICBidWYucHVzaF9iYWNrKGJ1ZjEucG9wX2Zyb250KCkpOwogICAgfQoKICAgIGJ1ZlswXSA9ICdqJzsKICAgIEVYUEVDVF9FUShidWZbMF0sICdqJyk7CiAgICBFWFBFQ1RfRVEoYnVmWzRdLCAnbycpOwogICAgRVhQRUNUX1RIUk9XKGJ1ZlstMjBdLCBCdWZmZXJFeGNlcHRpb24pOwogICAgRVhQRUNUX1RIUk9XKGJ1ZlsyMF0sIEJ1ZmZlckV4Y2VwdGlvbik7Cn0KCi8vIFRlc3QgcG9wX2Zyb250ClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfcG9wX2Zyb250KQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgImhlbGxvIHdvcmxkIik7CgogICAgd2hpbGUgKGJ1Zi5wb3BfZnJvbnQoKSAhPSAnZCcpCiAgICAgICAgOwogICAgRVhQRUNUX1RIUk9XKGJ1Zi5wb3BfZnJvbnQoKSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCBhZHZhbmNlClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfYWR2YW5jZTEpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKCiAgICBkbwogICAgewogICAgICAgIGJ1Zi5hZHZhbmNlKDEpOwogICAgfSB3aGlsZSAoYnVmLmZyb250KCkgIT0gJ2QnKTsKCiAgICBFWFBFQ1RfRVEoYnVmWzBdLCAnZCcpOwogICAgRVhQRUNUX0VRKGJ1Zi5iYWNrKCksICdkJyk7CiAgICBFWFBFQ1RfRVEoYnVmLnBvcF9mcm9udCgpLCAnZCcpOwogICAgRVhQRUNUX1RIUk9XKGJ1Zi5wb3BfZnJvbnQoKSwgQnVmZmVyRXhjZXB0aW9uKTsKfQoKLy8gVGVzdCBhZHZhbmNlClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfYWR2YW5jZTIpCnsKICAgIGNvbnN0ZXhwciBjaGFyIGRhdGFbXSA9ICJoZWxsbyB3b3JsZCI7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgZGF0YSk7CgogICAgRVhQRUNUX1RIUk9XKGJ1Zi5hZHZhbmNlKHNpemVvZihkYXRhKSksIEJ1ZmZlckV4Y2VwdGlvbik7Cn0KCi8vIFRlc3QgYWR2YW5jZQpURVNUKGJ1ZmZlciwgYWxsb2NfYnVmZmVyX2FkdmFuY2UzKQp7CiAgICBjb25zdGV4cHIgY2hhciBkYXRhW10gPSAiaGVsbG8gd29ybGQiOwogICAgQnVmZmVyQWxsb2NhdGVkIGJ1Zig2NCwgMCk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsIGRhdGEpOwoKICAgIGJ1Zi5hZHZhbmNlKHNpemVvZihkYXRhKSAtIDIpOwoKICAgIEVYUEVDVF9FUShidWZbMF0sICdkJyk7CiAgICBFWFBFQ1RfRVEoYnVmLmJhY2soKSwgJ2QnKTsKICAgIEVYUEVDVF9FUShidWYucG9wX2Zyb250KCksICdkJyk7CiAgICBFWFBFQ1RfVEhST1coYnVmLnBvcF9mcm9udCgpLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IHJlbWFpbmluZygpClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfcmVtYWluaW5nKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKCiAgICBmb3IgKGF1dG8gcmVtYWluaW5nID0gYnVmLnJlbWFpbmluZygpOwogICAgICAgICByZW1haW5pbmcgPiAwOwogICAgICAgICAtLXJlbWFpbmluZykKICAgIHsKICAgICAgICBidWYucHVzaF9iYWNrKCdYJyk7CiAgICAgICAgRVhQRUNUX0VRKHJlbWFpbmluZyAtIDEsIGJ1Zi5yZW1haW5pbmcoKSk7CiAgICAgICAgRVhQRUNUX0VRKGJ1Zi5iYWNrKCksICdYJyk7CiAgICB9CiAgICBFWFBFQ1RfVEhST1coYnVmLnB1c2hfYmFjaygnWCcpLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IGluaXRfaGVhZHJvb20oKQpURVNUKGJ1ZmZlciwgYWxsb2NfYnVmZmVyX2luaXRfaGVhZHJvb20pCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwoKICAgIEVYUEVDVF9FUShidWYucmVtYWluaW5nKCksIDY0KTsKICAgIGJ1Zi5pbml0X2hlYWRyb29tKDMyKTsKICAgIEVYUEVDVF9FUShidWYucmVtYWluaW5nKCksIDMyKTsKCiAgICBmb3IgKGF1dG8gcmVtYWluaW5nID0gYnVmLnJlbWFpbmluZygpOwogICAgICAgICByZW1haW5pbmcgPiAwOwogICAgICAgICAtLXJlbWFpbmluZykKICAgIHsKICAgICAgICBidWYucHVzaF9iYWNrKCdYJyk7CiAgICAgICAgRVhQRUNUX0VRKHJlbWFpbmluZyAtIDEsIGJ1Zi5yZW1haW5pbmcoKSk7CiAgICAgICAgRVhQRUNUX0VRKGJ1Zi5iYWNrKCksICdYJyk7CiAgICB9CiAgICBFWFBFQ1RfVEhST1coYnVmLnB1c2hfYmFjaygnWCcpLCBCdWZmZXJFeGNlcHRpb24pOwp9CgovLyBUZXN0IHJlc2V0X29mZnNldCgpClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfcmVzZXRfb2Zmc2V0KQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKCiAgICBFWFBFQ1RfRVEoYnVmLnJlbWFpbmluZygpLCA2NCk7CgogICAgZm9yIChhdXRvIHJlbWFpbmluZyA9IGJ1Zi5yZW1haW5pbmcoKTsKICAgICAgICAgcmVtYWluaW5nID4gMDsKICAgICAgICAgLS1yZW1haW5pbmcpCiAgICB7CiAgICAgICAgYnVmLnB1c2hfYmFjaygnWCcpOwogICAgICAgIEVYUEVDVF9FUShyZW1haW5pbmcgLSAxLCBidWYucmVtYWluaW5nKCkpOwogICAgICAgIEVYUEVDVF9FUShidWYuYmFjaygpLCAnWCcpOwogICAgfQogICAgRVhQRUNUX1RIUk9XKGJ1Zi5wdXNoX2JhY2soJ1gnKSwgQnVmZmVyRXhjZXB0aW9uKTsKCiAgICBidWYucmVzZXRfb2Zmc2V0KDMyKTsKICAgIEVYUEVDVF9FUSgwLCBidWYucmVtYWluaW5nKCkpOwoKICAgIGJ1Zi5yZXNldF9vZmZzZXQoMTYpOwogICAgRVhQRUNUX0VRKDAsIGJ1Zi5yZW1haW5pbmcoKSk7Cn0KCi8vIFRlc3QgcmVzZXRfc2l6ZSgpClRFU1QoYnVmZmVyLCBhbGxvY19idWZmZXJfcmVzZXRfc2l6ZSkKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1Zig2NCwgMCk7CgogICAgRVhQRUNUX0VRKGJ1Zi5yZW1haW5pbmcoKSwgNjQpOwoKICAgIGZvciAoYXV0byByZW1haW5pbmcgPSBidWYucmVtYWluaW5nKCk7CiAgICAgICAgIHJlbWFpbmluZyA+IDA7CiAgICAgICAgIC0tcmVtYWluaW5nKQogICAgewogICAgICAgIGJ1Zi5wdXNoX2JhY2soJ1gnKTsKICAgICAgICBFWFBFQ1RfRVEocmVtYWluaW5nIC0gMSwgYnVmLnJlbWFpbmluZygpKTsKICAgICAgICBFWFBFQ1RfRVEoYnVmLmJhY2soKSwgJ1gnKTsKICAgIH0KICAgIEVYUEVDVF9USFJPVyhidWYucHVzaF9iYWNrKCdYJyksIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBidWYucmVzZXRfc2l6ZSgpOwogICAgRVhQRUNUX1RIUk9XKGJ1Zi5iYWNrKCksIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBidWYucHVzaF9iYWNrKCdYJyk7CiAgICBFWFBFQ1RfRVEoYnVmLmJhY2soKSwgJ1gnKTsKfQoKLy8gVGVzdCByZWFkKCkKVEVTVChidWZmZXIsIGFsbG9jX2J1ZmZlcl9yZWFkMSkKewogICAgY29uc3RleHByIGNoYXIgZGF0YVtdID0gImhlbGxvIHdvcmxkIjsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCBkYXRhKTsKCiAgICBjaGFyIHJhd1tzaXplb2YoZGF0YSkgLSAxXTsKCiAgICBidWYucmVhZChyYXcsIHNpemVvZihyYXcpKTsKCiAgICBFWFBFQ1RfRVEobWVtY21wKHJhdywgZGF0YSwgc2l6ZW9mKHJhdykpLCAwKTsKfQoKVEVTVChidWZmZXIsIHByZXBlbmRfYWxsb2MpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKICAgIEVYUEVDVF9FUShidWYub2Zmc2V0KCksIDB1KTsKCiAgICBidWYucHJlcGVuZF9hbGxvYyg1KTsKICAgIEVYUEVDVF9FUShidWYuc2l6ZSgpLCAxNnUpOwogICAgRVhQRUNUX0VRKGJ1Zi5yZW1haW5pbmcoKSwgNDh1KTsKfQoKClRFU1QoYnVmZmVyLCBwcmVwZW5kX2FsbG9jXzIpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoNjQsIDApOwogICAgRVhQRUNUX0VRKGJ1Zi5vZmZzZXQoKSwgMHUpOwogICAgYnVmLmluaXRfaGVhZHJvb20oMik7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCAydSk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICJoZWxsbyB3b3JsZCIpOwogICAgRVhQRUNUX0VRKGJ1Zi5vZmZzZXQoKSwgMnUpOwoKICAgIGJ1Zi5wcmVwZW5kX2FsbG9jKDUpOwogICAgRVhQRUNUX0VRKGJ1Zi5vZmZzZXQoKSwgMHUpOwogICAgRVhQRUNUX0VRKGJ1Zi5zaXplKCksIDE2dSk7CiAgICBFWFBFQ1RfRVEoYnVmLnJlbWFpbmluZygpLCA0OHUpOwp9CgoKVEVTVChidWZmZXIsIHByZXBlbmRfYWxsb2NfZml0cykKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1Zig2NCwgMCk7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCAwdSk7CiAgICBidWYuaW5pdF9oZWFkcm9vbSg1KTsKICAgIEVYUEVDVF9FUShidWYub2Zmc2V0KCksIDV1KTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgImhlbGxvIHdvcmxkIik7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCA1dSk7CgogICAgYnVmLnByZXBlbmRfYWxsb2MoNSk7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCAwdSk7CiAgICBFWFBFQ1RfRVEoYnVmLnNpemUoKSwgMTZ1KTsKICAgIEVYUEVDVF9FUShidWYucmVtYWluaW5nKCksIDQ4dSk7Cn0KClRFU1QoYnVmZmVyLCBwcmVwZW5kX2FsbG9jX2ZhaWwpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoMTEsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKCiAgICBFWFBFQ1RfVEhST1coYnVmLnByZXBlbmRfYWxsb2MoNSksIHN0ZDo6ZXhjZXB0aW9uKTsKICAgIEVYUEVDVF9FUShidWYuc2l6ZSgpLCAxMXUpOwogICAgRVhQRUNUX0VRKGJ1Zi5yZW1haW5pbmcoKSwgMHUpOwp9CgpURVNUKGJ1ZmZlciwgcHJlcGVuZF9hbGxvY19mYWlsMikKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZigxNCwgMCk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICJoZWxsbyB3b3JsZCIpOwoKICAgIEVYUEVDVF9USFJPVyhidWYucHJlcGVuZF9hbGxvYyg1KSwgc3RkOjpleGNlcHRpb24pOwogICAgRVhQRUNUX0VRKGJ1Zi5zaXplKCksIDExdSk7CiAgICBFWFBFQ1RfRVEoYnVmLnJlbWFpbmluZygpLCAzdSk7Cn0KClRFU1QoYnVmZmVyLCByZWFsaWduKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDY0LCAwKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgImhlbGxvIHdvcmxkIik7CgogICAgYnVmLmFkdmFuY2UoNSk7CiAgICBFWFBFQ1RfRVEoYnVmLmNfZGF0YV9yYXcoKVswXSwgJ2gnKTsKCiAgICBidWYucmVhbGlnbigwKTsKCiAgICBFWFBFQ1RfRVEoYnVmWzBdLCAnICcpOwogICAgRVhQRUNUX0VRKGJ1Zls1XSwgJ2QnKTsKICAgIEVYUEVDVF9USFJPVyhidWZbNl0sIEJ1ZmZlckV4Y2VwdGlvbik7CiAgICBFWFBFQ1RfRVEoYnVmLnNpemUoKSwgNnUpOwogICAgRVhQRUNUX0VRKGJ1Zi5jX2RhdGFfcmF3KClbMF0sICcgJyk7Cn0KClRFU1QoYnVmZmVyLCByZWFsaWduMikKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1Zig2NCwgMCk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICJoZWxsbyB3b3JsZCIpOwoKICAgIEVYUEVDVF9FUShidWYuY19kYXRhX3JhdygpWzBdLCAnaCcpOwoKICAgIGJ1Zi5yZWFsaWduKDUpOwoKICAgIEVYUEVDVF9FUShidWYuY19kYXRhX3JhdygpWzVdLCAnaCcpOwogICAgRVhQRUNUX0VRKGJ1ZlswXSwgJ2gnKTsKICAgIEVYUEVDVF9FUShidWYuc2l6ZSgpLCAxMXUpOwp9CgpURVNUKGJ1ZmZlciwgcmVhbGlnbjMpCnsKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoMTEsIDApOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKCiAgICBFWFBFQ1RfRVEoYnVmLmNfZGF0YV9yYXcoKVswXSwgJ2gnKTsKCiAgICBidWYucmVhbGlnbig1KTsKCiAgICBFWFBFQ1RfRVEoYnVmLmNfZGF0YV9yYXcoKVs1XSwgJ2gnKTsKICAgIEVYUEVDVF9FUShidWZbMF0sICdoJyk7CiAgICBFWFBFQ1RfRVEoYnVmLnNpemUoKSwgMTF1KTsKICAgIEVYUEVDVF9FUShidWYub2Zmc2V0KCksIDV1KTsKfQoKVEVTVChidWZmZXIsIHJlYWxpZ240KQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDMyLCAwKTsKICAgIGJ1Zi5yZWFsaWduKDd1KTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgImhlbGxvIHdvcmxkIik7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCA3dSk7CiAgICBidWYucmVhbGlnbigwKTsKCiAgICBFWFBFQ1RfRVEoYnVmLmNfZGF0YV9yYXcoKVswXSwgJ2gnKTsKICAgIEVYUEVDVF9FUShidWZbMF0sICdoJyk7CiAgICBFWFBFQ1RfRVEoYnVmLm9mZnNldCgpLCAwKTsKfQoKLyoKICAgV2UgbmVlZCB0byBiZSBzdXJlIHRoZSBvYmplY3QgaXMgaW4gYSB1c2VhYmxlIHN0YXRlIGFmdGVyIGEgbW92ZSBvcGVyYXRpb24uIFRoaXMKICAgcmVmbGVjdHMgaW1wbGllZCBleHBlY3RhdGlvbnMgaW4gb3VyIGNvZGViYXNlIGFuZCBkb2VzIG5vdCB2aW9sYXRlIHRoZSBzdGFuZGFyZC4gVGhlCiAgIGZvbGxvd2luZyB0ZXN0cyBhcmUgdG8gZW5zdXJlIHRoYXQgdGhlIG9iamVjdCBpcyBpbiBhIHVzYWJsZSBzdGF0ZSBhZnRlciBhIG1vdmUKICAgb3BlcmF0aW9uLiBUaGUgaW52YXJpYW50cyBvZiB0aGUgb2JqZWN0IHdpbGwgYmUgY2hlY2tlZCBpbiB1bml0IHRlc3RzIHBvc3QtbW92ZSBhbmQKICAgdGhlIFBSIGFuZCByZWxldmFudCBub3RlcyB3aWxsIGJlIG5vdGVkIGluIENvdmVyaXR5IGFuZCB0aGUgY29kZWJhc2UuIFRoZSBnb2FsIGlzCiAgIHRvIGVuc3VyZSBzdWNoIHVzZSBjYXNlcyBkbyBub3QgbGVhZCB0byB1bmRlZmluZWQgYmVoYXZpb3IuIFRoZSBwcmVleGlzdGluZyBtb3ZlCiAgIGltcGxlbWVudGF0aW9uIGlzIGNvcnJlY3QgYW5kIHRoZSBvYmplY3QgaXMgaW4gYSB2YWxpZCBzdGF0ZSBwb3N0LW1vdmUuIFRoaXMgc2V0CiAgIG9mIHRlc3RzIHNlZWtzIHRvIGVuc3VyZSB0aGF0IHN0YXlzIHRydWUuCgogICBUaGUgc3RhbmRhcmQgc2F5czoKCiAgIEMrKzExIFN0YW5kYXJkLCBTZWN0aW9uIDEyLjgvMzI6ICJJZiB0aGUgcGFyYW1ldGVyIGlzIGEgbm9uLWNvbnN0IGx2YWx1ZSByZWZlcmVuY2UKICAgdG8gYSBub24tdm9sYXRpbGUgb2JqZWN0IHR5cGUgb3IgYSBub24tY29uc3QgcnZhbHVlIHJlZmVyZW5jZSB0byBhIG5vbi12b2xhdGlsZQogICBvYmplY3QgdHlwZSwgdGhlIGltcGxpY2l0IG1vdmUgY29uc3RydWN0b3IgKFtjbGFzcy5jb3B5LmN0b3JdLCBbY2xhc3MuY29weS5jdG9yXS8yKQogICBhbmQgdGhlIGltcGxpY2l0IG1vdmUgYXNzaWdubWVudCBvcGVyYXRvciAoW2NsYXNzLmNvcHkuYXNzaWduXSwgW2NsYXNzLmNvcHkuYXNzaWduXS8yKQogICBhcmUgaW52b2tlZCB0byBpbml0aWFsaXplIHRoZSBwYXJhbWV0ZXIgb2JqZWN0IG9yIHRvIGFzc2lnbiB0byBpdCwgcmVzcGVjdGl2ZWx5LiBUaGUKICAgb2JqZWN0IHJlZmVycmVkIHRvIGJ5IHRoZSBydmFsdWUgZXhwcmVzc2lvbiBpcyBndWFyYW50ZWVkIHRvIGJlIGxlZnQgaW4gYSB2YWxpZCBidXQKICAgdW5zcGVjaWZpZWQgc3RhdGUuIgoqLwoKVEVTVChidWZmZXIsIGludmFyaWFudHNfYWZ0ZXJfbW92ZV9zYWZlKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDMyLCAwdSk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICJoZWxsbyB3b3JsZCIpOwoKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYyKHN0ZDo6bW92ZShidWYpKTsKCiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWYuc2l6ZSgpLCAwdSk7CiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWYuY2FwYWNpdHkoKSwgMHUpOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfVEhST1coYnVmWzBdLCBCdWZmZXJFeGNlcHRpb24pOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmLmNfZGF0YSgpLCBudWxscHRyKTsKICAgIC8vIGNvdmVyaXR5W1VTRV9BRlRFUl9NT1ZFXQogICAgRVhQRUNUX0VRKGJ1Zi5jX2RhdGFfcmF3KCksIG51bGxwdHIpOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmLmRhdGEoKSwgbnVsbHB0cik7CiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWYuZGF0YV9yYXcoKSwgbnVsbHB0cik7CiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWYub2Zmc2V0KCksIDB1KTsKICAgIC8vIGNvdmVyaXR5W1VTRV9BRlRFUl9NT1ZFXQogICAgRVhQRUNUX0VRKGJ1Zi5yZW1haW5pbmcoKSwgMHUpOwp9CgpURVNUKGJ1ZmZlciwgcHVzaF9iYWNrX2FmdGVyX21vdmVfc2FmZSkKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZigzMiwgMHUpOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmLCAiaGVsbG8gd29ybGQiKTsKCiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmMihzdGQ6Om1vdmUoYnVmKSk7CiAgICBidWYucmVhbGxvYygxMSk7CiAgICBidWYucHVzaF9iYWNrKCdYJyk7CgogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmMi5zaXplKCksIDExdSk7CiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWYyWzBdLCAnaCcpOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmMlsxMF0sICdkJyk7CiAgICAvLyBjb3Zlcml0eVtVU0VfQUZURVJfTU9WRV0KICAgIEVYUEVDVF9FUShidWZbMF0sICdYJyk7Cn0KClRFU1QoYnVmZmVyLCBhcHBlbmRfYWZ0ZXJfbW92ZV9zYWZlKQp7CiAgICBCdWZmZXJBbGxvY2F0ZWQgYnVmKDMyLCAwdSk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICJoZWxsbyB3b3JsZCIpOwoKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYyKHN0ZDo6bW92ZShidWYpKTsKICAgIGF1dG8gYnVmMyA9IEJ1ZmZlckFsbG9jYXRlZCgzMiwgMHUpOwogICAgYnVmX2FwcGVuZF9zdHJpbmcoYnVmMywgImhlbGxvIGFnYWluIik7CiAgICBidWYgPSBidWYzOwoKICAgIC8vIGNvdmVyaXR5W1VTRV9BRlRFUl9NT1ZFXQogICAgRVhQRUNUX0VRKGJ1ZjIuc2l6ZSgpLCAxMXUpOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmMlswXSwgJ2gnKTsKICAgIC8vIGNvdmVyaXR5W1VTRV9BRlRFUl9NT1ZFXQogICAgRVhQRUNUX0VRKGJ1ZjJbMTBdLCAnZCcpOwogICAgLy8gY292ZXJpdHlbVVNFX0FGVEVSX01PVkVdCiAgICBFWFBFQ1RfRVEoYnVmLCBidWYzKTsKfQo=
+#include "test_common.hpp"
+
+#include <openvpn/buffer/bufstr.hpp>
+
+using namespace openvpn;
+
+// test equality of Buffer and ConstBuffer
+TEST(buffer, const_buffer_ref_1)
+{
+    static unsigned char hello[] = "hello world";
+    Buffer buf(hello, sizeof(hello) - 1, true);
+    ConstBuffer &cbuf = const_buffer_ref(buf);
+    EXPECT_EQ(cbuf.size(), 11u);
+    EXPECT_EQ(buf_to_string(buf), buf_to_string(cbuf));
+}
+
+// test equality of BufferAllocatedRc and ConstBuffer
+TEST(buffer, const_buffer_ref_2)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+    ConstBuffer &cbuf = const_buffer_ref(buf);
+    EXPECT_EQ(cbuf.size(), 11u);
+    EXPECT_EQ(buf_to_string(buf), buf_to_string(cbuf));
+}
+
+// test ConstBufferType with an explicitly const type
+TEST(buffer, my_const_buffer_1)
+{
+    typedef ConstBufferType<const char> MyConstBuffer;
+    static const char hello[] = "hello world";
+    MyConstBuffer cbuf(hello, sizeof(hello) - 1, true);
+    EXPECT_EQ(cbuf.size(), 11u);
+    EXPECT_EQ(std::string(cbuf.c_data(), cbuf.size()), "hello world");
+}
+
+// Test read access and bounds check on ConstBufferType
+TEST(buffer, const_buffer_access1)
+{
+    constexpr char data[] = "hello world";
+    ConstBufferType<char> cbuf(data, sizeof(data) - 1, true);
+    EXPECT_EQ(cbuf[0], 'h');
+    EXPECT_EQ(cbuf[10], 'd');
+    EXPECT_THROW(cbuf[11], BufferException);
+}
+
+// Test read access and bounds check on ConstBufferType
+TEST(buffer, const_buffer_access2)
+{
+    constexpr char data[] = "hello world";
+    ConstBufferType<char> cbuf(data, sizeof(data) - 1, true);
+
+    while (cbuf.empty() == false)
+    {
+        auto back = cbuf[cbuf.size() - 1];
+        EXPECT_EQ(cbuf.pop_back(), back);
+    }
+
+    EXPECT_THROW(cbuf.pop_back(), BufferException);
+    EXPECT_THROW(cbuf[0], BufferException);
+    EXPECT_THROW(cbuf[1], BufferException);
+    EXPECT_THROW(cbuf[11], BufferException);
+    EXPECT_THROW(cbuf[12], BufferException);
+}
+
+// Test read access and bounds check on ConstBufferType
+TEST(buffer, const_buffer_access3)
+{
+    constexpr char data[] = "hello world";
+    ConstBufferType<char> cbuf(data, sizeof(data) - 1, true);
+
+    while (cbuf.empty() == false)
+    {
+        auto front = cbuf[0];
+        EXPECT_EQ(cbuf.pop_front(), front);
+    }
+
+    EXPECT_THROW(cbuf.pop_front(), BufferException);
+    EXPECT_THROW(cbuf[0], BufferException);
+    EXPECT_THROW(cbuf[1], BufferException);
+    EXPECT_THROW(cbuf[11], BufferException);
+    EXPECT_THROW(cbuf[12], BufferException);
+}
+
+// Test read access and bounds check
+TEST(buffer, buffer_access1)
+{
+    char data[] = "hello world";
+    BufferType<char> buf(data, sizeof(data) - 1, true);
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf[10], 'd');
+    EXPECT_THROW(buf[11], BufferException);
+}
+
+// Test read/write access and bounds check
+TEST(buffer, buffer_access2)
+{
+    char data[] = "hello world";
+    BufferType<char> buf(data, sizeof(data) - 1, true);
+    buf[0] = 'j';
+    EXPECT_EQ(buf[0], 'j');
+    EXPECT_EQ(buf[4], 'o');
+    EXPECT_THROW(buf[-1], BufferException);
+    EXPECT_THROW(buf[20], BufferException);
+}
+
+// Test push/pop and bounds check
+TEST(buffer, buffer_access3)
+{
+    char data1[] = "hello world";
+    char data2[sizeof(data1)];
+    BufferType<char> buf1(data1, sizeof(data1) - 1, true);
+    BufferType<char> buf2(data2, sizeof(data2) - 1, false);
+
+    auto items = buf1.size();
+    while (items--)
+    {
+        buf2.push_back(buf1.pop_front());
+    }
+
+    buf2[0] = 'j';
+    EXPECT_EQ(buf2[0], 'j');
+    EXPECT_EQ(buf2[4], 'o');
+    EXPECT_THROW(buf2[-1], BufferException);
+    EXPECT_THROW(buf2[20], BufferException);
+}
+
+// Test push/pop and bounds check
+TEST(buffer, buffer_access4)
+{
+    char data1[] = "hello world";
+    char data2[sizeof(data1)];
+    BufferType<char> buf1(data1, sizeof(data1) - 1, true);
+    BufferType<char> buf2(data2, sizeof(data2) - 1, false);
+
+    auto items = buf1.size();
+    while (items--)
+    {
+        buf2.push_back(buf1.pop_front());
+    }
+
+    items = buf2.size();
+    while (items--)
+    {
+        buf1.push_front(buf2.pop_back());
+    }
+
+    buf1[0] = 'j';
+    EXPECT_EQ(buf1[0], 'j');
+    EXPECT_EQ(buf1[4], 'o');
+    EXPECT_THROW(buf1[-1], BufferException);
+    EXPECT_THROW(buf1[20], BufferException);
+}
+
+// Test read access and bounds check
+TEST(buffer, alloc_buffer_access1)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf[10], 'd');
+    EXPECT_THROW(buf[11], BufferException);
+}
+
+// Test read/write access and bounds check
+TEST(buffer, alloc_buffer_access2)
+{
+    BufferAllocated buf(64, BufAllocFlags::CONSTRUCT_ZERO | BufAllocFlags::DESTRUCT_ZERO);
+    buf_append_string(buf, "hello world");
+
+    buf[0] = 'j';
+    EXPECT_EQ(buf[0], 'j');
+    EXPECT_EQ(buf[4], 'o');
+    EXPECT_THROW(buf[-1], BufferException);
+    EXPECT_THROW(buf[20], BufferException);
+}
+
+// Test read/write access and bounds check
+TEST(buffer, alloc_buffer_access3)
+{
+    char data[] = "hello world";
+    BufferType<char> buf1(data, sizeof(data) - 1, true);
+    BufferAllocated buf(sizeof(data), 0);
+
+    auto items = buf1.size();
+    while (items--)
+    {
+        buf.push_back(buf1.pop_front());
+    }
+
+    buf[0] = 'j';
+    EXPECT_EQ(buf[0], 'j');
+    EXPECT_EQ(buf[4], 'o');
+    EXPECT_THROW(buf[-20], BufferException);
+    EXPECT_THROW(buf[20], BufferException);
+}
+
+// Test pop_front
+TEST(buffer, alloc_buffer_pop_front)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+
+    while (buf.pop_front() != 'd')
+        ;
+    EXPECT_THROW(buf.pop_front(), BufferException);
+}
+
+// Test advance
+TEST(buffer, alloc_buffer_advance1)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+
+    do
+    {
+        buf.advance(1);
+    } while (buf.front() != 'd');
+
+    EXPECT_EQ(buf[0], 'd');
+    EXPECT_EQ(buf.back(), 'd');
+    EXPECT_EQ(buf.pop_front(), 'd');
+    EXPECT_THROW(buf.pop_front(), BufferException);
+}
+
+// Test advance
+TEST(buffer, alloc_buffer_advance2)
+{
+    constexpr char data[] = "hello world";
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, data);
+
+    EXPECT_THROW(buf.advance(sizeof(data)), BufferException);
+}
+
+// Test advance
+TEST(buffer, alloc_buffer_advance3)
+{
+    constexpr char data[] = "hello world";
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, data);
+
+    buf.advance(sizeof(data) - 2);
+
+    EXPECT_EQ(buf[0], 'd');
+    EXPECT_EQ(buf.back(), 'd');
+    EXPECT_EQ(buf.pop_front(), 'd');
+    EXPECT_THROW(buf.pop_front(), BufferException);
+}
+
+// Test remaining()
+TEST(buffer, alloc_buffer_remaining)
+{
+    BufferAllocated buf(64, 0);
+
+    for (auto remaining = buf.remaining();
+         remaining > 0;
+         --remaining)
+    {
+        buf.push_back('X');
+        EXPECT_EQ(remaining - 1, buf.remaining());
+        EXPECT_EQ(buf.back(), 'X');
+    }
+    EXPECT_THROW(buf.push_back('X'), BufferException);
+}
+
+// Test init_headroom()
+TEST(buffer, alloc_buffer_init_headroom)
+{
+    BufferAllocated buf(64, 0);
+
+    EXPECT_EQ(buf.remaining(), 64);
+    buf.init_headroom(32);
+    EXPECT_EQ(buf.remaining(), 32);
+
+    for (auto remaining = buf.remaining();
+         remaining > 0;
+         --remaining)
+    {
+        buf.push_back('X');
+        EXPECT_EQ(remaining - 1, buf.remaining());
+        EXPECT_EQ(buf.back(), 'X');
+    }
+    EXPECT_THROW(buf.push_back('X'), BufferException);
+}
+
+// Test reset_offset()
+TEST(buffer, alloc_buffer_reset_offset)
+{
+    BufferAllocated buf(64, 0);
+
+    EXPECT_EQ(buf.remaining(), 64);
+
+    for (auto remaining = buf.remaining();
+         remaining > 0;
+         --remaining)
+    {
+        buf.push_back('X');
+        EXPECT_EQ(remaining - 1, buf.remaining());
+        EXPECT_EQ(buf.back(), 'X');
+    }
+    EXPECT_THROW(buf.push_back('X'), BufferException);
+
+    buf.reset_offset(32);
+    EXPECT_EQ(0, buf.remaining());
+
+    buf.reset_offset(16);
+    EXPECT_EQ(0, buf.remaining());
+}
+
+// Test reset_size()
+TEST(buffer, alloc_buffer_reset_size)
+{
+    BufferAllocated buf(64, 0);
+
+    EXPECT_EQ(buf.remaining(), 64);
+
+    for (auto remaining = buf.remaining();
+         remaining > 0;
+         --remaining)
+    {
+        buf.push_back('X');
+        EXPECT_EQ(remaining - 1, buf.remaining());
+        EXPECT_EQ(buf.back(), 'X');
+    }
+    EXPECT_THROW(buf.push_back('X'), BufferException);
+    buf.reset_size();
+    EXPECT_THROW(buf.back(), BufferException);
+    buf.push_back('X');
+    EXPECT_EQ(buf.back(), 'X');
+}
+
+// Test read()
+TEST(buffer, alloc_buffer_read1)
+{
+    constexpr char data[] = "hello world";
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, data);
+
+    char raw[sizeof(data) - 1];
+
+    buf.read(raw, sizeof(raw));
+
+    EXPECT_EQ(memcmp(raw, data, sizeof(raw)), 0);
+}
+
+TEST(buffer, prepend_alloc)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+    EXPECT_EQ(buf.offset(), 0u);
+
+    buf.prepend_alloc(5);
+    EXPECT_EQ(buf.size(), 16u);
+    EXPECT_EQ(buf.remaining(), 48u);
+}
+
+
+TEST(buffer, prepend_alloc_2)
+{
+    BufferAllocated buf(64, 0);
+    EXPECT_EQ(buf.offset(), 0u);
+    buf.init_headroom(2);
+    EXPECT_EQ(buf.offset(), 2u);
+    buf_append_string(buf, "hello world");
+    EXPECT_EQ(buf.offset(), 2u);
+
+    buf.prepend_alloc(5);
+    EXPECT_EQ(buf.offset(), 0u);
+    EXPECT_EQ(buf.size(), 16u);
+    EXPECT_EQ(buf.remaining(), 48u);
+}
+
+
+TEST(buffer, prepend_alloc_fits)
+{
+    BufferAllocated buf(64, 0);
+    EXPECT_EQ(buf.offset(), 0u);
+    buf.init_headroom(5);
+    EXPECT_EQ(buf.offset(), 5u);
+    buf_append_string(buf, "hello world");
+    EXPECT_EQ(buf.offset(), 5u);
+
+    buf.prepend_alloc(5);
+    EXPECT_EQ(buf.offset(), 0u);
+    EXPECT_EQ(buf.size(), 16u);
+    EXPECT_EQ(buf.remaining(), 48u);
+}
+
+TEST(buffer, prepend_alloc_fail)
+{
+    BufferAllocated buf(11, 0);
+    buf_append_string(buf, "hello world");
+
+    EXPECT_THROW(buf.prepend_alloc(5), std::exception);
+    EXPECT_EQ(buf.size(), 11u);
+    EXPECT_EQ(buf.remaining(), 0u);
+}
+
+TEST(buffer, prepend_alloc_fail2)
+{
+    BufferAllocated buf(14, 0);
+    buf_append_string(buf, "hello world");
+
+    EXPECT_THROW(buf.prepend_alloc(5), std::exception);
+    EXPECT_EQ(buf.size(), 11u);
+    EXPECT_EQ(buf.remaining(), 3u);
+}
+
+TEST(buffer, realign)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+
+    buf.advance(5);
+    EXPECT_EQ(buf.c_data_raw()[0], 'h');
+
+    buf.realign(0);
+
+    EXPECT_EQ(buf[0], ' ');
+    EXPECT_EQ(buf[5], 'd');
+    EXPECT_THROW(buf[6], BufferException);
+    EXPECT_EQ(buf.size(), 6u);
+    EXPECT_EQ(buf.c_data_raw()[0], ' ');
+}
+
+TEST(buffer, realign2)
+{
+    BufferAllocated buf(64, 0);
+    buf_append_string(buf, "hello world");
+
+    EXPECT_EQ(buf.c_data_raw()[0], 'h');
+
+    buf.realign(5);
+
+    EXPECT_EQ(buf.c_data_raw()[5], 'h');
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf.size(), 11u);
+}
+
+TEST(buffer, realign3)
+{
+    BufferAllocated buf(11, 0);
+    buf_append_string(buf, "hello world");
+
+    EXPECT_EQ(buf.c_data_raw()[0], 'h');
+
+    buf.realign(5);
+
+    EXPECT_EQ(buf.c_data_raw()[5], 'h');
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf.size(), 11u);
+    EXPECT_EQ(buf.offset(), 5u);
+}
+
+TEST(buffer, realign4)
+{
+    BufferAllocated buf(32, 0);
+    buf.realign(7u);
+    buf_append_string(buf, "hello world");
+    EXPECT_EQ(buf.offset(), 7u);
+    buf.realign(0);
+
+    EXPECT_EQ(buf.c_data_raw()[0], 'h');
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf.offset(), 0);
+}
+
+/*
+   We need to be sure the object is in a useable state after a move operation. This
+   reflects implied expectations in our codebase and does not violate the standard. The
+   following tests are to ensure that the object is in a usable state after a move
+   operation. The invariants of the object will be checked in unit tests post-move and
+   the PR and relevant notes will be noted in Coverity and the codebase. The goal is
+   to ensure such use cases do not lead to undefined behavior. The preexisting move
+   implementation is correct and the object is in a valid state post-move. This set
+   of tests seeks to ensure that stays true.
+
+   The standard says:
+
+   C++11 Standard, Section 12.8/32: "If the parameter is a non-const lvalue reference
+   to a non-volatile object type or a non-const rvalue reference to a non-volatile
+   object type, the implicit move constructor ([class.copy.ctor], [class.copy.ctor]/2)
+   and the implicit move assignment operator ([class.copy.assign], [class.copy.assign]/2)
+   are invoked to initialize the parameter object or to assign to it, respectively. The
+   object referred to by the rvalue expression is guaranteed to be left in a valid but
+   unspecified state."
+*/
+
+TEST(buffer, invariants_after_move_safe)
+{
+    BufferAllocated buf(32, 0u);
+    buf_append_string(buf, "hello world");
+
+    BufferAllocated buf2(std::move(buf));
+
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.size(), 0u);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.capacity(), 0u);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_THROW(buf[0], BufferException);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.c_data(), nullptr);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.c_data_raw(), nullptr);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.data(), nullptr);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.data_raw(), nullptr);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.offset(), 0u);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf.remaining(), 0u);
+}
+
+TEST(buffer, push_back_after_move_safe)
+{
+    BufferAllocated buf(32, 0u);
+    buf_append_string(buf, "hello world");
+
+    BufferAllocated buf2(std::move(buf));
+    buf.realloc(11);
+    buf.push_back('X');
+
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2.size(), 11u);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2[0], 'h');
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2[10], 'd');
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf[0], 'X');
+}
+
+TEST(buffer, append_after_move_safe)
+{
+    BufferAllocated buf(32, 0u);
+    buf_append_string(buf, "hello world");
+
+    BufferAllocated buf2(std::move(buf));
+    auto buf3 = BufferAllocated(32, 0u);
+    buf_append_string(buf3, "hello again");
+    buf = buf3;
+
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2.size(), 11u);
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2[0], 'h');
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf2[10], 'd');
+    // coverity[USE_AFTER_MOVE]
+    EXPECT_EQ(buf, buf3);
+}

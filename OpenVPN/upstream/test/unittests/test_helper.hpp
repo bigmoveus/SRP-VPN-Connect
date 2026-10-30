@@ -1,1 +1,476 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNwcmFnbWEgb25jZQoKI2luY2x1ZGUgPG9wZW52cG4vbG9nL2xvZ2Jhc2UuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9pby9pby5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9leGNlcHRpb24uaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vaGV4c3RyLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2Zvcm1hdC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3JhbmRvbS9tdHJhbmRhcGkuaHBwPgoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8Z3Rlc3QvZ3Rlc3QuaD4KI2luY2x1ZGUgPGZzdHJlYW0+CiNpbmNsdWRlIDxtdXRleD4KCm5hbWVzcGFjZSBvcGVudnBuIHsKY2xhc3MgTG9nT3V0cHV0Q29sbGVjdG9yIDogcHVibGljIExvZ0Jhc2UKewogIHB1YmxpYzoKICAgIExvZ091dHB1dENvbGxlY3RvcigpCiAgICAgICAgOiBsb2dfY29udGV4dCh0aGlzKQogICAgewogICAgfQoKICAgIHZvaWQgbG9nKGNvbnN0IHN0ZDo6c3RyaW5nICZsKSBvdmVycmlkZQogICAgewogICAgICAgIHN0ZDo6bG9ja19ndWFyZDxzdGQ6Om11dGV4PiBsb2NrKG11dGV4KTsKCiAgICAgICAgaWYgKG91dHB1dF9sb2cpCiAgICAgICAgICAgIHN0ZDo6Y291dCA8PCBsOwogICAgICAgIGlmIChjb2xsZWN0X2xvZykKICAgICAgICAgICAgb3V0IDw8IGw7CiAgICB9CgogICAgLyoqCiAgICAgKiBSZXR1cm4gdGhlIGNvbGxlY3RlZCBsb2cgb3V0CiAgICAgKiBAcmV0dXJuIHRoZSBsb2cgb3V0cHV0IGFzIHN0cmluZwogICAgICovCiAgICBzdGQ6OnN0cmluZyBnZXRPdXRwdXQoKSBjb25zdAogICAgewogICAgICAgIHJldHVybiBvdXQuc3RyKCk7CiAgICB9CgogICAgLyoqCiAgICAgKiBBbGxvdyB0byBhY2Nlc3MgdGhlIHVuZGVybHlpbmcgb3V0cHV0IHN0cmVhbSB0byBkaXJlY3QKICAgICAqIG91dHB1dCBmcm9tIGZ1bmN0aW9uIHRoYXQgd2FudCB0byB3cml0ZSB0byBhIHN0cmVhbSB0byBpdAogICAgICogQHJldHVybiB0aGF0IHdpbGwgYmUgY2FwdHVyZWQgYnkgdGhpcyBsb2cKICAgICAqLwogICAgc3RkOjpvc3RyZWFtICZnZXRTdHJlYW0oKQogICAgewogICAgICAgIHJldHVybiBvdXQ7CiAgICB9CgogICAgLyoqCiAgICAgKiBDaGFuZ2VzIGlmIHRoZSBsb2dnaW5nIHRvIHN0ZG91dCBzaG91bGQgYmUgZG9uZQogICAgICogQHBhcmFtIGRvT3V0cHV0CiAgICAgKi8KICAgIHZvaWQgc2V0UHJpbnRPdXRwdXQoYm9vbCBkb091dHB1dCkKICAgIHsKICAgICAgICBvdXRwdXRfbG9nID0gZG9PdXRwdXQ7CiAgICB9CgogICAgLyoqCiAgICAgKiBSZXR1cm4gY3VycmVudCBzdGF0ZSBvZiBzdGRvdXQgb3V0cHV0CiAgICAgKiBAcmV0dXJuIGN1cnJlbnQgc3RhdGUgb2Ygb3V0cHV0CiAgICAgKi8KICAgIGJvb2wgaXNTdGRvdXRFbmFibGVkKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gb3V0cHV0X2xvZzsKICAgIH0KCiAgICAvKioKICAgICAqIFN0YXJ0cyBjb2xsZWN0aW5nIGxvZyBvdXRwdXQuIFRoaXMgd2lsbCBhbHNvCiAgICAgKiBkaXNhYmxlIHN0ZG91dCBvdXRwdXQgYW5kIGNsZWFyIHRoZSBjb2xsZWN0ZWQgb3V0cHV0IGlmIHRoZXJlIGlzIGFueQogICAgICovCiAgICB2b2lkIHN0YXJ0Q29sbGVjdGluZygpCiAgICB7CiAgICAgICAgY29sbGVjdF9sb2cgPSB0cnVlOwogICAgICAgIG91dHB1dF9sb2cgPSBmYWxzZTsKICAgICAgICAvLyBSZXNldCBvdXIgYnVmZmVyCiAgICAgICAgb3V0LnN0cihzdGQ6OnN0cmluZygpKTsKICAgICAgICBvdXQuY2xlYXIoKTsKICAgIH0KCiAgICAvKioKICAgICAqIFN0b3BzIGNvbGxlY3RpbmcgbG9nIG91dHB1dC4gV2lsbCByZWVuYWJsZSBzdGRvdXQgb3V0cHV0LgogICAgICogQHJldHVybiB0aGUgb3V0cHV0IGNvbGxlY3RlZAogICAgICovCiAgICBzdGQ6OnN0cmluZyBzdG9wQ29sbGVjdGluZygpCiAgICB7CiAgICAgICAgY29sbGVjdF9sb2cgPSBmYWxzZTsKICAgICAgICBvdXRwdXRfbG9nID0gdHJ1ZTsKICAgICAgICByZXR1cm4gZ2V0T3V0cHV0KCk7CiAgICB9CgogICAgY29uc3QgTG9nOjpDb250ZXh0OjpXcmFwcGVyICZsb2dfd3JhcHBlcigpCiAgICB7CiAgICAgICAgcmV0dXJuIGxvZ193cmFwOwogICAgfQoKICBwcml2YXRlOgogICAgYm9vbCBvdXRwdXRfbG9nID0gdHJ1ZTsKICAgIGJvb2wgY29sbGVjdF9sb2cgPSBmYWxzZTsKICAgIHN0ZDo6c3RyaW5nc3RyZWFtIG91dDsKICAgIHN0ZDo6bXV0ZXggbXV0ZXh7fTsKICAgIExvZzo6Q29udGV4dCBsb2dfY29udGV4dDsKICAgIExvZzo6Q29udGV4dDo6V3JhcHBlciBsb2dfd3JhcDsgLy8gbXVzdCBiZSBjb25zdHJ1Y3RlZCBhZnRlciBsb2dfY29udGV4dAp9OwoKLy8gV2hlbiBhIHRlc3Qgc3RlcHMgb24gTG9nOjpnbG9iYWxfbG9nLCBzYXZlIGFuZCByZXN0b3JlIHByZXZpb3VzCi8vIExvZzo6Z2xvYmFsX2xvZyBzbyBhcyBub3QgdG8gbWVzcyB1cCBvdGhlciB0ZXN0cyB3aGVuIHJ1bm5pbmcgYQovLyBtdWx0aXBsZS1jb21waWxhdGlvbi11bml0IGJ1aWxkLgpjbGFzcyBTYXZlQ3VycmVudExvZ09iamVjdAp7CiAgcHVibGljOgogICAgU2F2ZUN1cnJlbnRMb2dPYmplY3QoKQogICAgewogICAgICAgIHNhdmVkX2xvZyA9IExvZzo6Z2xvYmFsX2xvZzsKICAgICAgICBMb2c6Omdsb2JhbF9sb2cgPSBudWxscHRyOwogICAgfQoKICAgIH5TYXZlQ3VycmVudExvZ09iamVjdCgpCiAgICB7CiAgICAgICAgTG9nOjpnbG9iYWxfbG9nID0gc2F2ZWRfbG9nOwogICAgfQoKICBwcml2YXRlOgogICAgT1BFTlZQTl9MT0dfQ0xBU1MgKnNhdmVkX2xvZzsKfTsKCn0gLy8gbmFtZXNwYWNlIG9wZW52cG4KCmV4dGVybiBvcGVudnBuOjpMb2dPdXRwdXRDb2xsZWN0b3IgKnRlc3RMb2c7CgovKioKICogT3ZlcnJpZGVzIHN0ZG91dCBkdXJpbmcgdGhlIHJ1biBvZiBhIGZ1bmN0aW9uLiBQcmltYXJseSBmb3Igc2lsZW5jaW5nCiAqIGxvZyBmdW5jdGlvbiB0aGF0IHRocm93IGFuIGV4Y2VwdGlvbiB3aGVuIHNvbWV0aGluZyBpcyB3cm9uZwogKiBAcGFyYW0gZG9Mb2dPdXRwdXQgVXNlIHN0ZG91dCB3aGlsZSBydW5uaW5nCiAqIEBwYXJhbSB0ZXN0X2Z1bmMgZnVuY3Rpb24gdG8gcnVuCiAqLwppbmxpbmUgdm9pZCBvdmVycmlkZV9sb2dPdXRwdXQoYm9vbCBkb0xvZ091dHB1dCwgdm9pZCAoKnRlc3RfZnVuYykoKSkKewogICAgYm9vbCBwcmV2aW91c091dHB1dFN0YXRlID0gdGVzdExvZy0+aXNTdGRvdXRFbmFibGVkKCk7CiAgICB0ZXN0TG9nLT5zZXRQcmludE91dHB1dChkb0xvZ091dHB1dCk7CiAgICB0ZXN0X2Z1bmMoKTsKICAgIHRlc3RMb2ctPnNldFByaW50T3V0cHV0KHByZXZpb3VzT3V0cHV0U3RhdGUpOwp9CgovKioKICogUmVhZHMgdGhlIGZpbGUgd2l0aCB0aGUgZXhwZWN0ZWQgb3V0cHV0IGFuZCByZXR1cm5zIGl0IGFzIGEKICogc3RyaW5nLiBUaGlzIGZ1bmN0aW9uIGRlbGlicmF0ZWx5IGRvZXMgbm90IGluY2x1ZGUgdGhlCiAqIEFTU0VSVF9FUSBjYWxsIHNpbmNlIG90aGVyd2lzZSBndGVzdCB3aWxsIHJlcG9ydCBhIHRoZQogKiBhc3NlcnQgZmFpbHVyZSBpbiB0aGlzIGZpbGUgcmF0aGVyIHRoYW4gaW4gdGhlIHJpZ2h0IHBsYWNlCiAqIEBwYXJhbSBmaWxlbmFtZQogKiBAcmV0dXJuCiAqLwppbmxpbmUgc3RkOjpzdHJpbmcgZ2V0RXhwZWN0ZWRPdXRwdXQoY29uc3Qgc3RkOjpzdHJpbmcgJmZpbGVuYW1lKQp7CiAgICBhdXRvIGZ1bGxwYXRoID0gVU5JVFRFU1RfU09VUkNFX0RJUiAiL291dHB1dC8iICsgZmlsZW5hbWU7CiAgICBzdGQ6Omlmc3RyZWFtIGYoZnVsbHBhdGgpOwogICAgaWYgKCFmLmdvb2QoKSkKICAgIHsKICAgICAgICB0aHJvdyBzdGQ6OnJ1bnRpbWVfZXJyb3IoIkVycm9yIG9wZW5pbmcgZmlsZSAiICsgZnVsbHBhdGgpOwogICAgfQogICAgc3RkOjpzdHJpbmcgZXhwZWN0ZWRfb3V0cHV0KChzdGQ6OmlzdHJlYW1idWZfaXRlcmF0b3I8Y2hhcj4oZikpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0ZDo6aXN0cmVhbWJ1Zl9pdGVyYXRvcjxjaGFyPigpKTsKICAgIHJldHVybiBleHBlY3RlZF9vdXRwdXQ7Cn0KCiNpZmRlZiBXSU4zMgojaW5jbHVkZSA8d2luZG93cy5oPgoKaW5saW5lIHN0ZDo6c3RyaW5nIGdldFRlbXBEaXJQYXRoKGNvbnN0IHN0ZDo6c3RyaW5nICZmbikKewogICAgY2hhciBidWZbTUFYX1BBVEhdOwoKICAgIEVYUEVDVF9ORShHZXRUZW1wUGF0aEEoTUFYX1BBVEgsIGJ1ZiksIDApOwogICAgcmV0dXJuIHN0ZDo6c3RyaW5nKGJ1ZikgKyBmbjsKfQojZWxzZQoKaW5saW5lIHN0ZDo6c3RyaW5nIGdldFRlbXBEaXJQYXRoKGNvbnN0IHN0ZDo6c3RyaW5nICZmbikKewogICAgcmV0dXJuICIvdG1wLyIgKyBmbjsKfQoKI2VuZGlmCgovKioKICogUmV0dXJucyBhIHN0cmluZyBqb2luZWQgd2l0aCB0aGUgZGVsaW1pdGVyCiAqIEBwYXJhbSByIHRoZSBhcnJheSB0byBqb2luCiAqIEBwYXJhbSBkZWxpbSB0aGUgZGVsaW1pdGVyIHRvIHVzZQogKiBAcmV0dXJuIEEgc3RyaW5nIGpvaW5lZCBieSBkZWxpbSBmcm9tIHRoZSB2ZWN0b3IgcgogKi8KdGVtcGxhdGUgPGNsYXNzIFQ+CmlubGluZSBzdGQ6OnN0cmluZyBnZXRKb2luZWRTdHJpbmcoY29uc3Qgc3RkOjp2ZWN0b3I8VD4gJnIsIGNvbnN0IHN0ZDo6c3RyaW5nICZkZWxpbSA9ICJ8IikKewogICAgc3RkOjpzdHJpbmdzdHJlYW0gczsKICAgIHN0ZDo6Y29weShyLmJlZ2luKCksIHIuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocywgZGVsaW0uY19zdHIoKSkpOwogICAgcmV0dXJuIHMuc3RyKCk7Cn0KCi8qKgogKiBSZXR1cm5zIGEgc29ydGVkIHN0cmluZyBqb2luIHdpdGggdGhlIGRlbGltaXRlcgogKiBUaGlzIGZ1bmN0aW9uIG1vZGlmZXMgdGhlIGlucHV0CiAqIEBwYXJhbSByIHRoZSBhcnJheSB0byBqb2luCiAqIEBwYXJhbSBkZWxpbSB0aGUgZGVsaW1pdGVyIHRvIHVzZQogKiBAcmV0dXJuIEEgc3RyaW5nIGpvaW5lZCBieSBkZWxpbSBmcm9tIHRoZSBzb3J0ZWQgdmVjdG9yIHIKICovCnRlbXBsYXRlIDxjbGFzcyBUPgppbmxpbmUgc3RkOjpzdHJpbmcgZ2V0U29ydGVkSm9pbmVkU3RyaW5nKHN0ZDo6dmVjdG9yPFQ+ICZyLCBjb25zdCBzdGQ6OnN0cmluZyAmZGVsaW0gPSAifCIpCnsKICAgIHN0ZDo6c29ydChyLmJlZ2luKCksIHIuZW5kKCkpOwogICAgcmV0dXJuIGdldEpvaW5lZFN0cmluZyhyLCBkZWxpbSk7Cn0KCm5hbWVzcGFjZSBkZXRhaWwgewpjbGFzcyBsaW5lCnsKICAgIHN0ZDo6c3RyaW5nIGRhdGE7CgogIHB1YmxpYzoKICAgIGZyaWVuZCBzdGQ6OmlzdHJlYW0gJm9wZXJhdG9yPj4oc3RkOjppc3RyZWFtICZpcywgbGluZSAmbCkKICAgIHsKICAgICAgICBzdGQ6OmdldGxpbmUoaXMsIGwuZGF0YSk7CiAgICAgICAgcmV0dXJuIGlzOwogICAgfQoKICAgIG9wZXJhdG9yIHN0ZDo6c3RyaW5nKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gZGF0YTsKICAgIH0KfTsKfSAvLyBuYW1lc3BhY2UgZGV0YWlsCgovKioKICogU3BsaXRzIGEgc3RyaW5nIGludG8gbGluZXMgYW5kIHJldHVybnMgdGhlbSBpbiBhIHNvcnRlZCBvdXRwdXQgc3RyaW5nCiAqLwppbmxpbmUgc3RkOjpzdHJpbmcgZ2V0U29ydGVkU3RyaW5nKGNvbnN0IHN0ZDo6c3RyaW5nICZvdXRwdXQpCnsKICAgIHN0ZDo6c3RyaW5nc3RyZWFtIHNze291dHB1dH07CgogICAgc3RkOjppc3RyZWFtX2l0ZXJhdG9yPGRldGFpbDo6bGluZT4gYmVnaW57c3N9OwogICAgc3RkOjppc3RyZWFtX2l0ZXJhdG9yPGRldGFpbDo6bGluZT4gZW5kOwogICAgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IGxpbmVze2JlZ2luLCBlbmR9OwoKICAgIC8vIHNvcnQgbGluZXMKICAgIHN0ZDo6c29ydChsaW5lcy5iZWdpbigpLCBsaW5lcy5lbmQoKSk7CgogICAgLy8gam9pbiBzdHJpbmdzIHdpdGggXG4KICAgIHN0ZDo6c3RyaW5nc3RyZWFtIHM7CiAgICBzdGQ6OmNvcHkobGluZXMuYmVnaW4oKSwgbGluZXMuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocywgIlxuIikpOwogICAgcmV0dXJuIHMuc3RyKCk7Cn0KCi8qKgogKiBGYWtlIEROUyByZXNvbHZlci4KICogSW5oZXJpdHMgZnJvbSB0ZXN0ZWQgY2xhc3MgYW5kIG92ZXJyaWRlcyBhc3luY19yZXNvbHZlX25hbWUoKS4KICogUmV0dXJucyBlcnJvciBpZiBob3N0L3NlcnZpY2UgcGFpciBoYXMgbm90IGJlZW4gYWRkZWQgd2l0aCBzZXRfcmVzdWx0cygpIGJlZm9yZS4KICovCnRlbXBsYXRlIDx0eXBlbmFtZSBSRVNPTFZBQkxFLCB0eXBlbmFtZS4uLiBDVE9SX0FSR1M+CmNsYXNzIEZha2VBc3luY1Jlc29sdmFibGUgOiBwdWJsaWMgUkVTT0xWQUJMRQp7CiAgcHVibGljOgogICAgdXNpbmcgUmVzdWx0ID0gc3RkOjpwYWlyPGNvbnN0IHN0ZDo6c3RyaW5nLCBjb25zdCB1bnNpZ25lZCBzaG9ydD47CiAgICB1c2luZyBSZXN1bHRMaXN0ID0gc3RkOjp2ZWN0b3I8UmVzdWx0PjsKCiAgICB1c2luZyBSZXN1bHRzVHlwZSA9IHR5cGVuYW1lIFJFU09MVkFCTEU6OnJlc3VsdHNfdHlwZTsKICAgIHVzaW5nIEVuZHBvaW50VHlwZSA9IHR5cGVuYW1lIFJFU09MVkFCTEU6OnJlc29sdmVyX3R5cGU6OmVuZHBvaW50X3R5cGU7CiAgICB1c2luZyBFbmRwb2ludExpc3QgPSBzdGQ6OnZlY3RvcjxFbmRwb2ludFR5cGU+OwoKICAgIHN0ZDo6bWFwPGNvbnN0IHN0ZDo6c3RyaW5nLCBFbmRwb2ludExpc3Q+IHJlc3VsdHNfOwoKICAgIEVuZHBvaW50VHlwZSBpbml0X2VuZHBvaW50KCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gRW5kcG9pbnRUeXBlKCk7CiAgICB9CgogICAgdm9pZCBzZXRfcmVzdWx0cyhjb25zdCBzdGQ6OnN0cmluZyAmaG9zdCwgY29uc3Qgc3RkOjpzdHJpbmcgJnNlcnZpY2UsIGNvbnN0IFJlc3VsdExpc3QgJiZyZXN1bHRzKQogICAgewogICAgICAgIEVuZHBvaW50TGlzdCBlbmRwb2ludHM7CiAgICAgICAgZm9yIChjb25zdCBhdXRvICZyZXN1bHQgOiByZXN1bHRzKQogICAgICAgIHsKICAgICAgICAgICAgRW5kcG9pbnRUeXBlIGVwKG9wZW52cG5faW86OmlwOjptYWtlX2FkZHJlc3MocmVzdWx0LmZpcnN0KSwgcmVzdWx0LnNlY29uZCk7CiAgICAgICAgICAgIGVuZHBvaW50cy5wdXNoX2JhY2soZXApOwogICAgICAgIH0KICAgICAgICByZXN1bHRzX1tob3N0ICsgIjoiICsgc2VydmljZV0gPSBzdGQ6Om1vdmUoZW5kcG9pbnRzKTsKICAgIH0KCiAgICBGYWtlQXN5bmNSZXNvbHZhYmxlKENUT1JfQVJHUy4uLiBhcmdzKQogICAgICAgIDogUkVTT0xWQUJMRShhcmdzLi4uKQogICAgewogICAgfQoKICAgIHZvaWQgYXN5bmNfcmVzb2x2ZV9uYW1lKGNvbnN0IHN0ZDo6c3RyaW5nICZob3N0LCBjb25zdCBzdGQ6OnN0cmluZyAmc2VydmljZSkgb3ZlcnJpZGUKICAgIHsKICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyBrZXkoaG9zdCArICI6IiArIHNlcnZpY2UpOwogICAgICAgIG9wZW52cG5faW86OmVycm9yX2NvZGUgZXJyb3IgPSBvcGVudnBuX2lvOjplcnJvcjo6aG9zdF9ub3RfZm91bmQ7CiAgICAgICAgUmVzdWx0c1R5cGUgcmVzdWx0czsKCiAgICAgICAgaWYgKHJlc3VsdHNfLmNvdW50KGtleSkpCiAgICAgICAgewogICAgICAgICAgICBjb25zdCBFbmRwb2ludExpc3QgJmVwID0gcmVzdWx0c19ba2V5XTsKICAgICAgICAgICAgaWYgKGVwLnNpemUoKSkKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgZXJyb3IgPSBvcGVudnBuX2lvOjplcnJvcl9jb2RlKCk7CiAgICAgICAgICAgICAgICByZXN1bHRzID0gUmVzdWx0c1R5cGU6OmNyZWF0ZShlcC5jYmVnaW4oKSwgZXAuY2VuZCgpLCBob3N0LCBzZXJ2aWNlKTsKICAgICAgICAgICAgfQogICAgICAgIH0KCiAgICAgICAgdGhpcy0+cmVzb2x2ZV9jYWxsYmFjayhlcnJvciwgcmVzdWx0cyk7CiAgICB9Cn07CgovKioKICogUHJlZGljdGFibGUgUk5HIHRoYXQgY2xhaW1zIHRvIGJlIHNlY3VyZSB0byBiZSB1c2VkIGluIHJlcHJvZHVjYWJsZSB1bml0CiAqIHRlc3RzCiAqCiAqIE5vdGU6IHRoaXMgaXMgbm90IGZpdCB0byBiZSB1c2VkIGFzIFVuaWZvcm1SYW5kb21CaXRHZW5lcmF0b3Igc2luY2UKICogaXRzIG1heGltdW0gcmFuZ2UgaXMgWzB4MDMwMjAxMDAsIDB4ZmZmZWZkZmNdLiBFc3BlY2lhbGx5IHRoZSBsb3dlcgogKiBib3VuZCBtYWtlcyB0aGUgc3RkOjpzaHVmZmxlIGltcGxlbWVudGF0aW9uIGluIGxpYmMrKyBsb29wIGVuZGxlc3NseS4KICovCmNsYXNzIEZha2VTZWN1cmVSYW5kIDogcHVibGljIG9wZW52cG46OlN0cm9uZ1JhbmRvbUFQSQp7CiAgcHVibGljOgogICAgRmFrZVNlY3VyZVJhbmQoY29uc3QgdW5zaWduZWQgY2hhciBpbml0aWFsID0gMCkKICAgICAgICA6IG5leHQoaW5pdGlhbCkKICAgIHsKICAgIH0KCiAgICB2aXJ0dWFsIHN0ZDo6c3RyaW5nIG5hbWUoKSBjb25zdCBvdmVycmlkZQogICAgewogICAgICAgIHJldHVybiAiRmFrZVJORyI7CiAgICB9CgogICAgTVRSQU5EX0dDQ19OT19JTkxJTkUgdm9pZCByYW5kX2J5dGVzKHVuc2lnbmVkIGNoYXIgKmJ1Ziwgc2l6ZV90IHNpemUpIG92ZXJyaWRlCiAgICB7CiAgICAgICAgcmFuZF9ieXRlc18oYnVmLCBzaXplKTsKICAgICAgICAvLyBPUEVOVlBOX0xPRygiUkFORDogIiA8PCBvcGVudnBuOjpyZW5kZXJfaGV4KGJ1Ziwgc2l6ZSkpOwogICAgfQoKICAgIE1UUkFORF9HQ0NfTk9fSU5MSU5FIGJvb2wgcmFuZF9ieXRlc19ub2V4Y2VwdCh1bnNpZ25lZCBjaGFyICpidWYsIHNpemVfdCBzaXplKSBvdmVycmlkZQogICAgewogICAgICAgIHJhbmRfYnl0ZXMoYnVmLCBzaXplKTsKICAgICAgICByZXR1cm4gdHJ1ZTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIC8vIGZha2UgUk5HIC0tIGp1c3QgdXNlIGFuIGluY3JlbWVudGluZyBzZXF1ZW5jZQogICAgTVRSQU5EX0dDQ19OT19JTkxJTkUgdm9pZCByYW5kX2J5dGVzXyh1bnNpZ25lZCBjaGFyICpidWYsIHNpemVfdCBzaXplKQogICAgewogICAgICAgIHdoaWxlIChzaXplLS0pCiAgICAgICAgICAgICpidWYrKyA9IG5leHQrKzsKICAgIH0KCiAgICB1bnNpZ25lZCBjaGFyIG5leHQ7Cn07CgpjbGFzcyB1bml0X3Rlc3RfdW5pZm9ybV9pbnRfZGlzdHJpYnV0aW9uCnsKICAgIC8qIHN0ZDo6dW5pZm9ybV9pbnRfZGlzdHJpYnV0aW9uIGlzIHVuZm9ydHVuYXRlbHkgaW1wbGVtZW50YXRpb24gc3BlY2lmaWMgYW5kIGdlbmVyYXRlcyBkaWZmZXJlbnQKICAgICAqIHJhbmRvbSBudW1iZXJzIG9uIGRpZmZlcmVudCBwbGF0Zm9ybXMuIFNvIHVzZSBvdXIgb3duIGltcGxlbWVudGF0aW9uIHRvIGd1YXJhbnRlZSBpdCBmb3IgdGhlIHVuaXQgdGVzdHMuCiAgICAgKgogICAgICogQmFzZWQgb24gaHR0cHM6Ly9hcnhpdi5vcmcvYWJzLzE4MDUuMTA5NDEKICAgICAqCiAgICAgKiBObyBndWFyYW50ZWVzIHRoYXQgaXQgaXMgaW1wbGVtZW50ZWQgY29ycmVjdGx5IGJ1dCBldmVuIGEgYmFkIGltcGxlbWVudGF0aW9uIGlzIGdvb2QgZW5vdWdoIGZvciB1bml0IHRlc3RzCiAgICAgKiBpZiBpdCBpcyBkZXRlcm1pbmlzdGljICovCgogIHB1YmxpYzoKICAgIHRlbXBsYXRlIDx0eXBlbmFtZSBnZW5lcmF0b3I+CiAgICB1aW50MzJfdCBvcGVyYXRvcigpKGdlbmVyYXRvciAmcHJuZykKICAgIHsKICAgICAgICAvKiBHZXQgcmFuZG9tIG51bWJlciBpbiAoMCwgcmFuZ2UpIGZpcnN0ICovCiAgICAgICAgdWludDMyX3QgcmFuZ2UgPSBCIC0gQSArIDE7CgogICAgICAgIHVpbnQ2NF90IHByb2R1Y3QgPSB1aW50NjRfdHtwcm5nKCl9ICogdWludDY0X3R7cmFuZ2V9OwoKICAgICAgICB1aW50MzJfdCBsb3cgPSBzdGF0aWNfY2FzdDx1aW50MzJfdD4ocHJvZHVjdCk7CgogICAgICAgIGlmIChsb3cgPCByYW5nZSkKICAgICAgICB7CiAgICAgICAgICAgIHVpbnQzMl90IHRocmVzaG9sZCA9IC1yYW5nZSAlIHJhbmdlOwogICAgICAgICAgICB3aGlsZSAobG93IDwgdGhyZXNob2xkKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBwcm9kdWN0ID0gdWludDY0X3R7cHJuZygpfSAqIHVpbnQ2NF90e3JhbmdlfTsKICAgICAgICAgICAgICAgIGxvdyA9IHN0YXRpY19jYXN0PHVpbnQzMl90Pihwcm9kdWN0KTsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICByZXR1cm4gQSArIChwcm9kdWN0ID4+IDMydSk7CiAgICB9CgogICAgZXhwbGljaXQgdW5pdF90ZXN0X3VuaWZvcm1faW50X2Rpc3RyaWJ1dGlvbih1aW50MzJfdCBsb3cgPSAwLCB1aW50MzJfdCBoaWdoID0gc3RkOjpudW1lcmljX2xpbWl0czx1aW50MzJfdD46Om1heCgpKQogICAgICAgIDogQShsb3cpLCBCKGhpZ2gpCiAgICB7CiAgICB9CgogICAgc3RkOjp1aW50MzJfdCBBOwogICAgc3RkOjp1aW50MzJfdCBCOwp9OwoKLy8gZ29vZ2xldGVzdCBpcyBtaXNzaW5nIHRoZSBhYmlsaXR5IHRvIHRlc3QgZm9yIHNwZWNpZmljCi8vIHRleHQgaW5zaWRlIGEgdGhyb3duIGV4Y2VwdGlvbiwgc28gd2UgaW1wbGVtZW50IGl0IGhlcmUKCiNkZWZpbmUgT1ZQTl9FWFBFQ1RfVEhST1coc3RhdGVtZW50LCBleHBlY3RlZF9leGNlcHRpb24sIGV4cGVjdGVkX3RleHQpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIHRyeSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgc3RhdGVtZW50OyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiT1ZQTl9FWFBFQ1RfVEhST1c6IG5vIGV4Y2VwdGlvbiB3YXMgdGhyb3duICIgPDwgX19GSUxFX18gPDwgJzonIDw8IF9fTElORV9fKTsgICAgICAgICAgICAgICAgICAgICAgXAogICAgfSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICBjYXRjaCAoY29uc3QgZXhwZWN0ZWRfZXhjZXB0aW9uICZlKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgIGlmIChzdGQ6OnN0cmluZyhlLndoYXQoKSkuZmluZChleHBlY3RlZF90ZXh0KSA9PSBzdGQ6OnN0cmluZzo6bnBvcykgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgICAgIE9QRU5WUE5fVEhST1dfRVhDRVBUSU9OKCJPVlBOX0VYUEVDVF9USFJPVzogZGlkIG5vdCBmaW5kIGV4cGVjdGVkIHRleHQgaW4gZXhjZXB0aW9uIGF0ICIgPDwgX19GSUxFX18gPDwgJzonIDw8IF9fTElORV9fIFwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8PCAiLiBHb3Q6ICIgPDwgZS53aGF0KCkpOyAgICAgXAogICAgfQojZGVmaW5lIEpZX0VYUEVDVF9USFJPVyBPVlBOX0VYUEVDVF9USFJPVwoKCi8vIGdvb2dsZXRlc3QgQVNTRVJUIG1hY3JvcyBjYW4ndCBiZSB1c2VkIGluc2lkZSBjb25zdHJ1Y3RvcnMKLy8gb3Igbm9uLXZvaWQtcmV0dXJuaW5nIGZ1bmN0aW9ucywgc28gaW1wbGVtZW50IHdvcmthcm91bmQgaGVyZQoKI2RlZmluZSBKWV9BU1NFUlRfVFJVRSh2YWx1ZSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgZG8gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICB7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICBpZiAoISh2YWx1ZSkpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiSllfQVNTRVJUX1RSVUU6IGZhaWx1cmUgYXQgIiA8PCBfX0ZJTEVfXyA8PCAnOicgPDwgX19MSU5FX18pOyBcCiAgICB9IHdoaWxlICgwKQoKI2RlZmluZSBKWV9BU1NFUlRfRkFMU0UodmFsdWUpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIGRvICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICBpZiAodmFsdWUpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICAgICAgT1BFTlZQTl9USFJPV19FWENFUFRJT04oIkpZX0FTU0VSVF9GQUxTRTogZmFpbHVyZSBhdCAiIDw8IF9fRklMRV9fIDw8ICc6JyA8PCBfX0xJTkVfXyk7IFwKICAgIH0gd2hpbGUgKDApCgojZGVmaW5lIEpZX0FTU0VSVF9FUSh2MSwgdjIpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgZG8gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgIGlmICgodjEpICE9ICh2MikpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiSllfQVNTRVJUX0VROiBmYWlsdXJlIGF0ICIgPDwgX19GSUxFX18gPDwgJzonIDw8IF9fTElORV9fKTsgXAogICAgfSB3aGlsZSAoMCkKCiNkZWZpbmUgSllfQVNTRVJUX05FKHYxLCB2MikgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICBkbyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICB7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgaWYgKCh2MSkgPT0gKHYyKSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgICAgIE9QRU5WUE5fVEhST1dfRVhDRVBUSU9OKCJKWV9BU1NFUlRfTkU6IGZhaWx1cmUgYXQgIiA8PCBfX0ZJTEVfXyA8PCAnOicgPDwgX19MSU5FX18pOyBcCiAgICB9IHdoaWxlICgwKQoKI2RlZmluZSBKWV9BU1NFUlRfTEUodjEsIHYyKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIGRvICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICBpZiAoKHYxKSA+ICh2MikpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICAgICAgT1BFTlZQTl9USFJPV19FWENFUFRJT04oIkpZX0FTU0VSVF9MRTogZmFpbHVyZSBhdCAiIDw8IF9fRklMRV9fIDw8ICc6JyA8PCBfX0xJTkVfXyk7IFwKICAgIH0gd2hpbGUgKDApCgojZGVmaW5lIEpZX0FTU0VSVF9HRSh2MSwgdjIpICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgZG8gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgIGlmICgodjEpIDwgKHYyKSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiSllfQVNTRVJUX0dFOiBmYWlsdXJlIGF0ICIgPDwgX19GSUxFX18gPDwgJzonIDw8IF9fTElORV9fKTsgXAogICAgfSB3aGlsZSAoMCkKCi8vIENvbnZlbmllbmNlIG1hY3JvIGZvciB0aHJvd2luZyBleGNlcHRpb25zCiNkZWZpbmUgVEhST1dfRk1UKC4uLikgdGhyb3cgRXhjZXB0aW9uKHByaW50Zm10KF9fVkFfQVJHU19fKSkK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#pragma once
+
+#include <openvpn/log/logbase.hpp>
+#include <openvpn/io/io.hpp>
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/hexstr.hpp>
+#include <openvpn/common/format.hpp>
+#include <openvpn/random/mtrandapi.hpp>
+
+#include <iostream>
+#include <gtest/gtest.h>
+#include <fstream>
+#include <mutex>
+
+namespace openvpn {
+class LogOutputCollector : public LogBase
+{
+  public:
+    LogOutputCollector()
+        : log_context(this)
+    {
+    }
+
+    void log(const std::string &l) override
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if (output_log)
+            std::cout << l;
+        if (collect_log)
+            out << l;
+    }
+
+    /**
+     * Return the collected log out
+     * @return the log output as string
+     */
+    std::string getOutput() const
+    {
+        return out.str();
+    }
+
+    /**
+     * Allow to access the underlying output stream to direct
+     * output from function that want to write to a stream to it
+     * @return that will be captured by this log
+     */
+    std::ostream &getStream()
+    {
+        return out;
+    }
+
+    /**
+     * Changes if the logging to stdout should be done
+     * @param doOutput
+     */
+    void setPrintOutput(bool doOutput)
+    {
+        output_log = doOutput;
+    }
+
+    /**
+     * Return current state of stdout output
+     * @return current state of output
+     */
+    bool isStdoutEnabled() const
+    {
+        return output_log;
+    }
+
+    /**
+     * Starts collecting log output. This will also
+     * disable stdout output and clear the collected output if there is any
+     */
+    void startCollecting()
+    {
+        collect_log = true;
+        output_log = false;
+        // Reset our buffer
+        out.str(std::string());
+        out.clear();
+    }
+
+    /**
+     * Stops collecting log output. Will reenable stdout output.
+     * @return the output collected
+     */
+    std::string stopCollecting()
+    {
+        collect_log = false;
+        output_log = true;
+        return getOutput();
+    }
+
+    const Log::Context::Wrapper &log_wrapper()
+    {
+        return log_wrap;
+    }
+
+  private:
+    bool output_log = true;
+    bool collect_log = false;
+    std::stringstream out;
+    std::mutex mutex{};
+    Log::Context log_context;
+    Log::Context::Wrapper log_wrap; // must be constructed after log_context
+};
+
+// When a test steps on Log::global_log, save and restore previous
+// Log::global_log so as not to mess up other tests when running a
+// multiple-compilation-unit build.
+class SaveCurrentLogObject
+{
+  public:
+    SaveCurrentLogObject()
+    {
+        saved_log = Log::global_log;
+        Log::global_log = nullptr;
+    }
+
+    ~SaveCurrentLogObject()
+    {
+        Log::global_log = saved_log;
+    }
+
+  private:
+    OPENVPN_LOG_CLASS *saved_log;
+};
+
+} // namespace openvpn
+
+extern openvpn::LogOutputCollector *testLog;
+
+/**
+ * Overrides stdout during the run of a function. Primarly for silencing
+ * log function that throw an exception when something is wrong
+ * @param doLogOutput Use stdout while running
+ * @param test_func function to run
+ */
+inline void override_logOutput(bool doLogOutput, void (*test_func)())
+{
+    bool previousOutputState = testLog->isStdoutEnabled();
+    testLog->setPrintOutput(doLogOutput);
+    test_func();
+    testLog->setPrintOutput(previousOutputState);
+}
+
+/**
+ * Reads the file with the expected output and returns it as a
+ * string. This function delibrately does not include the
+ * ASSERT_EQ call since otherwise gtest will report a the
+ * assert failure in this file rather than in the right place
+ * @param filename
+ * @return
+ */
+inline std::string getExpectedOutput(const std::string &filename)
+{
+    auto fullpath = UNITTEST_SOURCE_DIR "/output/" + filename;
+    std::ifstream f(fullpath);
+    if (!f.good())
+    {
+        throw std::runtime_error("Error opening file " + fullpath);
+    }
+    std::string expected_output((std::istreambuf_iterator<char>(f)),
+                                std::istreambuf_iterator<char>());
+    return expected_output;
+}
+
+#ifdef WIN32
+#include <windows.h>
+
+inline std::string getTempDirPath(const std::string &fn)
+{
+    char buf[MAX_PATH];
+
+    EXPECT_NE(GetTempPathA(MAX_PATH, buf), 0);
+    return std::string(buf) + fn;
+}
+#else
+
+inline std::string getTempDirPath(const std::string &fn)
+{
+    return "/tmp/" + fn;
+}
+
+#endif
+
+/**
+ * Returns a string joined with the delimiter
+ * @param r the array to join
+ * @param delim the delimiter to use
+ * @return A string joined by delim from the vector r
+ */
+template <class T>
+inline std::string getJoinedString(const std::vector<T> &r, const std::string &delim = "|")
+{
+    std::stringstream s;
+    std::copy(r.begin(), r.end(), std::ostream_iterator<std::string>(s, delim.c_str()));
+    return s.str();
+}
+
+/**
+ * Returns a sorted string join with the delimiter
+ * This function modifes the input
+ * @param r the array to join
+ * @param delim the delimiter to use
+ * @return A string joined by delim from the sorted vector r
+ */
+template <class T>
+inline std::string getSortedJoinedString(std::vector<T> &r, const std::string &delim = "|")
+{
+    std::sort(r.begin(), r.end());
+    return getJoinedString(r, delim);
+}
+
+namespace detail {
+class line
+{
+    std::string data;
+
+  public:
+    friend std::istream &operator>>(std::istream &is, line &l)
+    {
+        std::getline(is, l.data);
+        return is;
+    }
+
+    operator std::string() const
+    {
+        return data;
+    }
+};
+} // namespace detail
+
+/**
+ * Splits a string into lines and returns them in a sorted output string
+ */
+inline std::string getSortedString(const std::string &output)
+{
+    std::stringstream ss{output};
+
+    std::istream_iterator<detail::line> begin{ss};
+    std::istream_iterator<detail::line> end;
+    std::vector<std::string> lines{begin, end};
+
+    // sort lines
+    std::sort(lines.begin(), lines.end());
+
+    // join strings with \n
+    std::stringstream s;
+    std::copy(lines.begin(), lines.end(), std::ostream_iterator<std::string>(s, "\n"));
+    return s.str();
+}
+
+/**
+ * Fake DNS resolver.
+ * Inherits from tested class and overrides async_resolve_name().
+ * Returns error if host/service pair has not been added with set_results() before.
+ */
+template <typename RESOLVABLE, typename... CTOR_ARGS>
+class FakeAsyncResolvable : public RESOLVABLE
+{
+  public:
+    using Result = std::pair<const std::string, const unsigned short>;
+    using ResultList = std::vector<Result>;
+
+    using ResultsType = typename RESOLVABLE::results_type;
+    using EndpointType = typename RESOLVABLE::resolver_type::endpoint_type;
+    using EndpointList = std::vector<EndpointType>;
+
+    std::map<const std::string, EndpointList> results_;
+
+    EndpointType init_endpoint() const
+    {
+        return EndpointType();
+    }
+
+    void set_results(const std::string &host, const std::string &service, const ResultList &&results)
+    {
+        EndpointList endpoints;
+        for (const auto &result : results)
+        {
+            EndpointType ep(openvpn_io::ip::make_address(result.first), result.second);
+            endpoints.push_back(ep);
+        }
+        results_[host + ":" + service] = std::move(endpoints);
+    }
+
+    FakeAsyncResolvable(CTOR_ARGS... args)
+        : RESOLVABLE(args...)
+    {
+    }
+
+    void async_resolve_name(const std::string &host, const std::string &service) override
+    {
+        const std::string key(host + ":" + service);
+        openvpn_io::error_code error = openvpn_io::error::host_not_found;
+        ResultsType results;
+
+        if (results_.count(key))
+        {
+            const EndpointList &ep = results_[key];
+            if (ep.size())
+            {
+                error = openvpn_io::error_code();
+                results = ResultsType::create(ep.cbegin(), ep.cend(), host, service);
+            }
+        }
+
+        this->resolve_callback(error, results);
+    }
+};
+
+/**
+ * Predictable RNG that claims to be secure to be used in reproducable unit
+ * tests
+ *
+ * Note: this is not fit to be used as UniformRandomBitGenerator since
+ * its maximum range is [0x03020100, 0xfffefdfc]. Especially the lower
+ * bound makes the std::shuffle implementation in libc++ loop endlessly.
+ */
+class FakeSecureRand : public openvpn::StrongRandomAPI
+{
+  public:
+    FakeSecureRand(const unsigned char initial = 0)
+        : next(initial)
+    {
+    }
+
+    virtual std::string name() const override
+    {
+        return "FakeRNG";
+    }
+
+    MTRAND_GCC_NO_INLINE void rand_bytes(unsigned char *buf, size_t size) override
+    {
+        rand_bytes_(buf, size);
+        // OPENVPN_LOG("RAND: " << openvpn::render_hex(buf, size));
+    }
+
+    MTRAND_GCC_NO_INLINE bool rand_bytes_noexcept(unsigned char *buf, size_t size) override
+    {
+        rand_bytes(buf, size);
+        return true;
+    }
+
+  private:
+    // fake RNG -- just use an incrementing sequence
+    MTRAND_GCC_NO_INLINE void rand_bytes_(unsigned char *buf, size_t size)
+    {
+        while (size--)
+            *buf++ = next++;
+    }
+
+    unsigned char next;
+};
+
+class unit_test_uniform_int_distribution
+{
+    /* std::uniform_int_distribution is unfortunately implementation specific and generates different
+     * random numbers on different platforms. So use our own implementation to guarantee it for the unit tests.
+     *
+     * Based on https://arxiv.org/abs/1805.10941
+     *
+     * No guarantees that it is implemented correctly but even a bad implementation is good enough for unit tests
+     * if it is deterministic */
+
+  public:
+    template <typename generator>
+    uint32_t operator()(generator &prng)
+    {
+        /* Get random number in (0, range) first */
+        uint32_t range = B - A + 1;
+
+        uint64_t product = uint64_t{prng()} * uint64_t{range};
+
+        uint32_t low = static_cast<uint32_t>(product);
+
+        if (low < range)
+        {
+            uint32_t threshold = -range % range;
+            while (low < threshold)
+            {
+                product = uint64_t{prng()} * uint64_t{range};
+                low = static_cast<uint32_t>(product);
+            }
+        }
+        return A + (product >> 32u);
+    }
+
+    explicit unit_test_uniform_int_distribution(uint32_t low = 0, uint32_t high = std::numeric_limits<uint32_t>::max())
+        : A(low), B(high)
+    {
+    }
+
+    std::uint32_t A;
+    std::uint32_t B;
+};
+
+// googletest is missing the ability to test for specific
+// text inside a thrown exception, so we implement it here
+
+#define OVPN_EXPECT_THROW(statement, expected_exception, expected_text)                                                             \
+    try                                                                                                                             \
+    {                                                                                                                               \
+        statement;                                                                                                                  \
+        OPENVPN_THROW_EXCEPTION("OVPN_EXPECT_THROW: no exception was thrown " << __FILE__ << ':' << __LINE__);                      \
+    }                                                                                                                               \
+    catch (const expected_exception &e)                                                                                             \
+    {                                                                                                                               \
+        if (std::string(e.what()).find(expected_text) == std::string::npos)                                                         \
+            OPENVPN_THROW_EXCEPTION("OVPN_EXPECT_THROW: did not find expected text in exception at " << __FILE__ << ':' << __LINE__ \
+                                                                                                     << ". Got: " << e.what());     \
+    }
+#define JY_EXPECT_THROW OVPN_EXPECT_THROW
+
+
+// googletest ASSERT macros can't be used inside constructors
+// or non-void-returning functions, so implement workaround here
+
+#define JY_ASSERT_TRUE(value)                                                                      \
+    do                                                                                             \
+    {                                                                                              \
+        if (!(value))                                                                              \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_TRUE: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+#define JY_ASSERT_FALSE(value)                                                                      \
+    do                                                                                              \
+    {                                                                                               \
+        if (value)                                                                                  \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_FALSE: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+#define JY_ASSERT_EQ(v1, v2)                                                                     \
+    do                                                                                           \
+    {                                                                                            \
+        if ((v1) != (v2))                                                                        \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_EQ: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+#define JY_ASSERT_NE(v1, v2)                                                                     \
+    do                                                                                           \
+    {                                                                                            \
+        if ((v1) == (v2))                                                                        \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_NE: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+#define JY_ASSERT_LE(v1, v2)                                                                     \
+    do                                                                                           \
+    {                                                                                            \
+        if ((v1) > (v2))                                                                         \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_LE: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+#define JY_ASSERT_GE(v1, v2)                                                                     \
+    do                                                                                           \
+    {                                                                                            \
+        if ((v1) < (v2))                                                                         \
+            OPENVPN_THROW_EXCEPTION("JY_ASSERT_GE: failure at " << __FILE__ << ':' << __LINE__); \
+    } while (0)
+
+// Convenience macro for throwing exceptions
+#define THROW_FMT(...) throw Exception(printfmt(__VA_ARGS__))

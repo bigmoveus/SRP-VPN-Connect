@@ -1,1 +1,23 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8bWVtb3J5PgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL3NpemUuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vZXhjZXB0aW9uLmhwcD4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9jbGVhbnVwLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKVEVTVChtaXNjLCBjbGVhbnVwKQp7CgogICAgYm9vbCByYW5fY2xlYW51cCA9IGZhbHNlOwogICAgewogICAgICAgIGF1dG8gYyA9IENsZWFudXAoWyZdKCkKICAgICAgICAgICAgICAgICAgICAgICAgIHsgcmFuX2NsZWFudXAgPSB0cnVlOyB9KTsKICAgICAgICBzdGF0aWNfYXNzZXJ0KHN0ZDo6aXNfbm90aHJvd19tb3ZlX2NvbnN0cnVjdGlibGU8ZGVjbHR5cGUoYyk+Ojp2YWx1ZSwKICAgICAgICAgICAgICAgICAgICAgICJDbGVhbnVwIHNob3VsZCBiZSBub2V4Y2VwdCBNb3ZlQ29uc3RydWN0aWJsZSIpOwogICAgfQogICAgQVNTRVJUX1RSVUUocmFuX2NsZWFudXApIDw8ICJjbGVhbnVwIGRpZG4ndCBydW4gYXMgZXhwZWN0ZWQiOwp9Cg==
+#include "test_common.hpp"
+#include <iostream>
+#include <memory>
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/common/cleanup.hpp>
+
+using namespace openvpn;
+
+TEST(misc, cleanup)
+{
+
+    bool ran_cleanup = false;
+    {
+        auto c = Cleanup([&]()
+                         { ran_cleanup = true; });
+        static_assert(std::is_nothrow_move_constructible<decltype(c)>::value,
+                      "Cleanup should be noexcept MoveConstructible");
+    }
+    ASSERT_TRUE(ran_cleanup) << "cleanup didn't run as expected";
+}

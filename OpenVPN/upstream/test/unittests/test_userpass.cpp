@@ -1,1 +1,381 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vdXNlcnBhc3MuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47Cgpjb25zdCBzdGQ6OnN0cmluZyBvcHRuYW1lID0gImF1dGgiOwpjb25zdCBzdGQ6OnN0cmluZyB1c2VyX3NpbXBsZSgKICAgICJhdXRoIHVzZXJuYW1lXG4iKTsKY29uc3Qgc3RkOjpzdHJpbmcgdXNlcl90YWcoCiAgICAiPGF1dGg+XG4iCiAgICAidXNlcm5hbWVcbiIKICAgICI8L2F1dGg+XG4iKTsKY29uc3Qgc3RkOjpzdHJpbmcgdXNlcl9maWxlKAogICAgImF1dGggIiBVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlci50eHRcbiIpOwpjb25zdCBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gdXNlcl9vbmx5ewogICAgdXNlcl9zaW1wbGUsCiAgICB1c2VyX3RhZywKfTsKY29uc3Qgc3RkOjpzdHJpbmcgdXNlcnBhc3NfdGFnKAogICAgIjxhdXRoPlxuIgogICAgInVzZXJuYW1lXG4iCiAgICAicGFzc3dvcmRcbiIKICAgICI8L2F1dGg+XG4iKTsKY29uc3Qgc3RkOjpzdHJpbmcgdXNlcnBhc3NfZmlsZSgKICAgICJhdXRoICIgVU5JVFRFU1RfU09VUkNFX0RJUiAiL3VzZXJwYXNzL3VzZXJwYXNzLnR4dFxuIik7CmNvbnN0IHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiB1c2VyX3Bhc3N7CiAgICB1c2VycGFzc190YWcsCiAgICB1c2VycGFzc19maWxlLAp9Owpjb25zdCBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gb25lYXJnewogICAgdXNlcl9zaW1wbGUsCiAgICB1c2VyX3RhZywKICAgIHVzZXJfZmlsZSwKICAgIHVzZXJwYXNzX2ZpbGV9Owpjb25zdCBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gb3ZlcmZsb3dfZmlsZXN7CiAgICBVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlcm92ZXJmbG93LnR4dCIsCiAgICBVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvcGFzc292ZXJmbG93LnR4dCIsCn07Cgpjb25zdCBzdGQ6OnZlY3Rvcjx1bnNpZ25lZCBpbnQ+IGZsYWdfY29tYm9zX21pc3Npbmdfb2theXsKICAgIDAsCiAgICBVc2VyUGFzczo6T1BUX09QVElPTkFMLAogICAgVXNlclBhc3M6Ok9QVF9PUFRJT05BTCB8IFVzZXJQYXNzOjpVU0VSTkFNRV9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfT1BUSU9OQUwgfCBVc2VyUGFzczo6VVNFUk5BTUVfUkVRVUlSRUQgfCBVc2VyUGFzczo6UEFTU1dPUkRfUkVRVUlSRUQsCn07CmNvbnN0IHN0ZDo6dmVjdG9yPHVuc2lnbmVkIGludD4gZmxhZ19jb21ib3Nfbm9hcmdzX29rYXl7CiAgICAwLAogICAgVXNlclBhc3M6Ok9QVF9PUFRJT05BTCwKfTsKY29uc3Qgc3RkOjp2ZWN0b3I8dW5zaWduZWQgaW50PiBmbGFnX2NvbWJvc19yZXF1aXJlZHsKICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQsCiAgICAvLyBGSVhNRT8KICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQgfCBVc2VyUGFzczo6T1BUX09QVElPTkFMLAogICAgVXNlclBhc3M6Ok9QVF9SRVFVSVJFRCB8IFVzZXJQYXNzOjpVU0VSTkFNRV9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQgfCBVc2VyUGFzczo6VVNFUk5BTUVfUkVRVUlSRUQgfCBVc2VyUGFzczo6UEFTU1dPUkRfUkVRVUlSRUQsCn07CmNvbnN0IHN0ZDo6dmVjdG9yPHVuc2lnbmVkIGludD4gZmxhZ19jb21ib3NfcHdfbm90X3JlcXVpcmVkewogICAgMCwKICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQsCiAgICBVc2VyUGFzczo6T1BUX09QVElPTkFMLAogICAgVXNlclBhc3M6OlVTRVJOQU1FX1JFUVVJUkVELAogICAgVXNlclBhc3M6Ok9QVF9PUFRJT05BTCB8IFVzZXJQYXNzOjpVU0VSTkFNRV9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQgfCBVc2VyUGFzczo6VVNFUk5BTUVfUkVRVUlSRUQsCn07CmNvbnN0IHN0ZDo6dmVjdG9yPHVuc2lnbmVkIGludD4gZmxhZ19jb21ib3NfcHdfcmVxdWlyZWR7CiAgICBVc2VyUGFzczo6T1BUX09QVElPTkFMIHwgVXNlclBhc3M6OlBBU1NXT1JEX1JFUVVJUkVELAogICAgVXNlclBhc3M6Ok9QVF9SRVFVSVJFRCB8IFVzZXJQYXNzOjpQQVNTV09SRF9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfT1BUSU9OQUwgfCBVc2VyUGFzczo6VVNFUk5BTUVfUkVRVUlSRUQgfCBVc2VyUGFzczo6UEFTU1dPUkRfUkVRVUlSRUQsCiAgICBVc2VyUGFzczo6T1BUX1JFUVVJUkVEIHwgVXNlclBhc3M6OlVTRVJOQU1FX1JFUVVJUkVEIHwgVXNlclBhc3M6OlBBU1NXT1JEX1JFUVVJUkVELAp9Owpjb25zdCBzdGQ6OnZlY3Rvcjx1bnNpZ25lZCBpbnQ+IGZsYWdfY29tYm9zX25vZmlsZXsKICAgIDAsCiAgICBVc2VyUGFzczo6T1BUX1JFUVVJUkVELAogICAgVXNlclBhc3M6Ok9QVF9PUFRJT05BTCwKICAgIFVzZXJQYXNzOjpVU0VSTkFNRV9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfT1BUSU9OQUwgfCBVc2VyUGFzczo6VVNFUk5BTUVfUkVRVUlSRUQsCiAgICBVc2VyUGFzczo6T1BUX1JFUVVJUkVEIHwgVXNlclBhc3M6OlVTRVJOQU1FX1JFUVVJUkVELAogICAgVXNlclBhc3M6Ok9QVF9PUFRJT05BTCB8IFVzZXJQYXNzOjpQQVNTV09SRF9SRVFVSVJFRCwKICAgIFVzZXJQYXNzOjpPUFRfUkVRVUlSRUQgfCBVc2VyUGFzczo6UEFTU1dPUkRfUkVRVUlSRUQsCiAgICBVc2VyUGFzczo6T1BUX09QVElPTkFMIHwgVXNlclBhc3M6OlVTRVJOQU1FX1JFUVVJUkVEIHwgVXNlclBhc3M6OlBBU1NXT1JEX1JFUVVJUkVELAogICAgVXNlclBhc3M6Ok9QVF9SRVFVSVJFRCB8IFVzZXJQYXNzOjpVU0VSTkFNRV9SRVFVSVJFRCB8IFVzZXJQYXNzOjpQQVNTV09SRF9SRVFVSVJFRCwKfTsKClRFU1QoVXNlclBhc3MsIG1pc3NpbmcpCnsKICAgIGZvciAoYXV0byBmbGFncyA6IGZsYWdfY29tYm9zX21pc3Npbmdfb2theSkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHVzZXJwYXNzOwogICAgICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygib3RoZXJvcHQiLCBudWxscHRyKTsKICAgICAgICBjZmcudXBkYXRlX21hcCgpOwogICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKTsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICB1c2VyID0gIm90aGVydXNlciI7CiAgICAgICAgcGFzcyA9ICJvdGhlcnBhc3MiOwogICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKTsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBib29sIHJldCA9IFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCAmdXNlcnBhc3MpOwogICAgICAgIEFTU0VSVF9GQUxTRShyZXQpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3Muc2l6ZSgpLCAwKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICB9CiAgICBmb3IgKGF1dG8gZmxhZ3MgOiBmbGFnX2NvbWJvc19yZXF1aXJlZCkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHVzZXJwYXNzOwogICAgICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygib3RoZXJvcHQiLCBudWxscHRyKTsKICAgICAgICBjZmcudXBkYXRlX21hcCgpOwogICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsIHVzZXIsIHBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICB1c2VyID0gIm90aGVydXNlciI7CiAgICAgICAgcGFzcyA9ICJvdGhlcnBhc3MiOwogICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsIHVzZXIsIHBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVEhST1coCiAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCAmdXNlcnBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3Muc2l6ZSgpLCAwKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICB9Cn0KClRFU1QoVXNlclBhc3MsIG5vYXJncykKewogICAgZm9yIChhdXRvIGZsYWdzIDogZmxhZ19jb21ib3Nfbm9hcmdzX29rYXkpCiAgICB7CiAgICAgICAgc3RkOjpzdHJpbmcgdXNlcjsKICAgICAgICBzdGQ6OnN0cmluZyBwYXNzOwogICAgICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiB1c2VycGFzczsKICAgICAgICBPcHRpb25MaXN0IGNmZzsKICAgICAgICBjZmcucGFyc2VfZnJvbV9jb25maWcob3B0bmFtZSwgbnVsbHB0cik7CiAgICAgICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgICAgICBVc2VyUGFzczo6cGFyc2UoY2ZnLCBvcHRuYW1lLCBmbGFncywgdXNlciwgcGFzcyk7CiAgICAgICAgQVNTRVJUX1RSVUUodXNlci5lbXB0eSgpKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgQVNTRVJUX1RSVUUocGFzcy5lbXB0eSgpKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgIHBhc3MgPSAib3RoZXJwYXNzIjsKICAgICAgICBVc2VyUGFzczo6cGFyc2UoY2ZnLCBvcHRuYW1lLCBmbGFncywgdXNlciwgcGFzcyk7CiAgICAgICAgQVNTRVJUX1RSVUUodXNlci5lbXB0eSgpKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgQVNTRVJUX1RSVUUocGFzcy5lbXB0eSgpKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgYm9vbCByZXQgPSBVc2VyUGFzczo6cGFyc2UoY2ZnLCBvcHRuYW1lLCBmbGFncywgJnVzZXJwYXNzKTsKICAgICAgICBBU1NFUlRfVFJVRShyZXQpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3Muc2l6ZSgpLCAwKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICB9CiAgICBmb3IgKGF1dG8gZmxhZ3MgOiBmbGFnX2NvbWJvc19yZXF1aXJlZCkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHVzZXJwYXNzOwogICAgICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZyhvcHRuYW1lLCBudWxscHRyKTsKICAgICAgICBjZmcudXBkYXRlX21hcCgpOwogICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsIHVzZXIsIHBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICB1c2VyID0gIm90aGVydXNlciI7CiAgICAgICAgcGFzcyA9ICJvdGhlcnBhc3MiOwogICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsIHVzZXIsIHBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRSh1c2VyLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVEhST1coCiAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCAmdXNlcnBhc3MpLAogICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3Muc2l6ZSgpLCAwKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICB9Cn0KClRFU1QoVXNlclBhc3MsIHVzZXJfb25seSkKewogICAgZm9yIChhdXRvIGZsYWdzIDogZmxhZ19jb21ib3NfcHdfbm90X3JlcXVpcmVkKQogICAgewogICAgICAgIGZvciAoYXV0byAmY29uZmlnX3RleHQgOiB1c2VyX29ubHkpCiAgICAgICAgewogICAgICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgICAgICBzdGQ6OnN0cmluZyBwYXNzOwogICAgICAgICAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gdXNlcnBhc3M7CiAgICAgICAgICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgICAgICAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoY29uZmlnX3RleHQsIG51bGxwdHIpOwogICAgICAgICAgICBjZmcudXBkYXRlX21hcCgpOwogICAgICAgICAgICBVc2VyUGFzczo6cGFyc2UoY2ZnLCBvcHRuYW1lLCBmbGFncywgdXNlciwgcGFzcyk7CiAgICAgICAgICAgIEFTU0VSVF9FUSh1c2VyLCAidXNlcm5hbWUiKSA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgQVNTRVJUX1RSVUUocGFzcy5lbXB0eSgpKSA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgICAgICBwYXNzID0gIm90aGVycGFzcyI7CiAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKTsKICAgICAgICAgICAgQVNTRVJUX0VRKHVzZXIsICJ1c2VybmFtZSIpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBib29sIHJldCA9IFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCAmdXNlcnBhc3MpOwogICAgICAgICAgICBBU1NFUlRfVFJVRShyZXQpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3Muc2l6ZSgpLCAxKSA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgQVNTRVJUX0VRKHVzZXJwYXNzWzBdLCAidXNlcm5hbWUiKSA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICB9CiAgICAgICAgLyogZmlsZW5hbWUgaW5zdGVhZCBvZiB1c2VybmFtZSAqLwogICAgICAgIHsKICAgICAgICAgICAgc3RkOjpzdHJpbmcgdXNlcjsKICAgICAgICAgICAgc3RkOjpzdHJpbmcgcGFzczsKICAgICAgICAgICAgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHVzZXJwYXNzOwogICAgICAgICAgICBPcHRpb25MaXN0IGNmZzsKICAgICAgICAgICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKHVzZXJwYXNzX2ZpbGUsIG51bGxwdHIpOwogICAgICAgICAgICBjZmcudXBkYXRlX21hcCgpOwogICAgICAgICAgICBVc2VyUGFzczo6cGFyc2UoY2ZnLCBvcHRuYW1lLCBmbGFncywgdXNlciwgcGFzcyk7CiAgICAgICAgICAgIEFTU0VSVF9FUSh1c2VyLCBVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlcnBhc3MudHh0IikgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgICAgICBwYXNzID0gIm90aGVycGFzcyI7CiAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKTsKICAgICAgICAgICAgQVNTRVJUX0VRKHVzZXIsIFVOSVRURVNUX1NPVVJDRV9ESVIgIi91c2VycGFzcy91c2VycGFzcy50eHQiKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgICAgIEFTU0VSVF9UUlVFKHBhc3MuZW1wdHkoKSkgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBib29sIHJldCA9IFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCAmdXNlcnBhc3MpOwogICAgICAgICAgICBBU1NFUlRfVFJVRShyZXQpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgQVNTRVJUX0VRKHVzZXJwYXNzLnNpemUoKSwgMSkgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3NbMF0sIFVOSVRURVNUX1NPVVJDRV9ESVIgIi91c2VycGFzcy91c2VycGFzcy50eHQiKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgfQogICAgfQogICAgZm9yIChhdXRvIGZsYWdzIDogZmxhZ19jb21ib3NfcHdfcmVxdWlyZWQpCiAgICB7CiAgICAgICAgZm9yIChhdXRvICZjb25maWdfdGV4dCA6IG9uZWFyZykKICAgICAgICB7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHVzZXI7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiB1c2VycGFzczsKICAgICAgICAgICAgT3B0aW9uTGlzdCBjZmc7CiAgICAgICAgICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZyhjb25maWdfdGV4dCwgbnVsbHB0cik7CiAgICAgICAgICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICAgICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKSwKICAgICAgICAgICAgICAgIFVzZXJQYXNzOjpjcmVkc19lcnJvcikKICAgICAgICAgICAgICAgIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICB1c2VyID0gIm90aGVydXNlciI7CiAgICAgICAgICAgIHBhc3MgPSAib3RoZXJwYXNzIjsKICAgICAgICAgICAgQVNTRVJUX1RIUk9XKAogICAgICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsIHVzZXIsIHBhc3MpLAogICAgICAgICAgICAgICAgVXNlclBhc3M6OmNyZWRzX2Vycm9yKQogICAgICAgICAgICAgICAgPDwgImNvbmZpZzogIiA8PCBjb25maWdfdGV4dCA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgICAgIGJvb2wgcmV0ID0gVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3MsICZ1c2VycGFzcyk7CiAgICAgICAgICAgIC8vIEZJWE1FPwogICAgICAgICAgICBBU1NFUlRfVFJVRShyZXQpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgIH0KICAgIH0KfQoKVEVTVChVc2VyUGFzcywgdXNlcl9wYXNzKQp7CiAgICBmb3IgKGF1dG8gZmxhZ3MgOiBmbGFnX2NvbWJvc19ub2ZpbGUpCiAgICB7CiAgICAgICAgZm9yIChhdXRvICZjb25maWdfdGV4dCA6IHVzZXJfcGFzcykKICAgICAgICB7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHVzZXI7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiB1c2VycGFzczsKICAgICAgICAgICAgYXV0byBmbGFnc190cnlfZmlsZSA9IGZsYWdzIHwgVXNlclBhc3M6OlRSWV9GSUxFOwogICAgICAgICAgICBPcHRpb25MaXN0IGNmZzsKICAgICAgICAgICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKGNvbmZpZ190ZXh0LCBudWxscHRyKTsKICAgICAgICAgICAgY2ZnLnVwZGF0ZV9tYXAoKTsKICAgICAgICAgICAgVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3NfdHJ5X2ZpbGUsIHVzZXIsIHBhc3MpOwogICAgICAgICAgICBBU1NFUlRfRVEodXNlciwgInVzZXJuYW1lIikgPDwgImNvbmZpZzogIiA8PCBjb25maWdfdGV4dCA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgICAgIEFTU0VSVF9FUShwYXNzLCAicGFzc3dvcmQiKSA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgICAgICBwYXNzID0gIm90aGVycGFzcyI7CiAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZShjZmcsIG9wdG5hbWUsIGZsYWdzX3RyeV9maWxlLCB1c2VyLCBwYXNzKTsKICAgICAgICAgICAgQVNTRVJUX0VRKHVzZXIsICJ1c2VybmFtZSIpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfRVEocGFzcywgInBhc3N3b3JkIikgPDwgImNvbmZpZzogIiA8PCBjb25maWdfdGV4dCA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgICAgIGJvb2wgcmV0ID0gVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3NfdHJ5X2ZpbGUsICZ1c2VycGFzcyk7CiAgICAgICAgICAgIEFTU0VSVF9UUlVFKHJldCkgPDwgImNvbmZpZzogIiA8PCBjb25maWdfdGV4dCA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgICAgIEFTU0VSVF9FUSh1c2VycGFzcy5zaXplKCksIDIpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3NbMF0sICJ1c2VybmFtZSIpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgICAgICBBU1NFUlRfRVEodXNlcnBhc3NbMV0sICJwYXNzd29yZCIpIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgIH0KICAgIH0KfQoKVEVTVChVc2VyUGFzcywgcGFyc2VfZmlsZV91c2VyX29ubHkpCnsKICAgIGZvciAoYXV0byBmbGFncyA6IGZsYWdfY29tYm9zX3B3X25vdF9yZXF1aXJlZCkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgVXNlclBhc3M6OnBhcnNlX2ZpbGUoVU5JVFRFU1RfU09VUkNFX0RJUiAiL3VzZXJwYXNzL3VzZXIudHh0IiwgZmxhZ3MsIHVzZXIsIHBhc3MpOwogICAgICAgIEFTU0VSVF9FUSh1c2VyLCAidXNlcm5hbWUiKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgQVNTRVJUX1RSVUUocGFzcy5lbXB0eSgpKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgIHBhc3MgPSAib3RoZXJwYXNzIjsKICAgICAgICBVc2VyUGFzczo6cGFyc2VfZmlsZShVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlci50eHQiLCBmbGFncywgdXNlciwgcGFzcyk7CiAgICAgICAgQVNTRVJUX0VRKHVzZXIsICJ1c2VybmFtZSIpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICBBU1NFUlRfVFJVRShwYXNzLmVtcHR5KCkpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgIH0KICAgIGZvciAoYXV0byBmbGFncyA6IGZsYWdfY29tYm9zX3B3X3JlcXVpcmVkKQogICAgewogICAgICAgIGZvciAoYXV0byAmY29uZmlnX3RleHQgOiBvbmVhcmcpCiAgICAgICAgewogICAgICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgICAgICBzdGQ6OnN0cmluZyBwYXNzOwogICAgICAgICAgICBBU1NFUlRfVEhST1coCiAgICAgICAgICAgICAgICBVc2VyUGFzczo6cGFyc2VfZmlsZShVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlci50eHQiLCBmbGFncywgdXNlciwgcGFzcyksCiAgICAgICAgICAgICAgICBVc2VyUGFzczo6Y3JlZHNfZXJyb3IpCiAgICAgICAgICAgICAgICA8PCAiY29uZmlnOiAiIDw8IGNvbmZpZ190ZXh0IDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgICAgICBwYXNzID0gIm90aGVycGFzcyI7CiAgICAgICAgICAgIEFTU0VSVF9USFJPVygKICAgICAgICAgICAgICAgIFVzZXJQYXNzOjpwYXJzZV9maWxlKFVOSVRURVNUX1NPVVJDRV9ESVIgIi91c2VycGFzcy91c2VyLnR4dCIsIGZsYWdzLCB1c2VyLCBwYXNzKSwKICAgICAgICAgICAgICAgIFVzZXJQYXNzOjpjcmVkc19lcnJvcikKICAgICAgICAgICAgICAgIDw8ICJjb25maWc6ICIgPDwgY29uZmlnX3RleHQgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgIH0KICAgIH0KfQoKVEVTVChVc2VyUGFzcywgcGFyc2VfZmlsZV91c2VyX3Bhc3MpCnsKICAgIGZvciAoYXV0byBmbGFncyA6IGZsYWdfY29tYm9zX25vZmlsZSkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZyB1c2VyOwogICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgVXNlclBhc3M6OnBhcnNlX2ZpbGUoVU5JVFRFU1RfU09VUkNFX0RJUiAiL3VzZXJwYXNzL3VzZXJwYXNzLnR4dCIsIGZsYWdzLCB1c2VyLCBwYXNzKTsKICAgICAgICBBU1NFUlRfRVEodXNlciwgInVzZXJuYW1lIikgPDwgImZsYWdzOiAiIDw8IGZsYWdzOwogICAgICAgIEFTU0VSVF9FUShwYXNzLCAicGFzc3dvcmQiKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgIHBhc3MgPSAib3RoZXJwYXNzIjsKICAgICAgICBVc2VyUGFzczo6cGFyc2VfZmlsZShVTklUVEVTVF9TT1VSQ0VfRElSICIvdXNlcnBhc3MvdXNlcnBhc3MudHh0IiwgZmxhZ3MsIHVzZXIsIHBhc3MpOwogICAgICAgIEFTU0VSVF9FUSh1c2VyLCAidXNlcm5hbWUiKSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgQVNTRVJUX0VRKHBhc3MsICJwYXNzd29yZCIpIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgIH0KfQoKVEVTVChVc2VyUGFzcywgcGFyc2VfZmlsZV9vdmVyZmxvdykKewogICAgZm9yIChhdXRvIGZsYWdzIDogZmxhZ19jb21ib3Nfbm9maWxlKQogICAgewogICAgICAgIGZvciAoYXV0byAmZmlsZW5hbWUgOiBvdmVyZmxvd19maWxlcykKICAgICAgICB7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHVzZXI7CiAgICAgICAgICAgIHN0ZDo6c3RyaW5nIHBhc3M7CiAgICAgICAgICAgIEFTU0VSVF9BTllfVEhST1coVXNlclBhc3M6OnBhcnNlX2ZpbGUoZmlsZW5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKSkKICAgICAgICAgICAgICAgIDw8ICJmaWxlOiAiIDw8IGZpbGVuYW1lIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgdXNlciA9ICJvdGhlcnVzZXIiOwogICAgICAgICAgICBwYXNzID0gIm90aGVycGFzcyI7CiAgICAgICAgICAgIEFTU0VSVF9BTllfVEhST1coVXNlclBhc3M6OnBhcnNlX2ZpbGUoZmlsZW5hbWUsIGZsYWdzLCB1c2VyLCBwYXNzKSkKICAgICAgICAgICAgICAgIDw8ICJmaWxlOiAiIDw8IGZpbGVuYW1lIDw8ICJmbGFnczogIiA8PCBmbGFnczsKICAgICAgICAgICAgYXV0byBmbGFnc190cnlfZmlsZSA9IGZsYWdzIHwgVXNlclBhc3M6OlRSWV9GSUxFOwogICAgICAgICAgICBzdGQ6OnN0cmluZyBjb25maWdfdGV4dCA9IHN0ZDo6c3RyaW5nKCJhdXRoICIpICsgZmlsZW5hbWU7CiAgICAgICAgICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiB1c2VycGFzczsKICAgICAgICAgICAgT3B0aW9uTGlzdCBjZmc7CiAgICAgICAgICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZyhjb25maWdfdGV4dCwgbnVsbHB0cik7CiAgICAgICAgICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICAgICAgICAgIEFTU0VSVF9BTllfVEhST1coVXNlclBhc3M6OnBhcnNlKGNmZywgb3B0bmFtZSwgZmxhZ3NfdHJ5X2ZpbGUsICZ1c2VycGFzcykpCiAgICAgICAgICAgICAgICA8PCAiZmlsZTogIiA8PCBmaWxlbmFtZSA8PCAiZmxhZ3M6ICIgPDwgZmxhZ3M7CiAgICAgICAgfQogICAgfQp9Cg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/common/userpass.hpp>
+
+using namespace openvpn;
+
+const std::string optname = "auth";
+const std::string user_simple(
+    "auth username\n");
+const std::string user_tag(
+    "<auth>\n"
+    "username\n"
+    "</auth>\n");
+const std::string user_file(
+    "auth " UNITTEST_SOURCE_DIR "/userpass/user.txt\n");
+const std::vector<std::string> user_only{
+    user_simple,
+    user_tag,
+};
+const std::string userpass_tag(
+    "<auth>\n"
+    "username\n"
+    "password\n"
+    "</auth>\n");
+const std::string userpass_file(
+    "auth " UNITTEST_SOURCE_DIR "/userpass/userpass.txt\n");
+const std::vector<std::string> user_pass{
+    userpass_tag,
+    userpass_file,
+};
+const std::vector<std::string> onearg{
+    user_simple,
+    user_tag,
+    user_file,
+    userpass_file};
+const std::vector<std::string> overflow_files{
+    UNITTEST_SOURCE_DIR "/userpass/useroverflow.txt",
+    UNITTEST_SOURCE_DIR "/userpass/passoverflow.txt",
+};
+
+const std::vector<unsigned int> flag_combos_missing_okay{
+    0,
+    UserPass::OPT_OPTIONAL,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+};
+const std::vector<unsigned int> flag_combos_noargs_okay{
+    0,
+    UserPass::OPT_OPTIONAL,
+};
+const std::vector<unsigned int> flag_combos_required{
+    UserPass::OPT_REQUIRED,
+    // FIXME?
+    UserPass::OPT_REQUIRED | UserPass::OPT_OPTIONAL,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+};
+const std::vector<unsigned int> flag_combos_pw_not_required{
+    0,
+    UserPass::OPT_REQUIRED,
+    UserPass::OPT_OPTIONAL,
+    UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED,
+};
+const std::vector<unsigned int> flag_combos_pw_required{
+    UserPass::OPT_OPTIONAL | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+};
+const std::vector<unsigned int> flag_combos_nofile{
+    0,
+    UserPass::OPT_REQUIRED,
+    UserPass::OPT_OPTIONAL,
+    UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_OPTIONAL | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+    UserPass::OPT_REQUIRED | UserPass::USERNAME_REQUIRED | UserPass::PASSWORD_REQUIRED,
+};
+
+TEST(UserPass, missing)
+{
+    for (auto flags : flag_combos_missing_okay)
+    {
+        std::string user;
+        std::string pass;
+        std::vector<std::string> userpass;
+        OptionList cfg;
+        cfg.parse_from_config("otheropt", nullptr);
+        cfg.update_map();
+        UserPass::parse(cfg, optname, flags, user, pass);
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        UserPass::parse(cfg, optname, flags, user, pass);
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        bool ret = UserPass::parse(cfg, optname, flags, &userpass);
+        ASSERT_FALSE(ret) << "flags: " << flags;
+        ASSERT_EQ(userpass.size(), 0) << "flags: " << flags;
+    }
+    for (auto flags : flag_combos_required)
+    {
+        std::string user;
+        std::string pass;
+        std::vector<std::string> userpass;
+        OptionList cfg;
+        cfg.parse_from_config("otheropt", nullptr);
+        cfg.update_map();
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, user, pass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, user, pass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, &userpass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_EQ(userpass.size(), 0) << "flags: " << flags;
+    }
+}
+
+TEST(UserPass, noargs)
+{
+    for (auto flags : flag_combos_noargs_okay)
+    {
+        std::string user;
+        std::string pass;
+        std::vector<std::string> userpass;
+        OptionList cfg;
+        cfg.parse_from_config(optname, nullptr);
+        cfg.update_map();
+        UserPass::parse(cfg, optname, flags, user, pass);
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        UserPass::parse(cfg, optname, flags, user, pass);
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        bool ret = UserPass::parse(cfg, optname, flags, &userpass);
+        ASSERT_TRUE(ret) << "flags: " << flags;
+        ASSERT_EQ(userpass.size(), 0) << "flags: " << flags;
+    }
+    for (auto flags : flag_combos_required)
+    {
+        std::string user;
+        std::string pass;
+        std::vector<std::string> userpass;
+        OptionList cfg;
+        cfg.parse_from_config(optname, nullptr);
+        cfg.update_map();
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, user, pass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, user, pass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_TRUE(user.empty()) << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        ASSERT_THROW(
+            UserPass::parse(cfg, optname, flags, &userpass),
+            UserPass::creds_error)
+            << "flags: " << flags;
+        ASSERT_EQ(userpass.size(), 0) << "flags: " << flags;
+    }
+}
+
+TEST(UserPass, user_only)
+{
+    for (auto flags : flag_combos_pw_not_required)
+    {
+        for (auto &config_text : user_only)
+        {
+            std::string user;
+            std::string pass;
+            std::vector<std::string> userpass;
+            OptionList cfg;
+            cfg.parse_from_config(config_text, nullptr);
+            cfg.update_map();
+            UserPass::parse(cfg, optname, flags, user, pass);
+            ASSERT_EQ(user, "username") << "config: " << config_text << "flags: " << flags;
+            ASSERT_TRUE(pass.empty()) << "config: " << config_text << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            UserPass::parse(cfg, optname, flags, user, pass);
+            ASSERT_EQ(user, "username") << "config: " << config_text << "flags: " << flags;
+            ASSERT_TRUE(pass.empty()) << "config: " << config_text << "flags: " << flags;
+            bool ret = UserPass::parse(cfg, optname, flags, &userpass);
+            ASSERT_TRUE(ret) << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(userpass.size(), 1) << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(userpass[0], "username") << "config: " << config_text << "flags: " << flags;
+        }
+        /* filename instead of username */
+        {
+            std::string user;
+            std::string pass;
+            std::vector<std::string> userpass;
+            OptionList cfg;
+            cfg.parse_from_config(userpass_file, nullptr);
+            cfg.update_map();
+            UserPass::parse(cfg, optname, flags, user, pass);
+            ASSERT_EQ(user, UNITTEST_SOURCE_DIR "/userpass/userpass.txt") << "flags: " << flags;
+            ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            UserPass::parse(cfg, optname, flags, user, pass);
+            ASSERT_EQ(user, UNITTEST_SOURCE_DIR "/userpass/userpass.txt") << "flags: " << flags;
+            ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+            bool ret = UserPass::parse(cfg, optname, flags, &userpass);
+            ASSERT_TRUE(ret) << "flags: " << flags;
+            ASSERT_EQ(userpass.size(), 1) << "flags: " << flags;
+            ASSERT_EQ(userpass[0], UNITTEST_SOURCE_DIR "/userpass/userpass.txt") << "flags: " << flags;
+        }
+    }
+    for (auto flags : flag_combos_pw_required)
+    {
+        for (auto &config_text : onearg)
+        {
+            std::string user;
+            std::string pass;
+            std::vector<std::string> userpass;
+            OptionList cfg;
+            cfg.parse_from_config(config_text, nullptr);
+            cfg.update_map();
+            ASSERT_THROW(
+                UserPass::parse(cfg, optname, flags, user, pass),
+                UserPass::creds_error)
+                << "config: " << config_text << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            ASSERT_THROW(
+                UserPass::parse(cfg, optname, flags, user, pass),
+                UserPass::creds_error)
+                << "config: " << config_text << "flags: " << flags;
+            bool ret = UserPass::parse(cfg, optname, flags, &userpass);
+            // FIXME?
+            ASSERT_TRUE(ret) << "config: " << config_text << "flags: " << flags;
+        }
+    }
+}
+
+TEST(UserPass, user_pass)
+{
+    for (auto flags : flag_combos_nofile)
+    {
+        for (auto &config_text : user_pass)
+        {
+            std::string user;
+            std::string pass;
+            std::vector<std::string> userpass;
+            auto flags_try_file = flags | UserPass::TRY_FILE;
+            OptionList cfg;
+            cfg.parse_from_config(config_text, nullptr);
+            cfg.update_map();
+            UserPass::parse(cfg, optname, flags_try_file, user, pass);
+            ASSERT_EQ(user, "username") << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(pass, "password") << "config: " << config_text << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            UserPass::parse(cfg, optname, flags_try_file, user, pass);
+            ASSERT_EQ(user, "username") << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(pass, "password") << "config: " << config_text << "flags: " << flags;
+            bool ret = UserPass::parse(cfg, optname, flags_try_file, &userpass);
+            ASSERT_TRUE(ret) << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(userpass.size(), 2) << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(userpass[0], "username") << "config: " << config_text << "flags: " << flags;
+            ASSERT_EQ(userpass[1], "password") << "config: " << config_text << "flags: " << flags;
+        }
+    }
+}
+
+TEST(UserPass, parse_file_user_only)
+{
+    for (auto flags : flag_combos_pw_not_required)
+    {
+        std::string user;
+        std::string pass;
+        UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/user.txt", flags, user, pass);
+        ASSERT_EQ(user, "username") << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/user.txt", flags, user, pass);
+        ASSERT_EQ(user, "username") << "flags: " << flags;
+        ASSERT_TRUE(pass.empty()) << "flags: " << flags;
+    }
+    for (auto flags : flag_combos_pw_required)
+    {
+        for (auto &config_text : onearg)
+        {
+            std::string user;
+            std::string pass;
+            ASSERT_THROW(
+                UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/user.txt", flags, user, pass),
+                UserPass::creds_error)
+                << "config: " << config_text << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            ASSERT_THROW(
+                UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/user.txt", flags, user, pass),
+                UserPass::creds_error)
+                << "config: " << config_text << "flags: " << flags;
+        }
+    }
+}
+
+TEST(UserPass, parse_file_user_pass)
+{
+    for (auto flags : flag_combos_nofile)
+    {
+        std::string user;
+        std::string pass;
+        UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/userpass.txt", flags, user, pass);
+        ASSERT_EQ(user, "username") << "flags: " << flags;
+        ASSERT_EQ(pass, "password") << "flags: " << flags;
+        user = "otheruser";
+        pass = "otherpass";
+        UserPass::parse_file(UNITTEST_SOURCE_DIR "/userpass/userpass.txt", flags, user, pass);
+        ASSERT_EQ(user, "username") << "flags: " << flags;
+        ASSERT_EQ(pass, "password") << "flags: " << flags;
+    }
+}
+
+TEST(UserPass, parse_file_overflow)
+{
+    for (auto flags : flag_combos_nofile)
+    {
+        for (auto &filename : overflow_files)
+        {
+            std::string user;
+            std::string pass;
+            ASSERT_ANY_THROW(UserPass::parse_file(filename, flags, user, pass))
+                << "file: " << filename << "flags: " << flags;
+            user = "otheruser";
+            pass = "otherpass";
+            ASSERT_ANY_THROW(UserPass::parse_file(filename, flags, user, pass))
+                << "file: " << filename << "flags: " << flags;
+            auto flags_try_file = flags | UserPass::TRY_FILE;
+            std::string config_text = std::string("auth ") + filename;
+            std::vector<std::string> userpass;
+            OptionList cfg;
+            cfg.parse_from_config(config_text, nullptr);
+            cfg.update_map();
+            ASSERT_ANY_THROW(UserPass::parse(cfg, optname, flags_try_file, &userpass))
+                << "file: " << filename << "flags: " << flags;
+        }
+    }
+}

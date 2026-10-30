@@ -1,1 +1,21 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiNpZiBMSUJTU0gyX0VEMjU1MTkKICAgIC8qIHNldCBpbiBEb2NrZXJmaWxlICovCiAgICByZXR1cm4gdGVzdF9hdXRoX3B1YmtleShzZXNzaW9uLCBURVNUX0FVVEhfRlJPTU1FTSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJsaWJzc2gyIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5VTEwsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleV9lZDI1NTE5Iik7CiNlbHNlCiAgICAodm9pZClzZXNzaW9uOwogICAgcmV0dXJuIDA7CiNlbmRpZgp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int test(LIBSSH2_SESSION *session)
+{
+#if LIBSSH2_ED25519
+    /* set in Dockerfile */
+    return test_auth_pubkey(session, TEST_AUTH_FROMMEM,
+                            "libssh2",
+                            NULL,
+                            NULL,
+                            "key_ed25519");
+#else
+    (void)session;
+    return 0;
+#endif
+}

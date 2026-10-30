@@ -1,1 +1,94 @@
-Ozs7IC0qLSBNb2RlOiBMaXNwOyBTeW50YXg6IENvbW1vbi1MaXNwOyAtKi0KCihkZWZpbmUtbGFuZ3VhZ2UKICA6Z3JhbW1hcgogICcoKChTICRhbnkpIC0+IChTMSAkYW55KSkKICAgICgoUyAoQ29tcG91bmQgJHMxICRzMikpIC0+IChTMSAkczEpIChDb25qdW5jdGlvbikgKFMxICRzMikpCgogICAgKChTMSAoU3RhdGVtZW50ICR2KSkgLT4gKE5QICRzdWJqKSAoVlAgJHN1YmogJHRlbnNlICR2KSkKICAgICgoUzEgKEFja25vd2xlZGdlICRhKSkgLT4gKEFja25vd2xlZGdlICRhKSkKICAgICgoUzEgKENvbW1hbmQgJHYpKSAtPiAoVlAgU2VsZiBwcmVzZW50ICR2KSkKICAgICgoUzEgKFF1ZXN0aW9uICR2KSkgLT4gKEF1eCAkdGVuc2UpIChOUCAkc3ViaikgKFZQICRzdWJqICR0ZW5zZSAkdikpCiAgICAoKFMxIChRdWVzdGlvbiAkdikpIC0+IChCZSAkdGVuc2UpIChOUCAkc3ViaikgKEJlLUFyZyAkc3ViaiAkdGVuc2UgJHYpKQoKICAgICgoQmUtQXJnICRzdWJqICR0ZW5zZSAoT2NjdXIgJHRlbnNlIChsb2MgJHN1YmogJGxvYykpKSAtPgogICAgIChMb2MtQWRqdW5jdCAkdGVuc2UgKGxvYyAkc3ViaiAkbG9jKSkpCgogICAgKChWUCAkc3ViaiAkdGVuc2UgKE9jY3VyICR0ZW5zZSAkdikpIC0+IChWUDEgJHN1YmogJHRlbnNlICR2KSkKICAgICgoVlAgJHN1YmogJHRlbnNlIChPY2N1ciAkdGVuc2UgJHYpKSAtPiAoQXV4ICR0ZW5zZSkoVlAxICRzdWJqIHByZXNlbnQgJHYpKQoKICAgICgoVlAxICRzdWJqICR0ZW5zZSAkdikgLT4gKFZQMiAkc3ViaiAkdGVuc2UgJHYpIChBZGp1bmN0PyAkdikpCgogICAgKChWUDIgJHN1YmogJHRlbnNlICgkcmVsICRzdWJqICRsb2MpKSAtPgogICAgIChWZXJiL2luICRyZWwgJHRlbnNlKSkKICAgICgoVlAyICRzdWJqICR0ZW5zZSAoJHJlbCAkc3ViaiAkbG9jICRvYmopKSAtPgogICAgIChWZXJiL3RyICRyZWwgJHRlbnNlKSAoTlAgJG9iaikpCiAgICAoKFZQMiAkc3ViaiAkdGVuc2UgKCRyZWwgJHN1YmogJGxvYyAkb2JqICRvYmoyKSkgLT4KICAgICAoVmVyYi9kaSAkcmVsICR0ZW5zZSkgKE5QICRvYmopIChOUCAkb2JqMikpCiAgICAoKFZQMiAkc3ViaiAkdGVuc2UgKGxvYyAkc3ViaiAkbG9jKSkgLT4KICAgICAoQmUgJHRlbnNlKSAoTG9jLUFkanVuY3QgJHRlbnNlIChsb2MgJHN1YmogJGxvYykpKQoKICAgICgoTlAgJG4pIC0+IChQcm9ub3VuICRuKSkKICAgICgoTlAgJG4pIC0+IChBcnRpY2xlKSAoTm91biAkbikpCiAgICAoKE5QICRuKSAtPiAoTm91biAkbikpCiAgICAoKE5QICgkeCAkeSkpIC0+IChOdW1iZXIgJHgpIChOdW1iZXIgJHkpKQoKICAgICgoUFAgKCRwcmVwICRuKSkgLT4gKFByZXAgJHByZXApIChOUCAkbikpCiAgICAoKEFkanVuY3Q/ICR2KSAtPikKICAgICgoQWRqdW5jdD8gJHYpIC0+IChMb2MtQWRqdW5jdCAkdGVuc2UgJHYpKQogICAgIytBbGxlZ3JvICgoTG9jLUFkanVuY3QgJHRlbnNlICgkcmVsICRzdWJqICRsb2MgQHJlc3QpKSAtPiAoUFAgJGxvYykpCiAgICAjK0FsbGVncm8gKChMb2MtQWRqdW5jdCAkdGVuc2UgKCRyZWwgJHN1YmogJGxvYyBAcmVzdCkpIC0+IChBZGp1bmN0ICRsb2MpKQogICAgIytMdWNpZCAoKExvYy1BZGp1bmN0ICR0ZW5zZSAoJHJlbCAkc3ViaiAkbG9jIC4gJHJlc3QpKSAtPiAoUFAgJGxvYykpCiAgICAjK0x1Y2lkICgoTG9jLUFkanVuY3QgJHRlbnNlICgkcmVsICRzdWJqICRsb2MgLiAkcmVzdCkpIC0+IChBZGp1bmN0ICRsb2MpKQoKICAgICkKICA6bGV4aWNvbgogICcoCiAgICAoKEFja25vd2xlZGdlICRhKSAtPiAoeWVzIHRydWUpIChubyBmYWxzZSkgKG1heWJlIHVua25vd24pIChodWggdW5wYXJzZWQpKQogICAgKChBZGp1bmN0ICRsb2MpIC0+IGhlcmUgdGhlcmUgKG5lYXJieSBuZWFyKSBuZWFyIGxlZnQgcmlnaHQgdXAgZG93bikKICAgICgoQXJ0aWNsZSkgLT4gYSBhbiB0aGUpCiAgICAoKEF1eCAkdGVuc2UpIC0+ICh3aWxsIGZ1dHVyZSkgKGRpZCBwYXN0KSAoZG8gJGZpbml0ZSkpCiAgICAoKEJlICR0ZW5zZSkgLT4gKGFtIHByZXNlbnQpIChhcmUgcHJlc2VudCkgKGlzIHByZXNlbnQpIChiZSAkZmluaXRlKQogICAgICh3YXMgcGFzdCkgKHdlcmUgcGFzdCkpCiAgICAoKENvbmp1bmN0aW9uKSAtPiBhbmQgLS0pCiAgICAoKE5vdW4gJG4pIC0+IGdvbGQgV3VtcHVzIHBpdCBicmVlemUgc3RlbmNoIGdsaXR0ZXIgbm90aGluZykKICAgICgoTnVtYmVyICRuKSAtPiAwIDEgMiAzIDQgNSA2IDcgOCA5KQogICAgKChQcmVwICRwcmVwKSAtPiBpbiBhdCB0byBuZWFyKQogICAgKChQcm9ub3VuICRuKSAtPiAoeW91IHNlbGYpIChtZSBtYXN0ZXIpIChJIG1hc3RlcikpCgogICAgKChWZXJiL2luICRyZWwgJHRlbnNlKSAtPiAoZ28gbW92ZSAkZmluaXRlKSAod2VudCBtb3ZlIHBhc3QpCiAgICAgKG1vdmUgbW92ZSAkZmluaXRlKSAobW92ZSBtb3ZlIHBhc3QpIChzaG9vdCBzaG9vdCAkZmluaXRlKSkKICAgICgoVmVyYi90ciAkcmVsICR0ZW5zZSkgLT4gKG1vdmUgY2FycnkgJGZpbml0ZSkgKG1vdmVkIGNhcnJ5IHBhc3QpCiAgICAgKGNhcnJ5IGNhcnJ5ICRmaW5pdGUpIChjYXJyeSBjYXJyaWVkIHBhc3QpCiAgICAgKGdyYWIgZ3JhYiAkZmluaXRlKSAoZ3JhYiBncmFiYmVkIHBhc3QpIChnZXQgZ3JhYiAkZmluaXRlKQogICAgIChnb3QgZ3JhYiBwYXN0KSAocmVsZWFzZSByZWxlYXNlICRmaW5pdGUpIChyZWxlYXNlIHJlbGVhc2UgcGFzdCkKICAgICAoZHJvcCByZWxlYXNlICRmaW5pdGUpIChkcm9wcGVkIHJlbGVhc2UgcGFzdCkgKHNob290IHNob290LWF0ICRmaW5pdGUpCiAgICAgKHNob3Qgc2hvb3QtYXQgcGFzdCkgKGtpbGwgc2hvb3QtYXQgJGZpbml0ZSkgKGtpbGxlZCBzaG9vdC1hdCBwYXN0KQogICAgIChzbWVsbCBwZXJjZWl2ZSAkZmluaXRlKSAoZmVlbCBwZXJjZWl2ZSAkZmluaXRlKSAoZmVsdCBwZXJjZWl2ZSBwYXN0KSkKICAgICgoVmVyYi9kaSAkcmVsICR0ZW5zZSkgLT4gKGJyaW5nIGJyaW5nICRmaW5pdGUpIChicm91Z2h0IGJyaW5nIHBhc3QpCiAgICAgKGdldCBicmluZyAkZmluaXRlKSAoZ290IGJyaW5nIHBhc3QpKQogICAgKSkKCihkZWZwYXJhbWV0ZXIgKnNlbnRlbmNlcyoKICAnKChJIHdpbGwgc2hvb3QgdGhlIHd1bXB1cyBhdCA0IDQpCiAgICAoeWVzKQogICAgKFlvdSB3ZW50IHJpZ2h0IC0tIEkgd2lsbCBnbyBsZWZ0KQogICAgKGNhcnJ5IHRoZSBnb2xkKQogICAgKHllcyBhbmQgbm8pCiAgICAoZGlkIHlvdSBicmluZyBtZSB0aGUgZ29sZCkKICAgIChhIGJyZWV6ZSBpcyBoZXJlIC0tIEkgYW0gbmVhciA1IDMpCiAgICAoYSBzdGVuY2ggaXMgaW4gMyA1KQogICAgKGEgcGl0IGlzIG5lYXJieSkKICAgIChpcyB0aGUgd3VtcHVzIG5lYXIpCiAgICAoRGlkIHlvdSBnbyB0byAzIDgpCiAgICAoWWVzIC0tIE5vdGhpbmcgaXMgdGhlcmUpCiAgICAoU2hvb3QgLS0gU2hvb3QgbGVmdCkKICAgIChLaWxsIHRoZSB3dW1wdXMgLS0gc2hvb3QgdXApKSkKCihkZWZ1biBzcyAoJm9wdGlvbmFsIChzZW50ZW5jZXMgKnNlbnRlbmNlcyopKQogICJSdW4gc29tZSB0ZXN0IHNlbnRlbmNlcywgYW5kIGNvdW50IGhvdyBtYW55IHdlcmUgbm90IHBhcnNlZC4iCiAgKGNvdW50LWlmLW5vdAogICAjJyhsYW1iZGEgKHMpCiAgICAgICAoZm9ybWF0IHQgIn4yJj4+PiB+KH57fmEgfn1+KX4lIiBzKQogICAgICAgKHdyaXRlIChzZWNvbmQgKHBhcnNlIHMpKSA6cHJldHR5IHQpKQogICAqc2VudGVuY2VzKikpCg==
+;;; -*- Mode: Lisp; Syntax: Common-Lisp; -*-
+
+(define-language
+  :grammar
+  '(((S $any) -> (S1 $any))
+    ((S (Compound $s1 $s2)) -> (S1 $s1) (Conjunction) (S1 $s2))
+
+    ((S1 (Statement $v)) -> (NP $subj) (VP $subj $tense $v))
+    ((S1 (Acknowledge $a)) -> (Acknowledge $a))
+    ((S1 (Command $v)) -> (VP Self present $v))
+    ((S1 (Question $v)) -> (Aux $tense) (NP $subj) (VP $subj $tense $v))
+    ((S1 (Question $v)) -> (Be $tense) (NP $subj) (Be-Arg $subj $tense $v))
+
+    ((Be-Arg $subj $tense (Occur $tense (loc $subj $loc))) ->
+     (Loc-Adjunct $tense (loc $subj $loc)))
+
+    ((VP $subj $tense (Occur $tense $v)) -> (VP1 $subj $tense $v))
+    ((VP $subj $tense (Occur $tense $v)) -> (Aux $tense)(VP1 $subj present $v))
+
+    ((VP1 $subj $tense $v) -> (VP2 $subj $tense $v) (Adjunct? $v))
+
+    ((VP2 $subj $tense ($rel $subj $loc)) ->
+     (Verb/in $rel $tense))
+    ((VP2 $subj $tense ($rel $subj $loc $obj)) ->
+     (Verb/tr $rel $tense) (NP $obj))
+    ((VP2 $subj $tense ($rel $subj $loc $obj $obj2)) ->
+     (Verb/di $rel $tense) (NP $obj) (NP $obj2))
+    ((VP2 $subj $tense (loc $subj $loc)) ->
+     (Be $tense) (Loc-Adjunct $tense (loc $subj $loc)))
+
+    ((NP $n) -> (Pronoun $n))
+    ((NP $n) -> (Article) (Noun $n))
+    ((NP $n) -> (Noun $n))
+    ((NP ($x $y)) -> (Number $x) (Number $y))
+
+    ((PP ($prep $n)) -> (Prep $prep) (NP $n))
+    ((Adjunct? $v) ->)
+    ((Adjunct? $v) -> (Loc-Adjunct $tense $v))
+    #+Allegro ((Loc-Adjunct $tense ($rel $subj $loc @rest)) -> (PP $loc))
+    #+Allegro ((Loc-Adjunct $tense ($rel $subj $loc @rest)) -> (Adjunct $loc))
+    #+Lucid ((Loc-Adjunct $tense ($rel $subj $loc . $rest)) -> (PP $loc))
+    #+Lucid ((Loc-Adjunct $tense ($rel $subj $loc . $rest)) -> (Adjunct $loc))
+
+    )
+  :lexicon
+  '(
+    ((Acknowledge $a) -> (yes true) (no false) (maybe unknown) (huh unparsed))
+    ((Adjunct $loc) -> here there (nearby near) near left right up down)
+    ((Article) -> a an the)
+    ((Aux $tense) -> (will future) (did past) (do $finite))
+    ((Be $tense) -> (am present) (are present) (is present) (be $finite)
+     (was past) (were past))
+    ((Conjunction) -> and --)
+    ((Noun $n) -> gold Wumpus pit breeze stench glitter nothing)
+    ((Number $n) -> 0 1 2 3 4 5 6 7 8 9)
+    ((Prep $prep) -> in at to near)
+    ((Pronoun $n) -> (you self) (me master) (I master))
+
+    ((Verb/in $rel $tense) -> (go move $finite) (went move past)
+     (move move $finite) (move move past) (shoot shoot $finite))
+    ((Verb/tr $rel $tense) -> (move carry $finite) (moved carry past)
+     (carry carry $finite) (carry carried past)
+     (grab grab $finite) (grab grabbed past) (get grab $finite)
+     (got grab past) (release release $finite) (release release past)
+     (drop release $finite) (dropped release past) (shoot shoot-at $finite)
+     (shot shoot-at past) (kill shoot-at $finite) (killed shoot-at past)
+     (smell perceive $finite) (feel perceive $finite) (felt perceive past))
+    ((Verb/di $rel $tense) -> (bring bring $finite) (brought bring past)
+     (get bring $finite) (got bring past))
+    ))
+
+(defparameter *sentences*
+  '((I will shoot the wumpus at 4 4)
+    (yes)
+    (You went right -- I will go left)
+    (carry the gold)
+    (yes and no)
+    (did you bring me the gold)
+    (a breeze is here -- I am near 5 3)
+    (a stench is in 3 5)
+    (a pit is nearby)
+    (is the wumpus near)
+    (Did you go to 3 8)
+    (Yes -- Nothing is there)
+    (Shoot -- Shoot left)
+    (Kill the wumpus -- shoot up)))
+
+(defun ss (&optional (sentences *sentences*))
+  "Run some test sentences, and count how many were not parsed."
+  (count-if-not
+   #'(lambda (s)
+       (format t "~2&>>> ~(~{~a ~}~)~%" s)
+       (write (second (parse s)) :pretty t))
+   *sentences*))

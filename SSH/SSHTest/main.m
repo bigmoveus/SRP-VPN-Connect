@@ -1,1 +1,249 @@
-Ly8KLy8gIG1haW4ubSDigJQgU1NIIFZQTiBlbmdpbmUgdGVzdCBoYXJuZXNzIChtYWNPUykKLy8KLy8gIERyaXZlcyBTUlBTU0hDbGllbnQgZW5kLXRvLWVuZDogU1NIIGNvbm5lY3QsIHBhY2tldCBlbmdpbmUsIHRoZW4gaW5qZWN0cwovLyAgcmF3IElQIHBhY2tldHMgKElDTVAgZWNobywgVENQIFNZTiwgVURQIEROUykgYW5kIGNoZWNrcyB0aGUgcmVwbGllcy4KLy8KLy8gIFVzYWdlOiBzc2h0ZXN0IDx1c2VyPiA8cGFzcz4gPGhvc3Q+IFtwb3J0XSBbcmVsYXlVc2VyXSBbcmVsYXlQYXNzXQovLwoKI2ltcG9ydCA8Rm91bmRhdGlvbi9Gb3VuZGF0aW9uLmg+CiNpbXBvcnQgPE5ldHdvcmtFeHRlbnNpb24vTmV0d29ya0V4dGVuc2lvbi5oPgojaW1wb3J0IDxhcnBhL2luZXQuaD4KCiNpbXBvcnQgIlNSUFNTSENsaWVudC5oIgoKLy8gZW5naW5lIHN0YXRzIChwcmVmaXhlZCBzeW1ib2xzIGluIGxpYlNSUFNTSEVuZ2luZS5hKQpleHRlcm4gdm9pZCBzcnBzc2hfaGV2X3NvY2tzNV90dW5uZWxfc3RhdHMoc2l6ZV90ICp0eF9wYWNrZXRzLCBzaXplX3QgKnR4X2J5dGVzLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6ZV90ICpyeF9wYWNrZXRzLCBzaXplX3QgKnJ4X2J5dGVzKTsKCnN0YXRpYyBCT09MIGdfcmVhZHkgPSBOTzsKc3RhdGljIEJPT0wgZ19mYWlsZWQgPSBOTzsKc3RhdGljIEJPT0wgZ19pY21wT2sgPSBOTzsKc3RhdGljIEJPT0wgZ190Y3BPayA9IE5POwpzdGF0aWMgQk9PTCBnX2Ruc09rID0gTk87CnN0YXRpYyBCT09MIGdfbWFwcGVkT2sgPSBOTzsKc3RhdGljIHVpbnQ4X3QgZ19tYXBwZWRJcFs0XTsKc3RhdGljIEJPT0wgZ19oYXZlTWFwcGVkSXAgPSBOTzsKCnN0YXRpYyB1aW50MTZfdCBnX2ljbXBJZCwgZ19pY21wU2VxOwpzdGF0aWMgdWludDE2X3QgZ19kbnNUeDsKc3RhdGljIHVpbnQxNl90IGdfdGNwU3BvcnQ7CgojcHJhZ21hIG1hcmsgLSBjaGVja3N1bSBoZWxwZXJzCgpzdGF0aWMgdWludDE2X3QgY3N1bShjb25zdCB1aW50OF90ICpkLCBzaXplX3QgbikgewogICAgdWludDMyX3QgcyA9IDA7CiAgICB3aGlsZSAobiA+IDEpIHsgcyArPSAoZFswXSA8PCA4KSB8IGRbMV07IGQgKz0gMjsgbiAtPSAyOyB9CiAgICBpZiAobikgcyArPSBkWzBdIDw8IDg7CiAgICB3aGlsZSAocyA+PiAxNikgcyA9IChzICYgMHhGRkZGKSArIChzID4+IDE2KTsKICAgIHJldHVybiAodWludDE2X3QpfnM7Cn0KCiNwcmFnbWEgbWFyayAtIHBhY2tldCBidWlsZGVycyAoc291cmNlIDE5OC4xOC4wLjEpCgpzdGF0aWMgdm9pZCBpcEhlYWRlcih1aW50OF90ICpwLCB1aW50OF90IHByb3RvLCBzaXplX3QgdG90YWwsIGNvbnN0IGNoYXIgKmRzdCkgewogICAgbWVtc2V0KHAsIDAsIDIwKTsKICAgIHBbMF0gPSAweDQ1OwogICAgcFsyXSA9ICh0b3RhbCA+PiA4KSAmIDB4RkY7IHBbM10gPSB0b3RhbCAmIDB4RkY7CiAgICBwWzhdID0gNjQ7IHBbOV0gPSBwcm90bzsKICAgIGluZXRfcHRvbihBRl9JTkVULCAiMTk4LjE4LjAuMSIsIHAgKyAxMik7CiAgICBpbmV0X3B0b24oQUZfSU5FVCwgZHN0LCBwICsgMTYpOwogICAgdWludDE2X3QgYyA9IGNzdW0ocCwgMjApOwogICAgcFsxMF0gPSBjID4+IDg7IHBbMTFdID0gYyAmIDB4RkY7Cn0KCnN0YXRpYyBOU0RhdGEgKmJ1aWxkSWNtcEVjaG8oY29uc3QgY2hhciAqZHN0KSB7CiAgICB1aW50OF90IHBrdFsyMCArIDE2XTsKICAgIG1lbXNldChwa3QgKyAyMCwgMCwgMTYpOwogICAgcGt0WzIwXSA9IDg7IC8vIGVjaG8gcmVxdWVzdAogICAgZ19pY21wSWQgPSBhcmM0cmFuZG9tKCkgJiAweEZGRkY7IGdfaWNtcFNlcSA9IDE7CiAgICBwa3RbMjRdID0gZ19pY21wSWQgPj4gODsgcGt0WzI1XSA9IGdfaWNtcElkICYgMHhGRjsKICAgIHBrdFsyNl0gPSAwOyBwa3RbMjddID0gMTsKICAgIHVpbnQxNl90IGMgPSBjc3VtKHBrdCArIDIwLCAxNik7CiAgICBwa3RbMjJdID0gYyA+PiA4OyBwa3RbMjNdID0gYyAmIDB4RkY7CiAgICBpcEhlYWRlcihwa3QsIDEsIHNpemVvZihwa3QpLCBkc3QpOwogICAgcmV0dXJuIFtOU0RhdGEgZGF0YVdpdGhCeXRlczpwa3QgbGVuZ3RoOnNpemVvZihwa3QpXTsKfQoKc3RhdGljIE5TRGF0YSAqYnVpbGRVZHBEbnMoY29uc3QgY2hhciAqcmVzb2x2ZXIsIGNvbnN0IGNoYXIgKm5hbWUpIHsKICAgIC8vIEROUyBxdWVyeQogICAgdWludDhfdCBxWzUxMl07IHNpemVfdCBxbiA9IDA7CiAgICBnX2Ruc1R4ID0gYXJjNHJhbmRvbSgpICYgMHhGRkZGOwogICAgcVtxbisrXSA9IGdfZG5zVHggPj4gODsgcVtxbisrXSA9IGdfZG5zVHggJiAweEZGOwogICAgcVtxbisrXSA9IDB4MDE7IHFbcW4rK10gPSAweDAwOyAvLyBSRAogICAgcVtxbisrXSA9IDA7IHFbcW4rK10gPSAxOyAgICAgICAvLyBRRENPVU5UCiAgICBtZW1zZXQocSArIHFuLCAwLCA2KTsgcW4gKz0gNjsgIC8vIEFOL05TL0FSIGNvdW50cwogICAgZm9yIChjb25zdCBjaGFyICpsYmwgPSBuYW1lOyAqbGJsOykgewogICAgICAgIGNvbnN0IGNoYXIgKmRvdCA9IHN0cmNocihsYmwsICcuJyk7CiAgICAgICAgc2l6ZV90IGwgPSBkb3QgPyAoc2l6ZV90KShkb3QgLSBsYmwpIDogc3RybGVuKGxibCk7CiAgICAgICAgcVtxbisrXSA9ICh1aW50OF90KWw7CiAgICAgICAgbWVtY3B5KHEgKyBxbiwgbGJsLCBsKTsgcW4gKz0gbDsKICAgICAgICBsYmwgKz0gbCArIChkb3QgPyAxIDogMCk7CiAgICB9CiAgICBxW3FuKytdID0gMDsKICAgIHFbcW4rK10gPSAwOyBxW3FuKytdID0gMTsgIC8vIEEKICAgIHFbcW4rK10gPSAwOyBxW3FuKytdID0gMTsgIC8vIElOCgogICAgLy8gVURQIGhlYWRlcgogICAgdWludDE2X3Qgc3BvcnQgPSA0MDAwMCArIChhcmM0cmFuZG9tKCkgJSAxMDAwMCk7CiAgICBzaXplX3QgdWRwTGVuID0gOCArIHFuOwogICAgdWludDhfdCBwa3RbMjAgKyA4ICsgNTEyXTsKICAgIG1lbXNldChwa3QgKyAyMCwgMCwgOCk7CiAgICBwa3RbMjBdID0gc3BvcnQgPj4gODsgcGt0WzIxXSA9IHNwb3J0ICYgMHhGRjsKICAgIHBrdFsyMl0gPSAwOyBwa3RbMjNdID0gNTM7CiAgICBwa3RbMjRdID0gKHVkcExlbiA+PiA4KSAmIDB4RkY7IHBrdFsyNV0gPSB1ZHBMZW4gJiAweEZGOwogICAgbWVtY3B5KHBrdCArIDI4LCBxLCBxbik7CiAgICBpcEhlYWRlcihwa3QsIDE3LCAyMCArIHVkcExlbiwgcmVzb2x2ZXIpOwogICAgcmV0dXJuIFtOU0RhdGEgZGF0YVdpdGhCeXRlczpwa3QgbGVuZ3RoOjIwICsgdWRwTGVuXTsKfQoKc3RhdGljIE5TRGF0YSAqYnVpbGRUY3BTeW4oY29uc3QgY2hhciAqZHN0LCB1aW50MTZfdCBkcG9ydCkgewogICAgZ190Y3BTcG9ydCA9IDQwMDAwICsgKGFyYzRyYW5kb20oKSAlIDEwMDAwKTsKICAgIHVpbnQ4X3QgcGt0WzIwICsgMjBdOwogICAgbWVtc2V0KHBrdCArIDIwLCAwLCAyMCk7CiAgICBwa3RbMjBdID0gZ190Y3BTcG9ydCA+PiA4OyBwa3RbMjFdID0gZ190Y3BTcG9ydCAmIDB4RkY7CiAgICBwa3RbMjJdID0gZHBvcnQgPj4gODsgcGt0WzIzXSA9IGRwb3J0ICYgMHhGRjsKICAgIHBrdFszMl0gPSAweDUwOyAgICAgICAgICAgICAgICAgICAgLy8gZGF0YSBvZmZzZXQ6IDUgeCAzMi1iaXQgd29yZHMKICAgIHBrdFszM10gPSAweDAyOyAgICAgICAgICAgICAgICAgICAgLy8gU1lOCiAgICBwa3RbMzRdID0gMHg3MjsgcGt0WzM1XSA9IDB4MTA7ICAgIC8vIHdpbmRvdwogICAgLy8gcHNldWRvLWhlYWRlciBjaGVja3N1bQogICAgdWludDhfdCBwaFsxMiArIDIwXTsKICAgIG1lbXNldChwaCwgMCwgc2l6ZW9mKHBoKSk7CiAgICBpbmV0X3B0b24oQUZfSU5FVCwgIjE5OC4xOC4wLjEiLCBwaCk7CiAgICBpbmV0X3B0b24oQUZfSU5FVCwgZHN0LCBwaCArIDQpOwogICAgcGhbOV0gPSA2OwogICAgcGhbMTFdID0gMjA7CiAgICBtZW1jcHkocGggKyAxMiwgcGt0ICsgMjAsIDIwKTsKICAgIHVpbnQxNl90IGMgPSBjc3VtKHBoLCBzaXplb2YocGgpKTsKICAgIHBrdFszNl0gPSBjID4+IDg7IHBrdFszN10gPSBjICYgMHhGRjsKICAgIGlwSGVhZGVyKHBrdCwgNiwgc2l6ZW9mKHBrdCksIGRzdCk7CiAgICByZXR1cm4gW05TRGF0YSBkYXRhV2l0aEJ5dGVzOnBrdCBsZW5ndGg6c2l6ZW9mKHBrdCldOwp9CgojcHJhZ21hIG1hcmsgLSByZXBseSBpbnNwZWN0aW9uCgpzdGF0aWMgdm9pZCBoYW5kbGVQYWNrZXQoTlNEYXRhICpwa3QsIGludCBmYW1pbHkpIHsKICAgIGlmIChmYW1pbHkgIT0gQUZfSU5FVCB8fCBwa3QubGVuZ3RoIDwgMjApIHJldHVybjsKICAgIGNvbnN0IHVpbnQ4X3QgKmIgPSBwa3QuYnl0ZXM7CiAgICB1aW50OF90IHByb3RvID0gYls5XTsKICAgIHNpemVfdCBpaGwgPSAoYlswXSAmIDB4MEYpICogNDsKICAgIGlmIChwcm90byA9PSAxICYmIHBrdC5sZW5ndGggPj0gaWhsICsgOCkgewogICAgICAgIGlmIChiW2lobF0gPT0gMCkgeyAgLy8gZWNobyByZXBseQogICAgICAgICAgICB1aW50MTZfdCByaWQgPSAoYltpaGwrNF0gPDwgOCkgfCBiW2lobCs1XTsKICAgICAgICAgICAgaWYgKHJpZCA9PSBnX2ljbXBJZCkgZ19pY21wT2sgPSBZRVM7CiAgICAgICAgfQogICAgfSBlbHNlIGlmIChwcm90byA9PSAxNyAmJiBwa3QubGVuZ3RoID49IGlobCArIDEyKSB7CiAgICAgICAgY29uc3QgdWludDhfdCAqdSA9IGIgKyBpaGw7CiAgICAgICAgTlNMb2coQCJbdGVzdF0gdWRwIHJlcGx5IGZyb20gJWQuJWQuJWQuJWQ6JWQgbGVuPSVsdSBmaXJzdCBieXRlczogJTAyeCAlMDJ4ICUwMnggJTAyeCIsCiAgICAgICAgICAgICAgYlsxMl0sIGJbMTNdLCBiWzE0XSwgYlsxNV0sICh1WzBdIDw8IDgpIHwgdVsxXSwgKHVuc2lnbmVkIGxvbmcpcGt0Lmxlbmd0aCwKICAgICAgICAgICAgICB1WzhdLCB1WzldLCB1WzEwXSwgdVsxMV0pOwogICAgICAgIHVpbnQxNl90IHR4ID0gKGJbaWhsKzhdIDw8IDgpIHwgYltpaGwrOCsxXTsKICAgICAgICBpZiAodHggPT0gZ19kbnNUeCAmJiAoYltpaGwrOCsyXSAmIDB4ODApKSB7CiAgICAgICAgICAgIHVpbnQxNl90IGFuc3dlcnMgPSAoYltpaGwrOCs2XSA8PCA4KSB8IGJbaWhsKzgrN107CiAgICAgICAgICAgIGlmIChhbnN3ZXJzID4gMCkgZ19kbnNPayA9IFlFUzsKICAgICAgICB9CiAgICAgICAgLy8gbWFwcGVkLUROUyByZXBseSBjb21lcyBGUk9NIDE5OC4xOC4wLjIg4oCUIGdyYWIgYW55IDE5OC4xOC54LnggYW5zd2VyCiAgICAgICAgaWYgKGJbMTJdID09IDE5OCAmJiBiWzEzXSA9PSAxOCAmJiBiWzE0XSA9PSAwICYmIGJbMTVdID09IDIpIHsKICAgICAgICAgICAgY29uc3QgdWludDhfdCAqZG5zID0gYiArIGlobCArIDg7CiAgICAgICAgICAgIHNpemVfdCBkbGVuID0gcGt0Lmxlbmd0aCAtIGlobCAtIDg7CiAgICAgICAgICAgIGZvciAoc2l6ZV90IGkgPSAxMjsgaSArIDQgPD0gZGxlbjsgaSsrKSB7CiAgICAgICAgICAgICAgICBpZiAoZG5zW2ldID09IDE5OCAmJiBkbnNbaSsxXSA9PSAxOCkgewogICAgICAgICAgICAgICAgICAgIG1lbWNweShnX21hcHBlZElwLCBkbnMgKyBpLCA0KTsKICAgICAgICAgICAgICAgICAgICBnX2hhdmVNYXBwZWRJcCA9IFlFUzsKICAgICAgICAgICAgICAgICAgICBicmVhazsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0gZWxzZSBpZiAocHJvdG8gPT0gNiAmJiBwa3QubGVuZ3RoID49IGlobCArIDIwKSB7CiAgICAgICAgdWludDE2X3QgZHBvcnQgPSAoYltpaGwrMl0gPDwgOCkgfCBiW2lobCszXTsKICAgICAgICB1aW50OF90IGZsYWdzID0gYltpaGwrMTNdOwogICAgICAgIGlmIChkcG9ydCA9PSBnX3RjcFNwb3J0ICYmIChmbGFncyAmIDB4MTIpID09IDB4MTIpIGdfdGNwT2sgPSBZRVM7ICAvLyBTWU4tQUNLCiAgICAgICAgaWYgKGRwb3J0ID09IGdfdGNwU3BvcnQgJiYgKGZsYWdzICYgMHgxMikgPT0gMHgxMiAmJgogICAgICAgICAgICBiWzEyXSA9PSAxOTggJiYgYlsxM10gPT0gMTgpIGdfbWFwcGVkT2sgPSBZRVM7ICAvLyBTWU4tQUNLIHZpYSBtYXBwZWQgSVAKICAgIH0KfQoKaW50IG1haW4oaW50IGFyZ2MsIGNvbnN0IGNoYXIgKmFyZ3ZbXSkgewogICAgQGF1dG9yZWxlYXNlcG9vbCB7CiAgICAgICAgaWYgKGFyZ2MgPCA0KSB7CiAgICAgICAgICAgIE5TTG9nKEAidXNhZ2U6IHNzaHRlc3QgPHVzZXI+IDxwYXNzPiA8aG9zdD4gW3BvcnRdIFtyZWxheVVzZXJdIFtyZWxheVBhc3NdIik7CiAgICAgICAgICAgIHJldHVybiAyOwogICAgICAgIH0KICAgICAgICBOU1N0cmluZyAqdXNlciA9IEAoYXJndlsxXSksICpwYXNzID0gQChhcmd2WzJdKSwgKmhvc3QgPSBAKGFyZ3ZbM10pOwogICAgICAgIGludCBwb3J0ID0gYXJnYyA+IDQgPyBhdG9pKGFyZ3ZbNF0pIDogMjI7CiAgICAgICAgQk9PTCB1ZHAgPSAoYXJnYyA+IDUgJiYgc3RyY21wKGFyZ3ZbNV0sICJ1ZHAiKSA9PSAwKSB8fCBhcmdjID4gNjsKCiAgICAgICAgU1JQU1NIQ2xpZW50ICpjID0gW1NSUFNTSENsaWVudCBuZXddOwogICAgICAgIGMuaG9zdCA9IGhvc3Q7IGMucG9ydCA9IHBvcnQ7IGMudXNlcm5hbWUgPSB1c2VyOyBjLnBhc3N3b3JkID0gcGFzczsKICAgICAgICBjLmxvZ0xldmVsID0gMjsKICAgICAgICBpZiAodWRwICYmIGFyZ2MgPiA2KSB7CiAgICAgICAgICAgIGMudWRwRW5hYmxlZCA9IFlFUzsKICAgICAgICAgICAgYy5yZWxheVVzZXJuYW1lID0gQChhcmd2WzVdKTsKICAgICAgICAgICAgYy5yZWxheVBhc3N3b3JkID0gQChhcmd2WzZdKTsKICAgICAgICB9IGVsc2UgaWYgKHVkcCkgewogICAgICAgICAgICBjLnVkcEVuYWJsZWQgPSBZRVM7CiAgICAgICAgfQoKICAgICAgICBbYyBzdGFydFdpdGhPdXRwdXRDYWxsYmFjazpeKE5TRGF0YSAqcGt0LCBpbnQgZmFtaWx5KSB7IGhhbmRsZVBhY2tldChwa3QsIGZhbWlseSk7IH0KICAgICAgICAgICAgIG5ldHdvcmtTZXR0aW5nc0NhbGxiYWNrOl4oTkVQYWNrZXRUdW5uZWxOZXR3b3JrU2V0dGluZ3MgKnMpIHsKICAgICAgICAgICAgICAgICBOU0xvZyhAIlt0ZXN0XSBzZXR0aW5nczogJUAgZG5zPSVAIiwgcy5JUHY0U2V0dGluZ3MuYWRkcmVzc2VzLCBzLkROU1NldHRpbmdzLnNlcnZlcnMpOwogICAgICAgICAgICAgfSBjb25uZWN0ZWRDYWxsYmFjazpeewogICAgICAgICAgICAgICAgIGdfcmVhZHkgPSBZRVM7CiAgICAgICAgICAgICAgICAgTlNMb2coQCJbdGVzdF0gUkVBRFkiKTsKICAgICAgICAgICAgIH0gZGlzY29ubmVjdGVkQ2FsbGJhY2s6XnsKICAgICAgICAgICAgICAgICBOU0xvZyhAIlt0ZXN0XSBkaXNjb25uZWN0ZWQiKTsKICAgICAgICAgICAgIH0gZmFpbHVyZUNhbGxiYWNrOl4oTlNTdHJpbmcgKnJlYXNvbikgewogICAgICAgICAgICAgICAgIGdfZmFpbGVkID0gWUVTOwogICAgICAgICAgICAgICAgIE5TTG9nKEAiW3Rlc3RdIEZBSUxFRDogJUAiLCByZWFzb24pOwogICAgICAgICAgICAgfV07CgogICAgICAgIE5TRGF0ZSAqZGVhZGxpbmUgPSBbTlNEYXRlIGRhdGVXaXRoVGltZUludGVydmFsU2luY2VOb3c6MTVdOwogICAgICAgIHdoaWxlICghZ19yZWFkeSAmJiAhZ19mYWlsZWQgJiYgW2RlYWRsaW5lIHRpbWVJbnRlcnZhbFNpbmNlTm93XSA+IDApCiAgICAgICAgICAgIFtbTlNSdW5Mb29wIGN1cnJlbnRSdW5Mb29wXSBydW5VbnRpbERhdGU6W05TRGF0ZSBkYXRlV2l0aFRpbWVJbnRlcnZhbFNpbmNlTm93OjAuMV1dOwogICAgICAgIGlmICghZ19yZWFkeSkgeyBOU0xvZyhAIj09PSBSRVNVTFQ6IHJlYWR5PTAgKGZhaWw9JWQpIiwgZ19mYWlsZWQpOyByZXR1cm4gMTsgfQoKICAgICAgICAvLyBJQ01QIGVjaG8gdG8gdGhlIHR1bm5lbCBnYXRld2F5IOKAlCB0aGUgZW5naW5lIGFuc3dlcnMgbG9jYWxseSB3aGVuCiAgICAgICAgLy8gaWNtcDogcmVwbHkgaXMgY29uZmlndXJlZCAodGVzdHMgdGhlIHBhY2tldCBwYXRoIG9ubHkpLgogICAgICAgIFtjIGluamVjdFBhY2tldDpidWlsZEljbXBFY2hvKCIxOTguMTguMC4xIikgZmFtaWx5OkFGX0lORVRdOwogICAgICAgIFtOU1RocmVhZCBzbGVlcEZvclRpbWVJbnRlcnZhbDoxLjBdOwoKICAgICAgICAvLyBUQ1AgU1lOIHRvIDEuMS4xLjE6NDQzIOKAlCBleGVyY2lzZXMgU1NIIGRpcmVjdC10Y3BpcCBlbmQgdG8gZW5kLgogICAgICAgIFtjIGluamVjdFBhY2tldDpidWlsZFRjcFN5bigiMS4xLjEuMSIsIDQ0MykgZmFtaWx5OkFGX0lORVRdOwogICAgICAgIC8vIGJ1cnN0IG9mIGNvbmN1cnJlbnQgZmxvd3MgKHRoZSBwaG9uZSBvcGVucyBkb3plbnMgYXQgY29ubmVjdCkKICAgICAgICBmb3IgKGludCBpID0gMDsgaSA8IDIwOyBpKyspIHsKICAgICAgICAgICAgW2MgaW5qZWN0UGFja2V0OmJ1aWxkVGNwU3luKCIxLjEuMS4xIiwgNDQzKSBmYW1pbHk6QUZfSU5FVF07CiAgICAgICAgfQogICAgICAgIFtOU1RocmVhZCBzbGVlcEZvclRpbWVJbnRlcnZhbDozLjBdOwoKICAgICAgICAvLyBVRFAgRE5TIHZpYSB0aGUgSEVWIHJlbGF5IOKAlCBzZXZlcmFsIGZsb3dzIGZyb20gZGlmZmVyZW50IHNvdXJjZQogICAgICAgIC8vIHBvcnRzIGF0IG9uY2UgKHRoZSBwaG9uZSBkb2VzIHRoaXM7IGV4ZXJjaXNlcyBjb25jdXJyZW50IGNoYW5uZWxzKS4KICAgICAgICBpZiAodWRwKSB7CiAgICAgICAgICAgIFtjIGluamVjdFBhY2tldDpidWlsZFVkcERucygiMS4xLjEuMSIsICJhcHBsZS5jb20iKSBmYW1pbHk6QUZfSU5FVF07CiAgICAgICAgICAgIFtjIGluamVjdFBhY2tldDpidWlsZFVkcERucygiMS4xLjEuMSIsICJleGFtcGxlLm9yZyIpIGZhbWlseTpBRl9JTkVUXTsKICAgICAgICAgICAgW2MgaW5qZWN0UGFja2V0OmJ1aWxkVWRwRG5zKCI4LjguOC44IiwgImNsb3VkZmxhcmUuY29tIikgZmFtaWx5OkFGX0lORVRdOwogICAgICAgICAgICBbTlNUaHJlYWQgc2xlZXBGb3JUaW1lSW50ZXJ2YWw6NC4wXTsKICAgICAgICB9CgogICAgICAgIC8vIE1hcHBlZCBETlMgKHdvcmtzIHdpdGhvdXQgdGhlIHJlbGF5KTogcXVlcnkgdGhlIGVuZ2luZSdzIGxvY2FsCiAgICAgICAgLy8gcmVzb2x2ZXIsIHRoZW4gY29ubmVjdCB0byB0aGUgZmFrZSBJUCDigJQgdGhlIGNoYW5uZWwgY2FycmllcyB0aGUKICAgICAgICAvLyByZWFsIGhvc3RuYW1lIGFuZCB0aGUgU1NIIHNlcnZlciByZXNvbHZlcyBpdC4KICAgICAgICBbYyBpbmplY3RQYWNrZXQ6YnVpbGRVZHBEbnMoIjE5OC4xOC4wLjIiLCAiYXBwbGUuY29tIikgZmFtaWx5OkFGX0lORVRdOwogICAgICAgIFtOU1RocmVhZCBzbGVlcEZvclRpbWVJbnRlcnZhbDoyLjBdOwogICAgICAgIGlmIChnX2hhdmVNYXBwZWRJcCkgewogICAgICAgICAgICBjaGFyIGZha2VbMTZdOwogICAgICAgICAgICBzbnByaW50ZihmYWtlLCBzaXplb2YoZmFrZSksICIlZC4lZC4lZC4lZCIsCiAgICAgICAgICAgICAgICAgICAgIGdfbWFwcGVkSXBbMF0sIGdfbWFwcGVkSXBbMV0sIGdfbWFwcGVkSXBbMl0sIGdfbWFwcGVkSXBbM10pOwogICAgICAgICAgICBOU0xvZyhAIlt0ZXN0XSBtYXBwZWQgRE5TIGFuc3dlcmVkICVzIOKAlCBjb25uZWN0aW5nIiwgZmFrZSk7CiAgICAgICAgICAgIFtjIGluamVjdFBhY2tldDpidWlsZFRjcFN5bihmYWtlLCA0NDMpIGZhbWlseTpBRl9JTkVUXTsKICAgICAgICAgICAgW05TVGhyZWFkIHNsZWVwRm9yVGltZUludGVydmFsOjMuMF07CiAgICAgICAgfQoKICAgICAgICBzaXplX3QgdHhwID0gMCwgdHhiID0gMCwgcnhwID0gMCwgcnhiID0gMDsKICAgICAgICBzcnBzc2hfaGV2X3NvY2tzNV90dW5uZWxfc3RhdHMoJnR4cCwgJnR4YiwgJnJ4cCwgJnJ4Yik7CiAgICAgICAgTlNMb2coQCI9PT0gUkVTVUxUOiByZWFkeT0xIGljbXA9JWQgdGNwPSVkIGRucz0lZCBtYXBwZWQ9JWQgfCBlbmdpbmUgdHg9JXp1IHJ4PSV6dSIsIGdfaWNtcE9rLCBnX3RjcE9rLCBnX2Ruc09rLCBnX21hcHBlZE9rLCB0eHAsIHJ4cCk7CiAgICAgICAgW2MgY2xvc2VdOwogICAgICAgIFtOU1RocmVhZCBzbGVlcEZvclRpbWVJbnRlcnZhbDowLjVdOwogICAgICAgIHJldHVybiAoZ190Y3BPayAmJiAoIXVkcCB8fCBnX2Ruc09rKSkgPyAwIDogMTsKICAgIH0KfQo=
+//
+//  main.m — SSH VPN engine test harness (macOS)
+//
+//  Drives SRPSSHClient end-to-end: SSH connect, packet engine, then injects
+//  raw IP packets (ICMP echo, TCP SYN, UDP DNS) and checks the replies.
+//
+//  Usage: sshtest <user> <pass> <host> [port] [relayUser] [relayPass]
+//
+
+#import <Foundation/Foundation.h>
+#import <NetworkExtension/NetworkExtension.h>
+#import <arpa/inet.h>
+
+#import "SRPSSHClient.h"
+
+// engine stats (prefixed symbols in libSRPSSHEngine.a)
+extern void srpssh_hev_socks5_tunnel_stats(size_t *tx_packets, size_t *tx_bytes,
+                                           size_t *rx_packets, size_t *rx_bytes);
+
+static BOOL g_ready = NO;
+static BOOL g_failed = NO;
+static BOOL g_icmpOk = NO;
+static BOOL g_tcpOk = NO;
+static BOOL g_dnsOk = NO;
+static BOOL g_mappedOk = NO;
+static uint8_t g_mappedIp[4];
+static BOOL g_haveMappedIp = NO;
+
+static uint16_t g_icmpId, g_icmpSeq;
+static uint16_t g_dnsTx;
+static uint16_t g_tcpSport;
+
+#pragma mark - checksum helpers
+
+static uint16_t csum(const uint8_t *d, size_t n) {
+    uint32_t s = 0;
+    while (n > 1) { s += (d[0] << 8) | d[1]; d += 2; n -= 2; }
+    if (n) s += d[0] << 8;
+    while (s >> 16) s = (s & 0xFFFF) + (s >> 16);
+    return (uint16_t)~s;
+}
+
+#pragma mark - packet builders (source 198.18.0.1)
+
+static void ipHeader(uint8_t *p, uint8_t proto, size_t total, const char *dst) {
+    memset(p, 0, 20);
+    p[0] = 0x45;
+    p[2] = (total >> 8) & 0xFF; p[3] = total & 0xFF;
+    p[8] = 64; p[9] = proto;
+    inet_pton(AF_INET, "198.18.0.1", p + 12);
+    inet_pton(AF_INET, dst, p + 16);
+    uint16_t c = csum(p, 20);
+    p[10] = c >> 8; p[11] = c & 0xFF;
+}
+
+static NSData *buildIcmpEcho(const char *dst) {
+    uint8_t pkt[20 + 16];
+    memset(pkt + 20, 0, 16);
+    pkt[20] = 8; // echo request
+    g_icmpId = arc4random() & 0xFFFF; g_icmpSeq = 1;
+    pkt[24] = g_icmpId >> 8; pkt[25] = g_icmpId & 0xFF;
+    pkt[26] = 0; pkt[27] = 1;
+    uint16_t c = csum(pkt + 20, 16);
+    pkt[22] = c >> 8; pkt[23] = c & 0xFF;
+    ipHeader(pkt, 1, sizeof(pkt), dst);
+    return [NSData dataWithBytes:pkt length:sizeof(pkt)];
+}
+
+static NSData *buildUdpDns(const char *resolver, const char *name) {
+    // DNS query
+    uint8_t q[512]; size_t qn = 0;
+    g_dnsTx = arc4random() & 0xFFFF;
+    q[qn++] = g_dnsTx >> 8; q[qn++] = g_dnsTx & 0xFF;
+    q[qn++] = 0x01; q[qn++] = 0x00; // RD
+    q[qn++] = 0; q[qn++] = 1;       // QDCOUNT
+    memset(q + qn, 0, 6); qn += 6;  // AN/NS/AR counts
+    for (const char *lbl = name; *lbl;) {
+        const char *dot = strchr(lbl, '.');
+        size_t l = dot ? (size_t)(dot - lbl) : strlen(lbl);
+        q[qn++] = (uint8_t)l;
+        memcpy(q + qn, lbl, l); qn += l;
+        lbl += l + (dot ? 1 : 0);
+    }
+    q[qn++] = 0;
+    q[qn++] = 0; q[qn++] = 1;  // A
+    q[qn++] = 0; q[qn++] = 1;  // IN
+
+    // UDP header
+    uint16_t sport = 40000 + (arc4random() % 10000);
+    size_t udpLen = 8 + qn;
+    uint8_t pkt[20 + 8 + 512];
+    memset(pkt + 20, 0, 8);
+    pkt[20] = sport >> 8; pkt[21] = sport & 0xFF;
+    pkt[22] = 0; pkt[23] = 53;
+    pkt[24] = (udpLen >> 8) & 0xFF; pkt[25] = udpLen & 0xFF;
+    memcpy(pkt + 28, q, qn);
+    ipHeader(pkt, 17, 20 + udpLen, resolver);
+    return [NSData dataWithBytes:pkt length:20 + udpLen];
+}
+
+static NSData *buildTcpSyn(const char *dst, uint16_t dport) {
+    g_tcpSport = 40000 + (arc4random() % 10000);
+    uint8_t pkt[20 + 20];
+    memset(pkt + 20, 0, 20);
+    pkt[20] = g_tcpSport >> 8; pkt[21] = g_tcpSport & 0xFF;
+    pkt[22] = dport >> 8; pkt[23] = dport & 0xFF;
+    pkt[32] = 0x50;                    // data offset: 5 x 32-bit words
+    pkt[33] = 0x02;                    // SYN
+    pkt[34] = 0x72; pkt[35] = 0x10;    // window
+    // pseudo-header checksum
+    uint8_t ph[12 + 20];
+    memset(ph, 0, sizeof(ph));
+    inet_pton(AF_INET, "198.18.0.1", ph);
+    inet_pton(AF_INET, dst, ph + 4);
+    ph[9] = 6;
+    ph[11] = 20;
+    memcpy(ph + 12, pkt + 20, 20);
+    uint16_t c = csum(ph, sizeof(ph));
+    pkt[36] = c >> 8; pkt[37] = c & 0xFF;
+    ipHeader(pkt, 6, sizeof(pkt), dst);
+    return [NSData dataWithBytes:pkt length:sizeof(pkt)];
+}
+
+#pragma mark - reply inspection
+
+static void handlePacket(NSData *pkt, int family) {
+    if (family != AF_INET || pkt.length < 20) return;
+    const uint8_t *b = pkt.bytes;
+    uint8_t proto = b[9];
+    size_t ihl = (b[0] & 0x0F) * 4;
+    if (proto == 1 && pkt.length >= ihl + 8) {
+        if (b[ihl] == 0) {  // echo reply
+            uint16_t rid = (b[ihl+4] << 8) | b[ihl+5];
+            if (rid == g_icmpId) g_icmpOk = YES;
+        }
+    } else if (proto == 17 && pkt.length >= ihl + 12) {
+        const uint8_t *u = b + ihl;
+        NSLog(@"[test] udp reply from %d.%d.%d.%d:%d len=%lu first bytes: %02x %02x %02x %02x",
+              b[12], b[13], b[14], b[15], (u[0] << 8) | u[1], (unsigned long)pkt.length,
+              u[8], u[9], u[10], u[11]);
+        uint16_t tx = (b[ihl+8] << 8) | b[ihl+8+1];
+        if (tx == g_dnsTx && (b[ihl+8+2] & 0x80)) {
+            uint16_t answers = (b[ihl+8+6] << 8) | b[ihl+8+7];
+            if (answers > 0) g_dnsOk = YES;
+        }
+        // mapped-DNS reply comes FROM 198.18.0.2 — grab any 198.18.x.x answer
+        if (b[12] == 198 && b[13] == 18 && b[14] == 0 && b[15] == 2) {
+            const uint8_t *dns = b + ihl + 8;
+            size_t dlen = pkt.length - ihl - 8;
+            for (size_t i = 12; i + 4 <= dlen; i++) {
+                if (dns[i] == 198 && dns[i+1] == 18) {
+                    memcpy(g_mappedIp, dns + i, 4);
+                    g_haveMappedIp = YES;
+                    break;
+                }
+            }
+        }
+    } else if (proto == 6 && pkt.length >= ihl + 20) {
+        uint16_t dport = (b[ihl+2] << 8) | b[ihl+3];
+        uint8_t flags = b[ihl+13];
+        if (dport == g_tcpSport && (flags & 0x12) == 0x12) g_tcpOk = YES;  // SYN-ACK
+        if (dport == g_tcpSport && (flags & 0x12) == 0x12 &&
+            b[12] == 198 && b[13] == 18) g_mappedOk = YES;  // SYN-ACK via mapped IP
+    }
+}
+
+int main(int argc, const char *argv[]) {
+    @autoreleasepool {
+        if (argc < 4) {
+            NSLog(@"usage: sshtest <user> <pass> <host> [port] [relayUser] [relayPass]");
+            return 2;
+        }
+        NSString *user = @(argv[1]), *pass = @(argv[2]), *host = @(argv[3]);
+        int port = argc > 4 ? atoi(argv[4]) : 22;
+        BOOL udp = (argc > 5 && strcmp(argv[5], "udp") == 0) || argc > 6;
+
+        SRPSSHClient *c = [SRPSSHClient new];
+        c.host = host; c.port = port; c.username = user; c.password = pass;
+        c.logLevel = 2;
+        if (udp && argc > 6) {
+            c.udpEnabled = YES;
+            c.relayUsername = @(argv[5]);
+            c.relayPassword = @(argv[6]);
+        } else if (udp) {
+            c.udpEnabled = YES;
+        }
+
+        [c startWithOutputCallback:^(NSData *pkt, int family) { handlePacket(pkt, family); }
+             networkSettingsCallback:^(NEPacketTunnelNetworkSettings *s) {
+                 NSLog(@"[test] settings: %@ dns=%@", s.IPv4Settings.addresses, s.DNSSettings.servers);
+             } connectedCallback:^{
+                 g_ready = YES;
+                 NSLog(@"[test] READY");
+             } disconnectedCallback:^{
+                 NSLog(@"[test] disconnected");
+             } failureCallback:^(NSString *reason) {
+                 g_failed = YES;
+                 NSLog(@"[test] FAILED: %@", reason);
+             }];
+
+        NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:15];
+        while (!g_ready && !g_failed && [deadline timeIntervalSinceNow] > 0)
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+        if (!g_ready) { NSLog(@"=== RESULT: ready=0 (fail=%d)", g_failed); return 1; }
+
+        // ICMP echo to the tunnel gateway — the engine answers locally when
+        // icmp: reply is configured (tests the packet path only).
+        [c injectPacket:buildIcmpEcho("198.18.0.1") family:AF_INET];
+        [NSThread sleepForTimeInterval:1.0];
+
+        // TCP SYN to 1.1.1.1:443 — exercises SSH direct-tcpip end to end.
+        [c injectPacket:buildTcpSyn("1.1.1.1", 443) family:AF_INET];
+        // burst of concurrent flows (the phone opens dozens at connect)
+        for (int i = 0; i < 20; i++) {
+            [c injectPacket:buildTcpSyn("1.1.1.1", 443) family:AF_INET];
+        }
+        [NSThread sleepForTimeInterval:3.0];
+
+        // UDP DNS via the HEV relay — several flows from different source
+        // ports at once (the phone does this; exercises concurrent channels).
+        if (udp) {
+            [c injectPacket:buildUdpDns("1.1.1.1", "apple.com") family:AF_INET];
+            [c injectPacket:buildUdpDns("1.1.1.1", "example.org") family:AF_INET];
+            [c injectPacket:buildUdpDns("8.8.8.8", "cloudflare.com") family:AF_INET];
+            [NSThread sleepForTimeInterval:4.0];
+        }
+
+        // Mapped DNS (works without the relay): query the engine's local
+        // resolver, then connect to the fake IP — the channel carries the
+        // real hostname and the SSH server resolves it.
+        [c injectPacket:buildUdpDns("198.18.0.2", "apple.com") family:AF_INET];
+        [NSThread sleepForTimeInterval:2.0];
+        if (g_haveMappedIp) {
+            char fake[16];
+            snprintf(fake, sizeof(fake), "%d.%d.%d.%d",
+                     g_mappedIp[0], g_mappedIp[1], g_mappedIp[2], g_mappedIp[3]);
+            NSLog(@"[test] mapped DNS answered %s — connecting", fake);
+            [c injectPacket:buildTcpSyn(fake, 443) family:AF_INET];
+            [NSThread sleepForTimeInterval:3.0];
+        }
+
+        size_t txp = 0, txb = 0, rxp = 0, rxb = 0;
+        srpssh_hev_socks5_tunnel_stats(&txp, &txb, &rxp, &rxb);
+        NSLog(@"=== RESULT: ready=1 icmp=%d tcp=%d dns=%d mapped=%d | engine tx=%zu rx=%zu", g_icmpOk, g_tcpOk, g_dnsOk, g_mappedOk, txp, rxp);
+        [c close];
+        [NSThread sleepForTimeInterval:0.5];
+        return (g_tcpOk && (!udp || g_dnsOk)) ? 0 : 1;
+    }
+}

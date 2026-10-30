@@ -1,1 +1,74 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKc3RhdGljIGNvbnN0IGNoYXIgKkVYUEVDVEVEX1JTQV9IT1NUS0VZID0KICAgICJBQUFBQjNOemFDMXljMkVBQUFBQkl3QUFBUUVBcnJyL0p1Sm1hWmxpZ3lmUzh2Y051cittV1IyZGREUXRWZGhIemRLVSIKICAgICJVb1I2L09tNmN2eHBlNjFIMVlaTzF4Q3BMVUJYbWtraTRIb050WU9wUEIyVzRWKzhVNEJEZVZCRDVjcnlwRU9FMSs3QiIKICAgICJBbTk5Zm5FRHhZSU9acTIvalRQMHlRbXpDcFdZUzNDT3lGbWtPTDdzZlgxd1FNZVc1elFUMldLY3hDNkZTV2JoRHFyQiIKICAgICJlTkVHaTY4N2hKSm9KN1lYZ1kvSWRpWVc1TmNPdXFSU1dsampHUzNkQUpzSEhXazRuSmJoakVEWGJQYWVkdU1Bd1FVOSIKICAgICJpNkVMZlAzcitxNndkdTBQNGpXYW9vM0RlMWFZeG5Ub1YvbGRYeWtwaXBPTjROUGFtc2I2UGgycWxKUUt5cHE3SjRpUSIKICAgICJna0lJYkNVMUEzMSs0RXh2Y0lWb3hMUXcvYVRTYnc9PSI7CgpzdGF0aWMgY29uc3QgY2hhciAqRVhQRUNURURfRUNEU0FfSE9TVEtFWSA9CiAgICAiQUFBQUUyVmpaSE5oTFhOb1lUSXRibWx6ZEhBeU5UWUFBQUFJYm1semRIQXlOVFlBQUFCQkJDKy9zeXllS0pEOWRDMlpIIgogICAgIjlRN2lKR1JlUjRZTTNyVUNNc1N5bmt5WG9qZGZTQ2xHQ01ZN0p2V2x0MzBFU2pZdnhvVGZTUkd4Nld2YXFZSy92UG9ZUTQ9IjsKCnN0YXRpYyBjb25zdCBjaGFyICpFWFBFQ1RFRF9FRDI1NTE5X0hPU1RLRVkgPQogICAgIkFBQUFDM056YUMxbFpESTFOVEU1QUFBQUlJeHRkeWcyWlJYRTcwVXd5UFZVSDNVeWZEQlY4R1g1Y1BGNjM2UDZoam9tIjsKCmludCB0ZXN0KExJQlNTSDJfU0VTU0lPTiAqc2Vzc2lvbikKewogICAgaW50IHJjOwogICAgc2l6ZV90IGxlbjsKICAgIGludCB0eXBlOwogICAgc2l6ZV90IGV4cGVjdGVkX2xlbiA9IDA7CiAgICBjaGFyICpleHBlY3RlZF9ob3N0a2V5ID0gTlVMTDsKCiAgICBjb25zdCBjaGFyICpob3N0a2V5ID0gbGlic3NoMl9zZXNzaW9uX2hvc3RrZXkoc2Vzc2lvbiwgJmxlbiwgJnR5cGUpOwogICAgaWYoIWhvc3RrZXkpIHsKICAgICAgICBwcmludF9sYXN0X3Nlc3Npb25fZXJyb3IoImxpYnNzaDJfc2Vzc2lvbl9ob3N0a2V5Iik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgaWYodHlwZSA9PSBMSUJTU0gyX0hPU1RLRVlfVFlQRV9FRDI1NTE5KSB7CiAgICAgICAgcmMgPSBfbGlic3NoMl9iYXNlNjRfZGVjb2RlKHNlc3Npb24sICZleHBlY3RlZF9ob3N0a2V5LCAmZXhwZWN0ZWRfbGVuLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBFWFBFQ1RFRF9FRDI1NTE5X0hPU1RLRVksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cmxlbihFWFBFQ1RFRF9FRDI1NTE5X0hPU1RLRVkpKTsKICAgIH0KICAgIGVsc2UgaWYodHlwZSA9PSBMSUJTU0gyX0hPU1RLRVlfVFlQRV9FQ0RTQV8yNTYpIHsKICAgICAgICByYyA9IF9saWJzc2gyX2Jhc2U2NF9kZWNvZGUoc2Vzc2lvbiwgJmV4cGVjdGVkX2hvc3RrZXksICZleHBlY3RlZF9sZW4sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEVYUEVDVEVEX0VDRFNBX0hPU1RLRVksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cmxlbihFWFBFQ1RFRF9FQ0RTQV9IT1NUS0VZKSk7CiAgICB9CiAgICBlbHNlIGlmKHR5cGUgPT0gTElCU1NIMl9IT1NUS0VZX1RZUEVfUlNBKSB7CiAgICAgICAgcmMgPSBfbGlic3NoMl9iYXNlNjRfZGVjb2RlKHNlc3Npb24sICZleHBlY3RlZF9ob3N0a2V5LCAmZXhwZWN0ZWRfbGVuLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBFWFBFQ1RFRF9SU0FfSE9TVEtFWSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RybGVuKEVYUEVDVEVEX1JTQV9IT1NUS0VZKSk7CiAgICB9CiAgICBlbHNlIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIlVuZXhwZWN0ZWQgdHlwZSBvZiBob3N0a2V5OiAlaVxuIiwgdHlwZSk7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgaWYocmMpIHsKICAgICAgICBwcmludF9sYXN0X3Nlc3Npb25fZXJyb3IoIl9saWJzc2gyX2Jhc2U2NF9kZWNvZGUiKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZihsZW4gIT0gZXhwZWN0ZWRfbGVuKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJIb3N0a2V5IGRvZXMgbm90IGhhdmUgdGhlIGV4cGVjdGVkIGxlbmd0aCAlbGQhPSVsZFxuIiwKICAgICAgICAgICAgICAgICh1bnNpZ25lZCBsb25nKWxlbiwgKHVuc2lnbmVkIGxvbmcpZXhwZWN0ZWRfbGVuKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZihtZW1jbXAoaG9zdGtleSwgZXhwZWN0ZWRfaG9zdGtleSwgbGVuKSAhPSAwKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJIb3N0a2V5cyBkbyBub3QgbWF0Y2hcbiIpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIHJldHVybiAwOwp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+static const char *EXPECTED_RSA_HOSTKEY =
+    "AAAAB3NzaC1yc2EAAAABIwAAAQEArrr/JuJmaZligyfS8vcNur+mWR2ddDQtVdhHzdKU"
+    "UoR6/Om6cvxpe61H1YZO1xCpLUBXmkki4HoNtYOpPB2W4V+8U4BDeVBD5crypEOE1+7B"
+    "Am99fnEDxYIOZq2/jTP0yQmzCpWYS3COyFmkOL7sfX1wQMeW5zQT2WKcxC6FSWbhDqrB"
+    "eNEGi687hJJoJ7YXgY/IdiYW5NcOuqRSWljjGS3dAJsHHWk4nJbhjEDXbPaeduMAwQU9"
+    "i6ELfP3r+q6wdu0P4jWaoo3De1aYxnToV/ldXykpipON4NPamsb6Ph2qlJQKypq7J4iQ"
+    "gkIIbCU1A31+4ExvcIVoxLQw/aTSbw==";
+
+static const char *EXPECTED_ECDSA_HOSTKEY =
+    "AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBC+/syyeKJD9dC2ZH"
+    "9Q7iJGReR4YM3rUCMsSynkyXojdfSClGCMY7JvWlt30ESjYvxoTfSRGx6WvaqYK/vPoYQ4=";
+
+static const char *EXPECTED_ED25519_HOSTKEY =
+    "AAAAC3NzaC1lZDI1NTE5AAAAIIxtdyg2ZRXE70UwyPVUH3UyfDBV8GX5cPF636P6hjom";
+
+int test(LIBSSH2_SESSION *session)
+{
+    int rc;
+    size_t len;
+    int type;
+    size_t expected_len = 0;
+    char *expected_hostkey = NULL;
+
+    const char *hostkey = libssh2_session_hostkey(session, &len, &type);
+    if(!hostkey) {
+        print_last_session_error("libssh2_session_hostkey");
+        return 1;
+    }
+
+    if(type == LIBSSH2_HOSTKEY_TYPE_ED25519) {
+        rc = _libssh2_base64_decode(session, &expected_hostkey, &expected_len,
+                                    EXPECTED_ED25519_HOSTKEY,
+                                    strlen(EXPECTED_ED25519_HOSTKEY));
+    }
+    else if(type == LIBSSH2_HOSTKEY_TYPE_ECDSA_256) {
+        rc = _libssh2_base64_decode(session, &expected_hostkey, &expected_len,
+                                    EXPECTED_ECDSA_HOSTKEY,
+                                    strlen(EXPECTED_ECDSA_HOSTKEY));
+    }
+    else if(type == LIBSSH2_HOSTKEY_TYPE_RSA) {
+        rc = _libssh2_base64_decode(session, &expected_hostkey, &expected_len,
+                                    EXPECTED_RSA_HOSTKEY,
+                                    strlen(EXPECTED_RSA_HOSTKEY));
+    }
+    else {
+        fprintf(stderr, "Unexpected type of hostkey: %i\n", type);
+        return 1;
+    }
+
+    if(rc) {
+        print_last_session_error("_libssh2_base64_decode");
+        return 1;
+    }
+
+    if(len != expected_len) {
+        fprintf(stderr, "Hostkey does not have the expected length %ld!=%ld\n",
+                (unsigned long)len, (unsigned long)expected_len);
+        return 1;
+    }
+
+    if(memcmp(hostkey, expected_hostkey, len) != 0) {
+        fprintf(stderr, "Hostkeys do not match\n");
+        return 1;
+    }
+
+    return 0;
+}

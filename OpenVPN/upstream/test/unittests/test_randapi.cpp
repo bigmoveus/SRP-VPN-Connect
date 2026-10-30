@@ -1,1 +1,71 @@
-I2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPG9wZW52cG4vcmFuZG9tL3JhbmRhcGkuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgSW50ZWdyYWxUPgpjbGFzcyBJbnRlZ3JhbE1pbiA6IHB1YmxpYyBXZWFrUmFuZG9tQVBJCnsKICBwdWJsaWM6CiAgICBPUEVOVlBOX0VYQ0VQVElPTihzX21pbl9lcnJvcik7CgogICAgdHlwZWRlZiBSQ1B0cjxJbnRlZ3JhbE1pbj4gUHRyOwoKICAgIC8vIFJhbmRvbSBhbGdvcml0aG0gbmFtZQogICAgc3RkOjpzdHJpbmcgbmFtZSgpIGNvbnN0IG92ZXJyaWRlCiAgICB7CiAgICAgICAgcmV0dXJuICJJbnRlZ3JhbE1pbiI7CiAgICB9CgogICAgLy8gRmlsbCBidWZmZXIgd2l0aCBtaW5pbXVtIHZhbHVlCiAgICB2b2lkIHJhbmRfYnl0ZXModW5zaWduZWQgY2hhciAqYnVmLCBzaXplX3Qgc2l6ZSkgb3ZlcnJpZGUKICAgIHsKICAgICAgICBpZiAoIXJhbmRfYnl0ZXNfbm9leGNlcHQoYnVmLCBzaXplKSkKICAgICAgICAgICAgdGhyb3cgc19taW5fZXJyb3IoInJhbmRfYnl0ZXMgZmFpbGVkIik7CiAgICB9CgogICAgLy8gTGlrZSByYW5kX2J5dGVzLCBidXQgZG9uJ3QgdGhyb3cgZXhjZXB0aW9uLgogICAgLy8gUmV0dXJuIHRydWUgb24gc3VjY2Vzc3MsIGZhbHNlIG9uIGZhaWwuCiAgICBib29sIHJhbmRfYnl0ZXNfbm9leGNlcHQodW5zaWduZWQgY2hhciAqYnVmLCBzaXplX3Qgc2l6ZSkgb3ZlcnJpZGUKICAgIHsKICAgICAgICBpZiAoc2l6ZSA8IHNpemVvZihJbnRlZ3JhbFQpKQogICAgICAgICAgICByZXR1cm4gZmFsc2U7CiAgICAgICAgSW50ZWdyYWxUICppbnRfcHRyID0gcmVpbnRlcnByZXRfY2FzdDxJbnRlZ3JhbFQgKj4oYnVmKTsKICAgICAgICAqaW50X3B0ciA9IHN0ZDo6bnVtZXJpY19saW1pdHM8SW50ZWdyYWxUPjo6bWluKCk7CiAgICAgICAgcmV0dXJuIHRydWU7CiAgICB9CgogICAgSW50ZWdyYWxUIGdldF9yZXN1bHQoKQogICAgewogICAgICAgIHJldHVybiByYW5kX2dldF9wb3NpdGl2ZTxJbnRlZ3JhbFQ+KCk7CiAgICB9Cn07Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgSW50ZWdyYWxUPgp2b2lkIHJhbmRhcGlfc2lnbmVkX21pbl90ZXN0KGNvbnN0IHN0ZDo6c3RyaW5nICZ0ZXN0X25hbWUpCnsKICAgIEludGVncmFsTWluPEludGVncmFsVD4gc19taW47CgogICAgSW50ZWdyYWxUIHJlc3VsdCA9IHNfbWluLmdldF9yZXN1bHQoKTsKCiAgICBFWFBFQ1RfRVEocmVzdWx0LCAwKSA8PCAiZmFpbHMgZm9yIFwiIiA8PCB0ZXN0X25hbWUgPDwgIlwiIHRlc3QiOwp9CgojZGVmaW5lIFJBTkRBUElfU0lHTkVEX01JTl9URVNUKHRlc3QpICAgICAgICAgXAogICAgZG8gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgeyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgIHJhbmRhcGlfc2lnbmVkX21pbl90ZXN0PHRlc3Q+KCN0ZXN0KTsgXAogICAgfSB3aGlsZSAoMCkKCgpURVNUKG1pc2MsIHJhbmRhcGlfc2lnbmVkX21pbikKewogICAgUkFOREFQSV9TSUdORURfTUlOX1RFU1Qoc2lnbmVkIGNoYXIpOwogICAgUkFOREFQSV9TSUdORURfTUlOX1RFU1QodW5zaWduZWQgY2hhcik7CiAgICBSQU5EQVBJX1NJR05FRF9NSU5fVEVTVChpbnQzMl90KTsKICAgIFJBTkRBUElfU0lHTkVEX01JTl9URVNUKHVpbnQzMl90KTsKICAgIFJBTkRBUElfU0lHTkVEX01JTl9URVNUKGludDY0X3QpOwogICAgUkFOREFQSV9TSUdORURfTUlOX1RFU1QodWludDY0X3QpOwp9Cg==
+#include <iostream>
+#include "test_common.hpp"
+
+#include <openvpn/random/randapi.hpp>
+
+using namespace openvpn;
+
+template <typename IntegralT>
+class IntegralMin : public WeakRandomAPI
+{
+  public:
+    OPENVPN_EXCEPTION(s_min_error);
+
+    typedef RCPtr<IntegralMin> Ptr;
+
+    // Random algorithm name
+    std::string name() const override
+    {
+        return "IntegralMin";
+    }
+
+    // Fill buffer with minimum value
+    void rand_bytes(unsigned char *buf, size_t size) override
+    {
+        if (!rand_bytes_noexcept(buf, size))
+            throw s_min_error("rand_bytes failed");
+    }
+
+    // Like rand_bytes, but don't throw exception.
+    // Return true on successs, false on fail.
+    bool rand_bytes_noexcept(unsigned char *buf, size_t size) override
+    {
+        if (size < sizeof(IntegralT))
+            return false;
+        IntegralT *int_ptr = reinterpret_cast<IntegralT *>(buf);
+        *int_ptr = std::numeric_limits<IntegralT>::min();
+        return true;
+    }
+
+    IntegralT get_result()
+    {
+        return rand_get_positive<IntegralT>();
+    }
+};
+
+template <typename IntegralT>
+void randapi_signed_min_test(const std::string &test_name)
+{
+    IntegralMin<IntegralT> s_min;
+
+    IntegralT result = s_min.get_result();
+
+    EXPECT_EQ(result, 0) << "fails for \"" << test_name << "\" test";
+}
+
+#define RANDAPI_SIGNED_MIN_TEST(test)         \
+    do                                        \
+    {                                         \
+        randapi_signed_min_test<test>(#test); \
+    } while (0)
+
+
+TEST(misc, randapi_signed_min)
+{
+    RANDAPI_SIGNED_MIN_TEST(signed char);
+    RANDAPI_SIGNED_MIN_TEST(unsigned char);
+    RANDAPI_SIGNED_MIN_TEST(int32_t);
+    RANDAPI_SIGNED_MIN_TEST(uint32_t);
+    RANDAPI_SIGNED_MIN_TEST(int64_t);
+    RANDAPI_SIGNED_MIN_TEST(uint64_t);
+}

@@ -1,1 +1,27 @@
-IyEvYmluL2Jhc2gKIyBCdWlsZHMgdGhlIG1hY09TIHRlc3QgaGFybmVzcyBmb3IgdGhlIFNTSCBlbmdpbmUuCnNldCAtZQpjZCAiJChkaXJuYW1lICIkMCIpIgpST09UPSIkUFdELy4uIgpDT1JFPSIkUk9PVC8uLi9Db3JlL1NSUENvcmUiCgp4Y3J1biBjbGFuZyAtYXJjaCBhcm02NCAtaXN5c3Jvb3QgIiQoeGNydW4gLXNkayBtYWNvc3ggLS1zaG93LXNkay1wYXRoKSIgXAogICAgLW1tYWNvc3gtdmVyc2lvbi1taW49MTIuMCAtTzAgLWcgLWZvYmpjLWFyYyAtdyBcCiAgICAtRE5TX0JMT0NLX0FTU0VSVElPTlM9MCBcCiAgICAtSSIkQ09SRSIgXAogICAgLUkiJFJPT1QvbGlic3NoMi9pbmNsdWRlIiBcCiAgICAtSSIkUk9PVC91cHN0cmVhbS9zcmMiIFwKICAgIC1JIiRST09UL3Vwc3RyZWFtL3NyYy9jb3JlL3NyYyIgXAogICAgLUkiJFJPT1QvYnVpbGQiIFwKICAgIC1mcmFtZXdvcmsgRm91bmRhdGlvbiAtZnJhbWV3b3JrIE5ldHdvcmtFeHRlbnNpb24gLWZyYW1ld29yayBTZWN1cml0eSBcCiAgICAiJFJPT1QvLi4vQ29yZS9TUlBDb3JlL1NSUFNTSENsaWVudC5tIiBcCiAgICAiJFJPT1QvLi4vQ29yZS9TUlBDb3JlL1NSUFNTSEJyaWRnZS5jIiBcCiAgICAiJFJPT1QvLi4vQ29yZS9TUlBDb3JlL1NTTG9nLm0iIFwKICAgIG1haW4ubSBcCiAgICAiJFJPT1QvYnVpbGQvbWFjb3N4L2xpYlNSUFNTSDIuYSIgXAogICAgIiRST09UL2J1aWxkL21hY29zeC9saWJTUlBTU0hFbmdpbmUuYSIgXAogICAgIiRST09ULy4uL1NvZnRFdGhlci9vcGVuc3NsL21hY29zeC9saWIvbGlic3Jwc2Vfc3NsLmEiIFwKICAgICIkUk9PVC8uLi9Tb2Z0RXRoZXIvb3BlbnNzbC9tYWNvc3gvbGliL2xpYnNycHNlX2NyeXB0by5hIiBcCiAgICAtbHogLWxpY29udiAtbHJlc29sdiBcCiAgICAtbyBzc2h0ZXN0CmVjaG8gQlVJTFQgc3NodGVzdAo=
+#!/bin/bash
+# Builds the macOS test harness for the SSH engine.
+set -e
+cd "$(dirname "$0")"
+ROOT="$PWD/.."
+CORE="$ROOT/../Core/SRPCore"
+
+xcrun clang -arch arm64 -isysroot "$(xcrun -sdk macosx --show-sdk-path)" \
+    -mmacosx-version-min=12.0 -O0 -g -fobjc-arc -w \
+    -DNS_BLOCK_ASSERTIONS=0 \
+    -I"$CORE" \
+    -I"$ROOT/libssh2/include" \
+    -I"$ROOT/upstream/src" \
+    -I"$ROOT/upstream/src/core/src" \
+    -I"$ROOT/build" \
+    -framework Foundation -framework NetworkExtension -framework Security \
+    "$ROOT/../Core/SRPCore/SRPSSHClient.m" \
+    "$ROOT/../Core/SRPCore/SRPSSHBridge.c" \
+    "$ROOT/../Core/SRPCore/SSLog.m" \
+    main.m \
+    "$ROOT/build/macosx/libSRPSSH2.a" \
+    "$ROOT/build/macosx/libSRPSSHEngine.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_ssl.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_crypto.a" \
+    -lz -liconv -lresolv \
+    -o sshtest
+echo BUILT sshtest

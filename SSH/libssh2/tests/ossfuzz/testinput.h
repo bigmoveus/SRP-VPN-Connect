@@ -1,1 +1,7 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwojaW5jbHVkZSA8aW50dHlwZXMuaD4KCmV4dGVybiAiQyIgaW50IExMVk1GdXp6ZXJUZXN0T25lSW5wdXQoY29uc3QgdWludDhfdCAqZGF0YSwgc2l6ZV90IHNpemUpOwo=
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#include <inttypes.h>
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);

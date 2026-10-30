@@ -1,1 +1,322 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCi8vICNkZWZpbmUgT1BFTlZQTl9CVUZGRVJfQUJPUlQKCiNpbmNsdWRlIDxhbGdvcml0aG0+CgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL29wdGlvbnMuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9yYW5kb20vbXRyYW5kYXBpLmhwcD4KCiNpbmNsdWRlIDxvcGVudnBuL29wdGlvbnMvY29udGludWF0aW9uX2ZyYWdtZW50LmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vb3B0aW9ucy9jb250aW51YXRpb24uaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpzdGF0aWMgdm9pZCByZXF1aXJlX2VxdWFsKGNvbnN0IE9wdGlvbkxpc3QgJm9wdDEsIGNvbnN0IE9wdGlvbkxpc3QgJm9wdDIsIGNvbnN0IHN0ZDo6c3RyaW5nICZ0aXRsZSkKewogICAgaWYgKG9wdDEgIT0gb3B0MikKICAgIHsKICAgICAgICBPUEVOVlBOX0xPRyh0aXRsZSk7CiAgICAgICAgQVNTRVJUX0VRKG9wdDEucmVuZGVyKE9wdGlvbjo6UkVOREVSX0JSQUNLRVQpLCBvcHQyLnJlbmRlcihPcHRpb246OlJFTkRFUl9CUkFDS0VUKSk7CiAgICB9Cn0KCnN0YXRpYyB2b2lkIHJlcXVpcmVfZXF1YWwoY29uc3QgQnVmZmVyICZidWYxLCBjb25zdCBCdWZmZXIgJmJ1ZjIsIGNvbnN0IHN0ZDo6c3RyaW5nICZ0aXRsZSkKewogICAgaWYgKGJ1ZjEgIT0gYnVmMikKICAgIHsKICAgICAgICBPUEVOVlBOX0xPRyh0aXRsZSk7CiAgICAgICAgQVNTRVJUX0VRKGJ1Zl90b19zdHJpbmcoYnVmMSksIGJ1Zl90b19zdHJpbmcoYnVmMikpOwogICAgfQp9CgovLyBwdXNoIGNvbnRpbnVhdGlvbiBtb2RlCmVudW0gUENNb2RlCnsKICAgIE5PX1BDLAogICAgUENfMSwKICAgIFBDXzIsCn07CgpzdGF0aWMgc3RkOjpzdHJpbmcgZ2V0X2NzdihCdWZmZXIgYnVmLCBjb25zdCBQQ01vZGUgcGNfbW9kZSwgY29uc3Qgc3RkOjpzdHJpbmcgJnByZWZpeCkKewogICAgLy8gdmVyaWZ5IFBVU0hfUkVQTFkgdGhlbiByZW1vdmUgaXQKICAgIGlmICghc3RyaW5nOjpzdGFydHNfd2l0aChidWYsIHByZWZpeCArICcsJykpCiAgICAgICAgdGhyb3cgRXhjZXB0aW9uKCJleHBlY3RlZCB0aGF0IGJ1ZmZlciB3b3VsZCBiZWdpbiB3aXRoICIgKyBwcmVmaXgpOwogICAgYnVmLmFkdmFuY2UocHJlZml4Lmxlbmd0aCgpICsgMSk7CgogICAgLy8gcG9zc2libHkgcmVtb3ZlIHB1c2gtY29udGludWF0aW9uIG9wdGlvbnMgZnJvbSB0YWlsIG9mIGJ1ZmZlcgogICAgaWYgKHBjX21vZGUgPT0gUENfMSkKICAgIHsKICAgICAgICBpZiAoIXN0cmluZzo6ZW5kc193aXRoKGJ1ZiwgIixwdXNoLWNvbnRpbnVhdGlvbiAxIikpCiAgICAgICAgICAgIHRocm93IEV4Y2VwdGlvbigiZXhwZWN0ZWQgdGhhdCBidWZmZXIgd291bGQgZW5kIHdpdGggcHVzaC1jb250aW51YXRpb24gMSIpOwogICAgICAgIGJ1Zi5zZXRfc2l6ZShidWYuc2l6ZSgpIC0gMjApOwogICAgfQogICAgZWxzZSBpZiAocGNfbW9kZSA9PSBQQ18yKQogICAgewogICAgICAgIGlmICghc3RyaW5nOjplbmRzX3dpdGgoYnVmLCAiLHB1c2gtY29udGludWF0aW9uIDIiKSkKICAgICAgICAgICAgdGhyb3cgRXhjZXB0aW9uKCJleHBlY3RlZCB0aGF0IGJ1ZmZlciB3b3VsZCBlbmQgd2l0aCBwdXNoLWNvbnRpbnVhdGlvbiAyIik7CiAgICAgICAgYnVmLnNldF9zaXplKGJ1Zi5zaXplKCkgLSAyMCk7CiAgICB9CgogICAgcmV0dXJuIGJ1Zl90b19zdHJpbmcoYnVmKTsKfQoKc3RhdGljIHN0ZDo6c3RyaW5nIGdldF9jc3ZfZnJvbV9mcmFnKEJ1ZmZlciBidWYsIGNvbnN0IHNpemVfdCBpbmRleCwgY29uc3Qgc2l6ZV90IHNpemUsIGNvbnN0IHN0ZDo6c3RyaW5nICZwcmVmaXgpCnsKICAgIGlmIChzaXplIDwgMikKICAgICAgICByZXR1cm4gZ2V0X2NzdihzdGQ6Om1vdmUoYnVmKSwgTk9fUEMsIHByZWZpeCk7CiAgICBlbHNlIGlmIChpbmRleCA9PSBzaXplIC0gMSkKICAgICAgICByZXR1cm4gZ2V0X2NzdihzdGQ6Om1vdmUoYnVmKSwgUENfMSwgcHJlZml4KTsKICAgIGVsc2UKICAgICAgICByZXR1cm4gZ2V0X2NzdihzdGQ6Om1vdmUoYnVmKSwgUENfMiwgcHJlZml4KTsKfQoKc3RhdGljIHN0ZDo6c3RyaW5nIHJhbmRvbV90ZXJtKFJhbmRvbUFQSSAmcHJuZykKewogICAgc3RhdGljIGNvbnN0IHN0ZDo6c3RyaW5nIHJjaHJzID0gIjAxMmFiY0FCQyxcIlxcIjsKCiAgICBzdGQ6OnN0cmluZyByZXQ7CiAgICBjb25zdCBpbnQgbGVuID0gcHJuZy5yYW5kcmFuZ2UzMigxLCAxNik7CiAgICByZXQucmVzZXJ2ZShsZW4pOwogICAgZm9yIChpbnQgaSA9IDA7IGkgPCBsZW47ICsraSkKICAgICAgICByZXQgKz0gcmNocnNbcHJuZy5yYW5kcmFuZ2UzMihzdGF0aWNfY2FzdDx1aW50MzJfdD4ocmNocnMuc2l6ZSgpKSldOwogICAgcmV0dXJuIHJldDsKfQoKc3RhdGljIE9wdGlvbiByYW5kb21fb3B0KFJhbmRvbUFQSSAmcHJuZykKewogICAgT3B0aW9uIHJldDsKICAgIGNvbnN0IGludCBsZW4gPSBwcm5nLnJhbmRyYW5nZTMyKDEsIDQpOwogICAgcmV0LnJlc2VydmUobGVuKTsKICAgIGZvciAoaW50IGkgPSAwOyBpIDwgbGVuOyArK2kpCiAgICAgICAgcmV0LnB1c2hfYmFjayhyYW5kb21fdGVybShwcm5nKSk7CiAgICByZXR1cm4gcmV0Owp9CgpzdGF0aWMgT3B0aW9uTGlzdCByYW5kb21fb3B0aW9ubGlzdChSYW5kb21BUEkgJnBybmcpCnsKICAgIHN0YXRpYyBjb25zdCBpbnQgc2l6ZXNbM10gPSB7MTAsIDEwMCwgMTAwMH07CgogICAgT3B0aW9uTGlzdCByZXQ7CiAgICBjb25zdCBpbnQgbGVuID0gcHJuZy5yYW5kcmFuZ2UzMigxLCBzaXplc1twcm5nLnJhbmRyYW5nZTMyKDMpXSk7CiAgICByZXQucmVzZXJ2ZShsZW4pOwogICAgZm9yIChpbnQgaSA9IDA7IGkgPCBsZW47ICsraSkKICAgICAgICByZXQucHVzaF9iYWNrKHJhbmRvbV9vcHQocHJuZykpOwogICAgcmV0dXJuIHJldDsKfQoKc3RhdGljIHZvaWQgdGVzdF9yb3VuZHRyaXAoY29uc3QgT3B0aW9uTGlzdCAmb3B0X29yaWcsIGNvbnN0IHN0ZDo6c3RyaW5nICZwcmVmaXgpCnsKICAgIC8vIGZpcnN0IHJlbmRlciB0byBDU1YKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYob3B0X29yaWcuc2l6ZSgpICogMTI4LCBCdWZBbGxvY0ZsYWdzOjpHUk9XKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgcHJlZml4ICsgJywnKTsKICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1Ziwgb3B0X29yaWcucmVuZGVyX2NzdigpKTsKCiAgICAvLyBwYXJzZSBiYWNrIHRvIE9wdGlvbkxpc3QgYW5kIHZlcmlmeSByb3VuZCB0cmlwCiAgICBjb25zdCBPcHRpb25MaXN0IG9wdCA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpY19ub21hcChnZXRfY3N2KGJ1ZiwgTk9fUEMsIHByZWZpeCksIG51bGxwdHIpOwogICAgcmVxdWlyZV9lcXVhbChvcHRfb3JpZywgb3B0LCAiVEVTVF9ST1VORFRSSVAgIzEiKTsKCiAgICAvLyBmcmFnbWVudCBpbnRvIG11bHRpcGxlIGJ1ZmZlcnMgdXNpbmcgcHVzaC1jb250aW51YXRpb24KICAgIGNvbnN0IFB1c2hDb250aW51YXRpb25GcmFnbWVudCBmcmFnKGJ1ZiwgcHJlZml4KTsKCiAgICAvLyBwYXJzZSBmcmFnbWVudHMgc2VwYXJhdGVseSBhbmQgdmVyaWZ5IHdpdGggb3JpZ2luYWwKICAgIE9wdGlvbkxpc3QgbmV3X29wdDsKICAgIGZvciAoc2l6ZV90IGkgPSAwOyBpIDwgZnJhZy5zaXplKCk7ICsraSkKICAgICAgICBuZXdfb3B0LnBhcnNlX2Zyb21fY3N2KGdldF9jc3ZfZnJvbV9mcmFnKCpmcmFnW2ldLCBpLCBmcmFnLnNpemUoKSwgcHJlZml4KSwgbnVsbHB0cik7CiAgICByZXF1aXJlX2VxdWFsKG9wdF9vcmlnLCBuZXdfb3B0LCAiVEVTVF9ST1VORFRSSVAgIzIiKTsKCiAgICAvLyB0ZXN0IGNsaWVudC1zaWRlIGNvbnRpbnVhdGlvbiBwYXJzZXIKICAgIE9wdGlvbkxpc3RDb250aW51YXRpb24gY2M7CiAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IGZyYWcuc2l6ZSgpOyArK2kpCiAgICB7CiAgICAgICAgY29uc3QgT3B0aW9uTGlzdCBjbGlfb3B0ID0gT3B0aW9uTGlzdDo6cGFyc2VfZnJvbV9jc3Zfc3RhdGljKGdldF9jc3YoKmZyYWdbaV0sIE5PX1BDLCBwcmVmaXgpLCBudWxscHRyKTsKICAgICAgICBjYy5hZGQoY2xpX29wdCwgbnVsbHB0cik7CiAgICAgICAgQVNTRVJUX1RSVUUoY2MucGFydGlhbCgpKTsKICAgICAgICBBU1NFUlRfRVEoY2MuY29tcGxldGUoKSwgaSA9PSBmcmFnLnNpemUoKSAtIDEpOwogICAgfQoKICAgIC8vIHJlbW92ZSBjbGllbnQtc2lkZSBwdXNoLWNvbnRpbnVhdGlvbiBkaXJlY3RpdmVzIGJlZm9yZSBjb21wYXJpc29uCiAgICBjYy5lcmFzZShzdGQ6OnJlbW92ZV9pZihjYy5iZWdpbigpLCBjYy5lbmQoKSwgW10oY29uc3QgT3B0aW9uICZvKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgeyByZXR1cm4gby5zaXplKCkgPj0gMSAmJiBvLnJlZigwKSA9PSAicHVzaC1jb250aW51YXRpb24iOyB9KSwKICAgICAgICAgICAgIGNjLmVuZCgpKTsKICAgIHJlcXVpcmVfZXF1YWwob3B0X29yaWcsIGNjLCAiVEVTVF9ST1VORFRSSVAgIzMiKTsKCiAgICAvLyBkZWZyYWdtZW50IGJhY2sgdG8gb3JpZ2luYWwgZm9ybQogICAgQnVmZmVyUHRyIGRlZnJhZyA9IFB1c2hDb250aW51YXRpb25GcmFnbWVudDo6ZGVmcmFnbWVudChmcmFnLCBwcmVmaXgpOwogICAgcmVxdWlyZV9lcXVhbChidWYsICpkZWZyYWcsICJURVNUX1JPVU5EVFJJUCAjNCIpOwp9CgovLyB0ZXN0IG1heGltdW0gZnJhZ21lbnQgc2l6ZXMgYW5kIG9wdGlvbmFsbHkgZ2VuZXJhdGUKLy8gcHVzaC1saXN0IGZvciBmdXJ0aGVyIHRlc3RpbmcKc3RhdGljIHZvaWQgdGVzdF9wcmVmaXhfZnJhZ21lbnQoY29uc3Qgc3RkOjpzdHJpbmcgJnByZWZpeCkKewogICAgQnVmZmVyQWxsb2NhdGVkIGJ1Zig2NTUzNiwgQnVmQWxsb2NGbGFnczo6R1JPVyk7CiAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsIHByZWZpeCArICIscm91dGUtZ2F0ZXdheSAxMC4yMTMuMC4xLGlmY29uZmlnIDEwLjIxMy4wLjQ4IDI1NS4yNTUuMC4wLGlmY29uZmlnLWlwdjYgZmRhYjo6NDgvNjQgZmRhYjo6MSxjbGllbnQtaXAgMTkyLjE2OC40LjEscGluZyAxLHBpbmctcmVzdGFydCA4LHJlbmVnLXNlYyA2MCxjaXBoZXIgQUVTLTEyOC1HQ00sY29tcHJlc3Mgc3R1Yi12MixwZWVyLWlkIDQsdG9wb2xvZ3kgc3VibmV0LGV4cGxpY2l0LWV4aXQtbm90aWZ5Iik7CgogICAgLy8gcGFjayB0aGUgYnVmZmVycywgc28gc2V2ZXJhbCByZWFjaCB0aGUgbWF4aW11bQogICAgLy8gZnJhZ21lbnQgc2l6ZSBvZiBQdXNoQ29udGludWF0aW9uRnJhZ21lbnQ6OkZSQUdNRU5UX1NJWkUKICAgIGZvciAoaW50IGkgPSAwOyBpIDwgMTAwMDsgKytpKQogICAgewogICAgICAgIGlmIChpICUgMTAwID09IDApCiAgICAgICAgICAgIGJ1Zl9hcHBlbmRfc3RyaW5nKGJ1ZiwgIixlY2hvIHJvZ3VlLWFnZW50LW5lcHR1bmUtIiArIHN0ZDo6dG9fc3RyaW5nKGkgLyAxMDApKTsKICAgICAgICBidWZfYXBwZW5kX3N0cmluZyhidWYsICIsZWNobyB0ZXN0LSIgKyBzdGQ6OnRvX3N0cmluZyhpKSk7CiAgICB9CgogICAgLy8gZnJhZ21lbnQgaW50byBtdWx0aXBsZSBidWZmZXJzIHVzaW5nIHB1c2gtY29udGludWF0aW9uCiAgICBjb25zdCBQdXNoQ29udGludWF0aW9uRnJhZ21lbnQgZnJhZyhidWYsIHByZWZpeCk7CgogICAgLy8gdmVyaWZ5IHRoYXQgbm8gYnVmZmVyIGV4Y2VlZHMgUHVzaENvbnRpbnVhdGlvbkZyYWdtZW50OjpGUkFHTUVOVF9TSVpFCiAgICBmb3IgKGF1dG8gJmUgOiBmcmFnKQogICAgewogICAgICAgIC8vIE9QRU5WUE5fTE9HKGUtPnNpemUoKSk7CiAgICAgICAgQVNTRVJUX0xFKGUtPnNpemUoKSwgUHVzaENvbnRpbnVhdGlvbkZyYWdtZW50OjpGUkFHTUVOVF9TSVpFKTsKICAgIH0KCiAgICAvLyB3ZSBzaG91bGQgaGF2ZSBmcmFnbWVudGVkIGludG8gMTUgYnVmZmVycwogICAgQVNTRVJUX0VRKGZyYWcuc2l6ZSgpLCAxNSk7CgogICAgLy8gZGVmcmFnbWVudCB0aGUgYnVmZmVyCiAgICBCdWZmZXJQdHIgZGVmcmFnID0gUHVzaENvbnRpbnVhdGlvbkZyYWdtZW50OjpkZWZyYWdtZW50KGZyYWcsIHByZWZpeCk7CiAgICBjb25zdCBPcHRpb25MaXN0IG9wdCA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpY19ub21hcChnZXRfY3N2KCpkZWZyYWcsIE5PX1BDLCBwcmVmaXgpLCBudWxscHRyKTsKCiNpZiAwCiAgLy8gZHVtcCBmb3IgaW5jbHVzaW9uIGluIEpTT04gcHVzaCBsaXN0CiAgZm9yIChjb25zdCBhdXRvICZlIDogb3B0KQogICAgewogICAgICBPUEVOVlBOX0xPRygiICAgIFwiIiA8PCBlLnJlbmRlcigwKSA8PCAiXCIsIik7CiAgICB9CiNlbmRpZgp9CgovLyB0ZXN0IHJvdW5kdHJpcCBmb3IgcmFuZG9tIGNvbmZpZ3VyYXRpb25zCnN0YXRpYyB2b2lkIHRlc3RfcHJlZml4X3JhbmRvbShjb25zdCBzdGQ6OnN0cmluZyAmcHJlZml4KQp7CiAgICBSYW5kb21BUEk6OlB0ciBwcm5nKG5ldyBNVFJhbmQpOwoKICAgIC8vIE5vdGU6IHRoaXMgY29kZSBydW5zIH4xMDB4IHNsb3dlciB3aXRoIHZhbGdyaW5kCiAgICBjb25zdCBpbnQgbiA9IDEwMDsKCiAgICBmb3IgKGludCBpID0gMDsgaSA8IG47ICsraSkKICAgIHsKICAgICAgICBjb25zdCBPcHRpb25MaXN0IG9wdCA9IHJhbmRvbV9vcHRpb25saXN0KCpwcm5nKTsKICAgICAgICB0ZXN0X3JvdW5kdHJpcChvcHQsIHByZWZpeCk7CiAgICB9Cn0KClRFU1QoY29udGludWF0aW9uLCB0ZXN0X3JhbmRvbV9wdXNoX3JlcGx5KQp7CiAgICB0ZXN0X3ByZWZpeF9yYW5kb20oIlBVU0hfUkVQTFkiKTsKfQoKVEVTVChjb250aW51YXRpb24sIHRlc3RfcmFuZG9tX3B1c2hfdXBkYXRlKQp7CiAgICB0ZXN0X3ByZWZpeF9yYW5kb20oIlBVU0hfVVBEQVRFIik7Cn0KClRFU1QoY29udGludWF0aW9uLCB0ZXN0X2ZyYWdtZW50X3B1c2hfcmVwbHkpCnsKICAgIHRlc3RfcHJlZml4X2ZyYWdtZW50KCJQVVNIX1JFUExZIik7Cn0KClRFU1QoY29udGludWF0aW9uLCB0ZXN0X2ZyYWdtZW50X3B1c2hfdXBkYXRlKQp7CiAgICB0ZXN0X3ByZWZpeF9mcmFnbWVudCgiUFVTSF9VUERBVEUiKTsKfQoKVEVTVChjb250aW51YXRpb24sIHB1c2hfdXBkYXRlX2FkZCkKewogICAgT3B0aW9uTGlzdENvbnRpbnVhdGlvbiBjYzsKCiAgICBhdXRvIG9yaWdfb3B0cyA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpYygiYSxiLGMiLCBudWxscHRyKTsKICAgIGNjLmFkZChvcmlnX29wdHMsIG51bGxwdHIpOwogICAgY2MuZmluYWxpemUobnVsbHB0cik7CgogICAgY2MucmVzZXRfY29tcGxldGlvbigpOwoKICAgIGF1dG8gdXBkYXRlID0gT3B0aW9uTGlzdDo6cGFyc2VfZnJvbV9jc3Zfc3RhdGljKCJkbnMsaWZjb25maWciLCBudWxscHRyKTsKICAgIGNjLmFkZCh1cGRhdGUsIG51bGxwdHIsIHRydWUpOwogICAgY2MuZmluYWxpemUobnVsbHB0cik7CgogICAgQVNTRVJUX0VRKGNjLnNpemUoKSwgNSk7Cn0KClRFU1QoY29udGludWF0aW9uLCBwdXNoX3VwZGF0ZV9hZGRfdW5zdXBwb3J0ZWQpCnsKICAgIE9wdGlvbkxpc3RDb250aW51YXRpb24gY2M7CgogICAgYXV0byBvcmlnX29wdHMgPSBPcHRpb25MaXN0OjpwYXJzZV9mcm9tX2Nzdl9zdGF0aWMoImEsYixjIiwgbnVsbHB0cik7CiAgICBjYy5hZGQob3JpZ19vcHRzLCBudWxscHRyKTsKICAgIGNjLmZpbmFsaXplKG51bGxwdHIpOwoKICAgIGNjLnJlc2V0X2NvbXBsZXRpb24oKTsKCiAgICBhdXRvIHVwZGF0ZSA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpYygibXlfdW5zdXBwb3J0ZWRfb3B0aW9uLD9lIiwgbnVsbHB0cik7CiAgICBKWV9FWFBFQ1RfVEhST1coY2MuYWRkKHVwZGF0ZSwgbnVsbHB0ciwgdHJ1ZSksIE9wdGlvbkxpc3RDb250aW51YXRpb246OnB1c2hfdXBkYXRlX3Vuc3VwcG9ydGVkX29wdGlvbiwgIm15X3Vuc3VwcG9ydGVkX29wdGlvbiIpOwogICAgY2MuZmluYWxpemUobnVsbHB0cik7CgogICAgdXBkYXRlID0gT3B0aW9uTGlzdDo6cGFyc2VfZnJvbV9jc3Zfc3RhdGljKCI/Ziw/ZyIsIG51bGxwdHIpOwogICAgY2MuYWRkKHVwZGF0ZSwgbnVsbHB0ciwgdHJ1ZSk7CiAgICBjYy5maW5hbGl6ZShudWxscHRyKTsKCiAgICBBU1NFUlRfRVEoY2Muc2l6ZSgpLCA1KTsKfQoKVEVTVChjb250aW51YXRpb24sIHB1c2hfdXBkYXRlX3JlbW92ZSkKewogICAgT3B0aW9uTGlzdENvbnRpbnVhdGlvbiBjYzsKCiAgICBhdXRvIHVwZGF0ZSA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpYygiLW15X3Vuc3VwcG9ydGVkX29wdGlvbiIsIG51bGxwdHIpOwogICAgSllfRVhQRUNUX1RIUk9XKGNjLmFkZCh1cGRhdGUsIG51bGxwdHIsIHRydWUpLCBPcHRpb25MaXN0Q29udGludWF0aW9uOjpwdXNoX3VwZGF0ZV91bnN1cHBvcnRlZF9vcHRpb24sICJteV91bnN1cHBvcnRlZF9vcHRpb24iKTsKICAgIGNjLmZpbmFsaXplKG51bGxwdHIpOwogICAgY2MucmVzZXRfY29tcGxldGlvbigpOwoKICAgIHVwZGF0ZSA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY3N2X3N0YXRpYygiLT9teV91bnN1cHBvcnRlZF9vcHRpb25hbF9vcHRpb24iLCBudWxscHRyKTsKICAgIGNjLmFkZCh1cGRhdGUsIG51bGxwdHIsIHRydWUpOwogICAgY2MuZmluYWxpemUobnVsbHB0cik7CiAgICBjYy5yZXNldF9jb21wbGV0aW9uKCk7Cn0KClRFU1QoY29udGludWF0aW9uLCBwdXNoX3VwZGF0ZV9hZGRfbXVsdGlwbGUpCnsKICAgIE9wdGlvbkxpc3RDb250aW51YXRpb24gY2M7CgogICAgLy8gdGhpcyBhZGRzIDcgb3B0aW9ucwogICAgYXV0byBvcmlnX29wdHMgPSBPcHRpb25MaXN0OjpwYXJzZV9mcm9tX2Nzdl9zdGF0aWMoImEsYixjLHJvdXRlIDAsaWZjb25maWcsZixkbnMiLCBudWxscHRyKTsKICAgIGNjLmFkZChvcmlnX29wdHMsIG51bGxwdHIpOwogICAgY2MuZmluYWxpemUobnVsbHB0cik7CgogICAgY2MucmVzZXRfY29tcGxldGlvbigpOwoKICAgIC8vIGFmdGVyIHdlIHNob3VsZCBoYXZlIDkgb3B0aW9ucwogICAgYXV0byB1cGRhdGUgPSBPcHRpb25MaXN0OjpwYXJzZV9mcm9tX2Nzdl9zdGF0aWMoInJvdXRlIDEscm91dGUgMiwtaWZjb25maWcsP2JsYSxwdXNoLWNvbnRpbnVhdGlvbiAyIiwgbnVsbHB0cik7CiAgICBjYy5hZGQodXBkYXRlLCBudWxscHRyLCB0cnVlKTsKCiAgICAvLyBhZnRlciB3ZSBzaG91bGQgaGF2ZSAxMCBvcHRpb25zICg5ICsgcHVzaC1jb250aW51YXRpb24pCiAgICB1cGRhdGUgPSBPcHRpb25MaXN0OjpwYXJzZV9mcm9tX2Nzdl9zdGF0aWMoInJvdXRlIDMscm91dGUgNCwtZG5zIiwgbnVsbHB0cik7CiAgICBjYy5hZGQodXBkYXRlLCBudWxscHRyLCB0cnVlKTsKCiAgICBjYy5maW5hbGl6ZShudWxscHRyKTsKCiAgICBBU1NFUlRfVFJVRShjYy5leGlzdHMoImYiKSk7CiAgICBBU1NFUlRfRkFMU0UoY2MuZXhpc3RzKCJkbnMiKSk7CiAgICBBU1NFUlRfRkFMU0UoY2MuZXhpc3RzKCJpZmNvbmZpZyIpKTsKICAgIEFTU0VSVF9UUlVFKGNjLmV4aXN0cygiYmxhIikpOwoKICAgIGNvbnN0IGF1dG8gJmlkeCA9IGNjLmdldF9pbmRleF9wdHIoInJvdXRlIik7CiAgICBBU1NFUlRfRVEoaWR4LT5zaXplKCksIDQpOwoKICAgIEFTU0VSVF9FUShjYy5zaXplKCksIDEwKTsKfQo=
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+// #define OPENVPN_BUFFER_ABORT
+
+#include <algorithm>
+
+#include "test_common.hpp"
+
+#include <openvpn/common/options.hpp>
+#include <openvpn/random/mtrandapi.hpp>
+
+#include <openvpn/options/continuation_fragment.hpp>
+#include <openvpn/options/continuation.hpp>
+
+using namespace openvpn;
+
+static void require_equal(const OptionList &opt1, const OptionList &opt2, const std::string &title)
+{
+    if (opt1 != opt2)
+    {
+        OPENVPN_LOG(title);
+        ASSERT_EQ(opt1.render(Option::RENDER_BRACKET), opt2.render(Option::RENDER_BRACKET));
+    }
+}
+
+static void require_equal(const Buffer &buf1, const Buffer &buf2, const std::string &title)
+{
+    if (buf1 != buf2)
+    {
+        OPENVPN_LOG(title);
+        ASSERT_EQ(buf_to_string(buf1), buf_to_string(buf2));
+    }
+}
+
+// push continuation mode
+enum PCMode
+{
+    NO_PC,
+    PC_1,
+    PC_2,
+};
+
+static std::string get_csv(Buffer buf, const PCMode pc_mode, const std::string &prefix)
+{
+    // verify PUSH_REPLY then remove it
+    if (!string::starts_with(buf, prefix + ','))
+        throw Exception("expected that buffer would begin with " + prefix);
+    buf.advance(prefix.length() + 1);
+
+    // possibly remove push-continuation options from tail of buffer
+    if (pc_mode == PC_1)
+    {
+        if (!string::ends_with(buf, ",push-continuation 1"))
+            throw Exception("expected that buffer would end with push-continuation 1");
+        buf.set_size(buf.size() - 20);
+    }
+    else if (pc_mode == PC_2)
+    {
+        if (!string::ends_with(buf, ",push-continuation 2"))
+            throw Exception("expected that buffer would end with push-continuation 2");
+        buf.set_size(buf.size() - 20);
+    }
+
+    return buf_to_string(buf);
+}
+
+static std::string get_csv_from_frag(Buffer buf, const size_t index, const size_t size, const std::string &prefix)
+{
+    if (size < 2)
+        return get_csv(std::move(buf), NO_PC, prefix);
+    else if (index == size - 1)
+        return get_csv(std::move(buf), PC_1, prefix);
+    else
+        return get_csv(std::move(buf), PC_2, prefix);
+}
+
+static std::string random_term(RandomAPI &prng)
+{
+    static const std::string rchrs = "012abcABC,\"\\";
+
+    std::string ret;
+    const int len = prng.randrange32(1, 16);
+    ret.reserve(len);
+    for (int i = 0; i < len; ++i)
+        ret += rchrs[prng.randrange32(static_cast<uint32_t>(rchrs.size()))];
+    return ret;
+}
+
+static Option random_opt(RandomAPI &prng)
+{
+    Option ret;
+    const int len = prng.randrange32(1, 4);
+    ret.reserve(len);
+    for (int i = 0; i < len; ++i)
+        ret.push_back(random_term(prng));
+    return ret;
+}
+
+static OptionList random_optionlist(RandomAPI &prng)
+{
+    static const int sizes[3] = {10, 100, 1000};
+
+    OptionList ret;
+    const int len = prng.randrange32(1, sizes[prng.randrange32(3)]);
+    ret.reserve(len);
+    for (int i = 0; i < len; ++i)
+        ret.push_back(random_opt(prng));
+    return ret;
+}
+
+static void test_roundtrip(const OptionList &opt_orig, const std::string &prefix)
+{
+    // first render to CSV
+    BufferAllocated buf(opt_orig.size() * 128, BufAllocFlags::GROW);
+    buf_append_string(buf, prefix + ',');
+    buf_append_string(buf, opt_orig.render_csv());
+
+    // parse back to OptionList and verify round trip
+    const OptionList opt = OptionList::parse_from_csv_static_nomap(get_csv(buf, NO_PC, prefix), nullptr);
+    require_equal(opt_orig, opt, "TEST_ROUNDTRIP #1");
+
+    // fragment into multiple buffers using push-continuation
+    const PushContinuationFragment frag(buf, prefix);
+
+    // parse fragments separately and verify with original
+    OptionList new_opt;
+    for (size_t i = 0; i < frag.size(); ++i)
+        new_opt.parse_from_csv(get_csv_from_frag(*frag[i], i, frag.size(), prefix), nullptr);
+    require_equal(opt_orig, new_opt, "TEST_ROUNDTRIP #2");
+
+    // test client-side continuation parser
+    OptionListContinuation cc;
+    for (size_t i = 0; i < frag.size(); ++i)
+    {
+        const OptionList cli_opt = OptionList::parse_from_csv_static(get_csv(*frag[i], NO_PC, prefix), nullptr);
+        cc.add(cli_opt, nullptr);
+        ASSERT_TRUE(cc.partial());
+        ASSERT_EQ(cc.complete(), i == frag.size() - 1);
+    }
+
+    // remove client-side push-continuation directives before comparison
+    cc.erase(std::remove_if(cc.begin(), cc.end(), [](const Option &o)
+                            { return o.size() >= 1 && o.ref(0) == "push-continuation"; }),
+             cc.end());
+    require_equal(opt_orig, cc, "TEST_ROUNDTRIP #3");
+
+    // defragment back to original form
+    BufferPtr defrag = PushContinuationFragment::defragment(frag, prefix);
+    require_equal(buf, *defrag, "TEST_ROUNDTRIP #4");
+}
+
+// test maximum fragment sizes and optionally generate
+// push-list for further testing
+static void test_prefix_fragment(const std::string &prefix)
+{
+    BufferAllocated buf(65536, BufAllocFlags::GROW);
+    buf_append_string(buf, prefix + ",route-gateway 10.213.0.1,ifconfig 10.213.0.48 255.255.0.0,ifconfig-ipv6 fdab::48/64 fdab::1,client-ip 192.168.4.1,ping 1,ping-restart 8,reneg-sec 60,cipher AES-128-GCM,compress stub-v2,peer-id 4,topology subnet,explicit-exit-notify");
+
+    // pack the buffers, so several reach the maximum
+    // fragment size of PushContinuationFragment::FRAGMENT_SIZE
+    for (int i = 0; i < 1000; ++i)
+    {
+        if (i % 100 == 0)
+            buf_append_string(buf, ",echo rogue-agent-neptune-" + std::to_string(i / 100));
+        buf_append_string(buf, ",echo test-" + std::to_string(i));
+    }
+
+    // fragment into multiple buffers using push-continuation
+    const PushContinuationFragment frag(buf, prefix);
+
+    // verify that no buffer exceeds PushContinuationFragment::FRAGMENT_SIZE
+    for (auto &e : frag)
+    {
+        // OPENVPN_LOG(e->size());
+        ASSERT_LE(e->size(), PushContinuationFragment::FRAGMENT_SIZE);
+    }
+
+    // we should have fragmented into 15 buffers
+    ASSERT_EQ(frag.size(), 15);
+
+    // defragment the buffer
+    BufferPtr defrag = PushContinuationFragment::defragment(frag, prefix);
+    const OptionList opt = OptionList::parse_from_csv_static_nomap(get_csv(*defrag, NO_PC, prefix), nullptr);
+
+#if 0
+  // dump for inclusion in JSON push list
+  for (const auto &e : opt)
+    {
+      OPENVPN_LOG("    \"" << e.render(0) << "\",");
+    }
+#endif
+}
+
+// test roundtrip for random configurations
+static void test_prefix_random(const std::string &prefix)
+{
+    RandomAPI::Ptr prng(new MTRand);
+
+    // Note: this code runs ~100x slower with valgrind
+    const int n = 100;
+
+    for (int i = 0; i < n; ++i)
+    {
+        const OptionList opt = random_optionlist(*prng);
+        test_roundtrip(opt, prefix);
+    }
+}
+
+TEST(continuation, test_random_push_reply)
+{
+    test_prefix_random("PUSH_REPLY");
+}
+
+TEST(continuation, test_random_push_update)
+{
+    test_prefix_random("PUSH_UPDATE");
+}
+
+TEST(continuation, test_fragment_push_reply)
+{
+    test_prefix_fragment("PUSH_REPLY");
+}
+
+TEST(continuation, test_fragment_push_update)
+{
+    test_prefix_fragment("PUSH_UPDATE");
+}
+
+TEST(continuation, push_update_add)
+{
+    OptionListContinuation cc;
+
+    auto orig_opts = OptionList::parse_from_csv_static("a,b,c", nullptr);
+    cc.add(orig_opts, nullptr);
+    cc.finalize(nullptr);
+
+    cc.reset_completion();
+
+    auto update = OptionList::parse_from_csv_static("dns,ifconfig", nullptr);
+    cc.add(update, nullptr, true);
+    cc.finalize(nullptr);
+
+    ASSERT_EQ(cc.size(), 5);
+}
+
+TEST(continuation, push_update_add_unsupported)
+{
+    OptionListContinuation cc;
+
+    auto orig_opts = OptionList::parse_from_csv_static("a,b,c", nullptr);
+    cc.add(orig_opts, nullptr);
+    cc.finalize(nullptr);
+
+    cc.reset_completion();
+
+    auto update = OptionList::parse_from_csv_static("my_unsupported_option,?e", nullptr);
+    JY_EXPECT_THROW(cc.add(update, nullptr, true), OptionListContinuation::push_update_unsupported_option, "my_unsupported_option");
+    cc.finalize(nullptr);
+
+    update = OptionList::parse_from_csv_static("?f,?g", nullptr);
+    cc.add(update, nullptr, true);
+    cc.finalize(nullptr);
+
+    ASSERT_EQ(cc.size(), 5);
+}
+
+TEST(continuation, push_update_remove)
+{
+    OptionListContinuation cc;
+
+    auto update = OptionList::parse_from_csv_static("-my_unsupported_option", nullptr);
+    JY_EXPECT_THROW(cc.add(update, nullptr, true), OptionListContinuation::push_update_unsupported_option, "my_unsupported_option");
+    cc.finalize(nullptr);
+    cc.reset_completion();
+
+    update = OptionList::parse_from_csv_static("-?my_unsupported_optional_option", nullptr);
+    cc.add(update, nullptr, true);
+    cc.finalize(nullptr);
+    cc.reset_completion();
+}
+
+TEST(continuation, push_update_add_multiple)
+{
+    OptionListContinuation cc;
+
+    // this adds 7 options
+    auto orig_opts = OptionList::parse_from_csv_static("a,b,c,route 0,ifconfig,f,dns", nullptr);
+    cc.add(orig_opts, nullptr);
+    cc.finalize(nullptr);
+
+    cc.reset_completion();
+
+    // after we should have 9 options
+    auto update = OptionList::parse_from_csv_static("route 1,route 2,-ifconfig,?bla,push-continuation 2", nullptr);
+    cc.add(update, nullptr, true);
+
+    // after we should have 10 options (9 + push-continuation)
+    update = OptionList::parse_from_csv_static("route 3,route 4,-dns", nullptr);
+    cc.add(update, nullptr, true);
+
+    cc.finalize(nullptr);
+
+    ASSERT_TRUE(cc.exists("f"));
+    ASSERT_FALSE(cc.exists("dns"));
+    ASSERT_FALSE(cc.exists("ifconfig"));
+    ASSERT_TRUE(cc.exists("bla"));
+
+    const auto &idx = cc.get_index_ptr("route");
+    ASSERT_EQ(idx->size(), 4);
+
+    ASSERT_EQ(cc.size(), 10);
+}

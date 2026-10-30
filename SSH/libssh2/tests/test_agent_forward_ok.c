@@ -1,1 +1,57 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKc3RhdGljIGNvbnN0IGNoYXIgKnVzZXJuYW1lID0gImxpYnNzaDIiOyAvKiBzZXQgaW4gRG9ja2VyZmlsZSAqLwpzdGF0aWMgY29uc3QgY2hhciAqa2V5X2ZpbGVfcHJpdmF0ZSA9ICJrZXlfcnNhIjsKc3RhdGljIGNvbnN0IGNoYXIgKmtleV9maWxlX3B1YmxpYyA9ICJrZXlfcnNhLnB1YiI7IC8qIHNldCBpbiBEb2NrZXJmaWxlICovCgppbnQgdGVzdChMSUJTU0gyX1NFU1NJT04gKnNlc3Npb24pCnsKICAgIGludCByYzsKICAgIExJQlNTSDJfQ0hBTk5FTCAqY2hhbm5lbDsKCiAgICBjb25zdCBjaGFyICp1c2VyYXV0aF9saXN0ID0KICAgICAgICBsaWJzc2gyX3VzZXJhdXRoX2xpc3Qoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSk7CiAgICBpZighdXNlcmF1dGhfbGlzdCkgewogICAgICAgIHByaW50X2xhc3Rfc2Vzc2lvbl9lcnJvcigibGlic3NoMl91c2VyYXV0aF9saXN0Iik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgaWYoIXN0cnN0cih1c2VyYXV0aF9saXN0LCAicHVibGlja2V5IikpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIidwdWJsaWNrZXknIHdhcyBleHBlY3RlZCBpbiB1c2VyYXV0aCBsaXN0OiAlc1xuIiwKICAgICAgICAgICAgICAgIHVzZXJhdXRoX2xpc3QpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIHJjID0gbGlic3NoMl91c2VyYXV0aF9wdWJsaWNrZXlfZnJvbWZpbGVfZXgoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3JjZGlyX3BhdGgoa2V5X2ZpbGVfcHVibGljKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3JjZGlyX3BhdGgoa2V5X2ZpbGVfcHJpdmF0ZSksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5VTEwpOwogICAgaWYocmMpIHsKICAgICAgICBwcmludF9sYXN0X3Nlc3Npb25fZXJyb3IoImxpYnNzaDJfdXNlcmF1dGhfcHVibGlja2V5X2Zyb21maWxlX2V4Iik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgY2hhbm5lbCA9IGxpYnNzaDJfY2hhbm5lbF9vcGVuX3Nlc3Npb24oc2Vzc2lvbik7CiAgICAjaWYgMAogICAgaWYoIWNoYW5uZWwpIHsKICAgICAgICBwcmludGYoIkVycm9yIG9wZW5pbmcgY2hhbm5lbFxuIik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CiAgICAjZW5kaWYKCiAgICByYyA9IGxpYnNzaDJfY2hhbm5lbF9yZXF1ZXN0X2F1dGhfYWdlbnQoY2hhbm5lbCk7CiAgICBpZihyYykgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiQXV0aCBhZ2VudCByZXF1ZXN0IGZvciBhZ2VudCBmb3J3YXJkaW5nIGZhaWxlZCwgIgogICAgICAgICAgICAiZXJyb3IgY29kZSAlZFxuIiwgcmMpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIHJldHVybiAwOwp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+static const char *username = "libssh2"; /* set in Dockerfile */
+static const char *key_file_private = "key_rsa";
+static const char *key_file_public = "key_rsa.pub"; /* set in Dockerfile */
+
+int test(LIBSSH2_SESSION *session)
+{
+    int rc;
+    LIBSSH2_CHANNEL *channel;
+
+    const char *userauth_list =
+        libssh2_userauth_list(session, username,
+                              (unsigned int)strlen(username));
+    if(!userauth_list) {
+        print_last_session_error("libssh2_userauth_list");
+        return 1;
+    }
+
+    if(!strstr(userauth_list, "publickey")) {
+        fprintf(stderr, "'publickey' was expected in userauth list: %s\n",
+                userauth_list);
+        return 1;
+    }
+
+    rc = libssh2_userauth_publickey_fromfile_ex(session, username,
+                                                (unsigned int)strlen(username),
+                                                srcdir_path(key_file_public),
+                                                srcdir_path(key_file_private),
+                                                NULL);
+    if(rc) {
+        print_last_session_error("libssh2_userauth_publickey_fromfile_ex");
+        return 1;
+    }
+
+    channel = libssh2_channel_open_session(session);
+    #if 0
+    if(!channel) {
+        printf("Error opening channel\n");
+        return 1;
+    }
+    #endif
+
+    rc = libssh2_channel_request_auth_agent(channel);
+    if(rc) {
+        fprintf(stderr, "Auth agent request for agent forwarding failed, "
+            "error code %d\n", rc);
+        return 1;
+    }
+
+    return 0;
+}

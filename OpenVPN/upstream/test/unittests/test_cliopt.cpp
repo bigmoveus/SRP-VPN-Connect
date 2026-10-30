@@ -1,1 +1,299 @@
-I2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKLyogaWYgaW5pdHByb2Nlcy5ocHAgaXMgbm90IGluY2x1ZGVkLCBtaW5ndy93aW5kb3dzIGNvbXBpbGF0aW9uIGZhaWxzIHdpdGgKICogd2VpcmQgc3RhY2sgc3RydWN0IGNyZWF0aW9uIHJlbGF0ZWQgZXJyb3JzIGluIE9wZW5TU0wgKi8KI2luY2x1ZGUgPG9wZW52cG4vaW5pdC9pbml0cHJvY2Vzcy5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3RpbWUvYXNpb3RpbWVyLmhwcD4KCiNpbmNsdWRlIDxjbGllbnQvb3ZwbmNsaS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NsaWVudC9jbGlvcHQuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgovKiBUaGUgY29uZmlnIHBhcnNlciBjaGVja3MgZm9yIHZhbGlkIGNlcnRpZmljYXRlcywgcHJvdmlkZSB2YWxpZCBvbmVzICovCnN0ZDo6c3RyaW5nIGR1bW15c2VjcDI1NmNlcnQgPSAiLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiTUlJQkVUQ0J1QUlKQUltWTJCNE9EbFF1TUFvR0NDcUdTTTQ5QkFNQ01CRXhEekFOQmdOVkJBTU1Cbk5sY25abFxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImNqQWVGdzB5TWpBNE16QXhOVEEzTkRKYUZ3MHpNakE0TWpjeE5UQTNOREphTUJFeER6QU5CZ05WQkFNTUJuTmxcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJjblpsY2pCWk1CTUdCeXFHU000OUFnRUdDQ3FHU000OUF3RUhBMElBQkR3VTBHV0t4VHhZWFAvTDQ0OE9sYVFyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiZmhGMnA4M2VnLzU1TEpCN0FpcTd4Y2tRSW1HYTN3MmhlbzAxaEZRWFEvNG1LM3dzTFpyN1pabDdJREM0aGhNd1xuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIkNnWUlLb1pJemowRUF3SURTQUF3UlFJaEFLRG13aXZzRDRxalJ0YmFYbVVOYzNzcmM2b0ZPQ3VzMzJaUlp3MHBcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJPejl6QWlCWjQ3WWRzSjk4NUlENUNPZzErbkNLayswZDdqV2pJQ2JQY09ESHl6SDRmZz09XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLVxuIjsKCnN0ZDo6c3RyaW5nIGR1bW15c2VjcDI1NmtleSA9ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ2J6WlVZTDBqWk0wNXZCMk9cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImtJS2NBMU94U0t3OVpWUThVbmxVQ2Y2bC84Q2hSQU5DQUFROEZOQmxpc1U4V0Z6L3krT1BEcFdrSzM0UmRxZk5cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjNvUCtlU3lRZXdJcXU4WEpFQ0pobXQ4Tm9YcU5OWVJVRjBQK0ppdDhMQzJhKzJXWmV5QXd1SVlUXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICItLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tXG4iOwoKc3RkOjpzdHJpbmcgY2VydGNvbmZpZyA9ICI8Y2E+XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICArIGR1bW15c2VjcDI1NmNlcnQgKyAiPC9jYT5cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICsgIjxjZXJ0PlxuIgogICAgICAgICAgICAgICAgICAgICAgICAgKyBkdW1teXNlY3AyNTZjZXJ0ICsgIjwvY2VydD5cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICsgIjxrZXk+XG4iICsgZHVtbXlzZWNwMjU2a2V5CiAgICAgICAgICAgICAgICAgICAgICAgICArICI8L2tleT5cbiI7CgpzdGQ6OnN0cmluZyBtaW5pbWFsQ29uZmlnID0gY2VydGNvbmZpZyArICJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICsgImNsaWVudFxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAicmVtb3RlIHdvb2Rlbi5ib3hcbiI7CgpjbGFzcyBWYWxpZENvbmZpZ3MgOiBwdWJsaWMgdGVzdGluZzo6VGVzdFdpdGhQYXJhbTxzdGQ6OnN0cmluZz4Kewp9Owp0eXBlZGVmIHN0ZDo6cGFpcjxzdGQ6OnN0cmluZywgc3RkOjpzdHJpbmc+IGNvbmZpZ19lcnJvcjsKY2xhc3MgSW52YWxpZENvbmZpZ3MgOiBwdWJsaWMgdGVzdGluZzo6VGVzdFdpdGhQYXJhbTxjb25maWdfZXJyb3I+CnsKfTsKCnZvaWQgbG9hZF9jbGllbnRfY29uZmlnKGNvbnN0IHN0ZDo6c3RyaW5nICZjb25maWdfY29udGVudCkKewogICAgT3B0aW9uTGlzdCBvcHRpb25zOwogICAgQ2xpZW50T3B0aW9uczo6Q29uZmlnIGNvbmZpZzsKICAgIGNvbmZpZy5jbGllbnRjb25mLmRjbyA9IHRydWU7CiAgICBjb25maWcucHJvdG9fY29udGV4dF9vcHRpb25zLnJlc2V0KG5ldyBQcm90b0NvbnRleHRDb21wcmVzc2lvbk9wdGlvbnMoKSk7CgogICAgQ2xpZW50QVBJOjpPcGVuVlBOQ2xpZW50SGVscGVyIGNsaWVudF9oZWxwZXI7CiAgICBQYXJzZUNsaWVudENvbmZpZyBjb25mID0gUGFyc2VDbGllbnRDb25maWc6OnBhcnNlKGNvbmZpZ19jb250ZW50KTsKCiAgICBhdXRvIHBhcnNlZF9jb25maWcgPSBQYXJzZUNsaWVudENvbmZpZzo6cGFyc2UoY29uZmlnX2NvbnRlbnQsIG51bGxwdHIsIG9wdGlvbnMpOwoKICAgIENsaWVudE9wdGlvbnMgY2xpb3B0KG9wdGlvbnMsIGNvbmZpZyk7Cn0KClRFU1RfUChWYWxpZENvbmZpZ3MsIHZhbGlkX2NvbmZpZykKewogICAgbG9hZF9jbGllbnRfY29uZmlnKEdldFBhcmFtKCkpOwp9CgpURVNUX1AoSW52YWxpZENvbmZpZ3MsIGNvbmZpZ190aHJvd3Nfb3B0aW9uX2Vycm9yKQp7CiAgICBPVlBOX0VYUEVDVF9USFJPVygKICAgICAgICBsb2FkX2NsaWVudF9jb25maWcoR2V0UGFyYW0oKS5maXJzdCksCiAgICAgICAgb3B0aW9uX2Vycm9yLAogICAgICAgIEdldFBhcmFtKCkuc2Vjb25kKTsKfQoKVEVTVChjb25maWcsIG1pc3NpbmdSZXF1aXJlZE9wdGlvbikKewogICAgUGFyc2VDbGllbnRDb25maWcgY29uZiA9IFBhcnNlQ2xpZW50Q29uZmlnOjpwYXJzZSgibW9kZSBzZXJ2ZXIiKTsKICAgIEVYUEVDVF9FUShjb25mLmVycm9yKCksIHRydWUpOwogICAgRVhQRUNUX1RSVUUoY29uZi5tZXNzYWdlKCkuZmluZCgib3B0aW9uX2Vycm9yOiByZW1vdGUgb3B0aW9uIG5vdCBzcGVjaWZpZWQiKSAhPSBzdGQ6OnN0cmluZzo6bnBvcyk7Cn0KCklOU1RBTlRJQVRFX1RFU1RfU1VJVEVfUCgKICAgIG9wdGlvbkVycm9yLAogICAgSW52YWxpZENvbmZpZ3MsCiAgICB0ZXN0aW5nOjpWYWx1ZXMoCiAgICAgICAgY29uZmlnX2Vycm9ye3N0ZDo6c3RyaW5nKCJyZW1vdGUgd29vZGVuLmJveFxuIikgKyAibW9kZSBzZXJ2ZXIiCiAgICAgICAgICAgICAgICAgICAgICAgICArICJcbjxjYT5cbiIgKyBkdW1teXNlY3AyNTZjZXJ0ICsgIjwvY2E+XG4iLAogICAgICAgICAgICAgICAgICAgICAib3B0aW9uICdjZXJ0JyBub3QgZm91bmQifSwKICAgICAgICBjb25maWdfZXJyb3J7bWluaW1hbENvbmZpZyArICJtb2RlIiwgIk9ubHkgJ21vZGUgcDJwJyBzdXBwb3J0ZWQifSwKICAgICAgICBjb25maWdfZXJyb3J7bWluaW1hbENvbmZpZyArICJtb2RlIHNlcnZlciIsICJPbmx5ICdtb2RlIHAycCcgc3VwcG9ydGVkIn0sCiAgICAgICAgY29uZmlnX2Vycm9ye21pbmltYWxDb25maWcgKyAia2V5LW1ldGhvZCAxIiwgIk9ubHkgJ2tleS1tZXRob2QgMicgaXMgc3VwcG9ydGVkIn0sCiAgICAgICAgY29uZmlnX2Vycm9ye21pbmltYWxDb25maWcgKyAiZnJhZ21lbnQiLCAic29ycnksICdmcmFnbWVudCcgZGlyZWN0aXZlIGlzIG5vdCBzdXBwb3J0ZWQifSkpOwoKVEVTVChjb25maWcsIHBhcnNlX3Vua25vd25fb3B0aW9uKQp7CiAgICBPVlBOX0VYUEVDVF9USFJPVygKICAgICAgICBsb2FkX2NsaWVudF9jb25maWcobWluaW1hbENvbmZpZyArICJiaWtlc2hlZC1jb2xvciBncmVlbiIpLAogICAgICAgIEVycm9yQ29kZSwKICAgICAgICAiVU5LTk9XTi9VTlNVUFBPUlRFRCBPUFRJT05TIik7Cn0KCklOU1RBTlRJQVRFX1RFU1RfU1VJVEVfUCgKICAgIG1pbmltYWxDb25maWdzLAogICAgVmFsaWRDb25maWdzLAogICAgdGVzdGluZzo6VmFsdWVzKAogICAgICAgIC8qIEEgZHVwbGljYXRlIG9wdGlvbiBzaG91bGQgbm90IGNhdXNlIG91ciBwYXJzZXIgdG8gZmFpbCAqLwogICAgICAgIG1pbmltYWxDb25maWcgKyAiY2lwaGVyIEFFUy0xOTItQ0JDXG5jaXBoZXIgQUVTLTI1Ni1HQ01cbiIsCiAgICAgICAgLyogQmlrZXNoZWQgY29sb3VyIGlzIGlnbm9yZWQgc2hvdWxkIHRocm93IG5vIGVycm9yICovCiAgICAgICAgbWluaW1hbENvbmZpZyArICJpZ25vcmUtdW5rbm93bi1vcHRpb24gYmlrZXNoZWQtY29sb3VyIGJpa2VzaGVkLWNvbG9yXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICJpZ25vcmUtdW5rbm93bi1vcHRpb24gZGFuaXNoIGF4ZSBwaGtcbiIKICAgICAgICAgICAgICAgICAgICAgICAgImJpa2VzaGVkLWNvbG91ciBncmVlbiIsCiAgICAgICAgbWluaW1hbENvbmZpZyArICJzZXRlbnYgb3B0IGJpa2VzaGVkLXBhaW50IHNpbHZlciB3aXRoIHNwYXJrbGluZyIsCiAgICAgICAgLyogd2FybmluZ3MsIGJ1dCBubyBlcnJvcnMgKi8KICAgICAgICBtaW5pbWFsQ29uZmlnICsgInR1bi1pcHY2XG4iLAogICAgICAgIG1pbmltYWxDb25maWcgKyAib3B0LXZlcmlmeVxuIikpOwoKVEVTVChjb25maWcsIHBhcnNlX21hbmFnZW1lbnQpCnsKICAgIE9WUE5fRVhQRUNUX1RIUk9XKAogICAgICAgIGxvYWRfY2xpZW50X2NvbmZpZyhtaW5pbWFsQ29uZmlnICsgIm1hbmFnZW1lbnQtaXMtYmx1ZSIpLAogICAgICAgIEVycm9yQ29kZSwKICAgICAgICAiT3BlblZQTiBtYW5hZ2VtZW50IGludGVyZmFjZSBpcyBub3Qgc3VwcG9ydGVkIGJ5IHRoaXMgY2xpZW50Iik7CgogICAgT1ZQTl9FWFBFQ1RfVEhST1coCiAgICAgICAgbG9hZF9jbGllbnRfY29uZmlnKG1pbmltYWxDb25maWcgKyAibWFuYWdlbWVudCIpLAogICAgICAgIEVycm9yQ29kZSwKICAgICAgICAiT3BlblZQTiBtYW5hZ2VtZW50IGludGVyZmFjZSBpcyBub3Qgc3VwcG9ydGVkIGJ5IHRoaXMgY2xpZW50Iik7Cn0KClRFU1QoY29uZmlnLCBkdXBsaWNhdGVfb3B0aW9uc19zZXRzKQp7CiAgICAvKiBEbyB0aGUgd2hvbGUgZGFuY2UgdG8gZ2V0IGEgQ2xpZW50T3B0aW9uIG9iamVjdCB0byBhY2Nlc3MgdGhlIGxpc3QgKi8KICAgIE9wdGlvbkxpc3Qgb3B0aW9uczsKICAgIENsaWVudE9wdGlvbnM6OkNvbmZpZyBjb25maWc7CiAgICBjb25maWcuY2xpZW50Y29uZi5kY28gPSBmYWxzZTsKICAgIGNvbmZpZy5wcm90b19jb250ZXh0X29wdGlvbnMgPSBuZXcgUHJvdG9Db250ZXh0Q29tcHJlc3Npb25PcHRpb25zKCk7CgogICAgQ2xpZW50QVBJOjpPcGVuVlBOQ2xpZW50SGVscGVyIGNsaWVudF9oZWxwZXI7CgogICAgUGFyc2VDbGllbnRDb25maWcgY29uZiA9IFBhcnNlQ2xpZW50Q29uZmlnOjpwYXJzZShtaW5pbWFsQ29uZmlnKTsKCiAgICBhdXRvIHBhcnNlZF9jb25maWcgPSBQYXJzZUNsaWVudENvbmZpZzo6cGFyc2UobWluaW1hbENvbmZpZywgbnVsbHB0ciwgb3B0aW9ucyk7CgogICAgQ2xpZW50T3B0aW9ucyBjbGlvcHQob3B0aW9ucywgY29uZmlnKTsKCiAgICBzdGQ6OnZlY3RvcjxzdGQ6OnVub3JkZXJlZF9zZXQ8c3RkOjpzdHJpbmc+PiBhbGxzZXRzID0gewogICAgICAgIGNsaW9wdC5zZXR0aW5nc19mZWF0dXJlX25vdF9pbXBsZW1lbnRlZF9mYXRhbCwKICAgICAgICBjbGlvcHQuc2V0dGluZ3NfZmVhdHVyZV9ub3RfaW1wbGVtZW50ZWRfd2FybiwKICAgICAgICBjbGlvcHQuc2V0dGluZ3NfaWdub3JlU2lsZW50bHksCiAgICAgICAgY2xpb3B0LnNldHRpbmdzX2lnbm9yZVdpdGhXYXJuaW5nLAogICAgICAgIGNsaW9wdC5zZXR0aW5nc19wdXNob25seW9wdGlvbnMsCiAgICAgICAgY2xpb3B0LnNldHRpbmdzX3JlbW92ZWRPcHRpb25zLAogICAgICAgIGNsaW9wdC5zZXR0aW5nc19zZXJ2ZXJPbmx5T3B0aW9ucywKICAgICAgICBjbGlvcHQuc2V0dGluZ3Nfc3RhbmRhbG9uZV9vcHRpb25zfTsKCiAgICBzdGQ6OnVub3JkZXJlZF9zZXQ8c3RkOjpzdHJpbmc+IGFsbE9wdGlvbnM7CgogICAgZm9yIChhdXRvIHNldCA6IGFsbHNldHMpCiAgICB7CiAgICAgICAgZm9yIChjb25zdCBhdXRvICZvcHRuYW1lIDogc2V0KQogICAgICAgIHsKICAgICAgICAgICAgLyogVXNlIGFuIGV4cGVjdGlvbiBpbnN0ZWFkIG9mIGFuIGFzc2VydCB0byBnZXQgdGhlIG5hbWUgb2YgdGhlIG9wdGlvbgogICAgICAgICAgICAgKiB0aGF0IGlzIGEgZHVwbGljYXRlICovCiAgICAgICAgICAgIGlmICghKGFsbE9wdGlvbnMuZmluZChvcHRuYW1lKSA9PSBhbGxPcHRpb25zLmVuZCgpKSkKICAgICAgICAgICAgICAgIHRocm93IHN0ZDo6cnVudGltZV9lcnJvcigiZHVwbGljYXRlIGVsZW1lbnQ6ICIgKyBvcHRuYW1lKTsKICAgICAgICAgICAgYWxsT3B0aW9ucy5pbnNlcnQob3B0bmFtZSk7CiAgICAgICAgfQogICAgfQp9CgpURVNUKGNvbmZpZywgZGNvX2NvbXBhdGliaWxpdHkpCnsKICAgIGZvciAoYXV0byBvcHRuYW1lIDogQ2xpZW50T3B0aW9uczo6ZGNvX2luY29tcGF0aWJsZV9vcHRzKQogICAgewogICAgICAgIENsaWVudEFQSTo6Q29uZmlnIGFwaV9jb25maWc7CgogICAgICAgIC8qIElmIHdlIGp1c3QgdXNlIGh0dHAtcHJveHkgd2l0aG91dCBhcmd1bWVudCwgd2Ugd2lsbCBiYWlsIG91dCBmb3IKICAgICAgICAgKiBtaXNzaW5nIHBhcmFtZXRlciBpbnN0ZWFkICovCiAgICAgICAgaWYgKG9wdG5hbWUgPT0gImh0dHAtcHJveHkiKQogICAgICAgICAgICBvcHRuYW1lID0gInByb3RvIHRjcFxuaHR0cC1wcm94eSAxLjEuMS4xIDgwODAiOwoKICAgICAgICBhcGlfY29uZmlnLmRjbyA9IHRydWU7CiAgICAgICAgYXBpX2NvbmZpZy5jb250ZW50ID0gbWluaW1hbENvbmZpZyArIG9wdG5hbWU7CiAgICAgICAgQ2xpZW50QVBJOjpPcGVuVlBOQ2xpZW50SGVscGVyIGNsaWVudF9oZWxwZXI7CiAgICAgICAgYXV0byBldmFsID0gY2xpZW50X2hlbHBlci5ldmFsX2NvbmZpZyhhcGlfY29uZmlnKTsKCiAgICAgICAgRVhQRUNUX0ZBTFNFKGV2YWwuZGNvQ29tcGF0aWJsZSk7CgogICAgICAgIE9WUE5fRVhQRUNUX1RIUk9XKAogICAgICAgICAgICBsb2FkX2NsaWVudF9jb25maWcobWluaW1hbENvbmZpZyArIG9wdG5hbWUpLAogICAgICAgICAgICBvcHRpb25fZXJyb3IsCiAgICAgICAgICAgICJFUlJfSU5WQUxJRF9DT05GSUc6IG9wdGlvbl9lcnJvcjogZGNvX2NvbXBhdGliaWxpdHk6IGNvbmZpZy9vcHRpb25zIGFyZSBub3QgY29tcGF0aWJsZSB3aXRoIGRjbyIpOwogICAgfQp9CgpURVNUKGNvbmZpZywgc2VydmVyX2NlcnRfaW5fZXZhbCkKewogICAgQ2xpZW50QVBJOjpDb25maWcgYXBpX2NvbmZpZzsKICAgIGFwaV9jb25maWcuY29udGVudCA9IG1pbmltYWxDb25maWc7CgogICAgQ2xpZW50QVBJOjpPcGVuVlBOQ2xpZW50SGVscGVyIGNsaWVudF9oZWxwZXI7CiAgICBhdXRvIGV2YWwgPSBjbGllbnRfaGVscGVyLmV2YWxfY29uZmlnKGFwaV9jb25maWcpOwoKICAgIEVYUEVDVF9GQUxTRShldmFsLnZwbkNhLmVtcHR5KCkpOwp9CgoKVEVTVChjb25maWcsIHNlcnZlcl9vcHRpb25zX3ByZXNlbnRfaW5fZXJyb3JfbXNnKQp7CiAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gc2VydmVyX29wdGlvbnMgPSB7InNlcnZlciAxMC4wLjAuMCAyNTUuMjU1LjI1NS4wIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAicHVzaCBcImZvbyBiYXJcIiJ9OwoKICAgIGZvciAoYXV0byAmb3B0aW9uIDogc2VydmVyX29wdGlvbnMpCiAgICB7CiAgICAgICAgYXV0byBvcHRuYW1lID0gb3B0aW9uLnN1YnN0cigwLCBvcHRpb24uZmluZCgnICcpKTsKICAgICAgICBhdXRvIGV4cGVjdGVkX2Vycm9yX3N0cmluZyA9ICJTZXJ2ZXIgb25seSBvcHRpb246ICIgKyBvcHRuYW1lOwoKICAgICAgICBPVlBOX0VYUEVDVF9USFJPVygKICAgICAgICAgICAgbG9hZF9jbGllbnRfY29uZmlnKG1pbmltYWxDb25maWcgKyBvcHRpb24pLAogICAgICAgICAgICBFcnJvckNvZGUsCiAgICAgICAgICAgIGV4cGVjdGVkX2Vycm9yX3N0cmluZyk7CiAgICB9Cn0KClRFU1QoY29uZmlnLCB1bmtub3duX29wdGlvbnNfcHJlc2VudF9pbl9lcnJvcl9tc2cpCnsKICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiBzZXJ2ZXJfb3B0aW9ucyA9IHsibWFrZS1hLWxvdC1vZi1ub2lzZSIsICJ3YXRlci10aGUtcGxhbnRzIn07CgogICAgZm9yIChhdXRvICZvcHRpb24gOiBzZXJ2ZXJfb3B0aW9ucykKICAgIHsKICAgICAgICBhdXRvIG9wdG5hbWUgPSBvcHRpb24uc3Vic3RyKDAsIG9wdGlvbi5maW5kKCcgJykpOwogICAgICAgIGF1dG8gZXhwZWN0ZWRfZXJyb3Jfc3RyaW5nID0gIlVOS05PV04vVU5TVVBQT1JURUQgT1BUSU9OUzogIiArIG9wdG5hbWU7CgogICAgICAgIE9WUE5fRVhQRUNUX1RIUk9XKAogICAgICAgICAgICBsb2FkX2NsaWVudF9jb25maWcobWluaW1hbENvbmZpZyArIG9wdGlvbiksCiAgICAgICAgICAgIEVycm9yQ29kZSwKICAgICAgICAgICAgZXhwZWN0ZWRfZXJyb3Jfc3RyaW5nKTsKICAgIH0KfQoKVEVTVChjb25maWcsIG11bHRpcGxlX29wdGlvbl9lcnJvcnMpCnsKICAgIHN0ZDo6b3N0cmluZ3N0cmVhbSBvczsKICAgIG9zIDw8ICJPcGVuVlBOIG1hbmFnZW1lbnQgaW50ZXJmYWNlIGlzIG5vdCBzdXBwb3J0ZWQgYnkgdGhpcyBjbGllbnQ6IG1hbmFnZW1lbnRcbiI7CiAgICBvcyA8PCAiVU5LTk9XTi9VTlNVUFBPUlRFRCBPUFRJT05TOiBsb2wsbGFsIjsKCiAgICBPVlBOX0VYUEVDVF9USFJPVygKICAgICAgICBsb2FkX2NsaWVudF9jb25maWcobWluaW1hbENvbmZpZyArICJtYW5hZ2VtZW50XG5sb2xcbmxhbCIpLAogICAgICAgIEVycm9yQ29kZSwKICAgICAgICBvcy5zdHIoKSk7Cn0KCklOU1RBTlRJQVRFX1RFU1RfU1VJVEVfUCgKICAgIGNsaWVudFB1bGwsCiAgICBWYWxpZENvbmZpZ3MsCiAgICB0ZXN0aW5nOjpWYWx1ZXMoCiAgICAgICAgLyogU2hvdWxkIG5vdCB0cmlnZ2VyIGFuIGVycm9yLCBldmVuIHdpdGhvdXQgLS1jbGllbnQgaW4gcGxhY2UgKi8KICAgICAgICBjZXJ0Y29uZmlnICsgIlxucmVtb3RlIDEuMi4zLjRcbnRscy1jbGllbnRcbnB1bGxcbiIsCiAgICAgICAgLyogU2hvdWxkIG5vdCB0cmlnZ2VyIGFuIGVycm9yLiBSZWR1bmRhbnQgb3B0aW9ucyBhcmUgbm8gcHJvYmxlbSAqLwogICAgICAgIGNlcnRjb25maWcgKyAiXG5yZW1vdGUgMS4yLjMuNFxudGxzLWNsaWVudFxucHVsbFxuY2xpZW50XG4iLAogICAgICAgIGNlcnRjb25maWcgKyAiXG5yZW1vdGUgMS4yLjMuNFxucHVsbFxuY2xpZW50XG4iLAogICAgICAgIGNlcnRjb25maWcgKyAiXG5yZW1vdGUgMS4yLjMuNFxuY2xpZW50XG50bHMtY2xpZW50XG4iKSk7CgpJTlNUQU5USUFURV9URVNUX1NVSVRFX1AoCiAgICBjbGllbnRQdWxsLAogICAgSW52YWxpZENvbmZpZ3MsCiAgICB0ZXN0aW5nOjpWYWx1ZXMoCiAgICAgICAgY29uZmlnX2Vycm9ye2NlcnRjb25maWcgKyAiXG5yZW1vdGUgMS4yLjMuNFxuIiwKICAgICAgICAgICAgICAgICAgICAgIm9wdGlvbl9lcnJvcjogTmVpdGhlciAnY2xpZW50JyBub3IgYm90aCAndGxzLWNsaWVudCcgYW5kICdwdWxsJyBvcHRpb25zIGRlY2xhcmVkLiBPcGVuVlBOMyBjbGllbnQgb25seSBzdXBwb3J0cyAtLWNsaWVudCBtb2RlLiJ9LAogICAgICAgIGNvbmZpZ19lcnJvcntjZXJ0Y29uZmlnICsgIlxucmVtb3RlIDEuMi4zLjRcbnRscy1jbGllbnRcbiIsCiAgICAgICAgICAgICAgICAgICAgICJvcHRpb25fZXJyb3I6IE5laXRoZXIgJ2NsaWVudCcgbm9yIGJvdGggJ3Rscy1jbGllbnQnIGFuZCAncHVsbCcgb3B0aW9ucyBkZWNsYXJlZC4gT3BlblZQTjMgY2xpZW50IG9ubHkgc3VwcG9ydHMgLS1jbGllbnQgbW9kZS4ifSwKICAgICAgICBjb25maWdfZXJyb3J7Y2VydGNvbmZpZyArICJcbnJlbW90ZSAxLjIuMy40XG5wdWxsXG4iLAogICAgICAgICAgICAgICAgICAgICAib3B0aW9uX2Vycm9yOiBOZWl0aGVyICdjbGllbnQnIG5vciBib3RoICd0bHMtY2xpZW50JyBhbmQgJ3B1bGwnIG9wdGlvbnMgZGVjbGFyZWQuIE9wZW5WUE4zIGNsaWVudCBvbmx5IHN1cHBvcnRzIC0tY2xpZW50IG1vZGUuIn0pKTsKClRFU1QoY29uZmlnLCBtZXRhX29wdGlvbl9pbl9jb250ZW50KQp7CiAgICBPcHRpb25MaXN0IG9wdGlvbnM7CiAgICBhdXRvIGNmZyA9IG1pbmltYWxDb25maWcgKyAiXG4jIE9WUE5fQUNDRVNTX1NFUlZFUl9BQUE9QkJCIjsKCiAgICBPcHRpb25MaXN0OjpLZXlWYWx1ZUxpc3Qga3ZsOwogICAga3ZsLnB1c2hfYmFjayhuZXcgT3B0aW9uTGlzdDo6S2V5VmFsdWUoIk9WUE5fQUNDRVNTX1NFUlZFUl9DQ0MiLCAiREREIikpOwoKICAgIGF1dG8gcGFyc2VkX2NvbmZpZyA9IFBhcnNlQ2xpZW50Q29uZmlnOjpwYXJzZShjZmcsICZrdmwsIG9wdGlvbnMpOwoKICAgIENsaWVudE9wdGlvbnM6OkNvbmZpZyBjb25maWc7CiAgICBjb25maWcuY2xpZW50Y29uZi5kY28gPSB0cnVlOwogICAgY29uZmlnLnByb3RvX2NvbnRleHRfb3B0aW9ucy5yZXNldChuZXcgUHJvdG9Db250ZXh0Q29tcHJlc3Npb25PcHRpb25zKCkpOwogICAgQ2xpZW50T3B0aW9ucyBjbGlvcHQob3B0aW9ucywgY29uZmlnKTsKCiAgICBhdXRvIG9wdCA9IG9wdGlvbnMuZ2V0KCJBQUEiKTsKICAgIEFTU0VSVF9UUlVFKG9wdC5tZXRhKCkpOwogICAgQVNTRVJUX0VRKG9wdC5nZXQoMSwgMjU2KSwgIkJCQiIpOwoKICAgIG9wdCA9IG9wdGlvbnMuZ2V0KCJDQ0MiKTsKICAgIEFTU0VSVF9UUlVFKG9wdC5tZXRhKCkpOwogICAgQVNTRVJUX0VRKG9wdC5nZXQoMSwgMjU2KSwgIkRERCIpOwp9Cg==
+#include <iostream>
+#include "test_common.hpp"
+
+/* if initproces.hpp is not included, mingw/windows compilation fails with
+ * weird stack struct creation related errors in OpenSSL */
+#include <openvpn/init/initprocess.hpp>
+#include <openvpn/time/asiotimer.hpp>
+
+#include <client/ovpncli.hpp>
+#include <openvpn/client/cliopt.hpp>
+
+using namespace openvpn;
+
+/* The config parser checks for valid certificates, provide valid ones */
+std::string dummysecp256cert = "-----BEGIN CERTIFICATE-----\n"
+                               "MIIBETCBuAIJAImY2B4ODlQuMAoGCCqGSM49BAMCMBExDzANBgNVBAMMBnNlcnZl\n"
+                               "cjAeFw0yMjA4MzAxNTA3NDJaFw0zMjA4MjcxNTA3NDJaMBExDzANBgNVBAMMBnNl\n"
+                               "cnZlcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABDwU0GWKxTxYXP/L448OlaQr\n"
+                               "fhF2p83eg/55LJB7Aiq7xckQImGa3w2heo01hFQXQ/4mK3wsLZr7ZZl7IDC4hhMw\n"
+                               "CgYIKoZIzj0EAwIDSAAwRQIhAKDmwivsD4qjRtbaXmUNc3src6oFOCus32ZRZw0p\n"
+                               "Oz9zAiBZ47YdsJ985ID5COg1+nCKk+0d7jWjICbPcODHyzH4fg==\n"
+                               "-----END CERTIFICATE-----\n";
+
+std::string dummysecp256key = "-----BEGIN PRIVATE KEY-----\n"
+                              "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgbzZUYL0jZM05vB2O\n"
+                              "kIKcA1OxSKw9ZVQ8UnlUCf6l/8ChRANCAAQ8FNBlisU8WFz/y+OPDpWkK34RdqfN\n"
+                              "3oP+eSyQewIqu8XJECJhmt8NoXqNNYRUF0P+Jit8LC2a+2WZeyAwuIYT\n"
+                              "-----END PRIVATE KEY-----\n";
+
+std::string certconfig = "<ca>\n"
+                         + dummysecp256cert + "</ca>\n"
+                         + "<cert>\n"
+                         + dummysecp256cert + "</cert>\n"
+                         + "<key>\n" + dummysecp256key
+                         + "</key>\n";
+
+std::string minimalConfig = certconfig + "\n"
+                            + "client\n"
+                              "remote wooden.box\n";
+
+class ValidConfigs : public testing::TestWithParam<std::string>
+{
+};
+typedef std::pair<std::string, std::string> config_error;
+class InvalidConfigs : public testing::TestWithParam<config_error>
+{
+};
+
+void load_client_config(const std::string &config_content)
+{
+    OptionList options;
+    ClientOptions::Config config;
+    config.clientconf.dco = true;
+    config.proto_context_options.reset(new ProtoContextCompressionOptions());
+
+    ClientAPI::OpenVPNClientHelper client_helper;
+    ParseClientConfig conf = ParseClientConfig::parse(config_content);
+
+    auto parsed_config = ParseClientConfig::parse(config_content, nullptr, options);
+
+    ClientOptions cliopt(options, config);
+}
+
+TEST_P(ValidConfigs, valid_config)
+{
+    load_client_config(GetParam());
+}
+
+TEST_P(InvalidConfigs, config_throws_option_error)
+{
+    OVPN_EXPECT_THROW(
+        load_client_config(GetParam().first),
+        option_error,
+        GetParam().second);
+}
+
+TEST(config, missingRequiredOption)
+{
+    ParseClientConfig conf = ParseClientConfig::parse("mode server");
+    EXPECT_EQ(conf.error(), true);
+    EXPECT_TRUE(conf.message().find("option_error: remote option not specified") != std::string::npos);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    optionError,
+    InvalidConfigs,
+    testing::Values(
+        config_error{std::string("remote wooden.box\n") + "mode server"
+                         + "\n<ca>\n" + dummysecp256cert + "</ca>\n",
+                     "option 'cert' not found"},
+        config_error{minimalConfig + "mode", "Only 'mode p2p' supported"},
+        config_error{minimalConfig + "mode server", "Only 'mode p2p' supported"},
+        config_error{minimalConfig + "key-method 1", "Only 'key-method 2' is supported"},
+        config_error{minimalConfig + "fragment", "sorry, 'fragment' directive is not supported"}));
+
+TEST(config, parse_unknown_option)
+{
+    OVPN_EXPECT_THROW(
+        load_client_config(minimalConfig + "bikeshed-color green"),
+        ErrorCode,
+        "UNKNOWN/UNSUPPORTED OPTIONS");
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    minimalConfigs,
+    ValidConfigs,
+    testing::Values(
+        /* A duplicate option should not cause our parser to fail */
+        minimalConfig + "cipher AES-192-CBC\ncipher AES-256-GCM\n",
+        /* Bikeshed colour is ignored should throw no error */
+        minimalConfig + "ignore-unknown-option bikeshed-colour bikeshed-color\n"
+                        "ignore-unknown-option danish axe phk\n"
+                        "bikeshed-colour green",
+        minimalConfig + "setenv opt bikeshed-paint silver with sparkling",
+        /* warnings, but no errors */
+        minimalConfig + "tun-ipv6\n",
+        minimalConfig + "opt-verify\n"));
+
+TEST(config, parse_management)
+{
+    OVPN_EXPECT_THROW(
+        load_client_config(minimalConfig + "management-is-blue"),
+        ErrorCode,
+        "OpenVPN management interface is not supported by this client");
+
+    OVPN_EXPECT_THROW(
+        load_client_config(minimalConfig + "management"),
+        ErrorCode,
+        "OpenVPN management interface is not supported by this client");
+}
+
+TEST(config, duplicate_options_sets)
+{
+    /* Do the whole dance to get a ClientOption object to access the list */
+    OptionList options;
+    ClientOptions::Config config;
+    config.clientconf.dco = false;
+    config.proto_context_options = new ProtoContextCompressionOptions();
+
+    ClientAPI::OpenVPNClientHelper client_helper;
+
+    ParseClientConfig conf = ParseClientConfig::parse(minimalConfig);
+
+    auto parsed_config = ParseClientConfig::parse(minimalConfig, nullptr, options);
+
+    ClientOptions cliopt(options, config);
+
+    std::vector<std::unordered_set<std::string>> allsets = {
+        cliopt.settings_feature_not_implemented_fatal,
+        cliopt.settings_feature_not_implemented_warn,
+        cliopt.settings_ignoreSilently,
+        cliopt.settings_ignoreWithWarning,
+        cliopt.settings_pushonlyoptions,
+        cliopt.settings_removedOptions,
+        cliopt.settings_serverOnlyOptions,
+        cliopt.settings_standalone_options};
+
+    std::unordered_set<std::string> allOptions;
+
+    for (auto set : allsets)
+    {
+        for (const auto &optname : set)
+        {
+            /* Use an expection instead of an assert to get the name of the option
+             * that is a duplicate */
+            if (!(allOptions.find(optname) == allOptions.end()))
+                throw std::runtime_error("duplicate element: " + optname);
+            allOptions.insert(optname);
+        }
+    }
+}
+
+TEST(config, dco_compatibility)
+{
+    for (auto optname : ClientOptions::dco_incompatible_opts)
+    {
+        ClientAPI::Config api_config;
+
+        /* If we just use http-proxy without argument, we will bail out for
+         * missing parameter instead */
+        if (optname == "http-proxy")
+            optname = "proto tcp\nhttp-proxy 1.1.1.1 8080";
+
+        api_config.dco = true;
+        api_config.content = minimalConfig + optname;
+        ClientAPI::OpenVPNClientHelper client_helper;
+        auto eval = client_helper.eval_config(api_config);
+
+        EXPECT_FALSE(eval.dcoCompatible);
+
+        OVPN_EXPECT_THROW(
+            load_client_config(minimalConfig + optname),
+            option_error,
+            "ERR_INVALID_CONFIG: option_error: dco_compatibility: config/options are not compatible with dco");
+    }
+}
+
+TEST(config, server_cert_in_eval)
+{
+    ClientAPI::Config api_config;
+    api_config.content = minimalConfig;
+
+    ClientAPI::OpenVPNClientHelper client_helper;
+    auto eval = client_helper.eval_config(api_config);
+
+    EXPECT_FALSE(eval.vpnCa.empty());
+}
+
+
+TEST(config, server_options_present_in_error_msg)
+{
+    std::vector<std::string> server_options = {"server 10.0.0.0 255.255.255.0",
+                                               "push \"foo bar\""};
+
+    for (auto &option : server_options)
+    {
+        auto optname = option.substr(0, option.find(' '));
+        auto expected_error_string = "Server only option: " + optname;
+
+        OVPN_EXPECT_THROW(
+            load_client_config(minimalConfig + option),
+            ErrorCode,
+            expected_error_string);
+    }
+}
+
+TEST(config, unknown_options_present_in_error_msg)
+{
+    std::vector<std::string> server_options = {"make-a-lot-of-noise", "water-the-plants"};
+
+    for (auto &option : server_options)
+    {
+        auto optname = option.substr(0, option.find(' '));
+        auto expected_error_string = "UNKNOWN/UNSUPPORTED OPTIONS: " + optname;
+
+        OVPN_EXPECT_THROW(
+            load_client_config(minimalConfig + option),
+            ErrorCode,
+            expected_error_string);
+    }
+}
+
+TEST(config, multiple_option_errors)
+{
+    std::ostringstream os;
+    os << "OpenVPN management interface is not supported by this client: management\n";
+    os << "UNKNOWN/UNSUPPORTED OPTIONS: lol,lal";
+
+    OVPN_EXPECT_THROW(
+        load_client_config(minimalConfig + "management\nlol\nlal"),
+        ErrorCode,
+        os.str());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    clientPull,
+    ValidConfigs,
+    testing::Values(
+        /* Should not trigger an error, even without --client in place */
+        certconfig + "\nremote 1.2.3.4\ntls-client\npull\n",
+        /* Should not trigger an error. Redundant options are no problem */
+        certconfig + "\nremote 1.2.3.4\ntls-client\npull\nclient\n",
+        certconfig + "\nremote 1.2.3.4\npull\nclient\n",
+        certconfig + "\nremote 1.2.3.4\nclient\ntls-client\n"));
+
+INSTANTIATE_TEST_SUITE_P(
+    clientPull,
+    InvalidConfigs,
+    testing::Values(
+        config_error{certconfig + "\nremote 1.2.3.4\n",
+                     "option_error: Neither 'client' nor both 'tls-client' and 'pull' options declared. OpenVPN3 client only supports --client mode."},
+        config_error{certconfig + "\nremote 1.2.3.4\ntls-client\n",
+                     "option_error: Neither 'client' nor both 'tls-client' and 'pull' options declared. OpenVPN3 client only supports --client mode."},
+        config_error{certconfig + "\nremote 1.2.3.4\npull\n",
+                     "option_error: Neither 'client' nor both 'tls-client' and 'pull' options declared. OpenVPN3 client only supports --client mode."}));
+
+TEST(config, meta_option_in_content)
+{
+    OptionList options;
+    auto cfg = minimalConfig + "\n# OVPN_ACCESS_SERVER_AAA=BBB";
+
+    OptionList::KeyValueList kvl;
+    kvl.push_back(new OptionList::KeyValue("OVPN_ACCESS_SERVER_CCC", "DDD"));
+
+    auto parsed_config = ParseClientConfig::parse(cfg, &kvl, options);
+
+    ClientOptions::Config config;
+    config.clientconf.dco = true;
+    config.proto_context_options.reset(new ProtoContextCompressionOptions());
+    ClientOptions cliopt(options, config);
+
+    auto opt = options.get("AAA");
+    ASSERT_TRUE(opt.meta());
+    ASSERT_EQ(opt.get(1, 256), "BBB");
+
+    opt = options.get("CCC");
+    ASSERT_TRUE(opt.meta());
+    ASSERT_EQ(opt.get(1, 256), "DDD");
+}

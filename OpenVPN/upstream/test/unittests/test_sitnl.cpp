@@ -1,1 +1,334 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlIDxmc3RyZWFtPgojaW5jbHVkZSA8c3lzL2NhcGFiaWxpdHkuaD4KI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlICJvcGVudnBuL2NvbW1vbi9hcmd2LmhwcCIKI2luY2x1ZGUgIm9wZW52cG4vY29tbW9uL3Byb2Nlc3MuaHBwIgojaW5jbHVkZSAib3BlbnZwbi9jb21tb24vcmVkaXIuaHBwIgojaW5jbHVkZSAib3BlbnZwbi9jb21tb24vc3BsaXRsaW5lcy5ocHAiCgojaW5jbHVkZSAib3BlbnZwbi90dW4vbGludXgvY2xpZW50L3NpdG5sLmhwcCIKCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwp1c2luZyBuYW1lc3BhY2UgVHVuTmV0bGluazsKCm5hbWVzcGFjZSB1bml0dGVzdHMgewpzdGF0aWMgc3RkOjpzdHJpbmcgcGF0aF90b19pcDsKCmNsYXNzIFNpdG5sVGVzdCA6IHB1YmxpYyB0ZXN0aW5nOjpUZXN0CnsKICBwcml2YXRlOgogICAgdm9pZCBhZGRfZGV2aWNlKHN0ZDo6c3RyaW5nIG5hbWUpCiAgICB7CiAgICAgICAgUmVkaXJlY3RQaXBlOjpJbk91dCBwaXBlOwogICAgICAgIEFyZ3YgYXJndjsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjayhwYXRoX3RvX2lwKTsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjaygidHVudGFwIik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soImFkZCIpOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCJtb2RlIik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soInR1biIpOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKHN0ZDo6bW92ZShuYW1lKSk7CiAgICAgICAgc3lzdGVtX2NtZChhcmd2WzBdLCBhcmd2LCBudWxscHRyLCBwaXBlLCAwLCBudWxscHRyKTsKICAgIH0KCiAgICB2b2lkIHJlbW92ZV9kZXZpY2Uoc3RkOjpzdHJpbmcgbmFtZSkKICAgIHsKICAgICAgICBSZWRpcmVjdFBpcGU6OkluT3V0IHBpcGU7CiAgICAgICAgQXJndiBhcmd2OwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKHBhdGhfdG9faXApOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCJ0dW50YXAiKTsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjaygiZGVsZXRlIik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soIm1vZGUiKTsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjaygidHVuIik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soc3RkOjptb3ZlKG5hbWUpKTsKICAgICAgICBzeXN0ZW1fY21kKGFyZ3ZbMF0sIGFyZ3YsIG51bGxwdHIsIHBpcGUsIDAsIG51bGxwdHIpOwogICAgfQoKICBwcm90ZWN0ZWQ6CiAgICBzdGF0aWMgdm9pZCBTZXRVcFRlc3RTdWl0ZSgpCiAgICB7CiAgICAgICAgLy8gZGlmZmVyZW50IGRpc3Ryb3MgaGF2ZSBpcCB0b29sIGluIGRpZmZlcmVudCBwbGFjZXMKICAgICAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gcGF0aHN7Ii9iaW4vaXAiLCAiL3NiaW4vaXAiLCAiL3Vzci9iaW4vaXAiLCAiL3Vzci9zYmluL2lwIn07CiAgICAgICAgZm9yIChjb25zdCBhdXRvICZwYXRoIDogcGF0aHMpCiAgICAgICAgewogICAgICAgICAgICBzdGQ6Omlmc3RyZWFtIGYocGF0aCk7CiAgICAgICAgICAgIGlmIChmKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBwYXRoX3RvX2lwID0gcGF0aDsKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIEFTU0VSVF9GQUxTRShwYXRoX3RvX2lwLmVtcHR5KCkpIDw8ICJ1bmFibGUgdG8gZmluZCBpcCB0b29sIjsKICAgIH0KCiAgICBzdGF0aWMgYm9vbCBoYXZlQ2FwTmV0QWRtaW4oKQogICAgewogICAgICAgIGNhcF90IGNhcCA9IGNhcF9nZXRfcHJvYygpOwogICAgICAgIGNhcF9mbGFnX3ZhbHVlX3QgdiA9IENBUF9DTEVBUjsKICAgICAgICBjYXBfZ2V0X2ZsYWcoY2FwLCBDQVBfTkVUX0FETUlOLCBDQVBfRUZGRUNUSVZFLCAmdik7CiAgICAgICAgY2FwX2ZyZWUoY2FwKTsKICAgICAgICByZXR1cm4gdiA9PSBDQVBfU0VUOwogICAgfQoKICAgIHZvaWQgU2V0VXAoKSBvdmVycmlkZQogICAgewogICAgICAgIGlmICghaGF2ZUNhcE5ldEFkbWluKCkpCiAgICAgICAgICAgIEdURVNUX1NLSVAoKSA8PCAiTmVlZCBDQVBfTkVUX0FETUlOIHRvIHJ1biB0aGlzIHRlc3QiOwoKICAgICAgICBhZGRfZGV2aWNlKGRldik7CiAgICAgICAgYWRkX2RldmljZShkZXYyKTsKICAgIH0KCiAgICB2b2lkIFRlYXJEb3duKCkgb3ZlcnJpZGUKICAgIHsKICAgICAgICByZW1vdmVfZGV2aWNlKGRldik7CiAgICAgICAgcmVtb3ZlX2RldmljZShkZXYyKTsKICAgIH0KCiAgICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQ0FMTEJBQ0s+CiAgICB2b2lkIGNtZChjb25zdCBBcmd2ICZhcmd2LCBDQUxMQkFDSyBjYikKICAgIHsKICAgICAgICAvLyBydW5zIGNvbW1hbmQsIHJlYWRzIG91dHB1dCBhbmQgY2FsbHMgYSBjYWxsYmFjawogICAgICAgIFJlZGlyZWN0UGlwZTo6SW5PdXQgcGlwZTsKICAgICAgICBBU1NFUlRfRVEoc3lzdGVtX2NtZChhcmd2WzBdLCBhcmd2LCBudWxscHRyLCBwaXBlLCAwLCBudWxscHRyKSwgMCkgPDwgImZhaWxlZCB0byBydW4gY29tbWFuZCAiIDw8IGFyZ3ZbMF07CgogICAgICAgIFNwbGl0TGluZXMgc2wocGlwZS5vdXQpOwogICAgICAgIGJvb2wgY2FsbGVkID0gZmFsc2U7CiAgICAgICAgd2hpbGUgKHNsKCkpCiAgICAgICAgewogICAgICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyAmbGluZSA9IHNsLmxpbmVfcmVmKCk7CgogICAgICAgICAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gdiA9IFNwbGl0OjpieV9zcGFjZTxzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4sIE51bGxMZXgsIFNwYWNlTWF0Y2gsIFNwbGl0OjpOdWxsTGltaXQ+KGxpbmUpOwoKICAgICAgICAgICAgLy8gYmxhbmsgbGluZT8KICAgICAgICAgICAgaWYgKHYuZW1wdHkoKSkKICAgICAgICAgICAgICAgIGNvbnRpbnVlOwoKICAgICAgICAgICAgY2IodiwgcGlwZS5vdXQsIGNhbGxlZCk7CiAgICAgICAgfQoKICAgICAgICBBU1NFUlRfVFJVRShjYWxsZWQpIDw8IHBpcGUub3V0OwogICAgfQoKICAgIHRlbXBsYXRlIDx0eXBlbmFtZSBDQUxMQkFDSz4KICAgIHZvaWQgaXBfYV9zaG93X2RldihDQUxMQkFDSyBjYikKICAgIHsKICAgICAgICAvLyBnZXQgYWRkcnMgd2l0aCAiaXAgYSBzaG93IGRldiIKICAgICAgICBSZWRpcmVjdFBpcGU6OkluT3V0IHBpcGU7CiAgICAgICAgQXJndiBhcmd2OwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKHBhdGhfdG9faXApOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCJhIik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soInNob3ciKTsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjaygiZGV2Iik7CiAgICAgICAgYXJndi5lbXBsYWNlX2JhY2soZGV2KTsKICAgICAgICBjbWQoYXJndiwgY2IpOwogICAgfQoKICAgIHRlbXBsYXRlIDx0eXBlbmFtZSBDQUxMQkFDSz4KICAgIHZvaWQgaXBfcm91dGVfZ2V0KHN0ZDo6c3RyaW5nIGRzdCwgQ0FMTEJBQ0sgY2IpCiAgICB7CiAgICAgICAgLy8gZ2V0IHJvdXRlIHdpdGggImlwIHJvdXRlIGdldCIKICAgICAgICBSZWRpcmVjdFBpcGU6OkluT3V0IHBpcGU7CiAgICAgICAgQXJndiBhcmd2OwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKHBhdGhfdG9faXApOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCJyb3V0ZSIpOwogICAgICAgIGFyZ3YuZW1wbGFjZV9iYWNrKCJnZXQiKTsKICAgICAgICBhcmd2LmVtcGxhY2VfYmFjayhzdGQ6Om1vdmUoZHN0KSk7CiAgICAgICAgY21kKGFyZ3YsIGNiKTsKICAgIH0KCiAgICBzdGQ6OnN0cmluZyBkZXYgPSAidHVuOTk5IjsKICAgIHN0ZDo6c3RyaW5nIGRldjIgPSAidHVuOTk5OSI7CgogICAgc3RkOjpzdHJpbmcgYWRkcjQgPSAiMTAuMTAuMC4yIjsKICAgIHN0ZDo6c3RyaW5nIHJvdXRlNCA9ICIxMC4xMTAuMC4wLzI0IjsKICAgIHN0ZDo6c3RyaW5nIGd3NCA9ICIxMC4xMC4wLjEiOwoKICAgIHN0ZDo6c3RyaW5nIGFkZHI2ID0gImZlODA6MjBjMzphYWFhOmJiYmI6OmNjY2MiOwogICAgc3RkOjpzdHJpbmcgcm91dGU2ID0gImZlODA6MjBjMzpjY2NjOmRkZGQ6OjAvNjQiOwogICAgc3RkOjpzdHJpbmcgZ3c2ID0gImZlODA6MjBjMzphYWFhOmJiYmI6Y2NjYzpkZGRkOmVlZWU6MSI7CgogICAgaW50IGlwdjRfcHJlZml4X2xlbiA9IDE2OwogICAgaW50IGlwdjZfcHJlZml4X2xlbiA9IDY0OwogICAgaW50IG10dSA9IDEyMzQ7Cn07CgpURVNUX0YoU2l0bmxUZXN0LCBUZXN0QWRkckFkZDQpCnsKICAgIGF1dG8gYnJvYWRjYXN0ID0gSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjQpIHwgfklQdjQ6OkFkZHI6Om5ldG1hc2tfZnJvbV9wcmVmaXhfbGVuKGlwdjRfcHJlZml4X2xlbik7CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9hZGRyX2FkZChkZXYsIElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKGFkZHI0KSwgc3RhdGljX2Nhc3Q8dW5zaWduZWQgY2hhcj4oaXB2NF9wcmVmaXhfbGVuKSwgYnJvYWRjYXN0KSwgMCk7CgogICAgaXBfYV9zaG93X2RldihbdGhpcywgJmJyb2FkY2FzdF0oc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+ICZ2LCBjb25zdCBzdGQ6OnN0cmluZyAmb3V0LCBib29sICZjYWxsZWQpCiAgICAgICAgICAgICAgICAgIHsKCWlmICh2WzBdID09ICJpbmV0IikKCXsKCSAgY2FsbGVkID0gdHJ1ZTsKCSAgQVNTRVJUX0VRKHZbMV0sIGFkZHI0ICsgIi8iICsgc3RkOjp0b19zdHJpbmcoaXB2NF9wcmVmaXhfbGVuKSkgPDwgb3V0OwoJICBBU1NFUlRfRVEodlszXSwgYnJvYWRjYXN0LnRvX3N0cmluZygpKSA8PCBvdXQ7Cgl9IH0pOwp9CgpURVNUX0YoU2l0bmxUZXN0LCBUZXN0QWRkckFkZDYpCnsKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X2FkZHJfYWRkKGRldiwgSVB2Njo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjYpLCBzdGF0aWNfY2FzdDx1bnNpZ25lZCBjaGFyPihpcHY2X3ByZWZpeF9sZW4pKSwgMCk7CgogICAgaXBfYV9zaG93X2RldihbdGhpc10oc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+ICZ2LCBjb25zdCBzdGQ6OnN0cmluZyAmb3V0LCBib29sICZjYWxsZWQpCiAgICAgICAgICAgICAgICAgIHsKCWlmICh2WzBdID09ICJpbmV0NiIpCgl7CgkgIGNhbGxlZCA9IHRydWU7CgkgIEFTU0VSVF9FUSh2WzFdLCBhZGRyNiArICIvIiArIHN0ZDo6dG9fc3RyaW5nKGlwdjZfcHJlZml4X2xlbikpIDw8IG91dDsKCX0gfSk7Cn0KClRFU1RfRihTaXRubFRlc3QsIFRlc3RTZXRNVFUpCnsKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X2lmYWNlX210dV9zZXQoZGV2LCBtdHUpLCAwKTsKCiAgICBpcF9hX3Nob3dfZGV2KFt0aGlzXShzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gJnYsIGNvbnN0IHN0ZDo6c3RyaW5nICZvdXQsIGJvb2wgJmNhbGxlZCkKICAgICAgICAgICAgICAgICAgewoJaWYgKCh2LnNpemUoKSA+IDEpICYmICh2WzFdID09IGRldiArICI6IikpCgl7CgkgIGNhbGxlZCA9IHRydWU7CgkgIEFTU0VSVF9FUSh2WzRdLCBzdGQ6OnRvX3N0cmluZyhtdHUpKSA8PCBvdXQ7Cgl9IH0pOwp9CgpURVNUX0YoU2l0bmxUZXN0LCBUZXN0QWRkUm91dGU0KQp7CiAgICAvLyBhZGQgYWRkcmVzcwogICAgYXV0byBicm9hZGNhc3QgPSBJUHY0OjpBZGRyOjpmcm9tX3N0cmluZyhhZGRyNCkgfCB+SVB2NDo6QWRkcjo6bmV0bWFza19mcm9tX3ByZWZpeF9sZW4oaXB2NF9wcmVmaXhfbGVuKTsKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X2FkZHJfYWRkKGRldiwgSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjQpLCBzdGF0aWNfY2FzdDx1bnNpZ25lZCBjaGFyPihpcHY0X3ByZWZpeF9sZW4pLCBicm9hZGNhc3QpLCAwKTsKCiAgICAvLyB1cCBpbnRlcmZhY2UKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X2lmYWNlX3VwKGRldiwgdHJ1ZSksIDApOwoKICAgIC8vIGFkZCByb3V0ZQogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYWRkKElQOjpSb3V0ZTQocm91dGU0KSwgSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoZ3c0KSwgZGV2LCAwLCAwKSwgMCk7CgogICAgc3RkOjpzdHJpbmcgZHN0eyIxMC4xMTAuMC4xMDAifTsKCiAgICBpcF9yb3V0ZV9nZXQoZHN0LCBbdGhpcywgJmRzdF0oc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+ICZ2LCBjb25zdCBzdGQ6OnN0cmluZyAmb3V0LCBib29sICZjYWxsZWQpCiAgICAgICAgICAgICAgICAgewoJaWYgKHZbMF0gPT0gZHN0KQoJewoJICBjYWxsZWQgPSB0cnVlOwoJICB2LnJlc2l6ZSg3KTsKCSAgYXV0byBleHBlY3RlZCA9IHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPntkc3QsICJ2aWEiLCBndzQsICJkZXYiLCBkZXYsICJzcmMiLCBhZGRyNH07CgkgIEFTU0VSVF9FUSh2LCBleHBlY3RlZCkgPDwgb3V0OwoJfSB9KTsKfQoKVEVTVF9GKFNpdG5sVGVzdCwgVGVzdEFkZFJvdXRlNikKewogICAgLy8gYWRkIGFkZHJlc3MKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X2FkZHJfYWRkKGRldiwgSVB2Njo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjYpLCBzdGF0aWNfY2FzdDx1bnNpZ25lZCBjaGFyPihpcHY2X3ByZWZpeF9sZW4pKSwgMCk7CgogICAgLy8gdXAgaW50ZXJmYWNlCiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9pZmFjZV91cChkZXYsIHRydWUpLCAwKTsKCiAgICAvLyBhZGQgcm91dGUKICAgIEFTU0VSVF9FUShTSVROTDo6bmV0X3JvdXRlX2FkZChJUDo6Um91dGU2KHJvdXRlNiksIElQdjY6OkFkZHI6OmZyb21fc3RyaW5nKGd3NiksIGRldiwgMCwgMCksIDApOwoKICAgIHN0ZDo6c3RyaW5nIGRzdHsiZmU4MDoyMGMzOmNjY2M6ZGRkZDpjY2NjOmRkZGQ6ZWVlZTpmZmZmIn07CiAgICAvKiBCdWcgaW4gaXByb3V0ZSA2LjEuMCB3aXRoIGdsaWJjIDIuMzcrIHRoYXQgdHJ1bmNhdGVzCiAgICAgICBsb25nIGlwdjYgYWRkcmVzc2VzIGR1ZSB0byBzdHJjcHkgb24gb3ZlcmxhcHBpbmcgYnVmZmVycy4KICAgICAgIFNlZSBhbHNvIGh0dHBzOi8vYnVnemlsbGEucmVkaGF0LmNvbS9zaG93X2J1Zy5jZ2k/aWQ9MjIwOTcwMSAqLwogICAgc3RkOjpzdHJpbmcgZHN0X3RydW5je2RzdH07CiAgICBkc3RfdHJ1bmMucmVzaXplKDMxKTsKCiAgICBpcF9yb3V0ZV9nZXQoZHN0LCBbdGhpcywgJmRzdCwgJmRzdF90cnVuY10oc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+ICZ2MSwgY29uc3Qgc3RkOjpzdHJpbmcgJm91dCwgYm9vbCAmY2FsbGVkKQogICAgICAgICAgICAgICAgIHsKCSAgaWYgKHYxWzBdID09IGRzdCB8fCB2MVswXSA9PSBkc3RfdHJ1bmMpCgkgIHsKCSAgICBzdGQ6OnN0cmluZyBkc3Rfb3V0ID0gKHYxWzBdID09IGRzdCkgPyBkc3QgOiBkc3RfdHJ1bmM7CgkgICAgY2FsbGVkID0gdHJ1ZTsKCSAgICB2MS5yZXNpemUoNyk7CgkgICAgLy8gaXByb3V0ZSA0LjE1IChVYnVudHUgMTgpCgkgICAgYXV0byBleHBlY3RlZDEgPSBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz57ZHN0X291dCwgImZyb20iLCAiOjoiLCAidmlhIiwgZ3c2LCAiZGV2IiwgZGV2fTsKCSAgICBhdXRvIG9rMSA9ICh2MSA9PSBleHBlY3RlZDEpOwoKCSAgICBhdXRvIHYyID0gdjE7CgkgICAgdjIucmVzaXplKDUpOwoJICAgIC8vIGlwcm91dGUgNC4xMSAoQ2VudE9TIDcpCgkgICAgYXV0byBleHBlY3RlZDIgPSBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz57ZHN0X291dCwgInZpYSIsIGd3NiwgImRldiIsIGRldn07CgkgICAgYXV0byBvazIgPSAodjIgPT0gZXhwZWN0ZWQyKTsKCgkgICAgaWYgKCFvazEgJiYgIW9rMikKCSAgICB7CgkgICAgICAvLyB0aGlzIGlzIGp1c3QgYSB3YXkgdG8gcHJpbnQgYWN0dWFsIHZhbHVlIGFuZCBhbGwgZXhwZWN0ZWQgdmFsdWVzCgkgICAgICBFWFBFQ1RfRVEodjEsIGV4cGVjdGVkMSk7CgkgICAgICBFWFBFQ1RfRVEodjIsIGV4cGVjdGVkMik7CgkgICAgfQoJICB9IH0pOwp9CgpURVNUX0YoU2l0bmxUZXN0LCBUZXN0QmVzdEd3NCkKewogICAgLy8gYWRkIGFkZHJlc3MKICAgIGF1dG8gYnJvYWRjYXN0ID0gSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjQpIHwgfklQdjQ6OkFkZHI6Om5ldG1hc2tfZnJvbV9wcmVmaXhfbGVuKGlwdjRfcHJlZml4X2xlbik7CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9hZGRyX2FkZChkZXYsIElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKGFkZHI0KSwgc3RhdGljX2Nhc3Q8dW5zaWduZWQgY2hhcj4oaXB2NF9wcmVmaXhfbGVuKSwgYnJvYWRjYXN0KSwgMCk7CgogICAgLy8gdXAgaW50ZXJmYWNlCiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9pZmFjZV91cChkZXYsIHRydWUpLCAwKTsKCiAgICAvLyBhZGQgcm91dGVzCgogICAgLy8gc2hvcnRlc3QgcHJlZml4CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9yb3V0ZV9hZGQoSVA6OlJvdXRlNCgiMTAuMC4wLjAvOCIpLCBJUHY0OjpBZGRyOjpmcm9tX3N0cmluZygiMTAuMTAuMTAuMTAiKSwgZGV2LCAwLCAwKSwgMCk7CiAgICAvLyBsb25nZXN0IHByZWZpeCwgbG93ZXN0IG1ldHJpYwogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYWRkKElQOjpSb3V0ZTQoIjEwLjEwLjEwLjAvMjQiKSwgSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEwLjEwLjEwLjEzIiksIGRldiwgMCwgMCksIDApOwogICAgLy8gc2hvcnQgcHJlZml4CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9yb3V0ZV9hZGQoSVA6OlJvdXRlNCgiMTAuMTAuMC4wLzE2IiksIElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKCIxMC4xMC4xMC4xMSIpLCBkZXYsIDAsIDApLCAwKTsKICAgIC8vIGxvbmdlc3QgcHJlZml4LCBoaWdoZXN0IG1ldHJpYwogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYWRkKElQOjpSb3V0ZTQoIjEwLjEwLjEwLjAvMjQiKSwgSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEwLjEwLjEwLjEyIiksIGRldiwgMCwgMTApLCAwKTsKCiAgICBJUHY0OjpBZGRyIGJlc3RfZ3c7CiAgICBzdGQ6OnN0cmluZyBiZXN0X2lmYWNlOwogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYmVzdF9ndyhJUDo6Um91dGU0KCIxMC4xMC4xMC4xLzMyIiksIGJlc3RfZ3csIGJlc3RfaWZhY2UpLCAwKTsKCiAgICAvLyB3ZSBzaG91bGQgZ2V0IGEgZ2F0ZXdheSB3aXRoIGxvbmdlc3QgcHJlZml4IGFuZCBsb3dlc3QgbWV0cmljCgogICAgQVNTRVJUX0VRKGJlc3RfZ3cudG9fc3RyaW5nKCksICIxMC4xMC4xMC4xMyIpOwogICAgQVNTRVJUX0VRKGJlc3RfaWZhY2UsIGRldik7Cn0KClRFU1RfRihTaXRubFRlc3QsIFRlc3RCZXN0R3c0RmlsdGVySWZhY2UpCnsKICAgIC8vIGFkZCBhZGRyZXNzZXMKICAgIGF1dG8gYnJvYWRjYXN0ID0gSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoYWRkcjQpIHwgfklQdjQ6OkFkZHI6Om5ldG1hc2tfZnJvbV9wcmVmaXhfbGVuKGlwdjRfcHJlZml4X2xlbik7CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9hZGRyX2FkZChkZXYsIElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKGFkZHI0KSwgc3RhdGljX2Nhc3Q8dW5zaWduZWQgY2hhcj4oaXB2NF9wcmVmaXhfbGVuKSwgYnJvYWRjYXN0KSwgMCk7CgogICAgYnJvYWRjYXN0ID0gSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEwLjIwLjAuMiIpIHwgfklQdjQ6OkFkZHI6Om5ldG1hc2tfZnJvbV9wcmVmaXhfbGVuKGlwdjRfcHJlZml4X2xlbik7CiAgICBBU1NFUlRfRVEoU0lUTkw6Om5ldF9hZGRyX2FkZChkZXYyLCBJUHY0OjpBZGRyOjpmcm9tX3N0cmluZygiMTAuMjAuMC4yIiksIHN0YXRpY19jYXN0PHVuc2lnbmVkIGNoYXI+KGlwdjRfcHJlZml4X2xlbiksIGJyb2FkY2FzdCksIDApOwoKICAgIC8vIHVwIGludGVyZmFjZXMKICAgIFNJVE5MOjpuZXRfaWZhY2VfdXAoZGV2LCB0cnVlKTsKICAgIFNJVE5MOjpuZXRfaWZhY2VfdXAoZGV2MiwgdHJ1ZSk7CgogICAgLy8gYWRkIHJvdXRlcwogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYWRkKElQOjpSb3V0ZTQoIjEwLjExLjAuMC8xNiIpLCBJUHY0OjpBZGRyOjpmcm9tX3N0cmluZygiMTAuMTAuMC4xIiksIGRldiwgMCwgMCksIDApOwogICAgQVNTRVJUX0VRKFNJVE5MOjpuZXRfcm91dGVfYWRkKElQOjpSb3V0ZTQoIjEwLjExLjEyLjAvMjQiKSwgSVB2NDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEwLjIwLjAuMSIpLCBkZXYyLCAwLCAwKSwgMCk7CgogICAgSVB2NDo6QWRkciBiZXN0X2d3OwogICAgc3RkOjpzdHJpbmcgYmVzdF9pZmFjZTsKCiAgICAvLyBmaWx0ZXIgb3V0IGdhdGV3YXkgd2l0aCBsb25nZXN0IHByZWZpeCByb3V0ZQogICAgU0lUTkw6Om5ldF9yb3V0ZV9iZXN0X2d3KElQOjpSb3V0ZTQoIjEwLjExLjEyLjEzLzMyIiksIGJlc3RfZ3csIGJlc3RfaWZhY2UsIGRldjIpOwoKICAgIEFTU0VSVF9FUShiZXN0X2d3LnRvX3N0cmluZygpLCAiMTAuMTAuMC4xIik7CiAgICBBU1NFUlRfRVEoYmVzdF9pZmFjZSwgZGV2KTsKfQp9IC8vIG5hbWVzcGFjZSB1bml0dGVzdHMK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include <fstream>
+#include <sys/capability.h>
+#include "test_common.hpp"
+
+#include "openvpn/common/argv.hpp"
+#include "openvpn/common/process.hpp"
+#include "openvpn/common/redir.hpp"
+#include "openvpn/common/splitlines.hpp"
+
+#include "openvpn/tun/linux/client/sitnl.hpp"
+
+using namespace openvpn;
+using namespace TunNetlink;
+
+namespace unittests {
+static std::string path_to_ip;
+
+class SitnlTest : public testing::Test
+{
+  private:
+    void add_device(std::string name)
+    {
+        RedirectPipe::InOut pipe;
+        Argv argv;
+        argv.emplace_back(path_to_ip);
+        argv.emplace_back("tuntap");
+        argv.emplace_back("add");
+        argv.emplace_back("mode");
+        argv.emplace_back("tun");
+        argv.emplace_back(std::move(name));
+        system_cmd(argv[0], argv, nullptr, pipe, 0, nullptr);
+    }
+
+    void remove_device(std::string name)
+    {
+        RedirectPipe::InOut pipe;
+        Argv argv;
+        argv.emplace_back(path_to_ip);
+        argv.emplace_back("tuntap");
+        argv.emplace_back("delete");
+        argv.emplace_back("mode");
+        argv.emplace_back("tun");
+        argv.emplace_back(std::move(name));
+        system_cmd(argv[0], argv, nullptr, pipe, 0, nullptr);
+    }
+
+  protected:
+    static void SetUpTestSuite()
+    {
+        // different distros have ip tool in different places
+        std::vector<std::string> paths{"/bin/ip", "/sbin/ip", "/usr/bin/ip", "/usr/sbin/ip"};
+        for (const auto &path : paths)
+        {
+            std::ifstream f(path);
+            if (f)
+            {
+                path_to_ip = path;
+                break;
+            }
+        }
+        ASSERT_FALSE(path_to_ip.empty()) << "unable to find ip tool";
+    }
+
+    static bool haveCapNetAdmin()
+    {
+        cap_t cap = cap_get_proc();
+        cap_flag_value_t v = CAP_CLEAR;
+        cap_get_flag(cap, CAP_NET_ADMIN, CAP_EFFECTIVE, &v);
+        cap_free(cap);
+        return v == CAP_SET;
+    }
+
+    void SetUp() override
+    {
+        if (!haveCapNetAdmin())
+            GTEST_SKIP() << "Need CAP_NET_ADMIN to run this test";
+
+        add_device(dev);
+        add_device(dev2);
+    }
+
+    void TearDown() override
+    {
+        remove_device(dev);
+        remove_device(dev2);
+    }
+
+    template <typename CALLBACK>
+    void cmd(const Argv &argv, CALLBACK cb)
+    {
+        // runs command, reads output and calls a callback
+        RedirectPipe::InOut pipe;
+        ASSERT_EQ(system_cmd(argv[0], argv, nullptr, pipe, 0, nullptr), 0) << "failed to run command " << argv[0];
+
+        SplitLines sl(pipe.out);
+        bool called = false;
+        while (sl())
+        {
+            const std::string &line = sl.line_ref();
+
+            std::vector<std::string> v = Split::by_space<std::vector<std::string>, NullLex, SpaceMatch, Split::NullLimit>(line);
+
+            // blank line?
+            if (v.empty())
+                continue;
+
+            cb(v, pipe.out, called);
+        }
+
+        ASSERT_TRUE(called) << pipe.out;
+    }
+
+    template <typename CALLBACK>
+    void ip_a_show_dev(CALLBACK cb)
+    {
+        // get addrs with "ip a show dev"
+        RedirectPipe::InOut pipe;
+        Argv argv;
+        argv.emplace_back(path_to_ip);
+        argv.emplace_back("a");
+        argv.emplace_back("show");
+        argv.emplace_back("dev");
+        argv.emplace_back(dev);
+        cmd(argv, cb);
+    }
+
+    template <typename CALLBACK>
+    void ip_route_get(std::string dst, CALLBACK cb)
+    {
+        // get route with "ip route get"
+        RedirectPipe::InOut pipe;
+        Argv argv;
+        argv.emplace_back(path_to_ip);
+        argv.emplace_back("route");
+        argv.emplace_back("get");
+        argv.emplace_back(std::move(dst));
+        cmd(argv, cb);
+    }
+
+    std::string dev = "tun999";
+    std::string dev2 = "tun9999";
+
+    std::string addr4 = "10.10.0.2";
+    std::string route4 = "10.110.0.0/24";
+    std::string gw4 = "10.10.0.1";
+
+    std::string addr6 = "fe80:20c3:aaaa:bbbb::cccc";
+    std::string route6 = "fe80:20c3:cccc:dddd::0/64";
+    std::string gw6 = "fe80:20c3:aaaa:bbbb:cccc:dddd:eeee:1";
+
+    int ipv4_prefix_len = 16;
+    int ipv6_prefix_len = 64;
+    int mtu = 1234;
+};
+
+TEST_F(SitnlTest, TestAddrAdd4)
+{
+    auto broadcast = IPv4::Addr::from_string(addr4) | ~IPv4::Addr::netmask_from_prefix_len(ipv4_prefix_len);
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv4::Addr::from_string(addr4), static_cast<unsigned char>(ipv4_prefix_len), broadcast), 0);
+
+    ip_a_show_dev([this, &broadcast](std::vector<std::string> &v, const std::string &out, bool &called)
+                  {
+	if (v[0] == "inet")
+	{
+	  called = true;
+	  ASSERT_EQ(v[1], addr4 + "/" + std::to_string(ipv4_prefix_len)) << out;
+	  ASSERT_EQ(v[3], broadcast.to_string()) << out;
+	} });
+}
+
+TEST_F(SitnlTest, TestAddrAdd6)
+{
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv6::Addr::from_string(addr6), static_cast<unsigned char>(ipv6_prefix_len)), 0);
+
+    ip_a_show_dev([this](std::vector<std::string> &v, const std::string &out, bool &called)
+                  {
+	if (v[0] == "inet6")
+	{
+	  called = true;
+	  ASSERT_EQ(v[1], addr6 + "/" + std::to_string(ipv6_prefix_len)) << out;
+	} });
+}
+
+TEST_F(SitnlTest, TestSetMTU)
+{
+    ASSERT_EQ(SITNL::net_iface_mtu_set(dev, mtu), 0);
+
+    ip_a_show_dev([this](std::vector<std::string> &v, const std::string &out, bool &called)
+                  {
+	if ((v.size() > 1) && (v[1] == dev + ":"))
+	{
+	  called = true;
+	  ASSERT_EQ(v[4], std::to_string(mtu)) << out;
+	} });
+}
+
+TEST_F(SitnlTest, TestAddRoute4)
+{
+    // add address
+    auto broadcast = IPv4::Addr::from_string(addr4) | ~IPv4::Addr::netmask_from_prefix_len(ipv4_prefix_len);
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv4::Addr::from_string(addr4), static_cast<unsigned char>(ipv4_prefix_len), broadcast), 0);
+
+    // up interface
+    ASSERT_EQ(SITNL::net_iface_up(dev, true), 0);
+
+    // add route
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4(route4), IPv4::Addr::from_string(gw4), dev, 0, 0), 0);
+
+    std::string dst{"10.110.0.100"};
+
+    ip_route_get(dst, [this, &dst](std::vector<std::string> &v, const std::string &out, bool &called)
+                 {
+	if (v[0] == dst)
+	{
+	  called = true;
+	  v.resize(7);
+	  auto expected = std::vector<std::string>{dst, "via", gw4, "dev", dev, "src", addr4};
+	  ASSERT_EQ(v, expected) << out;
+	} });
+}
+
+TEST_F(SitnlTest, TestAddRoute6)
+{
+    // add address
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv6::Addr::from_string(addr6), static_cast<unsigned char>(ipv6_prefix_len)), 0);
+
+    // up interface
+    ASSERT_EQ(SITNL::net_iface_up(dev, true), 0);
+
+    // add route
+    ASSERT_EQ(SITNL::net_route_add(IP::Route6(route6), IPv6::Addr::from_string(gw6), dev, 0, 0), 0);
+
+    std::string dst{"fe80:20c3:cccc:dddd:cccc:dddd:eeee:ffff"};
+    /* Bug in iproute 6.1.0 with glibc 2.37+ that truncates
+       long ipv6 addresses due to strcpy on overlapping buffers.
+       See also https://bugzilla.redhat.com/show_bug.cgi?id=2209701 */
+    std::string dst_trunc{dst};
+    dst_trunc.resize(31);
+
+    ip_route_get(dst, [this, &dst, &dst_trunc](std::vector<std::string> &v1, const std::string &out, bool &called)
+                 {
+	  if (v1[0] == dst || v1[0] == dst_trunc)
+	  {
+	    std::string dst_out = (v1[0] == dst) ? dst : dst_trunc;
+	    called = true;
+	    v1.resize(7);
+	    // iproute 4.15 (Ubuntu 18)
+	    auto expected1 = std::vector<std::string>{dst_out, "from", "::", "via", gw6, "dev", dev};
+	    auto ok1 = (v1 == expected1);
+
+	    auto v2 = v1;
+	    v2.resize(5);
+	    // iproute 4.11 (CentOS 7)
+	    auto expected2 = std::vector<std::string>{dst_out, "via", gw6, "dev", dev};
+	    auto ok2 = (v2 == expected2);
+
+	    if (!ok1 && !ok2)
+	    {
+	      // this is just a way to print actual value and all expected values
+	      EXPECT_EQ(v1, expected1);
+	      EXPECT_EQ(v2, expected2);
+	    }
+	  } });
+}
+
+TEST_F(SitnlTest, TestBestGw4)
+{
+    // add address
+    auto broadcast = IPv4::Addr::from_string(addr4) | ~IPv4::Addr::netmask_from_prefix_len(ipv4_prefix_len);
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv4::Addr::from_string(addr4), static_cast<unsigned char>(ipv4_prefix_len), broadcast), 0);
+
+    // up interface
+    ASSERT_EQ(SITNL::net_iface_up(dev, true), 0);
+
+    // add routes
+
+    // shortest prefix
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.0.0.0/8"), IPv4::Addr::from_string("10.10.10.10"), dev, 0, 0), 0);
+    // longest prefix, lowest metric
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.10.10.0/24"), IPv4::Addr::from_string("10.10.10.13"), dev, 0, 0), 0);
+    // short prefix
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.10.0.0/16"), IPv4::Addr::from_string("10.10.10.11"), dev, 0, 0), 0);
+    // longest prefix, highest metric
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.10.10.0/24"), IPv4::Addr::from_string("10.10.10.12"), dev, 0, 10), 0);
+
+    IPv4::Addr best_gw;
+    std::string best_iface;
+    ASSERT_EQ(SITNL::net_route_best_gw(IP::Route4("10.10.10.1/32"), best_gw, best_iface), 0);
+
+    // we should get a gateway with longest prefix and lowest metric
+
+    ASSERT_EQ(best_gw.to_string(), "10.10.10.13");
+    ASSERT_EQ(best_iface, dev);
+}
+
+TEST_F(SitnlTest, TestBestGw4FilterIface)
+{
+    // add addresses
+    auto broadcast = IPv4::Addr::from_string(addr4) | ~IPv4::Addr::netmask_from_prefix_len(ipv4_prefix_len);
+    ASSERT_EQ(SITNL::net_addr_add(dev, IPv4::Addr::from_string(addr4), static_cast<unsigned char>(ipv4_prefix_len), broadcast), 0);
+
+    broadcast = IPv4::Addr::from_string("10.20.0.2") | ~IPv4::Addr::netmask_from_prefix_len(ipv4_prefix_len);
+    ASSERT_EQ(SITNL::net_addr_add(dev2, IPv4::Addr::from_string("10.20.0.2"), static_cast<unsigned char>(ipv4_prefix_len), broadcast), 0);
+
+    // up interfaces
+    SITNL::net_iface_up(dev, true);
+    SITNL::net_iface_up(dev2, true);
+
+    // add routes
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.11.0.0/16"), IPv4::Addr::from_string("10.10.0.1"), dev, 0, 0), 0);
+    ASSERT_EQ(SITNL::net_route_add(IP::Route4("10.11.12.0/24"), IPv4::Addr::from_string("10.20.0.1"), dev2, 0, 0), 0);
+
+    IPv4::Addr best_gw;
+    std::string best_iface;
+
+    // filter out gateway with longest prefix route
+    SITNL::net_route_best_gw(IP::Route4("10.11.12.13/32"), best_gw, best_iface, dev2);
+
+    ASSERT_EQ(best_gw.to_string(), "10.10.0.1");
+    ASSERT_EQ(best_iface, dev);
+}
+} // namespace unittests

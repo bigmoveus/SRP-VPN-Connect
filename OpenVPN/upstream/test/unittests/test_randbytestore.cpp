@@ -1,1 +1,172 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxjc3RkaW50PgojaW5jbHVkZSA8bGltaXRzPgojaW5jbHVkZSA8dmVjdG9yPgoKI2luY2x1ZGUgPG9wZW52cG4vcmFuZG9tL3JhbmRieXRlc3RvcmUuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgovLyBBIGRldGVybWluaXN0aWMgZmFrZSBSTkcgc2F0aXNmeWluZyB0aGUgVW5pZm9ybVJhbmRvbUJpdEdlbmVyYXRvciBjb25jZXB0LgovLyBSZXR1cm5zIGEgZml4ZWQgc2VxdWVuY2Ugb2YgdmFsdWVzIHN1cHBsaWVkIGF0IGNvbnN0cnVjdGlvbi4KdGVtcGxhdGUgPHR5cGVuYW1lIFQ+CmNsYXNzIEZha2VSTkcKewogIHB1YmxpYzoKICAgIHVzaW5nIHJlc3VsdF90eXBlID0gVDsKCiAgICBleHBsaWNpdCBGYWtlUk5HKHN0ZDo6dmVjdG9yPFQ+IHZhbHVlcykKICAgICAgICA6IHZhbHVlc18oc3RkOjptb3ZlKHZhbHVlcykpCiAgICB7CiAgICB9CgogICAgc3RhdGljIGNvbnN0ZXhwciByZXN1bHRfdHlwZSBtaW4oKQogICAgewogICAgICAgIHJldHVybiBzdGQ6Om51bWVyaWNfbGltaXRzPFQ+OjptaW4oKTsKICAgIH0KCiAgICBzdGF0aWMgY29uc3RleHByIHJlc3VsdF90eXBlIG1heCgpCiAgICB7CiAgICAgICAgcmV0dXJuIHN0ZDo6bnVtZXJpY19saW1pdHM8VD46Om1heCgpOwogICAgfQoKICAgIHJlc3VsdF90eXBlIG9wZXJhdG9yKCkoKQogICAgewogICAgICAgIEVYUEVDVF9MVChjYWxsX2NvdW50XywgdmFsdWVzXy5zaXplKCkpIDw8ICJGYWtlUk5HIGNhbGxlZCBtb3JlIHRpbWVzIHRoYW4gZXhwZWN0ZWQiOwogICAgICAgIHJldHVybiB2YWx1ZXNfW2NhbGxfY291bnRfKytdOwogICAgfQoKICAgIHNpemVfdCBjYWxsX2NvdW50KCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gY2FsbF9jb3VudF87CiAgICB9CgogIHByaXZhdGU6CiAgICBzdGQ6OnZlY3RvcjxUPiB2YWx1ZXNfOwogICAgc2l6ZV90IGNhbGxfY291bnRfID0gMDsKfTsKCi8vIENvcnJlY3QgYmVoYXZpb3VyOiBieXRlcyBhcmUgZXh0cmFjdGVkIExTQi1maXJzdCBmcm9tIGEgMzItYml0IHZhbHVlLgpURVNUKHJhbmRieXRlc3RvcmUsIGdldF9ieXRlX29yZGVyX3UzMikKewogICAgRmFrZVJORzx1aW50MzJfdD4gcm5nKHsweERFQURCRUVGfSk7CiAgICBSYW5kb21CeXRlU3RvcmU8RmFrZVJORzx1aW50MzJfdD4+IHJiczsKCiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4RUYpOwogICAgRVhQRUNUX0VRKHJicy5nZXRfYnl0ZShybmcpLCAweEJFKTsKICAgIEVYUEVDVF9FUShyYnMuZ2V0X2J5dGUocm5nKSwgMHhBRCk7CiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4REUpOwoKICAgIC8vIEV4YWN0bHkgb25lIFJORyBjYWxsIGZvciBmb3VyIGJ5dGVzCiAgICBFWFBFQ1RfRVEocm5nLmNhbGxfY291bnQoKSwgMXUpOwp9CgovLyBDb3JyZWN0IGJlaGF2aW91cjogYnl0ZXMgYXJlIGV4dHJhY3RlZCBMU0ItZmlyc3QgZnJvbSBhIDY0LWJpdCB2YWx1ZS4KVEVTVChyYW5kYnl0ZXN0b3JlLCBnZXRfYnl0ZV9vcmRlcl91NjQpCnsKICAgIEZha2VSTkc8dWludDY0X3Q+IHJuZyh7MHgwMTAyMDMwNDA1MDYwNzA4VUxMfSk7CiAgICBSYW5kb21CeXRlU3RvcmU8RmFrZVJORzx1aW50NjRfdD4+IHJiczsKCiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4MDgpOwogICAgRVhQRUNUX0VRKHJicy5nZXRfYnl0ZShybmcpLCAweDA3KTsKICAgIEVYUEVDVF9FUShyYnMuZ2V0X2J5dGUocm5nKSwgMHgwNik7CiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4MDUpOwogICAgRVhQRUNUX0VRKHJicy5nZXRfYnl0ZShybmcpLCAweDA0KTsKICAgIEVYUEVDVF9FUShyYnMuZ2V0X2J5dGUocm5nKSwgMHgwMyk7CiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4MDIpOwogICAgRVhQRUNUX0VRKHJicy5nZXRfYnl0ZShybmcpLCAweDAxKTsKCiAgICAvLyBFeGFjdGx5IG9uZSBSTkcgY2FsbCBmb3IgZWlnaHQgYnl0ZXMKICAgIEVYUEVDVF9FUShybmcuY2FsbF9jb3VudCgpLCAxdSk7Cn0KCi8vIENvcnJlY3QgYmVoYXZpb3VyOiBhIHNlY29uZCBSTkcgY2FsbCBpcyBtYWRlIG9ubHkgYWZ0ZXIgYWxsIGJ5dGVzIGFyZSBjb25zdW1lZC4KVEVTVChyYW5kYnl0ZXN0b3JlLCByZWZpbGxfb25fZXhoYXVzdGlvbikKewogICAgRmFrZVJORzx1aW50MzJfdD4gcm5nKHsweDExMjIzMzQ0LCAweEFBQkJDQ0REfSk7CiAgICBSYW5kb21CeXRlU3RvcmU8RmFrZVJORzx1aW50MzJfdD4+IHJiczsKCiAgICAvLyBDb25zdW1lIGZpcnN0IHdvcmQgKDQgYnl0ZXMpCiAgICBmb3IgKGludCBpID0gMDsgaSA8IDQ7ICsraSkKICAgICAgICByYnMuZ2V0X2J5dGUocm5nKTsKICAgIEVYUEVDVF9FUShybmcuY2FsbF9jb3VudCgpLCAxdSk7CgogICAgLy8gRmlyc3QgYnl0ZSBvZiBzZWNvbmQgd29yZCB0cmlnZ2VycyB0aGUgcmVmaWxsCiAgICBFWFBFQ1RfRVEocmJzLmdldF9ieXRlKHJuZyksIDB4REQpOwogICAgRVhQRUNUX0VRKHJuZy5jYWxsX2NvdW50KCksIDJ1KTsKfQoKLy8gQ29ycmVjdCBiZWhhdmlvdXI6IGZpbGwoKSBwb3B1bGF0ZXMgYSBzdHJ1Y3Qgd2l0aCB0aGUgZXhwZWN0ZWQgYnl0ZXMuClRFU1QocmFuZGJ5dGVzdG9yZSwgZmlsbF9zdHJ1Y3QpCnsKICAgIC8vIFR3byBzdWNjZXNzaXZlIDMyLWJpdCB3b3JkczogdGhlIGZpbGwgY292ZXJzIGV4YWN0bHkgOCBieXRlcwogICAgRmFrZVJORzx1aW50MzJfdD4gcm5nKHsweDAxMDIwMzA0LCAweDA1MDYwNzA4fSk7CiAgICBSYW5kb21CeXRlU3RvcmU8RmFrZVJORzx1aW50MzJfdD4+IHJiczsKCiAgICB1aW50NjRfdCByZXN1bHQgPSAwOwogICAgcmJzLmZpbGwocmVzdWx0LCBybmcpOwoKICAgIC8vIGZpbGwoKSB3cml0ZXMgYnl0ZXMgaW4gZ2V0X2J5dGUoKSBvcmRlciAoTFNCLWZpcnN0IHBlciB3b3JkKQogICAgLy8gV29yZCAwOiAweDAxMDIwMzA0IOKGkiBieXRlcyAwNCAwMyAwMiAwMSBhdCBvZmZzZXRzIDAtMwogICAgLy8gV29yZCAxOiAweDA1MDYwNzA4IOKGkiBieXRlcyAwOCAwNyAwNiAwNSBhdCBvZmZzZXRzIDQtNwogICAgY29uc3QgdW5zaWduZWQgY2hhciAqYiA9IHJlaW50ZXJwcmV0X2Nhc3Q8Y29uc3QgdW5zaWduZWQgY2hhciAqPigmcmVzdWx0KTsKICAgIEVYUEVDVF9FUShiWzBdLCAweDA0KTsKICAgIEVYUEVDVF9FUShiWzFdLCAweDAzKTsKICAgIEVYUEVDVF9FUShiWzJdLCAweDAyKTsKICAgIEVYUEVDVF9FUShiWzNdLCAweDAxKTsKICAgIEVYUEVDVF9FUShiWzRdLCAweDA4KTsKICAgIEVYUEVDVF9FUShiWzVdLCAweDA3KTsKICAgIEVYUEVDVF9FUShiWzZdLCAweDA2KTsKICAgIEVYUEVDVF9FUShiWzddLCAweDA1KTsKCiAgICBFWFBFQ1RfRVEocm5nLmNhbGxfY291bnQoKSwgMnUpOwp9CgovLyBJbmNvcnJlY3QgYmVoYXZpb3VyOiB3cm9uZyBieXRlIG9yZGVyIHdvdWxkIGJlIGNhdWdodCBieSB0aGlzIHRlc3QuClRFU1QocmFuZGJ5dGVzdG9yZSwgYnl0ZV9vcmRlcl9ub3RfbXNiX2ZpcnN0KQp7CiAgICBGYWtlUk5HPHVpbnQzMl90PiBybmcoezB4QUFCQkNDRER9KTsKICAgIFJhbmRvbUJ5dGVTdG9yZTxGYWtlUk5HPHVpbnQzMl90Pj4gcmJzOwoKICAgIC8vIElmIGV4dHJhY3Rpb24gd2VyZSBNU0ItZmlyc3QgdGhlIGZpcnN0IGJ5dGUgd291bGQgYmUgMHhBQSDigJQgaXQgbXVzdCBub3QgYmUuCiAgICBFWFBFQ1RfTkUocmJzLmdldF9ieXRlKHJuZyksIDB4QUEpOwp9CgovLyBJbmNvcnJlY3QgYmVoYXZpb3VyOiBlYXJseSByZWZpbGwgd291bGQgYmUgY2F1Z2h0IOKAlCBSTkcgbXVzdCBub3QgYmUgY2FsbGVkIHR3aWNlCi8vIGZvciB0aGUgZmlyc3Qgc2l6ZW9mKHJlc3VsdF90eXBlKSBieXRlcy4KVEVTVChyYW5kYnl0ZXN0b3JlLCBub19lYXJseV9yZWZpbGwpCnsKICAgIEZha2VSTkc8dWludDMyX3Q+IHJuZyh7MHgxMjM0NTY3OCwgMHhERUFEQkVFRn0pOwogICAgUmFuZG9tQnl0ZVN0b3JlPEZha2VSTkc8dWludDMyX3Q+PiByYnM7CgogICAgcmJzLmdldF9ieXRlKHJuZyk7CiAgICByYnMuZ2V0X2J5dGUocm5nKTsKICAgIHJicy5nZXRfYnl0ZShybmcpOwoKICAgIC8vIFRocmVlIGJ5dGVzIGNvbnN1bWVkIGZyb20gYSAzMi1iaXQgd29yZCDigJQgc3RpbGwgb25seSBvbmUgUk5HIGNhbGwKICAgIEVYUEVDVF9FUShybmcuY2FsbF9jb3VudCgpLCAxdSk7Cn0KCi8vIEluY29ycmVjdCBiZWhhdmlvdXI6IGEgbWlzc2VkIHJlZmlsbCAoc3RhbGUgZGF0YSkgd291bGQgcHJvZHVjZSBhIHplcm8gYnl0ZQovLyB3aGVyZSB0aGUgbmV3IFJORyB2YWx1ZSBzaG91bGQgYXBwZWFyLgpURVNUKHJhbmRieXRlc3RvcmUsIG5vX21pc3NlZF9yZWZpbGwpCnsKICAgIEZha2VSTkc8dWludDMyX3Q+IHJuZyh7MHgwMDAwMDAwMCwgMHhGRjAwMDAwMH0pOwogICAgUmFuZG9tQnl0ZVN0b3JlPEZha2VSTkc8dWludDMyX3Q+PiByYnM7CgogICAgZm9yIChpbnQgaSA9IDA7IGkgPCA0OyArK2kpCiAgICAgICAgcmJzLmdldF9ieXRlKHJuZyk7CgogICAgLy8gV2l0aG91dCBhIHJlZmlsbCB0aGUgNXRoIGJ5dGUgd291bGQgYmUgMHgwMCAoc3RhbGUpOyB3aXRoIGNvcnJlY3QKICAgIC8vIGJlaGF2aW91ciB0aGUgbmV3IHdvcmQgMHhGRjAwMDAwMCBjb250cmlidXRlcyAweDAwIGF0IGJ5dGUgMCBhcyB3ZWxsLAogICAgLy8gc28gdXNlIGEgdmFsdWUgdGhhdCBtYWtlcyB0aGUgZGlzdGluY3Rpb24gdW5hbWJpZ3VvdXMuCiAgICBGYWtlUk5HPHVpbnQzMl90PiBybmcyKHsweDAwMDAwMDAwLCAweEFCQ0RFRjAxfSk7CiAgICBSYW5kb21CeXRlU3RvcmU8RmFrZVJORzx1aW50MzJfdD4+IHJiczI7CgogICAgZm9yIChpbnQgaSA9IDA7IGkgPCA0OyArK2kpCiAgICAgICAgcmJzMi5nZXRfYnl0ZShybmcyKTsKCiAgICBFWFBFQ1RfRVEocmJzMi5nZXRfYnl0ZShybmcyKSwgMHgwMSk7IC8vIExTQiBvZiAweEFCQ0RFRjAxCiAgICBFWFBFQ1RfRVEocm5nMi5jYWxsX2NvdW50KCksIDJ1KTsKfQo=
+#include "test_common.hpp"
+
+#include <cstdint>
+#include <limits>
+#include <vector>
+
+#include <openvpn/random/randbytestore.hpp>
+
+using namespace openvpn;
+
+// A deterministic fake RNG satisfying the UniformRandomBitGenerator concept.
+// Returns a fixed sequence of values supplied at construction.
+template <typename T>
+class FakeRNG
+{
+  public:
+    using result_type = T;
+
+    explicit FakeRNG(std::vector<T> values)
+        : values_(std::move(values))
+    {
+    }
+
+    static constexpr result_type min()
+    {
+        return std::numeric_limits<T>::min();
+    }
+
+    static constexpr result_type max()
+    {
+        return std::numeric_limits<T>::max();
+    }
+
+    result_type operator()()
+    {
+        EXPECT_LT(call_count_, values_.size()) << "FakeRNG called more times than expected";
+        return values_[call_count_++];
+    }
+
+    size_t call_count() const
+    {
+        return call_count_;
+    }
+
+  private:
+    std::vector<T> values_;
+    size_t call_count_ = 0;
+};
+
+// Correct behaviour: bytes are extracted LSB-first from a 32-bit value.
+TEST(randbytestore, get_byte_order_u32)
+{
+    FakeRNG<uint32_t> rng({0xDEADBEEF});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    EXPECT_EQ(rbs.get_byte(rng), 0xEF);
+    EXPECT_EQ(rbs.get_byte(rng), 0xBE);
+    EXPECT_EQ(rbs.get_byte(rng), 0xAD);
+    EXPECT_EQ(rbs.get_byte(rng), 0xDE);
+
+    // Exactly one RNG call for four bytes
+    EXPECT_EQ(rng.call_count(), 1u);
+}
+
+// Correct behaviour: bytes are extracted LSB-first from a 64-bit value.
+TEST(randbytestore, get_byte_order_u64)
+{
+    FakeRNG<uint64_t> rng({0x0102030405060708ULL});
+    RandomByteStore<FakeRNG<uint64_t>> rbs;
+
+    EXPECT_EQ(rbs.get_byte(rng), 0x08);
+    EXPECT_EQ(rbs.get_byte(rng), 0x07);
+    EXPECT_EQ(rbs.get_byte(rng), 0x06);
+    EXPECT_EQ(rbs.get_byte(rng), 0x05);
+    EXPECT_EQ(rbs.get_byte(rng), 0x04);
+    EXPECT_EQ(rbs.get_byte(rng), 0x03);
+    EXPECT_EQ(rbs.get_byte(rng), 0x02);
+    EXPECT_EQ(rbs.get_byte(rng), 0x01);
+
+    // Exactly one RNG call for eight bytes
+    EXPECT_EQ(rng.call_count(), 1u);
+}
+
+// Correct behaviour: a second RNG call is made only after all bytes are consumed.
+TEST(randbytestore, refill_on_exhaustion)
+{
+    FakeRNG<uint32_t> rng({0x11223344, 0xAABBCCDD});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    // Consume first word (4 bytes)
+    for (int i = 0; i < 4; ++i)
+        rbs.get_byte(rng);
+    EXPECT_EQ(rng.call_count(), 1u);
+
+    // First byte of second word triggers the refill
+    EXPECT_EQ(rbs.get_byte(rng), 0xDD);
+    EXPECT_EQ(rng.call_count(), 2u);
+}
+
+// Correct behaviour: fill() populates a struct with the expected bytes.
+TEST(randbytestore, fill_struct)
+{
+    // Two successive 32-bit words: the fill covers exactly 8 bytes
+    FakeRNG<uint32_t> rng({0x01020304, 0x05060708});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    uint64_t result = 0;
+    rbs.fill(result, rng);
+
+    // fill() writes bytes in get_byte() order (LSB-first per word)
+    // Word 0: 0x01020304 → bytes 04 03 02 01 at offsets 0-3
+    // Word 1: 0x05060708 → bytes 08 07 06 05 at offsets 4-7
+    const unsigned char *b = reinterpret_cast<const unsigned char *>(&result);
+    EXPECT_EQ(b[0], 0x04);
+    EXPECT_EQ(b[1], 0x03);
+    EXPECT_EQ(b[2], 0x02);
+    EXPECT_EQ(b[3], 0x01);
+    EXPECT_EQ(b[4], 0x08);
+    EXPECT_EQ(b[5], 0x07);
+    EXPECT_EQ(b[6], 0x06);
+    EXPECT_EQ(b[7], 0x05);
+
+    EXPECT_EQ(rng.call_count(), 2u);
+}
+
+// Incorrect behaviour: wrong byte order would be caught by this test.
+TEST(randbytestore, byte_order_not_msb_first)
+{
+    FakeRNG<uint32_t> rng({0xAABBCCDD});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    // If extraction were MSB-first the first byte would be 0xAA — it must not be.
+    EXPECT_NE(rbs.get_byte(rng), 0xAA);
+}
+
+// Incorrect behaviour: early refill would be caught — RNG must not be called twice
+// for the first sizeof(result_type) bytes.
+TEST(randbytestore, no_early_refill)
+{
+    FakeRNG<uint32_t> rng({0x12345678, 0xDEADBEEF});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    rbs.get_byte(rng);
+    rbs.get_byte(rng);
+    rbs.get_byte(rng);
+
+    // Three bytes consumed from a 32-bit word — still only one RNG call
+    EXPECT_EQ(rng.call_count(), 1u);
+}
+
+// Incorrect behaviour: a missed refill (stale data) would produce a zero byte
+// where the new RNG value should appear.
+TEST(randbytestore, no_missed_refill)
+{
+    FakeRNG<uint32_t> rng({0x00000000, 0xFF000000});
+    RandomByteStore<FakeRNG<uint32_t>> rbs;
+
+    for (int i = 0; i < 4; ++i)
+        rbs.get_byte(rng);
+
+    // Without a refill the 5th byte would be 0x00 (stale); with correct
+    // behaviour the new word 0xFF000000 contributes 0x00 at byte 0 as well,
+    // so use a value that makes the distinction unambiguous.
+    FakeRNG<uint32_t> rng2({0x00000000, 0xABCDEF01});
+    RandomByteStore<FakeRNG<uint32_t>> rbs2;
+
+    for (int i = 0; i < 4; ++i)
+        rbs2.get_byte(rng2);
+
+    EXPECT_EQ(rbs2.get_byte(rng2), 0x01); // LSB of 0xABCDEF01
+    EXPECT_EQ(rng2.call_count(), 2u);
+}

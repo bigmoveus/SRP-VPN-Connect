@@ -1,1 +1,514 @@
-I2luY2x1ZGUgInN0cnVjdHVyZS5oIgoKI2luY2x1ZGUgImxvZ2dlcnMvbmV0d29ya19sb2dnZXIuaCIKCmJvb2wgaHR0cGNsaWVudFNwbGl0SXNFbmFibGVkKHR1bm5lbF90ICp0KQp7CiAgICBodHRwY2xpZW50X3RzdGF0ZV90ICp0cyA9IHR1bm5lbEdldFN0YXRlKHQpOwogICAgcmV0dXJuIHRzLT5oMV90cmFuc3BvcnRfbW9kZSA9PSBrSHR0cENsaWVudEgxVHJhbnNwb3J0U3BsaXQ7Cn0KCmJvb2wgaHR0cGNsaWVudFNwbGl0R2VuZXJhdGVJZChjaGFyICpvdXQsIHNpemVfdCBvdXRfY2FwYWNpdHkpCnsKICAgIGlmIChvdXQgIT0gTlVMTCAmJiBvdXRfY2FwYWNpdHkgPiAwKQogICAgewogICAgICAgIG91dFswXSA9ICdcMCc7CiAgICB9CgogICAgaWYgKG91dCA9PSBOVUxMIHx8IG91dF9jYXBhY2l0eSA8IGtIdHRwQ2xpZW50U3BsaXRJZENhcGFjaXR5KQogICAgewogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICBzdGF0aWMgY29uc3QgY2hhciBoZXhbXSA9ICIwMTIzNDU2Nzg5YWJjZGVmIjsKICAgIGNvbnN0IHVpbnQ2NF90ICAgIGhpZ2ggID0gZmFzdFJhbmQ2NCgpOwogICAgY29uc3QgdWludDY0X3QgICAgbG93ICAgPSBmYXN0UmFuZDY0KCk7CgogICAgZm9yIChzaXplX3QgaSA9IDA7IGkgPCAxNlU7ICsraSkKICAgIHsKICAgICAgICBjb25zdCB1bnNpZ25lZCBpbnQgc2hpZnQgPSAodW5zaWduZWQgaW50KSAoKDE1VSAtIGkpICogNFUpOwogICAgICAgIG91dFtpXSAgICAgICAgICAgICAgICAgICA9IGhleFsoaGlnaCA+PiBzaGlmdCkgJiAweDBGVV07CiAgICAgICAgb3V0W2kgKyAxNlVdICAgICAgICAgICAgID0gaGV4Wyhsb3cgPj4gc2hpZnQpICYgMHgwRlVdOwogICAgfQogICAgb3V0W2tIdHRwQ2xpZW50U3BsaXRJZEhleENoYXJzXSA9ICdcMCc7CgogICAgcmV0dXJuIHRydWU7Cn0KCnN0YXRpYyB2b2lkIGh0dHBjbGllbnRTcGxpdEluaXRUcmFuc3BvcnRTdGF0ZSh0dW5uZWxfdCAqdCwgbGluZV90ICp0cmFuc3BvcnQsIGxpbmVfdCAqbWFpbl9saW5lLCBsaW5lX3QgKnVwbG9hZF9saW5lLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbGluZV90ICpkb3dubG9hZF9saW5lLCBodHRwY2xpZW50X3NwbGl0X3JvbGVfdCByb2xlLCBjb25zdCBjaGFyICppZCkKewogICAgaHR0cGNsaWVudF9sc3RhdGVfdCAqbHMgPSBsaW5lR2V0U3RhdGUodHJhbnNwb3J0LCB0KTsKICAgIGh0dHBjbGllbnRMaW5lc3RhdGVJbml0aWFsaXplKGxzLCB0LCB0cmFuc3BvcnQpOwogICAgbHMtPnJ1bnRpbWVfcHJvdG8gICAgICAgPSBrSHR0cENsaWVudFJ1bnRpbWVIdHRwMTsKICAgIGxzLT5zcGxpdF9yb2xlICAgICAgICAgID0gcm9sZTsKICAgIGxzLT5zcGxpdF9tYWluX2xpbmUgICAgID0gbWFpbl9saW5lOwogICAgbHMtPnNwbGl0X3VwbG9hZF9saW5lICAgPSB1cGxvYWRfbGluZTsKICAgIGxzLT5zcGxpdF9kb3dubG9hZF9saW5lID0gZG93bmxvYWRfbGluZTsKICAgIHN0cmluZ0NvcHlOKGxzLT5zcGxpdF9pZCwgaWQsIHNpemVvZihscy0+c3BsaXRfaWQpKTsKfQoKc3RhdGljIHZvaWQgaHR0cGNsaWVudFNwbGl0Q2xlYXJQZWVyUmVmZXJlbmNlKHR1bm5lbF90ICp0LCBsaW5lX3QgKnBlZXJfbGluZSwgbGluZV90ICpkZWFkX2xpbmUpCnsKICAgIGlmIChwZWVyX2xpbmUgPT0gTlVMTCB8fCBwZWVyX2xpbmUgPT0gZGVhZF9saW5lIHx8ICEgbGluZUlzQWxpdmUocGVlcl9saW5lKSkKICAgIHsKICAgICAgICByZXR1cm47CiAgICB9CgogICAgaHR0cGNsaWVudF9sc3RhdGVfdCAqcGVlcl9scyA9IGxpbmVHZXRTdGF0ZShwZWVyX2xpbmUsIHQpOwogICAgaWYgKHBlZXJfbHMtPnNwbGl0X21haW5fbGluZSA9PSBkZWFkX2xpbmUpCiAgICB7CiAgICAgICAgcGVlcl9scy0+c3BsaXRfbWFpbl9saW5lID0gTlVMTDsKICAgIH0KICAgIGlmIChwZWVyX2xzLT5zcGxpdF91cGxvYWRfbGluZSA9PSBkZWFkX2xpbmUpCiAgICB7CiAgICAgICAgcGVlcl9scy0+c3BsaXRfdXBsb2FkX2xpbmUgPSBOVUxMOwogICAgfQogICAgaWYgKHBlZXJfbHMtPnNwbGl0X2Rvd25sb2FkX2xpbmUgPT0gZGVhZF9saW5lKQogICAgewogICAgICAgIHBlZXJfbHMtPnNwbGl0X2Rvd25sb2FkX2xpbmUgPSBOVUxMOwogICAgfQp9CgpzdGF0aWMgdm9pZCBodHRwY2xpZW50U3BsaXREZXRhY2hDcmVhdGVkTGluZSh0dW5uZWxfdCAqdCwgbGluZV90ICpsLCBodHRwY2xpZW50X2xzdGF0ZV90ICpscykKewogICAgbGluZV90ICptYWluX2xpbmUgICAgID0gbHMtPnNwbGl0X21haW5fbGluZTsKICAgIGxpbmVfdCAqdXBsb2FkX2xpbmUgICA9IGxzLT5zcGxpdF91cGxvYWRfbGluZTsKICAgIGxpbmVfdCAqZG93bmxvYWRfbGluZSA9IGxzLT5zcGxpdF9kb3dubG9hZF9saW5lOwoKICAgIGh0dHBjbGllbnRTcGxpdENsZWFyUGVlclJlZmVyZW5jZSh0LCBtYWluX2xpbmUsIGwpOwogICAgaHR0cGNsaWVudFNwbGl0Q2xlYXJQZWVyUmVmZXJlbmNlKHQsIHVwbG9hZF9saW5lLCBsKTsKICAgIGh0dHBjbGllbnRTcGxpdENsZWFyUGVlclJlZmVyZW5jZSh0LCBkb3dubG9hZF9saW5lLCBsKTsKfQoKc3RhdGljIHZvaWQgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHR1bm5lbF90ICp0LCBsaW5lX3QgKmwsIGJvb2wgc2VuZF9maW5pc2gpCnsKICAgIGlmIChsID09IE5VTEwgfHwgISBsaW5lSXNBbGl2ZShsKSkKICAgIHsKICAgICAgICByZXR1cm47CiAgICB9CgogICAgaHR0cGNsaWVudF9sc3RhdGVfdCAqbHMgPSBsaW5lR2V0U3RhdGUobCwgdCk7CiAgICBodHRwY2xpZW50U3BsaXREZXRhY2hDcmVhdGVkTGluZSh0LCBsLCBscyk7CiAgICBodHRwY2xpZW50TGluZXN0YXRlRGVzdHJveShscyk7CiAgICBpZiAoc2VuZF9maW5pc2gpCiAgICB7CiAgICAgICAgdHVubmVsTmV4dFVwU3RyZWFtRmluaXNoKHQsIGwpOwogICAgfQogICAgaWYgKGxpbmVJc0FsaXZlKGwpKQogICAgewogICAgICAgIGxpbmVEZXN0cm95KGwpOwogICAgfQp9CgovLyBmaW5pc2hfc2VuZGVyIGNvbnRyb2xzIHdoZXRoZXIgdGhlIHRyYW5zcG9ydCBsaW5lIHdlIGVudGVyZWQgb24gc3RpbGwgbmVlZHMgaXRzIG93biBuZXh0Ci8vIHNpZGUgZmluaXNoZWQuIFdoZW4gdGhpcyBpcyBjYWxsZWQgYmVjYXVzZSB0aGUgdHJhbnNwb3J0J3MgbmV4dCBhbHJlYWR5IGZpbmlzaGVkIHVzIChhIHJlYWwKLy8gZG93bnN0cmVhbSBGaW5pc2gpLCBwYXNzIGZhbHNlLiBXaGVuIHdlIGNsb3NlIHByb2FjdGl2ZWx5IChyZXNwb25zZSBjb21wbGV0ZSwgZXJyb3IsIHBlZXIKLy8gZGllZCkgdGhlIG5leHQgc2lkZSBpcyBzdGlsbCBvcGVuIGFuZCBtdXN0IGJlIGZpbmlzaGVkLCBzbyBwYXNzIHRydWUuCnN0YXRpYyB2b2lkIGh0dHBjbGllbnRTcGxpdENsb3NlRnJvbVRyYW5zcG9ydCh0dW5uZWxfdCAqdCwgbGluZV90ICp0cmFuc3BvcnRfbGluZSwgYm9vbCBmaW5pc2hfbWFpbiwgYm9vbCBmaW5pc2hfc2VuZGVyKQp7CiAgICBodHRwY2xpZW50X2xzdGF0ZV90ICp0cmFuc3BvcnRfbHMgID0gbGluZUdldFN0YXRlKHRyYW5zcG9ydF9saW5lLCB0KTsKICAgIGxpbmVfdCAgICAgICAgICAgICAgKm1haW5fbGluZSAgICAgPSB0cmFuc3BvcnRfbHMtPnNwbGl0X21haW5fbGluZTsKICAgIGxpbmVfdCAgICAgICAgICAgICAgKnVwbG9hZF9saW5lICAgPSB0cmFuc3BvcnRfbHMtPnNwbGl0X3VwbG9hZF9saW5lOwogICAgbGluZV90ICAgICAgICAgICAgICAqZG93bmxvYWRfbGluZSA9IHRyYW5zcG9ydF9scy0+c3BsaXRfZG93bmxvYWRfbGluZTsKCiAgICBsaW5lUmVmKHRyYW5zcG9ydF9saW5lKTsKICAgIGJvb2wgbWFpbl9yZWZfaGVsZCAgICAgPSBmYWxzZTsKICAgIGJvb2wgdXBsb2FkX3JlZl9oZWxkICAgPSBmYWxzZTsKICAgIGJvb2wgZG93bmxvYWRfcmVmX2hlbGQgPSBmYWxzZTsKICAgIGlmIChtYWluX2xpbmUgIT0gTlVMTCAmJiBsaW5lSXNBbGl2ZShtYWluX2xpbmUpKQogICAgewogICAgICAgIGxpbmVSZWYobWFpbl9saW5lKTsKICAgICAgICBtYWluX3JlZl9oZWxkID0gdHJ1ZTsKICAgIH0KICAgIGlmICh1cGxvYWRfbGluZSAhPSBOVUxMICYmIHVwbG9hZF9saW5lICE9IHRyYW5zcG9ydF9saW5lICYmIGxpbmVJc0FsaXZlKHVwbG9hZF9saW5lKSkKICAgIHsKICAgICAgICBsaW5lUmVmKHVwbG9hZF9saW5lKTsKICAgICAgICB1cGxvYWRfcmVmX2hlbGQgPSB0cnVlOwogICAgfQogICAgaWYgKGRvd25sb2FkX2xpbmUgIT0gTlVMTCAmJiBkb3dubG9hZF9saW5lICE9IHRyYW5zcG9ydF9saW5lICYmIGxpbmVJc0FsaXZlKGRvd25sb2FkX2xpbmUpKQogICAgewogICAgICAgIGxpbmVSZWYoZG93bmxvYWRfbGluZSk7CiAgICAgICAgZG93bmxvYWRfcmVmX2hlbGQgPSB0cnVlOwogICAgfQoKICAgIGlmICh1cGxvYWRfbGluZSAhPSBOVUxMICYmIHVwbG9hZF9saW5lICE9IHRyYW5zcG9ydF9saW5lKQogICAgewogICAgICAgIGh0dHBjbGllbnRTcGxpdERlc3Ryb3lDcmVhdGVkTGluZSh0LCB1cGxvYWRfbGluZSwgdHJ1ZSk7CiAgICB9CiAgICBpZiAoZG93bmxvYWRfbGluZSAhPSBOVUxMICYmIGRvd25sb2FkX2xpbmUgIT0gdHJhbnNwb3J0X2xpbmUpCiAgICB7CiAgICAgICAgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHQsIGRvd25sb2FkX2xpbmUsIHRydWUpOwogICAgfQoKICAgIGlmIChtYWluX2xpbmUgIT0gTlVMTCAmJiBsaW5lSXNBbGl2ZShtYWluX2xpbmUpKQogICAgewogICAgICAgIGh0dHBjbGllbnRfbHN0YXRlX3QgKm1haW5fbHMgPSBsaW5lR2V0U3RhdGUobWFpbl9saW5lLCB0KTsKICAgICAgICBpZiAobWFpbl9scy0+c3BsaXRfcm9sZSA9PSBrSHR0cENsaWVudFNwbGl0Um9sZU1haW4pCiAgICAgICAgewogICAgICAgICAgICBib29sIG5vdGlmeV9tYWluID0gZmluaXNoX21haW4gJiYgISBtYWluX2xzLT5wcmV2X2ZpbmlzaGVkOwogICAgICAgICAgICBodHRwY2xpZW50TGluZXN0YXRlRGVzdHJveShtYWluX2xzKTsKICAgICAgICAgICAgaWYgKG5vdGlmeV9tYWluKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICB0dW5uZWxQcmV2RG93blN0cmVhbUZpbmlzaCh0LCBtYWluX2xpbmUpOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQoKICAgIGlmIChsaW5lSXNBbGl2ZSh0cmFuc3BvcnRfbGluZSkpCiAgICB7CiAgICAgICAgLy8gVGhlIHRyYW5zcG9ydCBsaW5lIGlzIG9uZSB3ZSBjcmVhdGVkLCBzbyBmaW5pc2ggaXRzIG5leHQgc2lkZSAodW5sZXNzIG91ciBjYWxsZXIKICAgICAgICAvLyBhbHJlYWR5IHJlY2VpdmVkIHRoYXQgRmluaXNoKSBhbmQgZGVzdHJveSBpdC4gV2UgaG9sZCBhbiBleHRyYSBsaW5lIHJlZmVyZW5jZSBhYm92ZSwKICAgICAgICAvLyBzbyB0aGUgYWxsb2NhdGlvbiBzdXJ2aXZlcyB1bnRpbCB0aGUgdW5yZWYgYmVsb3cuCiAgICAgICAgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHQsIHRyYW5zcG9ydF9saW5lLCBmaW5pc2hfc2VuZGVyKTsKICAgIH0KCiAgICBpZiAoZG93bmxvYWRfcmVmX2hlbGQpCiAgICB7CiAgICAgICAgbGluZVVucmVmKGRvd25sb2FkX2xpbmUpOwogICAgfQogICAgaWYgKHVwbG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lVW5yZWYodXBsb2FkX2xpbmUpOwogICAgfQogICAgaWYgKG1haW5fcmVmX2hlbGQpCiAgICB7CiAgICAgICAgbGluZVVucmVmKG1haW5fbGluZSk7CiAgICB9CiAgICBsaW5lVW5yZWYodHJhbnNwb3J0X2xpbmUpOwp9CgpzdGF0aWMgdm9pZCBodHRwY2xpZW50U3BsaXRGYWlsTWFpbih0dW5uZWxfdCAqdCwgbGluZV90ICptYWluX2xpbmUpCnsKICAgIGlmIChtYWluX2xpbmUgPT0gTlVMTCB8fCAhIGxpbmVJc0FsaXZlKG1haW5fbGluZSkpCiAgICB7CiAgICAgICAgcmV0dXJuOwogICAgfQoKICAgIGh0dHBjbGllbnRfbHN0YXRlX3QgKm1haW5fbHMgPSBsaW5lR2V0U3RhdGUobWFpbl9saW5lLCB0KTsKICAgIGlmIChtYWluX2xzLT5zcGxpdF9yb2xlICE9IGtIdHRwQ2xpZW50U3BsaXRSb2xlTWFpbikKICAgIHsKICAgICAgICByZXR1cm47CiAgICB9CiAgICBsaW5lX3QgKnVwbG9hZF9saW5lICAgPSBtYWluX2xzLT5zcGxpdF91cGxvYWRfbGluZTsKICAgIGxpbmVfdCAqZG93bmxvYWRfbGluZSA9IG1haW5fbHMtPnNwbGl0X2Rvd25sb2FkX2xpbmU7CgogICAgLyogQSBjaGlsZCBGaW5pc2ggbWF5IHN5bmNocm9ub3VzbHkgY2xvc2UgaXRzIHNpYmxpbmcgYW5kIGNsZWFyIG1haW4gc3RhdGUuICovCiAgICBsaW5lUmVmKG1haW5fbGluZSk7CiAgICBib29sIHVwbG9hZF9yZWZfaGVsZCAgID0gdXBsb2FkX2xpbmUgIT0gTlVMTCAmJiBsaW5lSXNBbGl2ZSh1cGxvYWRfbGluZSk7CiAgICBib29sIGRvd25sb2FkX3JlZl9oZWxkID0gZG93bmxvYWRfbGluZSAhPSBOVUxMICYmIGxpbmVJc0FsaXZlKGRvd25sb2FkX2xpbmUpOwogICAgaWYgKHVwbG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lUmVmKHVwbG9hZF9saW5lKTsKICAgIH0KICAgIGlmIChkb3dubG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lUmVmKGRvd25sb2FkX2xpbmUpOwogICAgfQoKICAgIGlmICh1cGxvYWRfcmVmX2hlbGQpCiAgICB7CiAgICAgICAgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHQsIHVwbG9hZF9saW5lLCB0cnVlKTsKICAgIH0KICAgIGlmIChkb3dubG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBodHRwY2xpZW50U3BsaXREZXN0cm95Q3JlYXRlZExpbmUodCwgZG93bmxvYWRfbGluZSwgdHJ1ZSk7CiAgICB9CgogICAgaWYgKGxpbmVJc0FsaXZlKG1haW5fbGluZSkgJiYgbWFpbl9scy0+c3BsaXRfcm9sZSA9PSBrSHR0cENsaWVudFNwbGl0Um9sZU1haW4pCiAgICB7CiAgICAgICAgYm9vbCBub3RpZnlfbWFpbiA9ICEgbWFpbl9scy0+cHJldl9maW5pc2hlZDsKICAgICAgICBodHRwY2xpZW50TGluZXN0YXRlRGVzdHJveShtYWluX2xzKTsKICAgICAgICBpZiAobm90aWZ5X21haW4pCiAgICAgICAgewogICAgICAgICAgICB0dW5uZWxQcmV2RG93blN0cmVhbUZpbmlzaCh0LCBtYWluX2xpbmUpOwogICAgICAgIH0KICAgIH0KCiAgICBpZiAoZG93bmxvYWRfcmVmX2hlbGQpCiAgICB7CiAgICAgICAgbGluZVVucmVmKGRvd25sb2FkX2xpbmUpOwogICAgfQogICAgaWYgKHVwbG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lVW5yZWYodXBsb2FkX2xpbmUpOwogICAgfQogICAgbGluZVVucmVmKG1haW5fbGluZSk7Cn0KCnZvaWQgaHR0cGNsaWVudFNwbGl0VXBTdHJlYW1Jbml0KHR1bm5lbF90ICp0LCBsaW5lX3QgKmwpCnsKICAgIGh0dHBjbGllbnRfdHN0YXRlX3QgKnRzID0gdHVubmVsR2V0U3RhdGUodCk7CiAgICBodHRwY2xpZW50X2xzdGF0ZV90ICpscyA9IGxpbmVHZXRTdGF0ZShsLCB0KTsKCiAgICBodHRwY2xpZW50TGluZXN0YXRlSW5pdGlhbGl6ZShscywgdCwgbCk7CiAgICBscy0+cnVudGltZV9wcm90byAgID0ga0h0dHBDbGllbnRSdW50aW1lSHR0cDE7CiAgICBscy0+c3BsaXRfcm9sZSAgICAgID0ga0h0dHBDbGllbnRTcGxpdFJvbGVNYWluOwogICAgbHMtPnNwbGl0X21haW5fbGluZSA9IGw7CgogICAgY29uc3QgYm9vbCBpZF9nZW5lcmF0ZWQgPSBodHRwY2xpZW50U3BsaXRHZW5lcmF0ZUlkKGxzLT5zcGxpdF9pZCwgc2l6ZW9mKGxzLT5zcGxpdF9pZCkpOwogICAgYXNzZXJ0KGlkX2dlbmVyYXRlZCk7CiAgICBpZiAoVU5MSUtFTFkoISBpZF9nZW5lcmF0ZWQpKQogICAgewogICAgICAgIExPR0YoIkh0dHBDbGllbnQ6IHNwbGl0LUlEIGRlc3RpbmF0aW9uIGRvZXMgbm90IHNhdGlzZnkgaXRzIGZpeGVkLXNpemUgY29udHJhY3QiKTsKICAgICAgICBhYm9ydFByb2dyYW1Ob3coMSk7CiAgICB9CgogICAgaWYgKHRzLT52ZXJib3NlKQogICAgewogICAgICAgIExPR0QoIkh0dHBDbGllbnQ6IHNwbGl0IEhUVFAvMS4xIGluaXQgaWQ9JXMgdXBsb2FkPSVzICVzIGRvd25sb2FkPSVzICVzIiwKICAgICAgICAgICAgIGxzLT5zcGxpdF9pZCwKICAgICAgICAgICAgIHRzLT5zcGxpdF91cGxvYWRfbWV0aG9kLAogICAgICAgICAgICAgdHMtPnNwbGl0X3VwbG9hZF9wYXRoLAogICAgICAgICAgICAgdHMtPnNwbGl0X2Rvd25sb2FkX21ldGhvZCwKICAgICAgICAgICAgIHRzLT5zcGxpdF9kb3dubG9hZF9wYXRoKTsKICAgIH0KCiAgICBsaW5lUmVmKGwpOwoKICAgIGxpbmVfdCAqdXBsb2FkX2xpbmUgICA9IGxpbmVDcmVhdGUodHVubmVsY2hhaW5HZXRMaW5lUG9vbHModHVubmVsR2V0Q2hhaW4odCkpLCBsaW5lR2V0V0lEKGwpKTsKICAgIGxzLT5zcGxpdF91cGxvYWRfbGluZSA9IHVwbG9hZF9saW5lOwogICAgaHR0cGNsaWVudFNwbGl0SW5pdFRyYW5zcG9ydFN0YXRlKHQsIHVwbG9hZF9saW5lLCBsLCB1cGxvYWRfbGluZSwgTlVMTCwga0h0dHBDbGllbnRTcGxpdFJvbGVVcGxvYWQsIGxzLT5zcGxpdF9pZCk7CgogICAgaWYgKCEgbGluZUNhbGxXaXRoUmVmKHVwbG9hZF9saW5lLCB0dW5uZWxOZXh0VXBTdHJlYW1Jbml0LCB0KSkKICAgIHsKICAgICAgICBpZiAobGluZUlzQWxpdmUobCkpCiAgICAgICAgewogICAgICAgICAgICBodHRwY2xpZW50TGluZXN0YXRlRGVzdHJveShscyk7CiAgICAgICAgICAgIHR1bm5lbFByZXZEb3duU3RyZWFtRmluaXNoKHQsIGwpOwogICAgICAgIH0KICAgICAgICBsaW5lVW5yZWYobCk7CiAgICAgICAgcmV0dXJuOwogICAgfQoKICAgIGlmICghIGxpbmVJc0FsaXZlKGwpKQogICAgewogICAgICAgIGxpbmVVbnJlZihsKTsKICAgICAgICByZXR1cm47CiAgICB9CgogICAgbGluZV90ICpkb3dubG9hZF9saW5lICAgPSBsaW5lQ3JlYXRlKHR1bm5lbGNoYWluR2V0TGluZVBvb2xzKHR1bm5lbEdldENoYWluKHQpKSwgbGluZUdldFdJRChsKSk7CiAgICBscy0+c3BsaXRfZG93bmxvYWRfbGluZSA9IGRvd25sb2FkX2xpbmU7CgogICAgaHR0cGNsaWVudF9sc3RhdGVfdCAqdXBsb2FkX2xzID0gbGluZUdldFN0YXRlKHVwbG9hZF9saW5lLCB0KTsKICAgIHVwbG9hZF9scy0+c3BsaXRfZG93bmxvYWRfbGluZSA9IGRvd25sb2FkX2xpbmU7CgogICAgaHR0cGNsaWVudFNwbGl0SW5pdFRyYW5zcG9ydFN0YXRlKAogICAgICAgIHQsIGRvd25sb2FkX2xpbmUsIGwsIHVwbG9hZF9saW5lLCBkb3dubG9hZF9saW5lLCBrSHR0cENsaWVudFNwbGl0Um9sZURvd25sb2FkLCBscy0+c3BsaXRfaWQpOwoKICAgIGxpbmVSZWYodXBsb2FkX2xpbmUpOwogICAgYm9vbCBkb3dubG9hZF9pbml0X29rID0gbGluZUNhbGxXaXRoUmVmKGRvd25sb2FkX2xpbmUsIHR1bm5lbE5leHRVcFN0cmVhbUluaXQsIHQpOwogICAgaWYgKCEgZG93bmxvYWRfaW5pdF9vaykKICAgIHsKICAgICAgICBpZiAobGluZUlzQWxpdmUodXBsb2FkX2xpbmUpKQogICAgICAgIHsKICAgICAgICAgICAgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHQsIHVwbG9hZF9saW5lLCB0cnVlKTsKICAgICAgICB9CiAgICAgICAgbGluZVVucmVmKHVwbG9hZF9saW5lKTsKICAgICAgICBpZiAobGluZUlzQWxpdmUobCkpCiAgICAgICAgewogICAgICAgICAgICBodHRwY2xpZW50TGluZXN0YXRlRGVzdHJveShscyk7CiAgICAgICAgICAgIHR1bm5lbFByZXZEb3duU3RyZWFtRmluaXNoKHQsIGwpOwogICAgICAgIH0KICAgICAgICBsaW5lVW5yZWYobCk7CiAgICAgICAgcmV0dXJuOwogICAgfQogICAgbGluZVVucmVmKHVwbG9hZF9saW5lKTsKCiAgICBpZiAoISBsaW5lSXNBbGl2ZShsKSkKICAgIHsKICAgICAgICBsaW5lVW5yZWYobCk7CiAgICAgICAgcmV0dXJuOwogICAgfQoKICAgIGJvb2wgb2sgPSB0cnVlOwogICAgbGluZVJlZih1cGxvYWRfbGluZSk7CiAgICBpZiAoISBodHRwY2xpZW50VHJhbnNwb3J0U2VuZEh0dHAxU3BsaXRSZXF1ZXN0SGVhZGVycyh0LCB1cGxvYWRfbGluZSkgfHwgISBsaW5lSXNBbGl2ZSh1cGxvYWRfbGluZSkpCiAgICB7CiAgICAgICAgb2sgPSBmYWxzZTsKICAgIH0KICAgIGxpbmVVbnJlZih1cGxvYWRfbGluZSk7CgogICAgaWYgKG9rKQogICAgewogICAgICAgIGxpbmVSZWYoZG93bmxvYWRfbGluZSk7CiAgICAgICAgaWYgKCEgaHR0cGNsaWVudFRyYW5zcG9ydFNlbmRIdHRwMVNwbGl0UmVxdWVzdEhlYWRlcnModCwgZG93bmxvYWRfbGluZSkgfHwgISBsaW5lSXNBbGl2ZShkb3dubG9hZF9saW5lKSkKICAgICAgICB7CiAgICAgICAgICAgIG9rID0gZmFsc2U7CiAgICAgICAgfQogICAgICAgIGxpbmVVbnJlZihkb3dubG9hZF9saW5lKTsKICAgIH0KCiAgICBpZiAoISBvayAmJiBsaW5lSXNBbGl2ZShsKSkKICAgIHsKICAgICAgICBodHRwY2xpZW50U3BsaXRGYWlsTWFpbih0LCBsKTsKICAgIH0KCiAgICBsaW5lVW5yZWYobCk7Cn0KCnZvaWQgaHR0cGNsaWVudFNwbGl0VXBTdHJlYW1QYXlsb2FkKHR1bm5lbF90ICp0LCBsaW5lX3QgKmwsIHNidWZfdCAqYnVmKQp7CiAgICBodHRwY2xpZW50X2xzdGF0ZV90ICpscyAgICAgICAgICA9IGxpbmVHZXRTdGF0ZShsLCB0KTsKICAgIGxpbmVfdCAgICAgICAgICAgICAgKnVwbG9hZF9saW5lID0gbHMtPnNwbGl0X3VwbG9hZF9saW5lOwoKICAgIGlmICh1cGxvYWRfbGluZSA9PSBOVUxMIHx8ICEgbGluZUlzQWxpdmUodXBsb2FkX2xpbmUpKQogICAgewogICAgICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwogICAgICAgIGh0dHBjbGllbnRTcGxpdEZhaWxNYWluKHQsIGwpOwogICAgICAgIHJldHVybjsKICAgIH0KCiAgICBsaW5lUmVmKGwpOwogICAgbGluZVJlZih1cGxvYWRfbGluZSk7CgogICAgYm9vbCBvayA9IGh0dHBjbGllbnRUcmFuc3BvcnRTZW5kSHR0cDFDaHVua2VkUGF5bG9hZCh0LCB1cGxvYWRfbGluZSwgYnVmKTsKICAgIGlmICgoISBvayB8fCAhIGxpbmVJc0FsaXZlKHVwbG9hZF9saW5lKSkgJiYgbGluZUlzQWxpdmUobCkpCiAgICB7CiAgICAgICAgaHR0cGNsaWVudFNwbGl0RmFpbE1haW4odCwgbCk7CiAgICB9CgogICAgbGluZVVucmVmKHVwbG9hZF9saW5lKTsKICAgIGxpbmVVbnJlZihsKTsKfQoKdm9pZCBodHRwY2xpZW50U3BsaXRVcFN0cmVhbUZpbmlzaCh0dW5uZWxfdCAqdCwgbGluZV90ICpsKQp7CiAgICBodHRwY2xpZW50X2xzdGF0ZV90ICpscyAgICAgICAgICAgID0gbGluZUdldFN0YXRlKGwsIHQpOwogICAgbGluZV90ICAgICAgICAgICAgICAqdXBsb2FkX2xpbmUgICA9IGxzLT5zcGxpdF91cGxvYWRfbGluZTsKICAgIGxpbmVfdCAgICAgICAgICAgICAgKmRvd25sb2FkX2xpbmUgPSBscy0+c3BsaXRfZG93bmxvYWRfbGluZTsKCiAgICBsaW5lUmVmKGwpOwogICAgbHMtPnByZXZfZmluaXNoZWQgPSB0cnVlOwoKICAgIC8qIEZpbmFsIGJ5dGVzIGNhbiBjbG9zZSBlaXRoZXIgdHJhbnNwb3J0OyByZXRhaW4gYm90aCBiZWZvcmUgY2FsbGluZyBvdXQuICovCiAgICBib29sIHVwbG9hZF9yZWZfaGVsZCAgID0gdXBsb2FkX2xpbmUgIT0gTlVMTCAmJiBsaW5lSXNBbGl2ZSh1cGxvYWRfbGluZSk7CiAgICBib29sIGRvd25sb2FkX3JlZl9oZWxkID0gZG93bmxvYWRfbGluZSAhPSBOVUxMICYmIGxpbmVJc0FsaXZlKGRvd25sb2FkX2xpbmUpOwogICAgaWYgKHVwbG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lUmVmKHVwbG9hZF9saW5lKTsKICAgIH0KICAgIGlmIChkb3dubG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBsaW5lUmVmKGRvd25sb2FkX2xpbmUpOwogICAgfQoKICAgIC8vIFRoZSBtYWluIGxpbmUgd2FzIGNyZWF0ZWQgYnkgdGhlIHVwc3RyZWFtIGFkYXB0ZXIgKGUuZy4gVGNwTGlzdGVuZXIpLCB3aGljaCBkZXN0cm95cyBpdAogICAgLy8gYXMgc29vbiBhcyB0aGlzIHVwc3RyZWFtIEZpbmlzaCByZXR1cm5zLiBXZSB0aGVyZWZvcmUgY2Fubm90IGtlZXAgdGhlIG1haW4gbGluZSBhbGl2ZSB0bwogICAgLy8gd2FpdCBmb3IgdGhlIHJlc3BvbnNlOyB3ZSBtdXN0IHRlYXIgdGhlIHdob2xlIHRyaW8gZG93biBub3cuIFdlIG11c3QgTk9UIHNlbmQgYSBGaW5pc2gKICAgIC8vIGJhY2sgdG93YXJkIG1haW4ncyBwcmV2IChpdCBqdXN0IGZpbmlzaGVkIHVzKSwgYW5kIHdlIG11c3QgTk9UIGxpbmVEZXN0cm95IG1haW4gKHdlIGRpZAogICAgLy8gbm90IGNyZWF0ZSBpdCkgLSBvbmx5IGRyb3Agb3VyIG93biBsaW5lIHN0YXRlIHNvIHRoZSBhZGFwdGVyJ3MgbGluZURlc3Ryb3kgc3RheXMgdmFsaWQuCgogICAgaWYgKHVwbG9hZF9yZWZfaGVsZCkKICAgIHsKICAgICAgICBodHRwY2xpZW50X2xzdGF0ZV90ICp1cGxvYWRfbHMgPSBsaW5lR2V0U3RhdGUodXBsb2FkX2xpbmUsIHQpOwogICAgICAgIC8vIFVwbG9hZCBiYWNrcHJlc3N1cmUgaXMgcmUtaG9tZWQgdG8gbWFpbidzIHByZXYsIHdoaWNoIGhhcyBhbHJlYWR5IGZpbmlzaGVkIHRoaXMgc3BsaXQgdHJpby4KICAgICAgICB1cGxvYWRfbHMtPnByZXZfZmluaXNoZWQgPSB0cnVlOwogICAgICAgIGRpc2NhcmQgaHR0cGNsaWVudFRyYW5zcG9ydFNlbmRIdHRwMUZpbmFsQ2h1bmsodCwgdXBsb2FkX2xpbmUpOwogICAgICAgIGlmIChsaW5lSXNBbGl2ZSh1cGxvYWRfbGluZSkpCiAgICAgICAgewogICAgICAgICAgICBodHRwY2xpZW50U3BsaXREZXN0cm95Q3JlYXRlZExpbmUodCwgdXBsb2FkX2xpbmUsIHRydWUpOwogICAgICAgIH0KICAgIH0KCiAgICBpZiAoZG93bmxvYWRfcmVmX2hlbGQpCiAgICB7CiAgICAgICAgaHR0cGNsaWVudFNwbGl0RGVzdHJveUNyZWF0ZWRMaW5lKHQsIGRvd25sb2FkX2xpbmUsIHRydWUpOwogICAgfQoKICAgIGlmIChsaW5lSXNBbGl2ZShsKSAmJiBscy0+c3BsaXRfcm9sZSA9PSBrSHR0cENsaWVudFNwbGl0Um9sZU1haW4pCiAgICB7CiAgICAgICAgaHR0cGNsaWVudExpbmVzdGF0ZURlc3Ryb3kobHMpOwogICAgfQogICAgaWYgKGRvd25sb2FkX3JlZl9oZWxkKQogICAgewogICAgICAgIGxpbmVVbnJlZihkb3dubG9hZF9saW5lKTsKICAgIH0KICAgIGlmICh1cGxvYWRfcmVmX2hlbGQpCiAgICB7CiAgICAgICAgbGluZVVucmVmKHVwbG9hZF9saW5lKTsKICAgIH0KICAgIGxpbmVVbnJlZihsKTsKfQoKdm9pZCBodHRwY2xpZW50U3BsaXREb3duU3RyZWFtUGF5bG9hZCh0dW5uZWxfdCAqdCwgbGluZV90ICpsLCBzYnVmX3QgKmJ1ZikKewogICAgaHR0cGNsaWVudF9sc3RhdGVfdCAqbHMgPSBsaW5lR2V0U3RhdGUobCwgdCk7CgogICAgaWYgKGxzLT5zcGxpdF9yb2xlID09IGtIdHRwQ2xpZW50U3BsaXRSb2xlVXBsb2FkKQogICAgewogICAgICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwogICAgICAgIHJldHVybjsKICAgIH0KCiAgICBpZiAobHMtPnNwbGl0X3JvbGUgIT0ga0h0dHBDbGllbnRTcGxpdFJvbGVEb3dubG9hZCB8fCBscy0+c3BsaXRfbWFpbl9saW5lID09IE5VTEwpCiAgICB7CiAgICAgICAgbGluZVJldXNlQnVmZmVyKGwsIGJ1Zik7CiAgICAgICAgcmV0dXJuOwogICAgfQoKICAgIGxpbmVfdCAqbWFpbl9saW5lID0gbHMtPnNwbGl0X21haW5fbGluZTsKICAgIGlmICghIGxpbmVJc0FsaXZlKG1haW5fbGluZSkpCiAgICB7CiAgICAgICAgbGluZVJldXNlQnVmZmVyKGwsIGJ1Zik7CiAgICAgICAgLy8gbWFpbiBpcyBnb25lOyB0ZWFyIGRvd24gcHJvYWN0aXZlbHkgYW5kIGZpbmlzaCB0aGlzIHRyYW5zcG9ydCdzIHN0aWxsLW9wZW4gbmV4dCBzaWRlLgogICAgICAgIGh0dHBjbGllbnRTcGxpdENsb3NlRnJvbVRyYW5zcG9ydCh0LCBsLCBmYWxzZSwgdHJ1ZSk7CiAgICAgICAgcmV0dXJuOwogICAgfQoKICAgIGxpbmVSZWYobCk7CiAgICBsaW5lUmVmKG1haW5fbGluZSk7CgogICAgaWYgKGxzLT5yZXNwb25zZV9jb21wbGV0ZSkKICAgIHsKICAgICAgICBodHRwY2xpZW50X3RzdGF0ZV90ICp0cyA9IHR1bm5lbEdldFN0YXRlKHQpOwogICAgICAgIGlmICh0cy0+dmVyYm9zZSAmJiAhIGxzLT5oMV90cmFpbGluZ19ieXRlc19sb2dnZWQpCiAgICAgICAgewogICAgICAgICAgICBMT0dEKCJIdHRwQ2xpZW50OiBpZ25vcmluZyBieXRlcyBhZnRlciB0aGUgc3BsaXQgSFRUUC8xLjEgcmVzcG9uc2UgYm9keSIpOwogICAgICAgICAgICBscy0+aDFfdHJhaWxpbmdfYnl0ZXNfbG9nZ2VkID0gdHJ1ZTsKICAgICAgICB9CiAgICAgICAgbGluZVJldXNlQnVmZmVyKGwsIGJ1Zik7CiAgICAgICAgbGluZVVucmVmKG1haW5fbGluZSk7CiAgICAgICAgbGluZVVucmVmKGwpOwogICAgICAgIHJldHVybjsKICAgIH0KCiAgICBidWZmZXJzdHJlYW1QdXNoKCZscy0+aW5fc3RyZWFtLCBidWYpOwoKICAgIGJvb2wgb2sgPSBodHRwY2xpZW50VHJhbnNwb3J0SGFuZGxlSHR0cDFSZXNwb25zZUhlYWRlclBoYXNlKHQsIGwsIGxzKTsKICAgIGlmIChvayAmJiBsaW5lSXNBbGl2ZShsKSAmJiBsaW5lSXNBbGl2ZShtYWluX2xpbmUpICYmIGxzLT5oMV9oZWFkZXJzX3BhcnNlZCkKICAgIHsKICAgICAgICBvayA9IGh0dHBjbGllbnRUcmFuc3BvcnREcmFpbkh0dHAxQm9keSh0LCBsLCBscyk7CiAgICB9CgogICAgLyogQSBjb21wbGV0ZSByZXNwb25zZSBib2R5IGlzIGZyYW1pbmcgc3RhdGU7IHRyYW5zcG9ydCBGaW5pc2ggY2xvc2VzIHRoZSBzcGxpdCB0cmlvLiAqLwoKICAgIGlmICghIG9rICYmIGxpbmVJc0FsaXZlKGwpKQogICAgewogICAgICAgIC8vIEVycm9yIHBhdGg6IGNsb3NlIHByb2FjdGl2ZWx5LCBmaW5pc2hpbmcgYm90aCBtYWluJ3MgcHJldiBhbmQgdGhpcyB0cmFuc3BvcnQncyBuZXh0LgogICAgICAgIGh0dHBjbGllbnRTcGxpdENsb3NlRnJvbVRyYW5zcG9ydCh0LCBsLCB0cnVlLCB0cnVlKTsKICAgIH0KCiAgICBsaW5lVW5yZWYobWFpbl9saW5lKTsKICAgIGxpbmVVbnJlZihsKTsKfQoKdm9pZCBodHRwY2xpZW50U3BsaXREb3duU3RyZWFtRmluaXNoKHR1bm5lbF90ICp0LCBsaW5lX3QgKmwpCnsKICAgIGh0dHBjbGllbnRfbHN0YXRlX3QgKmxzID0gbGluZUdldFN0YXRlKGwsIHQpOwoKICAgIGlmIChscy0+c3BsaXRfcm9sZSA9PSBrSHR0cENsaWVudFNwbGl0Um9sZVVwbG9hZCkKICAgIHsKICAgICAgICBsaW5lX3QgKm1haW5fbGluZSA9IGxzLT5zcGxpdF9tYWluX2xpbmU7CiAgICAgICAgaWYgKG1haW5fbGluZSAhPSBOVUxMICYmIGxpbmVJc0FsaXZlKG1haW5fbGluZSkpCiAgICAgICAgewogICAgICAgICAgICBsaW5lUmVmKG1haW5fbGluZSk7CiAgICAgICAgICAgIGh0dHBjbGllbnRTcGxpdERlc3Ryb3lDcmVhdGVkTGluZSh0LCBsLCBmYWxzZSk7CiAgICAgICAgICAgIGxpbmVVbnJlZihtYWluX2xpbmUpOwogICAgICAgICAgICByZXR1cm47CiAgICAgICAgfQogICAgfQoKICAgIC8vIEVudGVyZWQgYmVjYXVzZSB0aGlzIHRyYW5zcG9ydCdzIG5leHQgZmluaXNoZWQgdXMsIHNvIGRvIG5vdCByZS1maW5pc2ggdGhhdCBuZXh0IHNpZGUuCiAgICBodHRwY2xpZW50U3BsaXRDbG9zZUZyb21UcmFuc3BvcnQodCwgbCwgdHJ1ZSwgZmFsc2UpOwp9Cg==
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+bool httpclientSplitIsEnabled(tunnel_t *t)
+{
+    httpclient_tstate_t *ts = tunnelGetState(t);
+    return ts->h1_transport_mode == kHttpClientH1TransportSplit;
+}
+
+bool httpclientSplitGenerateId(char *out, size_t out_capacity)
+{
+    if (out != NULL && out_capacity > 0)
+    {
+        out[0] = '\0';
+    }
+
+    if (out == NULL || out_capacity < kHttpClientSplitIdCapacity)
+    {
+        return false;
+    }
+
+    static const char hex[] = "0123456789abcdef";
+    const uint64_t    high  = fastRand64();
+    const uint64_t    low   = fastRand64();
+
+    for (size_t i = 0; i < 16U; ++i)
+    {
+        const unsigned int shift = (unsigned int) ((15U - i) * 4U);
+        out[i]                   = hex[(high >> shift) & 0x0FU];
+        out[i + 16U]             = hex[(low >> shift) & 0x0FU];
+    }
+    out[kHttpClientSplitIdHexChars] = '\0';
+
+    return true;
+}
+
+static void httpclientSplitInitTransportState(tunnel_t *t, line_t *transport, line_t *main_line, line_t *upload_line,
+                                              line_t *download_line, httpclient_split_role_t role, const char *id)
+{
+    httpclient_lstate_t *ls = lineGetState(transport, t);
+    httpclientLinestateInitialize(ls, t, transport);
+    ls->runtime_proto       = kHttpClientRuntimeHttp1;
+    ls->split_role          = role;
+    ls->split_main_line     = main_line;
+    ls->split_upload_line   = upload_line;
+    ls->split_download_line = download_line;
+    stringCopyN(ls->split_id, id, sizeof(ls->split_id));
+}
+
+static void httpclientSplitClearPeerReference(tunnel_t *t, line_t *peer_line, line_t *dead_line)
+{
+    if (peer_line == NULL || peer_line == dead_line || ! lineIsAlive(peer_line))
+    {
+        return;
+    }
+
+    httpclient_lstate_t *peer_ls = lineGetState(peer_line, t);
+    if (peer_ls->split_main_line == dead_line)
+    {
+        peer_ls->split_main_line = NULL;
+    }
+    if (peer_ls->split_upload_line == dead_line)
+    {
+        peer_ls->split_upload_line = NULL;
+    }
+    if (peer_ls->split_download_line == dead_line)
+    {
+        peer_ls->split_download_line = NULL;
+    }
+}
+
+static void httpclientSplitDetachCreatedLine(tunnel_t *t, line_t *l, httpclient_lstate_t *ls)
+{
+    line_t *main_line     = ls->split_main_line;
+    line_t *upload_line   = ls->split_upload_line;
+    line_t *download_line = ls->split_download_line;
+
+    httpclientSplitClearPeerReference(t, main_line, l);
+    httpclientSplitClearPeerReference(t, upload_line, l);
+    httpclientSplitClearPeerReference(t, download_line, l);
+}
+
+static void httpclientSplitDestroyCreatedLine(tunnel_t *t, line_t *l, bool send_finish)
+{
+    if (l == NULL || ! lineIsAlive(l))
+    {
+        return;
+    }
+
+    httpclient_lstate_t *ls = lineGetState(l, t);
+    httpclientSplitDetachCreatedLine(t, l, ls);
+    httpclientLinestateDestroy(ls);
+    if (send_finish)
+    {
+        tunnelNextUpStreamFinish(t, l);
+    }
+    if (lineIsAlive(l))
+    {
+        lineDestroy(l);
+    }
+}
+
+// finish_sender controls whether the transport line we entered on still needs its own next
+// side finished. When this is called because the transport's next already finished us (a real
+// downstream Finish), pass false. When we close proactively (response complete, error, peer
+// died) the next side is still open and must be finished, so pass true.
+static void httpclientSplitCloseFromTransport(tunnel_t *t, line_t *transport_line, bool finish_main, bool finish_sender)
+{
+    httpclient_lstate_t *transport_ls  = lineGetState(transport_line, t);
+    line_t              *main_line     = transport_ls->split_main_line;
+    line_t              *upload_line   = transport_ls->split_upload_line;
+    line_t              *download_line = transport_ls->split_download_line;
+
+    lineRef(transport_line);
+    bool main_ref_held     = false;
+    bool upload_ref_held   = false;
+    bool download_ref_held = false;
+    if (main_line != NULL && lineIsAlive(main_line))
+    {
+        lineRef(main_line);
+        main_ref_held = true;
+    }
+    if (upload_line != NULL && upload_line != transport_line && lineIsAlive(upload_line))
+    {
+        lineRef(upload_line);
+        upload_ref_held = true;
+    }
+    if (download_line != NULL && download_line != transport_line && lineIsAlive(download_line))
+    {
+        lineRef(download_line);
+        download_ref_held = true;
+    }
+
+    if (upload_line != NULL && upload_line != transport_line)
+    {
+        httpclientSplitDestroyCreatedLine(t, upload_line, true);
+    }
+    if (download_line != NULL && download_line != transport_line)
+    {
+        httpclientSplitDestroyCreatedLine(t, download_line, true);
+    }
+
+    if (main_line != NULL && lineIsAlive(main_line))
+    {
+        httpclient_lstate_t *main_ls = lineGetState(main_line, t);
+        if (main_ls->split_role == kHttpClientSplitRoleMain)
+        {
+            bool notify_main = finish_main && ! main_ls->prev_finished;
+            httpclientLinestateDestroy(main_ls);
+            if (notify_main)
+            {
+                tunnelPrevDownStreamFinish(t, main_line);
+            }
+        }
+    }
+
+    if (lineIsAlive(transport_line))
+    {
+        // The transport line is one we created, so finish its next side (unless our caller
+        // already received that Finish) and destroy it. We hold an extra line reference above,
+        // so the allocation survives until the unref below.
+        httpclientSplitDestroyCreatedLine(t, transport_line, finish_sender);
+    }
+
+    if (download_ref_held)
+    {
+        lineUnref(download_line);
+    }
+    if (upload_ref_held)
+    {
+        lineUnref(upload_line);
+    }
+    if (main_ref_held)
+    {
+        lineUnref(main_line);
+    }
+    lineUnref(transport_line);
+}
+
+static void httpclientSplitFailMain(tunnel_t *t, line_t *main_line)
+{
+    if (main_line == NULL || ! lineIsAlive(main_line))
+    {
+        return;
+    }
+
+    httpclient_lstate_t *main_ls = lineGetState(main_line, t);
+    if (main_ls->split_role != kHttpClientSplitRoleMain)
+    {
+        return;
+    }
+    line_t *upload_line   = main_ls->split_upload_line;
+    line_t *download_line = main_ls->split_download_line;
+
+    /* A child Finish may synchronously close its sibling and clear main state. */
+    lineRef(main_line);
+    bool upload_ref_held   = upload_line != NULL && lineIsAlive(upload_line);
+    bool download_ref_held = download_line != NULL && lineIsAlive(download_line);
+    if (upload_ref_held)
+    {
+        lineRef(upload_line);
+    }
+    if (download_ref_held)
+    {
+        lineRef(download_line);
+    }
+
+    if (upload_ref_held)
+    {
+        httpclientSplitDestroyCreatedLine(t, upload_line, true);
+    }
+    if (download_ref_held)
+    {
+        httpclientSplitDestroyCreatedLine(t, download_line, true);
+    }
+
+    if (lineIsAlive(main_line) && main_ls->split_role == kHttpClientSplitRoleMain)
+    {
+        bool notify_main = ! main_ls->prev_finished;
+        httpclientLinestateDestroy(main_ls);
+        if (notify_main)
+        {
+            tunnelPrevDownStreamFinish(t, main_line);
+        }
+    }
+
+    if (download_ref_held)
+    {
+        lineUnref(download_line);
+    }
+    if (upload_ref_held)
+    {
+        lineUnref(upload_line);
+    }
+    lineUnref(main_line);
+}
+
+void httpclientSplitUpStreamInit(tunnel_t *t, line_t *l)
+{
+    httpclient_tstate_t *ts = tunnelGetState(t);
+    httpclient_lstate_t *ls = lineGetState(l, t);
+
+    httpclientLinestateInitialize(ls, t, l);
+    ls->runtime_proto   = kHttpClientRuntimeHttp1;
+    ls->split_role      = kHttpClientSplitRoleMain;
+    ls->split_main_line = l;
+
+    const bool id_generated = httpclientSplitGenerateId(ls->split_id, sizeof(ls->split_id));
+    assert(id_generated);
+    if (UNLIKELY(! id_generated))
+    {
+        LOGF("HttpClient: split-ID destination does not satisfy its fixed-size contract");
+        abortProgramNow(1);
+    }
+
+    if (ts->verbose)
+    {
+        LOGD("HttpClient: split HTTP/1.1 init id=%s upload=%s %s download=%s %s",
+             ls->split_id,
+             ts->split_upload_method,
+             ts->split_upload_path,
+             ts->split_download_method,
+             ts->split_download_path);
+    }
+
+    lineRef(l);
+
+    line_t *upload_line   = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(l));
+    ls->split_upload_line = upload_line;
+    httpclientSplitInitTransportState(t, upload_line, l, upload_line, NULL, kHttpClientSplitRoleUpload, ls->split_id);
+
+    if (! lineCallWithRef(upload_line, tunnelNextUpStreamInit, t))
+    {
+        if (lineIsAlive(l))
+        {
+            httpclientLinestateDestroy(ls);
+            tunnelPrevDownStreamFinish(t, l);
+        }
+        lineUnref(l);
+        return;
+    }
+
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    line_t *download_line   = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(l));
+    ls->split_download_line = download_line;
+
+    httpclient_lstate_t *upload_ls = lineGetState(upload_line, t);
+    upload_ls->split_download_line = download_line;
+
+    httpclientSplitInitTransportState(
+        t, download_line, l, upload_line, download_line, kHttpClientSplitRoleDownload, ls->split_id);
+
+    lineRef(upload_line);
+    bool download_init_ok = lineCallWithRef(download_line, tunnelNextUpStreamInit, t);
+    if (! download_init_ok)
+    {
+        if (lineIsAlive(upload_line))
+        {
+            httpclientSplitDestroyCreatedLine(t, upload_line, true);
+        }
+        lineUnref(upload_line);
+        if (lineIsAlive(l))
+        {
+            httpclientLinestateDestroy(ls);
+            tunnelPrevDownStreamFinish(t, l);
+        }
+        lineUnref(l);
+        return;
+    }
+    lineUnref(upload_line);
+
+    if (! lineIsAlive(l))
+    {
+        lineUnref(l);
+        return;
+    }
+
+    bool ok = true;
+    lineRef(upload_line);
+    if (! httpclientTransportSendHttp1SplitRequestHeaders(t, upload_line) || ! lineIsAlive(upload_line))
+    {
+        ok = false;
+    }
+    lineUnref(upload_line);
+
+    if (ok)
+    {
+        lineRef(download_line);
+        if (! httpclientTransportSendHttp1SplitRequestHeaders(t, download_line) || ! lineIsAlive(download_line))
+        {
+            ok = false;
+        }
+        lineUnref(download_line);
+    }
+
+    if (! ok && lineIsAlive(l))
+    {
+        httpclientSplitFailMain(t, l);
+    }
+
+    lineUnref(l);
+}
+
+void httpclientSplitUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    httpclient_lstate_t *ls          = lineGetState(l, t);
+    line_t              *upload_line = ls->split_upload_line;
+
+    if (upload_line == NULL || ! lineIsAlive(upload_line))
+    {
+        lineReuseBuffer(l, buf);
+        httpclientSplitFailMain(t, l);
+        return;
+    }
+
+    lineRef(l);
+    lineRef(upload_line);
+
+    bool ok = httpclientTransportSendHttp1ChunkedPayload(t, upload_line, buf);
+    if ((! ok || ! lineIsAlive(upload_line)) && lineIsAlive(l))
+    {
+        httpclientSplitFailMain(t, l);
+    }
+
+    lineUnref(upload_line);
+    lineUnref(l);
+}
+
+void httpclientSplitUpStreamFinish(tunnel_t *t, line_t *l)
+{
+    httpclient_lstate_t *ls            = lineGetState(l, t);
+    line_t              *upload_line   = ls->split_upload_line;
+    line_t              *download_line = ls->split_download_line;
+
+    lineRef(l);
+    ls->prev_finished = true;
+
+    /* Final bytes can close either transport; retain both before calling out. */
+    bool upload_ref_held   = upload_line != NULL && lineIsAlive(upload_line);
+    bool download_ref_held = download_line != NULL && lineIsAlive(download_line);
+    if (upload_ref_held)
+    {
+        lineRef(upload_line);
+    }
+    if (download_ref_held)
+    {
+        lineRef(download_line);
+    }
+
+    // The main line was created by the upstream adapter (e.g. TcpListener), which destroys it
+    // as soon as this upstream Finish returns. We therefore cannot keep the main line alive to
+    // wait for the response; we must tear the whole trio down now. We must NOT send a Finish
+    // back toward main's prev (it just finished us), and we must NOT lineDestroy main (we did
+    // not create it) - only drop our own line state so the adapter's lineDestroy stays valid.
+
+    if (upload_ref_held)
+    {
+        httpclient_lstate_t *upload_ls = lineGetState(upload_line, t);
+        // Upload backpressure is re-homed to main's prev, which has already finished this split trio.
+        upload_ls->prev_finished = true;
+        discard httpclientTransportSendHttp1FinalChunk(t, upload_line);
+        if (lineIsAlive(upload_line))
+        {
+            httpclientSplitDestroyCreatedLine(t, upload_line, true);
+        }
+    }
+
+    if (download_ref_held)
+    {
+        httpclientSplitDestroyCreatedLine(t, download_line, true);
+    }
+
+    if (lineIsAlive(l) && ls->split_role == kHttpClientSplitRoleMain)
+    {
+        httpclientLinestateDestroy(ls);
+    }
+    if (download_ref_held)
+    {
+        lineUnref(download_line);
+    }
+    if (upload_ref_held)
+    {
+        lineUnref(upload_line);
+    }
+    lineUnref(l);
+}
+
+void httpclientSplitDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    httpclient_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->split_role == kHttpClientSplitRoleUpload)
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    if (ls->split_role != kHttpClientSplitRoleDownload || ls->split_main_line == NULL)
+    {
+        lineReuseBuffer(l, buf);
+        return;
+    }
+
+    line_t *main_line = ls->split_main_line;
+    if (! lineIsAlive(main_line))
+    {
+        lineReuseBuffer(l, buf);
+        // main is gone; tear down proactively and finish this transport's still-open next side.
+        httpclientSplitCloseFromTransport(t, l, false, true);
+        return;
+    }
+
+    lineRef(l);
+    lineRef(main_line);
+
+    if (ls->response_complete)
+    {
+        httpclient_tstate_t *ts = tunnelGetState(t);
+        if (ts->verbose && ! ls->h1_trailing_bytes_logged)
+        {
+            LOGD("HttpClient: ignoring bytes after the split HTTP/1.1 response body");
+            ls->h1_trailing_bytes_logged = true;
+        }
+        lineReuseBuffer(l, buf);
+        lineUnref(main_line);
+        lineUnref(l);
+        return;
+    }
+
+    bufferstreamPush(&ls->in_stream, buf);
+
+    bool ok = httpclientTransportHandleHttp1ResponseHeaderPhase(t, l, ls);
+    if (ok && lineIsAlive(l) && lineIsAlive(main_line) && ls->h1_headers_parsed)
+    {
+        ok = httpclientTransportDrainHttp1Body(t, l, ls);
+    }
+
+    /* A complete response body is framing state; transport Finish closes the split trio. */
+
+    if (! ok && lineIsAlive(l))
+    {
+        // Error path: close proactively, finishing both main's prev and this transport's next.
+        httpclientSplitCloseFromTransport(t, l, true, true);
+    }
+
+    lineUnref(main_line);
+    lineUnref(l);
+}
+
+void httpclientSplitDownStreamFinish(tunnel_t *t, line_t *l)
+{
+    httpclient_lstate_t *ls = lineGetState(l, t);
+
+    if (ls->split_role == kHttpClientSplitRoleUpload)
+    {
+        line_t *main_line = ls->split_main_line;
+        if (main_line != NULL && lineIsAlive(main_line))
+        {
+            lineRef(main_line);
+            httpclientSplitDestroyCreatedLine(t, l, false);
+            lineUnref(main_line);
+            return;
+        }
+    }
+
+    // Entered because this transport's next finished us, so do not re-finish that next side.
+    httpclientSplitCloseFromTransport(t, l, true, false);
+}

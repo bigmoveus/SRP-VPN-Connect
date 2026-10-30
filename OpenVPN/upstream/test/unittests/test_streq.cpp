@@ -1,1 +1,34 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL3NpemUuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vZXhjZXB0aW9uLmhwcD4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zdHJuZXEuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47Cgp2b2lkIHRlc3QoY29uc3Qgc3RkOjpzdHJpbmcgJnMxLCBjb25zdCBzdGQ6OnN0cmluZyAmczIsIGNvbnN0IGJvb2wgc2hvdWxkX2VxKQp7CiAgICBjb25zdCBib29sIG5lcSA9IGNyeXB0bzo6c3RyX25lcShzMSwgczIpOwogICAgLy8gT1BFTlZQTl9MT0coIiciIDw8IHMxIDw8ICInIGNtcCAnIiA8PCBzMiA8PCAiJyAiIDw8IChuZXEgPyAiTkVRIiA6ICJFUSIpKTsKICAgIEFTU0VSVF9ORShuZXEsIHNob3VsZF9lcSk7Cn0KClRFU1QobWlzYywgc3RyZXEpCnsKICAgIHRlc3QoIiIsICIiLCB0cnVlKTsKICAgIHRlc3QoIngiLCAiIiwgZmFsc2UpOwogICAgdGVzdCgiIiwgIngiLCBmYWxzZSk7CiAgICB0ZXN0KCJmb28iLCAiZm9vIiwgdHJ1ZSk7CiAgICB0ZXN0KCJmb29iYXIiLCAiZm9vIiwgZmFsc2UpOwogICAgdGVzdCgiZm9vIiwgImZvb2JhciIsIGZhbHNlKTsKfQoKdm9pZCB0ZXN0X3RpbWluZygpCnsKICAgIHNpemVfdCBjb3VudCA9IDA7CiAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IDEwMDAwMDAwMDA7ICsraSkKICAgICAgICBjb3VudCArPSBjcnlwdG86OnN0cl9uZXEoImZvb2Jhcnh4eCIsICJmb29iYXIiKTsKICAgIE9QRU5WUE5fTE9HKGNvdW50KTsKfQ==
+#include "test_common.hpp"
+#include <iostream>
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/common/strneq.hpp>
+
+using namespace openvpn;
+
+void test(const std::string &s1, const std::string &s2, const bool should_eq)
+{
+    const bool neq = crypto::str_neq(s1, s2);
+    // OPENVPN_LOG("'" << s1 << "' cmp '" << s2 << "' " << (neq ? "NEQ" : "EQ"));
+    ASSERT_NE(neq, should_eq);
+}
+
+TEST(misc, streq)
+{
+    test("", "", true);
+    test("x", "", false);
+    test("", "x", false);
+    test("foo", "foo", true);
+    test("foobar", "foo", false);
+    test("foo", "foobar", false);
+}
+
+void test_timing()
+{
+    size_t count = 0;
+    for (size_t i = 0; i < 1000000000; ++i)
+        count += crypto::str_neq("foobarxxx", "foobar");
+    OPENVPN_LOG(count);
+}

@@ -1,1 +1,13 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiAgICByZXR1cm4gdGVzdF9hdXRoX3Bhc3N3b3JkKHNlc3Npb24sIDAsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJsaWJzc2gyIiwgLyogc2V0IGluIERvY2tlcmZpbGUgKi8KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm15IHRlc3QgcGFzc3dvcmQiKTsgLyogc2V0IGluIERvY2tlcmZpbGUgKi8KfQo=
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int test(LIBSSH2_SESSION *session)
+{
+    return test_auth_password(session, 0,
+                              "libssh2", /* set in Dockerfile */
+                              "my test password"); /* set in Dockerfile */
+}

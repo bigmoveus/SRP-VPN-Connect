@@ -1,1 +1,331 @@
-LyogQ29weXJpZ2h0IChDKSBYYXZlciBMb3BwZW5zdGVkdAogKiBBbGwgcmlnaHRzIHJlc2VydmVkLgogKgogKiBSZWRpc3RyaWJ1dGlvbiBhbmQgdXNlIGluIHNvdXJjZSBhbmQgYmluYXJ5IGZvcm1zLAogKiB3aXRoIG9yIHdpdGhvdXQgbW9kaWZpY2F0aW9uLCBhcmUgcGVybWl0dGVkIHByb3ZpZGVkCiAqIHRoYXQgdGhlIGZvbGxvd2luZyBjb25kaXRpb25zIGFyZSBtZXQ6CiAqCiAqICAgUmVkaXN0cmlidXRpb25zIG9mIHNvdXJjZSBjb2RlIG11c3QgcmV0YWluIHRoZSBhYm92ZQogKiAgIGNvcHlyaWdodCBub3RpY2UsIHRoaXMgbGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUKICogICBmb2xsb3dpbmcgZGlzY2xhaW1lci4KICoKICogICBSZWRpc3RyaWJ1dGlvbnMgaW4gYmluYXJ5IGZvcm0gbXVzdCByZXByb2R1Y2UgdGhlIGFib3ZlCiAqICAgY29weXJpZ2h0IG5vdGljZSwgdGhpcyBsaXN0IG9mIGNvbmRpdGlvbnMgYW5kIHRoZSBmb2xsb3dpbmcKICogICBkaXNjbGFpbWVyIGluIHRoZSBkb2N1bWVudGF0aW9uIGFuZC9vciBvdGhlciBtYXRlcmlhbHMKICogICBwcm92aWRlZCB3aXRoIHRoZSBkaXN0cmlidXRpb24uCiAqCiAqICAgTmVpdGhlciB0aGUgbmFtZSBvZiB0aGUgY29weXJpZ2h0IGhvbGRlciBub3IgdGhlIG5hbWVzCiAqICAgb2YgYW55IG90aGVyIGNvbnRyaWJ1dG9ycyBtYXkgYmUgdXNlZCB0byBlbmRvcnNlIG9yCiAqICAgcHJvbW90ZSBwcm9kdWN0cyBkZXJpdmVkIGZyb20gdGhpcyBzb2Z0d2FyZSB3aXRob3V0CiAqICAgc3BlY2lmaWMgcHJpb3Igd3JpdHRlbiBwZXJtaXNzaW9uLgogKgogKiBUSElTIFNPRlRXQVJFIElTIFBST1ZJREVEIEJZIFRIRSBDT1BZUklHSFQgSE9MREVSUyBBTkQKICogQ09OVFJJQlVUT1JTICJBUyBJUyIgQU5EIEFOWSBFWFBSRVNTIE9SIElNUExJRUQgV0FSUkFOVElFUywKICogSU5DTFVESU5HLCBCVVQgTk9UIExJTUlURUQgVE8sIFRIRSBJTVBMSUVEIFdBUlJBTlRJRVMKICogT0YgTUVSQ0hBTlRBQklMSVRZIEFORCBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRQogKiBBUkUgRElTQ0xBSU1FRC4gSU4gTk8gRVZFTlQgU0hBTEwgVEhFIENPUFlSSUdIVCBPV05FUiBPUgogKiBDT05UUklCVVRPUlMgQkUgTElBQkxFIEZPUiBBTlkgRElSRUNULCBJTkRJUkVDVCwgSU5DSURFTlRBTCwKICogU1BFQ0lBTCwgRVhFTVBMQVJZLCBPUiBDT05TRVFVRU5USUFMIERBTUFHRVMgKElOQ0xVRElORywKICogQlVUIE5PVCBMSU1JVEVEIFRPLCBQUk9DVVJFTUVOVCBPRiBTVUJTVElUVVRFIEdPT0RTIE9SCiAqIFNFUlZJQ0VTOyBMT1NTIE9GIFVTRSwgREFUQSwgT1IgUFJPRklUUzsgT1IgQlVTSU5FU1MKICogSU5URVJSVVBUSU9OKSBIT1dFVkVSIENBVVNFRCBBTkQgT04gQU5ZIFRIRU9SWSBPRiBMSUFCSUxJVFksCiAqIFdIRVRIRVIgSU4gQ09OVFJBQ1QsIFNUUklDVCBMSUFCSUxJVFksIE9SIFRPUlQgKElOQ0xVRElORwogKiBORUdMSUdFTkNFIE9SIE9USEVSV0lTRSkgQVJJU0lORyBJTiBBTlkgV0FZIE9VVCBPRiBUSEUKICogVVNFIE9GIFRISVMgU09GVFdBUkUsIEVWRU4gSUYgQURWSVNFRCBPRiBUSEUgUE9TU0lCSUxJVFkKICogT0YgU1VDSCBEQU1BR0UuCiAqCiAqIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBCU0QtMy1DbGF1c2UKICovCgojaW5jbHVkZSAibGlic3NoMl9wcml2LmgiCiNpbmNsdWRlICJ1c2VyYXV0aF9rYmRfcGFja2V0LmgiCgojaW5jbHVkZSA8c3RkbGliLmg+CgojZGVmaW5lIFBBU1MgMAojZGVmaW5lIEZBSUwgLTEKCnN0cnVjdCBleHBlY3RlZCB7CiAgICBpbnQgcmM7CiAgICBpbnQgbGFzdF9lcnJvcl9jb2RlOwogICAgY29uc3QgY2hhciAqbGFzdF9lcnJvcl9tZXNzYWdlOwp9OwpzdHJ1Y3QgdGVzdF9jYXNlIHsKICAgIGNvbnN0IGNoYXIgKmRhdGE7CiAgICB1bnNpZ25lZCBpbnQgZGF0YV9sZW47CiAgICBzdHJ1Y3QgZXhwZWN0ZWQgZXhwZWN0ZWQ7Cn07CgojZGVmaW5lIFRFU1RfQ0FTRVNfTEVOIDE2CnN0YXRpYyBjb25zdCBzdHJ1Y3QgdGVzdF9jYXNlCiAgICB0ZXN0X2Nhc2VzW1RFU1RfQ0FTRVNfTEVOXSA9IHsKICAgIC8qIHRvbyBzbWFsbCAqLwogICAgewogICAgICAgIE5VTEwsIDAsCiAgICAgICAge0ZBSUwsIC0zOCwKICAgICAgICAgICAgInVzZXJhdXRoIGtleWJvYXJkIGRhdGEgYnVmZmVyIHRvbyBzbWFsbCB0byBnZXQgbGVuZ3RoIn19LAogICAgLyogdG9vIHNtYWxsICovCiAgICB7CiAgICAgICAgIjEyMzQiLCA0LAogICAgICAgIHtGQUlMLCAtMzgsCiAgICAgICAgICAgICJ1c2VyYXV0aCBrZXlib2FyZCBkYXRhIGJ1ZmZlciB0b28gc21hbGwgdG8gZ2V0IGxlbmd0aCJ9fSwKICAgIC8qIHNtYWxsZXN0IHZhbGlkIHBhY2tldCBwb3NzaWJsZSAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXDAiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIsIDE3LAogICAgICAgIHtQQVNTLCAwLCAiIn19LAogICAgLyogb3ZlcnJ1biBuYW1lICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFx4N2YiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXDAiLCAxNywKICAgICAgICB7RkFJTCwgLTYsCiAgICAgICAgICAgICJVbmFibGUgdG8gZGVjb2RlIGtleWJvYXJkLWludGVyYWN0aXZlICduYW1lJyByZXF1ZXN0IGZpZWxkIn19LAogICAgLyogb3ZlcnJ1biBpbnN0cnVjdGlvbiAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXHg3ZiIKICAgICAgICAiXDBcMFwwXDAiCiAgICAgICAgIlwwXDBcMFwwIiwgMTcsCiAgICAgICAge0ZBSUwsIC02LAogICAgICAgICAgICAiVW5hYmxlIHRvIGRlY29kZSBrZXlib2FyZC1pbnRlcmFjdGl2ZSAnaW5zdHJ1Y3Rpb24nICIKICAgICAgICAgICAgInJlcXVlc3QgZmllbGQifX0sCiAgICAvKiBvdmVycnVuIGxhbmd1YWdlICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXHg3ZiIKICAgICAgICAiXDBcMFwwXDAiLCAxNywKICAgICAgICB7RkFJTCwgLTYsCiAgICAgICAgICAgICJVbmFibGUgdG8gZGVjb2RlIGtleWJvYXJkLWludGVyYWN0aXZlICdsYW5ndWFnZSB0YWcnICIKICAgICAgICAgICAgInJlcXVlc3QgZmllbGQifX0sCiAgICAvKiB1bmRlcnJ1biBwcm9tcHQgbnVtYmVyICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFx4MDEiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXDAiLCAxNywKICAgICAgICB7RkFJTCwgLTM4LAogICAgICAgICAgICAiVW5hYmxlIHRvIGRlY29kZSBrZXlib2FyZC1pbnRlcmFjdGl2ZSBudW1iZXIgb2YgIgogICAgICAgICAgICAia2V5Ym9hcmQgcHJvbXB0cyJ9fSwKICAgIC8qIHRvbyBtYW55IHByb21wdHMgKi8KICAgIHsKICAgICAgICAiPCIKICAgICAgICAiXDBcMFwwXDAiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXHg3ZiIsIDE3LAogICAgICAgIHtGQUlMLCAtNDEsICJUb28gbWFueSByZXBsaWVzIGZvciBrZXlib2FyZC1pbnRlcmFjdGl2ZSBwcm9tcHRzIn19LAogICAgLyogZW1wdHkgcHJvbXB0ICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMFwwXDBcMCIKICAgICAgICAiXDBcMFwwXDAiCiAgICAgICAgIlwwXDBcMFx4MDEiCiAgICAgICAgIlwwXDBcMFwwIgogICAgICAgICJcMCIsIDIyLAogICAgICAgIHtQQVNTLCAwLCAiIn19LAogICAgLyogY29waWVkIGZyb20gT3BlblNTSCAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBceDAxIgogICAgICAgICJcMFwwXDBceDBhUGFzc3dvcmQ6IFwwIiwgMzIsCiAgICAgICAge1BBU1MsIDAsICIifX0sCiAgICAvKiBvdmVycnVuIGluIHByb21wdCB0ZXh0ICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFx4MDEiCiAgICAgICAgIlwwXDBcMFx4N2JQYXNzd29yZDogXDAiLCAzMiwKICAgICAgICB7RkFJTCwgLTYsCiAgICAgICAgICAgICJVbmFibGUgdG8gZGVjb2RlIGtleWJvYXJkLWludGVyYWN0aXZlICIKICAgICAgICAgICAgInByb21wdCBtZXNzYWdlIn19LAogICAgLyogbm8gZWNobyBwcm9tcHQgYm9vbGVhbiAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBceDAxIgogICAgICAgICJcMFwwXDBceDBiUGFzc3dvcmQ6IFwwIiwgMzIsCiAgICAgICAge0ZBSUwsIC0zOCwgIlVuYWJsZSB0byBkZWNvZGUgdXNlciBhdXRoIGtleWJvYXJkIHByb21wdCBlY2hvIn19LAogICAgLyogdHdvIHByb21wdHMgKi8KICAgIHsKICAgICAgICAiPCIKICAgICAgICAiXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXHgwMiIKICAgICAgICAiXDBcMFwwXHgwYVBhc3N3b3JkOiBcMCIKICAgICAgICAiXDBcMFwwXHgwN1Rva2VuOiBcMSIsIDQ0LAogICAgICAgIHtQQVNTLCAwLCAiIn19LAogICAgLyogZXhhbXBsZSBmcm9tIFJGQyA0MjU2ICovCiAgICB7CiAgICAgICAgIjwiCiAgICAgICAgIlwwXDBcMFx4MTkiIkNSWVBUT0NhcmQgQXV0aGVudGljYXRpb24iCiAgICAgICAgIlwwXDBcMFx4MWIiIlRoZSBjaGFsbGVuZ2UgaXMgJzE0MzE1NzE2JyIKICAgICAgICAiXDBcMFwwXHgwNSIiZW4tVVMiCiAgICAgICAgIlwwXDBcMFx4MDEiCiAgICAgICAgIlwwXDBcMFx4MGFSZXNwb25zZTogIgogICAgICAgICJceDAxIgogICAgICAgICwgODksCiAgICAgICAge1BBU1MsIDAsICIifX0sCiAgICAvKiB0aHJlZSBwcm9tcHRzLCAzcmQgbWlzc2luZyAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBceDAzIgogICAgICAgICJcMFwwXDBceDBhUGFzc3dvcmQ6IFwwIgogICAgICAgICJcMFwwXDBceDA3VG9rZW46IFwxIiwgNDQsCiAgICAgICAge0ZBSUwsIC02LCAiVW5hYmxlIHRvIGRlY29kZSBrZXlib2FyZC1pbnRlcmFjdGl2ZSBwcm9tcHQgbWVzc2FnZSJ9fSwKICAgIC8qIG92ZXJmbG93IGxhbmd1YWdlIG9uIDMyIGJpdCBwbGF0Zm9ybSAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBceDE5IgogICAgICAgICAgICAiXDBcMFwwXHgwMSIKICAgICAgICAgICAgIlwwXDBcMFx4MDUiIlBXTjNEXDBcMVwyXDNcNFw1XDZcN1wxXDJcMyIKICAgICAgICAgICAgIlx4MDEiCiAgICAgICAgIlwwXDBcMFx4MWIiIlRoZSBjaGFsbGVuZ2UgaXMgJzE0MzE1NzE2JyIKICAgICAgICAiXHhmZlx4ZmZceGZmXHhjNCIiZW4tVVMiCiAgICAgICAgIlwwXDBcMFx4MDEiCiAgICAgICAgIlwwXDBcMFx4MGFSZXNwb25zZTogIgogICAgICAgICJceDAxIiwKICAgICAgICA4OSwKICAgICAgICB7RkFJTCwgLTYsCiAgICAgICAgICAgICJVbmFibGUgdG8gZGVjb2RlIGtleWJvYXJkLWludGVyYWN0aXZlICdsYW5ndWFnZSB0YWcnICIKICAgICAgICAgICAgInJlcXVlc3QgZmllbGQifX0sCn07CgojZGVmaW5lIEZBSUxFRF9NQUxMT0NfVEVTVF9DQVNFU19MRU4gMgpzdGF0aWMgY29uc3Qgc3RydWN0IHRlc3RfY2FzZQogICAgZmFpbGVkX21hbGxvY190ZXN0X2Nhc2VzW0ZBSUxFRF9NQUxMT0NfVEVTVF9DQVNFU19MRU5dID0gewogICAgLyogbWFsbG9jIGZhaWwgKi8KICAgIHsKICAgICAgICAiPCIKICAgICAgICAiXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXHgwMSIKICAgICAgICAiXDBcMFwwXHgwYVBhc3N3b3JkOiBcMCIsIDMyLAogICAgICAgIHtGQUlMLCAtNiwKICAgICAgICAgICAgIlVuYWJsZSB0byBhbGxvY2F0ZSBtZW1vcnkgZm9yICIKICAgICAgICAgICAgImtleWJvYXJkLWludGVyYWN0aXZlIHByb21wdHMgYXJyYXkifX0sCiAgICAvKiBtYWxsb2MgZmFpbCAqLwogICAgewogICAgICAgICI8IgogICAgICAgICJcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBcMFwwXDBceDAxIgogICAgICAgICJcMFwwXDBceDBhUGFzc3dvcmQ6IFwwIiwgMzIsCiAgICAgICAge0ZBSUwsIC02LAogICAgICAgICAgICAiVW5hYmxlIHRvIGFsbG9jYXRlIG1lbW9yeSBmb3IgIgogICAgICAgICAgICAia2V5Ym9hcmQtaW50ZXJhY3RpdmUgcmVzcG9uc2VzIGFycmF5IgogICAgICAgIH19Cn07CgpzdGF0aWMgaW50IGFsbG9jX2NvdW50ID0gMDsKc3RhdGljIGludCBmcmVlX2NvdW50ID0gMDsKCi8qIGxpYnNzaDJfZGVmYXVsdF9hbGxvYwogKi8Kc3RhdGljCkxJQlNTSDJfQUxMT0NfRlVOQyh0ZXN0X2FsbG9jKQp7CiAgICBpbnQgKnRocmVzaG9sZF9pbnRfcHRyID0gKmFic3RyYWN0OwogICAgYWxsb2NfY291bnQrKzsKICAgIGlmKCphYnN0cmFjdCAmJiAqdGhyZXNob2xkX2ludF9wdHIgPT0gYWxsb2NfY291bnQpIHsKICAgICAgICByZXR1cm4gTlVMTDsKICAgIH0KCiAgICByZXR1cm4gbWFsbG9jKGNvdW50KTsKfQoKLyogbGlic3NoMl9kZWZhdWx0X2ZyZWUKICovCnN0YXRpYwpMSUJTU0gyX0ZSRUVfRlVOQyh0ZXN0X2ZyZWUpCnsKICAgICh2b2lkKWFic3RyYWN0OwogICAgZnJlZV9jb3VudCsrOwogICAgZnJlZShwdHIpOwp9CgpzdGF0aWMKaW50IHRlc3RfY2FzZShpbnQgbnVtLAogICAgICAgICAgICAgIGNvbnN0IGNoYXIgKmRhdGEsIHVuc2lnbmVkIGludCBkYXRhX2xlbiwgdm9pZCAqYWJzdHJhY3QsCiAgICAgICAgICAgICAgc3RydWN0IGV4cGVjdGVkIGV4cGVjdGVkKQp7CiAgICBpbnQgcmM7CiAgICBjaGFyICptZXNzYWdlOwogICAgaW50IGVycm9yX2NvZGU7CiAgICBMSUJTU0gyX1NFU1NJT04gKnNlc3Npb247CgogICAgYWxsb2NfY291bnQgPSAwOwogICAgZnJlZV9jb3VudCA9IDA7CgogICAgc2Vzc2lvbiA9IGxpYnNzaDJfc2Vzc2lvbl9pbml0X2V4KHRlc3RfYWxsb2MsIHRlc3RfZnJlZSwgTlVMTCwgYWJzdHJhY3QpOwogICAgaWYoIXNlc3Npb24pIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgImxpYnNzaDJfc2Vzc2lvbl9pbml0X2V4IGZhaWxlZFxuIik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgc2Vzc2lvbi0+dXNlcmF1dGhfa3liZF9kYXRhID0gTElCU1NIMl9BTExPQyhzZXNzaW9uLCBkYXRhX2xlbik7CiAgICBzZXNzaW9uLT51c2VyYXV0aF9reWJkX2RhdGFfbGVuID0gZGF0YV9sZW47CiAgICBtZW1jcHkoc2Vzc2lvbi0+dXNlcmF1dGhfa3liZF9kYXRhLCBkYXRhLCBkYXRhX2xlbik7CgogICAgcmMgPSB1c2VyYXV0aF9rZXlib2FyZF9pbnRlcmFjdGl2ZV9kZWNvZGVfaW5mb19yZXF1ZXN0KHNlc3Npb24pOwoKICAgIGlmKHJjICE9IGV4cGVjdGVkLnJjKSB7CiAgICAgICAgZnByaW50ZihzdGRvdXQsCiAgICAgICAgICAgICAgICAiVGVzdCBjYXNlICVkOiBleHBlY3RlZCByZXR1cm4gY29kZSB0byBiZSAlZCBnb3QgJWRcbiIsCiAgICAgICAgICAgICAgICBudW0sIGV4cGVjdGVkLnJjLCByYyk7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgZXJyb3JfY29kZSA9IGxpYnNzaDJfc2Vzc2lvbl9sYXN0X2Vycm9yKHNlc3Npb24sICZtZXNzYWdlLCBOVUxMLCAwKTsKCiAgICBpZihleHBlY3RlZC5sYXN0X2Vycm9yX2NvZGUgIT0gZXJyb3JfY29kZSkgewogICAgICAgIGZwcmludGYoc3Rkb3V0LAogICAgICAgICAgICAgICAgIlRlc3QgY2FzZSAlZDogZXhwZWN0ZWQgbGFzdCBlcnJvciBjb2RlIHRvIGJlICIKICAgICAgICAgICAgICAgICJcIiVkXCIgZ290IFwiJWRcIlxuIiwKICAgICAgICAgICAgICAgIG51bSwgZXhwZWN0ZWQubGFzdF9lcnJvcl9jb2RlLCBlcnJvcl9jb2RlKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBpZihzdHJjbXAoZXhwZWN0ZWQubGFzdF9lcnJvcl9tZXNzYWdlLCBtZXNzYWdlKSAhPSAwKSB7CiAgICAgICAgZnByaW50ZihzdGRvdXQsCiAgICAgICAgICAgICAgICAiVGVzdCBjYXNlICVkOiBleHBlY3RlZCBsYXN0IGVycm9yIG1lc3NhZ2UgdG8gYmUgIgogICAgICAgICAgICAgICAgIlwiJXNcIiBnb3QgXCIlc1wiXG4iLAogICAgICAgICAgICAgICAgbnVtLCBleHBlY3RlZC5sYXN0X2Vycm9yX21lc3NhZ2UsIG1lc3NhZ2UpOwogICAgICAgIHJldHVybiAxOwogICAgfQogICAgbGlic3NoMl9zZXNzaW9uX2ZyZWUoc2Vzc2lvbik7CgogICAgZnByaW50ZihzdGRlcnIsICJUZXN0IGNhc2UgJWQgcGFzc2VkXG4iLCBudW0pOwoKICAgIHJldHVybiAwOwp9CgppbnQgbWFpbih2b2lkKQp7CiAgICBpbnQgcmV0ID0gMDsKICAgIGludCBpOwoKICAgIGZvcihpID0gMDsgaSA8IFRFU1RfQ0FTRVNfTEVOOyBpKyspIHsKICAgICAgICBpZih0ZXN0X2Nhc2UoaSArIDEsCiAgICAgICAgICAgICAgICAgICAgIHRlc3RfY2FzZXNbaV0uZGF0YSwKICAgICAgICAgICAgICAgICAgICAgdGVzdF9jYXNlc1tpXS5kYXRhX2xlbiwKICAgICAgICAgICAgICAgICAgICAgTlVMTCwKICAgICAgICAgICAgICAgICAgICAgdGVzdF9jYXNlc1tpXS5leHBlY3RlZCkpCiAgICAgICAgICAgIHJldCA9IDE7CiAgICB9CgogICAgZm9yKGkgPSAwOyBpIDwgRkFJTEVEX01BTExPQ19URVNUX0NBU0VTX0xFTjsgaSsrKSB7CiAgICAgICAgaW50IHRjID0gIGkgKyBURVNUX0NBU0VTX0xFTiArIDE7CiAgICAgICAgaW50IG1hbGxvY19jYWxsX251bSA9IDMgKyBpOwogICAgICAgIGlmKHRlc3RfY2FzZSh0YywKICAgICAgICAgICAgICAgICAgICAgZmFpbGVkX21hbGxvY190ZXN0X2Nhc2VzW2ldLmRhdGEsCiAgICAgICAgICAgICAgICAgICAgIGZhaWxlZF9tYWxsb2NfdGVzdF9jYXNlc1tpXS5kYXRhX2xlbiwKICAgICAgICAgICAgICAgICAgICAgJm1hbGxvY19jYWxsX251bSwKICAgICAgICAgICAgICAgICAgICAgZmFpbGVkX21hbGxvY190ZXN0X2Nhc2VzW2ldLmV4cGVjdGVkKSkKICAgICAgICAgICAgcmV0ID0gMTsKICAgIH0KCiAgICByZXR1cm4gcmV0Owp9Cg==
+/* Copyright (C) Xaver Loppenstedt
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *   Redistributions of source code must retain the above
+ *   copyright notice, this list of conditions and the
+ *   following disclaimer.
+ *
+ *   Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ *   Neither the name of the copyright holder nor the names
+ *   of any other contributors may be used to endorse or
+ *   promote products derived from this software without
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "libssh2_priv.h"
+#include "userauth_kbd_packet.h"
+
+#include <stdlib.h>
+
+#define PASS 0
+#define FAIL -1
+
+struct expected {
+    int rc;
+    int last_error_code;
+    const char *last_error_message;
+};
+struct test_case {
+    const char *data;
+    unsigned int data_len;
+    struct expected expected;
+};
+
+#define TEST_CASES_LEN 16
+static const struct test_case
+    test_cases[TEST_CASES_LEN] = {
+    /* too small */
+    {
+        NULL, 0,
+        {FAIL, -38,
+            "userauth keyboard data buffer too small to get length"}},
+    /* too small */
+    {
+        "1234", 4,
+        {FAIL, -38,
+            "userauth keyboard data buffer too small to get length"}},
+    /* smallest valid packet possible */
+    {
+        "<"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0", 17,
+        {PASS, 0, ""}},
+    /* overrun name */
+    {
+        "<"
+        "\0\0\0\x7f"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0", 17,
+        {FAIL, -6,
+            "Unable to decode keyboard-interactive 'name' request field"}},
+    /* overrun instruction */
+    {
+        "<"
+        "\0\0\0\0"
+        "\0\0\0\x7f"
+        "\0\0\0\0"
+        "\0\0\0\0", 17,
+        {FAIL, -6,
+            "Unable to decode keyboard-interactive 'instruction' "
+            "request field"}},
+    /* overrun language */
+    {
+        "<"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\x7f"
+        "\0\0\0\0", 17,
+        {FAIL, -6,
+            "Unable to decode keyboard-interactive 'language tag' "
+            "request field"}},
+    /* underrun prompt number */
+    {
+        "<"
+        "\0\0\0\x01"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0", 17,
+        {FAIL, -38,
+            "Unable to decode keyboard-interactive number of "
+            "keyboard prompts"}},
+    /* too many prompts */
+    {
+        "<"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\x7f", 17,
+        {FAIL, -41, "Too many replies for keyboard-interactive prompts"}},
+    /* empty prompt */
+    {
+        "<"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\0"
+        "\0\0\0\x01"
+        "\0\0\0\0"
+        "\0", 22,
+        {PASS, 0, ""}},
+    /* copied from OpenSSH */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01"
+        "\0\0\0\x0aPassword: \0", 32,
+        {PASS, 0, ""}},
+    /* overrun in prompt text */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01"
+        "\0\0\0\x7bPassword: \0", 32,
+        {FAIL, -6,
+            "Unable to decode keyboard-interactive "
+            "prompt message"}},
+    /* no echo prompt boolean */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01"
+        "\0\0\0\x0bPassword: \0", 32,
+        {FAIL, -38, "Unable to decode user auth keyboard prompt echo"}},
+    /* two prompts */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x02"
+        "\0\0\0\x0aPassword: \0"
+        "\0\0\0\x07Token: \1", 44,
+        {PASS, 0, ""}},
+    /* example from RFC 4256 */
+    {
+        "<"
+        "\0\0\0\x19""CRYPTOCard Authentication"
+        "\0\0\0\x1b""The challenge is '14315716'"
+        "\0\0\0\x05""en-US"
+        "\0\0\0\x01"
+        "\0\0\0\x0aResponse: "
+        "\x01"
+        , 89,
+        {PASS, 0, ""}},
+    /* three prompts, 3rd missing */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x03"
+        "\0\0\0\x0aPassword: \0"
+        "\0\0\0\x07Token: \1", 44,
+        {FAIL, -6, "Unable to decode keyboard-interactive prompt message"}},
+    /* overflow language on 32 bit platform */
+    {
+        "<"
+        "\0\0\0\x19"
+            "\0\0\0\x01"
+            "\0\0\0\x05""PWN3D\0\1\2\3\4\5\6\7\1\2\3"
+            "\x01"
+        "\0\0\0\x1b""The challenge is '14315716'"
+        "\xff\xff\xff\xc4""en-US"
+        "\0\0\0\x01"
+        "\0\0\0\x0aResponse: "
+        "\x01",
+        89,
+        {FAIL, -6,
+            "Unable to decode keyboard-interactive 'language tag' "
+            "request field"}},
+};
+
+#define FAILED_MALLOC_TEST_CASES_LEN 2
+static const struct test_case
+    failed_malloc_test_cases[FAILED_MALLOC_TEST_CASES_LEN] = {
+    /* malloc fail */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01"
+        "\0\0\0\x0aPassword: \0", 32,
+        {FAIL, -6,
+            "Unable to allocate memory for "
+            "keyboard-interactive prompts array"}},
+    /* malloc fail */
+    {
+        "<"
+        "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x01"
+        "\0\0\0\x0aPassword: \0", 32,
+        {FAIL, -6,
+            "Unable to allocate memory for "
+            "keyboard-interactive responses array"
+        }}
+};
+
+static int alloc_count = 0;
+static int free_count = 0;
+
+/* libssh2_default_alloc
+ */
+static
+LIBSSH2_ALLOC_FUNC(test_alloc)
+{
+    int *threshold_int_ptr = *abstract;
+    alloc_count++;
+    if(*abstract && *threshold_int_ptr == alloc_count) {
+        return NULL;
+    }
+
+    return malloc(count);
+}
+
+/* libssh2_default_free
+ */
+static
+LIBSSH2_FREE_FUNC(test_free)
+{
+    (void)abstract;
+    free_count++;
+    free(ptr);
+}
+
+static
+int test_case(int num,
+              const char *data, unsigned int data_len, void *abstract,
+              struct expected expected)
+{
+    int rc;
+    char *message;
+    int error_code;
+    LIBSSH2_SESSION *session;
+
+    alloc_count = 0;
+    free_count = 0;
+
+    session = libssh2_session_init_ex(test_alloc, test_free, NULL, abstract);
+    if(!session) {
+        fprintf(stderr, "libssh2_session_init_ex failed\n");
+        return 1;
+    }
+
+    session->userauth_kybd_data = LIBSSH2_ALLOC(session, data_len);
+    session->userauth_kybd_data_len = data_len;
+    memcpy(session->userauth_kybd_data, data, data_len);
+
+    rc = userauth_keyboard_interactive_decode_info_request(session);
+
+    if(rc != expected.rc) {
+        fprintf(stdout,
+                "Test case %d: expected return code to be %d got %d\n",
+                num, expected.rc, rc);
+        return 1;
+    }
+
+    error_code = libssh2_session_last_error(session, &message, NULL, 0);
+
+    if(expected.last_error_code != error_code) {
+        fprintf(stdout,
+                "Test case %d: expected last error code to be "
+                "\"%d\" got \"%d\"\n",
+                num, expected.last_error_code, error_code);
+        return 1;
+    }
+
+    if(strcmp(expected.last_error_message, message) != 0) {
+        fprintf(stdout,
+                "Test case %d: expected last error message to be "
+                "\"%s\" got \"%s\"\n",
+                num, expected.last_error_message, message);
+        return 1;
+    }
+    libssh2_session_free(session);
+
+    fprintf(stderr, "Test case %d passed\n", num);
+
+    return 0;
+}
+
+int main(void)
+{
+    int ret = 0;
+    int i;
+
+    for(i = 0; i < TEST_CASES_LEN; i++) {
+        if(test_case(i + 1,
+                     test_cases[i].data,
+                     test_cases[i].data_len,
+                     NULL,
+                     test_cases[i].expected))
+            ret = 1;
+    }
+
+    for(i = 0; i < FAILED_MALLOC_TEST_CASES_LEN; i++) {
+        int tc =  i + TEST_CASES_LEN + 1;
+        int malloc_call_num = 3 + i;
+        if(test_case(tc,
+                     failed_malloc_test_cases[i].data,
+                     failed_malloc_test_cases[i].data_len,
+                     &malloc_call_num,
+                     failed_malloc_test_cases[i].expected))
+            ret = 1;
+    }
+
+    return ret;
+}

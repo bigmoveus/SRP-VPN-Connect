@@ -1,1 +1,31 @@
-I2luY2x1ZGUgInN0cnVjdHVyZS5oIgoKI2luY2x1ZGUgImxvZ2dlcnMvbmV0d29ya19sb2dnZXIuaCIKCnZvaWQgdGNwY29ubmVjdG9yTGluZXN0YXRlSW5pdGlhbGl6ZSh0Y3Bjb25uZWN0b3JfbHN0YXRlX3QgKmxzKQp7CiAgICBscy0+cGF1c2VfcXVldWUgICAgICA9IGJ1ZmZlcnF1ZXVlQ3JlYXRlKGtQYXVzZVF1ZXVlQ2FwYWNpdHkpOwogICAgbHMtPmlvICAgICAgICAgICAgICAgPSBOVUxMOwogICAgbHMtPmlkbGVfaGFuZGxlICAgICAgPSBOVUxMOwogICAgbHMtPmFjdGl2ZV93cml0ZSAgICAgPSAoYnVmZmVyX2J1ZGdldF9yZXNlcnZhdGlvbl90KSB7MH07CiAgICBscy0+cXVldWVfcGF1c2Vfc2VudCA9IGZhbHNlOwogICAgbHMtPndyaXRlX3BhdXNlZCAgICAgPSBmYWxzZTsKICAgIGxzLT5yZWFkX3BhdXNlZCAgICAgID0gZmFsc2U7CiAgICBidWZmZXJidWRnZXRJbml0KCZscy0+d3JpdGVfYnVkZ2V0LCAoYnVmZmVyX2J1ZGdldF9jb3N0X3QpIHtrTWF4UGF1c2VRdWV1ZVNpemUsIFNJWkVfTUFYLCBTSVpFX01BWH0pOwogICAgY29uc3QgYm9vbCBhdHRhY2hlZCA9IGJ1ZmZlcnF1ZXVlVHJ5QXR0YWNoQnVkZ2V0KCZscy0+cGF1c2VfcXVldWUsICZscy0+d3JpdGVfYnVkZ2V0KTsKICAgIGFzc2VydChhdHRhY2hlZCk7CiAgICBkaXNjYXJkIGF0dGFjaGVkOwp9Cgp2b2lkIHRjcGNvbm5lY3RvckxpbmVzdGF0ZURlc3Ryb3kodGNwY29ubmVjdG9yX2xzdGF0ZV90ICpscykKewogICAgYnVmZmVycXVldWVEZXN0cm95KCZscy0+cGF1c2VfcXVldWUpOwogICAgYnVmZmVyYnVkZ2V0UmVzZXJ2YXRpb25SZWxlYXNlKCZscy0+YWN0aXZlX3dyaXRlKTsKICAgIGJ1ZmZlcmJ1ZGdldEFzc2VydEVtcHR5KCZscy0+d3JpdGVfYnVkZ2V0KTsKICAgIGlmIChscy0+aWRsZV9oYW5kbGUpCiAgICB7CiAgICAgICAgTE9HRigiVGNwQ29ubmVjdG9yOiBpZGxlIGl0ZW0gc3RpbGwgZXhpc3RzIGZvciBGRDoleCAiLCB3aW9HZXRGRChscy0+aW8pKTsKICAgICAgICBhYm9ydFByb2dyYW1Ob3coMSk7CiAgICB9CiAgICBtZW1vcnlaZXJvQWxpZ25lZDMyKGxzLCB0dW5uZWxHZXRDb3JyZWN0QWxpZ25lZExpbmVTdGF0ZVNpemUoc2l6ZW9mKHRjcGNvbm5lY3Rvcl9sc3RhdGVfdCkpKTsKfQo=
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+void tcpconnectorLinestateInitialize(tcpconnector_lstate_t *ls)
+{
+    ls->pause_queue      = bufferqueueCreate(kPauseQueueCapacity);
+    ls->io               = NULL;
+    ls->idle_handle      = NULL;
+    ls->active_write     = (buffer_budget_reservation_t) {0};
+    ls->queue_pause_sent = false;
+    ls->write_paused     = false;
+    ls->read_paused      = false;
+    bufferbudgetInit(&ls->write_budget, (buffer_budget_cost_t) {kMaxPauseQueueSize, SIZE_MAX, SIZE_MAX});
+    const bool attached = bufferqueueTryAttachBudget(&ls->pause_queue, &ls->write_budget);
+    assert(attached);
+    discard attached;
+}
+
+void tcpconnectorLinestateDestroy(tcpconnector_lstate_t *ls)
+{
+    bufferqueueDestroy(&ls->pause_queue);
+    bufferbudgetReservationRelease(&ls->active_write);
+    bufferbudgetAssertEmpty(&ls->write_budget);
+    if (ls->idle_handle)
+    {
+        LOGF("TcpConnector: idle item still exists for FD:%x ", wioGetFD(ls->io));
+        abortProgramNow(1);
+    }
+    memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(tcpconnector_lstate_t)));
+}

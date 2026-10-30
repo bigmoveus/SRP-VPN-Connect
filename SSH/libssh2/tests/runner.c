@@ -1,1 +1,79 @@
-LyogQ29weXJpZ2h0IChDKSBBbGV4YW5kZXIgTGFtYWlzb24KICogQWxsIHJpZ2h0cyByZXNlcnZlZC4KICoKICogUmVkaXN0cmlidXRpb24gYW5kIHVzZSBpbiBzb3VyY2UgYW5kIGJpbmFyeSBmb3JtcywKICogd2l0aCBvciB3aXRob3V0IG1vZGlmaWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92aWRlZAogKiB0aGF0IHRoZSBmb2xsb3dpbmcgY29uZGl0aW9ucyBhcmUgbWV0OgogKgogKiAgIFJlZGlzdHJpYnV0aW9ucyBvZiBzb3VyY2UgY29kZSBtdXN0IHJldGFpbiB0aGUgYWJvdmUKICogICBjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhlCiAqICAgZm9sbG93aW5nIGRpc2NsYWltZXIuCiAqCiAqICAgUmVkaXN0cmlidXRpb25zIGluIGJpbmFyeSBmb3JtIG11c3QgcmVwcm9kdWNlIHRoZSBhYm92ZQogKiAgIGNvcHlyaWdodCBub3RpY2UsIHRoaXMgbGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUgZm9sbG93aW5nCiAqICAgZGlzY2xhaW1lciBpbiB0aGUgZG9jdW1lbnRhdGlvbiBhbmQvb3Igb3RoZXIgbWF0ZXJpYWxzCiAqICAgcHJvdmlkZWQgd2l0aCB0aGUgZGlzdHJpYnV0aW9uLgogKgogKiAgIE5laXRoZXIgdGhlIG5hbWUgb2YgdGhlIGNvcHlyaWdodCBob2xkZXIgbm9yIHRoZSBuYW1lcwogKiAgIG9mIGFueSBvdGhlciBjb250cmlidXRvcnMgbWF5IGJlIHVzZWQgdG8gZW5kb3JzZSBvcgogKiAgIHByb21vdGUgcHJvZHVjdHMgZGVyaXZlZCBmcm9tIHRoaXMgc29mdHdhcmUgd2l0aG91dAogKiAgIHNwZWNpZmljIHByaW9yIHdyaXR0ZW4gcGVybWlzc2lvbi4KICoKICogVEhJUyBTT0ZUV0FSRSBJUyBQUk9WSURFRCBCWSBUSEUgQ09QWVJJR0hUIEhPTERFUlMgQU5ECiAqIENPTlRSSUJVVE9SUyAiQVMgSVMiIEFORCBBTlkgRVhQUkVTUyBPUiBJTVBMSUVEIFdBUlJBTlRJRVMsCiAqIElOQ0xVRElORywgQlVUIE5PVCBMSU1JVEVEIFRPLCBUSEUgSU1QTElFRCBXQVJSQU5USUVTCiAqIE9GIE1FUkNIQU5UQUJJTElUWSBBTkQgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UKICogQVJFIERJU0NMQUlNRUQuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBDT1BZUklHSFQgT1dORVIgT1IKICogQ09OVFJJQlVUT1JTIEJFIExJQUJMRSBGT1IgQU5ZIERJUkVDVCwgSU5ESVJFQ1QsIElOQ0lERU5UQUwsCiAqIFNQRUNJQUwsIEVYRU1QTEFSWSwgT1IgQ09OU0VRVUVOVElBTCBEQU1BR0VTIChJTkNMVURJTkcsCiAqIEJVVCBOT1QgTElNSVRFRCBUTywgUFJPQ1VSRU1FTlQgT0YgU1VCU1RJVFVURSBHT09EUyBPUgogKiBTRVJWSUNFUzsgTE9TUyBPRiBVU0UsIERBVEEsIE9SIFBST0ZJVFM7IE9SIEJVU0lORVNTCiAqIElOVEVSUlVQVElPTikgSE9XRVZFUiBDQVVTRUQgQU5EIE9OIEFOWSBUSEVPUlkgT0YgTElBQklMSVRZLAogKiBXSEVUSEVSIElOIENPTlRSQUNULCBTVFJJQ1QgTElBQklMSVRZLCBPUiBUT1JUIChJTkNMVURJTkcKICogTkVHTElHRU5DRSBPUiBPVEhFUldJU0UpIEFSSVNJTkcgSU4gQU5ZIFdBWSBPVVQgT0YgVEhFCiAqIFVTRSBPRiBUSElTIFNPRlRXQVJFLCBFVkVOIElGIEFEVklTRUQgT0YgVEhFIFBPU1NJQklMSVRZCiAqIE9GIFNVQ0ggREFNQUdFLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IG1haW4odm9pZCkKewogICAgaW50IGV4aXRfY29kZTsKICAgIGludCByZXRyaWVzID0gMCwgcmV0cnkgPSAwOwoKI2lmZGVmIExJQlNTSDJfV0lOQ05HCiAgICAvKiBGSVhNRTogUmV0cnkgdGVzdHMgd2l0aCBXaW5DTkcgZHVlIHRvIGZsYWtpbmVzcyBpbiBob3N0a2V5CiAgICAgICB2ZXJpZmljYXRpb246IGh0dHBzOi8vZ2l0aHViLmNvbS9saWJzc2gyL2xpYnNzaDIvaXNzdWVzLzgwNCAqLwogICAgcmV0cmllcyArPSAyOwojZW5kaWYKCiAgICBkbyB7CiAgICAgICAgaW50IHNraXBwZWQsIHJjOwogICAgICAgIExJQlNTSDJfU0VTU0lPTiAqc2Vzc2lvbiA9IHN0YXJ0X3Nlc3Npb25fZml4dHVyZSgmc2tpcHBlZCwgJnJjKTsKICAgICAgICBpZihzZXNzaW9uKSB7CiAgICAgICAgICAgIGV4aXRfY29kZSA9ICh0ZXN0KHNlc3Npb24pID09IDApID8gMCA6IDE7CiAgICAgICAgfQogICAgICAgIGVsc2UgaWYoc2tpcHBlZCkgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIlRlc3Qgc2tpcHBlZC5cbiIpOwogICAgICAgICAgICBleGl0X2NvZGUgPSAwOwogICAgICAgIH0KICAgICAgICBlbHNlIHsKICAgICAgICAgICAgZXhpdF9jb2RlID0gMTsKICAgICAgICB9CiAgICAgICAgc3RvcF9zZXNzaW9uX2ZpeHR1cmUoKTsKICAgICAgICBpZihleGl0X2NvZGUgPT0gMCB8fAojaWZkZWYgTElCU1NIMl9XSU5DTkcKICAgICAgICAgICByYyAhPSBMSUJTU0gyX0VSUk9SX0tFWV9FWENIQU5HRV9GQUlMVVJFIHx8CiNlbmRpZgogICAgICAgICAgICsrcmV0cnkgPiByZXRyaWVzKSB7CiAgICAgICAgICAgIGJyZWFrOwogICAgICAgIH0KICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIlRlc3QgZmFpbGVkICglZCkuIFJldHJ5aW5nLi4uICVkIC8gJWRcbiIsCiAgICAgICAgICAgICAgICAgICAgICAgIHJjLCByZXRyeSwgcmV0cmllcyk7CiAgICB9IHdoaWxlKDEpOwoKICAgIHJldHVybiBleGl0X2NvZGU7Cn0K
+/* Copyright (C) Alexander Lamaison
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *   Redistributions of source code must retain the above
+ *   copyright notice, this list of conditions and the
+ *   following disclaimer.
+ *
+ *   Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ *   Neither the name of the copyright holder nor the names
+ *   of any other contributors may be used to endorse or
+ *   promote products derived from this software without
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int main(void)
+{
+    int exit_code;
+    int retries = 0, retry = 0;
+
+#ifdef LIBSSH2_WINCNG
+    /* FIXME: Retry tests with WinCNG due to flakiness in hostkey
+       verification: https://github.com/libssh2/libssh2/issues/804 */
+    retries += 2;
+#endif
+
+    do {
+        int skipped, rc;
+        LIBSSH2_SESSION *session = start_session_fixture(&skipped, &rc);
+        if(session) {
+            exit_code = (test(session) == 0) ? 0 : 1;
+        }
+        else if(skipped) {
+            fprintf(stderr, "Test skipped.\n");
+            exit_code = 0;
+        }
+        else {
+            exit_code = 1;
+        }
+        stop_session_fixture();
+        if(exit_code == 0 ||
+#ifdef LIBSSH2_WINCNG
+           rc != LIBSSH2_ERROR_KEY_EXCHANGE_FAILURE ||
+#endif
+           ++retry > retries) {
+            break;
+        }
+        fprintf(stderr, "Test failed (%d). Retrying... %d / %d\n",
+                        rc, retry, retries);
+    } while(1);
+
+    return exit_code;
+}

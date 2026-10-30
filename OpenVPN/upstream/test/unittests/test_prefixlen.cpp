@@ -1,1 +1,85 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8c3RyaW5nPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CgojaW5jbHVkZSA8b3BlbnZwbi9hZGRyL2lwLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKT1BFTlZQTl9TSU1QTEVfRVhDRVBUSU9OKGlwdjRfYmFkX3ByZWZpeF9sZW4pOwpPUEVOVlBOX1NJTVBMRV9FWENFUFRJT04oaXB2NF9iYWRfbmV0bWFzayk7CgppbmxpbmUgSVB2NDo6QWRkcjo6YmFzZV90eXBlIHByZWZpeF9sZW5fdG9fbmV0bWFza191bmNoZWNrZWQoY29uc3QgdW5zaWduZWQgaW50IHByZWZpeF9sZW4pCnsKICAgIHJldHVybiB+KCgxdSA8PCAoMzIgLSBwcmVmaXhfbGVuKSkgLSAxKTsKfQoKaW5saW5lIElQdjQ6OkFkZHI6OmJhc2VfdHlwZSBwcmVmaXhfbGVuX3RvX25ldG1hc2soY29uc3QgdW5zaWduZWQgaW50IHByZWZpeF9sZW4pCnsKICAgIGlmIChwcmVmaXhfbGVuID49IDEgJiYgcHJlZml4X2xlbiA8PSAzMikKICAgICAgICByZXR1cm4gcHJlZml4X2xlbl90b19uZXRtYXNrX3VuY2hlY2tlZChwcmVmaXhfbGVuKTsKICAgIGVsc2UKICAgICAgICB0aHJvdyBpcHY0X2JhZF9wcmVmaXhfbGVuKCk7Cn0KCmlubGluZSBpbnQgcHJlZml4X2xlbihjb25zdCBJUHY0OjpBZGRyOjpiYXNlX3R5cGUgbWFzaykKewogICAgaWYgKG1hc2sgIT0gfjB1KQogICAgewogICAgICAgIHVuc2lnbmVkIGludCBoaWdoID0gMzI7CiAgICAgICAgdW5zaWduZWQgaW50IGxvdyA9IDE7CiAgICAgICAgZm9yICh1bnNpZ25lZCBpbnQgaSA9IDA7IGkgPCA1OyArK2kpCiAgICAgICAgewogICAgICAgICAgICBjb25zdCB1bnNpZ25lZCBpbnQgbWlkID0gKGhpZ2ggKyBsb3cpIC8gMjsKICAgICAgICAgICAgY29uc3QgSVB2NDo6QWRkcjo6YmFzZV90eXBlIHRlc3QgPSBwcmVmaXhfbGVuX3RvX25ldG1hc2tfdW5jaGVja2VkKG1pZCk7CiAgICAgICAgICAgIGlmIChtYXNrID09IHRlc3QpCiAgICAgICAgICAgICAgICByZXR1cm4gbWlkOwogICAgICAgICAgICBlbHNlIGlmIChtYXNrID4gdGVzdCkKICAgICAgICAgICAgICAgIGxvdyA9IG1pZDsKICAgICAgICAgICAgZWxzZQogICAgICAgICAgICAgICAgaGlnaCA9IG1pZDsKICAgICAgICB9CiAgICAgICAgcmV0dXJuIC0xOwogICAgfQogICAgZWxzZQogICAgICAgIHJldHVybiAzMjsKfQoKVEVTVChJUEFkZHIsIHRlc3QzMikKewogICAgZm9yICh1bnNpZ25lZCBpbnQgaSA9IDE7IGkgPD0gMzI7ICsraSkKICAgIHsKICAgICAgICBjb25zdCBJUHY0OjpBZGRyOjpiYXNlX3R5cGUgbWFzayA9IHByZWZpeF9sZW5fdG9fbmV0bWFzayhpKTsKICAgICAgICBjb25zdCBpbnQgcGwgPSBwcmVmaXhfbGVuKG1hc2spOwogICAgICAgIEFTU0VSVF9FUShwbCwgKGludClpKTsKCiAgICAgICAgLy8gSVB2NDo6QWRkciBhID0gSVB2NDo6QWRkcjo6ZnJvbV91aW50MzIobWFzayk7CiAgICAgICAgLy8gc3RkOjpjb3V0IDw8IGkgPDwgJyAnIDw8IHBsIDw8ICcgJyA8PCBhIDw8IHN0ZDo6ZW5kbDsKICAgIH0KfQoKVEVTVChJUEFkZHIsIHByZWZpeGxlbikKewogICAgZm9yICh1bnNpZ25lZCBpbnQgaSA9IDA7IGkgPD0gMzI7ICsraSkKICAgIHsKICAgICAgICBJUHY0OjpBZGRyIG1hc2sgPSBJUHY0OjpBZGRyOjpuZXRtYXNrX2Zyb21fcHJlZml4X2xlbihpKTsKICAgICAgICBjb25zdCB1bnNpZ25lZCBpbnQgcGwgPSBtYXNrLnByZWZpeF9sZW4oKTsKICAgICAgICBBU1NFUlRfRVEocGwsIGkpOwogICAgICAgIC8vIHN0ZDo6Y291dCA8PCBpIDw8ICcgJyA8PCBwbCA8PCAnICcgPDwgbWFzayA8PCBzdGQ6OmVuZGw7CiAgICB9Cn0KCnZvaWQgdGVzdGJpZygpIC8vIGV4aGF1c3RpdmUgdGVzdCBvZiBhbGwgMl4zMiBwb3NzaWJsZSBuZXRtYXNrIHZhbHVlcwp7CiAgICB1bnNpZ25lZCBpbnQgbWFzayA9IDA7CiAgICB3aGlsZSAodHJ1ZSkKICAgIHsKICAgICAgICBjb25zdCBpbnQgcGwgPSBwcmVmaXhfbGVuKG1hc2spOwogICAgICAgIGlmIChwbCAhPSAtMSkKICAgICAgICAgICAgc3RkOjpjb3V0IDw8IHBsIDw8ICcgJyA8PCBJUHY0OjpBZGRyOjpmcm9tX3VpbnQzMihtYXNrKSA8PCBzdGQ6OmVuZGw7CiAgICAgICAgaWYgKCsrbWFzayA9PSAwKQogICAgICAgICAgICBicmVhazsKICAgIH0KfQo=
+#include "test_common.hpp"
+#include <iostream>
+#include <string>
+
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/addr/ip.hpp>
+
+using namespace openvpn;
+
+OPENVPN_SIMPLE_EXCEPTION(ipv4_bad_prefix_len);
+OPENVPN_SIMPLE_EXCEPTION(ipv4_bad_netmask);
+
+inline IPv4::Addr::base_type prefix_len_to_netmask_unchecked(const unsigned int prefix_len)
+{
+    return ~((1u << (32 - prefix_len)) - 1);
+}
+
+inline IPv4::Addr::base_type prefix_len_to_netmask(const unsigned int prefix_len)
+{
+    if (prefix_len >= 1 && prefix_len <= 32)
+        return prefix_len_to_netmask_unchecked(prefix_len);
+    else
+        throw ipv4_bad_prefix_len();
+}
+
+inline int prefix_len(const IPv4::Addr::base_type mask)
+{
+    if (mask != ~0u)
+    {
+        unsigned int high = 32;
+        unsigned int low = 1;
+        for (unsigned int i = 0; i < 5; ++i)
+        {
+            const unsigned int mid = (high + low) / 2;
+            const IPv4::Addr::base_type test = prefix_len_to_netmask_unchecked(mid);
+            if (mask == test)
+                return mid;
+            else if (mask > test)
+                low = mid;
+            else
+                high = mid;
+        }
+        return -1;
+    }
+    else
+        return 32;
+}
+
+TEST(IPAddr, test32)
+{
+    for (unsigned int i = 1; i <= 32; ++i)
+    {
+        const IPv4::Addr::base_type mask = prefix_len_to_netmask(i);
+        const int pl = prefix_len(mask);
+        ASSERT_EQ(pl, (int)i);
+
+        // IPv4::Addr a = IPv4::Addr::from_uint32(mask);
+        // std::cout << i << ' ' << pl << ' ' << a << std::endl;
+    }
+}
+
+TEST(IPAddr, prefixlen)
+{
+    for (unsigned int i = 0; i <= 32; ++i)
+    {
+        IPv4::Addr mask = IPv4::Addr::netmask_from_prefix_len(i);
+        const unsigned int pl = mask.prefix_len();
+        ASSERT_EQ(pl, i);
+        // std::cout << i << ' ' << pl << ' ' << mask << std::endl;
+    }
+}
+
+void testbig() // exhaustive test of all 2^32 possible netmask values
+{
+    unsigned int mask = 0;
+    while (true)
+    {
+        const int pl = prefix_len(mask);
+        if (pl != -1)
+            std::cout << pl << ' ' << IPv4::Addr::from_uint32(mask) << std::endl;
+        if (++mask == 0)
+            break;
+    }
+}

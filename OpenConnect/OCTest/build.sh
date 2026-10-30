@@ -1,1 +1,19 @@
-IyEvYmluL2Jhc2gKIyBPQ1Rlc3QgYnVpbGQgc2NyaXB0IOKAlCBsaW5rcyBsaWJvcGVuY29ubmVjdCAobWFjT1MpICsgcHJlZml4ZWQgT3BlblNTTC4Kc2V0IC1lCmNkICIkKGRpcm5hbWUgIiQwIikiClNESz0iJCh4Y3J1biAtLXNkayBtYWNvc3ggLS1zaG93LXNkay1wYXRoKSIKT0NMSUI9IiQoY2QgLi4gJiYgcHdkKSIgICAjIHZlbmRvcmVkIE9wZW5Db25uZWN0LwpTRT0iJChjZCAuLi8uLiAmJiBwd2QpL1NvZnRFdGhlciIKCkNMQU5HPSIkKHhjcnVuIC1mIGNsYW5nKSIKIiRDTEFORyIgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkU0RLIiAtbW1hY29zeC12ZXJzaW9uLW1pbj0xMi4wIFwKICAtZm9iamMtYXJjIC1PMSAtZyBcCiAgLUkiJE9DTElCL3Vwc3RyZWFtIiBcCiAgbWFpbi5tIFwKICAiJE9DTElCL2J1aWxkL21hY29zeC9saWJTUlBPcGVuQ29ubmVjdC5hIiBcCiAgL3RtcC9vYy1vc3NsLW1hY29zeC9saWJzc2wuYSAvdG1wL29jLW9zc2wtbWFjb3N4L2xpYmNyeXB0by5hIFwKICAtbHogLWxpY29udiAtbHhtbDIgLWxyZXNvbHYgXAogIC1mcmFtZXdvcmsgRm91bmRhdGlvbiAtZnJhbWV3b3JrIFNlY3VyaXR5IC1mcmFtZXdvcmsgQ29yZUZvdW5kYXRpb24gXAogIC1vIG9jdGVzdAplY2hvIEJVSUxUIG9jdGVzdAo=
+#!/bin/bash
+# OCTest build script — links libopenconnect (macOS) + prefixed OpenSSL.
+set -e
+cd "$(dirname "$0")"
+SDK="$(xcrun --sdk macosx --show-sdk-path)"
+OCLIB="$(cd .. && pwd)"   # vendored OpenConnect/
+SE="$(cd ../.. && pwd)/SoftEther"
+
+CLANG="$(xcrun -f clang)"
+"$CLANG" -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+  -fobjc-arc -O1 -g \
+  -I"$OCLIB/upstream" \
+  main.m \
+  "$OCLIB/build/macosx/libSRPOpenConnect.a" \
+  /tmp/oc-ossl-macosx/libssl.a /tmp/oc-ossl-macosx/libcrypto.a \
+  -lz -liconv -lxml2 -lresolv \
+  -framework Foundation -framework Security -framework CoreFoundation \
+  -o octest
+echo BUILT octest

@@ -1,1 +1,22 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiNpZiBMSUJTU0gyX0VDRFNBICYmIFwKICAgIChkZWZpbmVkKExJQlNTSDJfT1BFTlNTTCkgfHwgZGVmaW5lZChMSUJTU0gyX1dPTEZTU0wpKQogICAgLyogc2V0IGluIERvY2tlcmZpbGUgKi8KICAgIHJldHVybiB0ZXN0X2F1dGhfcHVia2V5KHNlc3Npb24sIDAsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAibGlic3NoMiIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleV9lY2RzYV9zaWduZWQtY2VydC5wdWIiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleV9lY2RzYV9zaWduZWQiKTsKI2Vsc2UKICAgICh2b2lkKXNlc3Npb247CiAgICByZXR1cm4gMDsKI2VuZGlmCn0K
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int test(LIBSSH2_SESSION *session)
+{
+#if LIBSSH2_ECDSA && \
+    (defined(LIBSSH2_OPENSSL) || defined(LIBSSH2_WOLFSSL))
+    /* set in Dockerfile */
+    return test_auth_pubkey(session, 0,
+                            "libssh2",
+                            NULL,
+                            "key_ecdsa_signed-cert.pub",
+                            "key_ecdsa_signed");
+#else
+    (void)session;
+    return 0;
+#endif
+}

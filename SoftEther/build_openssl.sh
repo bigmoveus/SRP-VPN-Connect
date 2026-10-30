@@ -1,1 +1,66 @@
-IyEvYmluL2Jhc2gKIyBGdWxsIE9wZW5TU0wgcHJlZml4ZWQgYnVpbGQgcGlwZWxpbmUgKHYzKS4KIyAtIFByZWZpeGVzIGFsbCBPcGVuU1NMIHN5bWJvbHMgd2l0aCBzcnBzZV8gKGNvZXhpc3RzIHdpdGggQm9yaW5nU1NMIGluIFNSUENvcmUpLgojIC0gUGF0Y2hlcyBhIGhhbmRmdWwgb2YgT3BlblNTTCBzb3VyY2UgZmlsZXMgd2hlcmUgI3VuZGVmIC8gI2lmbmRlZiB0cmlja3MKIyAgIHdvdWxkIG90aGVyd2lzZSBlc2NhcGUgdGhlIHByZWZpeCAoYm5fYXNtLmMsIGNwdWlkLmMsIG1kNC9tZDUvcm1kIGRnc3QpLgpzZXQgLWUKY2QgL3RtcC9zZWJ1aWxkCk9VVD0vdG1wL3NlYnVpbGQvb3V0CkNPTkZfRkxBR1M9Im5vLWFzbSBuby1zaGFyZWQgbm8tZHNvIG5vLWVuZ2luZSBuby10ZXN0cyBuby1jb21wIgpIRFI9L3RtcC9zZWJ1aWxkL29wZW5zc2wtcHJlZml4LmgKCnBhdGNoX3RyZWUgKCkgeyAgIyAkMSA9IGJ1aWxkIGRpcgogICAgbG9jYWwgZD0kMQogICAgIyBibl9hc20uYzogZHJvcCB0aGUgI3VuZGVmIGxpbmVzIHNvIHRoZSBnbG9iYWwgcHJlZml4IGFwcGxpZXMgdG8gZGVmaW5pdGlvbnMKICAgIHNlZCAtaSAnJyAtZSAnL14jIHVuZGVmIGJuX211bF9jb21iYTgvZCcgLWUgJy9eIyB1bmRlZiBibl9tdWxfY29tYmE0L2QnIFwKICAgICAgICAgICAgICAtZSAnL14jIHVuZGVmIGJuX3Nxcl9jb21iYTgvZCcgLWUgJy9eIyB1bmRlZiBibl9zcXJfY29tYmE0L2QnICIkZC9jcnlwdG8vYm4vYm5fYXNtLmMiCiAgICAjIGNwdWlkLmM6IHNhbWUgZm9yIENSWVBUT19tZW1jbXAKICAgIHNlZCAtaSAnJyAtZSAnL14jIHVuZGVmIENSWVBUT19tZW1jbXAvZCcgIiRkL2NyeXB0by9jcHVpZC5jIgogICAgIyBtZDQvbWQ1L3JpcGVtZDE2MDogI2lmbmRlZiA8c3ltPiB3b3VsZCBza2lwIHRoZSBDIGRlZmluaXRpb24gb25jZSB0aGUKICAgICMgc3ltYm9sIGlzIGEgbWFjcm87IGZvcmNlIHRoZSBDIGltcGxlbWVudGF0aW9uICh3ZSBidWlsZCBuby1hc20gYW55d2F5KQogICAgc2VkIC1pICcnIC1lICdzL14jaWZuZGVmIG1kNF9ibG9ja19kYXRhX29yZGVyLyNpZiAxIFwvKiBTUlA6IGZvcmNlZCBDIGltcGwgKlwvLycgIiRkL2NyeXB0by9tZDQvbWQ0X2Rnc3QuYyIKICAgIHNlZCAtaSAnJyAtZSAncy9eI2lmbmRlZiBtZDVfYmxvY2tfZGF0YV9vcmRlci8jaWYgMSBcLyogU1JQOiBmb3JjZWQgQyBpbXBsICpcLy8nICIkZC9jcnlwdG8vbWQ1L21kNV9kZ3N0LmMiCiAgICBzZWQgLWkgJycgLWUgJ3MvXiNpZm5kZWYgcmlwZW1kMTYwX2Jsb2NrX2RhdGFfb3JkZXIvI2lmIDEgXC8qIFNSUDogZm9yY2VkIEMgaW1wbCAqXC8vJyAiJGQvY3J5cHRvL3JpcGVtZC9ybWRfZGdzdC5jIgp9CgojIHBhc3MgMTogaW9zIHBsYWluIGJ1aWxkIHRvIGNvbGxlY3QgQUxMIGRlZmluZWQgc3ltYm9scwpybSAtcmYgYnVpbGQtaW9zLXBsYWluICYmIGNwIC1yIG9wZW5zc2wtMy4wLjE1IGJ1aWxkLWlvcy1wbGFpbiAmJiBjZCBidWlsZC1pb3MtcGxhaW4KZXhwb3J0IENST1NTX1RPUD0iJCh4Y3J1biAtLXNkayBpcGhvbmVvcyAtLXNob3ctc2RrLXBsYXRmb3JtLXBhdGgpL0RldmVsb3BlciIKZXhwb3J0IENST1NTX1NESz0iJCh4Y3J1biAtLXNkayBpcGhvbmVvcyAtLXNob3ctc2RrLXBhdGggfCB4YXJncyBiYXNlbmFtZSkiCi4vQ29uZmlndXJlIGlvczY0LXhjcnVuICRDT05GX0ZMQUdTIC1taXBob25lb3MtdmVyc2lvbi1taW49MTUuMCA+IGNvbmZpZ3VyZS5sb2cgMj4mMQptYWtlIC1qJChzeXNjdGwgLW4gaHcubmNwdSkgYnVpbGRfbGlicyA+IG1ha2UubG9nIDI+JjEKY2QgL3RtcC9zZWJ1aWxkCm5tIC1nIC0tZGVmaW5lZC1vbmx5IGJ1aWxkLWlvcy1wbGFpbi9saWJzc2wuYSBidWlsZC1pb3MtcGxhaW4vbGliY3J5cHRvLmEgfCBhd2sgJyQyIH4gL15bVERCU1JdJC97cHJpbnQgJDN9JyB8IHNlZCAncy9eXy8vJyB8IHNvcnQgLXUgPiBvcGVuc3NsX2FsbF9zeW1zLnR4dAplY2hvICJvcGVuc3NsIHN5bWJvbHM6ICQod2MgLWwgPCBvcGVuc3NsX2FsbF9zeW1zLnR4dCkiCnsKICBlY2hvICIjaWZuZGVmIFNSUFNFX09TU0xfUFJFRklYX0giCiAgZWNobyAiI2RlZmluZSBTUlBTRV9PU1NMX1BSRUZJWF9IIgogIHdoaWxlIHJlYWQgLXIgczsgZG8gZWNobyAiI2RlZmluZSAkcyBzcnBzZV8kcyI7IGRvbmUgPCBvcGVuc3NsX2FsbF9zeW1zLnR4dAogIGVjaG8gIiNlbmRpZiIKfSA+ICRIRFIKCiMgcGFzcyAyOiBwcmVmaXhlZCBidWlsZHMKcm0gLXJmIGJ1aWxkLWlvcyAmJiBjcCAtciBvcGVuc3NsLTMuMC4xNSBidWlsZC1pb3MgJiYgcGF0Y2hfdHJlZSBidWlsZC1pb3MgJiYgY2QgYnVpbGQtaW9zCmV4cG9ydCBDUk9TU19UT1A9IiQoeGNydW4gLS1zZGsgaXBob25lb3MgLS1zaG93LXNkay1wbGF0Zm9ybS1wYXRoKS9EZXZlbG9wZXIiCmV4cG9ydCBDUk9TU19TREs9IiQoeGNydW4gLS1zZGsgaXBob25lb3MgLS1zaG93LXNkay1wYXRoIHwgeGFyZ3MgYmFzZW5hbWUpIgouL0NvbmZpZ3VyZSBpb3M2NC14Y3J1biAkQ09ORl9GTEFHUyAtbWlwaG9uZW9zLXZlcnNpb24tbWluPTE1LjAgIi1pbmNsdWRlICRIRFIiID4gY29uZmlndXJlLmxvZyAyPiYxCm1ha2UgLWokKHN5c2N0bCAtbiBody5uY3B1KSBidWlsZF9saWJzID4gbWFrZS5sb2cgMj4mMQpta2RpciAtcCAkT1VUL2lvcy9saWIgJE9VVC9pb3MvaW5jbHVkZSAmJiBjcCBsaWJzc2wuYSBsaWJjcnlwdG8uYSAkT1VUL2lvcy9saWIvICYmIHJtIC1yZiAkT1VUL2lvcy9pbmNsdWRlL29wZW5zc2wgJiYgY3AgLXIgaW5jbHVkZS9vcGVuc3NsICRPVVQvaW9zL2luY2x1ZGUvCmVjaG8gSU9TX09LCgpjZCAvdG1wL3NlYnVpbGQKcm0gLXJmIGJ1aWxkLW1hYyAmJiBjcCAtciBvcGVuc3NsLTMuMC4xNSBidWlsZC1tYWMgJiYgcGF0Y2hfdHJlZSBidWlsZC1tYWMgJiYgY2QgYnVpbGQtbWFjCnVuc2V0IENST1NTX1RPUCBDUk9TU19TREsKLi9Db25maWd1cmUgZGFyd2luNjQtYXJtNjQtY2MgJENPTkZfRkxBR1MgLW1tYWNvc3gtdmVyc2lvbi1taW49MTIuMCAiLWluY2x1ZGUgJEhEUiIgPiBjb25maWd1cmUubG9nIDI+JjEKbWFrZSAtaiQoc3lzY3RsIC1uIGh3Lm5jcHUpIGJ1aWxkX2xpYnMgPiBtYWtlLmxvZyAyPiYxCm1rZGlyIC1wICRPVVQvbWFjL2xpYiAkT1VUL21hYy9pbmNsdWRlICYmIGNwIGxpYnNzbC5hIGxpYmNyeXB0by5hICRPVVQvbWFjL2xpYi8gJiYgcm0gLXJmICRPVVQvbWFjL2luY2x1ZGUvb3BlbnNzbCAmJiBjcCAtciBpbmNsdWRlL29wZW5zc2wgJE9VVC9tYWMvaW5jbHVkZS8KZWNobyBNQUNfT0sKCiMgdmVyaWZ5OiBubyB1bnByZWZpeGVkIGRlZmluZWQgc3ltYm9sIG1heSBjb2xsaWRlIHdpdGggQm9yaW5nU1NMCkJPUklORz0iL1VzZXJzL2FkbWluL0Rlc2t0b3AvM2luMTIyIDkvU1JQLVZQTi1Db25uZWN0L0NvcmUvU1JQQ29yZSIKbm0gLWcgLS1kZWZpbmVkLW9ubHkgIiRCT1JJTkcvc3NsLnhjZnJhbWV3b3JrL2lvcy1hcm02NC9saWJzc2wuYSIgIiRCT1JJTkcvY3J5cHRvLnhjZnJhbWV3b3JrL2lvcy1hcm02NC9saWJjcnlwdG8uYSIgfCBhd2sgJyQyIH4gL15bVERCU1JdJC97cHJpbnQgJDN9JyB8IHNlZCAncy9eXy8vJyB8IHNvcnQgLXUgPiBib3Jpbmdfc3ltcy50eHQKbm0gLWcgLS1kZWZpbmVkLW9ubHkgJE9VVC9pb3MvbGliL2xpYnNzbC5hICRPVVQvaW9zL2xpYi9saWJjcnlwdG8uYSB8IGF3ayAnJDIgfiAvXltUREJTUl0kL3twcmludCAkM30nIHwgc2VkICdzL15fLy8nIHwgZ3JlcCAtdiAiXnNycHNlXyIgfCBzb3J0IC11ID4gdW5wcmVmaXhlZF9vdXJzLnR4dApjb21tIC0xMiB1bnByZWZpeGVkX291cnMudHh0IGJvcmluZ19zeW1zLnR4dCA+IGxlZnRvdmVyX2NvbGxpc2lvbnMudHh0CmVjaG8gImxlZnRvdmVyIGNvbGxpc2lvbnM6ICQod2MgLWwgPCBsZWZ0b3Zlcl9jb2xsaXNpb25zLnR4dCkiCmNhdCBsZWZ0b3Zlcl9jb2xsaXNpb25zLnR4dAplY2hvIEFMTF9ET05FCg==
+#!/bin/bash
+# Full OpenSSL prefixed build pipeline (v3).
+# - Prefixes all OpenSSL symbols with srpse_ (coexists with BoringSSL in SRPCore).
+# - Patches a handful of OpenSSL source files where #undef / #ifndef tricks
+#   would otherwise escape the prefix (bn_asm.c, cpuid.c, md4/md5/rmd dgst).
+set -e
+cd /tmp/sebuild
+OUT=/tmp/sebuild/out
+CONF_FLAGS="no-asm no-shared no-dso no-engine no-tests no-comp"
+HDR=/tmp/sebuild/openssl-prefix.h
+
+patch_tree () {  # $1 = build dir
+    local d=$1
+    # bn_asm.c: drop the #undef lines so the global prefix applies to definitions
+    sed -i '' -e '/^# undef bn_mul_comba8/d' -e '/^# undef bn_mul_comba4/d' \
+              -e '/^# undef bn_sqr_comba8/d' -e '/^# undef bn_sqr_comba4/d' "$d/crypto/bn/bn_asm.c"
+    # cpuid.c: same for CRYPTO_memcmp
+    sed -i '' -e '/^# undef CRYPTO_memcmp/d' "$d/crypto/cpuid.c"
+    # md4/md5/ripemd160: #ifndef <sym> would skip the C definition once the
+    # symbol is a macro; force the C implementation (we build no-asm anyway)
+    sed -i '' -e 's/^#ifndef md4_block_data_order/#if 1 \/* SRP: forced C impl *\//' "$d/crypto/md4/md4_dgst.c"
+    sed -i '' -e 's/^#ifndef md5_block_data_order/#if 1 \/* SRP: forced C impl *\//' "$d/crypto/md5/md5_dgst.c"
+    sed -i '' -e 's/^#ifndef ripemd160_block_data_order/#if 1 \/* SRP: forced C impl *\//' "$d/crypto/ripemd/rmd_dgst.c"
+}
+
+# pass 1: ios plain build to collect ALL defined symbols
+rm -rf build-ios-plain && cp -r openssl-3.0.15 build-ios-plain && cd build-ios-plain
+export CROSS_TOP="$(xcrun --sdk iphoneos --show-sdk-platform-path)/Developer"
+export CROSS_SDK="$(xcrun --sdk iphoneos --show-sdk-path | xargs basename)"
+./Configure ios64-xcrun $CONF_FLAGS -miphoneos-version-min=15.0 > configure.log 2>&1
+make -j$(sysctl -n hw.ncpu) build_libs > make.log 2>&1
+cd /tmp/sebuild
+nm -g --defined-only build-ios-plain/libssl.a build-ios-plain/libcrypto.a | awk '$2 ~ /^[TDBSR]$/{print $3}' | sed 's/^_//' | sort -u > openssl_all_syms.txt
+echo "openssl symbols: $(wc -l < openssl_all_syms.txt)"
+{
+  echo "#ifndef SRPSE_OSSL_PREFIX_H"
+  echo "#define SRPSE_OSSL_PREFIX_H"
+  while read -r s; do echo "#define $s srpse_$s"; done < openssl_all_syms.txt
+  echo "#endif"
+} > $HDR
+
+# pass 2: prefixed builds
+rm -rf build-ios && cp -r openssl-3.0.15 build-ios && patch_tree build-ios && cd build-ios
+export CROSS_TOP="$(xcrun --sdk iphoneos --show-sdk-platform-path)/Developer"
+export CROSS_SDK="$(xcrun --sdk iphoneos --show-sdk-path | xargs basename)"
+./Configure ios64-xcrun $CONF_FLAGS -miphoneos-version-min=15.0 "-include $HDR" > configure.log 2>&1
+make -j$(sysctl -n hw.ncpu) build_libs > make.log 2>&1
+mkdir -p $OUT/ios/lib $OUT/ios/include && cp libssl.a libcrypto.a $OUT/ios/lib/ && rm -rf $OUT/ios/include/openssl && cp -r include/openssl $OUT/ios/include/
+echo IOS_OK
+
+cd /tmp/sebuild
+rm -rf build-mac && cp -r openssl-3.0.15 build-mac && patch_tree build-mac && cd build-mac
+unset CROSS_TOP CROSS_SDK
+./Configure darwin64-arm64-cc $CONF_FLAGS -mmacosx-version-min=12.0 "-include $HDR" > configure.log 2>&1
+make -j$(sysctl -n hw.ncpu) build_libs > make.log 2>&1
+mkdir -p $OUT/mac/lib $OUT/mac/include && cp libssl.a libcrypto.a $OUT/mac/lib/ && rm -rf $OUT/mac/include/openssl && cp -r include/openssl $OUT/mac/include/
+echo MAC_OK
+
+# verify: no unprefixed defined symbol may collide with BoringSSL
+BORING="/Users/admin/Desktop/3in122 9/SRP-VPN-Connect/Core/SRPCore"
+nm -g --defined-only "$BORING/ssl.xcframework/ios-arm64/libssl.a" "$BORING/crypto.xcframework/ios-arm64/libcrypto.a" | awk '$2 ~ /^[TDBSR]$/{print $3}' | sed 's/^_//' | sort -u > boring_syms.txt
+nm -g --defined-only $OUT/ios/lib/libssl.a $OUT/ios/lib/libcrypto.a | awk '$2 ~ /^[TDBSR]$/{print $3}' | sed 's/^_//' | grep -v "^srpse_" | sort -u > unprefixed_ours.txt
+comm -12 unprefixed_ours.txt boring_syms.txt > leftover_collisions.txt
+echo "leftover collisions: $(wc -l < leftover_collisions.txt)"
+cat leftover_collisions.txt
+echo ALL_DONE

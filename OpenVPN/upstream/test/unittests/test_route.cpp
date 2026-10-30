@@ -1,1 +1,126 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxpb3N0cmVhbT4KI2luY2x1ZGUgPHNldD4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9leGNlcHRpb24uaHBwPgoKI2luY2x1ZGUgPG9wZW52cG4vYWRkci9yb3V0ZS5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnZvaWQgdGVzdF9yb3V0ZV9wYXJzZShjb25zdCBzdGQ6OnN0cmluZyAmcnN0ciwgY29uc3Qgc3RkOjpzdHJpbmcgJmV4cGVjdGVkLCBib29sIGlwdjYpCnsKICAgIGNvbnN0IElQOjpSb3V0ZSByKHJzdHIpOwogICAgQVNTRVJUX0VRKHIudG9fc3RyaW5nKCksIGV4cGVjdGVkKTsKCiAgICBpZiAoaXB2NikKICAgIHsKICAgICAgICBjb25zdCBJUDo6Um91dGU2IHI2KHJzdHIpOwogICAgICAgIEFTU0VSVF9FUShyNi50b19zdHJpbmcoKSwgZXhwZWN0ZWQpOwogICAgfQogICAgZWxzZQogICAgewogICAgICAgIGNvbnN0IElQOjpSb3V0ZTQgcjQocnN0cik7CiAgICAgICAgQVNTRVJUX0VRKHI0LnRvX3N0cmluZygpLCBleHBlY3RlZCk7CiAgICB9Cn0KClRFU1QoSVBBZGRyLCByb3V0ZVNldCkKewogICAgc3RkOjpzZXQ8SVA6OlJvdXRlPiByb3V0ZXM7CiAgICByb3V0ZXMuZW1wbGFjZSgiMS4yLjMuNC8yNCIpOwogICAgcm91dGVzLmVtcGxhY2UoIjEuMi4zLjAvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlKCIxLjIuMy4yLzI0Iik7CiAgICByb3V0ZXMuZW1wbGFjZSgiMS4yLjMuMS8yNCIpOwogICAgcm91dGVzLmVtcGxhY2UoIjEyOC4wLjAuMC8xIik7CiAgICByb3V0ZXMuZW1wbGFjZSgiMToyOjM6NDo1OjY6ZGVhZDpiZWVmLzY0Iik7CiAgICByb3V0ZXMuZW1wbGFjZSgiMToyOjM6NDo1OjY6ZGVhZDpiZWFkLzY0Iik7CgogICAgc3RkOjpzdHJpbmdzdHJlYW0gb3V0OwogICAgZm9yIChjb25zdCBhdXRvICZyIDogcm91dGVzKQogICAgICAgIG91dCA8PCByLnRvX3N0cmluZygpIDw8IHN0ZDo6ZW5kbDsKCiAgICBBU1NFUlRfRVEoIjEyOC4wLjAuMC8xXG4iCiAgICAgICAgICAgICAgIjEuMi4zLjAvMjRcbiIKICAgICAgICAgICAgICAiMS4yLjMuMS8yNFxuIgogICAgICAgICAgICAgICIxLjIuMy4yLzI0XG4iCiAgICAgICAgICAgICAgIjEuMi4zLjQvMjRcbiIKICAgICAgICAgICAgICAiMToyOjM6NDo1OjY6ZGVhZDpiZWFkLzY0XG4iCiAgICAgICAgICAgICAgIjE6MjozOjQ6NTo2OmRlYWQ6YmVlZi82NFxuIiwKICAgICAgICAgICAgICBvdXQuc3RyKCkpOwp9Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgTElTVD4Kdm9pZCB0ZXN0X3NwbGl0KGNvbnN0IExJU1QgJnJ0bGlzdCwgY29uc3Qgc3RkOjpzdHJpbmcgJmV4cGVjdGVkKQp7CiAgICB0eXBlZGVmIHR5cGVuYW1lIExJU1Q6OnZhbHVlX3R5cGUgUlQ7CiAgICBzdGQ6OnN0cmluZ3N0cmVhbSBvdXQ7CiAgICBmb3IgKGNvbnN0IGF1dG8gJnIgOiBydGxpc3QpCiAgICB7CiAgICAgICAgUlQgcjEsIHIyOwogICAgICAgIGlmIChyLmlzX2Nhbm9uaWNhbCgpICYmIHIuc3BsaXQocjEsIHIyKSkKICAgICAgICB7CiAgICAgICAgICAgIG91dCA8PCByIDw8ICcgJyA8PCByMSA8PCAnICcgPDwgcjIgPDwgc3RkOjplbmRsOwogICAgICAgIH0KICAgIH0KICAgIEFTU0VSVF9FUShleHBlY3RlZCwgb3V0LnN0cigpKTsKfQoKVEVTVChJUEFkZHIsIHJvdXRlTGlzdDQpCnsKICAgIElQOjpSb3V0ZTRMaXN0IHJvdXRlczsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjQvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjAvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjIvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjEvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEyOC4wLjAuMC8xIik7CiAgICAvLyBPUEVOVlBOX0xPR19OVE5MKHJvdXRlcy50b19zdHJpbmcoKSk7CiAgICBBU1NFUlRfRkFMU0Uocm91dGVzLmNvbnRhaW5zKElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKCIxMDAuMS4yLjMiKSkpOwogICAgQVNTRVJUX1RSVUUocm91dGVzLmNvbnRhaW5zKElQdjQ6OkFkZHI6OmZyb21fc3RyaW5nKCIyMDAuMS4yLjMiKSkpOwoKICAgIHRlc3Rfc3BsaXQocm91dGVzLCAiMS4yLjMuMC8yNCAxLjIuMy4wLzI1IDEuMi4zLjEyOC8yNVxuMTI4LjAuMC4wLzEgMTI4LjAuMC4wLzIgMTkyLjAuMC4wLzJcbiIpOwp9CgpURVNUKElQQWRkciwgcm91dGVMaXN0NikKewogICAgSVA6OlJvdXRlNkxpc3Qgcm91dGVzOwogICAgcm91dGVzLmVtcGxhY2VfYmFjaygiMToyOjM6NDo1OjY6ZGVhZDpiZWVmLzY0Iik7CiAgICByb3V0ZXMuZW1wbGFjZV9iYWNrKCJjYWZlOmJhYmU6Oi82NCIpOwogICAgLy8gT1BFTlZQTl9MT0dfTlROTChyb3V0ZXMudG9fc3RyaW5nKCkpOwogICAgQVNTRVJUX0ZBTFNFKHJvdXRlcy5jb250YWlucyhJUHY2OjpBZGRyOjpmcm9tX3N0cmluZygiMTExMToyMjIyOjMzMzM6NDQ0NDo1NTU1OjY2NjY6Nzc3Nzo4ODg4IikpKTsKICAgIEFTU0VSVF9UUlVFKHJvdXRlcy5jb250YWlucyhJUHY2OjpBZGRyOjpmcm9tX3N0cmluZygiY2FmZTpiYWJlOjA6MDoxMTExOjIyMjI6MzMzMzo0NDQ0IikpKTsKICAgIHRlc3Rfc3BsaXQocm91dGVzLCAiY2FmZTpiYWJlOjovNjQgY2FmZTpiYWJlOjovNjUgY2FmZTpiYWJlOjA6MDo4MDAwOjovNjVcbiIpOwp9CgpURVNUKElQQWRkciwgcm91dGVMaXN0KQp7CiAgICBJUDo6Um91dGVMaXN0IHJvdXRlczsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjQvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjAvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjIvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEuMi4zLjEvMjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soIjEyOC4wLjAuMC8xIik7CiAgICByb3V0ZXMuZW1wbGFjZV9iYWNrKCIxOjI6Mzo0OjU6NjpkZWFkOmJlZWYvNjQiKTsKICAgIHJvdXRlcy5lbXBsYWNlX2JhY2soImNhZmU6YmFiZTo6LzY0Iik7CiAgICAvLyBPUEVOVlBOX0xPR19OVE5MKHJvdXRlcy50b19zdHJpbmcoKSk7CiAgICBBU1NFUlRfRkFMU0Uocm91dGVzLmNvbnRhaW5zKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMTAwLjEuMi4zIikpKTsKICAgIEFTU0VSVF9UUlVFKHJvdXRlcy5jb250YWlucyhJUDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjIwMC4xLjIuMyIpKSk7CiAgICBBU1NFUlRfRkFMU0Uocm91dGVzLmNvbnRhaW5zKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMTExMToyMjIyOjMzMzM6NDQ0NDo1NTU1OjY2NjY6Nzc3Nzo4ODg4IikpKTsKICAgIEFTU0VSVF9UUlVFKHJvdXRlcy5jb250YWlucyhJUDo6QWRkcjo6ZnJvbV9zdHJpbmcoImNhZmU6YmFiZTowOjA6MTExMToyMjIyOjMzMzM6NDQ0NCIpKSk7CgogICAgdGVzdF9zcGxpdChyb3V0ZXMsICIxLjIuMy4wLzI0IDEuMi4zLjAvMjUgMS4yLjMuMTI4LzI1XG4iCiAgICAgICAgICAgICAgICAgICAgICAgIjEyOC4wLjAuMC8xIDEyOC4wLjAuMC8yIDE5Mi4wLjAuMC8yXG4iCiAgICAgICAgICAgICAgICAgICAgICAgImNhZmU6YmFiZTo6LzY0IGNhZmU6YmFiZTo6LzY1IGNhZmU6YmFiZTowOjA6ODAwMDo6LzY1XG4iKTsKfQoKVEVTVChJUEFkZHIsIHBhcnNlUm91dGVzKQp7CiAgICB0ZXN0X3JvdXRlX3BhcnNlKCIxLjIuMy40IiwgIjEuMi4zLjQvMzIiLCBmYWxzZSk7CiAgICB0ZXN0X3JvdXRlX3BhcnNlKCIxOTIuMTY4LjQuMC8yNCIsICIxOTIuMTY4LjQuMC8yNCIsIGZhbHNlKTsKICAgIHRlc3Rfcm91dGVfcGFyc2UoImZlODA6OjY0NzA6N2RmZjpmZWE1OmYzNjAvNjQiLCAiZmU4MDo6NjQ3MDo3ZGZmOmZlYTU6ZjM2MC82NCIsIHRydWUpOwoKICAgIEFTU0VSVF9USFJPVygKICAgICAgICBJUDo6Um91dGUoIjE5Mi4xNjguNC4wLzMzIiksCiAgICAgICAgc3RkOjpleGNlcHRpb24pOwp9
+#include "test_common.hpp"
+
+#include <iostream>
+#include <set>
+
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/addr/route.hpp>
+
+using namespace openvpn;
+
+void test_route_parse(const std::string &rstr, const std::string &expected, bool ipv6)
+{
+    const IP::Route r(rstr);
+    ASSERT_EQ(r.to_string(), expected);
+
+    if (ipv6)
+    {
+        const IP::Route6 r6(rstr);
+        ASSERT_EQ(r6.to_string(), expected);
+    }
+    else
+    {
+        const IP::Route4 r4(rstr);
+        ASSERT_EQ(r4.to_string(), expected);
+    }
+}
+
+TEST(IPAddr, routeSet)
+{
+    std::set<IP::Route> routes;
+    routes.emplace("1.2.3.4/24");
+    routes.emplace("1.2.3.0/24");
+    routes.emplace("1.2.3.2/24");
+    routes.emplace("1.2.3.1/24");
+    routes.emplace("128.0.0.0/1");
+    routes.emplace("1:2:3:4:5:6:dead:beef/64");
+    routes.emplace("1:2:3:4:5:6:dead:bead/64");
+
+    std::stringstream out;
+    for (const auto &r : routes)
+        out << r.to_string() << std::endl;
+
+    ASSERT_EQ("128.0.0.0/1\n"
+              "1.2.3.0/24\n"
+              "1.2.3.1/24\n"
+              "1.2.3.2/24\n"
+              "1.2.3.4/24\n"
+              "1:2:3:4:5:6:dead:bead/64\n"
+              "1:2:3:4:5:6:dead:beef/64\n",
+              out.str());
+}
+
+template <typename LIST>
+void test_split(const LIST &rtlist, const std::string &expected)
+{
+    typedef typename LIST::value_type RT;
+    std::stringstream out;
+    for (const auto &r : rtlist)
+    {
+        RT r1, r2;
+        if (r.is_canonical() && r.split(r1, r2))
+        {
+            out << r << ' ' << r1 << ' ' << r2 << std::endl;
+        }
+    }
+    ASSERT_EQ(expected, out.str());
+}
+
+TEST(IPAddr, routeList4)
+{
+    IP::Route4List routes;
+    routes.emplace_back("1.2.3.4/24");
+    routes.emplace_back("1.2.3.0/24");
+    routes.emplace_back("1.2.3.2/24");
+    routes.emplace_back("1.2.3.1/24");
+    routes.emplace_back("128.0.0.0/1");
+    // OPENVPN_LOG_NTNL(routes.to_string());
+    ASSERT_FALSE(routes.contains(IPv4::Addr::from_string("100.1.2.3")));
+    ASSERT_TRUE(routes.contains(IPv4::Addr::from_string("200.1.2.3")));
+
+    test_split(routes, "1.2.3.0/24 1.2.3.0/25 1.2.3.128/25\n128.0.0.0/1 128.0.0.0/2 192.0.0.0/2\n");
+}
+
+TEST(IPAddr, routeList6)
+{
+    IP::Route6List routes;
+    routes.emplace_back("1:2:3:4:5:6:dead:beef/64");
+    routes.emplace_back("cafe:babe::/64");
+    // OPENVPN_LOG_NTNL(routes.to_string());
+    ASSERT_FALSE(routes.contains(IPv6::Addr::from_string("1111:2222:3333:4444:5555:6666:7777:8888")));
+    ASSERT_TRUE(routes.contains(IPv6::Addr::from_string("cafe:babe:0:0:1111:2222:3333:4444")));
+    test_split(routes, "cafe:babe::/64 cafe:babe::/65 cafe:babe:0:0:8000::/65\n");
+}
+
+TEST(IPAddr, routeList)
+{
+    IP::RouteList routes;
+    routes.emplace_back("1.2.3.4/24");
+    routes.emplace_back("1.2.3.0/24");
+    routes.emplace_back("1.2.3.2/24");
+    routes.emplace_back("1.2.3.1/24");
+    routes.emplace_back("128.0.0.0/1");
+    routes.emplace_back("1:2:3:4:5:6:dead:beef/64");
+    routes.emplace_back("cafe:babe::/64");
+    // OPENVPN_LOG_NTNL(routes.to_string());
+    ASSERT_FALSE(routes.contains(IP::Addr::from_string("100.1.2.3")));
+    ASSERT_TRUE(routes.contains(IP::Addr::from_string("200.1.2.3")));
+    ASSERT_FALSE(routes.contains(IP::Addr::from_string("1111:2222:3333:4444:5555:6666:7777:8888")));
+    ASSERT_TRUE(routes.contains(IP::Addr::from_string("cafe:babe:0:0:1111:2222:3333:4444")));
+
+    test_split(routes, "1.2.3.0/24 1.2.3.0/25 1.2.3.128/25\n"
+                       "128.0.0.0/1 128.0.0.0/2 192.0.0.0/2\n"
+                       "cafe:babe::/64 cafe:babe::/65 cafe:babe:0:0:8000::/65\n");
+}
+
+TEST(IPAddr, parseRoutes)
+{
+    test_route_parse("1.2.3.4", "1.2.3.4/32", false);
+    test_route_parse("192.168.4.0/24", "192.168.4.0/24", false);
+    test_route_parse("fe80::6470:7dff:fea5:f360/64", "fe80::6470:7dff:fea5:f360/64", true);
+
+    ASSERT_THROW(
+        IP::Route("192.168.4.0/33"),
+        std::exception);
+}

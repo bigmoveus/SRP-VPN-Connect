@@ -1,1 +1,87 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL3NpemUuaHBwPgoKI2luY2x1ZGUgPG9wZW52cG4vY3J5cHRvL3N0YXRpY19rZXkuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9zc2wvc3NsY2hvb3NlLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKY29uc3QgY2hhciBrZXlfdGV4dFtdID0gIi0tLS0tQkVHSU4gT3BlblZQTiBTdGF0aWMga2V5IFYxLS0tLS1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgImJkMjhlNzk0NzU5NzkyOTA5MzM3MWJlNGNmNTVmZDc4XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICI5OGE3MGQwZmVmZmQzODlmNzBlYTYwNjYzNWVkMDM3MVxuIgogICAgICAgICAgICAgICAgICAgICAgICAiNTcwNDU2OTVhNzcwMjY0Y2EwYjJjMjUxY2I1YzY1ZmVcbiIKICAgICAgICAgICAgICAgICAgICAgICAgIjQ0N2Q5YjI4ODU1Y2YxOTliYzNkOTUyN2U1Zjg4YTU5XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICI1Y2QyMTNiNWE3MWI0N2YxMWE5MTVhNzdlM2E3YWVkN1xuIgogICAgICAgICAgICAgICAgICAgICAgICAiZmE5MDFkODY0MTUwYjY0ZWI4ZDQyNDM4M2U1NTY0ZGRcbiIKICAgICAgICAgICAgICAgICAgICAgICAgIjIzZTViNWZhOGQxNmRmZTJkMzdiOTQ2ZThmMjJiYjU4XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICJhNWI5MDQwNjJiZGNlYTM1MDA3YzY4MjUyNTBhMWMwMFxuIgogICAgICAgICAgICAgICAgICAgICAgICAiYTJhNTRiZDg5MmZhMjBlZGJjZmU0ZmUxZmE4YTc4NmNcbiIKICAgICAgICAgICAgICAgICAgICAgICAgIjVjMTEwMmEzYjUzZTI5NGM3MjliMzdhMjQ4NDJmOWM5XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICJiNzIwMThiOTkwYWZmMDU4YmJlZWFmMThmNTg2Y2Q1Y1xuIgogICAgICAgICAgICAgICAgICAgICAgICAiZDcwNDc1MzI4Y2FlZDZkOTY2MjkzN2EzYzk3MGYyNTNcbiIKICAgICAgICAgICAgICAgICAgICAgICAgIjg0OTU5ODhjNmM3MmMwZWY4ZGE3MjBjMzQyYWM2NDA1XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICJhNjFkYTBmZDE4ZGRmZDEwNmFlZWUxNzM2NzcyYmFhZFxuIgogICAgICAgICAgICAgICAgICAgICAgICAiMDE0NzAzZjU0OTQ4MGM2MTA4MGFhOTYzZjhiMTBhNGFcbiIKICAgICAgICAgICAgICAgICAgICAgICAgImY3NTkxZWFkNDcxMGJkMGU3NGMwYjM3ZTM3Yzg0Mzc0XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICItLS0tLUVORCBPcGVuVlBOIFN0YXRpYyBrZXkgVjEtLS0tLVxuIjsKClRFU1Qoc3RhdGlja2V5LCBrZXkxKQp7CiAgICAvLyBUaGlzIHRlc3Qgb25seSB0ZXN0cyBpZiBsb2FkaW5nIGEgc3RhdGljIGtleSB3b3JrcwogICAgT3BlblZQTlN0YXRpY0tleSBzazsKICAgIHNrLnBhcnNlKHN0ZDo6c3RyaW5nKGtleV90ZXh0KSk7CiAgICBzdGQ6OnN0cmluZyByZW5kID0gc2sucmVuZGVyKCk7Cn0KClRFU1Qoc3RhdGlja2V5LCBrZXkyKQp7CiAgICBTdHJvbmdSYW5kb21BUEk6OlB0ciBybmcobmV3IFNTTExpYjo6UmFuZG9tQVBJKCkpOwogICAgY29uc3Qgc2l6ZV90IGtleV9sZW4gPSAxNjsKICAgIFN0YXRpY0tleSBzazE7CiAgICBzazEuaW5pdF9mcm9tX3JuZygqcm5nLCBrZXlfbGVuKTsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHMxID0gc2sxLnJlbmRlcl90b19iYXNlNjQoKTsKICAgIFN0YXRpY0tleSBzazI7CiAgICBzazIucGFyc2VfZnJvbV9iYXNlNjQoczEsIGtleV9sZW4pOwogICAgY29uc3Qgc3RkOjpzdHJpbmcgczIgPSBzazIucmVuZGVyX3RvX2Jhc2U2NCgpOwogICAgQVNTRVJUX0VRKHMxLCBzMik7Cn0KCmNsYXNzIFN0YXRpY1NpbmtCYXNlIDogcHVibGljIFJDPHRocmVhZF91bnNhZmVfcmVmY291bnQ+CnsKICBwdWJsaWM6CiAgICB0eXBlZGVmIFJDUHRyPFN0YXRpY1NpbmtCYXNlPiBQdHI7CgogICAgdmlydHVhbCB2b2lkIGluaXQoU3RhdGljS2V5ICYma2V5KSA9IDA7CiAgICB2aXJ0dWFsIHN0ZDo6c3RyaW5nIGR1bXAoKSA9IDA7Cn07CgpjbGFzcyBTdGF0aWNTaW5rIDogcHVibGljIFN0YXRpY1NpbmtCYXNlCnsKICBwdWJsaWM6CiAgICB2b2lkIGluaXQoU3RhdGljS2V5ICYma2V5KSBvdmVycmlkZQogICAgewogICAgICAgIGsgPSBzdGQ6Om1vdmUoa2V5KTsKICAgIH0KCiAgICBzdGQ6OnN0cmluZyBkdW1wKCkgb3ZlcnJpZGUKICAgIHsKICAgICAgICByZXR1cm4gay5yZW5kZXJfaGV4KCk7CiAgICB9CgogIHByaXZhdGU6CiAgICBTdGF0aWNLZXkgazsKfTsKClRFU1Qoc3RhdGlja2V5LCBtb3ZlKQp7CiAgICBPcGVuVlBOU3RhdGljS2V5IHNrOwogICAgc2sucGFyc2Uoc3RkOjpzdHJpbmcoa2V5X3RleHQpKTsKCiAgICBTdGF0aWNTaW5rQmFzZTo6UHRyIHNzKG5ldyBTdGF0aWNTaW5rKCkpOwogICAgc3MtPmluaXQoc2suc2xpY2UoT3BlblZQTlN0YXRpY0tleTo6Q0lQSEVSIHwgT3BlblZQTlN0YXRpY0tleTo6RU5DUllQVCB8IE9wZW5WUE5TdGF0aWNLZXk6OklOVkVSU0UpKTsKICAgIEFTU0VSVF9FUSgKICAgICAgICAiYTJhNTRiZDg5MmZhMjBlZGJjZmU0ZmUxZmE4YTc4NmM1YzExMDJhM2I1M2UyOTRjNzI5YjM3YTI0ODQyZjljOWI3MjAxOGI5OTBhZmYwNThiYmVlYWYxOGY1ODZjZDVjZDcwNDc1MzI4Y2FlZDZkOTY2MjkzN2EzYzk3MGYyNTMiLAogICAgICAgIHNzLT5kdW1wKCkpOwp9Cg==
+#include "test_common.hpp"
+#include <iostream>
+
+#include <openvpn/common/size.hpp>
+
+#include <openvpn/crypto/static_key.hpp>
+#include <openvpn/ssl/sslchoose.hpp>
+
+using namespace openvpn;
+
+const char key_text[] = "-----BEGIN OpenVPN Static key V1-----\n"
+                        "bd28e7947597929093371be4cf55fd78\n"
+                        "98a70d0feffd389f70ea606635ed0371\n"
+                        "57045695a770264ca0b2c251cb5c65fe\n"
+                        "447d9b28855cf199bc3d9527e5f88a59\n"
+                        "5cd213b5a71b47f11a915a77e3a7aed7\n"
+                        "fa901d864150b64eb8d424383e5564dd\n"
+                        "23e5b5fa8d16dfe2d37b946e8f22bb58\n"
+                        "a5b904062bdcea35007c6825250a1c00\n"
+                        "a2a54bd892fa20edbcfe4fe1fa8a786c\n"
+                        "5c1102a3b53e294c729b37a24842f9c9\n"
+                        "b72018b990aff058bbeeaf18f586cd5c\n"
+                        "d70475328caed6d9662937a3c970f253\n"
+                        "8495988c6c72c0ef8da720c342ac6405\n"
+                        "a61da0fd18ddfd106aeee1736772baad\n"
+                        "014703f549480c61080aa963f8b10a4a\n"
+                        "f7591ead4710bd0e74c0b37e37c84374\n"
+                        "-----END OpenVPN Static key V1-----\n";
+
+TEST(statickey, key1)
+{
+    // This test only tests if loading a static key works
+    OpenVPNStaticKey sk;
+    sk.parse(std::string(key_text));
+    std::string rend = sk.render();
+}
+
+TEST(statickey, key2)
+{
+    StrongRandomAPI::Ptr rng(new SSLLib::RandomAPI());
+    const size_t key_len = 16;
+    StaticKey sk1;
+    sk1.init_from_rng(*rng, key_len);
+    const std::string s1 = sk1.render_to_base64();
+    StaticKey sk2;
+    sk2.parse_from_base64(s1, key_len);
+    const std::string s2 = sk2.render_to_base64();
+    ASSERT_EQ(s1, s2);
+}
+
+class StaticSinkBase : public RC<thread_unsafe_refcount>
+{
+  public:
+    typedef RCPtr<StaticSinkBase> Ptr;
+
+    virtual void init(StaticKey &&key) = 0;
+    virtual std::string dump() = 0;
+};
+
+class StaticSink : public StaticSinkBase
+{
+  public:
+    void init(StaticKey &&key) override
+    {
+        k = std::move(key);
+    }
+
+    std::string dump() override
+    {
+        return k.render_hex();
+    }
+
+  private:
+    StaticKey k;
+};
+
+TEST(statickey, move)
+{
+    OpenVPNStaticKey sk;
+    sk.parse(std::string(key_text));
+
+    StaticSinkBase::Ptr ss(new StaticSink());
+    ss->init(sk.slice(OpenVPNStaticKey::CIPHER | OpenVPNStaticKey::ENCRYPT | OpenVPNStaticKey::INVERSE));
+    ASSERT_EQ(
+        "a2a54bd892fa20edbcfe4fe1fa8a786c5c1102a3b53e294c729b37a24842f9c9b72018b990aff058bbeeaf18f586cd5cd70475328caed6d9662937a3c970f253",
+        ss->dump());
+}

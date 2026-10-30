@@ -1,1 +1,288 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCi8qIFdpdGhvdXQgZG9pbmcgdGhpcyBsb2cgZGFuY2UgY29yZSB3aWxsIG5vdCBjb21waWxlIC4uLiAqLwoKI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NsaWVudC9jbGllbXVleHIuaHBwPgoKCm5hbWVzcGFjZSB1bml0dGVzdHMgewojZGVmaW5lIERFQlVHX1BSSU5UX1JPVVRFUyAgICAgIFwKICAgIGZvciAoYXV0byAmcnQgOiB0Yi0+cm91dGVzKSBcCiAgICAgICAgc3RkOjpjb3V0IDw8IHJ0IDw8IHN0ZDo6ZW5kbDsKCi8qIEhlbHBlciBmdW5jdGlvbiBmb3IgcXVpY2sgcmVzdWx0IGNvbXBhcmlzaW9uICovCnN0ZDo6c3RyaW5nIGpvaW5fc3RyaW5nX3ZlY3Rvcl9zb3J0ZWQoc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHZlYywgY29uc3QgY2hhciAqY29uc3QgZGVsaW0gPSAiLCAiKQp7CiAgICBzdGQ6OnNvcnQodmVjLmJlZ2luKCksIHZlYy5lbmQoKSk7CiAgICBzdGQ6Om9zdHJpbmdzdHJlYW0gcmVzOwogICAgc3RkOjpjb3B5KHZlYy5iZWdpbigpLCB2ZWMuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocmVzLCBkZWxpbSkpOwogICAgcmV0dXJuIHJlcy5zdHIoKTsKfQoKLyogU2ltcGxlIGNsYXNzIHRoYXQganVzdCByZWNvcmRzICovCmNsYXNzIFR1bkJ1aWxkZXJNb2NrIDogcHVibGljIG9wZW52cG46OlR1bkJ1aWxkZXJCYXNlCnsKICBwdWJsaWM6CiAgICBib29sIGlzX2lwdjY7CiAgICBUdW5CdWlsZGVyTW9jayhib29sIGlwdjYpCiAgICAgICAgOiBpc19pcHY2KGlwdjYpCiAgICB7CiAgICB9CgogICAgYm9vbCB0dW5fYnVpbGRlcl9hZGRfcm91dGUoY29uc3Qgc3RkOjpzdHJpbmcgJmFkZHJlc3MsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpbnQgcHJlZml4X2xlbmd0aCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGludCBtZXRyaWMsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBib29sIGlwdjYpIG92ZXJyaWRlCiAgICB7CiAgICAgICAgYXV0byBydCA9IGFkZHJlc3MgKyAiLyIgKyBzdGQ6OnRvX3N0cmluZyhwcmVmaXhfbGVuZ3RoKTsKICAgICAgICByb3V0ZXMucHVzaF9iYWNrKHJ0KTsKICAgICAgICByb3V0ZXNBZGRyLnB1c2hfYmFjayhvcGVudnBuOjpJUDo6Um91dGUocnQpKTsKICAgICAgICByZXR1cm4gaXNfaXB2NiA9PSBpcHY2OwogICAgfQoKICAgIGJvb2wgdHVuX2J1aWxkZXJfc2V0X3JlbW90ZV9hZGRyZXNzKGNvbnN0IHN0ZDo6c3RyaW5nICZhZGRyZXNzLCBib29sIGlwdjYpIG92ZXJyaWRlCiAgICB7CiAgICAgICAgYWRkcmVzc2VzLnB1c2hfYmFjayhhZGRyZXNzKTsKICAgICAgICByZXR1cm4gaXNfaXB2NiA9PSBpcHY2OwogICAgfQoKICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiBhZGRyZXNzZXM7CiAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gcm91dGVzOwogICAgc3RkOjp2ZWN0b3I8b3BlbnZwbjo6SVA6OlJvdXRlPiByb3V0ZXNBZGRyOwoKICAgIGJvb2wgY29udGFpbnNJUChzdGQ6OnN0cmluZyBpcGFkZHIpCiAgICB7CiAgICAgICAgcmV0dXJuIGNvbnRhaW5zSVAob3BlbnZwbjo6SVA6OkFkZHIoaXBhZGRyKSk7CiAgICB9CgogICAgYm9vbCBjb250YWluc0lQKG9wZW52cG46OklQOjpBZGRyIGlwYWRkcikKICAgIHsKICAgICAgICBmb3IgKGF1dG8gJnJ0IDogcm91dGVzQWRkcikKICAgICAgICB7CiAgICAgICAgICAgIGlmIChydC5jb250YWlucyhpcGFkZHIpKQogICAgICAgICAgICAgICAgcmV0dXJuIHRydWU7CiAgICAgICAgfQogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KfTsKCmNsYXNzIFJvdXRlRW11bGF0aW9uVGVzdCA6IHB1YmxpYyB0ZXN0aW5nOjpUZXN0CnsKICBwcm90ZWN0ZWQ6CiAgICBvcGVudnBuOjpJUFZlckZsYWdzICppcGZsYWdzOwogICAgb3BlbnZwbjo6RW11bGF0ZUV4Y2x1ZGVSb3V0ZTo6UHRyIGVtdTsKICAgIFR1bkJ1aWxkZXJNb2NrICp0YjsKICAgIG9wZW52cG46Ok9wdGlvbkxpc3QgZW1wdHlPcHRpb25MaXN0OwoKICAgIFJvdXRlRW11bGF0aW9uVGVzdCgpCiAgICAgICAgOiBpcGZsYWdzKG51bGxwdHIpLCB0YihudWxscHRyKQogICAgewogICAgfQoKICAgIHZvaWQgdGVhcmRvd24oKQogICAgewogICAgICAgIGRlbGV0ZSB0YjsKICAgICAgICBkZWxldGUgaXBmbGFnczsKICAgIH0KCiAgICB2b2lkIHNldHVwKGJvb2wgaXB2NiwgYm9vbCBleGNsdWRlU2VydmVyLCBib29sIGtlZXBFbXUgPSBmYWxzZSkKICAgIHsKICAgICAgICB0ZWFyZG93bigpOwoKICAgICAgICB0YiA9IG5ldyBUdW5CdWlsZGVyTW9jayhpcHY2KTsKCiAgICAgICAgaXBmbGFncyA9IG5ldyBvcGVudnBuOjpJUFZlckZsYWdzKGVtcHR5T3B0aW9uTGlzdCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaXB2NiA/IG9wZW52cG46OklQOjpBZGRyOjpWNl9NQVNLIDogb3BlbnZwbjo6SVA6OkFkZHI6OlY0X01BU0spOwoKICAgICAgICBpZiAoIWtlZXBFbXUpCiAgICAgICAgewogICAgICAgICAgICBvcGVudnBuOjpFbXVsYXRlRXhjbHVkZVJvdXRlRmFjdG9yeTo6UHRyIGZhY3RvcnkoCiAgICAgICAgICAgICAgICBuZXcgb3BlbnZwbjo6RW11bGF0ZUV4Y2x1ZGVSb3V0ZUZhY3RvcnlJbXBsKGV4Y2x1ZGVTZXJ2ZXIpKTsKCiAgICAgICAgICAgIGVtdSA9IGZhY3RvcnktPm5ld19vYmooKTsKICAgICAgICB9CiAgICB9CgogICAgLy8gSGVscGVyIGZ1bmN0aW9ucyB0byBtYWtlIHdyaXRpbmcgdGVzdCBzdWl0ZSBhIGJpdCBlYXNpZXIKICAgIHZvaWQgaW5jbFJvdXRlKGNvbnN0IHN0ZDo6c3RyaW5nICZpbmNSb3V0ZSkKICAgIHsKICAgICAgICBhZGRSb3V0ZSh0cnVlLCBpbmNSb3V0ZSk7CiAgICB9CiAgICB2b2lkIGV4Y2xSb3V0ZShjb25zdCBzdGQ6OnN0cmluZyAmZXhjbFJvdXRlKQogICAgewogICAgICAgIGFkZFJvdXRlKGZhbHNlLCBleGNsUm91dGUpOwogICAgfQoKICAgIHZvaWQgYWRkUm91dGUoYm9vbCBpbmNsdWRlLCBjb25zdCBzdGQ6OnN0cmluZyAmcm91dGUpCiAgICB7CiAgICAgICAgc3RkOjpzdHJpbmcgaXBzdHIgPSByb3V0ZS5zdWJzdHIoMCwgcm91dGUuZmluZCgnLycpKTsKICAgICAgICBzdGQ6OnN0cmluZyBtYXNrID0gcm91dGUuc3Vic3RyKHJvdXRlLmZpbmQoJy8nKSArIDEpOwogICAgICAgIGVtdS0+YWRkX3JvdXRlKGluY2x1ZGUsIG9wZW52cG46OklQOjpBZGRyKGlwc3RyKSwgc3RkOjpzdG9pKG1hc2spKTsKICAgIH0KCiAgICB2b2lkIGRvRW11bGF0ZShzdGQ6OnN0cmluZyBzZXJ2ZXJpcCA9ICIxLjIuMy40IikKICAgIHsKICAgICAgICBlbXUtPmVtdWxhdGUodGhpcy0+dGIsICp0aGlzLT5pcGZsYWdzLCBvcGVudnBuOjpJUDo6QWRkcihzZXJ2ZXJpcCkpOwogICAgfQoKICAgIH5Sb3V0ZUVtdWxhdGlvblRlc3QoKQogICAgewogICAgICAgIHRlYXJkb3duKCk7CiAgICB9Cn07CgpURVNUX0YoUm91dGVFbXVsYXRpb25UZXN0LCBFeGNsdWRlT25lU3VibmV0KQp7CiAgICBzZXR1cChmYWxzZSwgZmFsc2UpOwoKICAgIGVtdS0+YWRkX2RlZmF1bHRfcm91dGVzKHRydWUsIHRydWUpOwoKICAgIGVtdS0+YWRkX3JvdXRlKGZhbHNlLCBvcGVudnBuOjpJUDo6QWRkcigiMTkyLjE2OC4xMDAuMCIpLCAyNCk7CgogICAgZG9FbXVsYXRlKCk7CgogICAgQVNTRVJUX0VRKHRiLT5yb3V0ZXMuc2l6ZSgpLCAyNHUpOwp9CgpURVNUX0YoUm91dGVFbXVsYXRpb25UZXN0LCBFeGNsdWRlU3VibmV0c05vRGVmYXVsdCkKewogICAgc2V0dXAoZmFsc2UsIGZhbHNlKTsKICAgIC8vIGluY2x1ZGUgdGhpcyBuZXQKICAgIGVtdS0+YWRkX3JvdXRlKHRydWUsIG9wZW52cG46OklQOjpBZGRyKCIxMC4yMC4wLjAiKSwgMTYpOwoKICAgIC8vIGJ1dCBub3QgdGhlIGZpcnN0IGhhbGYKICAgIGVtdS0+YWRkX3JvdXRlKGZhbHNlLCBvcGVudnBuOjpJUDo6QWRkcigiMTAuMjAuMC4wIiksIDE3KTsKCiAgICBkb0VtdWxhdGUoKTsKCiAgICBBU1NFUlRfRVEodGItPnJvdXRlcy5zaXplKCksIDF1KTsKICAgIEFTU0VSVF9FUSh0Yi0+cm91dGVzLmF0KDApLCAiMTAuMjAuMTI4LjAvMTciKTsKCiAgICBzZXR1cCh0cnVlLCBmYWxzZSk7CgogICAgZW11LT5hZGRfcm91dGUodHJ1ZSwgb3BlbnZwbjo6SVA6OkFkZHIoIjI1MDA6MTAwMDo6IiksIDMyKTsKICAgIC8vIGJ1dCBub3QgdGhlIGZpcnN0IGhhbGYKICAgIGVtdS0+YWRkX3JvdXRlKGZhbHNlLCBvcGVudnBuOjpJUDo6QWRkcigiMjUwMDoxMDAwOjgwMDA6OiIpLCAzMyk7CgogICAgZG9FbXVsYXRlKCk7CgogICAgQVNTRVJUX0VRKHRiLT5yb3V0ZXMuc2l6ZSgpLCAxdSk7CiAgICBBU1NFUlRfRVEodGItPnJvdXRlcy5hdCgwKSwgIjI1MDA6MTAwMDo6LzMzIik7Cn0KClRFU1RfRihSb3V0ZUVtdWxhdGlvblRlc3QsIGV4Y2x1ZGVTZXJ2ZXIpCnsKICAgIHNldHVwKGZhbHNlLCB0cnVlKTsKICAgIGVtdS0+YWRkX2RlZmF1bHRfcm91dGVzKHRydWUsIHRydWUpOwogICAgZG9FbXVsYXRlKCIxLjIuMy40Iik7CgogICAgQVNTRVJUX0VRKHRiLT5yb3V0ZXMuc2l6ZSgpLCAzMnUpOwogICAgQVNTRVJUX0ZBTFNFKHRiLT5jb250YWluc0lQKCIxLjIuMy40IikpOwogICAgQVNTRVJUX1RSVUUodGItPmNvbnRhaW5zSVAoIjEuMi4zLjUiKSk7CiAgICBBU1NFUlRfVFJVRSh0Yi0+Y29udGFpbnNJUCgiMS4yLjMuMyIpKTsKICAgIEFTU0VSVF9UUlVFKHRiLT5jb250YWluc0lQKCI0LjMuMi4xIikpOwoKICAgIHNldHVwKHRydWUsIHRydWUpOwogICAgZW11LT5hZGRfZGVmYXVsdF9yb3V0ZXModHJ1ZSwgdHJ1ZSk7CiAgICBkb0VtdWxhdGUoIjo6MS4yLjMuNCIpOwoKICAgIEFTU0VSVF9FUSh0Yi0+cm91dGVzLnNpemUoKSwgMTI4dSk7CiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjo6MS4yLjMuNCIpKTsKICAgIEFTU0VSVF9UUlVFKHRiLT5jb250YWluc0lQKCI6OjEuMi4zLjUiKSk7CiAgICBBU1NFUlRfVFJVRSh0Yi0+Y29udGFpbnNJUCgiOjoxLjIuMy4zIikpOwogICAgQVNTRVJUX1RSVUUodGItPmNvbnRhaW5zSVAoIjo6NC4zLjIuMSIpKTsKfQoKVEVTVF9GKFJvdXRlRW11bGF0aW9uVGVzdCwgbmVzdGVkSVBSb3V0ZXMpCnsKICAgIC8vIFRoaXMgc2V0cyB1cCBhIG51bWJlciBvZiByb3V0ZXMgdGhhdCBhcmUgYWxsIGluY2x1ZGVkIGluIGVhY2gKCiAgICBzZXR1cChmYWxzZSwgZmFsc2UpOwogICAgaW5jbFJvdXRlKCIxOTIuNjQuMC4wLzE2Iik7CiAgICAvLyBzZWNvbmQgcXVhcnRlci4KICAgIGV4Y2xSb3V0ZSgiMTkyLjY0LjY0LjAvMTgiKTsKICAgIC8vIGxhc3QgcXVhcnRlcgogICAgaW5jbFJvdXRlKCIxOTIuNjQuMTEyLjAvMjAiKTsKICAgIC8vIGZpcnN0IHF1YXJ0ZXIKICAgIGV4Y2xSb3V0ZSgiMTkyLjY0LjExMi4wLzIyIik7CiAgICAvLyBmaXJzdCBxdWFydGVyIGFnYWluCiAgICBpbmNsUm91dGUoIjE5Mi42NC4xMTIuMC8yNCIpOwogICAgLy8gc2Vjb25kIHF1YXJ0ZXIKICAgIGV4Y2xSb3V0ZSgiMTkyLjY0LjExMi42NC8yNiIpOwoKICAgIGRvRW11bGF0ZSgpOwoKICAgIC8vIEV4Y2x1ZGVkIGJ5IDE5Mi42NC4xMTIuNjQvMjYKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0LjExMi42NCIpKTsKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0LjExMi44NyIpKTsKCiAgICAvLyBJbmNsdWRlZCBieSAxOTIuNjQuMTEyLjAvMjQKICAgIEFTU0VSVF9UUlVFKHRiLT5jb250YWluc0lQKCIxOTIuNjQuMTEyLjUiKSk7CiAgICBBU1NFUlRfVFJVRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0LjExMi4xMjkiKSk7CiAgICBBU1NFUlRfVFJVRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0LjExMi4yNTUiKSk7CgogICAgLy8gRXhjbHVkZWQgYnkgMTkyLjY0LjExMi4wLzIyCiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjE5Mi42NC4xMTMuOTEiKSk7CiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjE5Mi42NC4xMTQuOTIiKSk7CiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjE5Mi42NC4xMTUuOTMiKSk7CgoKICAgIC8vIEluY2x1ZGVkIGJ5IDE5Mi42NC4xMTIuMC8yMAogICAgQVNTRVJUX1RSVUUodGItPmNvbnRhaW5zSVAoIjE5Mi42NC4xMTYuOTQiKSk7CiAgICBBU1NFUlRfVFJVRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0LjEyMy45NSIpKTsKCgogICAgLy8gRXhjbHVkZWQgYnkgMTkyLjY0LjY0LjAvMTgiCiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjE5Mi42NC42NC45NiIpKTsKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjY0Ljk3Ljk4IikpOwogICAgQVNTRVJUX0ZBTFNFKHRiLT5jb250YWluc0lQKCIxOTIuNjQuMTExLjk5IikpOwoKICAgIC8vIGluY2x1ZGVkIGluIDE5Mi42NC4wLjAvMTYKICAgIEFTU0VSVF9UUlVFKHRiLT5jb250YWluc0lQKCIxOTIuNjQuMC4wIikpOwogICAgQVNTRVJUX1RSVUUodGItPmNvbnRhaW5zSVAoIjE5Mi42NC4xLjIiKSk7CgogICAgLy8gTm90IGluIHRoZSBhdCBhbGwKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMS4yLjMuNCIpKTsKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjYzLjI1NS4yNTUiKSk7CiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjE5Mi42NS4wLjAiKSk7CiAgICBBU1NFUlRfRkFMU0UodGItPmNvbnRhaW5zSVAoIjEyOC4wLjAuMCIpKTsKICAgIEFTU0VSVF9GQUxTRSh0Yi0+Y29udGFpbnNJUCgiMTkyLjAuMC4wIikpOwogICAgQVNTRVJUX0ZBTFNFKHRiLT5jb250YWluc0lQKCIyNTUuMjU1LjI1NS4yNTUiKSk7Cn0KClRFU1RfRihSb3V0ZUVtdWxhdGlvblRlc3QsIERlZmF1bHRSb3V0ZSkKewogICAgc2V0dXAoZmFsc2UsIGZhbHNlKTsKCiAgICBlbXUtPmFkZF9kZWZhdWx0X3JvdXRlcyh0cnVlLCB0cnVlKTsKCiAgICBkb0VtdWxhdGUoKTsKCiAgICBBU1NFUlRfRVEodGItPnJvdXRlcy5zaXplKCksIDF1KTsKICAgIEFTU0VSVF9FUSh0Yi0+cm91dGVzLmF0KDApLCAiMC4wLjAuMC8wIik7CgogICAgLy8gTm93IHNvbWV0aGluZyBtb3JlIHRyaWNreSBhZGQgdW5uZWNlc3NhcnkgZXh0cmEgcm91dGUKICAgIC8vIHRvIGNvbmZ1c2Ugb3VyIGVtdWxhdGlvbiBsYXllcgogICAgc2V0dXAoZmFsc2UsIGZhbHNlLCB0cnVlKTsKCiAgICBpbmNsUm91dGUoIjE5Mi4xNjguMC4wLzI0Iik7CgogICAgZG9FbXVsYXRlKCk7CgogICAgQVNTRVJUX0VRKHRiLT5yb3V0ZXMuc2l6ZSgpLCAydSk7CiAgICBBU1NFUlRfRVEodGItPnJvdXRlcy5hdCgwKSwgIjAuMC4wLjAvMCIpOwp9Cgp9IC8vIG5hbWVzcGFjZSB1bml0dGVzdHMK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+/* Without doing this log dance core will not compile ... */
+
+#include "test_common.hpp"
+
+#include <openvpn/client/cliemuexr.hpp>
+
+
+namespace unittests {
+#define DEBUG_PRINT_ROUTES      \
+    for (auto &rt : tb->routes) \
+        std::cout << rt << std::endl;
+
+/* Helper function for quick result comparision */
+std::string join_string_vector_sorted(std::vector<std::string> vec, const char *const delim = ", ")
+{
+    std::sort(vec.begin(), vec.end());
+    std::ostringstream res;
+    std::copy(vec.begin(), vec.end(), std::ostream_iterator<std::string>(res, delim));
+    return res.str();
+}
+
+/* Simple class that just records */
+class TunBuilderMock : public openvpn::TunBuilderBase
+{
+  public:
+    bool is_ipv6;
+    TunBuilderMock(bool ipv6)
+        : is_ipv6(ipv6)
+    {
+    }
+
+    bool tun_builder_add_route(const std::string &address,
+                               int prefix_length,
+                               int metric,
+                               bool ipv6) override
+    {
+        auto rt = address + "/" + std::to_string(prefix_length);
+        routes.push_back(rt);
+        routesAddr.push_back(openvpn::IP::Route(rt));
+        return is_ipv6 == ipv6;
+    }
+
+    bool tun_builder_set_remote_address(const std::string &address, bool ipv6) override
+    {
+        addresses.push_back(address);
+        return is_ipv6 == ipv6;
+    }
+
+    std::vector<std::string> addresses;
+    std::vector<std::string> routes;
+    std::vector<openvpn::IP::Route> routesAddr;
+
+    bool containsIP(std::string ipaddr)
+    {
+        return containsIP(openvpn::IP::Addr(ipaddr));
+    }
+
+    bool containsIP(openvpn::IP::Addr ipaddr)
+    {
+        for (auto &rt : routesAddr)
+        {
+            if (rt.contains(ipaddr))
+                return true;
+        }
+        return false;
+    }
+};
+
+class RouteEmulationTest : public testing::Test
+{
+  protected:
+    openvpn::IPVerFlags *ipflags;
+    openvpn::EmulateExcludeRoute::Ptr emu;
+    TunBuilderMock *tb;
+    openvpn::OptionList emptyOptionList;
+
+    RouteEmulationTest()
+        : ipflags(nullptr), tb(nullptr)
+    {
+    }
+
+    void teardown()
+    {
+        delete tb;
+        delete ipflags;
+    }
+
+    void setup(bool ipv6, bool excludeServer, bool keepEmu = false)
+    {
+        teardown();
+
+        tb = new TunBuilderMock(ipv6);
+
+        ipflags = new openvpn::IPVerFlags(emptyOptionList,
+                                          ipv6 ? openvpn::IP::Addr::V6_MASK : openvpn::IP::Addr::V4_MASK);
+
+        if (!keepEmu)
+        {
+            openvpn::EmulateExcludeRouteFactory::Ptr factory(
+                new openvpn::EmulateExcludeRouteFactoryImpl(excludeServer));
+
+            emu = factory->new_obj();
+        }
+    }
+
+    // Helper functions to make writing test suite a bit easier
+    void inclRoute(const std::string &incRoute)
+    {
+        addRoute(true, incRoute);
+    }
+    void exclRoute(const std::string &exclRoute)
+    {
+        addRoute(false, exclRoute);
+    }
+
+    void addRoute(bool include, const std::string &route)
+    {
+        std::string ipstr = route.substr(0, route.find('/'));
+        std::string mask = route.substr(route.find('/') + 1);
+        emu->add_route(include, openvpn::IP::Addr(ipstr), std::stoi(mask));
+    }
+
+    void doEmulate(std::string serverip = "1.2.3.4")
+    {
+        emu->emulate(this->tb, *this->ipflags, openvpn::IP::Addr(serverip));
+    }
+
+    ~RouteEmulationTest()
+    {
+        teardown();
+    }
+};
+
+TEST_F(RouteEmulationTest, ExcludeOneSubnet)
+{
+    setup(false, false);
+
+    emu->add_default_routes(true, true);
+
+    emu->add_route(false, openvpn::IP::Addr("192.168.100.0"), 24);
+
+    doEmulate();
+
+    ASSERT_EQ(tb->routes.size(), 24u);
+}
+
+TEST_F(RouteEmulationTest, ExcludeSubnetsNoDefault)
+{
+    setup(false, false);
+    // include this net
+    emu->add_route(true, openvpn::IP::Addr("10.20.0.0"), 16);
+
+    // but not the first half
+    emu->add_route(false, openvpn::IP::Addr("10.20.0.0"), 17);
+
+    doEmulate();
+
+    ASSERT_EQ(tb->routes.size(), 1u);
+    ASSERT_EQ(tb->routes.at(0), "10.20.128.0/17");
+
+    setup(true, false);
+
+    emu->add_route(true, openvpn::IP::Addr("2500:1000::"), 32);
+    // but not the first half
+    emu->add_route(false, openvpn::IP::Addr("2500:1000:8000::"), 33);
+
+    doEmulate();
+
+    ASSERT_EQ(tb->routes.size(), 1u);
+    ASSERT_EQ(tb->routes.at(0), "2500:1000::/33");
+}
+
+TEST_F(RouteEmulationTest, excludeServer)
+{
+    setup(false, true);
+    emu->add_default_routes(true, true);
+    doEmulate("1.2.3.4");
+
+    ASSERT_EQ(tb->routes.size(), 32u);
+    ASSERT_FALSE(tb->containsIP("1.2.3.4"));
+    ASSERT_TRUE(tb->containsIP("1.2.3.5"));
+    ASSERT_TRUE(tb->containsIP("1.2.3.3"));
+    ASSERT_TRUE(tb->containsIP("4.3.2.1"));
+
+    setup(true, true);
+    emu->add_default_routes(true, true);
+    doEmulate("::1.2.3.4");
+
+    ASSERT_EQ(tb->routes.size(), 128u);
+    ASSERT_FALSE(tb->containsIP("::1.2.3.4"));
+    ASSERT_TRUE(tb->containsIP("::1.2.3.5"));
+    ASSERT_TRUE(tb->containsIP("::1.2.3.3"));
+    ASSERT_TRUE(tb->containsIP("::4.3.2.1"));
+}
+
+TEST_F(RouteEmulationTest, nestedIPRoutes)
+{
+    // This sets up a number of routes that are all included in each
+
+    setup(false, false);
+    inclRoute("192.64.0.0/16");
+    // second quarter.
+    exclRoute("192.64.64.0/18");
+    // last quarter
+    inclRoute("192.64.112.0/20");
+    // first quarter
+    exclRoute("192.64.112.0/22");
+    // first quarter again
+    inclRoute("192.64.112.0/24");
+    // second quarter
+    exclRoute("192.64.112.64/26");
+
+    doEmulate();
+
+    // Excluded by 192.64.112.64/26
+    ASSERT_FALSE(tb->containsIP("192.64.112.64"));
+    ASSERT_FALSE(tb->containsIP("192.64.112.87"));
+
+    // Included by 192.64.112.0/24
+    ASSERT_TRUE(tb->containsIP("192.64.112.5"));
+    ASSERT_TRUE(tb->containsIP("192.64.112.129"));
+    ASSERT_TRUE(tb->containsIP("192.64.112.255"));
+
+    // Excluded by 192.64.112.0/22
+    ASSERT_FALSE(tb->containsIP("192.64.113.91"));
+    ASSERT_FALSE(tb->containsIP("192.64.114.92"));
+    ASSERT_FALSE(tb->containsIP("192.64.115.93"));
+
+
+    // Included by 192.64.112.0/20
+    ASSERT_TRUE(tb->containsIP("192.64.116.94"));
+    ASSERT_TRUE(tb->containsIP("192.64.123.95"));
+
+
+    // Excluded by 192.64.64.0/18"
+    ASSERT_FALSE(tb->containsIP("192.64.64.96"));
+    ASSERT_FALSE(tb->containsIP("192.64.97.98"));
+    ASSERT_FALSE(tb->containsIP("192.64.111.99"));
+
+    // included in 192.64.0.0/16
+    ASSERT_TRUE(tb->containsIP("192.64.0.0"));
+    ASSERT_TRUE(tb->containsIP("192.64.1.2"));
+
+    // Not in the at all
+    ASSERT_FALSE(tb->containsIP("1.2.3.4"));
+    ASSERT_FALSE(tb->containsIP("192.63.255.255"));
+    ASSERT_FALSE(tb->containsIP("192.65.0.0"));
+    ASSERT_FALSE(tb->containsIP("128.0.0.0"));
+    ASSERT_FALSE(tb->containsIP("192.0.0.0"));
+    ASSERT_FALSE(tb->containsIP("255.255.255.255"));
+}
+
+TEST_F(RouteEmulationTest, DefaultRoute)
+{
+    setup(false, false);
+
+    emu->add_default_routes(true, true);
+
+    doEmulate();
+
+    ASSERT_EQ(tb->routes.size(), 1u);
+    ASSERT_EQ(tb->routes.at(0), "0.0.0.0/0");
+
+    // Now something more tricky add unnecessary extra route
+    // to confuse our emulation layer
+    setup(false, false, true);
+
+    inclRoute("192.168.0.0/24");
+
+    doEmulate();
+
+    ASSERT_EQ(tb->routes.size(), 2u);
+    ASSERT_EQ(tb->routes.at(0), "0.0.0.0/0");
+}
+
+} // namespace unittests

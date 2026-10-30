@@ -1,1 +1,87 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9tYWtlX3JjLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKLy8gVGVzdHMgdGhlIFJjRW5hYmxlIGFuZCBtYWtlX3JjIGZ1bmN0aW9uYWxpdHkuCgpzdHJ1Y3QgdGVzdDEKewogICAgaW50IGkgPSAwOwp9OwoKdXNpbmcgcmNfdGVzdDEgPSBSY0VuYWJsZTx0ZXN0MT47CgovLyBUaGUgYGZfcHRyYCBmdW5jdGlvbiBjaGVja3MgdGhhdCB0aGUgcmVmZXJlbmNlLWNvdW50ZWQgb2JqZWN0IGhhcyB0aGUgZXhwZWN0ZWQgdmFsdWUuCnZvaWQgZl9wdHIocmNfdGVzdDE6OlB0ciByY3QxLCBpbnQgaSkKewogICAgRVhQRUNUX0VRKHJjdDEtPmksIGkpOwp9CgovLyBSZWYgdG8gYmFzZQp2b2lkIGZfcmVmKHRlc3QxICZ0MSwgaW50IGkpCnsKICAgIEVYUEVDVF9FUSh0MS5pLCBpKTsKfQoKLy8gU2xpY2VkIHZhbHVlCnZvaWQgZl92YWwodGVzdDEgdDEsIGludCBpKQp7CiAgICBFWFBFQ1RfRVEodDEuaSwgaSk7Cn0KCi8vIFRoZSBgZGlyZWN0X2VuYWJsZWAgdGVzdCB2ZXJpZmllcyB0aGF0IGFuIFJjRW5hYmxlIG9iamVjdCBjYW4gYmUgY3JlYXRlZCBkaXJlY3RseS4KVEVTVChtYWtlX3JjLCBkaXJlY3RfZW5hYmxlKQp7CiAgICBhdXRvIHJjdDEgPSBSY0VuYWJsZTx0ZXN0MT46OkNyZWF0ZSgpOwogICAgRVhQRUNUX0VRKHJjdDEtPmksIDApOwp9CgovLyBUaGUgYHNpbXBsZWAgdGVzdCB2ZXJpZmllcyB0aGF0IGEgcmVmZXJlbmNlLWNvdW50ZWQgb2JqZWN0IGNhbiBiZSBjcmVhdGVkIHVzaW5nIGBtYWtlX3JjYC4KVEVTVChtYWtlX3JjLCBzaW1wbGUpCnsKICAgIGF1dG8gcmN0MSA9IG1ha2VfcmM8dGVzdDE+KCk7CiAgICBFWFBFQ1RfRVEocmN0MS0+aSwgMCk7Cn0KCi8vIFRoZSBgbW92ZV9pbml0YCB0ZXN0IHZlcmlmaWVzIHRoYXQgYSByZWZlcmVuY2UtY291bnRlZCBvYmplY3QgY2FuIGJlIGNyZWF0ZWQgYnkgbW92aW5nIGFuIGV4aXN0aW5nIG9iamVjdC4KVEVTVChtYWtlX3JjLCBtb3ZlX2luaXQpCnsKICAgIGF1dG8gdCA9IHRlc3QxKCk7CiAgICBFWFBFQ1RfRVEodC5pLCAwKTsKICAgIHQuaSA9IDQyOwogICAgYXV0byByY3QxID0gbWFrZV9yYzx0ZXN0MT4oc3RkOjptb3ZlKHQpKTsKICAgIEVYUEVDVF9FUShyY3QxLT5pLCA0Mik7Cn0KCi8vIFRoZSBgbW92ZV9pbml0X2NhbGxgIHRlc3QgdmVyaWZpZXMgdGhhdCBhIHJlZmVyZW5jZS1jb3VudGVkIG9iamVjdCBjYW4gYmUgY3JlYXRlZCBieSBtb3ZpbmcgYW4gZXhpc3Rpbmcgb2JqZWN0Ci8vIGFuZCBwYXNzZWQgdG8gYSBmdW5jdGlvbi4KVEVTVChtYWtlX3JjLCBtb3ZlX2luaXRfY2FsbCkKewogICAgYXV0byB0ID0gdGVzdDEoKTsKICAgIEVYUEVDVF9FUSh0LmksIDApOwogICAgdC5pID0gNDI7CiAgICBmX3B0cihtYWtlX3JjPHRlc3QxPihzdGQ6Om1vdmUodCkpLCA0Mik7Cn0KCi8vIENhbGxzIHVzaW5nIHJlZgpURVNUKG1ha2VfcmMsIGNhbGxfdmFsdWUpCnsKICAgIGF1dG8gcmN0MSA9IFJjRW5hYmxlPHRlc3QxPjo6Q3JlYXRlKCk7CiAgICBmX3JlZigqcmN0MSwgMCk7Cn0KCi8vIENhbGxzIHVzaW5nIHNsaWNlZCB2YWx1ZQpURVNUKG1ha2VfcmMsIGNhbGxfc2xpY2UpCnsKICAgIGF1dG8gcmN0MSA9IFJjRW5hYmxlPHRlc3QxPjo6Q3JlYXRlKCk7CiAgICBmX3ZhbCgqcmN0MSwgMCk7Cn0KCi8vIG1ha2VfcmMgVFMKVEVTVChtYWtlX3JjLCBzaW1wbGVfdHMpCnsKICAgIGF1dG8gcmN0MSA9IG1ha2VfcmM8dGVzdDEsIFJDPHRocmVhZF9zYWZlX3JlZmNvdW50Pj4oKTsKICAgIEVYUEVDVF9FUShyY3QxLT5pLCAwKTsKfQo=
+#include "test_common.hpp"
+
+#include <openvpn/common/make_rc.hpp>
+
+using namespace openvpn;
+
+// Tests the RcEnable and make_rc functionality.
+
+struct test1
+{
+    int i = 0;
+};
+
+using rc_test1 = RcEnable<test1>;
+
+// The `f_ptr` function checks that the reference-counted object has the expected value.
+void f_ptr(rc_test1::Ptr rct1, int i)
+{
+    EXPECT_EQ(rct1->i, i);
+}
+
+// Ref to base
+void f_ref(test1 &t1, int i)
+{
+    EXPECT_EQ(t1.i, i);
+}
+
+// Sliced value
+void f_val(test1 t1, int i)
+{
+    EXPECT_EQ(t1.i, i);
+}
+
+// The `direct_enable` test verifies that an RcEnable object can be created directly.
+TEST(make_rc, direct_enable)
+{
+    auto rct1 = RcEnable<test1>::Create();
+    EXPECT_EQ(rct1->i, 0);
+}
+
+// The `simple` test verifies that a reference-counted object can be created using `make_rc`.
+TEST(make_rc, simple)
+{
+    auto rct1 = make_rc<test1>();
+    EXPECT_EQ(rct1->i, 0);
+}
+
+// The `move_init` test verifies that a reference-counted object can be created by moving an existing object.
+TEST(make_rc, move_init)
+{
+    auto t = test1();
+    EXPECT_EQ(t.i, 0);
+    t.i = 42;
+    auto rct1 = make_rc<test1>(std::move(t));
+    EXPECT_EQ(rct1->i, 42);
+}
+
+// The `move_init_call` test verifies that a reference-counted object can be created by moving an existing object
+// and passed to a function.
+TEST(make_rc, move_init_call)
+{
+    auto t = test1();
+    EXPECT_EQ(t.i, 0);
+    t.i = 42;
+    f_ptr(make_rc<test1>(std::move(t)), 42);
+}
+
+// Calls using ref
+TEST(make_rc, call_value)
+{
+    auto rct1 = RcEnable<test1>::Create();
+    f_ref(*rct1, 0);
+}
+
+// Calls using sliced value
+TEST(make_rc, call_slice)
+{
+    auto rct1 = RcEnable<test1>::Create();
+    f_val(*rct1, 0);
+}
+
+// make_rc TS
+TEST(make_rc, simple_ts)
+{
+    auto rct1 = make_rc<test1, RC<thread_safe_refcount>>();
+    EXPECT_EQ(rct1->i, 0);
+}
