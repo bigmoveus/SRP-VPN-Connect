@@ -1365,6 +1365,8 @@ set(WW_LWIP_MAX_REASS_DATAGRAMS "" CACHE STRING
     "Simultaneously reassembling fragmented IP datagrams (blank = lwipopts.h default)")
 set(WW_LWIP_MAX_TCP_LISTENERS "" CACHE STRING
     "Concurrent lwIP TCP listener PCBs, one per packet worker that sees TCP (blank = lwipopts.h default)")
+set(WW_LWIP_TCP_WND "" CACHE STRING
+    "lwIP TCP receive window in bytes, shared by every flow (blank = lwipopts.h default)")
 
 # WW_LWIP_MAX_REASS_FRAGS_PER_DATAGRAM is deliberately not a cache variable: it
 # describes the fragment shape the budget assumes rather than a capacity a
@@ -1375,7 +1377,8 @@ foreach(ww_lwip_capacity_knob
         WW_LWIP_MAX_TCP_FLOWS
         WW_LWIP_MAX_UDP_FLOWS
         WW_LWIP_MAX_REASS_DATAGRAMS
-        WW_LWIP_MAX_TCP_LISTENERS)
+        WW_LWIP_MAX_TCP_LISTENERS
+        WW_LWIP_TCP_WND)
     if(NOT "${${ww_lwip_capacity_knob}}" STREQUAL "")
         if(NOT "${${ww_lwip_capacity_knob}}" MATCHES "^[1-9][0-9]*$")
             message(FATAL_ERROR

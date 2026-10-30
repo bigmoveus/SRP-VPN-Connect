@@ -344,11 +344,19 @@ a lot of data that needs to be copied, this should be set high. */
        lwIP's 16-bit readiness limit even when the send buffer is larger. */
 #define TCP_SNDLOWAT         LWIP_MIN((TCP_SND_BUF / 2), (0xFFFF - (4 * TCP_MSS) - 1))
 
-    /* Fixed receive capacity. Scale 7 represents the full 4 MiB window in the
-       16-bit wire field; peers without scaling retain lwIP's unscaled limit. */
-#define TCP_WND              (4 * 1024 * 1024)
+    /* Receive capacity, 4 MiB unless WW_LWIP_TCP_WND overrides it. The window
+       also bounds what a local sender may still deliver after the next tunnel
+       pauses the flow. Scale 7 covers up to 8 MiB in the 16-bit wire field;
+       peers without scaling retain lwIP's unscaled limit. */
+#ifndef WW_LWIP_TCP_WND
+#define WW_LWIP_TCP_WND      (4 * 1024 * 1024)
+#endif
+#define TCP_WND              (WW_LWIP_TCP_WND)
 #define LWIP_WND_SCALE       1
 #define TCP_RCV_SCALE        7
+#if (WW_LWIP_TCP_WND) < (4 * TCP_MSS) || (WW_LWIP_TCP_WND) > (0xFFFF << TCP_RCV_SCALE)
+#error "WW_LWIP_TCP_WND must lie between 4 * TCP_MSS and the scaled 16-bit window limit"
+#endif
 
 /* Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX           12
