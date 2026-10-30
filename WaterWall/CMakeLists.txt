@@ -25,7 +25,10 @@ if(APPLE AND CMAKE_OSX_SYSROOT MATCHES "iphone")
     endif()
 endif()
 set(ALLOCATOR_BYPASS ON CACHE BOOL "" FORCE)
-set(OPENSSL_CONFIGURE_OPTIONS no-asm CACHE STRING "" FORCE)
+# The symbol-prefix header cannot rename assembly, so OpenSSL must build without asm.
+# The iOS toolchain seeds a normal OPENSSL_CONFIGURE_OPTIONS during project(), which
+# shadows a cache entry on a fresh configure; extend the variable in scope instead.
+list(APPEND OPENSSL_CONFIGURE_OPTIONS no-asm)
 add_subdirectory(upstream)
 set(BUILD_TESTING ON CACHE BOOL "" FORCE)
 add_dependencies(ww srp_openssl_full_prefix)
