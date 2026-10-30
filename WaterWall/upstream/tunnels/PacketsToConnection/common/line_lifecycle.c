@@ -162,6 +162,14 @@ static void ptcCloseOwnedLine(tunnel_t *t, line_t *l, bool graceful_tcp, bool fi
         return;
     }
 
+    LOGD("PacketsToConnection: closing flow kind=%u graceful=%u finish_next=%u read_paused=%u write_paused=%u pending=%u",
+         (unsigned int) ls->kind,
+         graceful_tcp ? 1U : 0U,
+         finish_next ? 1U : 0U,
+         ls->read_paused ? 1U : 0U,
+         ls->write_paused ? 1U : 0U,
+         (unsigned int) ls->pending_bytes);
+
     ww_lwip_engine_t *previous;
     const bool        entered = wwLwipEngineEnter(ls->engine, &previous);
     assert(entered);

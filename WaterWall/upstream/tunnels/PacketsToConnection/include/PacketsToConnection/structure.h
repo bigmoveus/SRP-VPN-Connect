@@ -115,7 +115,7 @@ enum
     kPtcDefaultMaxPendingBytes      = TCP_SND_BUF,
     kPtcMinMaxPendingBytes          = 1024U,
     kPtcMaxMaxPendingBytes          = 67108864U,
-    kPtcDefaultMaxTotalPendingBytes = 4194304U,
+    kPtcDefaultMaxTotalPendingBytes = 16777216U,
     kPtcMinMaxTotalPendingBytes     = 65536U,
     kPtcMaxMaxTotalPendingBytes     = 67108864U,
     /* Fixed headroom for already-delivered input; not a pool allocation size. */
