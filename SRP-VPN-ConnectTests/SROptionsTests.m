@@ -942,6 +942,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
                                                                                      options:@{@"ww_fake_dns": @YES}][@"nodes"]];
         NSDictionary *packet = byName[@"ptc"][@"settings"];
         XCTAssertEqualObjects(packet[@"fake-dns"][@"enabled"], @YES);
+        XCTAssertEqualObjects(packet[@"fake-dns"][@"ttl"], @60);
+        XCTAssertEqualObjects(packet[@"fake-dns"][@"cache-size"], @10000);
         XCTAssertNil(packet[alias], @"%@ must not coexist with required fake-dns", alias);
     }
 }
