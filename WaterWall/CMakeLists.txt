@@ -23,6 +23,11 @@ if(APPLE AND CMAKE_OSX_SYSROOT MATCHES "iphone")
     if("${WW_LWIP_MAX_UDP_FLOWS}" STREQUAL "")
         set(WW_LWIP_MAX_UDP_FLOWS 256)
     endif()
+    # A local app may still deliver one receive window after the next tunnel
+    # pauses its flow; keep that burst well inside VmessClient's bounded input queue.
+    if("${WW_LWIP_TCP_WND}" STREQUAL "")
+        set(WW_LWIP_TCP_WND 262144)
+    endif()
 endif()
 set(ALLOCATOR_BYPASS ON CACHE BOOL "" FORCE)
 # The symbol-prefix header cannot rename assembly, so OpenSSL must build without asm.
