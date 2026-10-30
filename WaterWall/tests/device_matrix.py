@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -28,8 +29,15 @@ class DeviceMatrix(SupportedMatrix):
         self.configuration = os.environ.get("SRP_TEST_CONFIGURATION", "Debug")
         if self.configuration not in ("Debug", "Release"):
             raise ValueError("SRP_TEST_CONFIGURATION must be Debug or Release")
-        self.derived_data = Path(tempfile.mkdtemp(prefix="srp-waterwall-device-matrix-"))
+        self.derived_data = Path(os.environ.get("SRP_TEST_DERIVED_DATA") or
+                                 tempfile.mkdtemp(prefix="srp-waterwall-device-matrix-"))
+        self.scheme = os.environ.get("SRP_TEST_SCHEME", "SRPWWLive")
         self.control = os.environ.get("SRP_TEST_SSH_CONTROL", "none")
+        # A key avoids handing the harness a password; without one, the askpass flow is used.
+        self.identity = os.environ.get("SRP_TEST_SSH_IDENTITY")
+        # The test credentials are public fixtures, so isolated ports can be limited to one client.
+        source = os.environ.get("SRP_TEST_ALLOWED_SOURCE")
+        self.allowed_source = str(ipaddress.IPv4Address(source)) if source else None
         self.remote_dir = "/tmp/srp-device-matrix"
         self.remote_binary = self.remote_dir + "/Waterwall"
         self.remote_pid = self.remote_dir + "/peer.pid"
@@ -45,15 +53,24 @@ class DeviceMatrix(SupportedMatrix):
 
     def ssh_environment(self):
         env = os.environ.copy()
+        if self.identity:
+            return env
         env.setdefault("SSH_ASKPASS", "/tmp/srp-waterwall-askpass.sh")
         env.setdefault("SSH_ASKPASS_REQUIRE", "force")
         env.setdefault("DISPLAY", ":0")
         return env
 
     def ssh_options(self):
+        if self.identity:
+            return ["-o", f"ControlPath={self.control}", "-o", "StrictHostKeyChecking=yes",
+                    "-o", "ConnectTimeout=15", "-o", "BatchMode=yes",
+                    "-o", "IdentitiesOnly=yes", "-i", self.identity]
         return ["-o", f"ControlPath={self.control}", "-o", "StrictHostKeyChecking=yes",
                 "-o", "ConnectTimeout=15", "-o", "PreferredAuthentications=password",
                 "-o", "PubkeyAuthentication=no", "-o", "KbdInteractiveAuthentication=no"]
+
+    def firewall_match(self):
+        return f"ip saddr {self.allowed_source} " if self.allowed_source else ""
 
     def ssh(self, command, timeout=60):
         if not self.host:
@@ -155,7 +172,7 @@ class DeviceMatrix(SupportedMatrix):
         if app == "socks5":
             rules = self.ssh("nft list chain ip filter ufw-user-input")
             if "SRP_Isolated_Tests_UDP" not in rules:
-                self.ssh("nft add rule ip filter ufw-user-input udp dport 32768-60999 "
+                self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}udp dport 32768-60999 "
                          "counter accept comment SRP_Isolated_Tests_UDP")
         command = ("nohup {binary} --config:{core} > {dir}/peer.log 2>&1 < /dev/null & echo $! > {pid}").format(
             binary=shlex.quote(self.remote_binary), core=core, dir=self.remote_dir, pid=self.remote_pid)
@@ -184,7 +201,7 @@ class DeviceMatrix(SupportedMatrix):
         rules = self.ssh("nft list chain ip filter ufw-user-input")
         for protocol in ("tcp", "udp"):
             if f"{protocol} dport {self.args.port}" not in rules:
-                self.ssh(f"nft add rule ip filter ufw-user-input {protocol} dport {self.args.port} "
+                self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}{protocol} dport {self.args.port} "
                          "counter accept comment SRP_Isolated_Tests")
 
     def stop_remote_firewall(self):
@@ -244,7 +261,7 @@ class DeviceMatrix(SupportedMatrix):
         self.scp("/tmp/srp-trace-udp-responder.py", self.remote_dir + "/udp_responder.py")
         rules = self.ssh("nft list chain ip filter ufw-user-input")
         if f"udp dport {self.udp_port}" not in rules:
-            self.ssh(f"nft add rule ip filter ufw-user-input udp dport {self.udp_port} "
+            self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}udp dport {self.udp_port} "
                      "counter accept comment SRP_Isolated_Tests")
         command = ("nohup python3 {dir}/udp_responder.py > {dir}/udp-server.log 2>&1 < /dev/null & "
                    "echo $! > {dir}/udp.pid").format(dir=self.remote_dir)
@@ -430,7 +447,8 @@ class DeviceMatrix(SupportedMatrix):
         self.stress_https_started = True
         rules = self.ssh("nft list chain ip filter ufw-user-input")
         if "tcp dport 28483" not in rules:
-            self.ssh("nft add rule ip filter ufw-user-input tcp dport 28483 counter accept comment SRP_Isolated_Tests")
+            self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}tcp dport 28483 "
+                     "counter accept comment SRP_Isolated_Tests")
             self.stress_https_firewall = True
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
@@ -475,11 +493,16 @@ class DeviceMatrix(SupportedMatrix):
         run_logged(command, self.work / "cleanup-device.log", env=env, timeout=90)
 
     def xcode_command(self, env, test):
-        return ["xcodebuild", "test", "-workspace", str(self.root / "SRP-VPN-Connect.xcworkspace"),
-                "-scheme", "SRPWWLive", "-configuration", self.configuration, "-destination", f"id={self.device}",
-                "-derivedDataPath", str(self.derived_data),
-                f"-only-testing:SRP-VPN-ConnectTests/SROptionsTests/{test}",
-                f"DEVELOPMENT_TEAM={self.team}", "CODE_SIGN_STYLE=Automatic"]
+        command = ["xcodebuild", "test", "-workspace", str(self.root / "SRP-VPN-Connect.xcworkspace"),
+                   "-scheme", self.scheme, "-configuration", self.configuration, "-destination", f"id={self.device}",
+                   "-derivedDataPath", str(self.derived_data),
+                   f"-only-testing:SRP-VPN-ConnectTests/SROptionsTests/{test}"]
+        key_path = os.environ.get("SRP_TEST_ASC_KEY_PATH")
+        if key_path:
+            command += ["-allowProvisioningUpdates", "-authenticationKeyPath", key_path,
+                        "-authenticationKeyID", os.environ["SRP_TEST_ASC_KEY_ID"],
+                        "-authenticationKeyIssuerID", os.environ["SRP_TEST_ASC_ISSUER_ID"]]
+        return command + [f"DEVELOPMENT_TEAM={self.team}", "CODE_SIGN_STYLE=Automatic"]
 
     def run_case(self, item, client_path):
         name = item[0]
