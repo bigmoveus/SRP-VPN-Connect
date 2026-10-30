@@ -27,6 +27,7 @@
 
 #import <TargetConditionals.h>
 #if TARGET_OS_IPHONE
+#import "CreateVC.h"
 #import "HomeProtocolView.h"
 #import "SRPGeoIPCountryViewController.h"
 #import "SRPAetherClient.h"
@@ -40,6 +41,10 @@
 #import <fcntl.h>
 #import <sys/socket.h>
 #import <unistd.h>
+
+@interface UIViewController (SRPProfileEditorTesting)
+- (NSString *)validationMessage;
+@end
 
 @interface SRPWaterWallClient (SRPLifecycleTesting)
 - (void)startRuntimeLocked;
@@ -3360,6 +3365,82 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
     XCTAssertFalse(routingSwitch.on);
     XCTAssertNil(rejectedSelection);
+}
+
+- (NSDictionary *)vmessNoneProfileConfiguration {
+    return @{@"version": @3, @"mode": @"chain", @"input": @"connections", @"application": @"vmess",
+             @"mux": @NO, @"outer": @"none", @"http": @"off", @"http-version": @1, @"obfuscator": @NO,
+             @"carrier": @"tcp", @"quic-carrier": @"datagram", @"node-options": @{}, @"bgp4": @NO};
+}
+
+/// The editor's owner is weak, so the caller keeps this container alive.
+- (CreateVC *)profileEditorHostForModel:(NodeModel *)model saved:(NSMutableArray<NodeModel *> *)saved {
+    CreateVC *create = [NSClassFromString(@"CreateVC") new];
+    create.t_modal = model;
+    [create createNodeBackResult:^(NodeModel *modal) {
+        [saved addObject:modal];
+    }];
+    [create loadViewIfNeeded];
+    return create;
+}
+
+- (UIViewController *)profileEditorOfHost:(CreateVC *)create {
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UIViewController *editor = navigation.topViewController;
+    [editor loadViewIfNeeded];
+    return editor;
+}
+
+- (void)tapSaveOnProfileEditor:(UIViewController *)editor {
+    UIBarButtonItem *save = editor.navigationItem.rightBarButtonItem;
+    XCTAssertTrue(save.enabled);
+    [UIApplication.sharedApplication sendAction:save.action to:save.target from:save forEvent:nil];
+}
+
+- (void)testProfileSaveTrimsPastedWaterWallValues {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @" waterwall.example \n";
+    model.port = @"443 ";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff\n";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    [self tapSaveOnProfileEditor:[self profileEditorOfHost:create]];
+    XCTAssertEqual(saved.count, 1U);
+    XCTAssertEqualObjects(saved.firstObject.server, @"waterwall.example");
+    XCTAssertEqualObjects(saved.firstObject.port, @"443");
+    XCTAssertEqualObjects(saved.firstObject.password, @"00112233-4455-6677-8899-aabbccddeeff");
+}
+
+- (void)testProfileSaveStaysTappableAndNamesMissingValue {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @"waterwall.example";
+    model.port = @"443";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    XCTAssertEqualObjects([editor validationMessage], @"Enter a VMess UUID or a short string ID of 1 to 30 UTF-8 bytes.");
+    [self tapSaveOnProfileEditor:editor];
+    XCTAssertEqual(saved.count, 0U);
+}
+
+- (void)testProfileSaveKeepsPasswordWhitespace {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"sstp";
+    model.authMethod = @"password";
+    model.MSCHAP2 = YES;
+    model.server = @"sstp.example\n";
+    model.username = @"user";
+    model.password = @" secret ";
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    [self tapSaveOnProfileEditor:[self profileEditorOfHost:create]];
+    XCTAssertEqual(saved.count, 1U);
+    XCTAssertEqualObjects(saved.firstObject.server, @"sstp.example");
+    XCTAssertEqualObjects(saved.firstObject.password, @" secret ");
 }
 #endif
 
