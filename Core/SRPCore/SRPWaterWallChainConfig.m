@@ -851,7 +851,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         NSMutableDictionary *required = [NSMutableDictionary new];
         if ((options[@"ww_fake_dns"] == nil || [options[@"ww_fake_dns"] boolValue]) && !direct) {
             required[@"fake-dns"] = @{@"enabled": @YES, @"address": @"198.18.0.2", @"port": @53, @"network": @"100.64.0.0",
-                                      @"netmask": @"255.192.0.0", @"cache-size": @10000, @"ttl": @1};
+                                      @"netmask": @"255.192.0.0", @"cache-size": @10000, @"ttl": @60};
         }
         NSMutableDictionary *settings = [[self settings:@{@"mtu": @1420, @"max-pending-bytes": @65536,
                                                            @"max-total-pending-bytes": @16777216}
