@@ -854,7 +854,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                       @"netmask": @"255.192.0.0", @"cache-size": @10000, @"ttl": @1};
         }
         NSMutableDictionary *settings = [[self settings:@{@"mtu": @1420, @"max-pending-bytes": @65536,
-                                                           @"max-total-pending-bytes": @4194304}
+                                                           @"max-total-pending-bytes": @16777216}
                                               overrides:advanced[@"packet"] required:required] mutableCopy];
         if (required[@"fake-dns"] != nil) [settings removeObjectsForKeys:@[@"mapdns", @"fake_dns"]];
         NSString *first = direct ? @"connector" : raw ? afterInput : @"router";

@@ -158,6 +158,8 @@ ptc_flush_result_t ptcFlushWriteQueue(ptc_lstate_t *ls)
         }
         if (err != ERR_OK)
         {
+            LOGD("PacketsToConnection: terminal TCP write error %d, %u byte(s) retained", (int) err,
+                 (unsigned int) ls->pending_bytes);
             ptcPauseQueuePushFront(ls, buf);
             tcp_poll(tpcb, NULL, 0);
             ls->write_poll_armed = false;

@@ -1737,7 +1737,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vmess" mux:NO outer:@"none"] mutableCopy];
     NSDictionary *packet = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]][@"ptc"][@"settings"];
     XCTAssertEqualObjects(packet[@"max-pending-bytes"], @65536);
-    XCTAssertEqualObjects(packet[@"max-total-pending-bytes"], @4194304);
+    XCTAssertEqualObjects(packet[@"max-total-pending-bytes"], @16777216);
     configuration[@"node-options"] = @{@"packet": @{@"max-pending-bytes": @8192, @"max-total-pending-bytes": @65536}};
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
     packet = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]][@"ptc"][@"settings"];
@@ -2537,7 +2537,11 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
                                                                     error:nil]
                     returnError:nil
                 responseHandler:^(NSData *responseData) {
-        NSLog(@"%@:\n%@", command, [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding]);
+        const NSUInteger chunkSize = 2048;
+        for (NSUInteger offset = 0; offset < responseData.length; offset += chunkSize) {
+            NSData *chunk = [responseData subdataWithRange:NSMakeRange(offset, MIN(chunkSize, responseData.length - offset))];
+            NSLog(@"%@:\n%@", command, [[NSString alloc] initWithData:chunk encoding:NSUTF8StringEncoding]);
+        }
         [response fulfill];
     }];
     [self waitForExpectations:@[response] timeout:15];
