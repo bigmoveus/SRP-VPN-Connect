@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import shutil
 import socket
 import subprocess
 import sys
@@ -219,11 +220,15 @@ class DeviceMatrix(SupportedMatrix):
                 self.ssh(f"nft delete rule ip filter ufw-user-input handle {int(handle[1])}")
 
     def _remote_peer_pids(self):
-        expected = f"{self.remote_binary} --config:{self.remote_dir}/core.json"
+        # WaterWall 1.5 re-executes itself with --ww-internal-* arguments and keeps --config last.
+        config = f"--config:{self.remote_dir}/core.json"
         pids = []
         for line in self.ssh("ps -eo pid=,args=").splitlines():
             fields = line.strip().split(maxsplit=1)
-            if len(fields) == 2 and fields[1] == expected:
+            if len(fields) != 2:
+                continue
+            args = fields[1].split()
+            if args[0] == self.remote_binary and args[-1] == config:
                 pids.append(int(fields[0]))
         return pids
 
@@ -399,10 +404,17 @@ class DeviceMatrix(SupportedMatrix):
 
     def start_direct_server(self):
         self.ensure_health_server()
+        lookup = shutil.which("mmdblookup") or os.environ.get("SRP_GEOIP_LOOKUP", "/tmp/srp-geoip-lookup")
+        if not os.access(lookup, os.X_OK):
+            # The pre-check only confirms the bundled database; the GeoIP cases still assert routing.
+            print(f"GeoIP database pre-check skipped: no lookup tool at {lookup}", flush=True)
+            lookup = None
         for name, ip, expected in (("geoip-direct-country", self.host, "TR"),
                                    ("geoip-multi-countries", self.host, "TR"),
                                    ("geoip-default-proxy", "192.0.2.1", None)):
-            result = subprocess.run(["/tmp/srp-geoip-lookup", "--file", str(GEO_DATABASE), "--ip", ip],
+            if lookup is None:
+                break
+            result = subprocess.run([lookup, "--file", str(GEO_DATABASE), "--ip", ip],
                                     capture_output=True, text=True)
             matched = result.returncode == 0 and expected is not None and (
                 result.stdout.strip() == expected or f'"{expected}"' in result.stdout)
