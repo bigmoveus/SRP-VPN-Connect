@@ -12,6 +12,8 @@ bool vmessclientAssociationAlive(tunnel_t *t, line_t *next_line, line_t *prev_li
 void vmessclientSendDueRequest(tunnel_t *t, line_t *l);
 void vmessclientCancelFirstPayloadTimer(vmessclient_lstate_t *ls);
 void vmessclientSetNextPaused(tunnel_t *t, line_t *l, bool paused);
+void vmessclientRefreshUpstreamPause(tunnel_t *t, line_t *l);
+void vmessclientRefreshDownstreamPause(tunnel_t *t, line_t *l);
 bool vmessclientCommitRequest(vmessclient_lstate_t *ls, uint8_t *out, size_t capacity, size_t *written);
 void vmessclientTransmit(tunnel_t *t, line_t *l);
 void vmessclientReceive(tunnel_t *t, line_t *l);

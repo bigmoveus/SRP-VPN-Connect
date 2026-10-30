@@ -1,5 +1,7 @@
 #include "internal.h"
 
+#include "loggers/network_logger.h"
+
 void vmessclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     vmessclient_tstate_t *ts     = tunnelGetState(t);
@@ -30,8 +32,8 @@ void vmessclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     {
         const size_t     envelope = vmessPacketAddrHeaderSize(&next_ls->packet_target);
         sbuf_t          *encoded  = bufferpoolGetBestFit(lineGetBufferPool(l),
-                                               (uint32_t) (length + envelope),
-                                               bufferpoolGetLargeBufferPadding(lineGetBufferPool(l)));
+                                                         (uint32_t) (length + envelope),
+                                                         bufferpoolGetLargeBufferPadding(lineGetBufferPool(l)));
         size_t           written  = 0;
         wcrypto_status_t status   = vmessPacketAddrEncode(
             &next_ls->packet_target, sbufGetMutablePtr(encoded), sbufGetMaximumWriteableSize(encoded), &written);
@@ -45,10 +47,20 @@ void vmessclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     buf = vmessclientCompactInput(l, buf);
     if (! bufferqueueTryPushBack(&next_ls->pending_up, &buf))
     {
+        const buffer_budget_cost_t usage = bufferbudgetGetUsage(&next_ls->upstream_budget);
+        LOGE("VmessClient: upstream input rejected: bytes=%zu charge=%zu entries=%zu input_bytes=%zu input_charge=%zu "
+             "paused=%u",
+             usage.bytes,
+             usage.charge,
+             usage.entries,
+             sbufGetLength(buf),
+             sbufGetAllocationCharge(buf),
+             next_ls->upstream_pause_sent ? 1U : 0U);
         lineReuseBuffer(l, buf);
         vmessclientSetReason(next_ls, kVmessClientReasonRetainedInput);
         vmessclientCloseLine(t, next, kVmessClientCloseInternal);
         return;
     }
+    vmessclientRefreshUpstreamPause(t, next);
     vmessclientTransmit(t, next);
 }

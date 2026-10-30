@@ -212,12 +212,16 @@ with `do-not-resolve-domains`, the association is refused before transport Init.
 Fixed TCP with packetaddr fails construction; dynamic TCP keeps ordinary encoding.
 This envelope is independent of Mux.Cool and XUDP and adds no carrier pooling.
 
-Each direction has inclusive retained-input bounds of 2 MiB logical bytes,
+Each direction has inclusive retained-input bounds of 4 MiB logical bytes,
 1,024 entries and 8 MiB charged allocation, including active popped buffers and
 incomplete fragments. These protect admission/storage; they are not a rate limiter
-or a total-process RSS limit. TX and RX have independent reentry guards. Complete
-admitted records drain incrementally and in FIFO order even if delivery causes
-advisory Pause; there is no decoded-output queue solely for pressure.
+or a total-process RSS limit. Both input directions pause at 512 KiB of logical
+bytes or 1 MiB of charged allocation, and resume after draining to 256 KiB or
+512 KiB respectively. Transport and local backpressure use separate latches so
+resuming one direction cannot override another direction's Pause.
+TX and RX have independent reentry guards. Complete admitted records drain
+incrementally and in FIFO order even if delivery causes advisory Pause; there is
+no decoded-output queue solely for pressure.
 
 VmessServer retains its 64 KiB unauthenticated-input limit. A sufficiently large
 early plaintext burst can exceed that wire limit after framing while identification
