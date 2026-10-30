@@ -1,1 +1,267 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8YWxnb3JpdGhtPiAvLyBmb3Igc3RkOjptaW4KCiNpZm5kZWYgQkxPQ0tfU0laRQojZGVmaW5lIEJMT0NLX1NJWkUgMTUwMAojZW5kaWYKCiNpZm5kZWYgTl9DT01QUkVTUwojZGVmaW5lIE5fQ09NUFJFU1MgMQojZW5kaWYKCi8qKgogICBUbyB0ZXN0IGFuZCBjb21wYXJlIHNwZWVkIG9mIHRoZSBkZWNvbXByZXNzaW9uIGFsZ29yaXRobXMgZGVmaW5lIE5fRVhQQU5EIHRvIGJlCiAgIG1vcmUgdGhhbiAxIGJ5IGVpdGhlciBlZGl0aW5nIHRoaXMgZGVmaW5lIG9yIGJ5IGFkZGluZyBhIC1ETl9FWFBBTkQ9MTAwMCBvcgogICAtRE5fQ09NUFJFU1M9MTAwMCBmb3IgdGhlIGNvbXByZXNzaW9uIHNwZWVkIGluIHRoZSBDbWFrZUxpc3RzCiAgIGFuZCBsb29rcyBhdCB0aGUgdGltZSB0aGUgdW5pdCB0ZXN0IHRha2UgZm9yIHRoZSBkaWZmZXJlbnQgY29tYmluYXRpb25zLgoqLwojaWZuZGVmIE5fRVhQQU5ECiNkZWZpbmUgTl9FWFBBTkQgMQojZW5kaWYKCiNpZm5kZWYgU1VQUE9SVF9TV0FQCiNkZWZpbmUgU1VQUE9SVF9TV0FQIGZhbHNlCiNlbmRpZgoKLy8gb3RoZXIgZGVmaW5lczoKLy8gICBtdXN0IGRlZmluZSBURVNUX3ggdG8gZGVmaW5lIGNvbXByZXNzb3IvZGVjb21wcmVzc29yIHBhaXIKLy8gICBPUEVOVlBOX0RFQlVHX0NPTVBSRVNTID0gMHwxfDIKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vc2l6ZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9leGNlcHRpb24uaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vZmlsZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2J1ZmZlci9idWZmZXIuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21wcmVzcy9jb21wcmVzcy5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbXByZXNzL2x6b2FzeW0uaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9mcmFtZS9mcmFtZS5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCkZyYW1lOjpQdHIgZnJhbWVfaW5pdChjb25zdCBzaXplX3QgcGF5bG9hZCkKewogICAgY29uc3Qgc2l6ZV90IGhlYWRyb29tID0gNTEyOwogICAgY29uc3Qgc2l6ZV90IHRhaWxyb29tID0gNTEyOwogICAgY29uc3Qgc2l6ZV90IGFsaWduX2Jsb2NrID0gMTY7CiAgICBjb25zdCB1bnNpZ25lZCBpbnQgYnVmZmVyX2ZsYWdzID0gMDsKCiAgICBGcmFtZTo6UHRyIGZyYW1lKG5ldyBGcmFtZShGcmFtZTo6Q29udGV4dChoZWFkcm9vbSwgcGF5bG9hZCwgdGFpbHJvb20sIDAsIGFsaWduX2Jsb2NrLCBidWZmZXJfZmxhZ3MpKSk7CiAgICBmcmFtZS0+c3RhbmRhcmRpemVfY2FwYWNpdHkofjApOwogICAgcmV0dXJuIGZyYW1lOwp9CgpjbGFzcyBNeVNlc3Npb25TdGF0cyA6IHB1YmxpYyBTZXNzaW9uU3RhdHMKewogIHB1YmxpYzoKICAgIHR5cGVkZWYgUkNQdHI8TXlTZXNzaW9uU3RhdHM+IFB0cjsKCiAgICBNeVNlc3Npb25TdGF0cygpCiAgICB7CiAgICAgICAgc3RkOjptZW1zZXQoZXJyb3JzLCAwLCBzaXplb2YoZXJyb3JzKSk7CiAgICB9CgogICAgdm9pZCBlcnJvcihjb25zdCBzaXplX3QgZXJyX3R5cGUsIGNvbnN0IHN0ZDo6c3RyaW5nICp0ZXh0ID0gTlVMTCkgb3ZlcnJpZGUKICAgIHsKICAgICAgICBpZiAoZXJyX3R5cGUgPCBFcnJvcjo6Tl9FUlJPUlMpCiAgICAgICAgICAgICsrZXJyb3JzW2Vycl90eXBlXTsKICAgIH0KCiAgICBjb3VudF90IGdldF9lcnJvcl9jb3VudChjb25zdCBFcnJvcjo6VHlwZSB0eXBlKSBjb25zdAogICAgewogICAgICAgIGlmICh0eXBlIDwgRXJyb3I6Ok5fRVJST1JTKQogICAgICAgICAgICByZXR1cm4gZXJyb3JzW3R5cGVdOwogICAgICAgIGVsc2UKICAgICAgICAgICAgcmV0dXJuIDA7CiAgICB9CgogIHByaXZhdGU6CiAgICBjb3VudF90IGVycm9yc1tFcnJvcjo6Tl9FUlJPUlNdOwp9OwoKaW5saW5lIHZvaWQgdmVyaWZ5X2VxKGNvbnN0IEJ1ZmZlciAmYjEsIGNvbnN0IEJ1ZmZlciAmYjIpCnsKICAgIEFTU0VSVF9FUShiMSwgYjIpIDw8ICJkZWNvbXByZXNzZWQgZGF0YSBkb2Vzbid0IG1hdGNoIG9yaWdpbmFsIGRhdGEiOwp9Cgp2b2lkIHRlc3QoY29uc3Qgc3RkOjpzdHJpbmcgJmZpbGVuYW1lLAogICAgICAgICAgQ29tcHJlc3MgJmNvbXByZXNzb3IsCiAgICAgICAgICBDb21wcmVzcyAmZGVjb21wcmVzc29yLAogICAgICAgICAgY29uc3QgRnJhbWUgJmZyYW1lLAogICAgICAgICAgY29uc3Qgc2l6ZV90IGJsb2NrX3NpemUsCiAgICAgICAgICBjb25zdCBzaXplX3Qgbl9jb21wcmVzcywKICAgICAgICAgIGNvbnN0IHNpemVfdCBuX2V4cGFuZF9wZXJfY29tcHJlc3MsCiAgICAgICAgICBzaXplX3QgJmJ5dGVzLAogICAgICAgICAgc2l6ZV90ICZjb21wcmVzc19ieXRlcykKewogICAgQnVmZmVyUHRyIHNvdXJjZV9kYXRhID0gcmVhZF9iaW5hcnkoZmlsZW5hbWUpOwogICAgZm9yIChzaXplX3Qgb2Zmc2V0ID0gMDsgb2Zmc2V0IDwgc291cmNlX2RhdGEtPnNpemUoKTsgb2Zmc2V0ICs9IGJsb2NrX3NpemUpCiAgICB7CiAgICAgICAgY29uc3Qgc2l6ZV90IGxlbmd0aCA9IHN0ZDo6bWluKGJsb2NrX3NpemUsIHNvdXJjZV9kYXRhLT5zaXplKCkgLSBvZmZzZXQpOwogICAgICAgIEJ1ZmZlckFsbG9jYXRlZCBkYXRhX3NlZzsKICAgICAgICBmcmFtZS5wcmVwYXJlKEZyYW1lOjpERUNSWVBUX1dPUkssIGRhdGFfc2VnKTsKICAgICAgICBkYXRhX3NlZy53cml0ZShzb3VyY2VfZGF0YS0+ZGF0YV9yYXcoKSArIG9mZnNldCwgbGVuZ3RoKTsKICAgICAgICBmb3IgKHNpemVfdCBjb21wcmVzc19pdGVyID0gMDsgY29tcHJlc3NfaXRlciA8IG5fY29tcHJlc3M7ICsrY29tcHJlc3NfaXRlcikKICAgICAgICB7CiAgICAgICAgICAgIEJ1ZmZlckFsbG9jYXRlZCBkYXRhMShkYXRhX3NlZyk7CiAgICAgICAgICAgIGJ5dGVzICs9IGRhdGExLnNpemUoKTsKICAgICAgICAgICAgY29tcHJlc3Nvci5jb21wcmVzcyhkYXRhMSwgdHJ1ZSk7CiAgICAgICAgICAgIGNvbXByZXNzX2J5dGVzICs9IGRhdGExLnNpemUoKTsKICAgICAgICAgICAgaWYgKG5fZXhwYW5kX3Blcl9jb21wcmVzcyA9PSAxKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBkZWNvbXByZXNzb3IuZGVjb21wcmVzcyhkYXRhMSk7CiAgICAgICAgICAgICAgICB2ZXJpZnlfZXEoZGF0YV9zZWcsIGRhdGExKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIGZvciAoc2l6ZV90IGRlY29tcHJlc3NfaXRlciA9IDA7IGRlY29tcHJlc3NfaXRlciA8IG5fZXhwYW5kX3Blcl9jb21wcmVzczsgKytkZWNvbXByZXNzX2l0ZXIpCiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgQnVmZmVyQWxsb2NhdGVkIGRhdGEyKGRhdGExKTsKICAgICAgICAgICAgICAgICAgICBkZWNvbXByZXNzb3IuZGVjb21wcmVzcyhkYXRhMik7CiAgICAgICAgICAgICAgICAgICAgdmVyaWZ5X2VxKGRhdGFfc2VnLCBkYXRhMik7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CiAgICB9Cn0KCnZvaWQgdGVzdF93aXRoX2NvcnB1cyhDb21wcmVzcyAmY29tcHJlc3NvciwKICAgICAgICAgICAgICAgICAgICAgIENvbXByZXNzICZkZWNvbXByZXNzb3IsCiAgICAgICAgICAgICAgICAgICAgICBjb25zdCBGcmFtZSAmZnJhbWUsCiAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzaXplX3QgYmxvY2tfc2l6ZSwKICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHNpemVfdCBuX2NvbXByZXNzLAogICAgICAgICAgICAgICAgICAgICAgY29uc3Qgc2l6ZV90IG5fZXhwYW5kX3Blcl9jb21wcmVzcywKICAgICAgICAgICAgICAgICAgICAgIHNpemVfdCAmYnl0ZXMsCiAgICAgICAgICAgICAgICAgICAgICBzaXplX3QgJmNvbXByZXNzX2J5dGVzKQp7CiAgICBzdGF0aWMgY29uc3Qgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IGZpbGVuYW1lcyA9IHsKICAgICAgICAiY29tcC10ZXN0ZGF0YS9hbGljZTI5LnR4dCIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvYXN5b3VsaWsudHh0IiwKICAgICAgICAiY29tcC10ZXN0ZGF0YS9jcC5odG1sIiwKICAgICAgICAiY29tcC10ZXN0ZGF0YS9maWVsZHMuYyIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvZ2VvLnByb3RvZGF0YSIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvZ3JhbW1hci5sc3AiLAogICAgICAgICJjb21wLXRlc3RkYXRhL2hvdXNlLmpwZyIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvaHRtbCIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvaHRtbF94XzQiLAogICAgICAgICJjb21wLXRlc3RkYXRhL2tlbm5lZHkueGxzIiwKICAgICAgICAiY29tcC10ZXN0ZGF0YS9rcHBrbi5ndGIiLAogICAgICAgICJjb21wLXRlc3RkYXRhL2xjZXQxMC50eHQiLAogICAgICAgICJjb21wLXRlc3RkYXRhL21hcHJlZHVjZS1vc2RpLTEucGRmIiwKICAgICAgICAiY29tcC10ZXN0ZGF0YS9wbHJhYm4xMi50eHQiLAogICAgICAgICJjb21wLXRlc3RkYXRhL3B0dDUiLAogICAgICAgICJjb21wLXRlc3RkYXRhL3N1bSIsCiAgICAgICAgImNvbXAtdGVzdGRhdGEvdXJscy4xMEsiLAogICAgICAgICJjb21wLXRlc3RkYXRhL3hhcmdzLjEiLAogICAgfTsKICAgIGZvciAoY29uc3QgYXV0byAmZm4gOiBmaWxlbmFtZXMpCiAgICB7CiAgICAgICAgdGVzdChzdGQ6OnN0cmluZyhVTklUVEVTVF9TT1VSQ0VfRElSKSArICcvJyArIGZuLAogICAgICAgICAgICAgY29tcHJlc3NvciwKICAgICAgICAgICAgIGRlY29tcHJlc3NvciwKICAgICAgICAgICAgIGZyYW1lLAogICAgICAgICAgICAgYmxvY2tfc2l6ZSwKICAgICAgICAgICAgIG5fY29tcHJlc3MsCiAgICAgICAgICAgICBuX2V4cGFuZF9wZXJfY29tcHJlc3MsCiAgICAgICAgICAgICBieXRlcywKICAgICAgICAgICAgIGNvbXByZXNzX2J5dGVzKTsKICAgIH0KfQoKZW51bSBjbGFzcyBjb21wcGFpcgp7CiAgICBsem8sCiAgICBsem9hc3ltLAogICAgc25hcHB5LAogICAgbHo0Cn07Cgp2b2lkIHJ1blRlc3QoY29tcHBhaXIgYWxnLCBib29sIHZlcmJvc2UgPSBmYWxzZSkKewogICAgQ29tcHJlc3NDb250ZXh0Ojppbml0X3N0YXRpYygpOwogICAgTXlTZXNzaW9uU3RhdHM6OlB0ciBzdGF0cyhuZXcgTXlTZXNzaW9uU3RhdHMpOwogICAgRnJhbWU6OlB0ciBmcmFtZSA9IGZyYW1lX2luaXQoQkxPQ0tfU0laRSk7CgoKICAgIENvbXByZXNzOjpQdHIgY29tcHJlc3M7CiAgICBDb21wcmVzczo6UHRyIGRlY29tcHJlc3M7CgogICAgc3dpdGNoIChhbGcpCiAgICB7CiNpZiBkZWZpbmVkKEhBVkVfTFpPKQogICAgY2FzZSBjb21wcGFpcjo6bHpvYXN5bToKICAgICAgICBjb21wcmVzcy5yZXNldChuZXcgQ29tcHJlc3NMWk8oZnJhbWUsIHN0YXRzLCBTVVBQT1JUX1NXQVAsIGZhbHNlKSk7CiAgICAgICAgZGVjb21wcmVzcy5yZXNldChuZXcgQ29tcHJlc3NMWk9Bc3ltKGZyYW1lLCBzdGF0cywgU1VQUE9SVF9TV0FQLCBmYWxzZSkpOwogICAgICAgIGJyZWFrOwoKICAgIGNhc2UgY29tcHBhaXI6Omx6bzoKICAgICAgICBjb21wcmVzcy5yZXNldChuZXcgQ29tcHJlc3NMWk8oZnJhbWUsIHN0YXRzLCBTVVBQT1JUX1NXQVAsIGZhbHNlKSk7CiAgICAgICAgZGVjb21wcmVzcyA9IGNvbXByZXNzOwogICAgICAgIGJyZWFrOwoKI2VuZGlmCiNpZiBkZWZpbmVkKEhBVkVfTFo0KQogICAgY2FzZSBjb21wcGFpcjo6bHo0OgogICAgICAgIGNvbXByZXNzLnJlc2V0KG5ldyBDb21wcmVzc0xaNChmcmFtZSwgc3RhdHMsIGZhbHNlKSk7CiAgICAgICAgZGVjb21wcmVzcyA9IGNvbXByZXNzOwogICAgICAgIGJyZWFrOwojZW5kaWYKI2lmIGRlZmluZWQoSEFWRV9TTkFQUFkpCiAgICBjYXNlIGNvbXBwYWlyOjpzbmFwcHk6CiAgICAgICAgY29tcHJlc3MucmVzZXQobmV3IENvbXByZXNzU25hcHB5KGZyYW1lLCBzdGF0cywgZmFsc2UpKTsKICAgICAgICBkZWNvbXByZXNzID0gY29tcHJlc3M7CiAgICAgICAgYnJlYWs7CiNlbmRpZgogICAgZGVmYXVsdDoKICAgICAgICBBU1NFUlRfVFJVRShmYWxzZSkgPDwgImNvbXByZXNzb3IvZGVjb21wcmVzc29yIHBhaXIgbm90IHN1cHBvcnRlZCI7CiAgICB9CiAgICBzaXplX3QgYnl0ZXMgPSAwOwogICAgc2l6ZV90IGNvbXByZXNzX2J5dGVzID0gMDsKICAgIHRlc3Rfd2l0aF9jb3JwdXMoKmNvbXByZXNzLCAqZGVjb21wcmVzcywgKmZyYW1lLCBCTE9DS19TSVpFLCBOX0NPTVBSRVNTLCBOX0VYUEFORCwgYnl0ZXMsIGNvbXByZXNzX2J5dGVzKTsKCiAgICBpZiAodmVyYm9zZSkKICAgICAgICBzdGQ6OmNvdXQgPDwgImNvbXA9IiA8PCBjb21wcmVzcy0+bmFtZSgpIDw8ICdbJyA8PCBOX0NPTVBSRVNTIDw8ICddJwogICAgICAgICAgICAgICAgICA8PCAiIGRlY29tcD0iIDw8IGRlY29tcHJlc3MtPm5hbWUoKSA8PCAnWycgPDwgTl9FWFBBTkQgPDwgJ10nCiAgICAgICAgICAgICAgICAgIDw8ICIgYmxrPSIgPDwgQkxPQ0tfU0laRQogICAgICAgICAgICAgICAgICA8PCAiIGJ5dGVzPSIgPDwgYnl0ZXMKICAgICAgICAgICAgICAgICAgPDwgIiBjb21wLWJ5dGVzPSIgPDwgY29tcHJlc3NfYnl0ZXMKICAgICAgICAgICAgICAgICAgPDwgIiBjb21wLXJhdGlvPSIgPDwgKGJ5dGVzID8gc3RhdGljX2Nhc3Q8ZmxvYXQ+KGNvbXByZXNzX2J5dGVzKSAvIHN0YXRpY19jYXN0PGZsb2F0PihieXRlcykgOiAwLjApCiAgICAgICAgICAgICAgICAgIDw8IHN0ZDo6ZW5kbDsKfQoKbmFtZXNwYWNlIHVuaXR0ZXN0cyB7CiNpZiBkZWZpbmVkKEhBVkVfU05BUFBZKQpURVNUKENvbXByZXNzaW9uLCBzbmFwcHkpCnsKICAgIHJ1blRlc3QoY29tcHBhaXI6OnNuYXBweSk7Cn0KI2VuZGlmCiNpZiBkZWZpbmVkKEhBVkVfTFpPKQpURVNUKENvbXByZXNzaW9uLCBsem8pCnsKICAgIHJ1blRlc3QoY29tcHBhaXI6Omx6byk7Cn0KClRFU1QoQ29tcHJlc3Npb24sIGx6b2FzeW0pCnsKICAgIHJ1blRlc3QoY29tcHBhaXI6Omx6b2FzeW0pOwp9CiNlbmRpZgojaWYgZGVmaW5lZChIQVZFX0xaNCkKVEVTVChDb21wcmVzc2lvbiwgbHo0KQp7CiAgICBydW5UZXN0KGNvbXBwYWlyOjpsejQpOwp9CiNlbmRpZgp9IC8vIG5hbWVzcGFjZSB1bml0dGVzdHMK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+#include <iostream>
+#include <algorithm> // for std::min
+
+#ifndef BLOCK_SIZE
+#define BLOCK_SIZE 1500
+#endif
+
+#ifndef N_COMPRESS
+#define N_COMPRESS 1
+#endif
+
+/**
+   To test and compare speed of the decompression algorithms define N_EXPAND to be
+   more than 1 by either editing this define or by adding a -DN_EXPAND=1000 or
+   -DN_COMPRESS=1000 for the compression speed in the CmakeLists
+   and looks at the time the unit test take for the different combinations.
+*/
+#ifndef N_EXPAND
+#define N_EXPAND 1
+#endif
+
+#ifndef SUPPORT_SWAP
+#define SUPPORT_SWAP false
+#endif
+
+// other defines:
+//   must define TEST_x to define compressor/decompressor pair
+//   OPENVPN_DEBUG_COMPRESS = 0|1|2
+
+#include "test_common.hpp"
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/file.hpp>
+#include <openvpn/buffer/buffer.hpp>
+#include <openvpn/compress/compress.hpp>
+#include <openvpn/compress/lzoasym.hpp>
+#include <openvpn/frame/frame.hpp>
+
+using namespace openvpn;
+
+Frame::Ptr frame_init(const size_t payload)
+{
+    const size_t headroom = 512;
+    const size_t tailroom = 512;
+    const size_t align_block = 16;
+    const unsigned int buffer_flags = 0;
+
+    Frame::Ptr frame(new Frame(Frame::Context(headroom, payload, tailroom, 0, align_block, buffer_flags)));
+    frame->standardize_capacity(~0);
+    return frame;
+}
+
+class MySessionStats : public SessionStats
+{
+  public:
+    typedef RCPtr<MySessionStats> Ptr;
+
+    MySessionStats()
+    {
+        std::memset(errors, 0, sizeof(errors));
+    }
+
+    void error(const size_t err_type, const std::string *text = NULL) override
+    {
+        if (err_type < Error::N_ERRORS)
+            ++errors[err_type];
+    }
+
+    count_t get_error_count(const Error::Type type) const
+    {
+        if (type < Error::N_ERRORS)
+            return errors[type];
+        else
+            return 0;
+    }
+
+  private:
+    count_t errors[Error::N_ERRORS];
+};
+
+inline void verify_eq(const Buffer &b1, const Buffer &b2)
+{
+    ASSERT_EQ(b1, b2) << "decompressed data doesn't match original data";
+}
+
+void test(const std::string &filename,
+          Compress &compressor,
+          Compress &decompressor,
+          const Frame &frame,
+          const size_t block_size,
+          const size_t n_compress,
+          const size_t n_expand_per_compress,
+          size_t &bytes,
+          size_t &compress_bytes)
+{
+    BufferPtr source_data = read_binary(filename);
+    for (size_t offset = 0; offset < source_data->size(); offset += block_size)
+    {
+        const size_t length = std::min(block_size, source_data->size() - offset);
+        BufferAllocated data_seg;
+        frame.prepare(Frame::DECRYPT_WORK, data_seg);
+        data_seg.write(source_data->data_raw() + offset, length);
+        for (size_t compress_iter = 0; compress_iter < n_compress; ++compress_iter)
+        {
+            BufferAllocated data1(data_seg);
+            bytes += data1.size();
+            compressor.compress(data1, true);
+            compress_bytes += data1.size();
+            if (n_expand_per_compress == 1)
+            {
+                decompressor.decompress(data1);
+                verify_eq(data_seg, data1);
+            }
+            else
+            {
+                for (size_t decompress_iter = 0; decompress_iter < n_expand_per_compress; ++decompress_iter)
+                {
+                    BufferAllocated data2(data1);
+                    decompressor.decompress(data2);
+                    verify_eq(data_seg, data2);
+                }
+            }
+        }
+    }
+}
+
+void test_with_corpus(Compress &compressor,
+                      Compress &decompressor,
+                      const Frame &frame,
+                      const size_t block_size,
+                      const size_t n_compress,
+                      const size_t n_expand_per_compress,
+                      size_t &bytes,
+                      size_t &compress_bytes)
+{
+    static const std::vector<std::string> filenames = {
+        "comp-testdata/alice29.txt",
+        "comp-testdata/asyoulik.txt",
+        "comp-testdata/cp.html",
+        "comp-testdata/fields.c",
+        "comp-testdata/geo.protodata",
+        "comp-testdata/grammar.lsp",
+        "comp-testdata/house.jpg",
+        "comp-testdata/html",
+        "comp-testdata/html_x_4",
+        "comp-testdata/kennedy.xls",
+        "comp-testdata/kppkn.gtb",
+        "comp-testdata/lcet10.txt",
+        "comp-testdata/mapreduce-osdi-1.pdf",
+        "comp-testdata/plrabn12.txt",
+        "comp-testdata/ptt5",
+        "comp-testdata/sum",
+        "comp-testdata/urls.10K",
+        "comp-testdata/xargs.1",
+    };
+    for (const auto &fn : filenames)
+    {
+        test(std::string(UNITTEST_SOURCE_DIR) + '/' + fn,
+             compressor,
+             decompressor,
+             frame,
+             block_size,
+             n_compress,
+             n_expand_per_compress,
+             bytes,
+             compress_bytes);
+    }
+}
+
+enum class comppair
+{
+    lzo,
+    lzoasym,
+    snappy,
+    lz4
+};
+
+void runTest(comppair alg, bool verbose = false)
+{
+    CompressContext::init_static();
+    MySessionStats::Ptr stats(new MySessionStats);
+    Frame::Ptr frame = frame_init(BLOCK_SIZE);
+
+
+    Compress::Ptr compress;
+    Compress::Ptr decompress;
+
+    switch (alg)
+    {
+#if defined(HAVE_LZO)
+    case comppair::lzoasym:
+        compress.reset(new CompressLZO(frame, stats, SUPPORT_SWAP, false));
+        decompress.reset(new CompressLZOAsym(frame, stats, SUPPORT_SWAP, false));
+        break;
+
+    case comppair::lzo:
+        compress.reset(new CompressLZO(frame, stats, SUPPORT_SWAP, false));
+        decompress = compress;
+        break;
+
+#endif
+#if defined(HAVE_LZ4)
+    case comppair::lz4:
+        compress.reset(new CompressLZ4(frame, stats, false));
+        decompress = compress;
+        break;
+#endif
+#if defined(HAVE_SNAPPY)
+    case comppair::snappy:
+        compress.reset(new CompressSnappy(frame, stats, false));
+        decompress = compress;
+        break;
+#endif
+    default:
+        ASSERT_TRUE(false) << "compressor/decompressor pair not supported";
+    }
+    size_t bytes = 0;
+    size_t compress_bytes = 0;
+    test_with_corpus(*compress, *decompress, *frame, BLOCK_SIZE, N_COMPRESS, N_EXPAND, bytes, compress_bytes);
+
+    if (verbose)
+        std::cout << "comp=" << compress->name() << '[' << N_COMPRESS << ']'
+                  << " decomp=" << decompress->name() << '[' << N_EXPAND << ']'
+                  << " blk=" << BLOCK_SIZE
+                  << " bytes=" << bytes
+                  << " comp-bytes=" << compress_bytes
+                  << " comp-ratio=" << (bytes ? static_cast<float>(compress_bytes) / static_cast<float>(bytes) : 0.0)
+                  << std::endl;
+}
+
+namespace unittests {
+#if defined(HAVE_SNAPPY)
+TEST(Compression, snappy)
+{
+    runTest(comppair::snappy);
+}
+#endif
+#if defined(HAVE_LZO)
+TEST(Compression, lzo)
+{
+    runTest(comppair::lzo);
+}
+
+TEST(Compression, lzoasym)
+{
+    runTest(comppair::lzoasym);
+}
+#endif
+#if defined(HAVE_LZ4)
+TEST(Compression, lz4)
+{
+    runTest(comppair::lz4);
+}
+#endif
+} // namespace unittests

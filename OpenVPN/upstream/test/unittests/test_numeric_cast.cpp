@@ -1,1 +1,95 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAyMy0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPGNzdGRpbnQ+CiNpbmNsdWRlIDxjY3R5cGU+CgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vbnVtZXJpY19jYXN0LmhwcD4KCgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjo6bnVtZXJpY191dGlsOwoKClRFU1QobnVtZXJpY19jYXN0LCBzYW1lX3R5cGVfbm9jYXN0MSkKewogICAgaW50MzJfdCBpMzIgPSAtMTsKICAgIGF1dG8gcmVzdWx0ID0gbnVtZXJpY19jYXN0PGludDMyX3Q+KGkzMik7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCBpMzIpOwp9CgpURVNUKG51bWVyaWNfY2FzdCwgc2lnbl9taXNtYXRjaF8zMl8xKQp7CiAgICBpbnQzMl90IGkzMiA9IC0xOwogICAgRVhQRUNUX1RIUk9XKG51bWVyaWNfY2FzdDx1aW50MzJfdD4oaTMyKSwgbnVtZXJpY19vdXRfb2ZfcmFuZ2UpOwp9CgpURVNUKG51bWVyaWNfY2FzdCwgc2lnbl9taXNtYXRjaF8zMl8yKQp7CiAgICB1aW50MzJfdCB1MzIgPSBzdGQ6Om51bWVyaWNfbGltaXRzPHVpbnQzMl90Pjo6bWF4KCk7CiAgICBFWFBFQ1RfVEhST1cobnVtZXJpY19jYXN0PGludDMyX3Q+KHUzMiksIG51bWVyaWNfb3V0X29mX3JhbmdlKTsKfQoKVEVTVChudW1lcmljX2Nhc3QsIHNpZ25fbWlzbWF0Y2hfMzJfMykKewogICAgdWludDMyX3QgdTMyID0gMDsKICAgIGF1dG8gcmVzdWx0ID0gbnVtZXJpY19jYXN0PGludDMyX3Q+KHUzMik7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCAwKTsKfQoKVEVTVChudW1lcmljX2Nhc3QsIHNpZ25fbWlzbWF0Y2hfMzJfNCkKewogICAgdWludDMyX3QgdTMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IG51bWVyaWNfY2FzdDxpbnQzMl90Pih1MzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgpURVNUKG51bWVyaWNfY2FzdCwgc2lnbl9taXNtYXRjaF8zMl81KQp7CiAgICB1aW50MzJfdCB1MzIgPSB1aW50MzJfdChzdGQ6Om51bWVyaWNfbGltaXRzPGludDMyX3Q+OjptYXgoKSk7CiAgICBhdXRvIHJlc3VsdCA9IG51bWVyaWNfY2FzdDxpbnQzMl90Pih1MzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgc3RkOjpudW1lcmljX2xpbWl0czxpbnQzMl90Pjo6bWF4KCkpOwp9CgpURVNUKG51bWVyaWNfY2FzdCwgc2lnbl9taXNtYXRjaF8zMl82KQp7CiAgICBpbnQzMl90IHMzMiA9IHN0ZDo6bnVtZXJpY19saW1pdHM8aW50MzJfdD46Om1heCgpOwogICAgRVhQRUNUX1RIUk9XKG51bWVyaWNfY2FzdDx1aW50OF90PihzMzIpLCBudW1lcmljX291dF9vZl9yYW5nZSk7Cn0KClRFU1QobnVtZXJpY19jYXN0LCBzaWduX21pc21hdGNoXzMyXzcpCnsKICAgIGludDMyX3QgczMyID0gNDI7CiAgICBhdXRvIHJlc3VsdCA9IG51bWVyaWNfY2FzdDx1aW50OF90PihzMzIpOwogICAgRVhQRUNUX0VRKHJlc3VsdCwgNDIpOwp9CgpURVNUKG51bWVyaWNfY2FzdCwgc19yYW5nZV9taXNtYXRjaF8xNl82NF8xKQp7CiAgICBpbnQ2NF90IHM2NCA9IHN0ZDo6bnVtZXJpY19saW1pdHM8aW50NjRfdD46Om1heCgpOwogICAgRVhQRUNUX1RIUk9XKG51bWVyaWNfY2FzdDxpbnQxNl90PihzNjQpLCBudW1lcmljX291dF9vZl9yYW5nZSk7Cn0KClRFU1QobnVtZXJpY19jYXN0LCBzX3JhbmdlX21hdGNoXzE2XzY0XzEpCnsKICAgIGludDY0X3QgczY0ID0gMDsKICAgIGF1dG8gcmVzdWx0ID0gbnVtZXJpY19jYXN0PGludDE2X3Q+KHM2NCk7CiAgICBFWFBFQ1RfRVEocmVzdWx0LCAwKTsKfQoKVEVTVChudW1lcmljX2Nhc3QsIHVfcmFuZ2VfbWlzbWF0Y2hfMTZfNjRfMSkKewogICAgdWludDY0X3QgdTY0ID0gc3RkOjpudW1lcmljX2xpbWl0czx1aW50NjRfdD46Om1heCgpOwogICAgRVhQRUNUX1RIUk9XKG51bWVyaWNfY2FzdDx1aW50MTZfdD4odTY0KSwgbnVtZXJpY19vdXRfb2ZfcmFuZ2UpOwp9Cg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2023- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+
+#include "test_common.hpp"
+
+#include <cstdint>
+#include <cctype>
+
+#include <openvpn/common/numeric_cast.hpp>
+
+
+using namespace openvpn::numeric_util;
+
+
+TEST(numeric_cast, same_type_nocast1)
+{
+    int32_t i32 = -1;
+    auto result = numeric_cast<int32_t>(i32);
+    EXPECT_EQ(result, i32);
+}
+
+TEST(numeric_cast, sign_mismatch_32_1)
+{
+    int32_t i32 = -1;
+    EXPECT_THROW(numeric_cast<uint32_t>(i32), numeric_out_of_range);
+}
+
+TEST(numeric_cast, sign_mismatch_32_2)
+{
+    uint32_t u32 = std::numeric_limits<uint32_t>::max();
+    EXPECT_THROW(numeric_cast<int32_t>(u32), numeric_out_of_range);
+}
+
+TEST(numeric_cast, sign_mismatch_32_3)
+{
+    uint32_t u32 = 0;
+    auto result = numeric_cast<int32_t>(u32);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(numeric_cast, sign_mismatch_32_4)
+{
+    uint32_t u32 = 42;
+    auto result = numeric_cast<int32_t>(u32);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(numeric_cast, sign_mismatch_32_5)
+{
+    uint32_t u32 = uint32_t(std::numeric_limits<int32_t>::max());
+    auto result = numeric_cast<int32_t>(u32);
+    EXPECT_EQ(result, std::numeric_limits<int32_t>::max());
+}
+
+TEST(numeric_cast, sign_mismatch_32_6)
+{
+    int32_t s32 = std::numeric_limits<int32_t>::max();
+    EXPECT_THROW(numeric_cast<uint8_t>(s32), numeric_out_of_range);
+}
+
+TEST(numeric_cast, sign_mismatch_32_7)
+{
+    int32_t s32 = 42;
+    auto result = numeric_cast<uint8_t>(s32);
+    EXPECT_EQ(result, 42);
+}
+
+TEST(numeric_cast, s_range_mismatch_16_64_1)
+{
+    int64_t s64 = std::numeric_limits<int64_t>::max();
+    EXPECT_THROW(numeric_cast<int16_t>(s64), numeric_out_of_range);
+}
+
+TEST(numeric_cast, s_range_match_16_64_1)
+{
+    int64_t s64 = 0;
+    auto result = numeric_cast<int16_t>(s64);
+    EXPECT_EQ(result, 0);
+}
+
+TEST(numeric_cast, u_range_mismatch_16_64_1)
+{
+    uint64_t u64 = std::numeric_limits<uint64_t>::max();
+    EXPECT_THROW(numeric_cast<uint16_t>(u64), numeric_out_of_range);
+}

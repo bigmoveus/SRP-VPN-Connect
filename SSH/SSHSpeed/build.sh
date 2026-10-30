@@ -1,1 +1,26 @@
-IyEvYmluL2Jhc2gKIyBCdWlsZHMgdGhlIG1hY09TIHJlYWwtdXR1biB0aHJvdWdocHV0IGhhcm5lc3MgZm9yIHRoZSBTU0ggZW5naW5lLgpzZXQgLWUKY2QgIiQoZGlybmFtZSAiJDAiKSIKUk9PVD0iJFBXRC8uLiIKQ09SRT0iJFJPT1QvLi4vQ29yZS9TUlBDb3JlIgoKeGNydW4gY2xhbmcgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkKHhjcnVuIC1zZGsgbWFjb3N4IC0tc2hvdy1zZGstcGF0aCkiIFwKICAgIC1tbWFjb3N4LXZlcnNpb24tbWluPTEyLjAgLU8wIC1nIC1mb2JqYy1hcmMgLXcgXAogICAgLUkiJENPUkUiIFwKICAgIC1JIiRST09UL2xpYnNzaDIvaW5jbHVkZSIgXAogICAgLUkiJFJPT1QvdXBzdHJlYW0vc3JjIiBcCiAgICAtSSIkUk9PVC91cHN0cmVhbS9zcmMvY29yZS9zcmMiIFwKICAgIC1JIiRST09UL2J1aWxkIiBcCiAgICAtZnJhbWV3b3JrIEZvdW5kYXRpb24gLWZyYW1ld29yayBOZXR3b3JrRXh0ZW5zaW9uIC1mcmFtZXdvcmsgU2VjdXJpdHkgXAogICAgIiRST09ULy4uL0NvcmUvU1JQQ29yZS9TUlBTU0hDbGllbnQubSIgXAogICAgIiRST09ULy4uL0NvcmUvU1JQQ29yZS9TUlBTU0hCcmlkZ2UuYyIgXAogICAgIiRST09ULy4uL0NvcmUvU1JQQ29yZS9TU0xvZy5tIiBcCiAgICBtYWluLm0gXAogICAgIiRST09UL2J1aWxkL21hY29zeC9saWJTUlBTU0gyLmEiIFwKICAgICIkUk9PVC9idWlsZC9tYWNvc3gvbGliU1JQU1NIRW5naW5lLmEiIFwKICAgICIkUk9PVC8uLi9Tb2Z0RXRoZXIvb3BlbnNzbC9tYWNvc3gvbGliL2xpYnNycHNlX3NzbC5hIiBcCiAgICAiJFJPT1QvLi4vU29mdEV0aGVyL29wZW5zc2wvbWFjb3N4L2xpYi9saWJzcnBzZV9jcnlwdG8uYSIgXAogICAgLWx6IC1saWNvbnYgLWxyZXNvbHYgXAogICAgLW8gc3Noc3BlZWQKZWNobyBCVUlMVCBzc2hzcGVlZAo=
+#!/bin/bash
+# Builds the macOS real-utun throughput harness for the SSH engine.
+set -e
+cd "$(dirname "$0")"
+ROOT="$PWD/.."
+CORE="$ROOT/../Core/SRPCore"
+
+xcrun clang -arch arm64 -isysroot "$(xcrun -sdk macosx --show-sdk-path)" \
+    -mmacosx-version-min=12.0 -O0 -g -fobjc-arc -w \
+    -I"$CORE" \
+    -I"$ROOT/libssh2/include" \
+    -I"$ROOT/upstream/src" \
+    -I"$ROOT/upstream/src/core/src" \
+    -I"$ROOT/build" \
+    -framework Foundation -framework NetworkExtension -framework Security \
+    "$ROOT/../Core/SRPCore/SRPSSHClient.m" \
+    "$ROOT/../Core/SRPCore/SRPSSHBridge.c" \
+    "$ROOT/../Core/SRPCore/SSLog.m" \
+    main.m \
+    "$ROOT/build/macosx/libSRPSSH2.a" \
+    "$ROOT/build/macosx/libSRPSSHEngine.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_ssl.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_crypto.a" \
+    -lz -liconv -lresolv \
+    -o sshspeed
+echo BUILT sshspeed

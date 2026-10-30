@@ -1,1 +1,178 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8bWVtb3J5PgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9iYXNlNjQuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgoKI2lmZGVmIFVTRV9PUEVOU1NMCiNpbmNsdWRlIDxvcGVuc3NsL2Jpby5oPgojaW5jbHVkZSA8b3BlbnNzbC9ldnAuaD4KI2luY2x1ZGUgPG9wZW5zc2wvYnVmZmVyLmg+CiNpbmNsdWRlIDxzdGRpbnQuaD4KCiNpbmNsdWRlIDxjc3RkbGliPgoKc3RkOjpzdHJpbmcgc3NsbGliX2I2NGVuYyhjb25zdCBjaGFyICp0ZXh0LCBzaXplX3QgdGV4dGxlbikKewogICAgQklPICpiaW8sICpiNjQ7CgogICAgYjY0ID0gQklPX25ldyhCSU9fZl9iYXNlNjQoKSk7CiAgICBiaW8gPSBCSU9fbmV3KEJJT19zX21lbSgpKTsKICAgIGJpbyA9IEJJT19wdXNoKGI2NCwgYmlvKTsKCiAgICBCSU9fc2V0X2ZsYWdzKGJpbywgQklPX0ZMQUdTX0JBU0U2NF9OT19OTCk7IC8vIElnbm9yZSBuZXdsaW5lcyAtIHdyaXRlIGV2ZXJ5dGhpbmcgaW4gb25lIGxpbmUKICAgIEJJT193cml0ZShiaW8sIHRleHQsIChpbnQpdGV4dGxlbik7CiAgICBFWFBFQ1RfVFJVRShCSU9fZmx1c2goYmlvKSA9PSAxKTsKICAgIGNvbnN0IGNoYXIgKmVuY2RhdGE7CiAgICBsb25nIGxlbiA9IEJJT19nZXRfbWVtX2RhdGEoYmlvLCAmZW5jZGF0YSk7CgogICAgLyogSWYgdGhlcmUgaXMgbm90aGluZyB0byBlbmNvZGUgT3BlblNTTCBnaXZlcyBiYWNrIGEgbnVsbHB0ciAqLwogICAgaWYgKGxlbiA9PSAwKQogICAgICAgIGVuY2RhdGEgPSAiIjsKCiAgICBzdGQ6OnN0cmluZyByZXQoZW5jZGF0YSwgKHNpemVfdClsZW4pOwogICAgQklPX2ZyZWVfYWxsKGJpbyk7CgogICAgcmV0dXJuIHJldDsKfQojZWxzZQojaW5jbHVkZSA8bWJlZHRscy9iYXNlNjQuaD4KCnN0ZDo6c3RyaW5nIHNzbGxpYl9iNjRlbmMoY29uc3QgY2hhciAqdGV4dCwgc2l6ZV90IHRleHRsZW4pCnsKICAgIHNpemVfdCBvbGVuLCBvdXRsZW47CgogICAgLy8gbWFrZSBhIHBlc3NpbWlzdGljIGFzc3VtcHRpb24gYWJvdXQgbGVuZ3RoIGFsd2F5cyBjYWxjdWxhdGUgMyBwYWRkaW5nIGJ5dGVzCiAgICBvdXRsZW4gPSAzICsgNCAqICh0ZXh0bGVuICsgMykgLyAzOwoKICAgIGNoYXIgKmRzdCA9IG5ldyBjaGFyW291dGxlbl07CgogICAgRVhQRUNUX0VRKG1iZWR0bHNfYmFzZTY0X2VuY29kZShyZWludGVycHJldF9jYXN0PHVuc2lnbmVkIGNoYXIgKj4oZHN0KSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb3V0bGVuLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAmb2xlbiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVpbnRlcnByZXRfY2FzdDxjb25zdCB1bnNpZ25lZCBjaGFyICo+KHRleHQpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0ZXh0bGVuKSwKICAgICAgICAgICAgICAwKTsKICAgIHN0ZDo6c3RyaW5nIHJldChkc3QsIG9sZW4pOwogICAgZGVsZXRlW10gZHN0OwogICAgcmV0dXJuIHJldDsKfQojZW5kaWYKCgp2b2lkIGI2NF90ZXN0KGNvbnN0IEJhc2U2NCAmYjY0LCBjb25zdCBzdGQ6OnN0cmluZyAmdGV4dCkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgZW5jID0gYjY0LmVuY29kZSh0ZXh0KTsKICAgIHN0ZDo6c3RyaW5nIGRlYyA9IGI2NC5kZWNvZGUoZW5jKTsKICAgIHN0ZDo6c3RyaW5nIGxpYmVuYyA9IHNzbGxpYl9iNjRlbmModGV4dC5jX3N0cigpLCB0ZXh0LnNpemUoKSk7CgogICAgRVhQRUNUX0VRKHRleHQsIGRlYykgPDwgIkVuY29kZS9EZWNvZGUgcmVzdWx0cyBkaWZmZXIiOwogICAgRVhQRUNUX0VRKGVuYywgbGliZW5jKSA8PCAiRW5jb2RlIGRpZmZlcnMgZnJvbSBDcnlwdG8gbGliIHJlc3VsdCI7Cn0KCnZvaWQgYjY0X3Rlc3RfYmluYXJ5KGNvbnN0IEJhc2U2NCAmYjY0LCBjb25zdCBjaGFyICpkYXRhLCB1bnNpZ25lZCBpbnQgbGVuKQp7CiAgICBhdXRvIGVuYyA9IGI2NC5lbmNvZGUoZGF0YSwgbGVuKTsKCiAgICBzdGQ6OnVuaXF1ZV9wdHI8Y2hhcltdPiBkZWNkYXRhKG5ldyBjaGFyW2xlbl0pOwogICAgc2l6ZV90IGRlY29kZV9sZW4gPSBiNjQuZGVjb2RlKGRlY2RhdGEuZ2V0KCksIGxlbiwgZW5jKTsKICAgIHN0ZDo6c3RyaW5nIGxpYmVuYyA9IHNzbGxpYl9iNjRlbmMoZGF0YSwgbGVuKTsKCiAgICBFWFBFQ1RfRVEoZW5jLCBsaWJlbmMpIDw8ICJFbmNvZGUgZGlmZmVycyBmcm9tIENyeXB0byBsaWIgcmVzdWx0IjsKCiAgICBBU1NFUlRfRVEoZGVjb2RlX2xlbiwgbGVuKSA8PCAiRW5jb2RlL2RlY29kZSBsZW5ndGggZGlmZmVycyI7CiAgICBBU1NFUlRfRVEoc3RkOjp2ZWN0b3I8dWludDhfdD4oZGVjZGF0YS5nZXQoKSwgZGVjZGF0YS5nZXQoKSArIGRlY29kZV9sZW4pLAogICAgICAgICAgICAgIHN0ZDo6dmVjdG9yPHVpbnQ4X3Q+KGRhdGEsIGRhdGEgKyBsZW4pKQogICAgICAgIDw8ICJFbmNvZGUvRGVjb2RlIHJlc3VsdHMgZGlmZmVyIjsKfQoKVEVTVChCYXNlNjQsIHRvb3Nob3J0ZGVzdCkKewogICAgY29uc3QgQmFzZTY0IGI2NDsKICAgIGF1dG8gZW5jID0gYjY0LmVuY29kZShzdGQ6OnN0cmluZygiYWJjIikpOwoKICAgIGNoYXIgYnVmWzJdOwogICAgRVhQRUNUX1RIUk9XKGI2NC5kZWNvZGUoYnVmLCAyLCBlbmMpLCBCYXNlNjQ6OmJhc2U2NF9kZWNvZGVfb3V0X29mX2JvdW5kX2Vycm9yKTsKfQoKdm9pZCBiNjRfdGVzdF9iYWRfZGVjb2RlKGNvbnN0IEJhc2U2NCAmYjY0LCBjb25zdCBzdGQ6OnN0cmluZyAmdGV4dCkKewogICAgc3RkOjpzdHJpbmcgZGVjOwogICAgRVhQRUNUX1RIUk9XKGI2NC5kZWNvZGUoZGVjLCB0ZXh0KSwgQmFzZTY0OjpiYXNlNjRfZGVjb2RlX2Vycm9yKTsKfQoKVEVTVChCYXNlNjQsIGJhZGRlY29kZSkKewogICAgY29uc3QgQmFzZTY0IGI2NDsKCiAgICBiNjRfdGVzdF9iYWRfZGVjb2RlKGI2NCwgIiFAIyQlXiYqKClfIik7CiAgICBiNjRfdGVzdF9iYWRfZGVjb2RlKGI2NCwgInBsYXVzaWJsZSBkZW5pYWJpbGl0eSIpOwogICAgYjY0X3Rlc3RfYmFkX2RlY29kZShiNjQsICJwbGF1c2libGUgIT0gZGVuaWFiaWxpdHkiKTsKICAgIGI2NF90ZXN0X2JhZF9kZWNvZGUoYjY0LCAieCIpOwogICAgYjY0X3Rlc3RfYmFkX2RlY29kZShiNjQsICI9PT09Iik7CiAgICBiNjRfdGVzdF9iYWRfZGVjb2RlKGI2NCwgInh4eHg9Iik7CiAgICBiNjRfdGVzdF9iYWRfZGVjb2RlKGI2NCwgIjAxKj0iKTsKfQoKVEVTVChCYXNlNjQsIGVuY29kZSkKewogICAgY29uc3QgQmFzZTY0IGI2NDsKCiAgICBiNjRfdGVzdChiNjQsICJIZWxsbyB3b3JsZCEiKTsKICAgIGI2NF90ZXN0KGI2NCwgItC/0YDQuNCy0LXRgiEiKTsKICAgIGI2NF90ZXN0KGI2NCwgIsO7bWJyZWxsYcO7bWJyZWxsYSIpOwogICAgYjY0X3Rlc3QoYjY0LCAi5LiA5pem5Zyo5LiA5Liq6JOd6Imy55qE5pyI5LquIik7CiAgICBiNjRfdGVzdChiNjQsICJ4Iik7CiAgICBiNjRfdGVzdChiNjQsICJvbmUgdHdvIHRocmVlIik7CiAgICBiNjRfdGVzdChiNjQsICJhYSIpOwogICAgYjY0X3Rlc3QoYjY0LCAiZ2V0IHlvdXIga2lja3Mgb24gLi4uIHJvdXRlIDY2Iik7CiAgICBiNjRfdGVzdChiNjQsICJmaWdodCB0aGUgZnV0dXJlIik7CiAgICBiNjRfdGVzdChiNjQsICIiKTsKICAgIGI2NF90ZXN0KGI2NCwgIkkgd2FudCB0byBiZWxpZXZlLi4uIik7CiAgICBiNjRfdGVzdChiNjQsICJpdCB3YXMgYSB3ZWF0aGVyIGJhbGxvb24iKTsKICAgIGI2NF90ZXN0KGI2NCwgImh5cGVyc3BhdGlhbCBieXBhc3MiKTsKICAgIGI2NF90ZXN0KGI2NCwgIm9kZSB0byBhIHZvZ29uIik7CiAgICBiNjRfdGVzdChiNjQsICJBY21lIFRyYXZlbCIpOwogICAgYjY0X3Rlc3QoYjY0LCAidGhlcmUncyBubyBzdW5zaGluZSB3aGVuIHNoZSdzIGdvbmUiKTsKICAgIGI2NF90ZXN0KGI2NCwgIj8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8iKTsKICAgIGI2NF90ZXN0KGI2NCwgIj8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Iik7CiAgICBiNjRfdGVzdChiNjQsICI/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8iKTsKICAgIGI2NF90ZXN0KGI2NCwgIj8/P3g+Pj4+Pj4+Pj4/Pz8/Pz8/Pz8/Pz8/Iik7CiAgICBiNjRfdGVzdChiNjQsICI/Pz94Pj4+Pj4+Pj4+Pz8/Pz8/Pz8/Pz8/Pz8iKTsKICAgIGI2NF90ZXN0KGI2NCwgIj8/P3g+Pj4+Pj4+Pj4/Pz8/Pz8/Pz8/Pz8/eD4+Iik7Cn0KClRFU1QoQmFzZTY0LCBiaW5hcnlfZGF0YSkKewoKICAgIGNvbnN0IEJhc2U2NCBiNjQ7CiAgICBzdGQ6OnNyYW5kKDApOwogICAgZm9yICh1bnNpZ25lZCBpbnQgaSA9IDA7IGkgPCAyMDsgaSsrKQogICAgewogICAgICAgIGNoYXIgKmRhdGEgPSBuZXcgY2hhcltpXTsKICAgICAgICBmb3IgKHVuc2lnbmVkIGludCBqID0gMDsgaiA8IGk7IGorKykKICAgICAgICB7CiAgICAgICAgICAgIGRhdGFbal0gPSAoY2hhcikoc3RkOjpyYW5kKCkgJiAweGZmKTsKICAgICAgICB9CiAgICAgICAgYjY0X3Rlc3RfYmluYXJ5KGI2NCwgZGF0YSwgaSk7CiAgICAgICAgZGVsZXRlW10gZGF0YTsKICAgIH0KfQo=
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+
+#include "test_common.hpp"
+
+#include <iostream>
+#include <memory>
+
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/base64.hpp>
+
+using namespace openvpn;
+
+
+#ifdef USE_OPENSSL
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
+#include <stdint.h>
+
+#include <cstdlib>
+
+std::string ssllib_b64enc(const char *text, size_t textlen)
+{
+    BIO *bio, *b64;
+
+    b64 = BIO_new(BIO_f_base64());
+    bio = BIO_new(BIO_s_mem());
+    bio = BIO_push(b64, bio);
+
+    BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); // Ignore newlines - write everything in one line
+    BIO_write(bio, text, (int)textlen);
+    EXPECT_TRUE(BIO_flush(bio) == 1);
+    const char *encdata;
+    long len = BIO_get_mem_data(bio, &encdata);
+
+    /* If there is nothing to encode OpenSSL gives back a nullptr */
+    if (len == 0)
+        encdata = "";
+
+    std::string ret(encdata, (size_t)len);
+    BIO_free_all(bio);
+
+    return ret;
+}
+#else
+#include <mbedtls/base64.h>
+
+std::string ssllib_b64enc(const char *text, size_t textlen)
+{
+    size_t olen, outlen;
+
+    // make a pessimistic assumption about length always calculate 3 padding bytes
+    outlen = 3 + 4 * (textlen + 3) / 3;
+
+    char *dst = new char[outlen];
+
+    EXPECT_EQ(mbedtls_base64_encode(reinterpret_cast<unsigned char *>(dst),
+                                    outlen,
+                                    &olen,
+                                    reinterpret_cast<const unsigned char *>(text),
+                                    textlen),
+              0);
+    std::string ret(dst, olen);
+    delete[] dst;
+    return ret;
+}
+#endif
+
+
+void b64_test(const Base64 &b64, const std::string &text)
+{
+    const std::string enc = b64.encode(text);
+    std::string dec = b64.decode(enc);
+    std::string libenc = ssllib_b64enc(text.c_str(), text.size());
+
+    EXPECT_EQ(text, dec) << "Encode/Decode results differ";
+    EXPECT_EQ(enc, libenc) << "Encode differs from Crypto lib result";
+}
+
+void b64_test_binary(const Base64 &b64, const char *data, unsigned int len)
+{
+    auto enc = b64.encode(data, len);
+
+    std::unique_ptr<char[]> decdata(new char[len]);
+    size_t decode_len = b64.decode(decdata.get(), len, enc);
+    std::string libenc = ssllib_b64enc(data, len);
+
+    EXPECT_EQ(enc, libenc) << "Encode differs from Crypto lib result";
+
+    ASSERT_EQ(decode_len, len) << "Encode/decode length differs";
+    ASSERT_EQ(std::vector<uint8_t>(decdata.get(), decdata.get() + decode_len),
+              std::vector<uint8_t>(data, data + len))
+        << "Encode/Decode results differ";
+}
+
+TEST(Base64, tooshortdest)
+{
+    const Base64 b64;
+    auto enc = b64.encode(std::string("abc"));
+
+    char buf[2];
+    EXPECT_THROW(b64.decode(buf, 2, enc), Base64::base64_decode_out_of_bound_error);
+}
+
+void b64_test_bad_decode(const Base64 &b64, const std::string &text)
+{
+    std::string dec;
+    EXPECT_THROW(b64.decode(dec, text), Base64::base64_decode_error);
+}
+
+TEST(Base64, baddecode)
+{
+    const Base64 b64;
+
+    b64_test_bad_decode(b64, "!@#$%^&*()_");
+    b64_test_bad_decode(b64, "plausible deniability");
+    b64_test_bad_decode(b64, "plausible != deniability");
+    b64_test_bad_decode(b64, "x");
+    b64_test_bad_decode(b64, "====");
+    b64_test_bad_decode(b64, "xxxx=");
+    b64_test_bad_decode(b64, "01*=");
+}
+
+TEST(Base64, encode)
+{
+    const Base64 b64;
+
+    b64_test(b64, "Hello world!");
+    b64_test(b64, "привет!");
+    b64_test(b64, "ûmbrellaûmbrella");
+    b64_test(b64, "一旦在一个蓝色的月亮");
+    b64_test(b64, "x");
+    b64_test(b64, "one two three");
+    b64_test(b64, "aa");
+    b64_test(b64, "get your kicks on ... route 66");
+    b64_test(b64, "fight the future");
+    b64_test(b64, "");
+    b64_test(b64, "I want to believe...");
+    b64_test(b64, "it was a weather balloon");
+    b64_test(b64, "hyperspatial bypass");
+    b64_test(b64, "ode to a vogon");
+    b64_test(b64, "Acme Travel");
+    b64_test(b64, "there's no sunshine when she's gone");
+    b64_test(b64, "??????????????????????");
+    b64_test(b64, "???????????????????????");
+    b64_test(b64, "????????????????????????");
+    b64_test(b64, "???x>>>>>>>>>?????????????");
+    b64_test(b64, "???x>>>>>>>>>??????????????");
+    b64_test(b64, "???x>>>>>>>>>?????????????x>>");
+}
+
+TEST(Base64, binary_data)
+{
+
+    const Base64 b64;
+    std::srand(0);
+    for (unsigned int i = 0; i < 20; i++)
+    {
+        char *data = new char[i];
+        for (unsigned int j = 0; j < i; j++)
+        {
+            data[j] = (char)(std::rand() & 0xff);
+        }
+        b64_test_binary(b64, data, i);
+        delete[] data;
+    }
+}

@@ -1,1 +1,96 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgV3JpdHRlbiBXb3JkLCBJbmMuCiAqIENvcHlyaWdodCAoQykgU2ltb24gSm9zZWZzc29uCiAqIEFsbCByaWdodHMgcmVzZXJ2ZWQuCiAqCiAqIFJlZGlzdHJpYnV0aW9uIGFuZCB1c2UgaW4gc291cmNlIGFuZCBiaW5hcnkgZm9ybXMsCiAqIHdpdGggb3Igd2l0aG91dCBtb2RpZmljYXRpb24sIGFyZSBwZXJtaXR0ZWQgcHJvdmlkZWQKICogdGhhdCB0aGUgZm9sbG93aW5nIGNvbmRpdGlvbnMgYXJlIG1ldDoKICoKICogICBSZWRpc3RyaWJ1dGlvbnMgb2Ygc291cmNlIGNvZGUgbXVzdCByZXRhaW4gdGhlIGFib3ZlCiAqICAgY29weXJpZ2h0IG5vdGljZSwgdGhpcyBsaXN0IG9mIGNvbmRpdGlvbnMgYW5kIHRoZQogKiAgIGZvbGxvd2luZyBkaXNjbGFpbWVyLgogKgogKiAgIFJlZGlzdHJpYnV0aW9ucyBpbiBiaW5hcnkgZm9ybSBtdXN0IHJlcHJvZHVjZSB0aGUgYWJvdmUKICogICBjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhlIGZvbGxvd2luZwogKiAgIGRpc2NsYWltZXIgaW4gdGhlIGRvY3VtZW50YXRpb24gYW5kL29yIG90aGVyIG1hdGVyaWFscwogKiAgIHByb3ZpZGVkIHdpdGggdGhlIGRpc3RyaWJ1dGlvbi4KICoKICogICBOZWl0aGVyIHRoZSBuYW1lIG9mIHRoZSBjb3B5cmlnaHQgaG9sZGVyIG5vciB0aGUgbmFtZXMKICogICBvZiBhbnkgb3RoZXIgY29udHJpYnV0b3JzIG1heSBiZSB1c2VkIHRvIGVuZG9yc2Ugb3IKICogICBwcm9tb3RlIHByb2R1Y3RzIGRlcml2ZWQgZnJvbSB0aGlzIHNvZnR3YXJlIHdpdGhvdXQKICogICBzcGVjaWZpYyBwcmlvciB3cml0dGVuIHBlcm1pc3Npb24uCiAqCiAqIFRISVMgU09GVFdBUkUgSVMgUFJPVklERUQgQlkgVEhFIENPUFlSSUdIVCBIT0xERVJTIEFORAogKiBDT05UUklCVVRPUlMgIkFTIElTIiBBTkQgQU5ZIEVYUFJFU1MgT1IgSU1QTElFRCBXQVJSQU5USUVTLAogKiBJTkNMVURJTkcsIEJVVCBOT1QgTElNSVRFRCBUTywgVEhFIElNUExJRUQgV0FSUkFOVElFUwogKiBPRiBNRVJDSEFOVEFCSUxJVFkgQU5EIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFCiAqIEFSRSBESVNDTEFJTUVELiBJTiBOTyBFVkVOVCBTSEFMTCBUSEUgQ09QWVJJR0hUIE9XTkVSIE9SCiAqIENPTlRSSUJVVE9SUyBCRSBMSUFCTEUgRk9SIEFOWSBESVJFQ1QsIElORElSRUNULCBJTkNJREVOVEFMLAogKiBTUEVDSUFMLCBFWEVNUExBUlksIE9SIENPTlNFUVVFTlRJQUwgREFNQUdFUyAoSU5DTFVESU5HLAogKiBCVVQgTk9UIExJTUlURUQgVE8sIFBST0NVUkVNRU5UIE9GIFNVQlNUSVRVVEUgR09PRFMgT1IKICogU0VSVklDRVM7IExPU1MgT0YgVVNFLCBEQVRBLCBPUiBQUk9GSVRTOyBPUiBCVVNJTkVTUwogKiBJTlRFUlJVUFRJT04pIEhPV0VWRVIgQ0FVU0VEIEFORCBPTiBBTlkgVEhFT1JZIE9GIExJQUJJTElUWSwKICogV0hFVEhFUiBJTiBDT05UUkFDVCwgU1RSSUNUIExJQUJJTElUWSwgT1IgVE9SVCAoSU5DTFVESU5HCiAqIE5FR0xJR0VOQ0UgT1IgT1RIRVJXSVNFKSBBUklTSU5HIElOIEFOWSBXQVkgT1VUIE9GIFRIRQogKiBVU0UgT0YgVEhJUyBTT0ZUV0FSRSwgRVZFTiBJRiBBRFZJU0VEIE9GIFRIRSBQT1NTSUJJTElUWQogKiBPRiBTVUNIIERBTUFHRS4KICoKICogU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IEJTRC0zLUNsYXVzZQogKi8KCiNpbmNsdWRlICJsaWJzc2gyX3ByaXYuaCIKCiNpbmNsdWRlIDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CgpzdGF0aWMgaW50IHRlc3RfbGlic3NoMl9iYXNlNjRfZGVjb2RlKExJQlNTSDJfU0VTU0lPTiAqc2Vzc2lvbikKewogICAgY2hhciAqZGF0YTsKICAgIHNpemVfdCBkYXRhbGVuOwogICAgY29uc3QgY2hhciAqc3JjID0gIlptNXZjbVE9IjsKICAgIGludCByZXQ7CgogICAgcmV0ID0gX2xpYnNzaDJfYmFzZTY0X2RlY29kZShzZXNzaW9uLCAmZGF0YSwgJmRhdGFsZW4sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNyYywgc3RybGVuKHNyYykpOwogICAgaWYocmV0KQogICAgICAgIHJldHVybiByZXQ7CgogICAgaWYoZGF0YWxlbiAhPSA1IHx8IHN0cmNtcChkYXRhLCAiZm5vcmQiKSAhPSAwKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsCiAgICAgICAgICAgICAgICAiX2xpYnNzaDJfYmFzZTY0X2RlY29kZSgpIGZhaWxlZCAoJWQsICUuKnMpXG4iLAogICAgICAgICAgICAgICAgKHVuc2lnbmVkIGludClkYXRhbGVuLCAodW5zaWduZWQgaW50KWRhdGFsZW4sIGRhdGEpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIGZyZWUoZGF0YSk7CgogICAgcmV0dXJuIDA7Cn0KCmludCBtYWluKGludCBhcmdjLCBjaGFyICphcmd2W10pCnsKICAgIExJQlNTSDJfU0VTU0lPTiAqc2Vzc2lvbjsKICAgIGludCByYzsKICAgICh2b2lkKWFyZ3Y7CiAgICAodm9pZClhcmdjOwoKICAgIHJjID0gbGlic3NoMl9pbml0KExJQlNTSDJfSU5JVF9OT19DUllQVE8pOwogICAgaWYocmMpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgImxpYnNzaDJfaW5pdCgpIGZhaWxlZDogJWRcbiIsIHJjKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KCiAgICBzZXNzaW9uID0gbGlic3NoMl9zZXNzaW9uX2luaXQoKTsKICAgIGlmKCFzZXNzaW9uKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyX3Nlc3Npb25faW5pdCgpIGZhaWxlZFxuIik7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgdGVzdF9saWJzc2gyX2Jhc2U2NF9kZWNvZGUoc2Vzc2lvbik7CgogICAgbGlic3NoMl9zZXNzaW9uX2ZyZWUoc2Vzc2lvbik7CgogICAgbGlic3NoMl9leGl0KCk7CgogICAgcmV0dXJuIDA7Cn0K
+/* Copyright (C) The Written Word, Inc.
+ * Copyright (C) Simon Josefsson
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *   Redistributions of source code must retain the above
+ *   copyright notice, this list of conditions and the
+ *   following disclaimer.
+ *
+ *   Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ *   Neither the name of the copyright holder nor the names
+ *   of any other contributors may be used to endorse or
+ *   promote products derived from this software without
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "libssh2_priv.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
+static int test_libssh2_base64_decode(LIBSSH2_SESSION *session)
+{
+    char *data;
+    size_t datalen;
+    const char *src = "Zm5vcmQ=";
+    int ret;
+
+    ret = _libssh2_base64_decode(session, &data, &datalen,
+                                 src, strlen(src));
+    if(ret)
+        return ret;
+
+    if(datalen != 5 || strcmp(data, "fnord") != 0) {
+        fprintf(stderr,
+                "_libssh2_base64_decode() failed (%d, %.*s)\n",
+                (unsigned int)datalen, (unsigned int)datalen, data);
+        return 1;
+    }
+
+    free(data);
+
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    LIBSSH2_SESSION *session;
+    int rc;
+    (void)argv;
+    (void)argc;
+
+    rc = libssh2_init(LIBSSH2_INIT_NO_CRYPTO);
+    if(rc) {
+        fprintf(stderr, "libssh2_init() failed: %d\n", rc);
+        return 1;
+    }
+
+    session = libssh2_session_init();
+    if(!session) {
+        fprintf(stderr, "libssh2_session_init() failed\n");
+        return 1;
+    }
+
+    test_libssh2_base64_decode(session);
+
+    libssh2_session_free(session);
+
+    libssh2_exit();
+
+    return 0;
+}

@@ -1,1 +1,27 @@
-CiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9sb2cvbG9nZ2VyLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjo6bG9nZ2luZzsKClRFU1QoTG9nZ2luZ01peGluLCBpc19zaGFyZWQpCnsKICAgIGF1dG8gbG0xID0gTG9nZ2luZ01peGluPDE+KCk7CiAgICBhdXRvIGxtMiA9IExvZ2dpbmdNaXhpbjwxPigpOwoKICAgIEVYUEVDVF9FUShsbTEubG9nX2xldmVsKCksIGxtMi5sb2dfbGV2ZWwoKSk7CiAgICBsbTEuc2V0X2xvZ19sZXZlbChsbTEubG9nX2xldmVsKCkgKyAxKTsKICAgIEVYUEVDVF9FUShsbTEubG9nX2xldmVsKCksIGxtMi5sb2dfbGV2ZWwoKSk7Cn0KClRFU1QoTG9nZ2luZ01peGluLCBpc19ub3Rfc2hhcmVkKQp7CiAgICBhdXRvIGxtMSA9IExvZ2dpbmdNaXhpbjwxLCAxLCBpbnQ+KCk7CiAgICBhdXRvIGxtMiA9IExvZ2dpbmdNaXhpbjwxLCAxLCBmbG9hdD4oKTsKCiAgICBFWFBFQ1RfRVEobG0xLmxvZ19sZXZlbCgpLCBsbTIubG9nX2xldmVsKCkpOwogICAgbG0xLnNldF9sb2dfbGV2ZWwobG0xLmxvZ19sZXZlbCgpICsgMSk7CiAgICBFWFBFQ1RfTkUobG0xLmxvZ19sZXZlbCgpLCBsbTIubG9nX2xldmVsKCkpOwp9
+
+#include "test_common.hpp"
+
+#include <openvpn/log/logger.hpp>
+
+using namespace openvpn;
+using namespace openvpn::logging;
+
+TEST(LoggingMixin, is_shared)
+{
+    auto lm1 = LoggingMixin<1>();
+    auto lm2 = LoggingMixin<1>();
+
+    EXPECT_EQ(lm1.log_level(), lm2.log_level());
+    lm1.set_log_level(lm1.log_level() + 1);
+    EXPECT_EQ(lm1.log_level(), lm2.log_level());
+}
+
+TEST(LoggingMixin, is_not_shared)
+{
+    auto lm1 = LoggingMixin<1, 1, int>();
+    auto lm2 = LoggingMixin<1, 1, float>();
+
+    EXPECT_EQ(lm1.log_level(), lm2.log_level());
+    lm1.set_log_level(lm1.log_level() + 1);
+    EXPECT_NE(lm1.log_level(), lm2.log_level());
+}

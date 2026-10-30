@@ -1,1 +1,250 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zdHJpbmcuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vb3B0aW9ucy5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3NlcnZlci9saXN0ZW5saXN0LmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKc3RhdGljIHN0ZDo6c3RyaW5nIGV4cGVjdGVkID0gIjAgW2Vycm9ycy10by1zdGRlcnJdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxIFtsb2ddIFsvTGlicmFyeS9BcHBsaWNhdGlvbiBTdXBwb3J0L09wZW5WUE4vbG9nL292cG4zX3lvbmFuX25ldF9wMDk3Ny5sb2ddXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIyIFtjb25maWddIFtzdGRpbl1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjMgW3Byb3RvLWZvcmNlXSBbdWRwXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiNCBbbWFuYWdlbWVudF0gWy9MaWJyYXJ5L0FwcGxpY2F0aW9uIFN1cHBvcnQvT3BlblZQTi9zb2NrL292cG4tNlFTYWk5U3p2UmNtLnNvY2tdIFt1bml4XVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiNSBbc2V0ZW52XSBbVVZfQVNDTElfVkVSXSBbMi4wLjE4LjIwMF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjYgW3NldGVudl0gW1VWX1BMQVRfUkVMXSBbMTIuNS4wXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiNyBbYXV0aC1ub2NhY2hlXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiOCBbbWFuYWdlbWVudC1ob2xkXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiOSBbbWFuYWdlbWVudC1jbGllbnRdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxMCBbbWFuYWdlbWVudC1xdWVyeS1wYXNzd29yZHNdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxMSBbbWFuYWdlbWVudC1xdWVyeS1yZW1vdGVdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxMiBbbWFuYWdlbWVudC11cC1kb3duXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiMTMgW21hbmFnZW1lbnQtY2xpZW50LXVzZXJdIFtyb290XVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiMTQgW2FsbG93LXB1bGwtZnFkbl1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjE1IFthdXRoLXJldHJ5XSBbaW50ZXJhY3RdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxNiBbcHVzaC1wZWVyLWluZm9dXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICIxNyBbc2V0ZW52XSBbVVZfQVNDTElfVkVSXSBbMi4wLjE4LjIwMF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjE4IFtzZXRlbnZdIFtVVl9QTEFUX1JFTF0gWzEyLjUuMF1cbiI7CgpzdGF0aWMgY29uc3QgY2hhciAqaW5wdXRbXSA9IHsKICAgIC8vIGNsYW5nLWZvcm1hdCBvZmYKICAgICJ1bml0dGVzdCIsCiAgICAiLS1lcnJvcnMtdG8tc3RkZXJyIiwKICAgICItLWxvZyIsICIvTGlicmFyeS9BcHBsaWNhdGlvbiBTdXBwb3J0L09wZW5WUE4vbG9nL292cG4zX3lvbmFuX25ldF9wMDk3Ny5sb2ciLAogICAgIi0tY29uZmlnIiwgInN0ZGluIiwKICAgICItLXByb3RvLWZvcmNlIiwgInVkcCIsCiAgICAiLS1tYW5hZ2VtZW50IiwgIi9MaWJyYXJ5L0FwcGxpY2F0aW9uIFN1cHBvcnQvT3BlblZQTi9zb2NrL292cG4tNlFTYWk5U3p2UmNtLnNvY2siLAogICAgInVuaXgiLAogICAgIi0tc2V0ZW52IiwgIlVWX0FTQ0xJX1ZFUiIsICIyLjAuMTguMjAwIiwKICAgICItLXNldGVudiIsICJVVl9QTEFUX1JFTCIsICIxMi41LjAiLAogICAgIi0tYXV0aC1ub2NhY2hlIiwKICAgICItLW1hbmFnZW1lbnQtaG9sZCIsCiAgICAiLS1tYW5hZ2VtZW50LWNsaWVudCIsCiAgICAiLS1tYW5hZ2VtZW50LXF1ZXJ5LXBhc3N3b3JkcyIsCiAgICAiLS1tYW5hZ2VtZW50LXF1ZXJ5LXJlbW90ZSIsCiAgICAiLS1tYW5hZ2VtZW50LXVwLWRvd24iLAogICAgIi0tbWFuYWdlbWVudC1jbGllbnQtdXNlciIsICJyb290IiwKICAgICItLWFsbG93LXB1bGwtZnFkbiIsCiAgICAiLS1hdXRoLXJldHJ5IiwgImludGVyYWN0IiwKICAgICItLXB1c2gtcGVlci1pbmZvIiwKICAgICItLXNldGVudiIsICJVVl9BU0NMSV9WRVIiLCAiMi4wLjE4LjIwMCIsCiAgICAiLS1zZXRlbnYiLCAiVVZfUExBVF9SRUwiLCAiMTIuNS4wIgogICAgLy8gY2xhbmctZm9ybWF0IG9uCn07CgpURVNUKGFyZ3YsIHBhcnNlKQp7CiAgICBjb25zdCBPcHRpb25MaXN0IG9wdCA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fYXJndl9zdGF0aWMoc3RyaW5nOjpmcm9tX2FyZ3Yoc2l6ZW9mKGlucHV0KSAvIHNpemVvZihjaGFyICopLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0X2Nhc3Q8Y2hhciAqKj4oaW5wdXQpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRydWUpKTsKICAgIEFTU0VSVF9FUShleHBlY3RlZCwgb3B0LnJlbmRlcihPcHRpb246OlJFTkRFUl9OVU1CRVIgfCBPcHRpb246OlJFTkRFUl9CUkFDS0VUKSk7Cn0KCnN0YXRpYyBjb25zdCBjaGFyIGNvbmZpZ1tdID0gImxpc3RlbiAxLjIuMy40IDEwMDAgdGNwIDJcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAibGlzdGVuIDAuMC4wLjAgNDAwMCB0Y3AgNCpOXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpc3RlbiA6OjAgODAwMCB0Y3BcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAibGlzdGVuIHNvY2svc3RzdHJhY2stJXMuc29jayB1bml4LXN0cmVhbVxuIjsKClRFU1QoYXJndiwgcG9ydG9mZnNldDEpCnsKICAgIGNvbnN0IE9wdGlvbkxpc3Qgb3B0MSA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY29uZmlnX3N0YXRpYyhjb25maWcsIG51bGxwdHIpOwogICAgY29uc3QgTGlzdGVuOjpMaXN0IGxsMShvcHQxLCAibGlzdGVuIiwgTGlzdGVuOjpMaXN0OjpOb21pbmFsLCA0KTsKCiAgICBFWFBFQ1RfRVEoCiAgICAgICAgImxpc3RlbiAxLjIuMy40IDEwMDAgVENQdjQgMlxubGlzdGVuIDAuMC4wLjAgNDAwMCBUQ1B2NCAxNlxubGlzdGVuIDo6MCA4MDAwIFRDUHY2IDFcbmxpc3RlbiBzb2NrL3N0c3RyYWNrLSVzLnNvY2sgVW5peFN0cmVhbSAxXG4iLAogICAgICAgIGxsMS50b19zdHJpbmcoKSk7CgogICAgc3RkOjpzdHJpbmcgZXhwMigibGlzdGVuIDEuMi4zLjQgMTAwMCBUQ1B2NCAwXG5saXN0ZW4gMS4yLjMuNCAxMDAxIFRDUHY0IDBcbiIpOwoKICAgIGZvciAoaW50IGkgPSA0MDAwOyBpIDwgNDAxNjsgaSsrKQogICAgICAgIGV4cDIgKz0gImxpc3RlbiAwLjAuMC4wICIgKyBzdGQ6OnRvX3N0cmluZyhpKSArICIgVENQdjQgMFxuIjsKCiAgICBleHAyICs9ICJsaXN0ZW4gOjowIDgwMDAgVENQdjYgMFxuIgogICAgICAgICAgICAibGlzdGVuIHNvY2svc3RzdHJhY2stMC5zb2NrIFVuaXhTdHJlYW0gMFxuIjsKCiAgICBjb25zdCBMaXN0ZW46Okxpc3QgbGwyID0gbGwxLmV4cGFuZF9wb3J0c19ieV9uX3RocmVhZHMoMTAwKTsKICAgIEVYUEVDVF9FUShleHAyLCBsbDIudG9fc3RyaW5nKCkpOwp9CgpURVNUKGFyZ3YsIHBvcnRvZmZzZXQyKQp7CiAgICBjb25zdCBPcHRpb25MaXN0IG9wdCA9IE9wdGlvbkxpc3Q6OnBhcnNlX2Zyb21fY29uZmlnX3N0YXRpYyhjb25maWcsIG51bGxwdHIpOwogICAgY29uc3QgTGlzdGVuOjpMaXN0IGxsKG9wdCwgImxpc3RlbiIsIExpc3Rlbjo6TGlzdDo6Tm9taW5hbCwgNCk7CiAgICBmb3IgKHVuc2lnbmVkIGludCB1bml0ID0gMDsgdW5pdCA8IDQ7ICsrdW5pdCkKICAgIHsKICAgICAgICBzdGQ6OnN0cmluZ3N0cmVhbSBleHA7CiAgICAgICAgZXhwIDw8ICJsaXN0ZW4gMS4yLjMuNCAiIDw8IDEwMDAgKyB1bml0IDw8ICIgVENQdjQgMFxuIjsKICAgICAgICA7CiAgICAgICAgZXhwIDw8ICJsaXN0ZW4gMC4wLjAuMCA0MDAiIDw8IHVuaXQgPDwgIiBUQ1B2NCAwXG4iOwogICAgICAgIGV4cCA8PCAibGlzdGVuIDo6MCA4MDAiIDw8IHVuaXQgPDwgIiBUQ1B2NiAwXG4iOwogICAgICAgIGV4cCA8PCAibGlzdGVuIHNvY2svc3RzdHJhY2stIiA8PCB1bml0IDw8ICIuc29jayBVbml4U3RyZWFtIDBcbiI7CgogICAgICAgIGNvbnN0IExpc3Rlbjo6TGlzdCBsbHUgPSBsbC5leHBhbmRfcG9ydHNfYnlfdW5pdCh1bml0KTsKICAgICAgICBFWFBFQ1RfRVEoZXhwLnN0cigpLCBsbHUudG9fc3RyaW5nKCkpOwogICAgfQp9CgpzdGF0aWMgdm9pZCBleHRyYWN0X2F1dGhfdG9rZW4oY29uc3QgT3B0aW9uTGlzdCAmb3B0KQp7CiAgICBjb25zdCBPcHRpb24gJm8gPSBvcHQuZ2V0KCJhdXRoLXRva2VuIik7CiAgICBvLm1pbl9hcmdzKDIpOwogICAgQVNTRVJUX0VRKCJhdXRoLXRva2VuIFNFU1NfSURfd0pkaEhNYzd0cjlHd2JNTkVXNmIrQT09Iiwgby5yZW5kZXIoMCkpOwp9CgpzdGF0aWMgdm9pZCB2ZXJpZnlfdG9wb2xvZ3koY29uc3QgT3B0aW9uTGlzdCAmb3B0KQp7CiAgICBjb25zdCBPcHRpb24gJm8gPSBvcHQuZ2V0KCJ0b3BvbG9neSIpOwogICAgby5taW5fYXJncygyKTsKICAgIGlmIChvLnJlZigxKSAhPSAic3VibmV0IikKICAgICAgICB0aHJvdyBvcHRpb25fZXJyb3IoIm9ubHkgdG9wb2xvZ3kgc3VibmV0IHN1cHBvcnRlZCIpOwp9CgpzdGF0aWMgdm9pZCBleHRyYWN0X2lmY29uZmlnKGNvbnN0IE9wdGlvbkxpc3QgJm9wdCkKewogICAgY29uc3QgT3B0aW9uICZvID0gb3B0LmdldCgiaWZjb25maWciKTsKICAgIG8uZXhhY3RfYXJncygzKTsKICAgIHN0ZDo6c3RyaW5nIGlwID0gSVA6OkFkZHI6OnZhbGlkYXRlKG8ucmVmKDEpLCAiaWZjb25maWctaXAiKTsKICAgIHN0ZDo6c3RyaW5nIG1hc2sgPSBJUDo6QWRkcjo6dmFsaWRhdGUoby5yZWYoMiksICJpZmNvbmZpZy1uZXQiKTsKICAgIEFTU0VSVF9FUSgiNS41LjguNCIsIGlwKTsKICAgIEFTU0VSVF9FUSgiMjU1LjI1NS4yNTIuMCIsIG1hc2spOwp9CgpURVNUKGFyZ3YsIHBhcnNldGVzdCkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgb3B0X2NzdiA9ICJleHBsaWNpdC1leGl0LW5vdGlmeSx0b3BvbG9neSBzdWJuZXQscm91dGUtZGVsYXkgNSAzMCxkaGNwLXByZS1yZWxlYXNlLGRoY3AtcmVuZXcsZGhjcC1yZWxlYXNlLHJvdXRlLW1ldHJpYyAxMDEscGluZyA1LHBpbmctcmVzdGFydCA0MCxyZWRpcmVjdC1nYXRld2F5IGRlZjEscmVkaXJlY3QtZ2F0ZXdheSBieXBhc3MtZGhjcCxyZWRpcmVjdC1nYXRld2F5IGF1dG9sb2NhbCxyb3V0ZS1nYXRld2F5IDUuNS44LjEsZGhjcC1vcHRpb24gRE5TIDE3Mi4xNi4wLjIzLHJlZ2lzdGVyLWRucyxhdXRoLXRva2VuIFNFU1NfSURfd0pkaEhNYzd0cjlHd2JNTkVXNmIrQT09LGNvbXAtbHpvIG5vLGlmY29uZmlnIDUuNS44LjQgMjU1LjI1NS4yNTIuMCI7CiAgICBPcHRpb25MaXN0IG9wdDsKICAgIE9wdGlvbkxpc3Q6OkxpbWl0cyBsaW1pdHMoInBhcnNldGVzdCBsaW1pdCBvdXQgb2YgcmFuZ2UiLCAyMDQ4LCAxNiwgOCwgNTEyLCA2NCk7CiAgICBvcHQucGFyc2VfZnJvbV9jc3Yob3B0X2NzdiwgJmxpbWl0cyk7CiAgICBvcHQudXBkYXRlX21hcCgpOwogICAgQVNTRVJUX0VRKCJleHBsaWNpdC1leGl0LW5vdGlmeVxuIgogICAgICAgICAgICAgICJ0b3BvbG9neSBzdWJuZXRcbiIKICAgICAgICAgICAgICAicm91dGUtZGVsYXkgNSAzMFxuIgogICAgICAgICAgICAgICJkaGNwLXByZS1yZWxlYXNlXG4iCiAgICAgICAgICAgICAgImRoY3AtcmVuZXdcbiIKICAgICAgICAgICAgICAiZGhjcC1yZWxlYXNlXG4iCiAgICAgICAgICAgICAgInJvdXRlLW1ldHJpYyAxMDFcbiIKICAgICAgICAgICAgICAicGluZyA1XG4iCiAgICAgICAgICAgICAgInBpbmctcmVzdGFydCA0MFxuIgogICAgICAgICAgICAgICJyZWRpcmVjdC1nYXRld2F5IGRlZjFcbiIKICAgICAgICAgICAgICAicmVkaXJlY3QtZ2F0ZXdheSBieXBhc3MtZGhjcFxuIgogICAgICAgICAgICAgICJyZWRpcmVjdC1nYXRld2F5IGF1dG9sb2NhbFxuIgogICAgICAgICAgICAgICJyb3V0ZS1nYXRld2F5IDUuNS44LjFcbiIKICAgICAgICAgICAgICAiZGhjcC1vcHRpb24gRE5TIDE3Mi4xNi4wLjIzXG4iCiAgICAgICAgICAgICAgInJlZ2lzdGVyLWRuc1xuIgogICAgICAgICAgICAgICJhdXRoLXRva2VuIFNFU1NfSURfd0pkaEhNYzd0cjlHd2JNTkVXNmIrQT09XG4iCiAgICAgICAgICAgICAgImNvbXAtbHpvIG5vXG4iCiAgICAgICAgICAgICAgImlmY29uZmlnIDUuNS44LjQgMjU1LjI1NS4yNTIuMFxuIiwKICAgICAgICAgICAgICBvcHQucmVuZGVyKDApKTsKICAgIGV4dHJhY3RfYXV0aF90b2tlbihvcHQpOwogICAgZXh0cmFjdF9pZmNvbmZpZyhvcHQpOwogICAgdmVyaWZ5X3RvcG9sb2d5KG9wdCk7CiAgICBBU1NFUlRfRVEoMTA2NnUsIGxpbWl0cy5nZXRfYnl0ZXMoKSk7Cn0KCnN0YXRpYyB2b2lkIGNzdl90ZXN0KGNvbnN0IHN0ZDo6c3RyaW5nICZzdHIpCnsKICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiBsaXN0ID0gU3BsaXQ6OmJ5X2NoYXI8c3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+LCBTdGFuZGFyZExleCwgU3BsaXQ6Ok51bGxMaW1pdD4oc3RyLCAnLCcpOwogICAgc3RkOjpzdHJpbmdzdHJlYW0gczsKICAgIHN0ZDo6Y29weShsaXN0LmJlZ2luKCksIGxpc3QuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocywgIlxuIikpOwogICAgQVNTRVJUX0VRKCJ0aGlzXG4iCiAgICAgICAgICAgICAgImlzXG4iCiAgICAgICAgICAgICAgIlxuIgogICAgICAgICAgICAgICJhXG4iCiAgICAgICAgICAgICAgIlwiZm9vLGJhclwiXG4iCiAgICAgICAgICAgICAgInRlc3RcbiIsCiAgICAgICAgICAgICAgcy5zdHIoKSk7Cn0KCnN0YXRpYyB2b2lkIHNwYWNlX3Rlc3QoY29uc3Qgc3RkOjpzdHJpbmcgJnN0ciwgY29uc3Qgc3RkOjpzdHJpbmcgJmV4cGVjdGVkKQp7CiAgICBzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4gbGlzdCA9IFNwbGl0OjpieV9zcGFjZTxzdGQ6OnZlY3RvcjxzdGQ6OnN0cmluZz4sIFN0YW5kYXJkTGV4LCBTcGFjZU1hdGNoLCBTcGxpdDo6TnVsbExpbWl0PihzdHIpOwogICAgc3RkOjpzdHJpbmdzdHJlYW0gczsKICAgIHN0ZDo6Y29weShsaXN0LmJlZ2luKCksIGxpc3QuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocywgIlxuIikpOwoKICAgIEFTU0VSVF9FUShleHBlY3RlZCwgcy5zdHIoKSk7Cn0KCnN0YXRpYyB2b2lkIG9wdGlvbnNfY3N2X3Rlc3QoY29uc3Qgc3RkOjpzdHJpbmcgJnN0ciwgY29uc3Qgc3RkOjpzdHJpbmcgJmVsZW0pCnsKICAgIGNvbnN0IE9wdGlvbkxpc3Qgb2xpc3QgPSBPcHRpb25MaXN0OjpwYXJzZV9mcm9tX2Nzdl9zdGF0aWMoc3RyLCBOVUxMKTsKICAgIEFTU0VSVF9FUShnZXRTb3J0ZWRTdHJpbmcoIlY0XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJkZXYtdHlwZSB0dW5cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpbmstbXR1IDE1NThcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInR1bi1tdHUgMTUwMFxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAicHJvdG8gVURQdjRcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImNvbXAtbHpvXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJrZXlkaXIgMVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiY2lwaGVyIEFFUy0yNTYtQ0JDXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJhdXRoIFNIQTFcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleXNpemUgMjU2XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ0bHMtYXV0aFxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAia2V5LW1ldGhvZCAyXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ0bHMtY2xpZW50XG4iKSwKICAgICAgICAgICAgICBnZXRTb3J0ZWRTdHJpbmcob2xpc3QucmVuZGVyKDApKSk7CgogICAgQVNTRVJUX0VRKGdldFNvcnRlZFN0cmluZygidGxzLWNsaWVudCBbIDEyIF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImtleS1tZXRob2QgWyAxMSBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ0bHMtYXV0aCBbIDEwIF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpbmstbXR1IFsgMiBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJhdXRoIFsgOCBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJWNCBbIDAgXVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiY29tcC1sem8gWyA1IF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInR1bi1tdHUgWyAzIF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInByb3RvIFsgNCBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJrZXlzaXplIFsgOSBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJrZXlkaXIgWyA2IF1cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImRldi10eXBlIFsgMSBdXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJjaXBoZXIgWyA3IF1cbiIpLAogICAgICAgICAgICAgIGdldFNvcnRlZFN0cmluZyhvbGlzdC5yZW5kZXJfbWFwKCkpKTsKCiAgICBpZiAoIWVsZW0uZW1wdHkoKSkKICAgIHsKICAgICAgICBPcHRpb25MaXN0OjpJbmRleE1hcDo6Y29uc3RfaXRlcmF0b3IgZSA9IG9saXN0Lm1hcCgpLmZpbmQoZWxlbSk7CiAgICAgICAgQVNTRVJUX1RSVUUoZSAhPSBvbGlzdC5tYXAoKS5lbmQoKSk7CiAgICB9Cn0KClRFU1QoYXJndiwgcGFyc2V0ZXN0MSkKewogICAgY3N2X3Rlc3QoInRoaXMsaXMsLGEsXCJmb28sYmFyXCIsdGVzdCIpOwogICAgc3BhY2VfdGVzdChSIiggIHRoaXMgaXMgYSAiZm9vIFxcIGJhciIgdGVzdCAgIG9mIHNvbWV0aGluZyBcInJhdGhlclwiIGdydCAgKSIsICJ0aGlzXG5pc1xuYVxuZm9vIFxcIGJhclxudGVzdFxub2ZcbnNvbWV0aGluZ1xuXCJyYXRoZXJcIlxuZ3J0XG4iKTsKICAgIHNwYWNlX3Rlc3QoUiIodGhpcyBpcyBhIHRlIiJzdCBhICIiIGIpIiwgInRoaXNcbmlzXG5hXG50ZXN0XG5hXG5cbmJcbiIpOwogICAgb3B0aW9uc19jc3ZfdGVzdCgiVjQsZGV2LXR5cGUgdHVuLGxpbmstbXR1IDE1NTgsdHVuLW10dSAxNTAwLHByb3RvIFVEUHY0LGNvbXAtbHpvLGtleWRpciAxLGNpcGhlciBBRVMtMjU2LUNCQyxhdXRoIFNIQTEsa2V5c2l6ZSAyNTYsdGxzLWF1dGgsa2V5LW1ldGhvZCAyLHRscy1jbGllbnQiLAogICAgICAgICAgICAgICAgICAgICAiIik7Cn0KClRFU1QoYXJndiwgUXVvdGVzVGVzdCkKewogICAgYXV0byBzdHIgPSAiXCJhYmMsZGVmXCIsXCdhYmMsZGVmXCcsXCJhYmMnLGRlZlwiLFwnYWJjXCJkZWZcJyxcJ2FiY1wiIjsKICAgIHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiBsaXN0ID0gU3BsaXQ6OmJ5X2NoYXI8c3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+LCBTdGFuZGFyZExleCwgU3BsaXQ6Ok51bGxMaW1pdD4oc3RyLCAnLCcpOwogICAgc3RkOjpzdHJpbmdzdHJlYW0gczsKICAgIHN0ZDo6Y29weShsaXN0LmJlZ2luKCksIGxpc3QuZW5kKCksIHN0ZDo6b3N0cmVhbV9pdGVyYXRvcjxzdGQ6OnN0cmluZz4ocywgIlxuIikpOwogICAgQVNTRVJUX0VRKCJcImFiYyxkZWZcIlxuIgogICAgICAgICAgICAgICJcJ2FiYyxkZWYnXG4iCiAgICAgICAgICAgICAgIlwiYWJjJyxkZWZcIlxuIgogICAgICAgICAgICAgICJcJ2FiY1wiZGVmXCdcbiIKICAgICAgICAgICAgICAiXCdhYmNcIlxuIiwKICAgICAgICAgICAgICBzLnN0cigpKTsKfQo=
+#include "test_common.hpp"
+#include <iostream>
+
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/string.hpp>
+#include <openvpn/common/options.hpp>
+#include <openvpn/server/listenlist.hpp>
+
+using namespace openvpn;
+
+static std::string expected = "0 [errors-to-stderr]\n"
+                              "1 [log] [/Library/Application Support/OpenVPN/log/ovpn3_yonan_net_p0977.log]\n"
+                              "2 [config] [stdin]\n"
+                              "3 [proto-force] [udp]\n"
+                              "4 [management] [/Library/Application Support/OpenVPN/sock/ovpn-6QSai9SzvRcm.sock] [unix]\n"
+                              "5 [setenv] [UV_ASCLI_VER] [2.0.18.200]\n"
+                              "6 [setenv] [UV_PLAT_REL] [12.5.0]\n"
+                              "7 [auth-nocache]\n"
+                              "8 [management-hold]\n"
+                              "9 [management-client]\n"
+                              "10 [management-query-passwords]\n"
+                              "11 [management-query-remote]\n"
+                              "12 [management-up-down]\n"
+                              "13 [management-client-user] [root]\n"
+                              "14 [allow-pull-fqdn]\n"
+                              "15 [auth-retry] [interact]\n"
+                              "16 [push-peer-info]\n"
+                              "17 [setenv] [UV_ASCLI_VER] [2.0.18.200]\n"
+                              "18 [setenv] [UV_PLAT_REL] [12.5.0]\n";
+
+static const char *input[] = {
+    // clang-format off
+    "unittest",
+    "--errors-to-stderr",
+    "--log", "/Library/Application Support/OpenVPN/log/ovpn3_yonan_net_p0977.log",
+    "--config", "stdin",
+    "--proto-force", "udp",
+    "--management", "/Library/Application Support/OpenVPN/sock/ovpn-6QSai9SzvRcm.sock",
+    "unix",
+    "--setenv", "UV_ASCLI_VER", "2.0.18.200",
+    "--setenv", "UV_PLAT_REL", "12.5.0",
+    "--auth-nocache",
+    "--management-hold",
+    "--management-client",
+    "--management-query-passwords",
+    "--management-query-remote",
+    "--management-up-down",
+    "--management-client-user", "root",
+    "--allow-pull-fqdn",
+    "--auth-retry", "interact",
+    "--push-peer-info",
+    "--setenv", "UV_ASCLI_VER", "2.0.18.200",
+    "--setenv", "UV_PLAT_REL", "12.5.0"
+    // clang-format on
+};
+
+TEST(argv, parse)
+{
+    const OptionList opt = OptionList::parse_from_argv_static(string::from_argv(sizeof(input) / sizeof(char *),
+                                                                                const_cast<char **>(input),
+                                                                                true));
+    ASSERT_EQ(expected, opt.render(Option::RENDER_NUMBER | Option::RENDER_BRACKET));
+}
+
+static const char config[] = "listen 1.2.3.4 1000 tcp 2\n"
+                             "listen 0.0.0.0 4000 tcp 4*N\n"
+                             "listen ::0 8000 tcp\n"
+                             "listen sock/ststrack-%s.sock unix-stream\n";
+
+TEST(argv, portoffset1)
+{
+    const OptionList opt1 = OptionList::parse_from_config_static(config, nullptr);
+    const Listen::List ll1(opt1, "listen", Listen::List::Nominal, 4);
+
+    EXPECT_EQ(
+        "listen 1.2.3.4 1000 TCPv4 2\nlisten 0.0.0.0 4000 TCPv4 16\nlisten ::0 8000 TCPv6 1\nlisten sock/ststrack-%s.sock UnixStream 1\n",
+        ll1.to_string());
+
+    std::string exp2("listen 1.2.3.4 1000 TCPv4 0\nlisten 1.2.3.4 1001 TCPv4 0\n");
+
+    for (int i = 4000; i < 4016; i++)
+        exp2 += "listen 0.0.0.0 " + std::to_string(i) + " TCPv4 0\n";
+
+    exp2 += "listen ::0 8000 TCPv6 0\n"
+            "listen sock/ststrack-0.sock UnixStream 0\n";
+
+    const Listen::List ll2 = ll1.expand_ports_by_n_threads(100);
+    EXPECT_EQ(exp2, ll2.to_string());
+}
+
+TEST(argv, portoffset2)
+{
+    const OptionList opt = OptionList::parse_from_config_static(config, nullptr);
+    const Listen::List ll(opt, "listen", Listen::List::Nominal, 4);
+    for (unsigned int unit = 0; unit < 4; ++unit)
+    {
+        std::stringstream exp;
+        exp << "listen 1.2.3.4 " << 1000 + unit << " TCPv4 0\n";
+        ;
+        exp << "listen 0.0.0.0 400" << unit << " TCPv4 0\n";
+        exp << "listen ::0 800" << unit << " TCPv6 0\n";
+        exp << "listen sock/ststrack-" << unit << ".sock UnixStream 0\n";
+
+        const Listen::List llu = ll.expand_ports_by_unit(unit);
+        EXPECT_EQ(exp.str(), llu.to_string());
+    }
+}
+
+static void extract_auth_token(const OptionList &opt)
+{
+    const Option &o = opt.get("auth-token");
+    o.min_args(2);
+    ASSERT_EQ("auth-token SESS_ID_wJdhHMc7tr9GwbMNEW6b+A==", o.render(0));
+}
+
+static void verify_topology(const OptionList &opt)
+{
+    const Option &o = opt.get("topology");
+    o.min_args(2);
+    if (o.ref(1) != "subnet")
+        throw option_error("only topology subnet supported");
+}
+
+static void extract_ifconfig(const OptionList &opt)
+{
+    const Option &o = opt.get("ifconfig");
+    o.exact_args(3);
+    std::string ip = IP::Addr::validate(o.ref(1), "ifconfig-ip");
+    std::string mask = IP::Addr::validate(o.ref(2), "ifconfig-net");
+    ASSERT_EQ("5.5.8.4", ip);
+    ASSERT_EQ("255.255.252.0", mask);
+}
+
+TEST(argv, parsetest)
+{
+    const std::string opt_csv = "explicit-exit-notify,topology subnet,route-delay 5 30,dhcp-pre-release,dhcp-renew,dhcp-release,route-metric 101,ping 5,ping-restart 40,redirect-gateway def1,redirect-gateway bypass-dhcp,redirect-gateway autolocal,route-gateway 5.5.8.1,dhcp-option DNS 172.16.0.23,register-dns,auth-token SESS_ID_wJdhHMc7tr9GwbMNEW6b+A==,comp-lzo no,ifconfig 5.5.8.4 255.255.252.0";
+    OptionList opt;
+    OptionList::Limits limits("parsetest limit out of range", 2048, 16, 8, 512, 64);
+    opt.parse_from_csv(opt_csv, &limits);
+    opt.update_map();
+    ASSERT_EQ("explicit-exit-notify\n"
+              "topology subnet\n"
+              "route-delay 5 30\n"
+              "dhcp-pre-release\n"
+              "dhcp-renew\n"
+              "dhcp-release\n"
+              "route-metric 101\n"
+              "ping 5\n"
+              "ping-restart 40\n"
+              "redirect-gateway def1\n"
+              "redirect-gateway bypass-dhcp\n"
+              "redirect-gateway autolocal\n"
+              "route-gateway 5.5.8.1\n"
+              "dhcp-option DNS 172.16.0.23\n"
+              "register-dns\n"
+              "auth-token SESS_ID_wJdhHMc7tr9GwbMNEW6b+A==\n"
+              "comp-lzo no\n"
+              "ifconfig 5.5.8.4 255.255.252.0\n",
+              opt.render(0));
+    extract_auth_token(opt);
+    extract_ifconfig(opt);
+    verify_topology(opt);
+    ASSERT_EQ(1066u, limits.get_bytes());
+}
+
+static void csv_test(const std::string &str)
+{
+    std::vector<std::string> list = Split::by_char<std::vector<std::string>, StandardLex, Split::NullLimit>(str, ',');
+    std::stringstream s;
+    std::copy(list.begin(), list.end(), std::ostream_iterator<std::string>(s, "\n"));
+    ASSERT_EQ("this\n"
+              "is\n"
+              "\n"
+              "a\n"
+              "\"foo,bar\"\n"
+              "test\n",
+              s.str());
+}
+
+static void space_test(const std::string &str, const std::string &expected)
+{
+    std::vector<std::string> list = Split::by_space<std::vector<std::string>, StandardLex, SpaceMatch, Split::NullLimit>(str);
+    std::stringstream s;
+    std::copy(list.begin(), list.end(), std::ostream_iterator<std::string>(s, "\n"));
+
+    ASSERT_EQ(expected, s.str());
+}
+
+static void options_csv_test(const std::string &str, const std::string &elem)
+{
+    const OptionList olist = OptionList::parse_from_csv_static(str, NULL);
+    ASSERT_EQ(getSortedString("V4\n"
+                              "dev-type tun\n"
+                              "link-mtu 1558\n"
+                              "tun-mtu 1500\n"
+                              "proto UDPv4\n"
+                              "comp-lzo\n"
+                              "keydir 1\n"
+                              "cipher AES-256-CBC\n"
+                              "auth SHA1\n"
+                              "keysize 256\n"
+                              "tls-auth\n"
+                              "key-method 2\n"
+                              "tls-client\n"),
+              getSortedString(olist.render(0)));
+
+    ASSERT_EQ(getSortedString("tls-client [ 12 ]\n"
+                              "key-method [ 11 ]\n"
+                              "tls-auth [ 10 ]\n"
+                              "link-mtu [ 2 ]\n"
+                              "auth [ 8 ]\n"
+                              "V4 [ 0 ]\n"
+                              "comp-lzo [ 5 ]\n"
+                              "tun-mtu [ 3 ]\n"
+                              "proto [ 4 ]\n"
+                              "keysize [ 9 ]\n"
+                              "keydir [ 6 ]\n"
+                              "dev-type [ 1 ]\n"
+                              "cipher [ 7 ]\n"),
+              getSortedString(olist.render_map()));
+
+    if (!elem.empty())
+    {
+        OptionList::IndexMap::const_iterator e = olist.map().find(elem);
+        ASSERT_TRUE(e != olist.map().end());
+    }
+}
+
+TEST(argv, parsetest1)
+{
+    csv_test("this,is,,a,\"foo,bar\",test");
+    space_test(R"(  this is a "foo \\ bar" test   of something \"rather\" grt  )", "this\nis\na\nfoo \\ bar\ntest\nof\nsomething\n\"rather\"\ngrt\n");
+    space_test(R"(this is a te""st a "" b)", "this\nis\na\ntest\na\n\nb\n");
+    options_csv_test("V4,dev-type tun,link-mtu 1558,tun-mtu 1500,proto UDPv4,comp-lzo,keydir 1,cipher AES-256-CBC,auth SHA1,keysize 256,tls-auth,key-method 2,tls-client",
+                     "");
+}
+
+TEST(argv, QuotesTest)
+{
+    auto str = "\"abc,def\",\'abc,def\',\"abc',def\",\'abc\"def\',\'abc\"";
+    std::vector<std::string> list = Split::by_char<std::vector<std::string>, StandardLex, Split::NullLimit>(str, ',');
+    std::stringstream s;
+    std::copy(list.begin(), list.end(), std::ostream_iterator<std::string>(s, "\n"));
+    ASSERT_EQ("\"abc,def\"\n"
+              "\'abc,def'\n"
+              "\"abc',def\"\n"
+              "\'abc\"def\'\n"
+              "\'abc\"\n",
+              s.str());
+}

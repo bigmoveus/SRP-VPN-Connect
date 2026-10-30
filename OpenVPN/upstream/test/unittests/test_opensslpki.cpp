@@ -1,1 +1,161 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2ZpbGUuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9wa2kvY2NsaXN0LmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vb3BlbnNzbC9wa2kveDUwOS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL29wZW5zc2wvcGtpL3g1MDlzdG9yZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL29wZW5zc2wvcGtpL3BrZXkuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9vcGVuc3NsL3BraS9kaC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL29wZW5zc2wvcGtpL2NybC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2luaXQvaW5pdHByb2Nlc3MuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47Cgp0eXBlZGVmIENlcnRDUkxMaXN0VGVtcGxhdGU8T3BlblNTTFBLSTo6WDUwOUxpc3QsIE9wZW5TU0xQS0k6OkNSTExpc3Q+IENlcnRDUkxMaXN0OwoKdGVtcGxhdGUgPHR5cGVuYW1lIFZFQz4KVkVDIG1vdmVfY29udGVudHMoVkVDICZzcmMpCnsKICAgIFZFQyB2OwogICAgZm9yIChhdXRvICZlIDogc3JjKQogICAgICAgIHYucHVzaF9iYWNrKHN0ZDo6bW92ZShlKSk7CiAgICByZXR1cm4gdjsKfQoKdm9pZCBtb3ZlX2NvbnRlbnRzKENlcnRDUkxMaXN0ICZkZXN0LCBDZXJ0Q1JMTGlzdCAmc3JjKQp7CiAgICBkZXN0LmNlcnRzID0gbW92ZV9jb250ZW50cyhzcmMuY2VydHMpOwogICAgZGVzdC5jcmxzID0gbW92ZV9jb250ZW50cyhzcmMuY3Jscyk7Cn0KCiNkZWZpbmUgQ0VSVERJUiBVTklUVEVTVF9TT1VSQ0VfRElSICIvcGtpIgoKdm9pZCB0ZXN0X2NlcnRfY3JsKCkKewogICAgc3RkOjpzdHJpbmcgY2VydF9jcmxfdHh0ID0gcmVhZF90ZXh0KENFUlRESVIgIi9jZXJ0Y3JsLnBlbSIpOwoKICAgIENlcnRDUkxMaXN0IGNjbCwgY2NsMjsKICAgIGNjbC5wYXJzZV9wZW0oY2VydF9jcmxfdHh0LCAiVEVTVDEiKTsKICAgIENlcnRDUkxMaXN0IGNjbDEoY2NsKTsKICAgIGNjbDIgPSBjY2wxOwogICAgY2NsMiA9IGNjbDE7CiAgICBzdGQ6OnN0cmluZyByZW5kMiA9IGNjbDIucmVuZGVyX3BlbSgpOwoKICAgIENlcnRDUkxMaXN0IGNjbDM7CiAgICBjY2wzLnBhcnNlX3BlbV9maWxlKENFUlRESVIgIi9jZXJ0Y3JsLnBlbSIpOwogICAgc3RkOjpzdHJpbmcgcmVuZDMgPSBjY2wzLnJlbmRlcl9wZW0oKTsKCiAgICBBU1NFUlRfRVEocmVuZDIsIHJlbmQzKTsKCiAgICBDZXJ0Q1JMTGlzdCBjY2w0KHJlbmQzLCAiVEVTVDIiKTsKICAgIENlcnRDUkxMaXN0IGNjbDUoc3RkOjptb3ZlKGNjbDQpKTsKICAgIGNjbDIgPSBjY2w1OwogICAgcmVuZDIgPSBjY2wyLnJlbmRlcl9wZW0oKTsKICAgIEFTU0VSVF9FUShyZW5kMiwgcmVuZDMpOwoKICAgIENlcnRDUkxMaXN0IGNjbDYocmVuZDMsICJURVNUMyIpOwogICAgbW92ZV9jb250ZW50cyhjY2wyLCBjY2w2KTsKICAgIHJlbmQyID0gY2NsMi5yZW5kZXJfcGVtKCk7CiAgICBBU1NFUlRfRVEocmVuZDIsIHJlbmQzKTsKCiAgICBPcGVuU1NMUEtJOjpYNTA5U3RvcmUgeHMoY2NsMik7CgogICAgLy8gc3RkOjpjb3V0IDw8IHJlbmQyOwp9Cgpjb25zdGV4cHIgY29uc3QgY2hhciAqdGVzdGNlcnQgPSAiLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNSUlCdXpDQ0FVQ2dBd0lCQWdJVUV3YTl2bTBDNjNDYy9rRnU4bEZtT0tGVWRjY3dDZ1lJS29aSXpqMEVBd0l3XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJFekVSTUE4R0ExVUVBd3dJZFc1cGRIUmxjM1F3SUJjTk1qUXdOVEUxTVRBMU5ETTNXaGdQTWpBM09UQXlNVFl4XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJNRFUwTXpkYU1CTXhFVEFQQmdOVkJBTU1DSFZ1YVhSMFpYTjBNSFl3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0lEXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJZZ0FFRVZSb1ZqTlFlWUxQQmxzdDdhN3Z4bTZLVVQ1VEw4aURlbDVJN1Z0MENEMnNhUStFMG9Vck1yay9XN3VCXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJGaGJCRGJLdStBaVhCbXVkSWpRYnJ4NEppTlBEN3dvdUdDWTNVcDZDNmhkRE1RQXRQcUlJV09Hai8xM09zaHlZXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJFWC9lbzFNd1VUQWRCZ05WSFE0RUZnUVVPTnltbEhSb0lyK2FHcDdrc3MvWWw1Z0VPSFF3SHdZRFZSMGpCQmd3XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJGb0FVT055bWxIUm9JcithR3A3a3NzL1lsNWdFT0hRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBS0JnZ3Foa2pPXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJQUVFEQWdOcEFEQm1BakVBeDROREJNdFRXLzRxZVNkZWR4cE5INERDbkk1aXVlKzIyVU5UdC9kR1dCTXpjWUY3XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ4VzUzcjJRVmNDS3pvSkFCQWpFQTcvL1VEdE44Z1pnZmlZYUNYaDlRd2V3OERTc24xK0I5bVk2ZTNoUVEwMG5KXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJRdjN4aTBPSkZvQXhBUUJHMHdlWVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLSI7Cgp2b2lkIHRlc3Rfb3V0cHV0X3BlbSgpCnsKICAgIEJJTyAqYmlvX2luID0gOjpCSU9fbmV3X21lbV9idWYoY29uc3RfY2FzdDxjaGFyICo+KHRlc3RjZXJ0KSwgc3RhdGljX2Nhc3Q8aW50PihzdGQ6OnN0cmxlbih0ZXN0Y2VydCkpKTsKCiAgICA6Olg1MDkgKmNlcnQgPSA6OlBFTV9yZWFkX2Jpb19YNTA5KGJpb19pbiwgbnVsbHB0ciwgbnVsbHB0ciwgbnVsbHB0cik7CgogICAgQVNTRVJUX1RSVUUoY2VydCk7CgogICAgc3RkOjpzdHJpbmcgcGVtX291dCA9IE9wZW5TU0xQS0k6Olg1MDlfZ2V0X3BlbV9lbmNvZGluZyhjZXJ0KTsKCiAgICBFWFBFQ1RfRVEocGVtX291dCwgdGVzdGNlcnQpOwoKICAgIDo6WDUwOV9mcmVlKGNlcnQpOwogICAgOjpCSU9fZnJlZShiaW9faW4pOwp9Cgp2b2lkIHRlc3RfcGtleSgpCnsKICAgIHN0ZDo6c3RyaW5nIHBrZXlfdHh0ID0gcmVhZF90ZXh0KENFUlRESVIgIi9rZXkucGVtIik7CgogICAgT3BlblNTTFBLSTo6UEtleSBwa2V5LCBwa2V5MjsKICAgIHBrZXkucGFyc2VfcGVtKHBrZXlfdHh0LCAiVEVTVDAiLCBudWxscHRyKTsKICAgIE9wZW5TU0xQS0k6OlBLZXkgcGtleTEocGtleSk7CiAgICBwa2V5MiA9IHBrZXkxOwogICAgcGtleTIgPSBwa2V5MTsKICAgIHN0ZDo6c3RyaW5nIHJlbmQyID0gcGtleTIucmVuZGVyX3BlbSgpOwoKICAgIE9wZW5TU0xQS0k6OlBLZXkgcGtleTMocGtleV90eHQsICJURVNUMiIsIG51bGxwdHIpOwogICAgc3RkOjpzdHJpbmcgcmVuZDMgPSBwa2V5My5yZW5kZXJfcGVtKCk7CgogICAgQVNTRVJUX0VRKHJlbmQyLCByZW5kMyk7CgogICAgT3BlblNTTFBLSTo6UEtleSBwa2V5NChyZW5kMywgIlRFU1QzIiwgbnVsbHB0cik7CiAgICBPcGVuU1NMUEtJOjpQS2V5IHBrZXk1KHN0ZDo6bW92ZShwa2V5NCkpOwogICAgcGtleTIgPSBwa2V5NTsKICAgIHJlbmQyID0gcGtleTIucmVuZGVyX3BlbSgpOwogICAgQVNTRVJUX0VRKHJlbmQyLCByZW5kMyk7CgogICAgLy8gc3RkOjpjb3V0IDw8IHJlbmQyOwp9Cgp2b2lkIHRlc3RfZGgoKQp7CiAgICBzdGQ6OnN0cmluZyBkaF90eHQgPSByZWFkX3RleHQoQ0VSVERJUiAiL2RoMjA0OC5wZW0iKTsKCiAgICBPcGVuU1NMUEtJOjpESCBkaCwgZGgyOwogICAgZGgucGFyc2VfcGVtKGRoX3R4dCk7CiAgICBPcGVuU1NMUEtJOjpESCBkaDEoZGgpOwogICAgZGgyID0gZGgxOwogICAgZGgyID0gZGgxOwogICAgc3RkOjpzdHJpbmcgcmVuZDIgPSBkaDIucmVuZGVyX3BlbSgpOwoKICAgIE9wZW5TU0xQS0k6OkRIIGRoMyhkaF90eHQpOwogICAgc3RkOjpzdHJpbmcgcmVuZDMgPSBkaDMucmVuZGVyX3BlbSgpOwoKICAgIEFTU0VSVF9FUShyZW5kMiwgcmVuZDMpOwoKICAgIE9wZW5TU0xQS0k6OkRIIGRoNChyZW5kMyk7CiAgICBPcGVuU1NMUEtJOjpESCBkaDUoc3RkOjptb3ZlKGRoNCkpOwogICAgZGgyID0gZGg1OwogICAgcmVuZDIgPSBkaDIucmVuZGVyX3BlbSgpOwogICAgQVNTRVJUX0VRKHJlbmQyLCByZW5kMyk7CgogICAgLy8gc3RkOjpjb3V0IDw8IHJlbmQyOwp9CgpzdGF0aWMgYm9vbCB2ZXJib3NlX291dHB1dCA9IGZhbHNlOwoKVEVTVChQS0ksIGNybCkKewogICAgb3ZlcnJpZGVfbG9nT3V0cHV0KHZlcmJvc2Vfb3V0cHV0LCB0ZXN0X2NlcnRfY3JsKTsKfQoKVEVTVChQS0ksIHBrZXkpCnsKICAgIG92ZXJyaWRlX2xvZ091dHB1dCh2ZXJib3NlX291dHB1dCwgdGVzdF9wa2V5KTsKfQoKVEVTVChQS0ksIGRoKQp7CiAgICBvdmVycmlkZV9sb2dPdXRwdXQodmVyYm9zZV9vdXRwdXQsIHRlc3RfZGgpOwp9
+#include "test_common.hpp"
+#include <iostream>
+
+#include <openvpn/common/file.hpp>
+#include <openvpn/pki/cclist.hpp>
+#include <openvpn/openssl/pki/x509.hpp>
+#include <openvpn/openssl/pki/x509store.hpp>
+#include <openvpn/openssl/pki/pkey.hpp>
+#include <openvpn/openssl/pki/dh.hpp>
+#include <openvpn/openssl/pki/crl.hpp>
+#include <openvpn/init/initprocess.hpp>
+
+using namespace openvpn;
+
+typedef CertCRLListTemplate<OpenSSLPKI::X509List, OpenSSLPKI::CRLList> CertCRLList;
+
+template <typename VEC>
+VEC move_contents(VEC &src)
+{
+    VEC v;
+    for (auto &e : src)
+        v.push_back(std::move(e));
+    return v;
+}
+
+void move_contents(CertCRLList &dest, CertCRLList &src)
+{
+    dest.certs = move_contents(src.certs);
+    dest.crls = move_contents(src.crls);
+}
+
+#define CERTDIR UNITTEST_SOURCE_DIR "/pki"
+
+void test_cert_crl()
+{
+    std::string cert_crl_txt = read_text(CERTDIR "/certcrl.pem");
+
+    CertCRLList ccl, ccl2;
+    ccl.parse_pem(cert_crl_txt, "TEST1");
+    CertCRLList ccl1(ccl);
+    ccl2 = ccl1;
+    ccl2 = ccl1;
+    std::string rend2 = ccl2.render_pem();
+
+    CertCRLList ccl3;
+    ccl3.parse_pem_file(CERTDIR "/certcrl.pem");
+    std::string rend3 = ccl3.render_pem();
+
+    ASSERT_EQ(rend2, rend3);
+
+    CertCRLList ccl4(rend3, "TEST2");
+    CertCRLList ccl5(std::move(ccl4));
+    ccl2 = ccl5;
+    rend2 = ccl2.render_pem();
+    ASSERT_EQ(rend2, rend3);
+
+    CertCRLList ccl6(rend3, "TEST3");
+    move_contents(ccl2, ccl6);
+    rend2 = ccl2.render_pem();
+    ASSERT_EQ(rend2, rend3);
+
+    OpenSSLPKI::X509Store xs(ccl2);
+
+    // std::cout << rend2;
+}
+
+constexpr const char *testcert = "-----BEGIN CERTIFICATE-----\n"
+                                 "MIIBuzCCAUCgAwIBAgIUEwa9vm0C63Cc/kFu8lFmOKFUdccwCgYIKoZIzj0EAwIw\n"
+                                 "EzERMA8GA1UEAwwIdW5pdHRlc3QwIBcNMjQwNTE1MTA1NDM3WhgPMjA3OTAyMTYx\n"
+                                 "MDU0MzdaMBMxETAPBgNVBAMMCHVuaXR0ZXN0MHYwEAYHKoZIzj0CAQYFK4EEACID\n"
+                                 "YgAEEVRoVjNQeYLPBlst7a7vxm6KUT5TL8iDel5I7Vt0CD2saQ+E0oUrMrk/W7uB\n"
+                                 "FhbBDbKu+AiXBmudIjQbrx4JiNPD7wouGCY3Up6C6hdDMQAtPqIIWOGj/13OshyY\n"
+                                 "EX/eo1MwUTAdBgNVHQ4EFgQUONymlHRoIr+aGp7kss/Yl5gEOHQwHwYDVR0jBBgw\n"
+                                 "FoAUONymlHRoIr+aGp7kss/Yl5gEOHQwDwYDVR0TAQH/BAUwAwEB/zAKBggqhkjO\n"
+                                 "PQQDAgNpADBmAjEAx4NDBMtTW/4qeSdedxpNH4DCnI5iue+22UNTt/dGWBMzcYF7\n"
+                                 "xW53r2QVcCKzoJABAjEA7//UDtN8gZgfiYaCXh9Qwew8DSsn1+B9mY6e3hQQ00nJ\n"
+                                 "Qv3xi0OJFoAxAQBG0weY\n"
+                                 "-----END CERTIFICATE-----";
+
+void test_output_pem()
+{
+    BIO *bio_in = ::BIO_new_mem_buf(const_cast<char *>(testcert), static_cast<int>(std::strlen(testcert)));
+
+    ::X509 *cert = ::PEM_read_bio_X509(bio_in, nullptr, nullptr, nullptr);
+
+    ASSERT_TRUE(cert);
+
+    std::string pem_out = OpenSSLPKI::X509_get_pem_encoding(cert);
+
+    EXPECT_EQ(pem_out, testcert);
+
+    ::X509_free(cert);
+    ::BIO_free(bio_in);
+}
+
+void test_pkey()
+{
+    std::string pkey_txt = read_text(CERTDIR "/key.pem");
+
+    OpenSSLPKI::PKey pkey, pkey2;
+    pkey.parse_pem(pkey_txt, "TEST0", nullptr);
+    OpenSSLPKI::PKey pkey1(pkey);
+    pkey2 = pkey1;
+    pkey2 = pkey1;
+    std::string rend2 = pkey2.render_pem();
+
+    OpenSSLPKI::PKey pkey3(pkey_txt, "TEST2", nullptr);
+    std::string rend3 = pkey3.render_pem();
+
+    ASSERT_EQ(rend2, rend3);
+
+    OpenSSLPKI::PKey pkey4(rend3, "TEST3", nullptr);
+    OpenSSLPKI::PKey pkey5(std::move(pkey4));
+    pkey2 = pkey5;
+    rend2 = pkey2.render_pem();
+    ASSERT_EQ(rend2, rend3);
+
+    // std::cout << rend2;
+}
+
+void test_dh()
+{
+    std::string dh_txt = read_text(CERTDIR "/dh2048.pem");
+
+    OpenSSLPKI::DH dh, dh2;
+    dh.parse_pem(dh_txt);
+    OpenSSLPKI::DH dh1(dh);
+    dh2 = dh1;
+    dh2 = dh1;
+    std::string rend2 = dh2.render_pem();
+
+    OpenSSLPKI::DH dh3(dh_txt);
+    std::string rend3 = dh3.render_pem();
+
+    ASSERT_EQ(rend2, rend3);
+
+    OpenSSLPKI::DH dh4(rend3);
+    OpenSSLPKI::DH dh5(std::move(dh4));
+    dh2 = dh5;
+    rend2 = dh2.render_pem();
+    ASSERT_EQ(rend2, rend3);
+
+    // std::cout << rend2;
+}
+
+static bool verbose_output = false;
+
+TEST(PKI, crl)
+{
+    override_logOutput(verbose_output, test_cert_crl);
+}
+
+TEST(PKI, pkey)
+{
+    override_logOutput(verbose_output, test_pkey);
+}
+
+TEST(PKI, dh)
+{
+    override_logOutput(verbose_output, test_dh);
+}

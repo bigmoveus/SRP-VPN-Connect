@@ -1,1 +1,72 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlIDxmc3RyZWFtPgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2FyZ3YuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi93aW4vY2FsbC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3R1bi93aW4vdHVudXRpbC5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG46OlR1bldpbjo6VXRpbDsKCm5hbWVzcGFjZSB1bml0dGVzdHMgewpzdGF0aWMgc3RkOjpzdHJpbmcgcGF0aF90b19pcDsKCmNsYXNzIElwSGVscGVyVGVzdCA6IHB1YmxpYyB0ZXN0aW5nOjpUZXN0CnsKICBwcm90ZWN0ZWQ6CiAgICB2b2lkIFNldFVwKCkgb3ZlcnJpZGUKICAgIHsKICAgICAgICAvLyBnZXQgaW5kZXggb2YgZGVmYXVsdCBuZXR3b3JrIGFkYXB0ZXIKICAgICAgICBEV09SRCBhZGRyOwogICAgICAgIGluZXRfcHRvbihBRl9JTkVULCAiOC44LjguOCIsICZhZGRyKTsKICAgICAgICA6OkdldEJlc3RJbnRlcmZhY2UoYWRkciwgJnRhcC5pbmRleCk7CiAgICB9CgogICAgdmlydHVhbCB2b2lkIFRlYXJEb3duKCkgb3ZlcnJpZGUKICAgIHsKICAgICAgICByZW1vdmVfY21kcy5leGVjdXRlKG9zKTsKICAgICAgICByZW1vdmVfY21kcy5jbGVhcigpOwogICAgfQoKICAgIFRhcE5hbWVHdWlkUGFpciB0YXA7CiAgICBBY3Rpb25MaXN0IHJlbW92ZV9jbWRzOwogICAgc3RkOjpvc3RyaW5nc3RyZWFtIG9zOwp9OwoKVEVTVF9GKElwSGVscGVyVGVzdCwgVGVzdEFkZFJvdXRlNCkKewogICAgY29uc3QgY2hhciAqZ3cgPSAiMTAuMTAuMTIzLjEyMyI7CiAgICBjb25zdCBjaGFyICpyb3V0ZSA9ICIxMC4xMC4wLjAiOwogICAgaW50IHJvdXRlX3ByZWZpeCA9IDE2OwogICAgaW50IG1ldHJpYyA9IDEyMzsKCiAgICBUdW5JUEhFTFBFUjo6QWRkUm91dGU0Q21kIGNtZHtyb3V0ZSwgcm91dGVfcHJlZml4LCB0YXAuaW5kZXgsIHRhcC5uYW1lLCBndywgbWV0cmljLCB0cnVlfTsKICAgIHJlbW92ZV9jbWRzLmFkZChuZXcgVHVuSVBIRUxQRVI6OkFkZFJvdXRlNENtZHtyb3V0ZSwgcm91dGVfcHJlZml4LCB0YXAuaW5kZXgsIHRhcC5uYW1lLCBndywgbWV0cmljLCBmYWxzZX0pOwoKICAgIC8vIGFkZCByb3V0ZQogICAgY21kLmV4ZWN1dGUob3MpOwoKICAgIC8vIGdldCBuZXh0IGhvcCBmb3Igcm91dGVkIGFkZHJlc3MKICAgIE1JQl9JUEZPUldBUkRST1cgcm93OwogICAgRFdPUkQgYWRkcjsKICAgIGluZXRfcHRvbihBRl9JTkVULCAiMTAuMTAuMC4zIiwgJmFkZHIpOwogICAgR2V0QmVzdFJvdXRlKGFkZHIsIDAsICZyb3cpOwogICAgY2hhciBuZXh0X2hvcFtJTkVUX0FERFJTVFJMRU5dOwogICAgaW5ldF9udG9wKEFGX0lORVQsICZyb3cuZHdGb3J3YXJkTmV4dEhvcCwgbmV4dF9ob3AsIElORVRfQUREUlNUUkxFTik7CgogICAgLy8gdGhlIG5leHQgaG9wIHNob3VsZCBlcXVhbCByb3V0ZSBndwogICAgQVNTRVJUX1NUUkVRKGd3LCBuZXh0X2hvcCk7Cn0KfSAvLyBuYW1lc3BhY2UgdW5pdHRlc3RzCg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include <fstream>
+#include "test_common.hpp"
+
+#include <openvpn/common/argv.hpp>
+#include <openvpn/win/call.hpp>
+#include <openvpn/tun/win/tunutil.hpp>
+
+using namespace openvpn;
+using namespace openvpn::TunWin::Util;
+
+namespace unittests {
+static std::string path_to_ip;
+
+class IpHelperTest : public testing::Test
+{
+  protected:
+    void SetUp() override
+    {
+        // get index of default network adapter
+        DWORD addr;
+        inet_pton(AF_INET, "8.8.8.8", &addr);
+        ::GetBestInterface(addr, &tap.index);
+    }
+
+    virtual void TearDown() override
+    {
+        remove_cmds.execute(os);
+        remove_cmds.clear();
+    }
+
+    TapNameGuidPair tap;
+    ActionList remove_cmds;
+    std::ostringstream os;
+};
+
+TEST_F(IpHelperTest, TestAddRoute4)
+{
+    const char *gw = "10.10.123.123";
+    const char *route = "10.10.0.0";
+    int route_prefix = 16;
+    int metric = 123;
+
+    TunIPHELPER::AddRoute4Cmd cmd{route, route_prefix, tap.index, tap.name, gw, metric, true};
+    remove_cmds.add(new TunIPHELPER::AddRoute4Cmd{route, route_prefix, tap.index, tap.name, gw, metric, false});
+
+    // add route
+    cmd.execute(os);
+
+    // get next hop for routed address
+    MIB_IPFORWARDROW row;
+    DWORD addr;
+    inet_pton(AF_INET, "10.10.0.3", &addr);
+    GetBestRoute(addr, 0, &row);
+    char next_hop[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &row.dwForwardNextHop, next_hop, INET_ADDRSTRLEN);
+
+    // the next hop should equal route gw
+    ASSERT_STREQ(gw, next_hop);
+}
+} // namespace unittests

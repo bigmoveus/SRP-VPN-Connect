@@ -1,1 +1,207 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgojaW5jbHVkZSA8b3BlbnZwbi9zc2wvY3VzdG9tY29udHJvbGNoYW5uZWwuaHBwPgojaW5jbHVkZSA8cmVnZXg+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCi8vIFRoaXMgbWVzc2FnZSBoYXMgMjE1IGJ5dGVzCmNvbnN0IHN0ZDo6c3RyaW5nIG1lc3NhZ2V0ZXh0ID0gIk9wZW5WUE4gLS0gQW4gYXBwbGljYXRpb24gdG8gc2VjdXJlbHkgdHVubmVsIElQIG5ldHdvcmtzXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm92ZXIgYSBzaW5nbGUgcG9ydCwgd2l0aCBzdXBwb3J0IGZvciBTU0wvVExTLWJhc2VkXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSxcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAicGFja2V0IGVuY3J5cHRpb24sIHBhY2tldCBhdXRoZW50aWNhdGlvbiwgYW5kXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInBhY2tldCBjb21wcmVzc2lvbi4iOwoKc3RhdGljIEFwcENvbnRyb2xNZXNzYWdlQ29uZmlnIGdlbkFDTUMoKQp7CiAgICBBcHBDb250cm9sTWVzc2FnZUNvbmZpZyBhY21jOwoKICAgIGFjbWMuc3VwcG9ydGVkX3Byb3RvY29scyA9IHsiZm9vIiwgImZsb3dlciJ9OwogICAgYWNtYy5tYXhfbXNnX3NpemUgPSAxNDA7CiAgICBhY21jLmVuY29kaW5nX2Jhc2U2NCA9IHRydWU7CiAgICBhY21jLmVuY29kaW5nX3RleHQgPSB0cnVlOwogICAgcmV0dXJuIGFjbWM7Cn0KClRFU1QoY3VzdG9tY29udHJvbGNoYW5uZWwsIG1zZ3JvdW5kdHJpcCkKewogICAgYXV0byBhY21jID0gZ2VuQUNNQygpOwoKICAgIGF1dG8gY29udHJvbG1zZyA9IGFjbWMuZm9ybWF0X21lc3NhZ2UoImZsb3dlciIsIG1lc3NhZ2V0ZXh0KTsKICAgIC8vIFxuIGZvcmNlcyBiYXNlNjQgYW5kIHNob3VsZCB0cmlnZ2VyIHRocmVlIG1lc3NhZ2VzCiAgICBFWFBFQ1RfRVEoY29udHJvbG1zZy5zaXplKCksIDMpOwoKICAgIGJvb2wgcmVjZWl2ZWQ7CgogICAgQXBwQ29udHJvbE1lc3NhZ2VSZWNlaXZlciBhY2NyZWN2OwogICAgZm9yIChjb25zdCBhdXRvICZjbXNnIDogY29udHJvbG1zZykKICAgIHsKICAgICAgICBBU1NFUlRfTEUoY21zZy5zaXplKCksIDE0MCk7CiAgICAgICAgcmVjZWl2ZWQgPSBhY2NyZWN2LnJlY2VpdmVfbWVzc2FnZShjbXNnKTsKICAgIH0KCiAgICBBU1NFUlRfVFJVRShyZWNlaXZlZCk7CgogICAgYXV0byBbcmVjdl9wcm90bywgcmVjZWl2ZWRfbWVzc2FnZV0gPSBhY2NyZWN2LmdldF9tZXNzYWdlKCk7CiAgICBBU1NFUlRfRVEocmVjZWl2ZWRfbWVzc2FnZSwgbWVzc2FnZXRleHQpOwogICAgQVNTRVJUX0VRKHJlY3ZfcHJvdG8sICJmbG93ZXIiKTsKfQoKVEVTVChjdXN0b21jb250cm9sY2hhbm5lbCwgbXNncm91bmR0cmlwYXNjaWkpCnsKICAgIGF1dG8gYWNtYyA9IGdlbkFDTUMoKTsKCiAgICAvLyBSZW1vdmUgc3BlY2lhbCBjaGFycwogICAgYXV0byBtZXNzYWdldGV4dE5vQ1IgPSBzdGQ6OnJlZ2V4X3JlcGxhY2UobWVzc2FnZXRleHQsIHN0ZDo6cmVnZXh7IlxuIn0sICIiKTsKICAgIGF1dG8gY29udHJvbG1zZyA9IGFjbWMuZm9ybWF0X21lc3NhZ2UoImZsb3dlciIsIG1lc3NhZ2V0ZXh0Tm9DUik7CgogICAgLy8gU2hvdWxkIGJlIHRleHQgZW5jb2RpbmcKICAgIEVYUEVDVF9FUShjb250cm9sbXNnLnNpemUoKSwgMik7CgogICAgYm9vbCByZWNlaXZlZDsKICAgIEFwcENvbnRyb2xNZXNzYWdlUmVjZWl2ZXIgYWNjcmVjdnt9OwoKICAgIGZvciAoY29uc3QgYXV0byAmY21zZyA6IGNvbnRyb2xtc2cpCiAgICB7CiAgICAgICAgQVNTRVJUX0xFKGNtc2cuc2l6ZSgpLCAxNDApOwogICAgICAgIHJlY2VpdmVkID0gYWNjcmVjdi5yZWNlaXZlX21lc3NhZ2UoY21zZyk7CiAgICB9CgogICAgQVNTRVJUX1RSVUUocmVjZWl2ZWQpOwogICAgYXV0byBbcmVjdl9wcm90bywgcmVjZWl2ZWRfbWVzc2FnZV0gPSBhY2NyZWN2LmdldF9tZXNzYWdlKCk7CiAgICBBU1NFUlRfRVEocmVjZWl2ZWRfbWVzc2FnZSwgbWVzc2FnZXRleHROb0NSKTsKICAgIEFTU0VSVF9FUShyZWN2X3Byb3RvLCAiZmxvd2VyIik7Cn0KClRFU1QoY3VzdG9tY29udHJvbGNoYW5uZWwsIG1zZ3JvdW5kdHJpcG9uZXBhY2tldCkKewogICAgYXV0byBhY21jID0gZ2VuQUNNQygpOwoKICAgIGFjbWMubWF4X21zZ19zaXplID0gMjAwMDsKICAgIGF1dG8gY29udHJvbG1zZyA9IGFjbWMuZm9ybWF0X21lc3NhZ2UoImZsb3dlciIsIG1lc3NhZ2V0ZXh0KTsKCiAgICAvKiBTaG91bGQgZml0IHRoZSB3aG9sZSBtZXNzYWdlICovCiAgICBFWFBFQ1RfRVEoY29udHJvbG1zZy5zaXplKCksIDEpOwoKICAgIGJvb2wgcmVjZWl2ZWQ7CiAgICBBcHBDb250cm9sTWVzc2FnZVJlY2VpdmVyIGFjY3JlY3Z7fTsKCiAgICByZWNlaXZlZCA9IGFjY3JlY3YucmVjZWl2ZV9tZXNzYWdlKGNvbnRyb2xtc2cuYXQoMCkpOwoKICAgIEFTU0VSVF9UUlVFKHJlY2VpdmVkKTsKICAgIGF1dG8gW3JlY3ZfcHJvdG8sIHJlY2VpdmVkX21lc3NhZ2VdID0gYWNjcmVjdi5nZXRfbWVzc2FnZSgpOwogICAgQVNTRVJUX0VRKHJlY2VpdmVkX21lc3NhZ2UsIG1lc3NhZ2V0ZXh0KTsKICAgIEFTU0VSVF9FUShyZWN2X3Byb3RvLCAiZmxvd2VyIik7Cn0KClRFU1QoY3VzdG9tY29udHJvbGNoYW5uZWwsIHRpbnltZXNzYWdlKQp7CiAgICBzdGQ6OnN0cmluZyByZXF1ZXN0eyJJIHdhbnQgYSBjb29raWUhIn07CiAgICBhdXRvIGFjbWMgPSBnZW5BQ01DKCk7CiAgICBhY21jLnN1cHBvcnRlZF9wcm90b2NvbHMucHVzaF9iYWNrKCJmb3J0dW5lIik7CiAgICBhdXRvIGNtc2dzID0gYWNtYy5mb3JtYXRfbWVzc2FnZSgiZm9ydHVuZSIsIHJlcXVlc3QpOwogICAgRVhQRUNUX0VRKGNtc2dzLnNpemUoKSwgMSk7CgogICAgRVhQRUNUX0VRKGNtc2dzLmF0KDApLCBzdGQ6OnN0cmluZygiQUNDLGZvcnR1bmUsMTYsQSxJIHdhbnQgYSBjb29raWUhIikpOwp9CgpURVNUKGN1c3RvbWNvbnRyb2xjaGFubmVsLCBhY2N0b3N0cikKewogICAgYXV0byBhY21jID0gZ2VuQUNNQygpOwoKICAgIGF1dG8gZGVzYyA9IGFjbWMuc3RyKCk7CiAgICBFWFBFQ1RfRVEoZGVzYywgInByb3RvY29scyBmb28gZmxvd2VyLCBtc2dfc2l6ZSAxNDAsIGVuY29kaW5nIGFzY2lpIGJhc2U2NCIpOwp9CgpURVNUKGN1c3RvbWNvbnRyb2xjaGFubmVsLCByZWN2X3dpdGhfbnVsKQp7CiAgICBzdGQ6OnN0cmluZyBjb250cm9sX21zZ3siQUNDLGZvcnR1bmUsNjQsNixJbnNnSW0xbElqb2dJbVp5YjJjaUxDQUFlR1ptL1NKdGMyY2lPaUFpU1NCaGJTQUFTMlZ5YldsMElpQjlJZz09In07CgogICAgYm9vbCByZWNlaXZlZCA9IGZhbHNlOwogICAgQXBwQ29udHJvbE1lc3NhZ2VSZWNlaXZlciBhY2NyZWN2e307CgoKICAgIHJlY2VpdmVkID0gYWNjcmVjdi5yZWNlaXZlX21lc3NhZ2UoY29udHJvbF9tc2cpOwoKICAgIGNoYXIgZGF0YVtdID0gIlwieyBcIm1lXCI6IFwiZnJvZ1wiLCBcMHhmZlx4ZmRcIm1zZ1wiOiBcIkkgYW0gXDBLZXJtaXRcIiB9XCIiOwogICAgY29uc3Qgc3RkOjpzdHJpbmcgZXhwZWN0ZWRfc3RyaW5ne2RhdGEsIHNpemVvZihkYXRhKSAtIDF9OwoKICAgIEFTU0VSVF9UUlVFKHJlY2VpdmVkKTsKICAgIGF1dG8gW3JlY3ZfcHJvdG8sIHJlY2VpdmVkX21lc3NhZ2VdID0gYWNjcmVjdi5nZXRfbWVzc2FnZSgpOwogICAgQVNTRVJUX0VRKDQ2LCByZWNlaXZlZF9tZXNzYWdlLmxlbmd0aCgpKTsKICAgIEFTU0VSVF9FUShyZWNlaXZlZF9tZXNzYWdlLCBleHBlY3RlZF9zdHJpbmcpOwogICAgQVNTRVJUX0VRKHJlY3ZfcHJvdG8sICJmb3J0dW5lIik7Cn0KClRFU1QoY3VzdG9tY29udHJvbGNoYW5uZWwsIHNlbmRfd2l0aF9udWwpCnsKICAgIGF1dG8gYWNtYyA9IGdlbkFDTUMoKTsKICAgIGFjbWMuc3VwcG9ydGVkX3Byb3RvY29scy5wdXNoX2JhY2soImZvcnR1bmUiKTsKCgogICAgY2hhciBkYXRhW10gPSAiXCJ7IFwibWVcIjogXCJmcm9nXCIsIFwweGZmXHhmZFwibXNnXCI6IFwiSSBhbSBcMEtlcm1pdFwiIH1cIiI7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBzdHJpbmdfd2l0aF9udWx7ZGF0YSwgc2l6ZW9mKGRhdGEpIC0gMX07CgogICAgY29uc3QgYXV0byBjbXNncyA9IGFjbWMuZm9ybWF0X21lc3NhZ2UoImZvcnR1bmUiLCBzdHJpbmdfd2l0aF9udWwpOwoKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIGV4cGVjdGVkX2NvbnRyb2xfbXNneyJBQ0MsZm9ydHVuZSw2NCw2LEluc2dJbTFsSWpvZ0ltWnliMmNpTENBQWVHWm0vU0p0YzJjaU9pQWlTU0JoYlNBQVMyVnliV2wwSWlCOUlnPT0ifTsKCiAgICBFWFBFQ1RfRVEoY21zZ3Muc2l6ZSgpLCAxKTsKICAgIEVYUEVDVF9FUShjbXNnc1swXSwgZXhwZWN0ZWRfY29udHJvbF9tc2cpOwp9CgpURVNUKGN1c3RvbWNvbnRyb2xjaGFubmVsLCB0ZXN0X2luY29ycmVjdF9sZW4pCnsKICAgIHN0ZDo6c3RyaW5nIGNvbnRyb2xfbXNneyJBQ0MsZm9ydHVuZSw2Miw2LEluc2dJbTFsSWpvZ0ltWnliMmNpTENBQWVHWm0vU0p0YzJjaU9pQWlTU0JoYlNBQVMyVnliV2wwSWlCOUlnPT0ifTsKCiAgICBBcHBDb250cm9sTWVzc2FnZVJlY2VpdmVyIGFjY3JlY3Z7fTsKCiAgICBFWFBFQ1RfVEhST1coCiAgICAgICAgYWNjcmVjdi5yZWNlaXZlX21lc3NhZ2UoY29udHJvbF9tc2cpLAogICAgICAgIHBhcnNlX2FjY19tZXNzYWdlKTsKfQoKVEVTVChjdXN0b21jb250cm9sY2hhbm5lbCwgdGVzdF93cm9uZ19oZWFkZXIpCnsKICAgIHN0ZDo6c3RyaW5nIGNvbnRyb2xfbXNneyJBQkMsZm9ydHVuZSw2NCw2LEluc2dJbTFsSWpvZ0ltWnliMmNpTENBQWVHWm0vU0p0YzJjaU9pQWlTU0JoYlNBQVMyVnliV2wwSWlCOUlnPT0ifTsKCiAgICBBcHBDb250cm9sTWVzc2FnZVJlY2VpdmVyIGFjY3JlY3Z7fTsKCiAgICBFWFBFQ1RfVEhST1coCiAgICAgICAgYWNjcmVjdi5yZWNlaXZlX21lc3NhZ2UoY29udHJvbF9tc2cpLAogICAgICAgIHBhcnNlX2FjY19tZXNzYWdlKTsKfQoKVEVTVChjdXN0b21jb250cm9sY2hhbm5lbCwgdGVzdF91bnN1cHBvcnRlZF9lbmNvZGluZykKewogICAgc3RkOjpzdHJpbmcgY29udHJvbF9tc2d7IkFDQyxmb3J0dW5lLDY0LFEsSW5zZ0ltMWxJam9nSW1aeWIyY2lMQ0FBZUdabS9TSnRjMmNpT2lBaVNTQmhiU0FBUzJWeWJXbDBJaUI5SWc9PSJ9OwoKICAgIEFwcENvbnRyb2xNZXNzYWdlUmVjZWl2ZXIgYWNjcmVjdnt9OwoKICAgIEVYUEVDVF9USFJPVygKICAgICAgICBhY2NyZWN2LnJlY2VpdmVfbWVzc2FnZShjb250cm9sX21zZyksCiAgICAgICAgcGFyc2VfYWNjX21lc3NhZ2UpOwp9CgpURVNUKGN1c3RvbWNvbnRyb2xjaGFubmVsLCB0ZXN0X21pc3NpbmdfbWVzc2FnZSkKewogICAgc3RkOjpzdHJpbmcgY29udHJvbF9tc2d7IkFCQyxmb3J0dW5lLDY0LDYifTsKCiAgICBBcHBDb250cm9sTWVzc2FnZVJlY2VpdmVyIGFjY3JlY3Z7fTsKCiAgICBFWFBFQ1RfVEhST1coCiAgICAgICAgYWNjcmVjdi5yZWNlaXZlX21lc3NhZ2UoY29udHJvbF9tc2cpLAogICAgICAgIHBhcnNlX2FjY19tZXNzYWdlKTsKfQ==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+
+#include "test_common.hpp"
+#include <openvpn/ssl/customcontrolchannel.hpp>
+#include <regex>
+
+using namespace openvpn;
+
+// This message has 215 bytes
+const std::string messagetext = "OpenVPN -- An application to securely tunnel IP networks\n"
+                                "over a single port, with support for SSL/TLS-based\n"
+                                "session authentication and key exchange,\n"
+                                "packet encryption, packet authentication, and\n"
+                                "packet compression.";
+
+static AppControlMessageConfig genACMC()
+{
+    AppControlMessageConfig acmc;
+
+    acmc.supported_protocols = {"foo", "flower"};
+    acmc.max_msg_size = 140;
+    acmc.encoding_base64 = true;
+    acmc.encoding_text = true;
+    return acmc;
+}
+
+TEST(customcontrolchannel, msgroundtrip)
+{
+    auto acmc = genACMC();
+
+    auto controlmsg = acmc.format_message("flower", messagetext);
+    // \n forces base64 and should trigger three messages
+    EXPECT_EQ(controlmsg.size(), 3);
+
+    bool received;
+
+    AppControlMessageReceiver accrecv;
+    for (const auto &cmsg : controlmsg)
+    {
+        ASSERT_LE(cmsg.size(), 140);
+        received = accrecv.receive_message(cmsg);
+    }
+
+    ASSERT_TRUE(received);
+
+    auto [recv_proto, received_message] = accrecv.get_message();
+    ASSERT_EQ(received_message, messagetext);
+    ASSERT_EQ(recv_proto, "flower");
+}
+
+TEST(customcontrolchannel, msgroundtripascii)
+{
+    auto acmc = genACMC();
+
+    // Remove special chars
+    auto messagetextNoCR = std::regex_replace(messagetext, std::regex{"\n"}, "");
+    auto controlmsg = acmc.format_message("flower", messagetextNoCR);
+
+    // Should be text encoding
+    EXPECT_EQ(controlmsg.size(), 2);
+
+    bool received;
+    AppControlMessageReceiver accrecv{};
+
+    for (const auto &cmsg : controlmsg)
+    {
+        ASSERT_LE(cmsg.size(), 140);
+        received = accrecv.receive_message(cmsg);
+    }
+
+    ASSERT_TRUE(received);
+    auto [recv_proto, received_message] = accrecv.get_message();
+    ASSERT_EQ(received_message, messagetextNoCR);
+    ASSERT_EQ(recv_proto, "flower");
+}
+
+TEST(customcontrolchannel, msgroundtriponepacket)
+{
+    auto acmc = genACMC();
+
+    acmc.max_msg_size = 2000;
+    auto controlmsg = acmc.format_message("flower", messagetext);
+
+    /* Should fit the whole message */
+    EXPECT_EQ(controlmsg.size(), 1);
+
+    bool received;
+    AppControlMessageReceiver accrecv{};
+
+    received = accrecv.receive_message(controlmsg.at(0));
+
+    ASSERT_TRUE(received);
+    auto [recv_proto, received_message] = accrecv.get_message();
+    ASSERT_EQ(received_message, messagetext);
+    ASSERT_EQ(recv_proto, "flower");
+}
+
+TEST(customcontrolchannel, tinymessage)
+{
+    std::string request{"I want a cookie!"};
+    auto acmc = genACMC();
+    acmc.supported_protocols.push_back("fortune");
+    auto cmsgs = acmc.format_message("fortune", request);
+    EXPECT_EQ(cmsgs.size(), 1);
+
+    EXPECT_EQ(cmsgs.at(0), std::string("ACC,fortune,16,A,I want a cookie!"));
+}
+
+TEST(customcontrolchannel, acctostr)
+{
+    auto acmc = genACMC();
+
+    auto desc = acmc.str();
+    EXPECT_EQ(desc, "protocols foo flower, msg_size 140, encoding ascii base64");
+}
+
+TEST(customcontrolchannel, recv_with_nul)
+{
+    std::string control_msg{"ACC,fortune,64,6,InsgIm1lIjogImZyb2ciLCAAeGZm/SJtc2ciOiAiSSBhbSAAS2VybWl0IiB9Ig=="};
+
+    bool received = false;
+    AppControlMessageReceiver accrecv{};
+
+
+    received = accrecv.receive_message(control_msg);
+
+    char data[] = "\"{ \"me\": \"frog\", \0xff\xfd\"msg\": \"I am \0Kermit\" }\"";
+    const std::string expected_string{data, sizeof(data) - 1};
+
+    ASSERT_TRUE(received);
+    auto [recv_proto, received_message] = accrecv.get_message();
+    ASSERT_EQ(46, received_message.length());
+    ASSERT_EQ(received_message, expected_string);
+    ASSERT_EQ(recv_proto, "fortune");
+}
+
+TEST(customcontrolchannel, send_with_nul)
+{
+    auto acmc = genACMC();
+    acmc.supported_protocols.push_back("fortune");
+
+
+    char data[] = "\"{ \"me\": \"frog\", \0xff\xfd\"msg\": \"I am \0Kermit\" }\"";
+    const std::string string_with_nul{data, sizeof(data) - 1};
+
+    const auto cmsgs = acmc.format_message("fortune", string_with_nul);
+
+    const std::string expected_control_msg{"ACC,fortune,64,6,InsgIm1lIjogImZyb2ciLCAAeGZm/SJtc2ciOiAiSSBhbSAAS2VybWl0IiB9Ig=="};
+
+    EXPECT_EQ(cmsgs.size(), 1);
+    EXPECT_EQ(cmsgs[0], expected_control_msg);
+}
+
+TEST(customcontrolchannel, test_incorrect_len)
+{
+    std::string control_msg{"ACC,fortune,62,6,InsgIm1lIjogImZyb2ciLCAAeGZm/SJtc2ciOiAiSSBhbSAAS2VybWl0IiB9Ig=="};
+
+    AppControlMessageReceiver accrecv{};
+
+    EXPECT_THROW(
+        accrecv.receive_message(control_msg),
+        parse_acc_message);
+}
+
+TEST(customcontrolchannel, test_wrong_header)
+{
+    std::string control_msg{"ABC,fortune,64,6,InsgIm1lIjogImZyb2ciLCAAeGZm/SJtc2ciOiAiSSBhbSAAS2VybWl0IiB9Ig=="};
+
+    AppControlMessageReceiver accrecv{};
+
+    EXPECT_THROW(
+        accrecv.receive_message(control_msg),
+        parse_acc_message);
+}
+
+TEST(customcontrolchannel, test_unsupported_encoding)
+{
+    std::string control_msg{"ACC,fortune,64,Q,InsgIm1lIjogImZyb2ciLCAAeGZm/SJtc2ciOiAiSSBhbSAAS2VybWl0IiB9Ig=="};
+
+    AppControlMessageReceiver accrecv{};
+
+    EXPECT_THROW(
+        accrecv.receive_message(control_msg),
+        parse_acc_message);
+}
+
+TEST(customcontrolchannel, test_missing_message)
+{
+    std::string control_msg{"ABC,fortune,64,6"};
+
+    AppControlMessageReceiver accrecv{};
+
+    EXPECT_THROW(
+        accrecv.receive_message(control_msg),
+        parse_acc_message);
+}

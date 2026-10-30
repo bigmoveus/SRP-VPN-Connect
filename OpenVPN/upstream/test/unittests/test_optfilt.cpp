@@ -1,1 +1,324 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9jbGllbnQvb3B0ZmlsdC5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCmNvbnN0IHN0ZDo6c3RyaW5nIG5vcHVsbF9vcHRpb25zKAogICAgImlwLXdpbjMyXG4iCiAgICAidGFwLXNsZWVwXG4iCiAgICAiYmxvY2staXB2NlxuIgogICAgImNsaWVudC1uYXRcbiIKICAgICJyZWdpc3Rlci1kbnNcbiIKCiAgICAiZGhjcC1yZW5ld1xuIgogICAgImRoY3Atb3B0aW9uXG4iCiAgICAiZGhjcC1yZWxlYXNlXG4iCiAgICAiZGhjcC1wcmUtcmVsZWFzZVxuIgoKICAgICJyb3V0ZSAxLjIuMy40XG4iCiAgICAicm91dGUgMTkyLjE2OC4wLjAgMjU1LjI1NS4yNTUuMFxuIgogICAgInJvdXRlIDEwLjAuMC4wIDI1NS4wLjAuMFxuIgogICAgInJvdXRlLWlwdjZcbiIKICAgICJyb3V0ZS1kZWxheVxuIgogICAgInJvdXRlLW1ldHJpY1xuIgogICAgInJvdXRlLW1ldGhvZFxuIgoKICAgICJyZWRpcmVjdC1nYXRld2F5XG4iCiAgICAicmVkaXJlY3QtcHJpdmF0ZVxuIik7Cgpjb25zdCBzdGQ6OnN0cmluZyBwdWxsX2ZpbHRlcl9vcHRpb25zKAogICAgIm9wdGlvbjEgYXJnMVxuIgogICAgIm9wdGlvbjEgYXJnMlxuIgogICAgIm9wdGlvbjIgXCJhcmcgd2l0aCBzcGFjZVwiXG4iCiAgICAib3B0aW9uMiBcImFyZyAgd2l0aCAgbW9yZSAgc3BhY2VcIlxuIgogICAgIm9wdGlvbjMgYXJnMSBhcmcyXG4iCiAgICAib3B0aW9uMyAgYXJnMSAgYXJnMlxuIgogICAgIm9wdGlvbjEwIHNvbWV0aGluZyBlbHNlXG4iKTsKClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUm91dGVOb3B1bGxFbmFibGVkKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygicm91dGUtbm9wdWxsIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFB1c2hlZE9wdGlvbnNGaWx0ZXIgcm91dGVfbm9wdWxsX2VuYWJsZWQoY2ZnKTsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIGV4dHJhX29wdGlvbigidW5maWx0ZXJlZC1vcHRpb24iKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKG5vcHVsbF9vcHRpb25zICsgZXh0cmFfb3B0aW9uLCBudWxscHRyKTsKICAgIGRzdC5leHRlbmQoc3JjLCAmcm91dGVfbm9wdWxsX2VuYWJsZWQpOwogICAgc3RkOjpzdHJpbmcgZmlsdGVyX291dHB1dCh0ZXN0TG9nLT5zdG9wQ29sbGVjdGluZygpKTsKCiAgICBBU1NFUlRfRVEoMXUsIGRzdC5zaXplKCkpCiAgICAgICAgPDwgIlRvbyBmZXcgb3B0aW9ucyBoYXZlIGJlZW4gZmlsdGVyZWQgYnkgLS1yb3V0ZS1ub3B1bGwiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7CgogICAgZHN0LnVwZGF0ZV9tYXAoKTsKICAgIEFTU0VSVF9UUlVFKGRzdC5leGlzdHMoZXh0cmFfb3B0aW9uKSkKICAgICAgICA8PCAiVGhlIHdyb25nIG9wdGlvbnMgaGF2ZSBiZWVuIGZpbHRlcmVkIGJ5IC0tcm91dGUtbm9wdWxsOiIgPDwgc3RkOjplbmRsCiAgICAgICAgPDwgImV4cGVjdGVkOiAiIDw8IGV4dHJhX29wdGlvbiA8PCAiIGdvdDogIiA8PCBkc3RbMF0ucmVmKDApIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7Cn0KClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUm91dGVOb3B1bGxEaXNhYmxlZCkKewogICAgT3B0aW9uTGlzdCBjZmc7CgogICAgUHVzaGVkT3B0aW9uc0ZpbHRlciByb3V0ZV9ub3B1bGxfZGlzYWJsZWQoY2ZnKTsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIGV4dHJhX29wdGlvbigidW5maWx0ZXJlZC1vcHRpb24iKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKG5vcHVsbF9vcHRpb25zICsgZXh0cmFfb3B0aW9uLCBudWxscHRyKTsKICAgIGRzdC5leHRlbmQoc3JjLCAmcm91dGVfbm9wdWxsX2Rpc2FibGVkKTsKICAgIHN0ZDo6c3RyaW5nIGZpbHRlcl9vdXRwdXQodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7CgogICAgQVNTRVJUX0VRKHNyYy5zaXplKCksIGRzdC5zaXplKCkpCiAgICAgICAgPDwgIlRvbyBtYW55IG9wdGlvbnMgaGF2ZSBiZWVuIGZpbHRlcmVkIGJ5IC0tcm91dGUtbm9wdWxsIiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBmaWx0ZXJfb3V0cHV0Owp9CgpURVNUKFB1c2hlZE9wdGlvbnNGaWx0ZXIsIFB1bGxGaWx0ZXJBY2NlcHRBbGwpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKCJwdWxsLWZpbHRlciBhY2NlcHQgb3B0aW9uIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFB1c2hlZE9wdGlvbnNGaWx0ZXIgZmlsdGVyX25vbmUoY2ZnKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKHB1bGxfZmlsdGVyX29wdGlvbnMsIG51bGxwdHIpOwogICAgZHN0LmV4dGVuZChzcmMsICZmaWx0ZXJfbm9uZSk7CiAgICBzdGQ6OnN0cmluZyBmaWx0ZXJfb3V0cHV0KHRlc3RMb2ctPnN0b3BDb2xsZWN0aW5nKCkpOwoKICAgIEFTU0VSVF9FUShzcmMuc2l6ZSgpLCBkc3Quc2l6ZSgpKQogICAgICAgIDw8ICJOb3QgYWxsIG9wdGlvbnMgaGF2ZSBiZWVuIGFjY2VwdGVkIGJ5IC0tcHVsbC1maWx0ZXIiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7Cn0KClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUHVsbEZpbHRlck1hbGZvcm1lZEFjdGlvbikKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoInB1bGwtZmlsdGVyIG15YWN0aW9uIG1hdGNoIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIEFTU0VSVF9USFJPVyhQdXNoZWRPcHRpb25zRmlsdGVyIHgoY2ZnKSwgb3B0aW9uX2Vycm9yKTsKfQoKVEVTVChQdXNoZWRPcHRpb25zRmlsdGVyLCBQdWxsRmlsdGVyTWFsZm9ybWVkU2hvcnQpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKCJwdWxsLWZpbHRlciBpZ25vcmUiLCBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgQVNTRVJUX1RIUk9XKFB1c2hlZE9wdGlvbnNGaWx0ZXIgeChjZmcpLCBvcHRpb25fZXJyb3IpOwp9CgpURVNUKFB1c2hlZE9wdGlvbnNGaWx0ZXIsIFB1bGxGaWx0ZXJNYWxmb3JtZWRMb25nKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygicHVsbC1maWx0ZXIgaWdub3JlIG9uZSB0d28iLCBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgQVNTRVJUX1RIUk9XKFB1c2hlZE9wdGlvbnNGaWx0ZXIgeChjZmcpLCBvcHRpb25fZXJyb3IpOwp9CgpURVNUKFB1c2hlZE9wdGlvbnNGaWx0ZXIsIFB1bGxGaWx0ZXJTaW5nbGVRdW90ZSkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoInB1bGwtZmlsdGVyIGlnbm9yZSAncm91dGUgMS4yLjMuNCciLCBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICBQdXNoZWRPcHRpb25zRmlsdGVyIGZpbHRlcihjZmcpOwoKICAgIE9wdGlvbkxpc3Qgc3JjOwogICAgT3B0aW9uTGlzdCBkc3Q7CgogICAgZHN0LmV4dGVuZChzcmMsICZmaWx0ZXIpOwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKCJyb3V0ZSAxLjEuMS4xXG5yb3V0ZSAyLjIuMi4yXG5yb3V0ZSAxLjIuMy40IiwgbnVsbHB0cik7CiAgICBkc3QuZXh0ZW5kKHNyYywgJmZpbHRlcik7CiAgICBzdGQ6OnN0cmluZyBmaWx0ZXJfb3V0cHV0KHRlc3RMb2ctPnN0b3BDb2xsZWN0aW5nKCkpOwoKICAgIEFTU0VSVF9FUSgydSwgZHN0LnNpemUoKSkKICAgICAgICA8PCAiVG9vIG1hbnkgb3B0aW9ucyBoYXZlIGJlZW4gYWNjZXB0ZWQgYnkgLS1wdWxsLWZpbHRlciIgPDwgc3RkOjplbmRsCiAgICAgICAgPDwgZmlsdGVyX291dHB1dDsKfQoKVEVTVChQdXNoZWRPcHRpb25zRmlsdGVyLCBQdWxsRmlsdGVyTWlzcGxhY2VkUXVvdGUpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKCJwdWxsLWZpbHRlciBpZ25vcmUgJ2EgYicgYyIsIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBBU1NFUlRfVEhST1coUHVzaGVkT3B0aW9uc0ZpbHRlciB4KGNmZyksIG9wdGlvbl9lcnJvcik7Cn0KClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUHVsbEZpbHRlcklnbm9yZUFsbCkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoInB1bGwtZmlsdGVyIGlnbm9yZSBvcHRpb24iLCBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUHVzaGVkT3B0aW9uc0ZpbHRlciBmaWx0ZXJfYWxsKGNmZyk7CgogICAgT3B0aW9uTGlzdCBzcmM7CiAgICBPcHRpb25MaXN0IGRzdDsKCiAgICB0ZXN0TG9nLT5zdGFydENvbGxlY3RpbmcoKTsKICAgIHNyYy5wYXJzZV9mcm9tX2NvbmZpZyhwdWxsX2ZpbHRlcl9vcHRpb25zLCBudWxscHRyKTsKICAgIGRzdC5leHRlbmQoc3JjLCAmZmlsdGVyX2FsbCk7CiAgICBzdGQ6OnN0cmluZyBmaWx0ZXJfb3V0cHV0KHRlc3RMb2ctPnN0b3BDb2xsZWN0aW5nKCkpOwoKICAgIEFTU0VSVF9FUSgwdSwgZHN0LnNpemUoKSkKICAgICAgICA8PCAiTm90IGFsbCBvcHRpb25zIGhhdmUgYmVlbiBpZ25vcmVkIGJ5IC0tcHVsbC1maWx0ZXIiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7Cn0KClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUHVsbEZpbHRlclJlamVjdE9uZSkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoInB1bGwtZmlsdGVyIHJlamVjdCBvcHRpb24xMCIsIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBQdXNoZWRPcHRpb25zRmlsdGVyIHJlamVjdF9vcHQxMChjZmcpOwoKICAgIE9wdGlvbkxpc3Qgc3JjOwogICAgT3B0aW9uTGlzdCBkc3Q7CgogICAgdGVzdExvZy0+c3RhcnRDb2xsZWN0aW5nKCk7CiAgICBzcmMucGFyc2VfZnJvbV9jb25maWcocHVsbF9maWx0ZXJfb3B0aW9ucywgbnVsbHB0cik7CiAgICBKWV9FWFBFQ1RfVEhST1coZHN0LmV4dGVuZChzcmMsICZyZWplY3Rfb3B0MTApLCBPcHRpb246OlJlamVjdGVkRXhjZXB0aW9uLCAib3B0aW9uMTAiKQogICAgdGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKTsKfQoKVEVTVChQdXNoZWRPcHRpb25zRmlsdGVyLCBQdWxsRmlsdGVyQWNjZXB0V2hpdGVzcGFjZSkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInB1bGwtZmlsdGVyIGFjY2VwdCBcIm9wdGlvbjMgYXJnMSBhcmcyXCJcbiIKICAgICAgICAicHVsbC1maWx0ZXIgaWdub3JlIG9wdGlvbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFB1c2hlZE9wdGlvbnNGaWx0ZXIgYWNjZXB0X29wdDMoY2ZnKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKHB1bGxfZmlsdGVyX29wdGlvbnMsIG51bGxwdHIpOwogICAgZHN0LmV4dGVuZChzcmMsICZhY2NlcHRfb3B0Myk7CiAgICBzdGQ6OnN0cmluZyBmaWx0ZXJfb3V0cHV0KHRlc3RMb2ctPnN0b3BDb2xsZWN0aW5nKCkpOwoKICAgIEFTU0VSVF9FUSgydSwgZHN0LnNpemUoKSkKICAgICAgICA8PCAiTm90IGFsbCBvcHRpb24zJ3MgaGF2ZSBiZWVuIGFjY2VwdGVkIGJ5IC0tcHVsbC1maWx0ZXIiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7Cn0KClRFU1QoUHVzaGVkT3B0aW9uc0ZpbHRlciwgUHVsbEZpbHRlcklnbm9yZVF1b3RlZFdoaXRlc3BhY2UpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICJwdWxsLWZpbHRlciBhY2NlcHQgXCJvcHRpb24yIFxcXCJhcmcgd2l0aCBzcGFjZVxcXCJcIlxuIgogICAgICAgICJwdWxsLWZpbHRlciBpZ25vcmUgb3B0aW9uIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUHVzaGVkT3B0aW9uc0ZpbHRlciBhY2NlcHRfb3B0Ml9zaW5nbGVfc3BhY2UoY2ZnKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKHB1bGxfZmlsdGVyX29wdGlvbnMsIG51bGxwdHIpOwogICAgZHN0LmV4dGVuZChzcmMsICZhY2NlcHRfb3B0Ml9zaW5nbGVfc3BhY2UpOwogICAgc3RkOjpzdHJpbmcgZmlsdGVyX291dHB1dCh0ZXN0TG9nLT5zdG9wQ29sbGVjdGluZygpKTsKCiAgICBBU1NFUlRfRVEoMXUsIGRzdC5zaXplKCkpCiAgICAgICAgPDwgIlRvbyBtYW55IG9wdGlvbnMgaGF2ZSBiZWVuIGFjY2VwdGVkIGJ5IC0tcHVsbC1maWx0ZXIiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7CgogICAgZHN0LnVwZGF0ZV9tYXAoKTsKICAgIEFTU0VSVF9FUShkc3RbMF0ucmVmKDEpLCAiYXJnIHdpdGggc3BhY2UiKQogICAgICAgIDw8ICJUb28gbWFueSBvcHRpb25zIGhhdmUgYmVlbiBhY2NlcHRlZCBieSAtLXB1bGwtZmlsdGVyIiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBmaWx0ZXJfb3V0cHV0Owp9CgpURVNUKFB1c2hlZE9wdGlvbnNGaWx0ZXIsIFB1bGxGaWx0ZXJPdmVycmlkZVJvdXRlTm9wdWxsKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicHVsbC1maWx0ZXIgaWdub3JlIFwicm91dGUgMS4yLjMuNFwiXG4iCiAgICAgICAgInB1bGwtZmlsdGVyIGlnbm9yZSByb3V0ZS1cbiIKICAgICAgICAicm91dGUtbm9wdWxsXG4iCiAgICAgICAgInB1bGwtZmlsdGVyIGFjY2VwdCByb3V0ZVxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUHVzaGVkT3B0aW9uc0ZpbHRlciBvdmVycmlkZV9yb3V0ZV9ub3B1bGwoY2ZnKTsKCiAgICBPcHRpb25MaXN0IHNyYzsKICAgIE9wdGlvbkxpc3QgZHN0OwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgc3JjLnBhcnNlX2Zyb21fY29uZmlnKG5vcHVsbF9vcHRpb25zLCBudWxscHRyKTsKICAgIGRzdC5leHRlbmQoc3JjLCAmb3ZlcnJpZGVfcm91dGVfbm9wdWxsKTsKICAgIHN0ZDo6c3RyaW5nIGZpbHRlcl9vdXRwdXQodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7CgogICAgQVNTRVJUX0VRKDJ1LCBkc3Quc2l6ZSgpKQogICAgICAgIDw8ICJFeHBlY3RlZCB0d28gcm91dGUgb3B0aW9uIHRvIGJlIGFjY2VwdGVkIiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBmaWx0ZXJfb3V0cHV0OwoKICAgIGRzdC51cGRhdGVfbWFwKCk7CiAgICBBU1NFUlRfRVEoZHN0WzBdLnJlZigwKSwgInJvdXRlIikKICAgICAgICA8PCBkc3RbMF0ucmVmKDApIDw8ICIgaW5zdGVhZCBvZiByb3V0ZSBvcHRpb24gaGFzIGJlZW4gYWNjZXB0ZWQiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7CiAgICBBU1NFUlRfRVEoZHN0WzFdLnJlZigwKSwgInJvdXRlIikKICAgICAgICA8PCBkc3RbMV0ucmVmKDApIDw8ICIgaW5zdGVhZCBvZiByb3V0ZSBvcHRpb24gaGFzIGJlZW4gYWNjZXB0ZWQiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IGZpbHRlcl9vdXRwdXQ7CiAgICBBU1NFUlRfRVEoM3UsIGRzdFswXS5zaXplKCkpCiAgICAgICAgPDwgIlRoZSBob3N0IHJvdXRlIG9wdGlvbiBoYXMgYmVlbiBhY2NlcHRlZCwgZXhwZWN0ZWQgbmV0d29yayByb3V0ZSIgPDwgc3RkOjplbmRsCiAgICAgICAgPDwgZmlsdGVyX291dHB1dDsKICAgIEFTU0VSVF9FUSgzdSwgZHN0WzFdLnNpemUoKSkKICAgICAgICA8PCAiVGhlIGhvc3Qgcm91dGUgb3B0aW9uIGhhcyBiZWVuIGFjY2VwdGVkLCBleHBlY3RlZCBuZXR3b3JrIHJvdXRlIiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBmaWx0ZXJfb3V0cHV0Owp9CgpURVNUKFB1c2hlZE9wdGlvbnNGaWx0ZXIsIFJlamVjdERuc1NlcnZlclByaW9OZWdhdGl2ZSkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBQdXNoZWRPcHRpb25zRmlsdGVyIGZpbHRlcl9zdGF0aWMoY2ZnKTsKCiAgICBjb25zdCBzdGQ6OnN0cmluZyBvcHQgPSAiZG5zIHNlcnZlciAtMSBhZGRyZXNzIDo6MSI7CgogICAgT3B0aW9uTGlzdCBzcmM7CiAgICBPcHRpb25MaXN0IGRzdDsKICAgIHNyYy5wYXJzZV9mcm9tX2NvbmZpZyhvcHQsIG51bGxwdHIpOwogICAgc3JjLnVwZGF0ZV9tYXAoKTsKCiAgICB0ZXN0TG9nLT5zdGFydENvbGxlY3RpbmcoKTsKICAgIEpZX0VYUEVDVF9USFJPVyhkc3QuZXh0ZW5kKHNyYywgJmZpbHRlcl9zdGF0aWMpLCBvcHRpb25fZXJyb3IsIG9wdCkKICAgIHN0ZDo6c3RyaW5nIGZpbHRlcl9vdXRwdXQodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/client/optfilt.hpp>
+
+using namespace openvpn;
+
+const std::string nopull_options(
+    "ip-win32\n"
+    "tap-sleep\n"
+    "block-ipv6\n"
+    "client-nat\n"
+    "register-dns\n"
+
+    "dhcp-renew\n"
+    "dhcp-option\n"
+    "dhcp-release\n"
+    "dhcp-pre-release\n"
+
+    "route 1.2.3.4\n"
+    "route 192.168.0.0 255.255.255.0\n"
+    "route 10.0.0.0 255.0.0.0\n"
+    "route-ipv6\n"
+    "route-delay\n"
+    "route-metric\n"
+    "route-method\n"
+
+    "redirect-gateway\n"
+    "redirect-private\n");
+
+const std::string pull_filter_options(
+    "option1 arg1\n"
+    "option1 arg2\n"
+    "option2 \"arg with space\"\n"
+    "option2 \"arg  with  more  space\"\n"
+    "option3 arg1 arg2\n"
+    "option3  arg1  arg2\n"
+    "option10 something else\n");
+
+TEST(PushedOptionsFilter, RouteNopullEnabled)
+{
+    OptionList cfg;
+    cfg.parse_from_config("route-nopull", nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter route_nopull_enabled(cfg);
+    const std::string extra_option("unfiltered-option");
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(nopull_options + extra_option, nullptr);
+    dst.extend(src, &route_nopull_enabled);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(1u, dst.size())
+        << "Too few options have been filtered by --route-nopull" << std::endl
+        << filter_output;
+
+    dst.update_map();
+    ASSERT_TRUE(dst.exists(extra_option))
+        << "The wrong options have been filtered by --route-nopull:" << std::endl
+        << "expected: " << extra_option << " got: " << dst[0].ref(0) << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, RouteNopullDisabled)
+{
+    OptionList cfg;
+
+    PushedOptionsFilter route_nopull_disabled(cfg);
+    const std::string extra_option("unfiltered-option");
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(nopull_options + extra_option, nullptr);
+    dst.extend(src, &route_nopull_disabled);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(src.size(), dst.size())
+        << "Too many options have been filtered by --route-nopull" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterAcceptAll)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter accept option", nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter filter_none(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(pull_filter_options, nullptr);
+    dst.extend(src, &filter_none);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(src.size(), dst.size())
+        << "Not all options have been accepted by --pull-filter" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterMalformedAction)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter myaction match", nullptr);
+    cfg.update_map();
+
+    ASSERT_THROW(PushedOptionsFilter x(cfg), option_error);
+}
+
+TEST(PushedOptionsFilter, PullFilterMalformedShort)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter ignore", nullptr);
+    cfg.update_map();
+
+    ASSERT_THROW(PushedOptionsFilter x(cfg), option_error);
+}
+
+TEST(PushedOptionsFilter, PullFilterMalformedLong)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter ignore one two", nullptr);
+    cfg.update_map();
+
+    ASSERT_THROW(PushedOptionsFilter x(cfg), option_error);
+}
+
+TEST(PushedOptionsFilter, PullFilterSingleQuote)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter ignore 'route 1.2.3.4'", nullptr);
+    cfg.update_map();
+    PushedOptionsFilter filter(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    dst.extend(src, &filter);
+
+    testLog->startCollecting();
+    src.parse_from_config("route 1.1.1.1\nroute 2.2.2.2\nroute 1.2.3.4", nullptr);
+    dst.extend(src, &filter);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(2u, dst.size())
+        << "Too many options have been accepted by --pull-filter" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterMisplacedQuote)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter ignore 'a b' c", nullptr);
+    cfg.update_map();
+
+    ASSERT_THROW(PushedOptionsFilter x(cfg), option_error);
+}
+
+TEST(PushedOptionsFilter, PullFilterIgnoreAll)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter ignore option", nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter filter_all(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(pull_filter_options, nullptr);
+    dst.extend(src, &filter_all);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(0u, dst.size())
+        << "Not all options have been ignored by --pull-filter" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterRejectOne)
+{
+    OptionList cfg;
+    cfg.parse_from_config("pull-filter reject option10", nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter reject_opt10(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(pull_filter_options, nullptr);
+    JY_EXPECT_THROW(dst.extend(src, &reject_opt10), Option::RejectedException, "option10")
+    testLog->stopCollecting();
+}
+
+TEST(PushedOptionsFilter, PullFilterAcceptWhitespace)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "pull-filter accept \"option3 arg1 arg2\"\n"
+        "pull-filter ignore option",
+        nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter accept_opt3(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(pull_filter_options, nullptr);
+    dst.extend(src, &accept_opt3);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(2u, dst.size())
+        << "Not all option3's have been accepted by --pull-filter" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterIgnoreQuotedWhitespace)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "pull-filter accept \"option2 \\\"arg with space\\\"\"\n"
+        "pull-filter ignore option",
+        nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter accept_opt2_single_space(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(pull_filter_options, nullptr);
+    dst.extend(src, &accept_opt2_single_space);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(1u, dst.size())
+        << "Too many options have been accepted by --pull-filter" << std::endl
+        << filter_output;
+
+    dst.update_map();
+    ASSERT_EQ(dst[0].ref(1), "arg with space")
+        << "Too many options have been accepted by --pull-filter" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, PullFilterOverrideRouteNopull)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "pull-filter ignore \"route 1.2.3.4\"\n"
+        "pull-filter ignore route-\n"
+        "route-nopull\n"
+        "pull-filter accept route\n",
+        nullptr);
+    cfg.update_map();
+
+    PushedOptionsFilter override_route_nopull(cfg);
+
+    OptionList src;
+    OptionList dst;
+
+    testLog->startCollecting();
+    src.parse_from_config(nopull_options, nullptr);
+    dst.extend(src, &override_route_nopull);
+    std::string filter_output(testLog->stopCollecting());
+
+    ASSERT_EQ(2u, dst.size())
+        << "Expected two route option to be accepted" << std::endl
+        << filter_output;
+
+    dst.update_map();
+    ASSERT_EQ(dst[0].ref(0), "route")
+        << dst[0].ref(0) << " instead of route option has been accepted" << std::endl
+        << filter_output;
+    ASSERT_EQ(dst[1].ref(0), "route")
+        << dst[1].ref(0) << " instead of route option has been accepted" << std::endl
+        << filter_output;
+    ASSERT_EQ(3u, dst[0].size())
+        << "The host route option has been accepted, expected network route" << std::endl
+        << filter_output;
+    ASSERT_EQ(3u, dst[1].size())
+        << "The host route option has been accepted, expected network route" << std::endl
+        << filter_output;
+}
+
+TEST(PushedOptionsFilter, RejectDnsServerPrioNegative)
+{
+    OptionList cfg;
+    PushedOptionsFilter filter_static(cfg);
+
+    const std::string opt = "dns server -1 address ::1";
+
+    OptionList src;
+    OptionList dst;
+    src.parse_from_config(opt, nullptr);
+    src.update_map();
+
+    testLog->startCollecting();
+    JY_EXPECT_THROW(dst.extend(src, &filter_static), option_error, opt)
+    std::string filter_output(testLog->stopCollecting());
+}

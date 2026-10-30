@@ -1,1 +1,83 @@
-Cm9wdGlvbihDTElfTlVMTFRVTiAiQnVpbGQgb3ZwbmNsaSB2YXJpYW50IHdpdGggbnVsbCB0dW4iIE9GRikKb3B0aW9uKENMSV9LT1ZQTiAiQnVpbGQgb3ZwbmNsaSB2YXJpYW50IHdpdGgga292cG4ga2VybmVsIG1vZHVsZSBzdXBwb3J0IiBPRkYpCm9wdGlvbihDTElfT1ZQTkRDTyAiQnVpbGQgb3ZwbmNsaSB3aXRoIG92cG4tZGNvIGtlcm5lbCBtb2R1bGUgc3VwcG9ydCIgT0ZGKQpvcHRpb24oQ0xJX09WUE5EQ09XSU4gIkJ1aWxkIG92cG5jbGkgd2l0aCBvdnBuLWRjby13aW4gZHJpdmVyIHN1cHBvcnQiIE9GRikKb3B0aW9uKENMSV9UVU5CVUlMREVSICJCdWlsZCBvdnBuY2xpIHdpdGggdHVuYnVpbGRlciBpbnRlcmZhY2Ugc3VwcG9ydCIgT0ZGKQoKc2V0KEtPVlBOX1NPVVJDRSAiJHtDT1JFX0RJUn0vLi4va292cG4iIENBQ0hFIFBBVEggIm92cG4tZGNvIGtlcm5lbCBtb2R1bGUgc291cmNlIHRyZWUiKQoKYWRkX2xpYnJhcnkoCiAgICAgICAgeGtleQogICAgICAgICR7Q09SRV9ESVJ9L29wZW52cG4vb3BlbnNzbC94a2V5L3hrZXlfaGVscGVyLmMKICAgICAgICAke0NPUkVfRElSfS9vcGVudnBuL29wZW5zc2wveGtleS94a2V5X3Byb3ZpZGVyLmMKKQoKdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMoeGtleSBJTlRFUkZBQ0UgLURFTkFCTEVfRVhURVJOQUxfUEtJKQphZGRfc3NsX2xpYnJhcnkoeGtleSkKCgphZGRfZXhlY3V0YWJsZShvdnBuY2xpIGNsaS5jcHApCnRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKG92cG5jbGkgUFJJVkFURSkKdGFyZ2V0X2xpbmtfbGlicmFyaWVzKG92cG5jbGkgeGtleSkKCmFkZF9jb3JlX2RlcGVuZGVuY2llcyhvdnBuY2xpKQoKaWYgKCR7Q0xJX05VTExUVU59KQogICAgYWRkX2V4ZWN1dGFibGUob3ZwbmNsaW51bGwgY2xpLmNwcCkKICAgIGFkZF9jb3JlX2RlcGVuZGVuY2llcyhvdnBuY2xpbnVsbCkKICAgIHRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKG92cG5jbGludWxsIFBSSVZBVEUgLURPUEVOVlBOX0ZPUkNFX1RVTl9OVUxMKQogICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKG92cG5jbGludWxsIHhrZXkpCmVuZGlmICgpCgppZiAoJHtDTElfS09WUE59KQogICAgYWRkX2V4ZWN1dGFibGUob3ZwbmNsaWtvdnBuIGNsaS5jcHApCiAgICBhZGRfY29yZV9kZXBlbmRlbmNpZXMob3ZwbmNsaWtvdnBuKQogICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKG92cG5jbGlrb3ZwbiB4a2V5KQoKICAgIHRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKG92cG5jbGlrb3ZwbiBQUklWQVRFIC1ERU5BQkxFX0tPVlBOCiAgICAgIC1ET1BFTlZQTl9SRU1PVEVfT1ZFUlJJREUgLURQUklWQVRFX1RVTk5FTF9QUk9YWSkKCiAgICBpbmNsdWRlKGtvdnBuKQogICAgYWRkX2tvdnBuX2RlcGVuZGVuY3kob3ZwbmNsaWtvdnBuKQogICAgdGFyZ2V0X2luY2x1ZGVfZGlyZWN0b3JpZXMob3ZwbmNsaWtvdnBuIFBSSVZBVEUgJHtLT1ZQTl9TT1VSQ0V9KQoKZW5kaWYoKQoKaWYgKCR7Q0xJX09WUE5EQ099KQogICAgdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMob3ZwbmNsaSBQUklWQVRFIC1ERU5BQkxFX09WUE5EQ08gKQoKICAgIGZpbmRfcGFja2FnZShQa2dDb25maWcpCiAgICBwa2dfc2VhcmNoX21vZHVsZShMSUJOTCBSRVFVSVJFRCBsaWJubC1nZW5sLTMuMCkKCiAgICB0YXJnZXRfaW5jbHVkZV9kaXJlY3RvcmllcyhvdnBuY2xpIFBSSVZBVEUgJHtMSUJOTF9JTkNMVURFX0RJUlN9KQogICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKG92cG5jbGkgJHtMSUJOTF9MSUJSQVJJRVN9KQplbmRpZigpCgppZiAoV0lOMzIpCiAgICBhZGRfZXhlY3V0YWJsZShvdnBuY2xpYWdlbnQgY2xpLmNwcCkKICAgIGFkZF9jb3JlX2RlcGVuZGVuY2llcyhvdnBuY2xpYWdlbnQpCiAgICBhZGRfanNvbl9saWJyYXJ5KG92cG5jbGlhZ2VudCkKICAgIHRhcmdldF9saW5rX2xpYnJhcmllcyhvdnBuY2xpYWdlbnQgeGtleSkKICAgIHRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKG92cG5jbGlhZ2VudCBQUklWQVRFIE9QRU5WUE5fQ09NTUFORF9BR0VOVAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgT1ZQTkFHRU5UX0RJU0FCTEVfUEFUSF9DSEVDSykKCiAgICBpZiAoJHtDTElfT1ZQTkRDT1dJTn0pCiAgICAgICAgdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMob3ZwbmNsaWFnZW50IFBSSVZBVEUgRU5BQkxFX09WUE5EQ09XSU4pCiAgICAgICAgdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMob3ZwbmNsaSBQUklWQVRFIEVOQUJMRV9PVlBORENPV0lOKQogICAgICAgIHRhcmdldF9saW5rX2xpYnJhcmllcyhvdnBuY2xpICJiY3J5cHQubGliIikKICAgICAgICB0YXJnZXRfbGlua19saWJyYXJpZXMob3ZwbmNsaWFnZW50ICJiY3J5cHQubGliIikKICAgIGVuZGlmKCkKZW5kaWYgKCkKCmlmIChBUFBMRSkKICAgIGFkZF9leGVjdXRhYmxlKG92cG5jbGlhZ2VudCBjbGkuY3BwKQogICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKHhrZXkpCiAgICBhZGRfY29yZV9kZXBlbmRlbmNpZXMob3ZwbmNsaWFnZW50KQogICAgYWRkX2pzb25fbGlicmFyeShvdnBuY2xpYWdlbnQpCiAgICB0YXJnZXRfY29tcGlsZV9kZWZpbml0aW9ucyhvdnBuY2xpYWdlbnQgUFJJVkFURSAtRE9QRU5WUE5fQ09NTUFORF9BR0VOVCkKZW5kaWYgKCkKCmlmICgke0NMSV9UVU5CVUlMREVSfSkKICAgIHRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKG92cG5jbGkgUFJJVkFURSBVU0VfVFVOX0JVSUxERVIpCmVuZGlmICgpCg==
+
+option(CLI_NULLTUN "Build ovpncli variant with null tun" OFF)
+option(CLI_KOVPN "Build ovpncli variant with kovpn kernel module support" OFF)
+option(CLI_OVPNDCO "Build ovpncli with ovpn-dco kernel module support" OFF)
+option(CLI_OVPNDCOWIN "Build ovpncli with ovpn-dco-win driver support" OFF)
+option(CLI_TUNBUILDER "Build ovpncli with tunbuilder interface support" OFF)
+
+set(KOVPN_SOURCE "${CORE_DIR}/../kovpn" CACHE PATH "ovpn-dco kernel module source tree")
+
+add_library(
+        xkey
+        ${CORE_DIR}/openvpn/openssl/xkey/xkey_helper.c
+        ${CORE_DIR}/openvpn/openssl/xkey/xkey_provider.c
+)
+
+target_compile_definitions(xkey INTERFACE -DENABLE_EXTERNAL_PKI)
+add_ssl_library(xkey)
+
+
+add_executable(ovpncli cli.cpp)
+target_compile_definitions(ovpncli PRIVATE)
+target_link_libraries(ovpncli xkey)
+
+add_core_dependencies(ovpncli)
+
+if (${CLI_NULLTUN})
+    add_executable(ovpnclinull cli.cpp)
+    add_core_dependencies(ovpnclinull)
+    target_compile_definitions(ovpnclinull PRIVATE -DOPENVPN_FORCE_TUN_NULL)
+    target_link_libraries(ovpnclinull xkey)
+endif ()
+
+if (${CLI_KOVPN})
+    add_executable(ovpnclikovpn cli.cpp)
+    add_core_dependencies(ovpnclikovpn)
+    target_link_libraries(ovpnclikovpn xkey)
+
+    target_compile_definitions(ovpnclikovpn PRIVATE -DENABLE_KOVPN
+      -DOPENVPN_REMOTE_OVERRIDE -DPRIVATE_TUNNEL_PROXY)
+
+    include(kovpn)
+    add_kovpn_dependency(ovpnclikovpn)
+    target_include_directories(ovpnclikovpn PRIVATE ${KOVPN_SOURCE})
+
+endif()
+
+if (${CLI_OVPNDCO})
+    target_compile_definitions(ovpncli PRIVATE -DENABLE_OVPNDCO )
+
+    find_package(PkgConfig)
+    pkg_search_module(LIBNL REQUIRED libnl-genl-3.0)
+
+    target_include_directories(ovpncli PRIVATE ${LIBNL_INCLUDE_DIRS})
+    target_link_libraries(ovpncli ${LIBNL_LIBRARIES})
+endif()
+
+if (WIN32)
+    add_executable(ovpncliagent cli.cpp)
+    add_core_dependencies(ovpncliagent)
+    add_json_library(ovpncliagent)
+    target_link_libraries(ovpncliagent xkey)
+    target_compile_definitions(ovpncliagent PRIVATE OPENVPN_COMMAND_AGENT
+                                                    OVPNAGENT_DISABLE_PATH_CHECK)
+
+    if (${CLI_OVPNDCOWIN})
+        target_compile_definitions(ovpncliagent PRIVATE ENABLE_OVPNDCOWIN)
+        target_compile_definitions(ovpncli PRIVATE ENABLE_OVPNDCOWIN)
+        target_link_libraries(ovpncli "bcrypt.lib")
+        target_link_libraries(ovpncliagent "bcrypt.lib")
+    endif()
+endif ()
+
+if (APPLE)
+    add_executable(ovpncliagent cli.cpp)
+    target_link_libraries(xkey)
+    add_core_dependencies(ovpncliagent)
+    add_json_library(ovpncliagent)
+    target_compile_definitions(ovpncliagent PRIVATE -DOPENVPN_COMMAND_AGENT)
+endif ()
+
+if (${CLI_TUNBUILDER})
+    target_compile_definitions(ovpncli PRIVATE USE_TUN_BUILDER)
+endif ()

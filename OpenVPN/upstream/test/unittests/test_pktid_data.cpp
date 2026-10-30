@@ -1,1 +1,264 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NyeXB0by9wYWNrZXRfaWRfY29udHJvbC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NyeXB0by9wYWNrZXRfaWRfZGF0YS5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnN0cnVjdCBQYWNrZXRJRERhdGFDb25zdHJ1Y3QgOiBwdWJsaWMgUGFja2V0SUREYXRhCnsKICAgIGV4cGxpY2l0IFBhY2tldElERGF0YUNvbnN0cnVjdChjb25zdCBQYWNrZXRJRERhdGE6OmRhdGFfaWRfdCB2X2lkID0gUGFja2V0SUREYXRhOjpkYXRhX2lkX3R7MH0sIGJvb2wgd2lkZSA9IGZhbHNlKQogICAgICAgIDogUGFja2V0SUREYXRhKHdpZGUpCiAgICB7CiAgICAgICAgaWQgPSB2X2lkOwogICAgfQp9OwoKdGVtcGxhdGUgPHR5cGVuYW1lIFBJRFJlY3Y+CnZvaWQgdGVzdGNhc2UoUElEUmVjdiAmcHIsCiAgICAgICAgICAgICAgY29uc3Qgc3RkOjp0aW1lX3QgdCwKICAgICAgICAgICAgICBjb25zdCBQYWNrZXRJRERhdGE6OmRhdGFfaWRfdCBwa3RfaWQsCiAgICAgICAgICAgICAgY29uc3QgRXJyb3I6OlR5cGUgZXhwZWN0ZWRfc3RhdHVzKQp7CiAgICBib29sIHdpZGUgPSBwci5sZW5ndGgoKSA+IDQ7CiAgICBjb25zdCBQYWNrZXRJRERhdGFDb25zdHJ1Y3QgcGlkKHBrdF9pZCwgd2lkZSk7CiAgICBjb25zdCBFcnJvcjo6VHlwZSBzdGF0dXMgPSBwci5kb190ZXN0X2FkZChwaWQsIHQpOwogICAgLy8gT1BFTlZQTl9MT0coIlsiIDw8IHQgPDwgIl0gaWQ9IiA8PCBwa3RfaWQgPDwgJyAnIDw8IEVycm9yOjpuYW1lKHN0YXR1cykpOwogICAgQVNTRVJUX0VRKHN0YXR1cywgZXhwZWN0ZWRfc3RhdHVzKTsKfQoKdm9pZCBkb19wYWNrZXRfaWRfcmVjdl90ZXN0X3Nob3J0X2lkcyhib29sIHVzZXdpZGUpCnsKICAgIHR5cGVkZWYgUGFja2V0SUREYXRhUmVjZWl2ZVR5cGU8MywgNT4gUElEUmVjdjsKICAgIFNlc3Npb25TdGF0czo6UHRyIHN0YXRzKG5ldyBTZXNzaW9uU3RhdHMoKSk7CiAgICBQSURSZWN2IHByOwogICAgcHIuaW5pdCgidGVzdCIsIDAsIHVzZXdpZGUpOwoKICAgIHRlc3RjYXNlKHByLCAwLCAwLCBFcnJvcjo6UEtUSURfSU5WQUxJRCk7CiAgICB0ZXN0Y2FzZShwciwgMSwgMSwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDEsIDEsIEVycm9yOjpQS1RJRF9SRVBMQVkpOyAvKiByZXBsYXkgKi8KICAgIHRlc3RjYXNlKHByLCAyLCAyLCBFcnJvcjo6U1VDQ0VTUyk7CiAgICB0ZXN0Y2FzZShwciwgMywgNCwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDQsIDEsIEVycm9yOjpQS1RJRF9SRVBMQVkpOyAvKiByZXBsYXkgKi8KICAgIHRlc3RjYXNlKHByLCA1LCAzLCBFcnJvcjo6U1VDQ0VTUyk7CgogICAgdGVzdGNhc2UocHIsIDYsIDgsIEVycm9yOjpTVUNDRVNTKTsKICAgIHRlc3RjYXNlKHByLCAxMCwgNSwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDE1LCA3LCBFcnJvcjo6UEtUSURfRVhQSVJFKTsgLyogZXhwaXJlIGJhY2t0cmFjayAqLwoKICAgIHRlc3RjYXNlKHByLCAyMCwgMTI3LCBFcnJvcjo6U1VDQ0VTUyk7CiAgICB0ZXN0Y2FzZShwciwgMjAsIDEyNywgRXJyb3I6OlBLVElEX1JFUExBWSk7CiAgICB0ZXN0Y2FzZShwciwgMjEsIDEyOCwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDIyLCA2NCwgRXJyb3I6OlBLVElEX0JBQ0tUUkFDSyk7IC8qIGxhcmdlIGJhY2t0cmFjayAqLwogICAgdGVzdGNhc2UocHIsIDIzLCA2NSwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDI0LCA2NiwgRXJyb3I6OlNVQ0NFU1MpOwoKICAgIHRlc3RjYXNlKHByLCAzMCwgMCwgRXJyb3I6OlBLVElEX0lOVkFMSUQpOwogICAgdGVzdGNhc2UocHIsIDMzLCAzLCBFcnJvcjo6UEtUSURfQkFDS1RSQUNLKTsgLyogdGltZSBiYWNrdHJhY2sgKi8KCiAgICB0ZXN0Y2FzZShwciwgNDAsIDB4ZmZmZmZmZmUsIEVycm9yOjpTVUNDRVNTKTsKICAgIHRlc3RjYXNlKHByLCA0MSwgMHhmZmZmZmZmZiwgRXJyb3I6OlNVQ0NFU1MpOwp9CgpURVNUKG1pc2MsIGRvX3BhY2tldF9pZF9yZWN2X3Rlc3RfbG9uZ19pZHMpCnsKICAgIHR5cGVkZWYgUGFja2V0SUREYXRhUmVjZWl2ZVR5cGU8MywgNT4gUElEUmVjdjsKICAgIFBJRFJlY3YgcHI7CiAgICBTZXNzaW9uU3RhdHM6OlB0ciBzdGF0c3tuZXcgU2Vzc2lvblN0YXRzKCl9OwogICAgcHIuaW5pdCgidGVzdCIsIDAsIHRydWUpOwoKICAgIHRlc3RjYXNlKHByLCA0MCwgMHhmZmZmZmZmZSwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDQxLCAweGZmZmZmZmZmLCBFcnJvcjo6U1VDQ0VTUyk7CiAgICB0ZXN0Y2FzZShwciwgNDIsIDB4MTAwMDAwMDAxLCBFcnJvcjo6U1VDQ0VTUyk7CiAgICB0ZXN0Y2FzZShwciwgNDIsIDB4ZmZmZmZmMGQsIEVycm9yOjpQS1RJRF9CQUNLVFJBQ0spOwogICAgdGVzdGNhc2UocHIsIDUwLCAweDIwMDAwMDAwMCwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDUwLCAweDUwMDAwMDAwMCwgRXJyb3I6OlNVQ0NFU1MpOwogICAgdGVzdGNhc2UocHIsIDUwLCAweDQwMDAwMDAwMCwgRXJyb3I6OlBLVElEX0JBQ0tUUkFDSyk7CiAgICB0ZXN0Y2FzZShwciwgNTAsIDB4Mzk5OTk5OTk5LCBFcnJvcjo6UEtUSURfQkFDS1RSQUNLKTsKICAgIHRlc3RjYXNlKHByLCA1MCwgMHgzZmZmZmZmZmYsIEVycm9yOjpQS1RJRF9CQUNLVFJBQ0spOwogICAgdGVzdGNhc2UocHIsIDUwLCAweDRmZmZmZmZmZiwgRXJyb3I6OlNVQ0NFU1MpOwp9CgoKVEVTVChtaXNjLCBwa3RpZF90ZXN0X2RhdGFfMzJiaXQpCnsKICAgIGRvX3BhY2tldF9pZF9yZWN2X3Rlc3Rfc2hvcnRfaWRzKGZhbHNlKTsKfQoKVEVTVChtaXNjLCBwa3RpZF90ZXN0X2RhdGFfNjRiaXQpCnsKICAgIGRvX3BhY2tldF9pZF9yZWN2X3Rlc3Rfc2hvcnRfaWRzKHRydWUpOwp9CgoKdGVtcGxhdGUgPHVuc2lnbmVkIGludCBPUkRFUiwgdW5zaWduZWQgaW50IEVYUElSRT4Kdm9pZCBwZXJmaXRlcihjb25zdCBsb25nIG4sCiAgICAgICAgICAgICAgY29uc3QgbG9uZyByYW5nZSwKICAgICAgICAgICAgICBjb25zdCBsb25nIHN0ZXAsCiAgICAgICAgICAgICAgY29uc3QgbG9uZyBpdGVyX3Blcl9zdGVwX3ByZSwKICAgICAgICAgICAgICBsb25nICZjb3VudCkKewogICAgdHlwZWRlZiBQYWNrZXRJRERhdGFSZWNlaXZlVHlwZTxPUkRFUiwgRVhQSVJFPiBQSURSZWN2OwoKICAgIGNvbnN0IGxvbmcgaXRlcl9wZXJfc3RlcCA9IGl0ZXJfcGVyX3N0ZXBfcHJlICogc3RlcDsKICAgIC8vIE9QRU5WUE5fTE9HKCJJVEVSIG9yZGVyPSIgPDwgT1JERVIgPDwgIiBuPSIgPDwgbiA8PCAiIHJhbmdlPSIgPDwgcmFuZ2UgPDwgIiBzdGVwPSIgPDwgc3RlcCA8PCAiIGl0ZXJfcGVyX3N0ZXA9IgogICAgLy8JCQkgICAgPDwgaXRlcl9wZXJfc3RlcCk7CgogICAgY29uc3RleHByIHN0ZDo6dGltZV90IHBrdF90aW1lID0gMTIzNDsKCiAgICBNVFJhbmQgdXJhbmQ7CiAgICBzdGQ6OnZlY3Rvcjxib29sPiBidihuKTsKICAgIGxvbmcgaGlnaCA9IDA7CiAgICBTZXNzaW9uU3RhdHM6OlB0ciBzdGF0cyhuZXcgU2Vzc2lvblN0YXRzKCkpOwogICAgUElEUmVjdiBwcjsKICAgIHByLmluaXQoInRlc3QiLCAwLCBmYWxzZSk7CgogICAgZm9yIChsb25nIGkgPSAxOyBpIDwgbjsgaSArPSBzdGVwKQogICAgewogICAgICAgIGZvciAobG9uZyBqID0gMDsgaiA8IGl0ZXJfcGVyX3N0ZXA7ICsraikKICAgICAgICB7CiAgICAgICAgICAgIGNvbnN0IGxvbmcgZGVsdGEgPSBsb25nKHVyYW5kLnJhbmRyYW5nZTMyKHN0YXRpY19jYXN0PHVpbnQzMl90PihyYW5nZSkpKSAtIHJhbmdlIC8gMjsKICAgICAgICAgICAgY29uc3QgbG9uZyBpZCA9IGkgKyBkZWx0YTsKICAgICAgICAgICAgaWYgKGlkID49IDAgJiYgaWQgPCBuKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBpZiAoaWQgPiBoaWdoKQogICAgICAgICAgICAgICAgICAgIGhpZ2ggPSBpZDsKICAgICAgICAgICAgICAgIEVycm9yOjpUeXBlIGV4cGVjdGVkID0gRXJyb3I6OlNVQ0NFU1M7CiAgICAgICAgICAgICAgICBpZiAoIWlkKQogICAgICAgICAgICAgICAgICAgIGV4cGVjdGVkID0gRXJyb3I6OlBLVElEX0lOVkFMSUQ7CiAgICAgICAgICAgICAgICBlbHNlIGlmIChoaWdoIC0gaWQgPj0gKGNvbnN0IGxvbmcpUElEUmVjdjo6UkVQTEFZX1dJTkRPV19TSVpFKQogICAgICAgICAgICAgICAgICAgIGV4cGVjdGVkID0gRXJyb3I6OlBLVElEX0JBQ0tUUkFDSzsKICAgICAgICAgICAgICAgIGVsc2UgaWYgKGJ2W2lkXSkKICAgICAgICAgICAgICAgICAgICBleHBlY3RlZCA9IEVycm9yOjpQS1RJRF9SRVBMQVk7CiAgICAgICAgICAgICAgICBjb25zdCBQYWNrZXRJRERhdGFDb25zdHJ1Y3QgcGlkKGlkKTsKICAgICAgICAgICAgICAgIGNvbnN0IEVycm9yOjpUeXBlIHJlc3VsdCA9IHByLmRvX3Rlc3RfYWRkKHBpZCwgcGt0X3RpbWUpOwogICAgICAgICAgICAgICAgKytjb3VudDsKI2RlZmluZSBJTkZPICJpPSIgPDwgaSA8PCAiIGlkPSIgPDwgaWQgPDwgIiBoaWdoPSIgPDwgaGlnaCA8PCAiIHJlc3VsdD0iIDw8IEVycm9yOjpuYW1lKHJlc3VsdCkgPDwgIiBleHBlY3RlZD0iIDw8IEVycm9yOjpuYW1lKGV4cGVjdGVkKQogICAgICAgICAgICAgICAgLy8gT1BFTlZQTl9MT0coSU5GTyk7CiAgICAgICAgICAgICAgICBBU1NFUlRfRVEocmVzdWx0LCBleHBlY3RlZCkgPDwgSU5GTzsKICAgICAgICAgICAgICAgIGlmIChleHBlY3RlZCA9PSBFcnJvcjo6U1VDQ0VTUykKICAgICAgICAgICAgICAgICAgICBidltpZF0gPSB0cnVlOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9Cgp0ZW1wbGF0ZSA8dW5zaWduZWQgaW50IE9SREVSLCB1bnNpZ25lZCBpbnQgRVhQSVJFPgp2b2lkIHBlcmYobG9uZyAmY291bnQpCnsKICAgIHR5cGVkZWYgUGFja2V0SUREYXRhUmVjZWl2ZVR5cGU8T1JERVIsIEVYUElSRT4gUElEUmVjdjsKCiAgICBwZXJmaXRlcjxPUkRFUiwgRVhQSVJFPigyMDAwMCwgUElEUmVjdjo6UkVQTEFZX1dJTkRPV19TSVpFICogMywgMSwgMTAsIGNvdW50KTsKICAgIHBlcmZpdGVyPE9SREVSLCBFWFBJUkU+KDIwMDAwLCBQSURSZWN2OjpSRVBMQVlfV0lORE9XX1NJWkUgKiAzLCBQSURSZWN2OjpSRVBMQVlfV0lORE9XX1NJWkUgLyAyLCAxMCwgY291bnQpOwogICAgcGVyZml0ZXI8T1JERVIsIEVYUElSRT4oMjAwMDAsIFBJRFJlY3Y6OlJFUExBWV9XSU5ET1dfU0laRSAqIDIsIDEsIDEwLCBjb3VudCk7CiAgICBwZXJmaXRlcjxPUkRFUiwgRVhQSVJFPigyMDAwMCwgUElEUmVjdjo6UkVQTEFZX1dJTkRPV19TSVpFICogMiwgUElEUmVjdjo6UkVQTEFZX1dJTkRPV19TSVpFIC8gMiwgMTAsIGNvdW50KTsKICAgIHBlcmZpdGVyPE9SREVSLCBFWFBJUkU+KDIwMDAwLCAxNiwgMSwgMTAsIGNvdW50KTsKICAgIHBlcmZpdGVyPE9SREVSLCBFWFBJUkU+KDIwMDAwLCAxNiwgUElEUmVjdjo6UkVQTEFZX1dJTkRPV19TSVpFIC8gMiwgMTAsIGNvdW50KTsKICAgIHBlcmZpdGVyPE9SREVSLCBFWFBJUkU+KDIwMDAwLCA0LCAxLCAxMCwgY291bnQpOwogICAgcGVyZml0ZXI8T1JERVIsIEVYUElSRT4oMjAwMDAsIDQsIFBJRFJlY3Y6OlJFUExBWV9XSU5ET1dfU0laRSAvIDIsIDEwLCBjb3VudCk7Cn0KCgpjbGFzcyBQYWNrZXRJRERhdGFTZW5kVGVzdCA6IHB1YmxpYyBvcGVudnBuOjpQYWNrZXRJRERhdGFTZW5kCnsKICBwdWJsaWM6CiAgICBQYWNrZXRJRERhdGFTZW5kVGVzdChib29sIHdpZGUsIHN0ZDo6dWludDY0X3Qgc3RhcnQpCiAgICAgICAgOiBvcGVudnBuOjpQYWNrZXRJRERhdGFTZW5kKHdpZGUsIDApCiAgICB7CiAgICAgICAgcGlkXyA9IFBhY2tldElERGF0YUNvbnN0cnVjdHtzdGFydCwgd2lkZX07CiAgICB9Cn07CgpURVNUKG1pc2MsIHBrdGlkXzMyX2JpdF9vdmVycnVuXzMyYml0X2NvdW50ZXIpCnsKICAgIFBhY2tldElERGF0YVNlbmRUZXN0IHBpZHNlbmR7ZmFsc2UsIDB4ZmZmZmZmZmN9OwoKICAgIGF1dG8gcmV0ID0gcGlkc2VuZC5uZXh0KCk7CiAgICBFWFBFQ1RfRVEocmV0LnN0cigpLCAiWzB4ZmZmZmZmZmRdIik7CgogICAgcmV0ID0gcGlkc2VuZC5uZXh0KCk7CiAgICBFWFBFQ1RfRVEocmV0LnN0cigpLCAiWzB4ZmZmZmZmZmVdIik7CgogICAgRVhQRUNUX1RIUk9XKHJldCA9IHBpZHNlbmQubmV4dCgpLCBQYWNrZXRJRERhdGFTZW5kOjpwYWNrZXRfaWRfd3JhcCk7Cn0KCgpURVNUKG1pc2MsIHBrdGlkXzMyX2JpdF9vdmVycnVuXzY0Yml0X2NvdW50ZXIpCnsKICAgIFBhY2tldElERGF0YVNlbmRUZXN0IHBpZHNlbmR7dHJ1ZSwgMHhmZmZmZmZmZH07CgogICAgYXV0byByZXQgPSBwaWRzZW5kLm5leHQoKTsKICAgIEVYUEVDVF9FUShyZXQuc3RyKCksICJbMHhmZmZmZmZmZV0iKTsKCiAgICByZXQgPSBwaWRzZW5kLm5leHQoKTsKICAgIEVYUEVDVF9FUShyZXQuc3RyKCksICJbMHhmZmZmZmZmZl0iKTsKCiAgICByZXQgPSBwaWRzZW5kLm5leHQoKTsKICAgIEVYUEVDVF9FUShyZXQuc3RyKCksICJbMHgxMDAwMDAwMDBdIik7CgogICAgcmV0ID0gcGlkc2VuZC5uZXh0KCk7CiAgICBFWFBFQ1RfRVEocmV0LnN0cigpLCAiWzB4MTAwMDAwMDAxXSIpOwp9CgoKVEVTVChtaXNjLCBwa3RpZF82NF9iaXRfb3ZlcnJ1bl82NGJpdF9jb3VudGVyKQp7CiAgICBQYWNrZXRJRERhdGFTZW5kVGVzdCBwaWRzZW5ke3RydWUsIDB4ZmZmZmZmZmZmZmZmZmZmY307CgogICAgYXV0byByZXQgPSBwaWRzZW5kLm5leHQoKTsKICAgIEVYUEVDVF9FUShyZXQuc3RyKCksICJbMHhmZmZmZmZmZmZmZmZmZmZkXSIpOwoKICAgIHJldCA9IHBpZHNlbmQubmV4dCgpOwogICAgRVhQRUNUX0VRKHJldC5zdHIoKSwgIlsweGZmZmZmZmZmZmZmZmZmZmVdIik7CgogICAgRVhQRUNUX1RIUk9XKHJldCA9IHBpZHNlbmQubmV4dCgpLCBQYWNrZXRJRERhdGFTZW5kOjpwYWNrZXRfaWRfd3JhcCk7Cn0KClRFU1QobWlzYywgcGt0aWRfMzJfYml0X3dhcm4pCnsKICAgIFBhY2tldElERGF0YVNlbmRUZXN0IHBpZHNlbmR7ZmFsc2UsIDB4ZmVmZmZmZmV9OwoKICAgIEVYUEVDVF9GQUxTRShwaWRzZW5kLndyYXBfd2FybmluZygpKTsKICAgIGF1dG8gcmV0ID0gcGlkc2VuZC5uZXh0KCk7CiAgICBFWFBFQ1RfRVEocmV0LnN0cigpLCAiWzB4ZmVmZmZmZmZdIik7CiAgICBFWFBFQ1RfRkFMU0UocGlkc2VuZC53cmFwX3dhcm5pbmcoKSk7CgogICAgcmV0ID0gcGlkc2VuZC5uZXh0KCk7CiAgICBFWFBFQ1RfRVEocmV0LnN0cigpLCAiWzB4ZmYwMDAwMDBdIik7CiAgICBFWFBFQ1RfVFJVRShwaWRzZW5kLndyYXBfd2FybmluZygpKTsKCiAgICByZXQgPSBwaWRzZW5kLm5leHQoKTsKICAgIEVYUEVDVF9FUShyZXQuc3RyKCksICJbMHhmZjAwMDAwMV0iKTsKICAgIEVYUEVDVF9UUlVFKHBpZHNlbmQud3JhcF93YXJuaW5nKCkpOwp9CgpURVNUKG1pc2MsIHBrdGlkXzY0X2JpdF93YXJuXzMyYml0KQp7CiAgICAvLyBUZXN0IHdlIGFyZSBub3Qgd2FybmluZyBhdCAzMmJpdAogICAgUGFja2V0SUREYXRhU2VuZFRlc3QgcGlkc2VuZHt0cnVlLCAweGZlZmZmZmZlfTsKCiAgICBFWFBFQ1RfRkFMU0UocGlkc2VuZC53cmFwX3dhcm5pbmcoKSk7CiAgICBhdXRvIHJldCA9IHBpZHNlbmQubmV4dCgpOwogICAgRVhQRUNUX0VRKHJldC5zdHIoKSwgIlsweGZlZmZmZmZmXSIpOwogICAgRVhQRUNUX0ZBTFNFKHBpZHNlbmQud3JhcF93YXJuaW5nKCkpOwoKICAgIHJldCA9IHBpZHNlbmQubmV4dCgpOwogICAgRVhQRUNUX0VRKHJldC5zdHIoKSwgIlsweGZmMDAwMDAwXSIpOwogICAgRVhQRUNUX0ZBTFNFKHBpZHNlbmQud3JhcF93YXJuaW5nKCkpOwoKICAgIHJldCA9IHBpZHNlbmQubmV4dCgpOwogICAgRVhQRUNUX0VRKHJldC5zdHIoKSwgIlsweGZmMDAwMDAxXSIpOwogICAgRVhQRUNUX0ZBTFNFKHBpZHNlbmQud3JhcF93YXJuaW5nKCkpOwp9CgoKVEVTVChtaXNjLCBwa3RpZF9kYXRhX3BlcmYpCnsKICAgIHsKICAgICAgICBsb25nIGNvdW50ID0gMDsKICAgICAgICBwZXJmPDMsIDU+KGNvdW50KTsKICAgICAgICBwZXJmPDYsIDU+KGNvdW50KTsKICAgICAgICBwZXJmPDgsIDU+KGNvdW50KTsKICAgICAgICAvLyBBU1NFUlRfRVEoNDc0NjQzOSwgY291bnQpOwogICAgfQp9Cg==
+#include "test_common.hpp"
+
+#include <openvpn/crypto/packet_id_control.hpp>
+#include <openvpn/crypto/packet_id_data.hpp>
+
+using namespace openvpn;
+
+struct PacketIDDataConstruct : public PacketIDData
+{
+    explicit PacketIDDataConstruct(const PacketIDData::data_id_t v_id = PacketIDData::data_id_t{0}, bool wide = false)
+        : PacketIDData(wide)
+    {
+        id = v_id;
+    }
+};
+
+template <typename PIDRecv>
+void testcase(PIDRecv &pr,
+              const std::time_t t,
+              const PacketIDData::data_id_t pkt_id,
+              const Error::Type expected_status)
+{
+    bool wide = pr.length() > 4;
+    const PacketIDDataConstruct pid(pkt_id, wide);
+    const Error::Type status = pr.do_test_add(pid, t);
+    // OPENVPN_LOG("[" << t << "] id=" << pkt_id << ' ' << Error::name(status));
+    ASSERT_EQ(status, expected_status);
+}
+
+void do_packet_id_recv_test_short_ids(bool usewide)
+{
+    typedef PacketIDDataReceiveType<3, 5> PIDRecv;
+    SessionStats::Ptr stats(new SessionStats());
+    PIDRecv pr;
+    pr.init("test", 0, usewide);
+
+    testcase(pr, 0, 0, Error::PKTID_INVALID);
+    testcase(pr, 1, 1, Error::SUCCESS);
+    testcase(pr, 1, 1, Error::PKTID_REPLAY); /* replay */
+    testcase(pr, 2, 2, Error::SUCCESS);
+    testcase(pr, 3, 4, Error::SUCCESS);
+    testcase(pr, 4, 1, Error::PKTID_REPLAY); /* replay */
+    testcase(pr, 5, 3, Error::SUCCESS);
+
+    testcase(pr, 6, 8, Error::SUCCESS);
+    testcase(pr, 10, 5, Error::SUCCESS);
+    testcase(pr, 15, 7, Error::PKTID_EXPIRE); /* expire backtrack */
+
+    testcase(pr, 20, 127, Error::SUCCESS);
+    testcase(pr, 20, 127, Error::PKTID_REPLAY);
+    testcase(pr, 21, 128, Error::SUCCESS);
+    testcase(pr, 22, 64, Error::PKTID_BACKTRACK); /* large backtrack */
+    testcase(pr, 23, 65, Error::SUCCESS);
+    testcase(pr, 24, 66, Error::SUCCESS);
+
+    testcase(pr, 30, 0, Error::PKTID_INVALID);
+    testcase(pr, 33, 3, Error::PKTID_BACKTRACK); /* time backtrack */
+
+    testcase(pr, 40, 0xfffffffe, Error::SUCCESS);
+    testcase(pr, 41, 0xffffffff, Error::SUCCESS);
+}
+
+TEST(misc, do_packet_id_recv_test_long_ids)
+{
+    typedef PacketIDDataReceiveType<3, 5> PIDRecv;
+    PIDRecv pr;
+    SessionStats::Ptr stats{new SessionStats()};
+    pr.init("test", 0, true);
+
+    testcase(pr, 40, 0xfffffffe, Error::SUCCESS);
+    testcase(pr, 41, 0xffffffff, Error::SUCCESS);
+    testcase(pr, 42, 0x100000001, Error::SUCCESS);
+    testcase(pr, 42, 0xffffff0d, Error::PKTID_BACKTRACK);
+    testcase(pr, 50, 0x200000000, Error::SUCCESS);
+    testcase(pr, 50, 0x500000000, Error::SUCCESS);
+    testcase(pr, 50, 0x400000000, Error::PKTID_BACKTRACK);
+    testcase(pr, 50, 0x399999999, Error::PKTID_BACKTRACK);
+    testcase(pr, 50, 0x3ffffffff, Error::PKTID_BACKTRACK);
+    testcase(pr, 50, 0x4ffffffff, Error::SUCCESS);
+}
+
+
+TEST(misc, pktid_test_data_32bit)
+{
+    do_packet_id_recv_test_short_ids(false);
+}
+
+TEST(misc, pktid_test_data_64bit)
+{
+    do_packet_id_recv_test_short_ids(true);
+}
+
+
+template <unsigned int ORDER, unsigned int EXPIRE>
+void perfiter(const long n,
+              const long range,
+              const long step,
+              const long iter_per_step_pre,
+              long &count)
+{
+    typedef PacketIDDataReceiveType<ORDER, EXPIRE> PIDRecv;
+
+    const long iter_per_step = iter_per_step_pre * step;
+    // OPENVPN_LOG("ITER order=" << ORDER << " n=" << n << " range=" << range << " step=" << step << " iter_per_step="
+    //			    << iter_per_step);
+
+    constexpr std::time_t pkt_time = 1234;
+
+    MTRand urand;
+    std::vector<bool> bv(n);
+    long high = 0;
+    SessionStats::Ptr stats(new SessionStats());
+    PIDRecv pr;
+    pr.init("test", 0, false);
+
+    for (long i = 1; i < n; i += step)
+    {
+        for (long j = 0; j < iter_per_step; ++j)
+        {
+            const long delta = long(urand.randrange32(static_cast<uint32_t>(range))) - range / 2;
+            const long id = i + delta;
+            if (id >= 0 && id < n)
+            {
+                if (id > high)
+                    high = id;
+                Error::Type expected = Error::SUCCESS;
+                if (!id)
+                    expected = Error::PKTID_INVALID;
+                else if (high - id >= (const long)PIDRecv::REPLAY_WINDOW_SIZE)
+                    expected = Error::PKTID_BACKTRACK;
+                else if (bv[id])
+                    expected = Error::PKTID_REPLAY;
+                const PacketIDDataConstruct pid(id);
+                const Error::Type result = pr.do_test_add(pid, pkt_time);
+                ++count;
+#define INFO "i=" << i << " id=" << id << " high=" << high << " result=" << Error::name(result) << " expected=" << Error::name(expected)
+                // OPENVPN_LOG(INFO);
+                ASSERT_EQ(result, expected) << INFO;
+                if (expected == Error::SUCCESS)
+                    bv[id] = true;
+            }
+        }
+    }
+}
+
+template <unsigned int ORDER, unsigned int EXPIRE>
+void perf(long &count)
+{
+    typedef PacketIDDataReceiveType<ORDER, EXPIRE> PIDRecv;
+
+    perfiter<ORDER, EXPIRE>(20000, PIDRecv::REPLAY_WINDOW_SIZE * 3, 1, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, PIDRecv::REPLAY_WINDOW_SIZE * 3, PIDRecv::REPLAY_WINDOW_SIZE / 2, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, PIDRecv::REPLAY_WINDOW_SIZE * 2, 1, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, PIDRecv::REPLAY_WINDOW_SIZE * 2, PIDRecv::REPLAY_WINDOW_SIZE / 2, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, 16, 1, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, 16, PIDRecv::REPLAY_WINDOW_SIZE / 2, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, 4, 1, 10, count);
+    perfiter<ORDER, EXPIRE>(20000, 4, PIDRecv::REPLAY_WINDOW_SIZE / 2, 10, count);
+}
+
+
+class PacketIDDataSendTest : public openvpn::PacketIDDataSend
+{
+  public:
+    PacketIDDataSendTest(bool wide, std::uint64_t start)
+        : openvpn::PacketIDDataSend(wide, 0)
+    {
+        pid_ = PacketIDDataConstruct{start, wide};
+    }
+};
+
+TEST(misc, pktid_32_bit_overrun_32bit_counter)
+{
+    PacketIDDataSendTest pidsend{false, 0xfffffffc};
+
+    auto ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfffffffd]");
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfffffffe]");
+
+    EXPECT_THROW(ret = pidsend.next(), PacketIDDataSend::packet_id_wrap);
+}
+
+
+TEST(misc, pktid_32_bit_overrun_64bit_counter)
+{
+    PacketIDDataSendTest pidsend{true, 0xfffffffd};
+
+    auto ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfffffffe]");
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xffffffff]");
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0x100000000]");
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0x100000001]");
+}
+
+
+TEST(misc, pktid_64_bit_overrun_64bit_counter)
+{
+    PacketIDDataSendTest pidsend{true, 0xfffffffffffffffc};
+
+    auto ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfffffffffffffffd]");
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfffffffffffffffe]");
+
+    EXPECT_THROW(ret = pidsend.next(), PacketIDDataSend::packet_id_wrap);
+}
+
+TEST(misc, pktid_32_bit_warn)
+{
+    PacketIDDataSendTest pidsend{false, 0xfefffffe};
+
+    EXPECT_FALSE(pidsend.wrap_warning());
+    auto ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfeffffff]");
+    EXPECT_FALSE(pidsend.wrap_warning());
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xff000000]");
+    EXPECT_TRUE(pidsend.wrap_warning());
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xff000001]");
+    EXPECT_TRUE(pidsend.wrap_warning());
+}
+
+TEST(misc, pktid_64_bit_warn_32bit)
+{
+    // Test we are not warning at 32bit
+    PacketIDDataSendTest pidsend{true, 0xfefffffe};
+
+    EXPECT_FALSE(pidsend.wrap_warning());
+    auto ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xfeffffff]");
+    EXPECT_FALSE(pidsend.wrap_warning());
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xff000000]");
+    EXPECT_FALSE(pidsend.wrap_warning());
+
+    ret = pidsend.next();
+    EXPECT_EQ(ret.str(), "[0xff000001]");
+    EXPECT_FALSE(pidsend.wrap_warning());
+}
+
+
+TEST(misc, pktid_data_perf)
+{
+    {
+        long count = 0;
+        perf<3, 5>(count);
+        perf<6, 5>(count);
+        perf<8, 5>(count);
+        // ASSERT_EQ(4746439, count);
+    }
+}

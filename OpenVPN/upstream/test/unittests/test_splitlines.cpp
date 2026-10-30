@@ -1,1 +1,116 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vc3BsaXRsaW5lcy5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCmNvbnN0IHN0ZDo6c3RyaW5nIHNob3J0X3RleHQgPSAiTG9yZW1cbmlwc3VtXHJcbmRvbG9yXG5cclxuc2l0IjsKY29uc3Qgc3RkOjp2ZWN0b3I8c3RkOjpzdHJpbmc+IHNob3J0X2xpbmVzeyJMb3JlbVxuIiwgImlwc3VtXHJcbiIsICJkb2xvclxuIiwgIlxyXG4iLCAic2l0In07CmNvbnN0IHN0ZDo6dmVjdG9yPHN0ZDo6c3RyaW5nPiBzaG9ydF9saW5lc190cmlteyJMb3JlbSIsICJpcHN1bSIsICJkb2xvciIsICIiLCAic2l0In07CgpURVNUKFNwbGl0TGluZXMsIG5vX21heF9sZW5ndGhfbm9fdHJpbSkKewogICAgU3BsaXRMaW5lcyBpbihzaG9ydF90ZXh0LCAwKTsKICAgIHNpemVfdCBpbmRleCA9IDA7CiAgICB3aGlsZSAoaW4oZmFsc2UpKQogICAgewogICAgICAgIEFTU0VSVF9FUShpbi5saW5lX3JlZigpLCBzaG9ydF9saW5lc1tpbmRleCsrXSk7CiAgICB9Cn0KClRFU1QoU3BsaXRMaW5lcywgbmV4dF9ub19tYXhfbGVuZ3RoX25vX3RyaW0pCnsKICAgIFNwbGl0TGluZXMgaW4oc2hvcnRfdGV4dCwgMCk7CiAgICBzaXplX3QgaW5kZXggPSAwOwogICAgc3RkOjpzdHJpbmcgbGluZTsKICAgIFNwbGl0TGluZXM6OlN0YXR1cyByZXQgPSBTcGxpdExpbmVzOjpTX09LQVk7CiAgICB3aGlsZSAoKHJldCA9IGluLm5leHQobGluZSwgZmFsc2UpKSAhPSBTcGxpdExpbmVzOjpTX0VPRikKICAgIHsKICAgICAgICBBU1NFUlRfRVEocmV0LCBTcGxpdExpbmVzOjpTX09LQVkpOwogICAgICAgIEFTU0VSVF9FUShsaW5lLCBzaG9ydF9saW5lc1tpbmRleCsrXSk7CiAgICB9Cn0KClRFU1QoU3BsaXRMaW5lcywgbm9fbWF4X2xlbmd0aF90cmltKQp7CiAgICBTcGxpdExpbmVzIGluKHNob3J0X3RleHQsIDApOwogICAgc2l6ZV90IGluZGV4ID0gMDsKICAgIHdoaWxlIChpbih0cnVlKSkKICAgIHsKICAgICAgICBBU1NFUlRfRkFMU0UoaW4ubGluZV9vdmVyZmxvdygpKTsKICAgICAgICBBU1NFUlRfRVEoaW4ubGluZV9yZWYoKSwgc2hvcnRfbGluZXNfdHJpbVtpbmRleCsrXSk7CiAgICB9Cn0KClRFU1QoU3BsaXRMaW5lcywgbmV4dF9ub19tYXhfbGVuZ3RoX3RyaW0pCnsKICAgIFNwbGl0TGluZXMgaW4oc2hvcnRfdGV4dCwgMCk7CiAgICBzaXplX3QgaW5kZXggPSAwOwogICAgc3RkOjpzdHJpbmcgbGluZTsKICAgIFNwbGl0TGluZXM6OlN0YXR1cyByZXQgPSBTcGxpdExpbmVzOjpTX09LQVk7CiAgICB3aGlsZSAoKHJldCA9IGluLm5leHQobGluZSwgdHJ1ZSkpICE9IFNwbGl0TGluZXM6OlNfRU9GKQogICAgewogICAgICAgIEFTU0VSVF9FUShyZXQsIFNwbGl0TGluZXM6OlNfT0tBWSk7CiAgICAgICAgQVNTRVJUX0VRKGxpbmUsIHNob3J0X2xpbmVzX3RyaW1baW5kZXgrK10pOwogICAgfQp9CgpURVNUKFNwbGl0TGluZXMsIG1heF9sZW5ndGgpCnsKICAgIFNwbGl0TGluZXMgaW4oc2hvcnRfdGV4dCwgMjQpOwogICAgc2l6ZV90IGluZGV4ID0gMDsKICAgIHdoaWxlIChpbih0cnVlKSkKICAgIHsKICAgICAgICBBU1NFUlRfRkFMU0UoaW4ubGluZV9vdmVyZmxvdygpKTsKICAgICAgICBBU1NFUlRfRVEoaW4ubGluZV9yZWYoKSwgc2hvcnRfbGluZXNfdHJpbVtpbmRleCsrXSk7CiAgICB9Cn0KClRFU1QoU3BsaXRMaW5lcywgbmV4dF9tYXhfbGVuZ3RoKQp7CiAgICBTcGxpdExpbmVzIGluKHNob3J0X3RleHQsIDI0KTsKICAgIHNpemVfdCBpbmRleCA9IDA7CiAgICBzdGQ6OnN0cmluZyBsaW5lOwogICAgU3BsaXRMaW5lczo6U3RhdHVzIHJldCA9IFNwbGl0TGluZXM6OlNfT0tBWTsKICAgIHdoaWxlICgocmV0ID0gaW4ubmV4dChsaW5lLCB0cnVlKSkgIT0gU3BsaXRMaW5lczo6U19FT0YpCiAgICB7CiAgICAgICAgQVNTRVJUX0VRKHJldCwgU3BsaXRMaW5lczo6U19PS0FZKTsKICAgICAgICBBU1NFUlRfRVEobGluZSwgc2hvcnRfbGluZXNfdHJpbVtpbmRleCsrXSk7CiAgICB9Cn0KClRFU1QoU3BsaXRMaW5lcywgbWF4X2xlbmd0aF9vdmVyZmxvdykKewogICAgU3BsaXRMaW5lcyBpbihzaG9ydF90ZXh0LCAzKTsKICAgIEFTU0VSVF9UUlVFKGluKHRydWUpKTsKICAgIEFTU0VSVF9UUlVFKGluLmxpbmVfb3ZlcmZsb3coKSk7CiAgICBBU1NFUlRfVEhST1coaW4ubGluZV9yZWYoKSwgU3BsaXRMaW5lczo6b3ZlcmZsb3dfZXJyb3IpOwp9CgpURVNUKFNwbGl0TGluZXMsIG5leHRfbWF4X2xlbmd0aF9vdmVyZmxvdykKewogICAgU3BsaXRMaW5lcyBpbihzaG9ydF90ZXh0LCAzKTsKICAgIHN0ZDo6c3RyaW5nIGxpbmU7CiAgICBBU1NFUlRfRVEoaW4ubmV4dChsaW5lLCB0cnVlKSwgU3BsaXRMaW5lczo6U19FUlJPUik7Cn0KClRFU1QoU3BsaXRMaW5lcywgbW92ZWRfZXJyb3IpCnsKICAgIFNwbGl0TGluZXMgaW4oc2hvcnRfdGV4dCk7CiAgICBBU1NFUlRfVFJVRShpbih0cnVlKSk7CiAgICBBU1NFUlRfRkFMU0UoaW4ubGluZV9vdmVyZmxvdygpKTsKICAgIHN0ZDo6c3RyaW5nIGxpbmUgPSBpbi5saW5lX21vdmUoKTsKICAgIEFTU0VSVF9USFJPVyhpbi5saW5lX3JlZigpLCBTcGxpdExpbmVzOjptb3ZlZF9lcnJvcik7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/common/splitlines.hpp>
+
+using namespace openvpn;
+
+const std::string short_text = "Lorem\nipsum\r\ndolor\n\r\nsit";
+const std::vector<std::string> short_lines{"Lorem\n", "ipsum\r\n", "dolor\n", "\r\n", "sit"};
+const std::vector<std::string> short_lines_trim{"Lorem", "ipsum", "dolor", "", "sit"};
+
+TEST(SplitLines, no_max_length_no_trim)
+{
+    SplitLines in(short_text, 0);
+    size_t index = 0;
+    while (in(false))
+    {
+        ASSERT_EQ(in.line_ref(), short_lines[index++]);
+    }
+}
+
+TEST(SplitLines, next_no_max_length_no_trim)
+{
+    SplitLines in(short_text, 0);
+    size_t index = 0;
+    std::string line;
+    SplitLines::Status ret = SplitLines::S_OKAY;
+    while ((ret = in.next(line, false)) != SplitLines::S_EOF)
+    {
+        ASSERT_EQ(ret, SplitLines::S_OKAY);
+        ASSERT_EQ(line, short_lines[index++]);
+    }
+}
+
+TEST(SplitLines, no_max_length_trim)
+{
+    SplitLines in(short_text, 0);
+    size_t index = 0;
+    while (in(true))
+    {
+        ASSERT_FALSE(in.line_overflow());
+        ASSERT_EQ(in.line_ref(), short_lines_trim[index++]);
+    }
+}
+
+TEST(SplitLines, next_no_max_length_trim)
+{
+    SplitLines in(short_text, 0);
+    size_t index = 0;
+    std::string line;
+    SplitLines::Status ret = SplitLines::S_OKAY;
+    while ((ret = in.next(line, true)) != SplitLines::S_EOF)
+    {
+        ASSERT_EQ(ret, SplitLines::S_OKAY);
+        ASSERT_EQ(line, short_lines_trim[index++]);
+    }
+}
+
+TEST(SplitLines, max_length)
+{
+    SplitLines in(short_text, 24);
+    size_t index = 0;
+    while (in(true))
+    {
+        ASSERT_FALSE(in.line_overflow());
+        ASSERT_EQ(in.line_ref(), short_lines_trim[index++]);
+    }
+}
+
+TEST(SplitLines, next_max_length)
+{
+    SplitLines in(short_text, 24);
+    size_t index = 0;
+    std::string line;
+    SplitLines::Status ret = SplitLines::S_OKAY;
+    while ((ret = in.next(line, true)) != SplitLines::S_EOF)
+    {
+        ASSERT_EQ(ret, SplitLines::S_OKAY);
+        ASSERT_EQ(line, short_lines_trim[index++]);
+    }
+}
+
+TEST(SplitLines, max_length_overflow)
+{
+    SplitLines in(short_text, 3);
+    ASSERT_TRUE(in(true));
+    ASSERT_TRUE(in.line_overflow());
+    ASSERT_THROW(in.line_ref(), SplitLines::overflow_error);
+}
+
+TEST(SplitLines, next_max_length_overflow)
+{
+    SplitLines in(short_text, 3);
+    std::string line;
+    ASSERT_EQ(in.next(line, true), SplitLines::S_ERROR);
+}
+
+TEST(SplitLines, moved_error)
+{
+    SplitLines in(short_text);
+    ASSERT_TRUE(in(true));
+    ASSERT_FALSE(in.line_overflow());
+    std::string line = in.line_move();
+    ASSERT_THROW(in.line_ref(), SplitLines::moved_error);
+}

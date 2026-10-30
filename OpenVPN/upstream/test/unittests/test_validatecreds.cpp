@@ -1,1 +1,85 @@
-Ly8gVGVzdCBVbmljb2RlOjppc192YWxpZF91dGY4KCksIHZhbGlkYXRlX2F1dGhfY3JlZCgpLAovLyBhbmQgQXV0aENyZWRzOjppc192YWxpZCgpLiAgVGhyb3dzIGV4Y2VwdGlvbiBvbiBmYWlsdXJlLgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vc2l6ZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9leGNlcHRpb24uaHBwPgoKI2luY2x1ZGUgPG9wZW52cG4vYXV0aC92YWxpZGF0ZWNyZWRzLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vYXV0aC9hdXRoY3JlZHMuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpzdGF0aWMgYm9vbCB2ZXJib3NlID0gZmFsc2U7Cgp2b2lkIHZhbGlkYXRlKGNvbnN0IFZhbGlkYXRlQ3JlZHM6OlR5cGUgdHlwZSwgY29uc3QgYm9vbCBleHBlY3RlZF9yZXN1bHQsIGNvbnN0IHN0ZDo6c3RyaW5nICZjcmVkLCBjb25zdCBib29sIHN0cmljdCkKewogICAgaWYgKHZlcmJvc2UpCiAgICAgICAgT1BFTlZQTl9MT0coIlZBTElEQVRFICciIDw8IGNyZWQgPDwgIicgZXhwZWN0ZWQgcmVzPSIgPDwgZXhwZWN0ZWRfcmVzdWx0KTsKICAgIGNvbnN0IGJvb2wgYWN0dWFsX3Jlc3VsdCA9IFZhbGlkYXRlQ3JlZHM6OmlzX3ZhbGlkKHR5cGUsIGNyZWQsIHN0cmljdCk7CiAgICBFWFBFQ1RfRVEoYWN0dWFsX3Jlc3VsdCwgZXhwZWN0ZWRfcmVzdWx0KTsKfQoKVEVTVChtaXNjLCBjcmVkczEpCnsKICAgIHZhbGlkYXRlKFZhbGlkYXRlQ3JlZHM6OlVTRVJOQU1FLCB0cnVlLCAiZm9vYmFyIiwgdHJ1ZSk7CiAgICB2YWxpZGF0ZShWYWxpZGF0ZUNyZWRzOjpQQVNTV09SRCwgdHJ1ZSwgInh4eFxueXl5IiwgZmFsc2UpOwogICAgdmFsaWRhdGUoVmFsaWRhdGVDcmVkczo6VVNFUk5BTUUsIGZhbHNlLCAiZm9vXG5iYXIiLCB0cnVlKTsKICAgIHZhbGlkYXRlKFZhbGlkYXRlQ3JlZHM6OlVTRVJOQU1FLAogICAgICAgICAgICAgdHJ1ZSwKICAgICAgICAgICAgICJ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eCIsCiAgICAgICAgICAgICB0cnVlKTsKICAgIHZhbGlkYXRlKFZhbGlkYXRlQ3JlZHM6OlVTRVJOQU1FLAogICAgICAgICAgICAgZmFsc2UsCiAgICAgICAgICAgICAieHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4IiwKICAgICAgICAgICAgIHRydWUpOwogICAgdmFsaWRhdGUoVmFsaWRhdGVDcmVkczo6VVNFUk5BTUUsIGZhbHNlLCAiaGVsbG9ceDA3dGhlcmUiLCB0cnVlKTsKICAgIHZhbGlkYXRlKFZhbGlkYXRlQ3JlZHM6OlVTRVJOQU1FLCB0cnVlLCAi0J/RgNC40LLQtdGCIiwgdHJ1ZSk7CiAgICB2YWxpZGF0ZShWYWxpZGF0ZUNyZWRzOjpVU0VSTkFNRSwgZmFsc2UsICJceEZGXHhGRlx4RkZceEZGIiwgdHJ1ZSk7Cn0KCnZvaWQgdmFsaWRhdGVfY3JlZHMoc3RkOjpzdHJpbmcgdXNlcm5hbWUsIHN0ZDo6c3RyaW5nIHBhc3N3b3JkLCBjb25zdCBib29sIGV4cGVjdGVkX3Jlc3VsdCwgY29uc3QgYm9vbCBzdHJpY3QpCnsKICAgIGlmICh2ZXJib3NlKQogICAgICAgIE9QRU5WUE5fTE9HKCJWQUxJREFURSB1c2VybmFtZT0nIiA8PCB1c2VybmFtZSA8PCAiJyBwYXNzd29yZD0nIiA8PCBwYXNzd29yZCA8PCAiJyBleHBlY3RlZCByZXM9IiA8PCBleHBlY3RlZF9yZXN1bHQpOwogICAgU2FmZVN0cmluZyBwYXNzd29yZF9zYWZlKHBhc3N3b3JkKTsKICAgIGNvbnN0IEF1dGhDcmVkcyBhYyhzdGQ6Om1vdmUodXNlcm5hbWUpLCBzdGQ6Om1vdmUocGFzc3dvcmRfc2FmZSksICIiKTsKICAgIGNvbnN0IGJvb2wgYWN0dWFsX3Jlc3VsdCA9IGFjLmlzX3ZhbGlkKHN0cmljdCk7CiAgICBFWFBFQ1RfRVEoYWN0dWFsX3Jlc3VsdCwgZXhwZWN0ZWRfcmVzdWx0KTsKfQoKVEVTVChtaXNjLCBjcmVkczIpCnsKICAgIHZhbGlkYXRlX2NyZWRzKCJmb28iLCAiYmFyIiwgdHJ1ZSwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV9jcmVkcygiIiwgImJhciIsIGZhbHNlLCB0cnVlKTsKICAgIHZhbGlkYXRlX2NyZWRzKCJmb28iLCAiIiwgdHJ1ZSwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV9jcmVkcygi0J/RgNC40LLQtdGCIiwgInRyb3VibGUiLCB0cnVlLCB0cnVlKTsKICAgIHZhbGlkYXRlX2NyZWRzKCLQn9GA0LjQstC10YIiLCAiIiwgdHJ1ZSwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV9jcmVkcygiZm9vXG5iYXIiLCAiem9vIiwgZmFsc2UsIHRydWUpOwogICAgdmFsaWRhdGVfY3JlZHMoImhlbGxvXHgwN3RoZXJlIiwgInBhc3MiLCBmYWxzZSwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV9jcmVkcygi4Ka54KeN4Kav4Ka+4Kay4KeLIiwgIuCwueCwsuCxiyIsIHRydWUsIHRydWUpOwogICAgdmFsaWRhdGVfY3JlZHMoInl5eSIsICJceEZGXHhGRlx4RkZceEZGIiwgZmFsc2UsIHRydWUpOwp9Cgp2b2lkIHZhbGlkYXRlX3V0ZjgoY29uc3Qgc3RkOjpzdHJpbmcgJnN0ciwgY29uc3Qgc2l6ZV90IG1heF9sZW5fZmxhZ3MsIGNvbnN0IGJvb2wgZXhwZWN0ZWRfcmVzdWx0KQp7CiAgICBpZiAodmVyYm9zZSkKICAgICAgICBPUEVOVlBOX0xPRygiVkFMSURBVEUgVVRGOCAnIiA8PCBzdHIgPDwgIicgZXhwZWN0ZWQgcmVzPSIgPDwgZXhwZWN0ZWRfcmVzdWx0KTsKICAgIGNvbnN0IGJvb2wgYWN0dWFsX3Jlc3VsdCA9IFVuaWNvZGU6OmlzX3ZhbGlkX3V0Zjgoc3RyLCBtYXhfbGVuX2ZsYWdzKTsKICAgIEVYUEVDVF9FUShhY3R1YWxfcmVzdWx0LCBleHBlY3RlZF9yZXN1bHQpOwp9CgpURVNUKG1pc2MsIGNyZWRzMykKewogICAgdmFsaWRhdGVfdXRmOCgiIiwgMCwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV91dGY4KCJ0ZXN0IiwgMCwgdHJ1ZSk7CiAgICB2YWxpZGF0ZV91dGY4KCLQn9GA0LjQstC10YIiLCAwLCB0cnVlKTsKICAgIHZhbGlkYXRlX3V0ZjgoItCf0YDQuNCy0LXRgiIsIDYsIHRydWUpOwogICAgdmFsaWRhdGVfdXRmOCgi0J/RgNC40LLQtdGCIiwgNSwgZmFsc2UpOwogICAgdmFsaWRhdGVfdXRmOCgiaGVsbG9ceDA3dGhlcmUiLCAwLCB0cnVlKTsKICAgIHZhbGlkYXRlX3V0ZjgoImhlbGxvXHgwN3RoZXJlIiwgVW5pY29kZTo6VVRGOF9OT19DVFJMLCBmYWxzZSk7CiAgICB2YWxpZGF0ZV91dGY4KCJceEZGXHhGRlx4RkZceEZGIiwgMCwgZmFsc2UpOwogICAgdmFsaWRhdGVfdXRmOCgiaGVsbG8gdGhlcmUiLCAwLCB0cnVlKTsKICAgIHZhbGlkYXRlX3V0ZjgoImhlbGxvIHRoZXJlIiwgVW5pY29kZTo6VVRGOF9OT19TUEFDRSwgZmFsc2UpOwp9
+// Test Unicode::is_valid_utf8(), validate_auth_cred(),
+// and AuthCreds::is_valid().  Throws exception on failure.
+#include "test_common.hpp"
+
+#include <iostream>
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/auth/validatecreds.hpp>
+#include <openvpn/auth/authcreds.hpp>
+
+using namespace openvpn;
+
+static bool verbose = false;
+
+void validate(const ValidateCreds::Type type, const bool expected_result, const std::string &cred, const bool strict)
+{
+    if (verbose)
+        OPENVPN_LOG("VALIDATE '" << cred << "' expected res=" << expected_result);
+    const bool actual_result = ValidateCreds::is_valid(type, cred, strict);
+    EXPECT_EQ(actual_result, expected_result);
+}
+
+TEST(misc, creds1)
+{
+    validate(ValidateCreds::USERNAME, true, "foobar", true);
+    validate(ValidateCreds::PASSWORD, true, "xxx\nyyy", false);
+    validate(ValidateCreds::USERNAME, false, "foo\nbar", true);
+    validate(ValidateCreds::USERNAME,
+             true,
+             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+             true);
+    validate(ValidateCreds::USERNAME,
+             false,
+             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+             true);
+    validate(ValidateCreds::USERNAME, false, "hello\x07there", true);
+    validate(ValidateCreds::USERNAME, true, "Привет", true);
+    validate(ValidateCreds::USERNAME, false, "\xFF\xFF\xFF\xFF", true);
+}
+
+void validate_creds(std::string username, std::string password, const bool expected_result, const bool strict)
+{
+    if (verbose)
+        OPENVPN_LOG("VALIDATE username='" << username << "' password='" << password << "' expected res=" << expected_result);
+    SafeString password_safe(password);
+    const AuthCreds ac(std::move(username), std::move(password_safe), "");
+    const bool actual_result = ac.is_valid(strict);
+    EXPECT_EQ(actual_result, expected_result);
+}
+
+TEST(misc, creds2)
+{
+    validate_creds("foo", "bar", true, true);
+    validate_creds("", "bar", false, true);
+    validate_creds("foo", "", true, true);
+    validate_creds("Привет", "trouble", true, true);
+    validate_creds("Привет", "", true, true);
+    validate_creds("foo\nbar", "zoo", false, true);
+    validate_creds("hello\x07there", "pass", false, true);
+    validate_creds("হ্যালো", "హలో", true, true);
+    validate_creds("yyy", "\xFF\xFF\xFF\xFF", false, true);
+}
+
+void validate_utf8(const std::string &str, const size_t max_len_flags, const bool expected_result)
+{
+    if (verbose)
+        OPENVPN_LOG("VALIDATE UTF8 '" << str << "' expected res=" << expected_result);
+    const bool actual_result = Unicode::is_valid_utf8(str, max_len_flags);
+    EXPECT_EQ(actual_result, expected_result);
+}
+
+TEST(misc, creds3)
+{
+    validate_utf8("", 0, true);
+    validate_utf8("test", 0, true);
+    validate_utf8("Привет", 0, true);
+    validate_utf8("Привет", 6, true);
+    validate_utf8("Привет", 5, false);
+    validate_utf8("hello\x07there", 0, true);
+    validate_utf8("hello\x07there", Unicode::UTF8_NO_CTRL, false);
+    validate_utf8("\xFF\xFF\xFF\xFF", 0, false);
+    validate_utf8("hello there", 0, true);
+    validate_utf8("hello there", Unicode::UTF8_NO_SPACE, false);
+}

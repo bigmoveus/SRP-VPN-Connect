@@ -1,1 +1,193 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zZXNzX2lkLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vb3BlbnNzbC91dGlsL3Rva2VuZW5jcnlwdC5ocHA+CiNpbmNsdWRlIDx1bm9yZGVyZWRfbWFwPgojaW5jbHVkZSA8b3BlbnZwbi9zc2wvc3NsY2hvb3NlLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKVEVTVChzZXNzaWQsIHRlc3QxKQp7CiAgICBTU0xMaWI6OlJhbmRvbUFQSSBybmc7CgogICAgLy8gdGVzdCAxCiAgICB7CiAgICAgICAgY29uc3QgU2Vzc2lvbklENjQgc2lkMShybmcpOwogICAgICAgIC8vIHN0ZDo6Y291dCA8PCAiU0lEMTogIiA8PCBzaWQxIDw8IHN0ZDo6ZW5kbDsKCiAgICAgICAgY29uc3QgU2Vzc2lvbklENjQgc2lkMihzaWQxLnRvX3N0cmluZygpKTsKICAgICAgICBBU1NFUlRfVFJVRShzaWQxLmRlZmluZWQoKSAmJiBzaWQyLmRlZmluZWQoKSkgPDwgIkZBSUwgc2lkMSBvciBzaWQyIGlzIHVuZGVmaW5lZCI7CiAgICAgICAgQVNTRVJUX0VRKHNpZDEsIHNpZDIpOwoKICAgICAgICBjb25zdCBTZXNzaW9uSUQxMjggc2lkMyhybmcpOwogICAgICAgIEFTU0VSVF9GQUxTRShzaWQxLmVxX3dlYWsoc2lkMykpIDw8ICJGQUlMIHNpZDEgfj09IHNpZDMiOwogICAgICAgIEFTU0VSVF9GQUxTRShzaWQzLmVxX3dlYWsoc2lkMSkpIDw8ICJGQUlMIHNpZDMgfj09IHNpZDEiOwoKICAgICAgICBmb3IgKGludCBpID0gMTsgaSA8PSA0OyArK2kpCiAgICAgICAgewogICAgICAgICAgICAvLyBzdGQ6OmNvdXQgPDwgIi0tLS0gIiA8PCBpIDw8ICIgLS0tLSIgPDwgc3RkOjplbmRsOwogICAgICAgICAgICBjb25zdCBUb2tlbkVuY3J5cHQ6OktleSBrZXkocm5nKTsKICAgICAgICAgICAgVG9rZW5FbmNyeXB0RGVjcnlwdCB0ZWQoa2V5KTsKICAgICAgICAgICAgY29uc3QgU2Vzc2lvbklEMTI4IHNpZDNfZW5jKHNpZDMsIHRlZC5lbmNyeXB0KTsKICAgICAgICAgICAgLy8gc3RkOjpjb3V0IDw8ICJTSUQzIChlbmMpOiAiIDw8IHNpZDNfZW5jIDw8IHN0ZDo6ZW5kbDsKICAgICAgICAgICAgY29uc3QgU2Vzc2lvbklEMTI4IHNpZDNfZGVjKHNpZDNfZW5jLCB0ZWQuZGVjcnlwdCk7CiAgICAgICAgICAgIC8vIHN0ZDo6Y291dCA8PCAiU0lEMyAoZGVjKTogIiA8PCBzaWQzX2RlYyA8PCBzdGQ6OmVuZGw7CiAgICAgICAgfQogICAgfQp9ClRFU1Qoc2Vzc2lkLCB0ZXN0MikKewogICAgU1NMTGliOjpSYW5kb21BUEkgcm5nOwogICAgewogICAgICAgIGNvbnN0IFNlc3Npb25JRDY0IHNpZDEocm5nKTsKICAgICAgICAvLyBzdGQ6OmNvdXQgPDwgIlNJRDE6ICIgPDwgc2lkMSA8PCBzdGQ6OmVuZGw7CiAgICAgICAgY29uc3QgU2Vzc2lvbklEMTI4IHNpZDIocm5nKTsKICAgICAgICAvLyBzdGQ6OmNvdXQgPDwgIlNJRDI6ICIgPDwgc2lkMiA8PCBzdGQ6OmVuZGw7CgogICAgICAgIGNvbnN0IFNlc3Npb25JRDEyOCBzaWQxX2V4cChzaWQxKTsKICAgICAgICAvLyBzdGQ6OmNvdXQgPDwgIlNJRDFfRVhQOiAiIDw8IHNpZDFfZXhwIDw8IHN0ZDo6ZW5kbDsKICAgICAgICBjb25zdCBTZXNzaW9uSUQ2NCBzaWQyX3RydW5jKHNpZDIpOwogICAgICAgIC8vIHN0ZDo6Y291dCA8PCAiU0lEMl9UUlVOQzogIiA8PCBzaWQyX3RydW5jIDw8IHN0ZDo6ZW5kbDsKICAgIH0KfQoKVEVTVChzZXNzaWQsIHRlc3QzKQp7CiAgICBjb25zdCBTZXNzaW9uSUQ2NCBuczsKICAgIEFTU0VSVF9GQUxTRShucy5kZWZpbmVkKCkpIDw8ICJGQUlMIGRlZmF1bHQgY29uc3RydWN0ZWQgU2Vzc2lvbklEIGlzIGRlZmluZWQiOwp9CgpURVNUKHNlc3NpZCwgdGVzdDQpCnsKICAgIFNTTExpYjo6UmFuZG9tQVBJIHJuZzsKICAgIGNvbnN0IFNlc3Npb25JRDEyOCB4OwogICAgY29uc3QgU2Vzc2lvbklEMTI4IGEoIlltdE43QjJlZHJEUmxlZmszdlFfWVEuLiIpOwogICAgY29uc3QgU2Vzc2lvbklEMTI4IGIoIlltdE43QjJlZHJEUmxlZmszdlFfWUEuLiIpOwogICAgY29uc3QgU2Vzc2lvbklENjQgYygiWW10TjdCMmVkckEuIik7CiAgICBjb25zdCBTZXNzaW9uSUQxMjggZChjKTsKICAgIC8qc3RkOjpjb3V0IDw8ICJhOiAiIDw8IGEgPDwKICAgICAgICAgICAgICBzdGQ6OmVuZGw7CiAgICBzdGQ6OmNvdXQgPDwgImI6ICIgPDwgYiA8PAogICAgICAgICAgICAgIHN0ZDo6ZW5kbDsKICAgIHN0ZDo6Y291dCA8PCAiYzogIiA8PCBjIDw8CiAgICAgICAgICAgICAgc3RkOjplbmRsOwogICAgc3RkOjpjb3V0IDw8ICJkOiAiIDw8IGQgPDwKICAgICAgICAgICAgICBzdGQ6OmVuZGw7ICovCiAgICBBU1NFUlRfRkFMU0UoYSA9PSBiKSA8PCAidGVzdDQ6IHdyb25nLCBub3QgZXF1YWwiOwogICAgQVNTRVJUX1RSVUUoYS5lcV93ZWFrKGIpKSA8PCAidGVzdDQvMTogd3JvbmcsIHdlYWtseSBlcXVhbCI7CiAgICBBU1NFUlRfVFJVRShhLmVxX3dlYWsoYykpIDw8ICJ0ZXN0NC8yOiB3cm9uZywgd2Vha2x5IGVxdWFsIjsKICAgIEFTU0VSVF9UUlVFKGIuZXFfd2VhayhjKSkgPDwgInRlc3Q0LzM6IHdyb25nLCB3ZWFrbHkgZXF1YWwiOwoKICAgIHN0ZDo6dW5vcmRlcmVkX21hcDxTZXNzaW9uSUQxMjgsIHN0ZDo6c3RyaW5nPiBtYXA7CiAgICBjb25zdCBzdGQ6OnVub3JkZXJlZF9tYXA8U2Vzc2lvbklEMTI4LCBzdGQ6OnN0cmluZz4gJmNtYXAgPSBtYXA7CiAgICBtYXBbYV0gPSAiaGVsbG8iOwogICAgQVNTRVJUX1RSVUUoYi5maW5kX3dlYWsobWFwLCB0cnVlKSkgPDwgInRlc3Q0LzE6IHdyb25nLCB3ZWFrIGV4aXN0cyI7CiAgICBBU1NFUlRfVFJVRShkLmZpbmRfd2VhayhtYXAsIHRydWUpKSA8PCAidGVzdDQvMjogd3JvbmcsIHdlYWsgZXhpc3RzIjsKICAgIEFTU0VSVF9GQUxTRShhLmZpbmRfd2VhayhtYXAsIHRydWUpKSA8PCAidGVzdDQvMzogd3JvbmcsIHdlYWsgZG9lc24ndCBleGlzdCI7CiAgICBBU1NFUlRfVFJVRShhLmZpbmRfd2VhayhtYXAsIGZhbHNlKSkgPDwgInRlc3Q0LzQ6IHdyb25nLCB3ZWFrIGV4aXN0cyI7CiAgICBBU1NFUlRfRkFMU0UoeC5maW5kX3dlYWsobWFwLCB0cnVlKSkgPDwgInRlc3Q0OiB3cm9uZywgd2VhayBkb2Vzbid0IGV4aXN0IjsKICAgIGNvbnN0IFNlc3Npb25JRDEyOCAqczEgPSBkLmZpbmRfd2VhayhjbWFwLCB0cnVlKTsKICAgIEFTU0VSVF9UUlVFKHMxKSA8PCAidGVzdDQ6IGNhbid0IGZpbmQgczEiOwogICAgLy8gc3RkOjpjb3V0IDw8ICJsb29rdXA6ICIgPDwgKnMxIDw8ICcgJyA8PAogICAgLy8gICAgICAgICAgICBzdGQ6OmVuZGw7CiAgICBjb25zdCBTZXNzaW9uSUQxMjggKnMyID0geC5maW5kX3dlYWsoY21hcCwgdHJ1ZSk7CiAgICBBU1NFUlRfRkFMU0UoczIpIDw8ICJ0ZXN0NDogc2hvdWxkbid0IGhhdmUgZm91bmQgczIiOwp9CgpURVNUKHNlc3NpZCwgc3BlZWQpCnsKICAgIFNTTExpYjo6UmFuZG9tQVBJIHJuZzsKCiAgICBjb25zdCBTZXNzaW9uSUQxMjggc2lkKHJuZyk7CiAgICBjb25zdCBUb2tlbkVuY3J5cHQ6OktleSBrZXkocm5nKTsKICAgIFRva2VuRW5jcnlwdERlY3J5cHQgdGVkKGtleSk7CiAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IDEwMDA7ICsraSkKICAgIHsKICAgICAgICBjb25zdCBTZXNzaW9uSUQxMjggc2lkX2VuYyhzaWQsIHRlZC5lbmNyeXB0KTsKICAgICAgICBjb25zdCBTZXNzaW9uSUQxMjggc2lkX2RlYyhzaWRfZW5jLCB0ZWQuZGVjcnlwdCk7CiAgICAgICAgQVNTRVJUX0VRKHNpZCwgc2lkX2RlYyk7CiAgICB9Cn0KCnN0cnVjdCBTZXNzaW9uSUQgOiBwdWJsaWMgU2Vzc2lvbklEMTI4CnsKICAgIFNlc3Npb25JRCgpCiAgICB7CiAgICAgICAgLy8gZHVtcCgiZGVmYXVsdCIpOwogICAgfQoKICAgIFNlc3Npb25JRChTdHJvbmdSYW5kb21BUEkgJnJuZykKICAgICAgICA6IFNlc3Npb25JRDEyOChybmcpCiAgICB7CiAgICAgICAgLy8gZHVtcCgicm5nIik7CiAgICB9CgogICAgflNlc3Npb25JRCgpCiAgICB7CiAgICAgICAgLy8gZHVtcCgiZGVzdHJ1Y3QiKTsKICAgIH0KCiAgICB2b2lkIGR1bXAoY29uc3QgY2hhciAqcHJlZml4KSBjb25zdAogICAgewogICAgICAgIHN0ZDo6Y291dCA8PCBwcmVmaXggPDwgIiA6ICIgPDwgdG9fc3RyaW5nKCkgPDwgc3RkOjplbmRsOwogICAgfQp9OwoKY2xhc3MgU2Vzc2lvbgp7CiAgcHVibGljOgogICAgU2Vzc2lvbihTdHJvbmdSYW5kb21BUEkgJnJuZykKICAgICAgICA6IHNpZChybmcpCiAgICB7CiAgICB9CgogICAgY29uc3QgU2Vzc2lvbklEICZnZXRfdG9rZW4oKSBjb25zdAogICAgewogICAgICAgIHJldHVybiBzaWQ7CiAgICB9CgogIHByaXZhdGU6CiAgICBTZXNzaW9uSUQgc2lkOwp9OwoKc3RkOjpzdHJpbmcgdGVzdChTZXNzaW9uICpzZXNzaW9uKQp7CiAgICBjb25zdCBzdGQ6OnN0cmluZyAmbmFtID0gIm15bmFtZSI7CiAgICBjb25zdCBTZXNzaW9uSUQgJnNpZCA9IHNlc3Npb24gPyBzZXNzaW9uLT5nZXRfdG9rZW4oKSA6IFNlc3Npb25JRCgpOwogICAgcmV0dXJuICJOYW1lOiAiICsgbmFtICsgIiBTZXNzSUQ6ICIgKyBzaWQudG9fc3RyaW5nKCk7Cn0KClRFU1Qoc2Vzc2lkLCByZWZzY29wZTEpCnsKICAgIEZha2VTZWN1cmVSYW5kIGZha2Vfcm5nKDB4NDIpOwogICAgU2Vzc2lvbiBzZXNzKGZha2Vfcm5nKTsKICAgIEVYUEVDVF9FUSgiTmFtZTogbXluYW1lIFNlc3NJRDogUWtORVJVWkhTRWxLUzB4TlRrOVFVUS4uIiwgdGVzdCgmc2VzcykpOwogICAgRVhQRUNUX0VRKCJOYW1lOiBteW5hbWUgU2Vzc0lEOiBBQUFBQUFBQUFBQUFBQUFBQUFBQUFBLi4iLCB0ZXN0KG51bGxwdHIpKTsKfQoKI2lmbmRlZiBJVEVSCiNkZWZpbmUgSVRFUiAxMDAwCiNlbmRpZgoKc3RhdGljIHZvaWQgdHJ5aXQoUmFuZG9tQVBJICZybmcsIFRva2VuRW5jcnlwdERlY3J5cHQgJmVuY2RlYykKewogICAgc3RkOjp1aW50OF90IGRhdGExW1Rva2VuRW5jcnlwdDo6S2V5OjpTSVpFXTsKICAgIHN0ZDo6dWludDhfdCBkYXRhMltUb2tlbkVuY3J5cHQ6OktleTo6U0laRV07CiAgICBzdGQ6OnVpbnQ4X3QgZGF0YTNbVG9rZW5FbmNyeXB0OjpLZXk6OlNJWkVdOwoKICAgIHJuZy5yYW5kX2J5dGVzKGRhdGExLCBzaXplb2YoZGF0YTEpKTsKICAgIGVuY2RlYy5lbmNyeXB0KGRhdGEyLCBkYXRhMSwgVG9rZW5FbmNyeXB0OjpLZXk6OlNJWkUpOwogICAgZW5jZGVjLmRlY3J5cHQoZGF0YTMsIGRhdGEyLCBUb2tlbkVuY3J5cHQ6OktleTo6U0laRSk7CiAgICBBU1NFUlRfVFJVRSg6Om1lbWNtcChkYXRhMSwgZGF0YTMsIFRva2VuRW5jcnlwdDo6S2V5OjpTSVpFKSA9PSAwKTsKfQoKVEVTVChzZXNzaWQsIHRva2VuRW5jcnlwdCkKewogICAgU1NMTGliOjpSYW5kb21BUEkgcm5nOwogICAgY29uc3QgVG9rZW5FbmNyeXB0OjpLZXkga2V5KHJuZyk7CiAgICBUb2tlbkVuY3J5cHREZWNyeXB0IGVuY2RlYyhrZXkpOwoKICAgIGZvciAoc2l6ZV90IGkgPSAwOyBpIDwgSVRFUjsgKytpKQogICAgICAgIHRyeWl0KHJuZywgZW5jZGVjKTsKfQo=
+#include "test_common.hpp"
+
+#include <openvpn/common/sess_id.hpp>
+#include <openvpn/openssl/util/tokenencrypt.hpp>
+#include <unordered_map>
+#include <openvpn/ssl/sslchoose.hpp>
+
+using namespace openvpn;
+
+TEST(sessid, test1)
+{
+    SSLLib::RandomAPI rng;
+
+    // test 1
+    {
+        const SessionID64 sid1(rng);
+        // std::cout << "SID1: " << sid1 << std::endl;
+
+        const SessionID64 sid2(sid1.to_string());
+        ASSERT_TRUE(sid1.defined() && sid2.defined()) << "FAIL sid1 or sid2 is undefined";
+        ASSERT_EQ(sid1, sid2);
+
+        const SessionID128 sid3(rng);
+        ASSERT_FALSE(sid1.eq_weak(sid3)) << "FAIL sid1 ~== sid3";
+        ASSERT_FALSE(sid3.eq_weak(sid1)) << "FAIL sid3 ~== sid1";
+
+        for (int i = 1; i <= 4; ++i)
+        {
+            // std::cout << "---- " << i << " ----" << std::endl;
+            const TokenEncrypt::Key key(rng);
+            TokenEncryptDecrypt ted(key);
+            const SessionID128 sid3_enc(sid3, ted.encrypt);
+            // std::cout << "SID3 (enc): " << sid3_enc << std::endl;
+            const SessionID128 sid3_dec(sid3_enc, ted.decrypt);
+            // std::cout << "SID3 (dec): " << sid3_dec << std::endl;
+        }
+    }
+}
+TEST(sessid, test2)
+{
+    SSLLib::RandomAPI rng;
+    {
+        const SessionID64 sid1(rng);
+        // std::cout << "SID1: " << sid1 << std::endl;
+        const SessionID128 sid2(rng);
+        // std::cout << "SID2: " << sid2 << std::endl;
+
+        const SessionID128 sid1_exp(sid1);
+        // std::cout << "SID1_EXP: " << sid1_exp << std::endl;
+        const SessionID64 sid2_trunc(sid2);
+        // std::cout << "SID2_TRUNC: " << sid2_trunc << std::endl;
+    }
+}
+
+TEST(sessid, test3)
+{
+    const SessionID64 ns;
+    ASSERT_FALSE(ns.defined()) << "FAIL default constructed SessionID is defined";
+}
+
+TEST(sessid, test4)
+{
+    SSLLib::RandomAPI rng;
+    const SessionID128 x;
+    const SessionID128 a("YmtN7B2edrDRlefk3vQ_YQ..");
+    const SessionID128 b("YmtN7B2edrDRlefk3vQ_YA..");
+    const SessionID64 c("YmtN7B2edrA.");
+    const SessionID128 d(c);
+    /*std::cout << "a: " << a <<
+              std::endl;
+    std::cout << "b: " << b <<
+              std::endl;
+    std::cout << "c: " << c <<
+              std::endl;
+    std::cout << "d: " << d <<
+              std::endl; */
+    ASSERT_FALSE(a == b) << "test4: wrong, not equal";
+    ASSERT_TRUE(a.eq_weak(b)) << "test4/1: wrong, weakly equal";
+    ASSERT_TRUE(a.eq_weak(c)) << "test4/2: wrong, weakly equal";
+    ASSERT_TRUE(b.eq_weak(c)) << "test4/3: wrong, weakly equal";
+
+    std::unordered_map<SessionID128, std::string> map;
+    const std::unordered_map<SessionID128, std::string> &cmap = map;
+    map[a] = "hello";
+    ASSERT_TRUE(b.find_weak(map, true)) << "test4/1: wrong, weak exists";
+    ASSERT_TRUE(d.find_weak(map, true)) << "test4/2: wrong, weak exists";
+    ASSERT_FALSE(a.find_weak(map, true)) << "test4/3: wrong, weak doesn't exist";
+    ASSERT_TRUE(a.find_weak(map, false)) << "test4/4: wrong, weak exists";
+    ASSERT_FALSE(x.find_weak(map, true)) << "test4: wrong, weak doesn't exist";
+    const SessionID128 *s1 = d.find_weak(cmap, true);
+    ASSERT_TRUE(s1) << "test4: can't find s1";
+    // std::cout << "lookup: " << *s1 << ' ' <<
+    //            std::endl;
+    const SessionID128 *s2 = x.find_weak(cmap, true);
+    ASSERT_FALSE(s2) << "test4: shouldn't have found s2";
+}
+
+TEST(sessid, speed)
+{
+    SSLLib::RandomAPI rng;
+
+    const SessionID128 sid(rng);
+    const TokenEncrypt::Key key(rng);
+    TokenEncryptDecrypt ted(key);
+    for (size_t i = 0; i < 1000; ++i)
+    {
+        const SessionID128 sid_enc(sid, ted.encrypt);
+        const SessionID128 sid_dec(sid_enc, ted.decrypt);
+        ASSERT_EQ(sid, sid_dec);
+    }
+}
+
+struct SessionID : public SessionID128
+{
+    SessionID()
+    {
+        // dump("default");
+    }
+
+    SessionID(StrongRandomAPI &rng)
+        : SessionID128(rng)
+    {
+        // dump("rng");
+    }
+
+    ~SessionID()
+    {
+        // dump("destruct");
+    }
+
+    void dump(const char *prefix) const
+    {
+        std::cout << prefix << " : " << to_string() << std::endl;
+    }
+};
+
+class Session
+{
+  public:
+    Session(StrongRandomAPI &rng)
+        : sid(rng)
+    {
+    }
+
+    const SessionID &get_token() const
+    {
+        return sid;
+    }
+
+  private:
+    SessionID sid;
+};
+
+std::string test(Session *session)
+{
+    const std::string &nam = "myname";
+    const SessionID &sid = session ? session->get_token() : SessionID();
+    return "Name: " + nam + " SessID: " + sid.to_string();
+}
+
+TEST(sessid, refscope1)
+{
+    FakeSecureRand fake_rng(0x42);
+    Session sess(fake_rng);
+    EXPECT_EQ("Name: myname SessID: QkNERUZHSElKS0xNTk9QUQ..", test(&sess));
+    EXPECT_EQ("Name: myname SessID: AAAAAAAAAAAAAAAAAAAAAA..", test(nullptr));
+}
+
+#ifndef ITER
+#define ITER 1000
+#endif
+
+static void tryit(RandomAPI &rng, TokenEncryptDecrypt &encdec)
+{
+    std::uint8_t data1[TokenEncrypt::Key::SIZE];
+    std::uint8_t data2[TokenEncrypt::Key::SIZE];
+    std::uint8_t data3[TokenEncrypt::Key::SIZE];
+
+    rng.rand_bytes(data1, sizeof(data1));
+    encdec.encrypt(data2, data1, TokenEncrypt::Key::SIZE);
+    encdec.decrypt(data3, data2, TokenEncrypt::Key::SIZE);
+    ASSERT_TRUE(::memcmp(data1, data3, TokenEncrypt::Key::SIZE) == 0);
+}
+
+TEST(sessid, tokenEncrypt)
+{
+    SSLLib::RandomAPI rng;
+    const TokenEncrypt::Key key(rng);
+    TokenEncryptDecrypt encdec(key);
+
+    for (size_t i = 0; i < ITER; ++i)
+        tryit(rng, encdec);
+}

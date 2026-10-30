@@ -1,1 +1,172 @@
-Ly8gVGhpcyB0ZXN0IGRlbW9uc3RyYXRlcyBhbiBhbHRlcm5hdGl2ZSB0byBkeW5hbWljX2Nhc3QKLy8gdXNpbmcgc3RkOjp0eXBlaW5kZXggdGhhdCBpcyBtdWNoIGZhc3Rlci4KCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8dHlwZWluZGV4PgojaW5jbHVkZSA8dmVjdG9yPgojaW5jbHVkZSA8dXRpbGl0eT4KCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9leGNlcHRpb24uaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vcmMuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vc3RyaW5ndGVtcGwyLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKbmFtZXNwYWNlIHsKc3RydWN0IEJhc2UgOiBwdWJsaWMgUkM8dGhyZWFkX3Vuc2FmZV9yZWZjb3VudD4KewogIHB1YmxpYzoKICAgIHR5cGVkZWYgUkNQdHI8QmFzZT4gUHRyOwoKICAgIHZpcnR1YWwgc3RkOjpzdHJpbmcgdG9fc3RyaW5nKCkgY29uc3QgPSAwOwoKICAgIHN0ZDo6dHlwZV9pbmRleCB0eXBlKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gdHlwZV87CiAgICB9CgogIHByb3RlY3RlZDoKICAgIEJhc2Uoc3RkOjp0eXBlX2luZGV4ICYmdHlwZSkKICAgICAgICA6IHR5cGVfKHN0ZDo6bW92ZSh0eXBlKSkKICAgIHsKICAgIH0KCiAgcHJpdmF0ZToKICAgIGNvbnN0IHN0ZDo6dHlwZV9pbmRleCB0eXBlXzsKfTsKCnRlbXBsYXRlIDx0eXBlbmFtZSBUPgpjbGFzcyBXcmFwcGVyIDogcHVibGljIEJhc2UKewogIHB1YmxpYzoKICAgIFdyYXBwZXIoVCAmJm9ial9hcmcpCiAgICAgICAgOiBCYXNlKHN0YXRpY190eXBlKCkpLAogICAgICAgICAgb2JqKHN0ZDo6bW92ZShvYmpfYXJnKSkKICAgIHsKICAgIH0KCiAgICAvLyB0aGlzIGlzIGxpa2UgZHluYW1pYyBjYXN0IG9uIHN0ZXJvaWRzISAofjEgbnMpCiAgICBzdGF0aWMgY29uc3QgV3JhcHBlciAqc2VsZihjb25zdCBCYXNlICptYXliZV9teV90eXBlKQogICAgewogICAgICAgIGlmIChtYXliZV9teV90eXBlLT50eXBlKCkgPT0gc3RhdGljX3R5cGUoKSkKICAgICAgICAgICAgcmV0dXJuIHN0YXRpY19jYXN0PGNvbnN0IFdyYXBwZXIgKj4obWF5YmVfbXlfdHlwZSk7CiAgICAgICAgZWxzZQogICAgICAgICAgICByZXR1cm4gbnVsbHB0cjsKICAgIH0KCiAgICB2aXJ0dWFsIHN0ZDo6c3RyaW5nIHRvX3N0cmluZygpIGNvbnN0IG92ZXJyaWRlCiAgICB7CiAgICAgICAgcmV0dXJuICJ2YWx1ZT0iICsgU3RyaW5nVGVtcGw6OnRvX3N0cmluZyhvYmopICsgIiBvYmpfc2l6ZT0iICsgc3RkOjp0b19zdHJpbmcoc2l6ZW9mKG9iaikpOwogICAgfQoKICAgIHN0YXRpYyBzdGQ6OnR5cGVfaW5kZXggc3RhdGljX3R5cGUoKQogICAgewogICAgICAgIHJldHVybiBzdGQ6OnR5cGVfaW5kZXgodHlwZWlkKFdyYXBwZXIpKTsKICAgIH0KCiAgICBUIG9iajsKfTsKCnN0cnVjdCBWZWMgOiBwdWJsaWMgc3RkOjp2ZWN0b3I8QmFzZTo6UHRyPgp7CiAgICBzdGQ6OnN0cmluZyB0b19zdHJpbmcoKSBjb25zdAogICAgewogICAgICAgIHN0ZDo6c3RyaW5nIHJldDsKICAgICAgICBmb3IgKGNvbnN0IGF1dG8gJmUgOiAqdGhpcykKICAgICAgICB7CiAgICAgICAgICAgIHJldCArPSBlLT50b19zdHJpbmcoKTsKICAgICAgICAgICAgcmV0ICs9ICdcbic7CiAgICAgICAgfQogICAgICAgIHJldHVybiByZXQ7CiAgICB9Cn07Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgVD4Kc3RhdGljIEJhc2U6OlB0ciBjcmVhdGUoVCAmJm9iaikKewogICAgcmV0dXJuIEJhc2U6OlB0cihuZXcgV3JhcHBlcjxUPihzdGQ6Om1vdmUob2JqKSkpOwp9CgpzdGF0aWMgVmVjIGNyZWF0ZV92ZWMoKQp7CiAgICBWZWMgdmVjOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUoMSkpOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUoMikpOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUoMy4xNDE1OSkpOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUoc3RkOjpzdHJpbmcoIkhlbGxvIikpKTsKICAgIHZlYy5lbXBsYWNlX2JhY2soY3JlYXRlKHN0ZDo6c3RyaW5nKCJXb3JsZCEiKSkpOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUodHJ1ZSkpOwogICAgdmVjLmVtcGxhY2VfYmFjayhjcmVhdGUoZmFsc2UpKTsKICAgIHJldHVybiB2ZWM7Cn0KfSAvLyBuYW1lc3BhY2UKCi8vIHNpbXBsZSB0ZXN0IG9mIHNlbGYoKQpURVNUKHR5cGVpbmRleCwgdGVzdCkKewogICAgdHlwZWRlZiBXcmFwcGVyPHN0ZDo6c3RyaW5nPiBTdHJpbmdXcmFwOwoKICAgIGNvbnN0IFZlYyB2ZWMgPSBjcmVhdGVfdmVjKCk7CgogICAgT1BFTlZQTl9MT0coIkNPTlRFTlRTLi4uIik7CiAgICBPUEVOVlBOX0xPR19TVFJJTkcodmVjLnRvX3N0cmluZygpKTsKCiAgICBPUEVOVlBOX0xPRygiU1RSSU5HUy4uLiIpOwogICAgZm9yIChjb25zdCBhdXRvICZlIDogdmVjKQogICAgewogICAgICAgIGNvbnN0IFN0cmluZ1dyYXAgKnMgPSBTdHJpbmdXcmFwOjpzZWxmKGUuZ2V0KCkpOwogICAgICAgIGlmIChzKQogICAgICAgICAgICBPUEVOVlBOX0xPRyhzLT5vYmopOwogICAgfQp9CgojaWZuZGVmIElOU1RSVU1FTlRBVElPTl9TTE9XRE9XTgoKLy8gdGVzdCBwZXJmb3JtYW5jZSBvZiBzZWxmKCkgYXMgYWx0ZXJuYXRpdmUgdG8gZHluYW1pY19jYXN0ClRFU1QodHlwZWluZGV4LCBwZXJmX3Rlc3RfZmFzdCkKewogICAgdHlwZWRlZiBXcmFwcGVyPHN0ZDo6c3RyaW5nPiBTdHJpbmdXcmFwOwoKICAgIGNvbnN0IHNpemVfdCBOID0gMTAwMDAwMDAwOwoKICAgIGNvbnN0IFZlYyB2ZWMgPSBjcmVhdGVfdmVjKCk7CiAgICBjb25zdCBzaXplX3Qgc2l6ZSA9IHZlYy5zaXplKCk7CiAgICBzaXplX3Qgbl9zdHJpbmdzID0gMDsKICAgIHNpemVfdCBpID0gMDsKICAgIGZvciAoc2l6ZV90IGNvdW50ID0gMDsgY291bnQgPCBOOyArK2NvdW50KQogICAgewogICAgICAgIGNvbnN0IFN0cmluZ1dyYXAgKnMgPSBTdHJpbmdXcmFwOjpzZWxmKHZlY1tpXS5nZXQoKSk7CiAgICAgICAgaWYgKHMpCiAgICAgICAgICAgICsrbl9zdHJpbmdzOwogICAgICAgIGlmICgrK2kgPj0gc2l6ZSkKICAgICAgICAgICAgaSA9IDA7CiAgICB9CiAgICBPUEVOVlBOX0xPRygiUEVSRiAiIDw8IG5fc3RyaW5ncyA8PCAnLycgPDwgTik7CiAgICBBU1NFUlRfRVEobl9zdHJpbmdzLCAyODU3MTQyOHUpOwp9CgovLyBhcyBhIGNvbnRyb2wsIHRlc3QgcGVyZm9ybWFuY2Ugb2YgZHluYW1pY19jYXN0ClRFU1QodHlwZWluZGV4LCBwZXJmX3Rlc3RfZHluYW1pYykKewogICAgdHlwZWRlZiBXcmFwcGVyPHN0ZDo6c3RyaW5nPiBTdHJpbmdXcmFwOwoKICAgIGNvbnN0IHNpemVfdCBOID0gMTAwMDAwMDAwOwoKICAgIGNvbnN0IFZlYyB2ZWMgPSBjcmVhdGVfdmVjKCk7CiAgICBjb25zdCBzaXplX3Qgc2l6ZSA9IHZlYy5zaXplKCk7CiAgICBzaXplX3Qgbl9zdHJpbmdzID0gMDsKICAgIHNpemVfdCBpID0gMDsKICAgIGZvciAoc2l6ZV90IGNvdW50ID0gMDsgY291bnQgPCBOOyArK2NvdW50KQogICAgewogICAgICAgIGNvbnN0IFN0cmluZ1dyYXAgKnMgPSBkeW5hbWljX2Nhc3Q8Y29uc3QgU3RyaW5nV3JhcCAqPih2ZWNbaV0uZ2V0KCkpOwogICAgICAgIGlmIChzKQogICAgICAgICAgICArK25fc3RyaW5nczsKICAgICAgICBpZiAoKytpID49IHNpemUpCiAgICAgICAgICAgIGkgPSAwOwogICAgfQogICAgT1BFTlZQTl9MT0coIlBFUkYgIiA8PCBuX3N0cmluZ3MgPDwgJy8nIDw8IE4pOwogICAgQVNTRVJUX0VRKG5fc3RyaW5ncywgMjg1NzE0Mjh1KTsKfQoKI2VuZGlmCg==
+// This test demonstrates an alternative to dynamic_cast
+// using std::typeindex that is much faster.
+
+#include "test_common.hpp"
+
+#include <typeindex>
+#include <vector>
+#include <utility>
+
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/rc.hpp>
+#include <openvpn/common/stringtempl2.hpp>
+
+using namespace openvpn;
+
+namespace {
+struct Base : public RC<thread_unsafe_refcount>
+{
+  public:
+    typedef RCPtr<Base> Ptr;
+
+    virtual std::string to_string() const = 0;
+
+    std::type_index type() const
+    {
+        return type_;
+    }
+
+  protected:
+    Base(std::type_index &&type)
+        : type_(std::move(type))
+    {
+    }
+
+  private:
+    const std::type_index type_;
+};
+
+template <typename T>
+class Wrapper : public Base
+{
+  public:
+    Wrapper(T &&obj_arg)
+        : Base(static_type()),
+          obj(std::move(obj_arg))
+    {
+    }
+
+    // this is like dynamic cast on steroids! (~1 ns)
+    static const Wrapper *self(const Base *maybe_my_type)
+    {
+        if (maybe_my_type->type() == static_type())
+            return static_cast<const Wrapper *>(maybe_my_type);
+        else
+            return nullptr;
+    }
+
+    virtual std::string to_string() const override
+    {
+        return "value=" + StringTempl::to_string(obj) + " obj_size=" + std::to_string(sizeof(obj));
+    }
+
+    static std::type_index static_type()
+    {
+        return std::type_index(typeid(Wrapper));
+    }
+
+    T obj;
+};
+
+struct Vec : public std::vector<Base::Ptr>
+{
+    std::string to_string() const
+    {
+        std::string ret;
+        for (const auto &e : *this)
+        {
+            ret += e->to_string();
+            ret += '\n';
+        }
+        return ret;
+    }
+};
+
+template <typename T>
+static Base::Ptr create(T &&obj)
+{
+    return Base::Ptr(new Wrapper<T>(std::move(obj)));
+}
+
+static Vec create_vec()
+{
+    Vec vec;
+    vec.emplace_back(create(1));
+    vec.emplace_back(create(2));
+    vec.emplace_back(create(3.14159));
+    vec.emplace_back(create(std::string("Hello")));
+    vec.emplace_back(create(std::string("World!")));
+    vec.emplace_back(create(true));
+    vec.emplace_back(create(false));
+    return vec;
+}
+} // namespace
+
+// simple test of self()
+TEST(typeindex, test)
+{
+    typedef Wrapper<std::string> StringWrap;
+
+    const Vec vec = create_vec();
+
+    OPENVPN_LOG("CONTENTS...");
+    OPENVPN_LOG_STRING(vec.to_string());
+
+    OPENVPN_LOG("STRINGS...");
+    for (const auto &e : vec)
+    {
+        const StringWrap *s = StringWrap::self(e.get());
+        if (s)
+            OPENVPN_LOG(s->obj);
+    }
+}
+
+#ifndef INSTRUMENTATION_SLOWDOWN
+
+// test performance of self() as alternative to dynamic_cast
+TEST(typeindex, perf_test_fast)
+{
+    typedef Wrapper<std::string> StringWrap;
+
+    const size_t N = 100000000;
+
+    const Vec vec = create_vec();
+    const size_t size = vec.size();
+    size_t n_strings = 0;
+    size_t i = 0;
+    for (size_t count = 0; count < N; ++count)
+    {
+        const StringWrap *s = StringWrap::self(vec[i].get());
+        if (s)
+            ++n_strings;
+        if (++i >= size)
+            i = 0;
+    }
+    OPENVPN_LOG("PERF " << n_strings << '/' << N);
+    ASSERT_EQ(n_strings, 28571428u);
+}
+
+// as a control, test performance of dynamic_cast
+TEST(typeindex, perf_test_dynamic)
+{
+    typedef Wrapper<std::string> StringWrap;
+
+    const size_t N = 100000000;
+
+    const Vec vec = create_vec();
+    const size_t size = vec.size();
+    size_t n_strings = 0;
+    size_t i = 0;
+    for (size_t count = 0; count < N; ++count)
+    {
+        const StringWrap *s = dynamic_cast<const StringWrap *>(vec[i].get());
+        if (s)
+            ++n_strings;
+        if (++i >= size)
+            i = 0;
+    }
+    OPENVPN_LOG("PERF " << n_strings << '/' << N);
+    ASSERT_EQ(n_strings, 28571428u);
+}
+
+#endif

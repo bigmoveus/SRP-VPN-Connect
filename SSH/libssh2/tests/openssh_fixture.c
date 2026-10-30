@@ -1,1 +1,490 @@
-LyogQ29weXJpZ2h0IChDKSBBbGV4YW5kZXIgTGFtYWlzb24KICogQWxsIHJpZ2h0cyByZXNlcnZlZC4KICoKICogUmVkaXN0cmlidXRpb24gYW5kIHVzZSBpbiBzb3VyY2UgYW5kIGJpbmFyeSBmb3JtcywKICogd2l0aCBvciB3aXRob3V0IG1vZGlmaWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92aWRlZAogKiB0aGF0IHRoZSBmb2xsb3dpbmcgY29uZGl0aW9ucyBhcmUgbWV0OgogKgogKiAgIFJlZGlzdHJpYnV0aW9ucyBvZiBzb3VyY2UgY29kZSBtdXN0IHJldGFpbiB0aGUgYWJvdmUKICogICBjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhlCiAqICAgZm9sbG93aW5nIGRpc2NsYWltZXIuCiAqCiAqICAgUmVkaXN0cmlidXRpb25zIGluIGJpbmFyeSBmb3JtIG11c3QgcmVwcm9kdWNlIHRoZSBhYm92ZQogKiAgIGNvcHlyaWdodCBub3RpY2UsIHRoaXMgbGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUgZm9sbG93aW5nCiAqICAgZGlzY2xhaW1lciBpbiB0aGUgZG9jdW1lbnRhdGlvbiBhbmQvb3Igb3RoZXIgbWF0ZXJpYWxzCiAqICAgcHJvdmlkZWQgd2l0aCB0aGUgZGlzdHJpYnV0aW9uLgogKgogKiAgIE5laXRoZXIgdGhlIG5hbWUgb2YgdGhlIGNvcHlyaWdodCBob2xkZXIgbm9yIHRoZSBuYW1lcwogKiAgIG9mIGFueSBvdGhlciBjb250cmlidXRvcnMgbWF5IGJlIHVzZWQgdG8gZW5kb3JzZSBvcgogKiAgIHByb21vdGUgcHJvZHVjdHMgZGVyaXZlZCBmcm9tIHRoaXMgc29mdHdhcmUgd2l0aG91dAogKiAgIHNwZWNpZmljIHByaW9yIHdyaXR0ZW4gcGVybWlzc2lvbi4KICoKICogVEhJUyBTT0ZUV0FSRSBJUyBQUk9WSURFRCBCWSBUSEUgQ09QWVJJR0hUIEhPTERFUlMgQU5ECiAqIENPTlRSSUJVVE9SUyAiQVMgSVMiIEFORCBBTlkgRVhQUkVTUyBPUiBJTVBMSUVEIFdBUlJBTlRJRVMsCiAqIElOQ0xVRElORywgQlVUIE5PVCBMSU1JVEVEIFRPLCBUSEUgSU1QTElFRCBXQVJSQU5USUVTCiAqIE9GIE1FUkNIQU5UQUJJTElUWSBBTkQgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UKICogQVJFIERJU0NMQUlNRUQuIElOIE5PIEVWRU5UIFNIQUxMIFRIRSBDT1BZUklHSFQgT1dORVIgT1IKICogQ09OVFJJQlVUT1JTIEJFIExJQUJMRSBGT1IgQU5ZIERJUkVDVCwgSU5ESVJFQ1QsIElOQ0lERU5UQUwsCiAqIFNQRUNJQUwsIEVYRU1QTEFSWSwgT1IgQ09OU0VRVUVOVElBTCBEQU1BR0VTIChJTkNMVURJTkcsCiAqIEJVVCBOT1QgTElNSVRFRCBUTywgUFJPQ1VSRU1FTlQgT0YgU1VCU1RJVFVURSBHT09EUyBPUgogKiBTRVJWSUNFUzsgTE9TUyBPRiBVU0UsIERBVEEsIE9SIFBST0ZJVFM7IE9SIEJVU0lORVNTCiAqIElOVEVSUlVQVElPTikgSE9XRVZFUiBDQVVTRUQgQU5EIE9OIEFOWSBUSEVPUlkgT0YgTElBQklMSVRZLAogKiBXSEVUSEVSIElOIENPTlRSQUNULCBTVFJJQ1QgTElBQklMSVRZLCBPUiBUT1JUIChJTkNMVURJTkcKICogTkVHTElHRU5DRSBPUiBPVEhFUldJU0UpIEFSSVNJTkcgSU4gQU5ZIFdBWSBPVVQgT0YgVEhFCiAqIFVTRSBPRiBUSElTIFNPRlRXQVJFLCBFVkVOIElGIEFEVklTRUQgT0YgVEhFIFBPU1NJQklMSVRZCiAqIE9GIFNVQ0ggREFNQUdFLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInNlc3Npb25fZml4dHVyZS5oIgojaW5jbHVkZSAib3BlbnNzaF9maXh0dXJlLmgiCgojaWZkZWYgSEFWRV9TWVNfU09DS0VUX0gKI2luY2x1ZGUgPHN5cy9zb2NrZXQuaD4KI2VuZGlmCiNpZmRlZiBIQVZFX1VOSVNURF9ICiNpbmNsdWRlIDx1bmlzdGQuaD4KI2VuZGlmCiNpZmRlZiBIQVZFX0FSUEFfSU5FVF9ICiNpbmNsdWRlIDxhcnBhL2luZXQuaD4KI2VuZGlmCiNpZmRlZiBIQVZFX05FVElORVRfSU5fSAojaW5jbHVkZSA8bmV0aW5ldC9pbi5oPgojZW5kaWYKCiNpbmNsdWRlIDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDxzdGRhcmcuaD4KI2luY2x1ZGUgPGN0eXBlLmg+CgojaWYgZGVmaW5lZChfV0lOMzIpICYmIGRlZmluZWQoX1dJTjY0KQojZGVmaW5lIExJQlNTSDJfU09DS0VUX01BU0sgIiVsbGQiCiNlbHNlCiNkZWZpbmUgTElCU1NIMl9TT0NLRVRfTUFTSyAiJWQiCiNlbmRpZgoKI2lmZGVmIExJQlNTSDJfV0lORE9XU19VV1AKI2RlZmluZSBwb3Blbih4LCB5KSAoTlVMTCkKI2RlZmluZSBwY2xvc2UoeCkgKC0xKQojZWxpZiBkZWZpbmVkKF9XSU4zMikKI2RlZmluZSBwb3BlbiBfcG9wZW4KI2RlZmluZSBwY2xvc2UgX3BjbG9zZQojZW5kaWYKCnN0YXRpYyBpbnQgaGF2ZV9kb2NrZXIgPSAwOwoKaW50IG9wZW5zc2hfZml4dHVyZV9oYXZlX2RvY2tlcih2b2lkKQp7CiAgICByZXR1cm4gaGF2ZV9kb2NrZXI7Cn0KCnN0YXRpYyBpbnQgcnVuX2NvbW1hbmRfdmFyZyhjaGFyICoqb3V0cHV0LCBjb25zdCBjaGFyICpjb21tYW5kLCB2YV9saXN0IGFyZ3MpCiAgICBMSUJTU0gyX1BSSU5URigyLCAwKTsKCnN0YXRpYyBpbnQgcnVuX2NvbW1hbmRfdmFyZyhjaGFyICoqb3V0cHV0LCBjb25zdCBjaGFyICpjb21tYW5kLCB2YV9saXN0IGFyZ3MpCnsKICAgIHN0YXRpYyBjb25zdCBjaGFyIHJlZGlyZWN0X3N0ZGVycltdID0gIiVzIDI+JjEiOwoKICAgIEZJTEUgKnBpcGU7CiAgICBjaGFyIGNvbW1hbmRfYnVmW0JVRlNJWl07CiAgICBjaGFyIGJ1ZltCVUZTSVogKyBzaXplb2YocmVkaXJlY3Rfc3RkZXJyKV07CiAgICBpbnQgcmV0OwogICAgc2l6ZV90IGJ1Zl9sZW47CgogICAgaWYob3V0cHV0KSB7CiAgICAgICAgKm91dHB1dCA9IE5VTEw7CiAgICB9CgogICAgLyogRm9ybWF0IHRoZSBjb21tYW5kIHN0cmluZyAqLwogICAgcmV0ID0gdnNucHJpbnRmKGNvbW1hbmRfYnVmLCBzaXplb2YoY29tbWFuZF9idWYpLCBjb21tYW5kLCBhcmdzKTsKICAgIGlmKHJldCA8IDAgfHwgcmV0ID49IEJVRlNJWikgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiVW5hYmxlIHRvIGZvcm1hdCBjb21tYW5kICglcylcbiIsIGNvbW1hbmQpOwogICAgICAgIHJldHVybiAtMTsKICAgIH0KCiAgICAvKiBSZXdyaXRlIHRoZSBjb21tYW5kIHRvIHJlZGlyZWN0IHN0ZGVyciB0byBzdGRvdXQgdG8gd2UgY2FuIG91dHB1dCBpdCAqLwogICAgaWYoc3RybGVuKGNvbW1hbmRfYnVmKSArIHN0cmxlbihyZWRpcmVjdF9zdGRlcnIpID49IHNpemVvZihidWYpKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJVbmFibGUgdG8gcmV3cml0ZSBjb21tYW5kICglcylcbiIsIGNvbW1hbmQpOwogICAgICAgIHJldHVybiAtMTsKICAgIH0KCiAgICByZXQgPSBzbnByaW50ZihidWYsIHNpemVvZihidWYpLCByZWRpcmVjdF9zdGRlcnIsIGNvbW1hbmRfYnVmKTsKICAgIGlmKHJldCA8IDAgfHwgcmV0ID49IEJVRlNJWikgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiVW5hYmxlIHRvIHJld3JpdGUgY29tbWFuZCAoJXMpXG4iLCBjb21tYW5kKTsKICAgICAgICByZXR1cm4gLTE7CiAgICB9CgogICAgZnByaW50ZihzdGRvdXQsICJDb21tYW5kOiAlc1xuIiwgY29tbWFuZF9idWYpOwogICAgcGlwZSA9IHBvcGVuKGJ1ZiwgInIiKTsKICAgIGlmKCFwaXBlKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJVbmFibGUgdG8gZXhlY3V0ZSBjb21tYW5kICclcydcbiIsIGNvbW1hbmQpOwogICAgICAgIHJldHVybiAtMTsKICAgIH0KICAgIGJ1ZlswXSA9IDA7CiAgICBidWZfbGVuID0gMDsKICAgIHdoaWxlKGJ1Zl9sZW4gPCAoc2l6ZW9mKGJ1ZikgLSAxKSAmJgogICAgICAgIGZnZXRzKCZidWZbYnVmX2xlbl0sIChpbnQpKHNpemVvZihidWYpIC0gYnVmX2xlbiksIHBpcGUpKSB7CiAgICAgICAgYnVmX2xlbiA9IHN0cmxlbihidWYpOwogICAgfQoKICAgIHJldCA9IHBjbG9zZShwaXBlKTsKICAgIGlmKHJldCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRXJyb3IgcnVubmluZyBjb21tYW5kICclcycgKGV4aXQgJWQpOiAlc1xuIiwKICAgICAgICAgICAgICAgIGNvbW1hbmQsIHJldCwgYnVmKTsKICAgIH0KCiAgICBpZihvdXRwdXQpIHsKICAgICAgICAvKiBjb21tYW5kIG91dHB1dCBtYXkgY29udGFpbiBhIHRyYWlsaW5nIG5ld2xpbmUsIHNvIHdlIHRyaW0KICAgICAgICAgKiB3aGl0ZXNwYWNlIGhlcmUgKi8KICAgICAgICBzaXplX3QgZW5kID0gc3RybGVuKGJ1Zik7CiAgICAgICAgd2hpbGUoZW5kID4gMCAmJiBpc3NwYWNlKChpbnQpYnVmW2VuZCAtIDFdKSkgewogICAgICAgICAgICBidWZbZW5kIC0gMV0gPSAnXDAnOwogICAgICAgIH0KCiAgICAgICAgKm91dHB1dCA9IHN0cmR1cChidWYpOwogICAgfQogICAgcmV0dXJuIHJldDsKfQoKc3RhdGljIGludCBydW5fY29tbWFuZChjaGFyICoqb3V0cHV0LCBjb25zdCBjaGFyICpjb21tYW5kLCAuLi4pCiAgICBMSUJTU0gyX1BSSU5URigyLCAzKTsKCnN0YXRpYyBpbnQgcnVuX2NvbW1hbmQoY2hhciAqKm91dHB1dCwgY29uc3QgY2hhciAqY29tbWFuZCwgLi4uKQp7CiAgICB2YV9saXN0IGFyZ3M7CiAgICBpbnQgcmV0OwoKICAgIHZhX3N0YXJ0KGFyZ3MsIGNvbW1hbmQpOwogICAgcmV0ID0gcnVuX2NvbW1hbmRfdmFyZyhvdXRwdXQsIGNvbW1hbmQsIGFyZ3MpOwogICAgdmFfZW5kKGFyZ3MpOwoKICAgIHJldHVybiByZXQ7Cn0KCnN0YXRpYyBjb25zdCBjaGFyICpvcGVuc3NoX3NlcnZlcl9pbWFnZSh2b2lkKQp7CiAgICByZXR1cm4gZ2V0ZW52KCJPUEVOU1NIX1NFUlZFUl9JTUFHRSIpOwp9CgpzdGF0aWMgaW50IGJ1aWxkX29wZW5zc2hfc2VydmVyX2RvY2tlcl9pbWFnZSh2b2lkKQp7CiAgICBpZihoYXZlX2RvY2tlcikgewogICAgICAgIGNvbnN0IGNoYXIgKmNvbnRhaW5lcl9pbWFnZV9uYW1lID0gb3BlbnNzaF9zZXJ2ZXJfaW1hZ2UoKTsKICAgICAgICBpZihjb250YWluZXJfaW1hZ2VfbmFtZSkgewogICAgICAgICAgICBpbnQgcmV0ID0gcnVuX2NvbW1hbmQoTlVMTCwgImRvY2tlciBwdWxsICVzIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnRhaW5lcl9pbWFnZV9uYW1lKTsKICAgICAgICAgICAgaWYocmV0ID09IDApIHsKICAgICAgICAgICAgICAgIHJldCA9IHJ1bl9jb21tYW5kKE5VTEwsICJkb2NrZXIgdGFnICVzIGxpYnNzaDIvb3BlbnNzaF9zZXJ2ZXIiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29udGFpbmVyX2ltYWdlX25hbWUpOwogICAgICAgICAgICAgICAgaWYocmV0ID09IDApIHsKICAgICAgICAgICAgICAgICAgICByZXR1cm4gcmV0OwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIHJldHVybiBydW5fY29tbWFuZChOVUxMLAogICAgICAgICAgICAgICAgICAgICAgICAgICAiZG9ja2VyIGJ1aWxkIC0tcXVpZXQgLXQgbGlic3NoMi9vcGVuc3NoX3NlcnZlciAlcyIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgIHNyY2Rpcl9wYXRoKCJvcGVuc3NoX3NlcnZlciIpKTsKICAgIH0KICAgIGVsc2UgewogICAgICAgIHJldHVybiAwOwogICAgfQp9CgpzdGF0aWMgY29uc3QgY2hhciAqb3BlbnNzaF9zZXJ2ZXJfcG9ydCh2b2lkKQp7CiAgICByZXR1cm4gZ2V0ZW52KCJPUEVOU1NIX1NFUlZFUl9QT1JUIik7Cn0KCnN0YXRpYyBpbnQgc3RhcnRfb3BlbnNzaF9zZXJ2ZXIoY2hhciAqKmNvbnRhaW5lcl9pZF9vdXQpCnsKICAgIGlmKGhhdmVfZG9ja2VyKSB7CiAgICAgICAgY29uc3QgY2hhciAqY29udGFpbmVyX2hvc3RfcG9ydCA9IG9wZW5zc2hfc2VydmVyX3BvcnQoKTsKICAgICAgICBpZihjb250YWluZXJfaG9zdF9wb3J0KSB7CiAgICAgICAgICAgIHJldHVybiBydW5fY29tbWFuZChjb250YWluZXJfaWRfb3V0LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImRvY2tlciBydW4gLS1ybSAtZCAtcCAlczoyMiAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAibGlic3NoMi9vcGVuc3NoX3NlcnZlciIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb250YWluZXJfaG9zdF9wb3J0KTsKICAgICAgICB9CgogICAgICAgIHJldHVybiBydW5fY29tbWFuZChjb250YWluZXJfaWRfb3V0LAogICAgICAgICAgICAgICAgICAgICAgICAgICAiZG9ja2VyIHJ1biAtLXJtIC1kIC1wIDIyICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgImxpYnNzaDIvb3BlbnNzaF9zZXJ2ZXIiKTsKICAgIH0KICAgIGVsc2UgewogICAgICAgICpjb250YWluZXJfaWRfb3V0ID0gc3RyZHVwKCIiKTsKICAgICAgICByZXR1cm4gMDsKICAgIH0KfQoKc3RhdGljIGludCBzdG9wX29wZW5zc2hfc2VydmVyKGNoYXIgKmNvbnRhaW5lcl9pZCkKewogICAgaWYoaGF2ZV9kb2NrZXIpIHsKICAgICAgICByZXR1cm4gcnVuX2NvbW1hbmQoTlVMTCwgImRvY2tlciBzdG9wICVzIiwgY29udGFpbmVyX2lkKTsKICAgIH0KICAgIGVsc2UgewogICAgICAgIHJldHVybiAwOwogICAgfQp9CgpzdGF0aWMgY29uc3QgY2hhciAqZG9ja2VyX21hY2hpbmVfbmFtZSh2b2lkKQp7CiAgICByZXR1cm4gZ2V0ZW52KCJET0NLRVJfTUFDSElORV9OQU1FIik7Cn0KCnN0YXRpYyBpbnQgaXNfcnVubmluZ19pbnNpZGVfYV9jb250YWluZXIodm9pZCkKewojaWZkZWYgX1dJTjMyCiAgICByZXR1cm4gMDsKI2Vsc2UKICAgIGNvbnN0IGNoYXIgKmNncm91cF9maWxlbmFtZSA9ICIvcHJvYy9zZWxmL2Nncm91cCI7CiAgICBGSUxFICpmOwogICAgY2hhciAqbGluZSA9IE5VTEw7CiAgICBzaXplX3QgbGVuID0gMDsKICAgIHNzaXplX3QgcmVhZDsKICAgIGludCBmb3VuZCA9IDA7CiAgICBmID0gZm9wZW4oY2dyb3VwX2ZpbGVuYW1lLCAiciIpOwogICAgaWYoIWYpIHsKICAgICAgICAvKiBEb24ndCBnbyBmdXJ0aGVyLCB3ZSBhcmUgbm90IGluIGEgY29udGFpbmVyICovCiAgICAgICAgcmV0dXJuIDA7CiAgICB9CiAgICB3aGlsZSgocmVhZCA9IGdldGxpbmUoJmxpbmUsICZsZW4sIGYpKSAhPSAtMSkgewogICAgICAgIGlmKHN0cnN0cihsaW5lLCAiZG9ja2VyIikpIHsKICAgICAgICAgICAgZm91bmQgPSAxOwogICAgICAgICAgICBicmVhazsKICAgICAgICB9CiAgICB9CiAgICBmY2xvc2UoZik7CiAgICBmcmVlKGxpbmUpOwogICAgcmV0dXJuIGZvdW5kOwojZW5kaWYKfQoKc3RhdGljIHZvaWQgcG9ydGFibGVfc2xlZXAodW5zaWduZWQgaW50IHNlY29uZHMpCnsKI2lmZGVmIF9XSU4zMgogICAgU2xlZXAoc2Vjb25kcyk7CiNlbHNlCiAgICBzbGVlcChzZWNvbmRzKTsKI2VuZGlmCn0KCnN0YXRpYyBpbnQgaXBfYWRkcmVzc19mcm9tX2NvbnRhaW5lcihjaGFyICpjb250YWluZXJfaWQsIGNoYXIgKippcF9hZGRyZXNzX291dCkKewogICAgY29uc3QgY2hhciAqYWN0aXZlX2RvY2tlcl9tYWNoaW5lID0gZG9ja2VyX21hY2hpbmVfbmFtZSgpOwogICAgaWYoYWN0aXZlX2RvY2tlcl9tYWNoaW5lKSB7CgogICAgICAgIC8qIFRoaXMgY2FuIGJlIGZsYWt5IHdoZW4gdGVzdHMgcnVuIGluIHBhcmFsbGVsIChzZWUKICAgICAgICAgICBodHRwczovL2dpdGh1Yi5jb20vZG9ja2VyL21hY2hpbmUvaXNzdWVzLzI2MTIpLCBzbyB3ZSByZXRyeSBhIGZldwogICAgICAgICAgIHRpbWVzIHdpdGggZXhwb25lbnRpYWwgYmFja29mZiBpZiBpdCBmYWlscyAqLwogICAgICAgIGludCBhdHRlbXB0X25vID0gMDsKICAgICAgICB1bnNpZ25lZCBpbnQgd2FpdF90aW1lID0gNTAwOwogICAgICAgIGZvcig7OykgewogICAgICAgICAgICBpbnQgcmV0ID0gcnVuX2NvbW1hbmQoaXBfYWRkcmVzc19vdXQsICJkb2NrZXItbWFjaGluZSBpcCAlcyIsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhY3RpdmVfZG9ja2VyX21hY2hpbmUpOwogICAgICAgICAgICBpZihyZXQgPT0gMCkgewogICAgICAgICAgICAgICAgcmV0dXJuIDA7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxzZSBpZihhdHRlbXB0X25vID4gNSkgewogICAgICAgICAgICAgICAgZnByaW50ZigKICAgICAgICAgICAgICAgICAgICBzdGRlcnIsCiAgICAgICAgICAgICAgICAgICAgIlVuYWJsZSB0byBnZXQgSVAgZnJvbSBkb2NrZXItbWFjaGluZSBhZnRlciAlZCBhdHRlbXB0c1xuIiwKICAgICAgICAgICAgICAgICAgICBhdHRlbXB0X25vKTsKICAgICAgICAgICAgICAgIHJldHVybiAtMTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlIHsKICAgICAgICAgICAgICAgIHBvcnRhYmxlX3NsZWVwKHdhaXRfdGltZSk7CiAgICAgICAgICAgICAgICArK2F0dGVtcHRfbm87CiAgICAgICAgICAgICAgICB3YWl0X3RpbWUgKj0gMjsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KICAgIGVsc2UgewogICAgICAgIGlmKGlzX3J1bm5pbmdfaW5zaWRlX2FfY29udGFpbmVyKCkpIHsKICAgICAgICAgICAgcmV0dXJuIHJ1bl9jb21tYW5kKGlwX2FkZHJlc3Nfb3V0LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImRvY2tlciBpbnNwZWN0IC0tZm9ybWF0ICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJcInt7IC5OZXR3b3JrU2V0dGluZ3MuSVBBZGRyZXNzIH19XCIiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiICVzIiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnRhaW5lcl9pZCk7CiAgICAgICAgfQogICAgICAgIGVsc2UgewogICAgICAgICAgICByZXR1cm4gcnVuX2NvbW1hbmQoaXBfYWRkcmVzc19vdXQsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiZG9ja2VyIGluc3BlY3QgLS1mb3JtYXQgIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIlwie3sgaW5kZXggKGluZGV4IChpbmRleCAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiLk5ldHdvcmtTZXR0aW5ncy5Qb3J0cyAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiXFxcIjIyL3RjcFxcXCIpIDApIFxcXCJIb3N0SXBcXFwiIH19XCIgJXMiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29udGFpbmVyX2lkKTsKICAgICAgICB9CiAgICB9Cn0KCnN0YXRpYyBpbnQgcG9ydF9mcm9tX2NvbnRhaW5lcihjaGFyICpjb250YWluZXJfaWQsIGNoYXIgKipwb3J0X291dCkKewogICAgaWYoaXNfcnVubmluZ19pbnNpZGVfYV9jb250YWluZXIoKSkgewogICAgICAgICpwb3J0X291dCA9IHN0cmR1cCgiMjIiKTsKICAgICAgICByZXR1cm4gMDsKICAgIH0KICAgIGVsc2UgewogICAgICAgIHJldHVybiBydW5fY29tbWFuZChwb3J0X291dCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgImRvY2tlciBpbnNwZWN0IC0tZm9ybWF0ICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgIlwie3sgaW5kZXggKGluZGV4IChpbmRleCAuTmV0d29ya1NldHRpbmdzLlBvcnRzICIKICAgICAgICAgICAgICAgICAgICAgICAgICAgIlxcXCIyMi90Y3BcXFwiKSAwKSBcXFwiSG9zdFBvcnRcXFwiIH19XCIgJXMiLAogICAgICAgICAgICAgICAgICAgICAgICAgICBjb250YWluZXJfaWQpOwogICAgfQp9CgpzdGF0aWMgbGlic3NoMl9zb2NrZXRfdCBvcGVuX3NvY2tldF90b19jb250YWluZXIoY2hhciAqY29udGFpbmVyX2lkKQp7CiAgICBjaGFyICppcF9hZGRyZXNzID0gTlVMTDsKICAgIGNoYXIgKnBvcnRfc3RyaW5nID0gTlVMTDsKICAgIHVpbnQzMl90IGhvc3RhZGRyOwogICAgbGlic3NoMl9zb2NrZXRfdCBzb2NrOwogICAgc3RydWN0IHNvY2thZGRyX2luIHNpbjsKICAgIHVuc2lnbmVkIGludCBjb3VudGVyOwogICAgbGlic3NoMl9zb2NrZXRfdCByZXQgPSBMSUJTU0gyX0lOVkFMSURfU09DS0VUOwoKICAgIGlmKGhhdmVfZG9ja2VyKSB7CiAgICAgICAgaW50IHJlczsKICAgICAgICByZXMgPSBpcF9hZGRyZXNzX2Zyb21fY29udGFpbmVyKGNvbnRhaW5lcl9pZCwgJmlwX2FkZHJlc3MpOwogICAgICAgIGlmKHJlcykgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBnZXQgSVAgYWRkcmVzcyBmb3IgY29udGFpbmVyICVzXG4iLAogICAgICAgICAgICAgICAgICAgIGNvbnRhaW5lcl9pZCk7CiAgICAgICAgICAgIGdvdG8gY2xlYW51cDsKICAgICAgICB9CgogICAgICAgIHJlcyA9IHBvcnRfZnJvbV9jb250YWluZXIoY29udGFpbmVyX2lkLCAmcG9ydF9zdHJpbmcpOwogICAgICAgIGlmKHJlcykgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBnZXQgcG9ydCBmb3IgY29udGFpbmVyICVzXG4iLAogICAgICAgICAgICAgICAgICAgIGNvbnRhaW5lcl9pZCk7CiAgICAgICAgICAgIGdvdG8gY2xlYW51cDsKICAgICAgICB9CiAgICB9CiAgICBlbHNlIHsKICAgICAgICBjb25zdCBjaGFyICplbnY7CiAgICAgICAgZW52ID0gZ2V0ZW52KCJPUEVOU1NIX1NFUlZFUl9IT1NUIik7CiAgICAgICAgaWYoIWVudikgewogICAgICAgICAgICBlbnYgPSAiMTI3LjAuMC4xIjsKICAgICAgICB9CiAgICAgICAgaXBfYWRkcmVzcyA9IHN0cmR1cChlbnYpOwogICAgICAgIGVudiA9IG9wZW5zc2hfc2VydmVyX3BvcnQoKTsKICAgICAgICBpZighZW52KSB7CiAgICAgICAgICAgIGVudiA9ICI0NzExIjsKICAgICAgICB9CiAgICAgICAgcG9ydF9zdHJpbmcgPSBzdHJkdXAoZW52KTsKICAgIH0KCiAgICAvKiAwLjAuMC4wIGlzIHJldHVybmVkIGJ5IERvY2tlciBmb3IgV2luZG93cywgYmVjYXVzZSB0aGUgY29udGFpbmVyCiAgICAgICBpcyByZWFjaGFibGUgZnJvbSBhbnl3aGVyZS4gQnV0IHdlIGNhbm5vdCBjb25uZWN0IHRvIDAuMC4wLjAsCiAgICAgICBpbnN0ZWFkIHdlIGFzc3VtZSBsb2NhbGhvc3QgYW5kIHRyeSB0byBjb25uZWN0IHRvIDEyNy4wLjAuMS4gKi8KICAgIGlmKGlwX2FkZHJlc3MgJiYgc3RyY21wKGlwX2FkZHJlc3MsICIwLjAuMC4wIikgPT0gMCkgewogICAgICAgIGZyZWUoaXBfYWRkcmVzcyk7CiAgICAgICAgaXBfYWRkcmVzcyA9IHN0cmR1cCgiMTI3LjAuMC4xIik7CiAgICB9CgogICAgaG9zdGFkZHIgPSBpbmV0X2FkZHIoaXBfYWRkcmVzcyk7CiAgICBpZihob3N0YWRkciA9PSAodWludDMyX3QpKC0xKSkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGNvbnZlcnQgJXMgaG9zdCBhZGRyZXNzXG4iLCBpcF9hZGRyZXNzKTsKICAgICAgICBnb3RvIGNsZWFudXA7CiAgICB9CgogICAgc29jayA9IHNvY2tldChBRl9JTkVULCBTT0NLX1NUUkVBTSwgMCk7CiAgICBpZihzb2NrID09IExJQlNTSDJfSU5WQUxJRF9TT0NLRVQpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwKICAgICAgICAgICAgICAgICJGYWlsZWQgdG8gb3BlbiBzb2NrZXQgKCIgTElCU1NIMl9TT0NLRVRfTUFTSyAiKVxuIiwgc29jayk7CiAgICAgICAgZ290byBjbGVhbnVwOwogICAgfQoKICAgIHNpbi5zaW5fZmFtaWx5ID0gQUZfSU5FVDsKICAgIHNpbi5zaW5fcG9ydCA9IGh0b25zKCh1bnNpZ25lZCBzaG9ydClzdHJ0b2wocG9ydF9zdHJpbmcsIE5VTEwsIDApKTsKICAgIHNpbi5zaW5fYWRkci5zX2FkZHIgPSBob3N0YWRkcjsKCiAgICBmb3IoY291bnRlciA9IDA7IGNvdW50ZXIgPCAzOyArK2NvdW50ZXIpIHsKICAgICAgICBpZihjb25uZWN0KHNvY2ssIChzdHJ1Y3Qgc29ja2FkZHIqKSgmc2luKSwKICAgICAgICAgICAgICAgICAgIHNpemVvZihzdHJ1Y3Qgc29ja2FkZHJfaW4pKSkgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwKICAgICAgICAgICAgICAgICAgICAiQ29ubmVjdGlvbiB0byAlczolcyBhdHRlbXB0ICMlZCBmYWlsZWQ6IHJldHJ5aW5nLi4uXG4iLAogICAgICAgICAgICAgICAgICAgIGlwX2FkZHJlc3MsIHBvcnRfc3RyaW5nLCBjb3VudGVyKTsKICAgICAgICAgICAgcG9ydGFibGVfc2xlZXAoMSArIDIqY291bnRlcik7CiAgICAgICAgfQogICAgICAgIGVsc2UgewogICAgICAgICAgICByZXQgPSBzb2NrOwogICAgICAgICAgICBicmVhazsKICAgICAgICB9CiAgICB9CiAgICBpZihyZXQgPT0gTElCU1NIMl9JTlZBTElEX1NPQ0tFVCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGNvbm5lY3QgdG8gJXM6JXNcbiIsCiAgICAgICAgICAgICAgICBpcF9hZGRyZXNzLCBwb3J0X3N0cmluZyk7CiAgICAgICAgZ290byBjbGVhbnVwOwogICAgfQoKY2xlYW51cDoKICAgIGZyZWUoaXBfYWRkcmVzcyk7CiAgICBmcmVlKHBvcnRfc3RyaW5nKTsKCiAgICByZXR1cm4gcmV0Owp9CgpzdGF0aWMgdm9pZCBjbG9zZV9zb2NrZXRfdG9fY29udGFpbmVyKGxpYnNzaDJfc29ja2V0X3Qgc29jaykKewogICAgaWYoc29jayAhPSBMSUJTU0gyX0lOVkFMSURfU09DS0VUKSB7CiAgICAgICAgc2h1dGRvd24oc29jaywgMiAvKiBTSFVUX1JEV1IgKi8pOwojaWZkZWYgX1dJTjMyCiAgICAgICAgY2xvc2Vzb2NrZXQoc29jayk7CiNlbHNlCiAgICAgICAgY2xvc2Uoc29jayk7CiNlbmRpZgogICAgfQp9CgpzdGF0aWMgY2hhciAqcnVubmluZ19jb250YWluZXJfaWQgPSBOVUxMOwoKaW50IHN0YXJ0X29wZW5zc2hfZml4dHVyZSh2b2lkKQp7CiAgICBpbnQgcmV0OwojaWZkZWYgX1dJTjMyCiAgICBXU0FEQVRBIHdzYWRhdGE7CgogICAgcmV0ID0gV1NBU3RhcnR1cChNQUtFV09SRCgyLCAwKSwgJndzYWRhdGEpOwogICAgaWYocmV0KSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJXU0FTdGFydHVwIGZhaWxlZCB3aXRoIGVycm9yOiAlZFxuIiwgcmV0KTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KI2VuZGlmCgogICAgaGF2ZV9kb2NrZXIgPSAhZ2V0ZW52KCJPUEVOU1NIX05PX0RPQ0tFUiIpOwoKICAgIHJldCA9IGJ1aWxkX29wZW5zc2hfc2VydmVyX2RvY2tlcl9pbWFnZSgpOwogICAgaWYoIXJldCkgewogICAgICAgIHJldHVybiBzdGFydF9vcGVuc3NoX3NlcnZlcigmcnVubmluZ19jb250YWluZXJfaWQpOwogICAgfQogICAgZWxzZSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJGYWlsZWQgdG8gYnVpbGQgZG9ja2VyIGltYWdlXG4iKTsKICAgICAgICByZXR1cm4gcmV0OwogICAgfQp9Cgp2b2lkIHN0b3Bfb3BlbnNzaF9maXh0dXJlKHZvaWQpCnsKICAgIGlmKHJ1bm5pbmdfY29udGFpbmVyX2lkKSB7CiAgICAgICAgc3RvcF9vcGVuc3NoX3NlcnZlcihydW5uaW5nX2NvbnRhaW5lcl9pZCk7CiAgICAgICAgZnJlZShydW5uaW5nX2NvbnRhaW5lcl9pZCk7CiAgICAgICAgcnVubmluZ19jb250YWluZXJfaWQgPSBOVUxMOwogICAgfQogICAgZWxzZSBpZihoYXZlX2RvY2tlcikgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiQ2Fubm90IHN0b3AgY29udGFpbmVyIC0gbm9uZSBzdGFydGVkXG4iKTsKICAgIH0KCiNpZmRlZiBfV0lOMzIKICAgIFdTQUNsZWFudXAoKTsKI2VuZGlmCn0KCmxpYnNzaDJfc29ja2V0X3Qgb3Blbl9zb2NrZXRfdG9fb3BlbnNzaF9zZXJ2ZXIodm9pZCkKewogICAgcmV0dXJuIG9wZW5fc29ja2V0X3RvX2NvbnRhaW5lcihydW5uaW5nX2NvbnRhaW5lcl9pZCk7Cn0KCnZvaWQgY2xvc2Vfc29ja2V0X3RvX29wZW5zc2hfc2VydmVyKGxpYnNzaDJfc29ja2V0X3Qgc29jaykKewogICAgY2xvc2Vfc29ja2V0X3RvX2NvbnRhaW5lcihzb2NrKTsKfQo=
+/* Copyright (C) Alexander Lamaison
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms,
+ * with or without modification, are permitted provided
+ * that the following conditions are met:
+ *
+ *   Redistributions of source code must retain the above
+ *   copyright notice, this list of conditions and the
+ *   following disclaimer.
+ *
+ *   Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ *   Neither the name of the copyright holder nor the names
+ *   of any other contributors may be used to endorse or
+ *   promote products derived from this software without
+ *   specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+ * OF SUCH DAMAGE.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "session_fixture.h"
+#include "openssh_fixture.h"
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <ctype.h>
+
+#if defined(_WIN32) && defined(_WIN64)
+#define LIBSSH2_SOCKET_MASK "%lld"
+#else
+#define LIBSSH2_SOCKET_MASK "%d"
+#endif
+
+#ifdef LIBSSH2_WINDOWS_UWP
+#define popen(x, y) (NULL)
+#define pclose(x) (-1)
+#elif defined(_WIN32)
+#define popen _popen
+#define pclose _pclose
+#endif
+
+static int have_docker = 0;
+
+int openssh_fixture_have_docker(void)
+{
+    return have_docker;
+}
+
+static int run_command_varg(char **output, const char *command, va_list args)
+    LIBSSH2_PRINTF(2, 0);
+
+static int run_command_varg(char **output, const char *command, va_list args)
+{
+    static const char redirect_stderr[] = "%s 2>&1";
+
+    FILE *pipe;
+    char command_buf[BUFSIZ];
+    char buf[BUFSIZ + sizeof(redirect_stderr)];
+    int ret;
+    size_t buf_len;
+
+    if(output) {
+        *output = NULL;
+    }
+
+    /* Format the command string */
+    ret = vsnprintf(command_buf, sizeof(command_buf), command, args);
+    if(ret < 0 || ret >= BUFSIZ) {
+        fprintf(stderr, "Unable to format command (%s)\n", command);
+        return -1;
+    }
+
+    /* Rewrite the command to redirect stderr to stdout to we can output it */
+    if(strlen(command_buf) + strlen(redirect_stderr) >= sizeof(buf)) {
+        fprintf(stderr, "Unable to rewrite command (%s)\n", command);
+        return -1;
+    }
+
+    ret = snprintf(buf, sizeof(buf), redirect_stderr, command_buf);
+    if(ret < 0 || ret >= BUFSIZ) {
+        fprintf(stderr, "Unable to rewrite command (%s)\n", command);
+        return -1;
+    }
+
+    fprintf(stdout, "Command: %s\n", command_buf);
+    pipe = popen(buf, "r");
+    if(!pipe) {
+        fprintf(stderr, "Unable to execute command '%s'\n", command);
+        return -1;
+    }
+    buf[0] = 0;
+    buf_len = 0;
+    while(buf_len < (sizeof(buf) - 1) &&
+        fgets(&buf[buf_len], (int)(sizeof(buf) - buf_len), pipe)) {
+        buf_len = strlen(buf);
+    }
+
+    ret = pclose(pipe);
+    if(ret) {
+        fprintf(stderr, "Error running command '%s' (exit %d): %s\n",
+                command, ret, buf);
+    }
+
+    if(output) {
+        /* command output may contain a trailing newline, so we trim
+         * whitespace here */
+        size_t end = strlen(buf);
+        while(end > 0 && isspace((int)buf[end - 1])) {
+            buf[end - 1] = '\0';
+        }
+
+        *output = strdup(buf);
+    }
+    return ret;
+}
+
+static int run_command(char **output, const char *command, ...)
+    LIBSSH2_PRINTF(2, 3);
+
+static int run_command(char **output, const char *command, ...)
+{
+    va_list args;
+    int ret;
+
+    va_start(args, command);
+    ret = run_command_varg(output, command, args);
+    va_end(args);
+
+    return ret;
+}
+
+static const char *openssh_server_image(void)
+{
+    return getenv("OPENSSH_SERVER_IMAGE");
+}
+
+static int build_openssh_server_docker_image(void)
+{
+    if(have_docker) {
+        const char *container_image_name = openssh_server_image();
+        if(container_image_name) {
+            int ret = run_command(NULL, "docker pull %s",
+                                  container_image_name);
+            if(ret == 0) {
+                ret = run_command(NULL, "docker tag %s libssh2/openssh_server",
+                                  container_image_name);
+                if(ret == 0) {
+                    return ret;
+                }
+            }
+        }
+        return run_command(NULL,
+                           "docker build --quiet -t libssh2/openssh_server %s",
+                           srcdir_path("openssh_server"));
+    }
+    else {
+        return 0;
+    }
+}
+
+static const char *openssh_server_port(void)
+{
+    return getenv("OPENSSH_SERVER_PORT");
+}
+
+static int start_openssh_server(char **container_id_out)
+{
+    if(have_docker) {
+        const char *container_host_port = openssh_server_port();
+        if(container_host_port) {
+            return run_command(container_id_out,
+                               "docker run --rm -d -p %s:22 "
+                               "libssh2/openssh_server",
+                               container_host_port);
+        }
+
+        return run_command(container_id_out,
+                           "docker run --rm -d -p 22 "
+                           "libssh2/openssh_server");
+    }
+    else {
+        *container_id_out = strdup("");
+        return 0;
+    }
+}
+
+static int stop_openssh_server(char *container_id)
+{
+    if(have_docker) {
+        return run_command(NULL, "docker stop %s", container_id);
+    }
+    else {
+        return 0;
+    }
+}
+
+static const char *docker_machine_name(void)
+{
+    return getenv("DOCKER_MACHINE_NAME");
+}
+
+static int is_running_inside_a_container(void)
+{
+#ifdef _WIN32
+    return 0;
+#else
+    const char *cgroup_filename = "/proc/self/cgroup";
+    FILE *f;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    int found = 0;
+    f = fopen(cgroup_filename, "r");
+    if(!f) {
+        /* Don't go further, we are not in a container */
+        return 0;
+    }
+    while((read = getline(&line, &len, f)) != -1) {
+        if(strstr(line, "docker")) {
+            found = 1;
+            break;
+        }
+    }
+    fclose(f);
+    free(line);
+    return found;
+#endif
+}
+
+static void portable_sleep(unsigned int seconds)
+{
+#ifdef _WIN32
+    Sleep(seconds);
+#else
+    sleep(seconds);
+#endif
+}
+
+static int ip_address_from_container(char *container_id, char **ip_address_out)
+{
+    const char *active_docker_machine = docker_machine_name();
+    if(active_docker_machine) {
+
+        /* This can be flaky when tests run in parallel (see
+           https://github.com/docker/machine/issues/2612), so we retry a few
+           times with exponential backoff if it fails */
+        int attempt_no = 0;
+        unsigned int wait_time = 500;
+        for(;;) {
+            int ret = run_command(ip_address_out, "docker-machine ip %s",
+                                  active_docker_machine);
+            if(ret == 0) {
+                return 0;
+            }
+            else if(attempt_no > 5) {
+                fprintf(
+                    stderr,
+                    "Unable to get IP from docker-machine after %d attempts\n",
+                    attempt_no);
+                return -1;
+            }
+            else {
+                portable_sleep(wait_time);
+                ++attempt_no;
+                wait_time *= 2;
+            }
+        }
+    }
+    else {
+        if(is_running_inside_a_container()) {
+            return run_command(ip_address_out,
+                               "docker inspect --format "
+                               "\"{{ .NetworkSettings.IPAddress }}\""
+                               " %s",
+                               container_id);
+        }
+        else {
+            return run_command(ip_address_out,
+                               "docker inspect --format "
+                               "\"{{ index (index (index "
+                               ".NetworkSettings.Ports "
+                               "\\\"22/tcp\\\") 0) \\\"HostIp\\\" }}\" %s",
+                               container_id);
+        }
+    }
+}
+
+static int port_from_container(char *container_id, char **port_out)
+{
+    if(is_running_inside_a_container()) {
+        *port_out = strdup("22");
+        return 0;
+    }
+    else {
+        return run_command(port_out,
+                           "docker inspect --format "
+                           "\"{{ index (index (index .NetworkSettings.Ports "
+                           "\\\"22/tcp\\\") 0) \\\"HostPort\\\" }}\" %s",
+                           container_id);
+    }
+}
+
+static libssh2_socket_t open_socket_to_container(char *container_id)
+{
+    char *ip_address = NULL;
+    char *port_string = NULL;
+    uint32_t hostaddr;
+    libssh2_socket_t sock;
+    struct sockaddr_in sin;
+    unsigned int counter;
+    libssh2_socket_t ret = LIBSSH2_INVALID_SOCKET;
+
+    if(have_docker) {
+        int res;
+        res = ip_address_from_container(container_id, &ip_address);
+        if(res) {
+            fprintf(stderr, "Failed to get IP address for container %s\n",
+                    container_id);
+            goto cleanup;
+        }
+
+        res = port_from_container(container_id, &port_string);
+        if(res) {
+            fprintf(stderr, "Failed to get port for container %s\n",
+                    container_id);
+            goto cleanup;
+        }
+    }
+    else {
+        const char *env;
+        env = getenv("OPENSSH_SERVER_HOST");
+        if(!env) {
+            env = "127.0.0.1";
+        }
+        ip_address = strdup(env);
+        env = openssh_server_port();
+        if(!env) {
+            env = "4711";
+        }
+        port_string = strdup(env);
+    }
+
+    /* 0.0.0.0 is returned by Docker for Windows, because the container
+       is reachable from anywhere. But we cannot connect to 0.0.0.0,
+       instead we assume localhost and try to connect to 127.0.0.1. */
+    if(ip_address && strcmp(ip_address, "0.0.0.0") == 0) {
+        free(ip_address);
+        ip_address = strdup("127.0.0.1");
+    }
+
+    hostaddr = inet_addr(ip_address);
+    if(hostaddr == (uint32_t)(-1)) {
+        fprintf(stderr, "Failed to convert %s host address\n", ip_address);
+        goto cleanup;
+    }
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock == LIBSSH2_INVALID_SOCKET) {
+        fprintf(stderr,
+                "Failed to open socket (" LIBSSH2_SOCKET_MASK ")\n", sock);
+        goto cleanup;
+    }
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons((unsigned short)strtol(port_string, NULL, 0));
+    sin.sin_addr.s_addr = hostaddr;
+
+    for(counter = 0; counter < 3; ++counter) {
+        if(connect(sock, (struct sockaddr*)(&sin),
+                   sizeof(struct sockaddr_in))) {
+            fprintf(stderr,
+                    "Connection to %s:%s attempt #%d failed: retrying...\n",
+                    ip_address, port_string, counter);
+            portable_sleep(1 + 2*counter);
+        }
+        else {
+            ret = sock;
+            break;
+        }
+    }
+    if(ret == LIBSSH2_INVALID_SOCKET) {
+        fprintf(stderr, "Failed to connect to %s:%s\n",
+                ip_address, port_string);
+        goto cleanup;
+    }
+
+cleanup:
+    free(ip_address);
+    free(port_string);
+
+    return ret;
+}
+
+static void close_socket_to_container(libssh2_socket_t sock)
+{
+    if(sock != LIBSSH2_INVALID_SOCKET) {
+        shutdown(sock, 2 /* SHUT_RDWR */);
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
+    }
+}
+
+static char *running_container_id = NULL;
+
+int start_openssh_fixture(void)
+{
+    int ret;
+#ifdef _WIN32
+    WSADATA wsadata;
+
+    ret = WSAStartup(MAKEWORD(2, 0), &wsadata);
+    if(ret) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", ret);
+        return 1;
+    }
+#endif
+
+    have_docker = !getenv("OPENSSH_NO_DOCKER");
+
+    ret = build_openssh_server_docker_image();
+    if(!ret) {
+        return start_openssh_server(&running_container_id);
+    }
+    else {
+        fprintf(stderr, "Failed to build docker image\n");
+        return ret;
+    }
+}
+
+void stop_openssh_fixture(void)
+{
+    if(running_container_id) {
+        stop_openssh_server(running_container_id);
+        free(running_container_id);
+        running_container_id = NULL;
+    }
+    else if(have_docker) {
+        fprintf(stderr, "Cannot stop container - none started\n");
+    }
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
+}
+
+libssh2_socket_t open_socket_to_openssh_server(void)
+{
+    return open_socket_to_container(running_container_id);
+}
+
+void close_socket_to_openssh_server(libssh2_socket_t sock)
+{
+    close_socket_to_container(sock);
+}

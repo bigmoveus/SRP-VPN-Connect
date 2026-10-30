@@ -1,1 +1,42 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9idWZmZXIvc2FmZXN0ci5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnN0YXRpYyB2b2lkIGNvbXBhcmUoY29uc3QgU2FmZVN0cmluZyAmczEsIGNvbnN0IFNhZmVTdHJpbmcgJnMyLCBjb25zdCBib29sIGV4cGVjdF9lcSkKewogICAgQVNTRVJUX0VRKHMxID09IHMyLmNfc3RyKCksIGV4cGVjdF9lcSk7CiAgICBBU1NFUlRfTkUoczEgIT0gczIuY19zdHIoKSwgZXhwZWN0X2VxKTsKICAgIEFTU0VSVF9FUShzMSA9PSBzMi50b19zdHJpbmcoKSwgZXhwZWN0X2VxKTsKICAgIEFTU0VSVF9ORShzMSAhPSBzMi50b19zdHJpbmcoKSwgZXhwZWN0X2VxKTsKfQoKVEVTVChzYWZlc3RyLCB0ZXN0XzEpCnsKICAgIFNhZmVTdHJpbmcgYSgibXliaWdzZWNyZXQiKTsKICAgIFNhZmVTdHJpbmcgYigibXliaWdzZWtyZXQiKTsKICAgIFNhZmVTdHJpbmcgYygibXliaWdzZWtyZXRzIik7CiAgICBTYWZlU3RyaW5nIGEyKCJteWJpZ3NlY3JldCIpOwoKICAgIGNvbXBhcmUoYSwgYTIsIHRydWUpOwogICAgY29tcGFyZShhMiwgYSwgdHJ1ZSk7CiAgICBjb21wYXJlKGEsIGIsIGZhbHNlKTsKICAgIGNvbXBhcmUoYSwgYywgZmFsc2UpOwogICAgY29tcGFyZShiLCBjLCBmYWxzZSk7CiAgICBjb21wYXJlKGIsIGEsIGZhbHNlKTsKICAgIGNvbXBhcmUoYywgYSwgZmFsc2UpOwogICAgY29tcGFyZShjLCBiLCBmYWxzZSk7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/buffer/safestr.hpp>
+
+using namespace openvpn;
+
+static void compare(const SafeString &s1, const SafeString &s2, const bool expect_eq)
+{
+    ASSERT_EQ(s1 == s2.c_str(), expect_eq);
+    ASSERT_NE(s1 != s2.c_str(), expect_eq);
+    ASSERT_EQ(s1 == s2.to_string(), expect_eq);
+    ASSERT_NE(s1 != s2.to_string(), expect_eq);
+}
+
+TEST(safestr, test_1)
+{
+    SafeString a("mybigsecret");
+    SafeString b("mybigsekret");
+    SafeString c("mybigsekrets");
+    SafeString a2("mybigsecret");
+
+    compare(a, a2, true);
+    compare(a2, a, true);
+    compare(a, b, false);
+    compare(a, c, false);
+    compare(b, c, false);
+    compare(b, a, false);
+    compare(c, a, false);
+    compare(c, b, false);
+}

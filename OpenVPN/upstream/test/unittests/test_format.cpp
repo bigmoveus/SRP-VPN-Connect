@@ -1,1 +1,137 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zaXplLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vZm9ybWF0LmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL29zdHJlYW0uaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpjbGFzcyBNeU9iagp7CiAgcHVibGljOgogICAgTXlPYmooaW50IHYpCiAgICAgICAgOiB2YWx1ZSh2KQogICAgewogICAgfQoKICAgIHN0ZDo6c3RyaW5nIHRvX3N0cmluZygpIGNvbnN0CiAgICB7CiAgICAgICAgcmV0dXJuIHN0ZDo6dG9fc3RyaW5nKHZhbHVlKTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIGludCB2YWx1ZTsKfTsKCk9QRU5WUE5fT1NUUkVBTShNeU9iaiwgdG9fc3RyaW5nKTsKCmNvbnN0IHN0ZDo6c3RyaW5nIGV4cGVjdGVkID0gIjdcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiZm9vXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImJhclxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICIzLjE0MTU5M1xuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICIzXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIjFcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiMFxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICJwaSBpcyBub3QgMyBub3IgaXMgaXQgNyA7IGl0IGlzIDMuMTQxNTkgLi4uXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgInBpIGlzICdub3QnIDMgbm9yIGlzIGl0IDcgOyBpdCBpcyAzLjE0MTU5My4uLiAoYW5kIGhhcyA5OSUgbGVzcyBmYXQhKVxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ0aGUgeWVhciBpcyAyMDE1IGFuZCB0aGUgd2VhdGhlciBpcyBcInBhcnRseSBjbG91ZHlcIlxuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICJ3aGVyZSBhbSBJPyBpcyBpdCBzdGlsbCAyMDE1P1xuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICJubywgaXQncyAxNjY2Li4uIGJyaW5nIG91dCB5ZXIgZGVkZD9cbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAic2F2ZSAyMCUhXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm5vIHdhaXQuLi4gc2F2ZT8gOTkuOTk5OSUhXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImV4dHJhIGFyZ3VtZW50IGlzIGhlcmVcbiIKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiaXMgdGhlIHF1ZXN0aW9uIHRydWUgb3IgZmFsc2U/XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm1vcmUgZXh0cmEgYXJndW1lbnRzIGFyZSBoZXJlXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm51bGwgc3RyaW5nICcnXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIm51bGxwdHIgJ251bGxwdHInXG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgImZvbz1iYXIgbm9uIGNvbnN0XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIkVYMTogYmFkIGZvb1xuIgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICJFWDI6IHRoaXMgcHJvZyBpcyBkb25lIDQgVVxuIjsKClRFU1QobWlzYywgZm9ybWF0KQp7CiAgICBzdGQ6Om9zdHJpbmdzdHJlYW0gb3M7CgogICAgY29uc3QgTXlPYmogc2V2ZW4oNyk7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBmb28gPSAiZm9vIjsKICAgIGNvbnN0IGNoYXIgKmNvbnN0IGJhciA9ICJiYXIiOwogICAgY29uc3QgZG91YmxlIHBpID0gMy4xNDE1OTI2NTsKICAgIGNvbnN0IGludCB0aHJlZSA9IDM7CiAgICBjb25zdCBzdGQ6OnN0cmluZyB3ZWF0aGVyID0gInBhcnRseSBjbG91ZHkiOwogICAgY2hhciAqbmMgPSBjb25zdF9jYXN0PGNoYXIgKj4oIm5vbiBjb25zdCIpOwoKICAgIG9zIDw8IHRvX3N0cmluZyhzZXZlbikgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgdG9fc3RyaW5nKGZvbykgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgdG9fc3RyaW5nKGJhcikgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgdG9fc3RyaW5nKHBpKSA8PCBzdGQ6OmVuZGw7CiAgICBvcyA8PCB0b19zdHJpbmcodGhyZWUpIDw8IHN0ZDo6ZW5kbDsKICAgIG9zIDw8IHRvX3N0cmluZyh0cnVlKSA8PCBzdGQ6OmVuZGw7CiAgICBvcyA8PCB0b19zdHJpbmcoZmFsc2UpIDw8IHN0ZDo6ZW5kbDsKICAgIG9zIDw8IHByaW50cygicGkiLCAiaXMiLCBzdGQ6OnN0cmluZygibm90IiksIDMsICJub3IgaXMgaXQiLCBzZXZlbiwgJzsnLCAiaXQiLCAiaXMiLCBwaSwgIi4uLiIpIDw8IHN0ZDo6ZW5kbDsKICAgIG9zIDw8IHByaW50Zm10KCJwaSBpcyAlciAlcyBub3IgaXMgaXQgJXMgOyBpdCBpcyAlcy4uLiAoYW5kIGhhcyAlcyUlIGxlc3MgJXMhKSIsICJub3QiLCAzLCBzZXZlbiwgcGksIDk5LCBzdGQ6OnN0cmluZygiZmF0IikpIDw8IHN0ZDo6ZW5kbDsKICAgIG9zIDw8IHByaW50Zm10KCJ0aGUgeWVhciBpcyAlcyBhbmQgdGhlIHdlYXRoZXIgaXMgJVIiLCAyMDE1LCB3ZWF0aGVyKSA8PCBzdGQ6OmVuZGw7CiAgICBvcyA8PCBwcmludGZtdCgid2hlcmUgYW0gJXM/IGlzIGl0IHN0aWxsICVzPyIsICdJJywgMjAxNSkgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoIm5vLCBpdCdzICVzLi4uIGJyaW5nIG91dCB5ZXIgZGVkZCVzIiwgMTY2NikgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoInNhdmUgMjAlJSEiKSA8PCBzdGQ6OmVuZGw7CiAgICBvcyA8PCBwcmludGZtdCgibm8gd2FpdC4uLiBzYXZlJXMgOTkuOTk5OSUlISIpIDw8IHN0ZDo6ZW5kbDsKICAgIG9zIDw8IHByaW50Zm10KCJleHRyYSBhcmd1bWVudCBpcyBoZXJlIiwgMSkgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoImlzIHRoZSBxdWVzdGlvbiAlcyBvciAlcz8iLCB0cnVlLCBmYWxzZSkgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoIm1vcmUgZXh0cmEgYXJndW1lbnRzIGFyZSBoZXJlIiwgMSwgMiwgMywgNCkgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoIm51bGwgc3RyaW5nICclcyciLCBzdGF0aWNfY2FzdDxjb25zdCBjaGFyICo+KG51bGxwdHIpKSA8PCBzdGQ6OmVuZGw7CiAgICBvcyA8PCBwcmludGZtdCgibnVsbHB0ciAnJXMnIiwgbnVsbHB0cikgPDwgc3RkOjplbmRsOwogICAgb3MgPDwgcHJpbnRmbXQoIiVzPSVzICVzIiwgZm9vLCBiYXIsIG5jKSA8PCBzdGQ6OmVuZGw7CiAgICB0cnkKICAgIHsKICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyBleHN0ciA9ICJiYWQgZm9vIjsKICAgICAgICB0aHJvdyBFeGNlcHRpb24oZXhzdHIpOwogICAgfQogICAgY2F0Y2ggKGNvbnN0IHN0ZDo6ZXhjZXB0aW9uICZlKQogICAgewogICAgICAgIG9zIDw8IHByaW50cygiRVgxOiIsIGUud2hhdCgpKSA8PCBzdGQ6OmVuZGw7CiAgICB9CiAgICB0cnkKICAgIHsKICAgICAgICB0aHJvdyBFeGNlcHRpb24ocHJpbnRzKCJ0aGlzIiwgInByb2ciLCAiaXMiLCAiZG9uZSIsIDQsICdVJykpOwogICAgfQogICAgY2F0Y2ggKGNvbnN0IHN0ZDo6ZXhjZXB0aW9uICZlKQogICAgewogICAgICAgIG9zIDw8IHByaW50cygiRVgyOiIsIGUud2hhdCgpKSA8PCBzdGQ6OmVuZGw7CiAgICB9CiAgICBjb25zdCBzdGQ6OnN0cmluZyBhY3R1YWwgPSBvcy5zdHIoKTsKICAgIEFTU0VSVF9FUShleHBlY3RlZCwgYWN0dWFsKTsKfQoKdGVtcGxhdGUgPHR5cGVuYW1lLi4uIEFyZ3M+CmlubGluZSBzdGQ6OnN0cmluZyBwZm10KGNvbnN0IHN0ZDo6c3RyaW5nICZmbXQsIEFyZ3MuLi4gYXJncykKewojaWYgMQogICAgUHJpbnRGb3JtYXR0ZWQ8c3RkOjpzdHJpbmc+IHBmKGZtdCwgMjU2KTsKI2Vsc2UKICAgIFByaW50Rm9ybWF0dGVkPHN0ZDo6b3N0cmluZ3N0cmVhbT4gcGYoZm10LCAyNTYpOwojZW5kaWYKICAgIHBmLnByb2Nlc3MoYXJncy4uLik7CiAgICByZXR1cm4gcGYuc3RyKCk7Cn0KCnZvaWQgcGVyZigpCnsKICAgIGNvbnN0IE15T2JqIHNldmVuKDcpOwogICAgLy8gY29uc3QgZG91YmxlIHBpID0gMy4xNDE1OTI2NTsKICAgIHNpemVfdCBjb3VudCA9IDA7CiAgICBjb25zdCBzdGQ6OnN0cmluZyB3ZWF0aGVyID0gInBhcnRseSBjbG91ZHkiOwogICAgZm9yIChsb25nIGkgPSAwOyBpIDwgMTAwMDAwMDsgKytpKQogICAgewogICAgICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHN0ciA9IHBmbXQoInRoZSB5ZWFyIGlzICVzIGFuZCB0aGUgd2VhdGhlciBpcyAlciIsIDIwMTUsIHdlYXRoZXIpOwogICAgICAgIC8vIGNvbnN0IHN0ZDo6c3RyaW5nIHN0ciA9IHBmbXQoInRoaXMgcHJvZ3JhbSBpcyBicm91Z2h0IHRvIHlvdSBieSB0aGUgbnVtYmVyICVzIiwgc2V2ZW4pOwogICAgICAgIC8vIGNvbnN0IHN0ZDo6c3RyaW5nIHN0ciA9IHBmbXQoImZvbyAlcyIsIDY5KTsKICAgICAgICAvLyBjb25zdCBzdGQ6OnN0cmluZyBzdHIgPSBwZm10KCJmb28iKTsKICAgICAgICAvLyBjb25zdCBzdGQ6OnN0cmluZyBzdHIgPSBwZm10KCJmb28gJXMgJXMiLCA2OSwgInh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eCIpOwogICAgICAgIC8vIGNvbnN0IHN0ZDo6c3RyaW5nIHN0ciA9IHBmbXQoInBpIGlzICVzICVzIG5vciBpcyBpdCAlcyA7IGl0IGlzICVzLi4uIChhbmQgaGFzICVzJSUgbGVzcyAlcyEpIiwgIm5vdCIsIDMsIHNldmVuLCBwaSwgOTksIHN0ZDo6c3RyaW5nKCJmYXQiKSk7CiAgICAgICAgY291bnQgKz0gc3RyLmxlbmd0aCgpOwogICAgfQogICAgc3RkOjpjb3V0IDw8IGNvdW50IDw8IHN0ZDo6ZW5kbDsKfQo=
+#include "test_common.hpp"
+#include <iostream>
+
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/common/format.hpp>
+#include <openvpn/common/ostream.hpp>
+
+using namespace openvpn;
+
+class MyObj
+{
+  public:
+    MyObj(int v)
+        : value(v)
+    {
+    }
+
+    std::string to_string() const
+    {
+        return std::to_string(value);
+    }
+
+  private:
+    int value;
+};
+
+OPENVPN_OSTREAM(MyObj, to_string);
+
+const std::string expected = "7\n"
+                             "foo\n"
+                             "bar\n"
+                             "3.141593\n"
+                             "3\n"
+                             "1\n"
+                             "0\n"
+                             "pi is not 3 nor is it 7 ; it is 3.14159 ...\n"
+                             "pi is 'not' 3 nor is it 7 ; it is 3.141593... (and has 99% less fat!)\n"
+                             "the year is 2015 and the weather is \"partly cloudy\"\n"
+                             "where am I? is it still 2015?\n"
+                             "no, it's 1666... bring out yer dedd?\n"
+                             "save 20%!\n"
+                             "no wait... save? 99.9999%!\n"
+                             "extra argument is here\n"
+                             "is the question true or false?\n"
+                             "more extra arguments are here\n"
+                             "null string ''\n"
+                             "nullptr 'nullptr'\n"
+                             "foo=bar non const\n"
+                             "EX1: bad foo\n"
+                             "EX2: this prog is done 4 U\n";
+
+TEST(misc, format)
+{
+    std::ostringstream os;
+
+    const MyObj seven(7);
+    const std::string foo = "foo";
+    const char *const bar = "bar";
+    const double pi = 3.14159265;
+    const int three = 3;
+    const std::string weather = "partly cloudy";
+    char *nc = const_cast<char *>("non const");
+
+    os << to_string(seven) << std::endl;
+    os << to_string(foo) << std::endl;
+    os << to_string(bar) << std::endl;
+    os << to_string(pi) << std::endl;
+    os << to_string(three) << std::endl;
+    os << to_string(true) << std::endl;
+    os << to_string(false) << std::endl;
+    os << prints("pi", "is", std::string("not"), 3, "nor is it", seven, ';', "it", "is", pi, "...") << std::endl;
+    os << printfmt("pi is %r %s nor is it %s ; it is %s... (and has %s%% less %s!)", "not", 3, seven, pi, 99, std::string("fat")) << std::endl;
+    os << printfmt("the year is %s and the weather is %R", 2015, weather) << std::endl;
+    os << printfmt("where am %s? is it still %s?", 'I', 2015) << std::endl;
+    os << printfmt("no, it's %s... bring out yer dedd%s", 1666) << std::endl;
+    os << printfmt("save 20%%!") << std::endl;
+    os << printfmt("no wait... save%s 99.9999%%!") << std::endl;
+    os << printfmt("extra argument is here", 1) << std::endl;
+    os << printfmt("is the question %s or %s?", true, false) << std::endl;
+    os << printfmt("more extra arguments are here", 1, 2, 3, 4) << std::endl;
+    os << printfmt("null string '%s'", static_cast<const char *>(nullptr)) << std::endl;
+    os << printfmt("nullptr '%s'", nullptr) << std::endl;
+    os << printfmt("%s=%s %s", foo, bar, nc) << std::endl;
+    try
+    {
+        const std::string exstr = "bad foo";
+        throw Exception(exstr);
+    }
+    catch (const std::exception &e)
+    {
+        os << prints("EX1:", e.what()) << std::endl;
+    }
+    try
+    {
+        throw Exception(prints("this", "prog", "is", "done", 4, 'U'));
+    }
+    catch (const std::exception &e)
+    {
+        os << prints("EX2:", e.what()) << std::endl;
+    }
+    const std::string actual = os.str();
+    ASSERT_EQ(expected, actual);
+}
+
+template <typename... Args>
+inline std::string pfmt(const std::string &fmt, Args... args)
+{
+#if 1
+    PrintFormatted<std::string> pf(fmt, 256);
+#else
+    PrintFormatted<std::ostringstream> pf(fmt, 256);
+#endif
+    pf.process(args...);
+    return pf.str();
+}
+
+void perf()
+{
+    const MyObj seven(7);
+    // const double pi = 3.14159265;
+    size_t count = 0;
+    const std::string weather = "partly cloudy";
+    for (long i = 0; i < 1000000; ++i)
+    {
+        const std::string str = pfmt("the year is %s and the weather is %r", 2015, weather);
+        // const std::string str = pfmt("this program is brought to you by the number %s", seven);
+        // const std::string str = pfmt("foo %s", 69);
+        // const std::string str = pfmt("foo");
+        // const std::string str = pfmt("foo %s %s", 69, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        // const std::string str = pfmt("pi is %s %s nor is it %s ; it is %s... (and has %s%% less %s!)", "not", 3, seven, pi, 99, std::string("fat"));
+        count += str.length();
+    }
+    std::cout << count << std::endl;
+}

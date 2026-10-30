@@ -1,1 +1,180 @@
-IyMKIyMgIFR1bmFibGUgdGVzdF9wcm90byBwYXJhbWV0ZXJzCiMjCnNldChURVNUX1BST1RPX05USFJFQURTIC0xIENBQ0hFIFNUUklORyAidGVzdF9wcm90byAtIE92ZXJyaWRlIG51bWJlciBvZiB0aHJlYWRzIikKc2V0KFRFU1RfUFJPVE9fUkVORUcgOTAwIENBQ0hFIFNUUklORyAidGVzdF9wcm90byAtIFJlbmVnb3RpYXRpb24gaW50ZXJ2YWwiKQpzZXQoVEVTVF9QUk9UT19JVEVSIDEwMDAwMDAgQ0FDSEUgU1RSSU5HICJ0ZXN0X3Byb3RvIC0gTnVtYmVyIG9mIGl0ZXJhdGlvbnMiKQpzZXQoVEVTVF9QUk9UT19TSVRFUiAxIENBQ0hFIFNUUklORyAidGVzdF9wcm90byAtIE51bWJlciBvZiBoaWdoLWxldmVsIGl0ZXJhdGlvbnMiKQpzZXQoVEVTVF9LRVlDRVJUX0RJUiAiJHtDTUFLRV9DVVJSRU5UX1NPVVJDRV9ESVJ9Ly4uL3NzbCIgQ0FDSEUgU1RSSU5HICJ0ZXN0X3Byb3RvIC0gQ2VydGlmaWNhdGUvcHJpdmF0ZSBrZXlzIGZvciB0ZXN0aW5nIikKb3B0aW9uKFRFU1RfUFJPVE9fVkVSQk9TRSAidGVzdC9zc2wvcHJvdG8gLSBFbmFibGUgdmVyYm9zZSBsb2dnaW5nIiBPRkYpCgppZiAoJHtDTUFLRV9TWVNURU1fTkFNRX0gU1RSRVFVQUwgIkxpbnV4IikKICAgIHNldChSVU5fVVRfQVNfUk9PVCBDQUNIRSBTVFJJTkcgIlByb2dyYW0gdG8gdXNlIHRvIGNoYW5nZSB0byByb290IGZvciBydW5uaW5nIHRoZSBzaXRubCB0ZXN0cyIpCmVsc2UoKQogICAgdW5zZXQoUlVOX1VUX0FTX1JPT1QgQ0FDSEUpCmVuZGlmKCkKCmlmIChOT1QgQlVJTERfVEVTVElORykKICByZXR1cm4oKQplbmRpZigpCgppbmNsdWRlKGRsZ29vZ2xldGVzdCkKCnNldChDT1JFX1RFU1RfREVGSU5FUwogICAgICAgIC1ET1BFTlZQTl9GT1JDRV9UVU5fTlVMTAogICAgICAgIC1EVU5JVF9URVNUCiAgICAgICAgLURVTklUVEVTVF9TT1VSQ0VfRElSPVwiJHtDTUFLRV9DVVJSRU5UX1NPVVJDRV9ESVJ9L1wiCiAgICAgICAgLURPUEVOVlBOX1JDX05PVElGWQogICAgICAgIC1ET1BFTlZQTl9FTkFCTEVfQVNTRVJUCiAgICAgICAgKQoKYWRkX2V4ZWN1dGFibGUoY29yZVVuaXRUZXN0cwogICAgICAgIGNvcmVfdGVzdHMuY3BwCiAgICAgICAgdGVzdF9hY2MuY3BwCiAgICAgICAgdGVzdF9hbGlnbm1lbnQuY3BwCiAgICAgICAgdGVzdF9hY2NfY2VydGNoZWNrLmNwcAogICAgICAgIHRlc3Rfcm91dGVfZW11bGF0aW9uLmNwcAogICAgICAgIHRlc3RfbG9nLmNwcAogICAgICAgIHRlc3RfY29tcC5jcHAKICAgICAgICB0ZXN0X2I2NC5jcHAKICAgICAgICB0ZXN0X3ZlcmlmeV94NTA5X25hbWUuY3BwCiAgICAgICAgdGVzdF9zc2wuY3BwCiAgICAgICAgdGVzdF9zc2xjdHguY3BwCiAgICAgICAgdGVzdF9jb250aW51YXRpb24uY3BwCiAgICAgICAgdGVzdF9wdXNobGV4LmNwcAogICAgICAgIHRlc3RfY3J5cHRvLmNwcAogICAgICAgIHRlc3Rfb3B0ZmlsdC5jcHAKICAgICAgICB0ZXN0X2NsYW1wX3R5cGVyYW5nZS5jcHAKICAgICAgICB0ZXN0X3BrdHN0cmVhbS5jcHAKICAgICAgICB0ZXN0X3JlbW90ZWxpc3QuY3BwCiAgICAgICAgdGVzdF9yZWxhY2suY3BwCiAgICAgICAgdGVzdF9odHRwX3Byb3h5LmNwcAogICAgICAgIHRlc3RfcGVlcl9maW5nZXJwcmludC5jcHAKICAgICAgICB0ZXN0X3NhZmVzdHIuY3BwCiAgICAgICAgdGVzdF9udW1lcmljX2Nhc3QuY3BwCiAgICAgICAgdGVzdF9kbnMuY3BwCiAgICAgICAgdGVzdF9oZWFkZXJfZGVwcy5jcHAKICAgICAgICB0ZXN0X2NhcHR1cmUuY3BwCiAgICAgICAgdGVzdF9jbGVhbnVwLmNwcAogICAgICAgIHRlc3RfY3J5cHRvX2hhc2hzdHIuY3BwCiAgICAgICAgdGVzdF9jc3VtLmNwcAogICAgICAgIHRlc3RfZm9ybWF0LmNwcAogICAgICAgIHRlc3RfaGVhZHJlZGFjdC5jcHAKICAgICAgICB0ZXN0X2hvc3Rwb3J0LmNwcAogICAgICAgIHRlc3RfaXAuY3BwCiAgICAgICAgdGVzdF9vc3RyZWFtX2NvbnRhaW5lcnMuY3BwCiAgICAgICAgdGVzdF9wYXJzZWFyZ3YuY3BwCiAgICAgICAgdGVzdF9wYXRoLmNwcAogICAgICAgIHRlc3RfcGt0aWRfY29udHJvbC5jcHAKICAgICAgICB0ZXN0X3BrdGlkX2RhdGEuY3BwCiAgICAgICAgdGVzdF9wcmVmaXhsZW4uY3BwCiAgICAgICAgdGVzdF9yYW5kYXBpLmNwcAogICAgICAgIHRlc3RfcmFuZGJ5dGVzdG9yZS5jcHAKICAgICAgICB0ZXN0X3JjLmNwcAogICAgICAgIHRlc3Rfcm91dGUuY3BwCiAgICAgICAgdGVzdF9yZWxpYWJsZS5jcHAKICAgICAgICB0ZXN0X3NwbGl0bGluZXMuY3BwCiAgICAgICAgdGVzdF9sb2dnaW5nbWl4aW4uY3BwCiAgICAgICAgdGVzdF9zdGF0aWNrZXkuY3BwCiAgICAgICAgdGVzdF9zdHJlcS5jcHAKICAgICAgICB0ZXN0X3RpbWUuY3BwCiAgICAgICAgdGVzdF9tYWtlX3JjLmNwcAogICAgICAgIHRlc3RfdHlwZWluZGV4LmNwcAogICAgICAgIHRlc3RfdHVuX2J1aWxkZXIuY3BwCiAgICAgICAgdGVzdF91c2VycGFzcy5jcHAKICAgICAgICB0ZXN0X3ZhbGlkYXRlY3JlZHMuY3BwCiAgICAgICAgdGVzdF93ZWFrLmNwcAogICAgICAgIHRlc3RfY2xpb3B0LmNwcAogICAgICAgIHRlc3RfYnVmZmVyLmNwcAogICAgICAgIHRlc3RfcHJvdG8uY3BwCikKCiMgVGhlIGNvbXBpbGUgZmxhZ3MgZm9yIHRlc3RfcHJvdG8uY3BwLCBwcmVmaXhlZCB3aXRoIFBST1RPXyB0byBhdm9pZCBjb2xsaXNpb24gd2l0aCBvdGhlciBkZWZpbmVzCnNldChQUk9UT19DT01QSUxFX0RFRklOSVRJT05TIFBST1RPX05fVEhSRUFEUz0ke1RFU1RfUFJPVE9fTlRIUkVBRFN9KQpsaXN0KEFQUEVORCBQUk9UT19DT01QSUxFX0RFRklOSVRJT05TIFBST1RPX1JFTkVHPSR7VEVTVF9QUk9UT19SRU5FR30pCmxpc3QoQVBQRU5EIFBST1RPX0NPTVBJTEVfREVGSU5JVElPTlMgUFJPVE9fSVRFUj0ke1RFU1RfUFJPVE9fSVRFUn0pCmxpc3QoQVBQRU5EIFBST1RPX0NPTVBJTEVfREVGSU5JVElPTlMgVEVTVF9LRVlDRVJUX0RJUj0iJHtURVNUX0tFWUNFUlRfRElSfS8iKQoKaWYgKCR7VEVTVF9QUk9UT19WRVJCT1NFfSkKICAgIGxpc3QoQVBQRU5EIFBST1RPX0NPTVBJTEVfREVGSU5JVElPTlMgUFJPVE9fVkVSQk9TRSkKZW5kaWYoKQoKIyBXYXJuaW5nOiBXaGVuIGRlZmluZXMgYXJlIG9ubHkgc2V0IGZvciBvbmUgc3BlY2lmaWMgdGVzdCwgd2UgbmVlZCB0byBtYWtlIHN1cmUgdGhleSBkbwojIG5vdCBhZmZlY3QgYW55IHN5bWJvbHMgdXNlZCBieSBvdGhlciB0ZXN0cy4gU28gYmUgY2FyZWZ1bCBiZWZvcmUgYWRkaW5nIG1vcmUuClNFVF9TT1VSQ0VfRklMRVNfUFJPUEVSVElFUyh0ZXN0X3Byb3RvLmNwcCBQUk9QRVJUSUVTIENPTVBJTEVfREVGSU5JVElPTlMKICAgICIke1BST1RPX0NPTVBJTEVfREVGSU5JVElPTlN9IgogICAgKQoKaWYgKCR7VVNFX01CRURUTFN9KQogICAgdGFyZ2V0X3NvdXJjZXMoY29yZVVuaXRUZXN0cyBQUklWQVRFCiAgICAgICAgICAgIHRlc3RfbWJlZHRsc194NTA5Y2VydGluZm8uY3BwCiAgICAgICAgICAgIHRlc3RfbWJlZHRsc19hdXRoY2VydC5jcHAKICAgICAgICAgICAgKQplbHNlICgpCiAgICB0YXJnZXRfc291cmNlcyhjb3JlVW5pdFRlc3RzIFBSSVZBVEUKICAgICAgICAgICAgdGVzdF9vcGVuc3NsX3g1MDljZXJ0aW5mby5jcHAKICAgICAgICAgICAgdGVzdF9vcGVuc3NsX2F1dGhjZXJ0LmNwcAogICAgICAgICAgICB0ZXN0X29wZW5zc2xwa2kuY3BwCiAgICAgICAgICAgIHRlc3Rfb3BlbnNzbF9taXNjLmNwcAogICAgICAgICAgICB0ZXN0X3Nlc3Npb25faWQuY3BwCiAgICAgICAgICAgICkKZW5kaWYgKCkKCmlmICgke0NNQUtFX1NZU1RFTV9OQU1FfSBTVFJFUVVBTCAiTGludXgiKQogICAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKGNvcmVVbml0VGVzdHMgY2FwKQogICAgdGFyZ2V0X3NvdXJjZXMoY29yZVVuaXRUZXN0cyBQUklWQVRFIHRlc3Rfc2l0bmwuY3BwKQplbmRpZiAoKQoKaWYgKFVOSVgpCiAgICB0YXJnZXRfc291cmNlcyhjb3JlVW5pdFRlc3RzIFBSSVZBVEUKICAgICAgIyBpbmNsdWRlcyA8YXJwYS9pbmV0Lmg+CiAgICAgIHRlc3RfYnVmZmVyX2lwLmNwcAoKICAgICAgdGVzdF9jcHVfdGltZS5jcHAKCiAgICAgICMgZGlyZWN0bHkgaW5jbHVkZXMgdGVtcGZpbGUuaHBwCiAgICAgIHRlc3RfbWlzY191bml4LmNwcAoKICAgICAgIyBVc2VzIFVuaXggUGlwZSBzZW1hbnRpY3MKICAgICAgdGVzdF9waXBlLmNwcAoKICAgICAgIyBmb3Igbm93LCBvbmx5IGZvciBvdnBuMyBzZXJ2ZXJzIChpLmUuLCBwZ3NlcnYpCiAgICAgIHRlc3RfcHNpZF9jb29raWUuY3BwCiAgICAgICkKZW5kaWYgKCkKCmlmIChXSU4zMikKICAgIHRhcmdldF9zb3VyY2VzKGNvcmVVbml0VGVzdHMgUFJJVkFURSB0ZXN0X2lwaGVscGVyLmNwcCB0ZXN0X3dzdHJpbmcuY3BwKQplbmRpZiAoKQoKYWRkX2NvcmVfZGVwZW5kZW5jaWVzKGNvcmVVbml0VGVzdHMpCmFkZF9qc29uX2xpYnJhcnkoY29yZVVuaXRUZXN0cykKCiMgeHhIYXNoCnRhcmdldF9jb21waWxlX2RlZmluaXRpb25zKGNvcmVVbml0VGVzdHMgUFJJVkFURSAtREhBVkVfWFhIQVNIKQppZihOT1QgTVNWQykKICBsaXN0KEFQUEVORCBDTUFLRV9QUkVGSVhfUEFUSAogICAgJHtERVBfRElSfS94eEhhc2gKICAgICR7REVQX0RJUn0KICAgICkKZW5kaWYoKQpmaW5kX3BhY2thZ2UoeHhIYXNoIFJFUVVJUkVEKQp0YXJnZXRfbGlua19saWJyYXJpZXMoY29yZVVuaXRUZXN0cyB4eEhhc2g6Onh4aGFzaCkKCmZpbmRfcGFja2FnZShMWk8pCmlmIChMWk9fRk9VTkQpCiAgdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMoY29yZVVuaXRUZXN0cyBQUklWQVRFIC1ESEFWRV9MWk8pCiAgdGFyZ2V0X2xpbmtfbGlicmFyaWVzKGNvcmVVbml0VGVzdHMgbHpvOjpsem8pCiAgbWVzc2FnZSgibHpvIGZvdW5kLCBydW5uaW5nIGx6byBjb21wcmVzc2lvbiB0ZXN0cyIpCmVsc2UgKCkKICAgIG1lc3NhZ2UoImx6byBub3QgZm91bmQsIHNraXBwaW5nIGx6byBjb21wcmVzc2lvbiB0ZXN0cyIpCmVuZGlmICgpCgp0YXJnZXRfbGlua19saWJyYXJpZXMoY29yZVVuaXRUZXN0cyAke0dURVNUX0xJQn0gR1Rlc3Q6Omdtb2NrIHJhcGlkY2hlY2sgcmFwaWRjaGVja19ndGVzdCAke0VYVFJBX0xJQlN9KQoKdGFyZ2V0X2NvbXBpbGVfZGVmaW5pdGlvbnMoY29yZVVuaXRUZXN0cyBQUklWQVRFICR7Q09SRV9URVNUX0RFRklORVN9KQp0YXJnZXRfaW5jbHVkZV9kaXJlY3Rvcmllcyhjb3JlVW5pdFRlc3RzIFBSSVZBVEUgJHtFWFRSQV9JTkNMVURFU30pCgphZGRfdGVzdChOQU1FIENvcmVUZXN0cwogICAgQ09NTUFORCAke1JVTl9VVF9BU19ST09UfSAkPFRBUkdFVF9GSUxFOmNvcmVVbml0VGVzdHM+IC0tZ3Rlc3Rfc2h1ZmZsZSAtLWd0ZXN0X291dHB1dD14bWw6dGVzdF9yZXN1bHRzL3Rlc3RfY29yZV8kPENPTkZJRz4ueG1sCiAgICBXT1JLSU5HX0RJUkVDVE9SWSAke0NNQUtFX0JJTkFSWV9ESVJ9KQo=
+##
+##  Tunable test_proto parameters
+##
+set(TEST_PROTO_NTHREADS -1 CACHE STRING "test_proto - Override number of threads")
+set(TEST_PROTO_RENEG 900 CACHE STRING "test_proto - Renegotiation interval")
+set(TEST_PROTO_ITER 1000000 CACHE STRING "test_proto - Number of iterations")
+set(TEST_PROTO_SITER 1 CACHE STRING "test_proto - Number of high-level iterations")
+set(TEST_KEYCERT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../ssl" CACHE STRING "test_proto - Certificate/private keys for testing")
+option(TEST_PROTO_VERBOSE "test/ssl/proto - Enable verbose logging" OFF)
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(RUN_UT_AS_ROOT CACHE STRING "Program to use to change to root for running the sitnl tests")
+else()
+    unset(RUN_UT_AS_ROOT CACHE)
+endif()
+
+if (NOT BUILD_TESTING)
+  return()
+endif()
+
+include(dlgoogletest)
+
+set(CORE_TEST_DEFINES
+        -DOPENVPN_FORCE_TUN_NULL
+        -DUNIT_TEST
+        -DUNITTEST_SOURCE_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/\"
+        -DOPENVPN_RC_NOTIFY
+        -DOPENVPN_ENABLE_ASSERT
+        )
+
+add_executable(coreUnitTests
+        core_tests.cpp
+        test_acc.cpp
+        test_alignment.cpp
+        test_acc_certcheck.cpp
+        test_route_emulation.cpp
+        test_log.cpp
+        test_comp.cpp
+        test_b64.cpp
+        test_verify_x509_name.cpp
+        test_ssl.cpp
+        test_sslctx.cpp
+        test_continuation.cpp
+        test_pushlex.cpp
+        test_crypto.cpp
+        test_optfilt.cpp
+        test_clamp_typerange.cpp
+        test_pktstream.cpp
+        test_remotelist.cpp
+        test_relack.cpp
+        test_http_proxy.cpp
+        test_peer_fingerprint.cpp
+        test_safestr.cpp
+        test_numeric_cast.cpp
+        test_dns.cpp
+        test_header_deps.cpp
+        test_capture.cpp
+        test_cleanup.cpp
+        test_crypto_hashstr.cpp
+        test_csum.cpp
+        test_format.cpp
+        test_headredact.cpp
+        test_hostport.cpp
+        test_ip.cpp
+        test_ostream_containers.cpp
+        test_parseargv.cpp
+        test_path.cpp
+        test_pktid_control.cpp
+        test_pktid_data.cpp
+        test_prefixlen.cpp
+        test_randapi.cpp
+        test_randbytestore.cpp
+        test_rc.cpp
+        test_route.cpp
+        test_reliable.cpp
+        test_splitlines.cpp
+        test_loggingmixin.cpp
+        test_statickey.cpp
+        test_streq.cpp
+        test_time.cpp
+        test_make_rc.cpp
+        test_typeindex.cpp
+        test_tun_builder.cpp
+        test_userpass.cpp
+        test_validatecreds.cpp
+        test_weak.cpp
+        test_cliopt.cpp
+        test_buffer.cpp
+        test_proto.cpp
+)
+
+# The compile flags for test_proto.cpp, prefixed with PROTO_ to avoid collision with other defines
+set(PROTO_COMPILE_DEFINITIONS PROTO_N_THREADS=${TEST_PROTO_NTHREADS})
+list(APPEND PROTO_COMPILE_DEFINITIONS PROTO_RENEG=${TEST_PROTO_RENEG})
+list(APPEND PROTO_COMPILE_DEFINITIONS PROTO_ITER=${TEST_PROTO_ITER})
+list(APPEND PROTO_COMPILE_DEFINITIONS TEST_KEYCERT_DIR="${TEST_KEYCERT_DIR}/")
+
+if (${TEST_PROTO_VERBOSE})
+    list(APPEND PROTO_COMPILE_DEFINITIONS PROTO_VERBOSE)
+endif()
+
+# Warning: When defines are only set for one specific test, we need to make sure they do
+# not affect any symbols used by other tests. So be careful before adding more.
+SET_SOURCE_FILES_PROPERTIES(test_proto.cpp PROPERTIES COMPILE_DEFINITIONS
+    "${PROTO_COMPILE_DEFINITIONS}"
+    )
+
+if (${USE_MBEDTLS})
+    target_sources(coreUnitTests PRIVATE
+            test_mbedtls_x509certinfo.cpp
+            test_mbedtls_authcert.cpp
+            )
+else ()
+    target_sources(coreUnitTests PRIVATE
+            test_openssl_x509certinfo.cpp
+            test_openssl_authcert.cpp
+            test_opensslpki.cpp
+            test_openssl_misc.cpp
+            test_session_id.cpp
+            )
+endif ()
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    target_link_libraries(coreUnitTests cap)
+    target_sources(coreUnitTests PRIVATE test_sitnl.cpp)
+endif ()
+
+if (UNIX)
+    target_sources(coreUnitTests PRIVATE
+      # includes <arpa/inet.h>
+      test_buffer_ip.cpp
+
+      test_cpu_time.cpp
+
+      # directly includes tempfile.hpp
+      test_misc_unix.cpp
+
+      # Uses Unix Pipe semantics
+      test_pipe.cpp
+
+      # for now, only for ovpn3 servers (i.e., pgserv)
+      test_psid_cookie.cpp
+      )
+endif ()
+
+if (WIN32)
+    target_sources(coreUnitTests PRIVATE test_iphelper.cpp test_wstring.cpp)
+endif ()
+
+add_core_dependencies(coreUnitTests)
+add_json_library(coreUnitTests)
+
+# xxHash
+target_compile_definitions(coreUnitTests PRIVATE -DHAVE_XXHASH)
+if(NOT MSVC)
+  list(APPEND CMAKE_PREFIX_PATH
+    ${DEP_DIR}/xxHash
+    ${DEP_DIR}
+    )
+endif()
+find_package(xxHash REQUIRED)
+target_link_libraries(coreUnitTests xxHash::xxhash)
+
+find_package(LZO)
+if (LZO_FOUND)
+  target_compile_definitions(coreUnitTests PRIVATE -DHAVE_LZO)
+  target_link_libraries(coreUnitTests lzo::lzo)
+  message("lzo found, running lzo compression tests")
+else ()
+    message("lzo not found, skipping lzo compression tests")
+endif ()
+
+target_link_libraries(coreUnitTests ${GTEST_LIB} GTest::gmock rapidcheck rapidcheck_gtest ${EXTRA_LIBS})
+
+target_compile_definitions(coreUnitTests PRIVATE ${CORE_TEST_DEFINES})
+target_include_directories(coreUnitTests PRIVATE ${EXTRA_INCLUDES})
+
+add_test(NAME CoreTests
+    COMMAND ${RUN_UT_AS_ROOT} $<TARGET_FILE:coreUnitTests> --gtest_shuffle --gtest_output=xml:test_results/test_core_$<CONFIG>.xml
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -1,1 +1,182 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9yYW5kb20vbXRyYW5kYXBpLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vdHJhbnNwb3J0L3BrdHN0cmVhbS5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCi8vIFJldHVybiBhIHJhbmRvbSB2YWx1ZSBpbiB0aGUgcmFuZ2UgWzEsNTEyXSBidXQgd2l0aAovLyB0aGUgc3VicmFuZ2UgWzEsIDE2XSBoYXZpbmcgZWxldmF0ZWQgcHJvYmFiaWxpdHkuCnN0YXRpYyBzaXplX3QgcmFuZF9zaXplKFJhbmRvbUFQSSAmcHJuZykKewogICAgaWYgKHBybmcucmFuZGJvb2woKSkKICAgICAgICByZXR1cm4gcHJuZy5yYW5kcmFuZ2UzMigxLCAxNik7CiAgICBlbHNlCiAgICAgICAgcmV0dXJuIHBybmcucmFuZHJhbmdlMzIoMSwgNTEyKTsKfQoKdGVtcGxhdGUgPHR5cGVuYW1lIFBLVFNUUkVBTT4Kc3RhdGljIHZvaWQgZG9fdGVzdChjb25zdCBib29sIGdyb3csIGNvbnN0IGJvb2wgdmVyYm9zZSkKewojaWZkZWYgSU5TVFJVTUVOVEFUSU9OX1NMT1dET1dOCiAgICBjb25zdCBpbnQgbl9pdGVyID0gNTAwOwojZWxzZQogICAgY29uc3QgaW50IG5faXRlciA9IDI1MDAwMDsKI2VuZGlmCgogICAgY29uc3QgRnJhbWU6OkNvbnRleHQgZmMoMjU2LCA1MTIsIDI1NiwgMCwgc2l6ZW9mKHNpemVfdCksIGdyb3cgPyBCdWZBbGxvY0ZsYWdzOjpHUk9XIDogMCk7CiAgICBjb25zdCBGcmFtZTo6Q29udGV4dCBmY19iaWcoMjU2LCA0MDk2LCAyNTYsIDAsIHNpemVvZihzaXplX3QpLCBncm93ID8gQnVmQWxsb2NGbGFnczo6R1JPVyA6IDApOwoKICAgIGlmICh2ZXJib3NlKQogICAgewogICAgICAgIE9QRU5WUE5fTE9HKCJGQyAiIDw8IGZjLmluZm8oKSk7CiAgICAgICAgT1BFTlZQTl9MT0coIkZDIEJJRyAiIDw8IGZjX2JpZy5pbmZvKCkpOwogICAgfQoKICAgIE1UUmFuZDo6UHRyIHBybmcobmV3IE1UUmFuZCgpKTsKCiAgICBzaXplX3QgY291bnQgPSAwOwoKICAgIGZvciAoaW50IGl0ZXIgPSAwOyBpdGVyIDwgbl9pdGVyOyArK2l0ZXIpCiAgICB7CiAgICAgICAgLy8gYnVpbGQgYmlnCiAgICAgICAgQnVmZmVyQWxsb2NhdGVkIGJpZzsKICAgICAgICBmY19iaWcucHJlcGFyZShiaWcpOwogICAgICAgIHNpemVfdCBuYmlnID0gMDsKCiAgICAgICAgewogICAgICAgICAgICBCdWZmZXJBbGxvY2F0ZWQgc3JjOwogICAgICAgICAgICB3aGlsZSAodHJ1ZSkKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgZmMucHJlcGFyZShzcmMpOwogICAgICAgICAgICAgICAgY29uc3Qgc2l6ZV90IHIgPSByYW5kX3NpemUoKnBybmcpOwogICAgICAgICAgICAgICAgZm9yIChzaXplX3QgaSA9IDA7IGkgPCByOyArK2kpCiAgICAgICAgICAgICAgICAgICAgc3JjLnB1c2hfYmFjaygnYScgKyBzdGF0aWNfY2FzdDx1bnNpZ25lZCBjaGFyPihpICUgMjYpKTsKICAgICAgICAgICAgICAgIFBLVFNUUkVBTTo6cHJlcGVuZF9zaXplKHNyYyk7CiAgICAgICAgICAgICAgICBpZiAoc3JjLnNpemUoKSA+IGZjX2JpZy5yZW1haW5pbmdfcGF5bG9hZChiaWcpKQogICAgICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICAgICAgYmlnLndyaXRlKHNyYy5kYXRhKCksIHNyYy5zaXplKCkpOwogICAgICAgICAgICAgICAgKytuYmlnOwogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICAvLyBzYXZlIGJpZwogICAgICAgIGNvbnN0IEJ1ZmZlciBiaWdvcmlnKGJpZyk7CgogICAgICAgIC8vIGRlY29uc3RydWN0IGJpZwogICAgICAgIEJ1ZmZlckFsbG9jYXRlZCBiaWdjbXA7CiAgICAgICAgZmNfYmlnLnByZXBhcmUoYmlnY21wKTsKICAgICAgICBzaXplX3QgbmNtcCA9IDA7CgogICAgICAgIHsKICAgICAgICAgICAgUEtUU1RSRUFNIHBrdHN0cmVhbTsKICAgICAgICAgICAgQnVmZmVyQWxsb2NhdGVkIGluOwogICAgICAgICAgICB3aGlsZSAoYmlnLnNpemUoKSkKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgY29uc3Qgc2l6ZV90IGJ5dGVzID0gc3RkOjptaW4oYmlnLnNpemUoKSwgcmFuZF9zaXplKCpwcm5nKSk7CiAgICAgICAgICAgICAgICBmYy5wcmVwYXJlKGluKTsKICAgICAgICAgICAgICAgIGluLndyaXRlKGJpZy5kYXRhKCksIGJ5dGVzKTsKICAgICAgICAgICAgICAgIGJpZy5hZHZhbmNlKGJ5dGVzKTsKICAgICAgICAgICAgICAgIEJ1ZmZlckFsbG9jYXRlZCBvdXQ7CiAgICAgICAgICAgICAgICB3aGlsZSAoaW4uc2l6ZSgpKQogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgIHBrdHN0cmVhbS5wdXQoaW4sIGZjKTsKICAgICAgICAgICAgICAgICAgICB3aGlsZSAocGt0c3RyZWFtLnJlYWR5KCkpCiAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgICBwa3RzdHJlYW0uZ2V0KG91dCwgZmMpOwogICAgICAgICAgICAgICAgICAgICAgICBQS1RTVFJFQU06OnByZXBlbmRfc2l6ZShvdXQpOwogICAgICAgICAgICAgICAgICAgICAgICBiaWdjbXAud3JpdGUob3V0LmRhdGEoKSwgb3V0LnNpemUoKSk7CiAgICAgICAgICAgICAgICAgICAgICAgICsrbmNtcDsKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CgogICAgICAgIC8vIHN1bSBieXRlIGNvdW50CiAgICAgICAgY291bnQgKz0gYmlnb3JpZy5zaXplKCk7CgogICAgICAgIC8vIGNoZWNrIHJlc3VsdAogICAgICAgIEFTU0VSVF9FUShuYmlnLCBuY21wKTsKICAgICAgICBBU1NFUlRfRVEoYmlnb3JpZywgYmlnY21wKTsKICAgIH0KCiAgICBpZiAodmVyYm9zZSkKICAgICAgICBPUEVOVlBOX0xPRygiY291bnQ9IiA8PCBjb3VudCk7Cn0KClRFU1QocGt0c3RyZWFtLCB0ZXN0XzE2KQp7CiAgICBkb190ZXN0PFBhY2tldFN0cmVhbTxzdGQ6OnVpbnQxNl90Pj4oZmFsc2UsIGZhbHNlKTsKfQoKVEVTVChwa3RzdHJlYW0sIHRlc3RfMzIpCnsKICAgIGRvX3Rlc3Q8UGFja2V0U3RyZWFtPHN0ZDo6dWludDMyX3Q+PihmYWxzZSwgZmFsc2UpOwp9CgpURVNUKHBrdHN0cmVhbSwgdGVzdF8xNl9yZXNpZHVhbCkKewogICAgZG9fdGVzdDxQYWNrZXRTdHJlYW1SZXNpZHVhbDxzdGQ6OnVpbnQxNl90Pj4odHJ1ZSwgZmFsc2UpOwp9CgpURVNUKHBrdHN0cmVhbSwgdGVzdF8zMl9yZXNpZHVhbCkKewogICAgZG9fdGVzdDxQYWNrZXRTdHJlYW1SZXNpZHVhbDxzdGQ6OnVpbnQzMl90Pj4odHJ1ZSwgZmFsc2UpOwp9Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgUEtUU1RSRUFNPgpzdGF0aWMgdm9pZCB2YWxpZGF0ZV9zaXplKGNvbnN0IEZyYW1lOjpDb250ZXh0ICZmYywgY29uc3Qgc2l6ZV90IHNpemUsIGNvbnN0IGJvb2wgZXhwZWN0X3Rocm93KQp7CiAgICBib29sIGFjdHVhbF90aHJvdyA9IGZhbHNlOwogICAgdHJ5CiAgICB7CiAgICAgICAgUEtUU1RSRUFNOjp2YWxpZGF0ZV9zaXplKHNpemUsIGZjKTsKICAgIH0KICAgIGNhdGNoICh0eXBlbmFtZSBQS1RTVFJFQU06OmVtYmVkZGVkX3BhY2tldF9zaXplX2Vycm9yICYpCiAgICB7CiAgICAgICAgYWN0dWFsX3Rocm93ID0gdHJ1ZTsKICAgIH0KICAgIGlmIChleHBlY3RfdGhyb3cgIT0gYWN0dWFsX3Rocm93KQogICAgICAgIFRIUk9XX0ZNVCgidmFsaWRhdGVfc2l6ZTogYmFkIHRocm93LCBleHBlY3Q9JXMsIGFjdHVhbD0lcywgRkM9JXMgc2l6ZT0lcyIsCiAgICAgICAgICAgICAgICAgIGV4cGVjdF90aHJvdywKICAgICAgICAgICAgICAgICAgYWN0dWFsX3Rocm93LAogICAgICAgICAgICAgICAgICBmYy5pbmZvKCksCiAgICAgICAgICAgICAgICAgIHNpemUpOwp9Cgp0ZW1wbGF0ZSA8dHlwZW5hbWUgUEtUU1RSRUFNPgpzdGF0aWMgdm9pZCB2YWxpZGF0ZV9zaXplX3Rlc3QoKQp7CiAgICBjb25zdCBzaXplX3QgcGF5bG9hZCA9IDIwNDg7CiAgICBjb25zdCBzaXplX3QgaGVhZHJvb20gPSAxNjsKICAgIGNvbnN0IHNpemVfdCB0YWlscm9vbSA9IDA7CiAgICBjb25zdCBzaXplX3QgYWxpZ25fYmxvY2sgPSAxNjsKICAgIGNvbnN0IEZyYW1lOjpDb250ZXh0IGZpeGVkKGhlYWRyb29tLCBwYXlsb2FkLCB0YWlscm9vbSwgMCwgYWxpZ25fYmxvY2ssIDApOwogICAgY29uc3QgRnJhbWU6OkNvbnRleHQgZ3JvdyhoZWFkcm9vbSwgcGF5bG9hZCwgdGFpbHJvb20sIDAsIGFsaWduX2Jsb2NrLCBCdWZBbGxvY0ZsYWdzOjpHUk9XKTsKICAgIHZhbGlkYXRlX3NpemU8UEtUU1RSRUFNPihmaXhlZCwgMjA0OCwgZmFsc2UpOyAvLyBzdWNjZWVkcwogICAgdmFsaWRhdGVfc2l6ZTxQS1RTVFJFQU0+KGZpeGVkLCAyMDQ5LCB0cnVlKTsgIC8vIGV4Y2VlZGVkIHBheWxvYWQsIHRocm93CiAgICB2YWxpZGF0ZV9zaXplPFBLVFNUUkVBTT4oZ3JvdywgMjA0OCwgZmFsc2UpOyAgLy8gc3VjY2VlZHMKICAgIHZhbGlkYXRlX3NpemU8UEtUU1RSRUFNPihncm93LCAyMDQ5LCBmYWxzZSk7ICAvLyBleGNlZWRlZCBwYXlsb2FkLCBidXQgb2theSB3aXRoIGdyb3dhYmxlIGJ1ZmZlcgp9CgpURVNUKHBrdHN0cmVhbSwgdmFsaWRhdGVfc2l6ZV8xNikKewogICAgdmFsaWRhdGVfc2l6ZV90ZXN0PFBhY2tldFN0cmVhbTxzdGQ6OnVpbnQxNl90Pj4oKTsKfQoKVEVTVChwa3RzdHJlYW0sIHZhbGlkYXRlX3NpemVfMzIpCnsKICAgIHZhbGlkYXRlX3NpemVfdGVzdDxQYWNrZXRTdHJlYW08c3RkOjp1aW50MzJfdD4+KCk7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/random/mtrandapi.hpp>
+#include <openvpn/transport/pktstream.hpp>
+
+using namespace openvpn;
+
+// Return a random value in the range [1,512] but with
+// the subrange [1, 16] having elevated probability.
+static size_t rand_size(RandomAPI &prng)
+{
+    if (prng.randbool())
+        return prng.randrange32(1, 16);
+    else
+        return prng.randrange32(1, 512);
+}
+
+template <typename PKTSTREAM>
+static void do_test(const bool grow, const bool verbose)
+{
+#ifdef INSTRUMENTATION_SLOWDOWN
+    const int n_iter = 500;
+#else
+    const int n_iter = 250000;
+#endif
+
+    const Frame::Context fc(256, 512, 256, 0, sizeof(size_t), grow ? BufAllocFlags::GROW : 0);
+    const Frame::Context fc_big(256, 4096, 256, 0, sizeof(size_t), grow ? BufAllocFlags::GROW : 0);
+
+    if (verbose)
+    {
+        OPENVPN_LOG("FC " << fc.info());
+        OPENVPN_LOG("FC BIG " << fc_big.info());
+    }
+
+    MTRand::Ptr prng(new MTRand());
+
+    size_t count = 0;
+
+    for (int iter = 0; iter < n_iter; ++iter)
+    {
+        // build big
+        BufferAllocated big;
+        fc_big.prepare(big);
+        size_t nbig = 0;
+
+        {
+            BufferAllocated src;
+            while (true)
+            {
+                fc.prepare(src);
+                const size_t r = rand_size(*prng);
+                for (size_t i = 0; i < r; ++i)
+                    src.push_back('a' + static_cast<unsigned char>(i % 26));
+                PKTSTREAM::prepend_size(src);
+                if (src.size() > fc_big.remaining_payload(big))
+                    break;
+                big.write(src.data(), src.size());
+                ++nbig;
+            }
+        }
+
+        // save big
+        const Buffer bigorig(big);
+
+        // deconstruct big
+        BufferAllocated bigcmp;
+        fc_big.prepare(bigcmp);
+        size_t ncmp = 0;
+
+        {
+            PKTSTREAM pktstream;
+            BufferAllocated in;
+            while (big.size())
+            {
+                const size_t bytes = std::min(big.size(), rand_size(*prng));
+                fc.prepare(in);
+                in.write(big.data(), bytes);
+                big.advance(bytes);
+                BufferAllocated out;
+                while (in.size())
+                {
+                    pktstream.put(in, fc);
+                    while (pktstream.ready())
+                    {
+                        pktstream.get(out, fc);
+                        PKTSTREAM::prepend_size(out);
+                        bigcmp.write(out.data(), out.size());
+                        ++ncmp;
+                    }
+                }
+            }
+        }
+
+        // sum byte count
+        count += bigorig.size();
+
+        // check result
+        ASSERT_EQ(nbig, ncmp);
+        ASSERT_EQ(bigorig, bigcmp);
+    }
+
+    if (verbose)
+        OPENVPN_LOG("count=" << count);
+}
+
+TEST(pktstream, test_16)
+{
+    do_test<PacketStream<std::uint16_t>>(false, false);
+}
+
+TEST(pktstream, test_32)
+{
+    do_test<PacketStream<std::uint32_t>>(false, false);
+}
+
+TEST(pktstream, test_16_residual)
+{
+    do_test<PacketStreamResidual<std::uint16_t>>(true, false);
+}
+
+TEST(pktstream, test_32_residual)
+{
+    do_test<PacketStreamResidual<std::uint32_t>>(true, false);
+}
+
+template <typename PKTSTREAM>
+static void validate_size(const Frame::Context &fc, const size_t size, const bool expect_throw)
+{
+    bool actual_throw = false;
+    try
+    {
+        PKTSTREAM::validate_size(size, fc);
+    }
+    catch (typename PKTSTREAM::embedded_packet_size_error &)
+    {
+        actual_throw = true;
+    }
+    if (expect_throw != actual_throw)
+        THROW_FMT("validate_size: bad throw, expect=%s, actual=%s, FC=%s size=%s",
+                  expect_throw,
+                  actual_throw,
+                  fc.info(),
+                  size);
+}
+
+template <typename PKTSTREAM>
+static void validate_size_test()
+{
+    const size_t payload = 2048;
+    const size_t headroom = 16;
+    const size_t tailroom = 0;
+    const size_t align_block = 16;
+    const Frame::Context fixed(headroom, payload, tailroom, 0, align_block, 0);
+    const Frame::Context grow(headroom, payload, tailroom, 0, align_block, BufAllocFlags::GROW);
+    validate_size<PKTSTREAM>(fixed, 2048, false); // succeeds
+    validate_size<PKTSTREAM>(fixed, 2049, true);  // exceeded payload, throw
+    validate_size<PKTSTREAM>(grow, 2048, false);  // succeeds
+    validate_size<PKTSTREAM>(grow, 2049, false);  // exceeded payload, but okay with growable buffer
+}
+
+TEST(pktstream, validate_size_16)
+{
+    validate_size_test<PacketStream<std::uint16_t>>();
+}
+
+TEST(pktstream, validate_size_32)
+{
+    validate_size_test<PacketStream<std::uint32_t>>();
+}

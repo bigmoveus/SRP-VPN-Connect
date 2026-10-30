@@ -1,1 +1,403 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9zaXplLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9oZXhzdHIuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9yZWxpYWJsZS9yZWxhY2suaHBwPgoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSA8c3RyaW5nPgojaW5jbHVkZSA8c3N0cmVhbT4KI2luY2x1ZGUgPGRlcXVlPgojaW5jbHVkZSA8YWxnb3JpdGhtPgojaW5jbHVkZSA8bGltaXRzPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL2V4Y2VwdGlvbi5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3JhbmRvbS9tdHJhbmRhcGkuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9idWZmZXIvYnVmZmVyLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vcmVsaWFibGUvcmVscmVjdi5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL3JlbGlhYmxlL3JlbHNlbmQuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9yZWxpYWJsZS9yZWxhY2suaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jcnlwdG8vcGFja2V0X2lkX2NvbnRyb2wuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpuYW1lc3BhY2UgUGFja2V0SUQgewp1c2luZyBpZF90ID0gb3BlbnZwbjo6cmVsaWFibGU6OmlkX3Q7Cn0KClRFU1QocmVsaWFibGUsIGFjaykKewogICAgc3RkOjpzdHJpbmcgZXhwZWN0ZWR7IjA0MDAwMDAwMjEwMDAwMDAxNjAwMDAwMDBiMDAwMDAwMDFcbiJ9OwogICAgc3RkOjpvc3RyaW5nc3RyZWFtIGFjdHVhbDsKCiAgICBSZWxpYWJsZUFjayBhY2t7fTsKICAgIGFjay5wdXNoX2JhY2soMSk7CiAgICBhY2sucHVzaF9iYWNrKDExKTsKICAgIGFjay5wdXNoX2JhY2soMjIpOwogICAgYWNrLnB1c2hfYmFjaygzMyk7CgogICAgYWNrLnB1c2hfYmFjaygweDQ0KTsKICAgIGFjay5wdXNoX2JhY2soMHg1NSk7CiAgICBhY2sucHVzaF9iYWNrKDB4NjYpOwogICAgYWNrLnB1c2hfYmFjaygweDc3KTsKICAgIGFjay5wdXNoX2JhY2soMHg4OCk7CiAgICBhY2sucHVzaF9iYWNrKDB4OTkpOwogICAgYWNrLnB1c2hfYmFjaygweDEwMCk7CgogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZigyNTYsIDApOwogICAgYnVmLmluaXRfaGVhZHJvb20oMTI4KTsKICAgIGFjay5wcmVwZW5kKGJ1ZiwgZmFsc2UpOwogICAgYWN0dWFsIDw8IHJlbmRlcl9oZXhfZ2VuZXJpYyhidWYpIDw8IHN0ZDo6ZW5kbDsKICAgIEVYUEVDVF9FUShhY3R1YWwuc3RyKCksIGV4cGVjdGVkKTsKCiAgICBzdGQ6OnN0cmluZyBleHBlY3RlZDJ7IjA4MDAwMDAwMjEwMDAwMDEwMDAwMDAwMDk5MDAwMDAwODgwMDAwMDA3NzAwMDAwMDY2MDAwMDAwNTUwMDAwMDA0NFxuIn07CgogICAgc3RkOjpvc3RyaW5nc3RyZWFtIGFjdHVhbDI7CgogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZjIoMjU2LCAwKTsKICAgIGJ1ZjIuaW5pdF9oZWFkcm9vbSgxMjgpOwogICAgYWNrLnByZXBlbmQoYnVmMiwgdHJ1ZSk7CiAgICBhY3R1YWwyIDw8IHJlbmRlcl9oZXhfZ2VuZXJpYyhidWYyKSA8PCBzdGQ6OmVuZGw7CiAgICBFWFBFQ1RfRVEoYWN0dWFsMi5zdHIoKSwgZXhwZWN0ZWQyKTsKfQoKVEVTVChyZWxpYWJsZSwgYWNrX2R1cCkKewogICAgc3RkOjpvc3RyaW5nc3RyZWFtIGFjdHVhbDsKICAgIFJlbGlhYmxlQWNrIGFja3t9OwoKICAgIGFjay5wdXNoX2JhY2soMSk7CiAgICBhY2sucHVzaF9iYWNrKDIpOwogICAgYWNrLnB1c2hfYmFjaygzKTsKICAgIGFjay5wdXNoX2JhY2soNCk7CgogICAgc3RkOjpzdHJpbmcgZXhwZWN0ZWR7IjA0MDAwMDAwMDQwMDAwMDAwMzAwMDAwMDAyMDAwMDAwMDFcbiJ9OwoKICAgIEJ1ZmZlckFsbG9jYXRlZCBidWYoMjU2LCAwKTsKICAgIGJ1Zi5pbml0X2hlYWRyb29tKDEyOCk7CiAgICBhY2sucHJlcGVuZChidWYsIGZhbHNlKTsKICAgIGFjdHVhbCA8PCByZW5kZXJfaGV4X2dlbmVyaWMoYnVmKSA8PCBzdGQ6OmVuZGw7CiAgICBFWFBFQ1RfRVEoYWN0dWFsLnN0cigpLCBleHBlY3RlZCk7CiAgICBFWFBFQ1RfRVEoYWNrLnJlc2VuZF9zaXplKCksIDR1KTsKCiAgICBhY2sucHVzaF9iYWNrKDMpOwogICAgYWNrLnB1c2hfYmFjayg2KTsKCiAgICBhY3R1YWwuc3RyKCIiKTsKICAgIHN0ZDo6c3RyaW5nIGV4cGVjdGVkMnsiMDQwMDAwMDAwMjAwMDAwMDA0MDAwMDAwMDYwMDAwMDAwM1xuIn07CgogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZjIoMjU2LCAwKTsKICAgIGJ1ZjIuaW5pdF9oZWFkcm9vbSgxMjgpOwoKICAgIGFjay5wcmVwZW5kKGJ1ZjIsIGZhbHNlKTsKICAgIGFjdHVhbCA8PCByZW5kZXJfaGV4X2dlbmVyaWMoYnVmMikgPDwgc3RkOjplbmRsOwogICAgRVhQRUNUX0VRKGFjdHVhbC5zdHIoKSwgZXhwZWN0ZWQyKTsKICAgIC8qIFRoZSBkdXBsaWNhdGUgMyBzaG91bGQgaGF2ZSBiZSB0aGVyZSBvbmx5IG9uY2UgKi8KICAgIEVYUEVDVF9FUShhY2sucmVzZW5kX3NpemUoKSwgNXUpOwoKICAgIGFjdHVhbC5zdHIoIiIpOwogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZjMoMjU2LCAwKTsKICAgIGJ1ZjMuaW5pdF9oZWFkcm9vbSgxMjgpOwogICAgYWNrLnByZXBlbmQoYnVmMywgZmFsc2UpOwoKICAgIGFjdHVhbCA8PCByZW5kZXJfaGV4X2dlbmVyaWMoYnVmMykgPDwgc3RkOjplbmRsOwoKICAgIHN0ZDo6c3RyaW5nIGV4cGVjdGVkM3siMDQwMDAwMDAwMjAwMDAwMDA0MDAwMDAwMDMwMDAwMDAwNlxuIn07CiAgICBFWFBFQ1RfRVEoYWN0dWFsLnN0cigpLCBleHBlY3RlZDMpOwp9CgpURVNUKHJlbGlhYmxlLCBzaW1wbGVfcGFja2V0KQp7CiAgICBzdGQ6Om9zdHJpbmdzdHJlYW0gYWN0dWFsOwogICAgUmVsaWFibGVBY2sgYWNre307CgogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZigyNTYsIDApOwogICAgYnVmLmluaXRfaGVhZHJvb20oMTI4KTsKCiAgICBhY2sucHVzaF9iYWNrKDApOwoKICAgIGFjay5wcmVwZW5kKGJ1ZiwgZmFsc2UpOwoKCiAgICBhY2sucHVzaF9iYWNrKDEpOwogICAgYWNrLnB1c2hfYmFjaygyKTsKICAgIGFjay5wdXNoX2JhY2soMyk7Cn0KCgpPUEVOVlBOX1NJTVBMRV9FWENFUFRJT04ocmVjZWl2ZV9zZXF1ZW5jZSk7CgpzdHJ1Y3QgUGFja2V0CnsKICAgIFBhY2tldCgpCiAgICB7CiAgICB9CiAgICBleHBsaWNpdCBQYWNrZXQoY29uc3QgQnVmZmVyUHRyICZidWZfYXJnKQogICAgICAgIDogYnVmKGJ1Zl9hcmcpCiAgICB7CiAgICB9CiAgICBvcGVyYXRvciBib29sKCkgY29uc3QKICAgIHsKICAgICAgICByZXR1cm4gYm9vbChidWYpOwogICAgfQogICAgdm9pZCByZXNldCgpCiAgICB7CiAgICAgICAgYnVmLnJlc2V0KCk7CiAgICB9CgogICAgQnVmZmVyUHRyIGJ1ZjsKfTsKCnR5cGVkZWYgUmVsaWFibGVTZW5kVGVtcGxhdGU8UGFja2V0PiBSZWxpYWJsZVNlbmQ7CnR5cGVkZWYgUmVsaWFibGVSZWN2VGVtcGxhdGU8UGFja2V0PiBSZWxpYWJsZVJlY3Y7CgpzdHJ1Y3QgTWVzc2FnZQp7CiAgICBvcGVudnBuOjpQYWNrZXRJRENvbnRyb2w6OmlkX3QgaWQ7CiAgICBCdWZmZXJQdHIgYnVmZmVyOwp9OwoKdm9pZCBwcmludF9tc2coY29uc3QgVGltZTo6RHVyYXRpb24gdCwKICAgICAgICAgICAgICAgY29uc3QgY2hhciAqdGl0bGUsCiAgICAgICAgICAgICAgIEJ1ZmZlclB0ciAmYnVmLAogICAgICAgICAgICAgICBjb25zdCBvcGVudnBuOjpQYWNrZXRJRENvbnRyb2w6OmlkX3QgaWQsCiAgICAgICAgICAgICAgIHN0ZDo6c3RyaW5nc3RyZWFtICZjYXNlX2RldGFpbCkKewogICAgY2FzZV9kZXRhaWwgPDwgdC5yYXcoKSA8PCAnICcgPDwgdGl0bGUKICAgICAgICAgICAgICAgIDw8ICdbJyA8PCBpZCA8PCAiXSAiIDw8IChjaGFyICopYnVmLT5kYXRhKCkKICAgICAgICAgICAgICAgIDw8IHN0ZDo6ZW5kbDsKfQoKCnZvaWQgdGVzdChNVFJhbmQgJnJhbmQsCiAgICAgICAgICBjb25zdCBUaW1lIGJhc2UsCiAgICAgICAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBlbmQsCiAgICAgICAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBzdGVwLAogICAgICAgICAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kX3NlbmRzLAogICAgICAgICAgY29uc3Qgb3BlbnZwbjo6UGFja2V0SURDb250cm9sOjppZF90IHJlbHNpemUsCiAgICAgICAgICBjb25zdCBzaXplX3Qgd2lyZXNpemUsCiAgICAgICAgICBjb25zdCB1bnNpZ25lZCBpbnQgcmVvcmRlcl9wcm9iLAogICAgICAgICAgY29uc3QgdW5zaWduZWQgaW50IGRyb3BfcHJvYiwKICAgICAgICAgIHN0ZDo6c3RyaW5nc3RyZWFtICZjYXNlX2RldGFpbCkKewogICAgUmVsaWFibGVSZWN2IHJlY3YocmVsc2l6ZSk7CiAgICBSZWxpYWJsZVNlbmQgc2VuZChyZWxzaXplKTsKCiAgICBzdGQ6OmRlcXVlPE1lc3NhZ2U+IHdpcmU7IC8vIHNpbXVsYXRlIHRyYW5zbWlzc2lvbiB3aXJlCiAgICBSZWxpYWJsZUFjayBhY2tsaXN0e307ICAgIC8vIGJhY2stY2hhbm5lbCBmb3IgcmVjZWl2ZXIgdG8gc2VuZCBwYWNrZXQgQUNLcyBiYWNrIHRvIHNlbmRlcgoKICAgIFRpbWUgcmV0cmFucyA9IFRpbWU6OmluZmluaXRlKCk7CgogICAgbG9uZyBjb3VudCA9IDA7CiAgICBsb25nIGl0ZXJhdGlvbnMgPSAwOwogICAgVGltZTo6RHVyYXRpb24gdDsKCiAgICBvcGVudnBuOjpQYWNrZXRJRENvbnRyb2w6OmlkX3Qgc2VuZF9pZCA9IDA7CiAgICBvcGVudnBuOjpQYWNrZXRJRENvbnRyb2w6OmlkX3QgcmVjX2lkID0gMDsKCiAgICBmb3IgKHQgPSBUaW1lOjpEdXJhdGlvbigpOyB0IDwgZW5kOyB0ICs9IHN0ZXApCiAgICB7CiAgICAgICAgKytpdGVyYXRpb25zOwogICAgICAgIGNvbnN0IFRpbWUgbm93ID0gYmFzZSArIHQ7CgogICAgICAgIC8vIHNlbmRlciBwcm9jZXNzZXMgQUNLcyByZWNlaXZlZCBmcm9tIHJlY2VpdmVyCiAgICAgICAgd2hpbGUgKCFhY2tsaXN0LmVtcHR5KCkpCiAgICAgICAgewogICAgICAgICAgICBjb25zdCBvcGVudnBuOjpQYWNrZXRJRENvbnRyb2w6OmlkX3QgaWQgPSBhY2tsaXN0LmZyb250KCk7CiAgICAgICAgICAgIGFja2xpc3QucG9wX2Zyb250KCk7CiAgICAgICAgICAgIGlmIChyYW5kLnJhbmRyYW5nZSg0MCkpIC8vIHdpdGggc21hbGwgcHJvYmFiaWxpdHksIHNpbXVsYXRlIGEgZHJvcHBlZCBBQ0sKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gSk1EX1RPRE86IHdoeSB3b3VsZG4ndCB0aGlzIGhhdmUgZHJvcF9wcm9iIHByb2JhYmlsaXR5CiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIGNhc2VfZGV0YWlsIDw8IHQucmF3KCkgPDwgIiBBQ0sgWyIgPDwgaWQgPDwgIl0iIDw8IHN0ZDo6ZW5kbDsKICAgICAgICAgICAgICAgIHNlbmQuYWNrKGlkKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIGNhc2VfZGV0YWlsIDw8IHQucmF3KCkgPDwgIiBTaW11bGF0ZSBkcm9wcGVkIEFDSyBbIiA8PCBpZCA8PCAiXSIgPDwgc3RkOjplbmRsOwogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICAvLyBzY2FuIHRoZSBzZW5kZXIgaGlzdG9yeSBmb3IgdW4tQUNLZWQgcGFja2V0cyB0aGF0IG5lZWQgdG8gYmUgcmV0cmFuc21pdHRlZAogICAgICAgIGlmIChub3cgPj0gcmV0cmFucykKICAgICAgICB7CiAgICAgICAgICAgIGZvciAob3BlbnZwbjo6UGFja2V0SURDb250cm9sOjppZF90IGkgPSBzZW5kLmhlYWRfaWQoKTsgaSA8IHNlbmQudGFpbF9pZCgpOyArK2kpCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIFJlbGlhYmxlU2VuZDo6TWVzc2FnZSAmbSA9IHNlbmQucmVmX2J5X2lkKGkpOwogICAgICAgICAgICAgICAgaWYgKG0ucmVhZHlfcmV0cmFuc21pdChub3cpKQogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgIE1lc3NhZ2UgbXNnOwogICAgICAgICAgICAgICAgICAgIG1zZy5idWZmZXIgPSBtLnBhY2tldC5idWY7CiAgICAgICAgICAgICAgICAgICAgbXNnLmlkID0gbS5pZCgpOwogICAgICAgICAgICAgICAgICAgIHByaW50X21zZyh0LCAiUkVTRU5EIiwgbXNnLmJ1ZmZlciwgbXNnLmlkLCBjYXNlX2RldGFpbCk7CiAgICAgICAgICAgICAgICAgICAgd2lyZS5wdXNoX2JhY2sobXNnKTsKCiAgICAgICAgICAgICAgICAgICAgbS5yZXNldF9yZXRyYW5zbWl0KG5vdywgVGltZTo6RHVyYXRpb24oKSk7CgogICAgICAgICAgICAgICAgICAgIC8vIHJlc2NoZWR1bGUgZm9yIGZ1dHVyZSByZXRyYW5zbWlzc2lvbiB0ZXN0CiAgICAgICAgICAgICAgICAgICAgY29uc3QgVGltZTo6RHVyYXRpb24gZHVyID0gc2VuZC51bnRpbF9yZXRyYW5zbWl0KG5vdyk7CiAgICAgICAgICAgICAgICAgICAgcmV0cmFucyA9IG5vdyArIGR1cjsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQogICAgICAgIH0KCiAgICAgICAgLy8gc2VuZGVyIGNvbnN0cnVjdHMgYSBwYWNrZXQgaWYgc2VuZCBvYmplY3QgaXMgcmVhZHkgdG8gYWNjZXB0IGl0CiAgICAgICAgaWYgKHNlbmQucmVhZHkoKSAmJiB0IDwgZW5kX3NlbmRzKQogICAgICAgIHsKICAgICAgICAgICAgKytjb3VudDsKICAgICAgICAgICAgc3RkOjpvc3RyaW5nc3RyZWFtIG9zOwogICAgICAgICAgICBvcyA8PCAiVGVzdCBwYWNrZXQgIyIgPDwgY291bnQ7CiAgICAgICAgICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHMgPSBvcy5zdHIoKTsKICAgICAgICAgICAgYXV0byBidWZmZXIgPSBCdWZmZXJBbGxvY2F0ZWRSYzo6Q3JlYXRlKCh1bnNpZ25lZCBjaGFyICopcy5jX3N0cigpLCBzLmxlbmd0aCgpICsgMSwgMCk7CiAgICAgICAgICAgIFJlbGlhYmxlU2VuZDo6TWVzc2FnZSAmbSA9IHNlbmQuc2VuZChub3csIFRpbWU6OkR1cmF0aW9uKCkpOwogICAgICAgICAgICBtLnBhY2tldC5idWYgPSBidWZmZXI7CiAgICAgICAgICAgIE1lc3NhZ2UgbXNnOwogICAgICAgICAgICBtc2cuYnVmZmVyID0gYnVmZmVyOwogICAgICAgICAgICBzZW5kX2lkID0gbXNnLmlkID0gbS5pZCgpOwogICAgICAgICAgICBwcmludF9tc2codCwgIlNFTkQiLCBtc2cuYnVmZmVyLCBtc2cuaWQsIGNhc2VfZGV0YWlsKTsKICAgICAgICAgICAgd2lyZS5wdXNoX2JhY2sobXNnKTsKCiAgICAgICAgICAgIC8vIGF0IGEgZnV0dXJlIHBvaW50IGluIHRpbWUsIHdlIHdpbGwgY2hlY2sgdGhlIHNlbmRlciBoaXN0b3J5IGZvciBwb3RlbnRpYWwgcmV0cmFuc21pdHMKICAgICAgICAgICAgcmV0cmFucyA9IG5vdyArIHNlbmQudW50aWxfcmV0cmFuc21pdChub3cpOwoKICAgICAgICAgICAgLy8gc2ltdWxhdGUgcGFja2V0cyBiZWluZyByZWNlaXZlZCBvdXQgb2Ygb3JkZXIKICAgICAgICAgICAgaWYgKCFyYW5kLnJhbmRyYW5nZShyZW9yZGVyX3Byb2IpICYmIHdpcmUuc2l6ZSgpID49IDIpCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIGNvbnN0IHNpemVfdCBpMSA9IHJhbmQucmFuZHJhbmdlKHdpcmUuc2l6ZSgpKTsKICAgICAgICAgICAgICAgIGNvbnN0IHNpemVfdCBpMiA9IHJhbmQucmFuZHJhbmdlKHdpcmUuc2l6ZSgpKTsKICAgICAgICAgICAgICAgIGlmIChpMSAhPSBpMikKICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICBjYXNlX2RldGFpbCA8PCB0LnJhdygpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPDwgIiBTaW11bGF0ZSBwYWNrZXQgcmVvcmRlcmluZyAiCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPDwgaTEgPDwgIiA8LT4gIiA8PCBpMiA8PCBzdGQ6OmVuZGw7CiAgICAgICAgICAgICAgICAgICAgc3RkOjpzd2FwKHdpcmVbaTFdLCB3aXJlW2kyXSk7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9CgogICAgICAgIC8vIHNpbXVsYXRlIHJlY2VpdmluZyBwYWNrZXQKICAgICAgICB3aGlsZSAod2lyZS5zaXplKCkgPj0gd2lyZXNpemUgfHwgKCF3aXJlLmVtcHR5KCkgJiYgIXJhbmQucmFuZHJhbmdlKDgpKSkKICAgICAgICB7CiAgICAgICAgICAgIE1lc3NhZ2UgbXNnID0gd2lyZS5mcm9udCgpOwogICAgICAgICAgICB3aXJlLnBvcF9mcm9udCgpOwoKICAgICAgICAgICAgY2FzZV9kZXRhaWwgPDwgdC5yYXcoKSA8PCAiIFJlY2VpdmVkIHBhY2tldCBbIiA8PCBtc2cuaWQgPDwgIl0iIDw8IHN0ZDo6ZW5kbDsKCiAgICAgICAgICAgIC8vIHNpbXVsYXRlIGRyb3BwZWQgcGFja2V0CiAgICAgICAgICAgIGlmIChyYW5kLnJhbmRyYW5nZShkcm9wX3Byb2IpKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAvLyBwYXNzIHBhY2tldCB0byByZWxpYWJsZSBzZXF1ZW5jaW5nIG9iamVjdAogICAgICAgICAgICAgICAgY29uc3QgdW5zaWduZWQgaW50IHJlY3ZfZmxhZ3MgPSByZWN2LnJlY2VpdmUoUGFja2V0KG1zZy5idWZmZXIpLCBtc2cuaWQpOwogICAgICAgICAgICAgICAgaWYgKHJlY3ZfZmxhZ3MgJiBSZWxpYWJsZVJlY3Y6OkFDS19UT19TRU5ERVIpCiAgICAgICAgICAgICAgICAgICAgYWNrbGlzdC5wdXNoX2JhY2sobXNnLmlkKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIGNhc2VfZGV0YWlsIDw8IHQucmF3KCkKICAgICAgICAgICAgICAgICAgICAgICAgICAgIDw8ICIgU2ltdWxhdGUgZHJvcHBlZCBwYWNrZXQgWyIgPDwgbXNnLmlkIDw8ICJdIiA8PCBzdGQ6OmVuZGw7CiAgICAgICAgICAgIH0KICAgICAgICB9CgogICAgICAgIC8vIGlzIHNlcXVlbmNlZCByZWNlaXZlIHBhY2tldCBhdmFpbGFibGU/CiAgICAgICAgd2hpbGUgKHJlY3YucmVhZHkoKSkKICAgICAgICB7CiAgICAgICAgICAgIFJlbGlhYmxlUmVjdjo6TWVzc2FnZSAmbSA9IHJlY3YubmV4dF9zZXF1ZW5jZWQoKTsKICAgICAgICAgICAgcHJpbnRfbXNnKHQsICJSRUNWIiwgbS5wYWNrZXQuYnVmLCBtLmlkKCksIGNhc2VfZGV0YWlsKTsKICAgICAgICAgICAgaWYgKG0uaWQoKSAhPSByZWNfaWQpCiAgICAgICAgICAgICAgICB0aHJvdyByZWNlaXZlX3NlcXVlbmNlKCk7CiAgICAgICAgICAgIGVsc2UKICAgICAgICAgICAgICAgIHJlY19pZCA9IG0uaWQoKSArIDE7CgogICAgICAgICAgICByZWN2LmFkdmFuY2UoKTsKICAgICAgICB9CiAgICB9CiAgICBjYXNlX2RldGFpbCA8PCAiQ2FzZSBTdW1tYXJ5OlxucmVsc2l6ZT0iIDw8IHJlbHNpemUKICAgICAgICAgICAgICAgIDw8ICIgd2lyZXNpemU9IiA8PCB3aXJlc2l6ZQogICAgICAgICAgICAgICAgPDwgIiByZW9yZGVyPSIgPDwgcmVvcmRlcl9wcm9iCiAgICAgICAgICAgICAgICA8PCAiIGRyb3A9IiA8PCBkcm9wX3Byb2IKICAgICAgICAgICAgICAgIDw8ICIgZmluYWxfdD0iIDw8IHQucmF3KCkKICAgICAgICAgICAgICAgIDw8ICIgaXRlcmF0aW9ucz0iIDw8IGl0ZXJhdGlvbnMKICAgICAgICAgICAgICAgIDw8ICIgY291bnQ9IiA8PCBjb3VudAogICAgICAgICAgICAgICAgPDwgIiBbIiA8PCBzZW5kX2lkIDw8ICcvJyA8PCAocmVjX2lkID8gcmVjX2lkIC0gMSA6IDApIDw8ICddJwogICAgICAgICAgICAgICAgPDwgc3RkOjplbmRsOwogICAgaWYgKHNlbmRfaWQgIT0gKHJlY19pZCA/IHJlY19pZCAtIDEgOiAwKSkKICAgICAgICB0aHJvdyByZWNlaXZlX3NlcXVlbmNlKCk7Cn0KCnN0cnVjdCB0ZXN0X3BhcmFtcwp7CiAgICBpbnQgdGVzdF9jYXNlOwogICAgb3BlbnZwbjo6UGFja2V0SURDb250cm9sOjppZF90IHJlbHNpemU7CiAgICBzaXplX3Qgd2lyZXNpemU7CiAgICB1bnNpZ25lZCBpbnQgcmVvcmRlcl9wcm9iOwogICAgdW5zaWduZWQgaW50IGRyb3BfcHJvYjsKfTsKClRFU1QocmVsaWFibGUsIHNpbXVsYXRpb24pCnsKICAgIE1UUmFuZCByYW5kOwogICAgc3RkOjp2ZWN0b3I8dGVzdF9wYXJhbXM+IHNpbV9jYXNlcyA9IHsKICAgICAgICB7MSwgNCwgNCwgMTAsIDE2fSwKICAgICAgICB7MiwgMiwgNCwgMTAsIDE2fSwKICAgICAgICB7MywgNCwgOCwgMTAsIDE2fSwKICAgICAgICB7NCwgNCwgNCwgMiwgMn0sCiAgICB9OwogICAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kID0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoMTAwMCk7CiAgICBjb25zdCBUaW1lOjpEdXJhdGlvbiBzdGVwID0gVGltZTo6RHVyYXRpb246OmJpbmFyeV9tcygxMDApOwogICAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kX3NlbmRzID0gZW5kIC0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoNSk7CiAgICBmb3IgKGF1dG8gJnNpbV9jYXNlIDogc2ltX2Nhc2VzKQogICAgewogICAgICAgIGNvbnN0IFRpbWUgYmFzZSA9IFRpbWU6Om5vdygpOwogICAgICAgIHN0ZDo6c3RyaW5nc3RyZWFtIGNhc2VfZGV0YWlsOwogICAgICAgIHRyeQogICAgICAgIHsKICAgICAgICAgICAgY2FzZV9kZXRhaWwgPDwgIlRlc3QgY2FzZSAiIDw8IHNpbV9jYXNlLnRlc3RfY2FzZSA8PCBzdGQ6OmVuZGw7CiAgICAgICAgICAgIHRlc3QocmFuZCwKICAgICAgICAgICAgICAgICBiYXNlLAogICAgICAgICAgICAgICAgIGVuZCwKICAgICAgICAgICAgICAgICBzdGVwLAogICAgICAgICAgICAgICAgIGVuZF9zZW5kcywKICAgICAgICAgICAgICAgICBzaW1fY2FzZS5yZWxzaXplLAogICAgICAgICAgICAgICAgIHNpbV9jYXNlLndpcmVzaXplLAogICAgICAgICAgICAgICAgIHNpbV9jYXNlLnJlb3JkZXJfcHJvYiwKICAgICAgICAgICAgICAgICBzaW1fY2FzZS5kcm9wX3Byb2IsCiAgICAgICAgICAgICAgICAgY2FzZV9kZXRhaWwpOwogICAgICAgIH0KICAgICAgICBjYXRjaCAoY29uc3Qgc3RkOjpleGNlcHRpb24gJmUpCiAgICAgICAgewogICAgICAgICAgICBBU1NFUlRfVFJVRShmYWxzZSkgPDwgIkV4Y2VwdGlvbjogIiA8PCBlLndoYXQoKSA8PCAiXG5EZXRhaWw6XG4iCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8PCBjYXNlX2RldGFpbC5yZGJ1ZigpOwogICAgICAgIH0KICAgIH0KfQoKLyoKLy8gZm9sbG93aW5nIGFyZSBhZGFwdGVkIGZyb20gdGhlIG9yaWdpbmFsIHVuaXQgdGVzdHMgaW4gY29tbW9uOyBwcmVzZXJ2ZWQgaGVyZQovLyB0byBzaG93IHRoZSByYW5nZXMgb2YgdGVzdCBwYXJhbWV0ZXJzLCByZWxzaXplLCB3aXJlc2l6ZSwgcmVvcmRlcl9wcm9iLCBhbmQKLy8gZHJvcF9wcm9iIHRoYXQgdGhlIG9yaWdpbmFsIGF1dGhvciBpbnR0ZW5kZWQKClRFU1QocmVsaWFibGUsIHRlc3QxKQp7CiAgTVRSYW5kIHJhbmQ7CiAgY29uc3QgVGltZSBiYXNlID0gVGltZTo6bm93KCk7CiAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kID0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoMTAwMDApOwogIGNvbnN0IFRpbWU6OkR1cmF0aW9uIHN0ZXAgPSBUaW1lOjpEdXJhdGlvbjo6YmluYXJ5X21zKDEwMCk7CiAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kX3NlbmRzID0gZW5kIC0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoMTApOwogIHRlc3QocmFuZCwgYmFzZSwgZW5kLCBzdGVwLCBlbmRfc2VuZHMsIDQsIDQsIDEwLCAxNik7Cn0KClRFU1QocmVsaWFibGUsIHRlc3QyKQp7CiAgTVRSYW5kIHJhbmQ7CiAgY29uc3QgVGltZSBiYXNlID0gVGltZTo6bm93KCk7CiAgY29uc3QgVGltZTo6RHVyYXRpb24gZW5kID0gVGltZTo6RHVyYXRpb246OnNlY29uZHMoMTAwMCk7CiAgY29uc3QgVGltZTo6RHVyYXRpb24gc3RlcCA9IFRpbWU6OkR1cmF0aW9uOjpiaW5hcnlfbXMoMTAwKTsKICBjb25zdCBUaW1lOjpEdXJhdGlvbiBlbmRfc2VuZHMgPSBlbmQgLSBUaW1lOjpEdXJhdGlvbjo6c2Vjb25kcygxMCk7CgogIGZvciAoaWRfdCByZWxzaXplID0gMjsgcmVsc2l6ZSA8PSA4OyByZWxzaXplICs9IDIpCiAgICBmb3IgKHNpemVfdCB3aXJlc2l6ZSA9IDI7IHdpcmVzaXplIDw9IDg7IHdpcmVzaXplICs9IDIpCiAgICAgIGZvciAodW5zaWduZWQgaW50IHJlb3JkZXJfcHJvYiA9IDI7IHJlb3JkZXJfcHJvYiA8PSA2NDsgcmVvcmRlcl9wcm9iICo9IDIpCiAgICBmb3IgKHVuc2lnbmVkIGludCBkcm9wX3Byb2IgPSAyOyBkcm9wX3Byb2IgPD0gNjQ7IGRyb3BfcHJvYiAqPSAyKQogICAgICB0ZXN0KHJhbmQsIGJhc2UsIGVuZCwgc3RlcCwgZW5kX3NlbmRzLCByZWxzaXplLCB3aXJlc2l6ZSwgcmVvcmRlcl9wcm9iLCBkcm9wX3Byb2IpOwp9CiovCg==
+#include "test_common.hpp"
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+#include <openvpn/common/hexstr.hpp>
+#include <openvpn/reliable/relack.hpp>
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <deque>
+#include <algorithm>
+#include <limits>
+
+#include <openvpn/common/exception.hpp>
+#include <openvpn/random/mtrandapi.hpp>
+#include <openvpn/buffer/buffer.hpp>
+#include <openvpn/reliable/relrecv.hpp>
+#include <openvpn/reliable/relsend.hpp>
+#include <openvpn/reliable/relack.hpp>
+#include <openvpn/crypto/packet_id_control.hpp>
+
+using namespace openvpn;
+
+namespace PacketID {
+using id_t = openvpn::reliable::id_t;
+}
+
+TEST(reliable, ack)
+{
+    std::string expected{"0400000021000000160000000b00000001\n"};
+    std::ostringstream actual;
+
+    ReliableAck ack{};
+    ack.push_back(1);
+    ack.push_back(11);
+    ack.push_back(22);
+    ack.push_back(33);
+
+    ack.push_back(0x44);
+    ack.push_back(0x55);
+    ack.push_back(0x66);
+    ack.push_back(0x77);
+    ack.push_back(0x88);
+    ack.push_back(0x99);
+    ack.push_back(0x100);
+
+    BufferAllocated buf(256, 0);
+    buf.init_headroom(128);
+    ack.prepend(buf, false);
+    actual << render_hex_generic(buf) << std::endl;
+    EXPECT_EQ(actual.str(), expected);
+
+    std::string expected2{"080000002100000100000000990000008800000077000000660000005500000044\n"};
+
+    std::ostringstream actual2;
+
+    BufferAllocated buf2(256, 0);
+    buf2.init_headroom(128);
+    ack.prepend(buf2, true);
+    actual2 << render_hex_generic(buf2) << std::endl;
+    EXPECT_EQ(actual2.str(), expected2);
+}
+
+TEST(reliable, ack_dup)
+{
+    std::ostringstream actual;
+    ReliableAck ack{};
+
+    ack.push_back(1);
+    ack.push_back(2);
+    ack.push_back(3);
+    ack.push_back(4);
+
+    std::string expected{"0400000004000000030000000200000001\n"};
+
+    BufferAllocated buf(256, 0);
+    buf.init_headroom(128);
+    ack.prepend(buf, false);
+    actual << render_hex_generic(buf) << std::endl;
+    EXPECT_EQ(actual.str(), expected);
+    EXPECT_EQ(ack.resend_size(), 4u);
+
+    ack.push_back(3);
+    ack.push_back(6);
+
+    actual.str("");
+    std::string expected2{"0400000002000000040000000600000003\n"};
+
+    BufferAllocated buf2(256, 0);
+    buf2.init_headroom(128);
+
+    ack.prepend(buf2, false);
+    actual << render_hex_generic(buf2) << std::endl;
+    EXPECT_EQ(actual.str(), expected2);
+    /* The duplicate 3 should have be there only once */
+    EXPECT_EQ(ack.resend_size(), 5u);
+
+    actual.str("");
+    BufferAllocated buf3(256, 0);
+    buf3.init_headroom(128);
+    ack.prepend(buf3, false);
+
+    actual << render_hex_generic(buf3) << std::endl;
+
+    std::string expected3{"0400000002000000040000000300000006\n"};
+    EXPECT_EQ(actual.str(), expected3);
+}
+
+TEST(reliable, simple_packet)
+{
+    std::ostringstream actual;
+    ReliableAck ack{};
+
+    BufferAllocated buf(256, 0);
+    buf.init_headroom(128);
+
+    ack.push_back(0);
+
+    ack.prepend(buf, false);
+
+
+    ack.push_back(1);
+    ack.push_back(2);
+    ack.push_back(3);
+}
+
+
+OPENVPN_SIMPLE_EXCEPTION(receive_sequence);
+
+struct Packet
+{
+    Packet()
+    {
+    }
+    explicit Packet(const BufferPtr &buf_arg)
+        : buf(buf_arg)
+    {
+    }
+    operator bool() const
+    {
+        return bool(buf);
+    }
+    void reset()
+    {
+        buf.reset();
+    }
+
+    BufferPtr buf;
+};
+
+typedef ReliableSendTemplate<Packet> ReliableSend;
+typedef ReliableRecvTemplate<Packet> ReliableRecv;
+
+struct Message
+{
+    openvpn::PacketIDControl::id_t id;
+    BufferPtr buffer;
+};
+
+void print_msg(const Time::Duration t,
+               const char *title,
+               BufferPtr &buf,
+               const openvpn::PacketIDControl::id_t id,
+               std::stringstream &case_detail)
+{
+    case_detail << t.raw() << ' ' << title
+                << '[' << id << "] " << (char *)buf->data()
+                << std::endl;
+}
+
+
+void test(MTRand &rand,
+          const Time base,
+          const Time::Duration end,
+          const Time::Duration step,
+          const Time::Duration end_sends,
+          const openvpn::PacketIDControl::id_t relsize,
+          const size_t wiresize,
+          const unsigned int reorder_prob,
+          const unsigned int drop_prob,
+          std::stringstream &case_detail)
+{
+    ReliableRecv recv(relsize);
+    ReliableSend send(relsize);
+
+    std::deque<Message> wire; // simulate transmission wire
+    ReliableAck acklist{};    // back-channel for receiver to send packet ACKs back to sender
+
+    Time retrans = Time::infinite();
+
+    long count = 0;
+    long iterations = 0;
+    Time::Duration t;
+
+    openvpn::PacketIDControl::id_t send_id = 0;
+    openvpn::PacketIDControl::id_t rec_id = 0;
+
+    for (t = Time::Duration(); t < end; t += step)
+    {
+        ++iterations;
+        const Time now = base + t;
+
+        // sender processes ACKs received from receiver
+        while (!acklist.empty())
+        {
+            const openvpn::PacketIDControl::id_t id = acklist.front();
+            acklist.pop_front();
+            if (rand.randrange(40)) // with small probability, simulate a dropped ACK
+                                    // JMD_TODO: why wouldn't this have drop_prob probability
+            {
+                case_detail << t.raw() << " ACK [" << id << "]" << std::endl;
+                send.ack(id);
+            }
+            else
+            {
+                case_detail << t.raw() << " Simulate dropped ACK [" << id << "]" << std::endl;
+            }
+        }
+
+        // scan the sender history for un-ACKed packets that need to be retransmitted
+        if (now >= retrans)
+        {
+            for (openvpn::PacketIDControl::id_t i = send.head_id(); i < send.tail_id(); ++i)
+            {
+                ReliableSend::Message &m = send.ref_by_id(i);
+                if (m.ready_retransmit(now))
+                {
+                    Message msg;
+                    msg.buffer = m.packet.buf;
+                    msg.id = m.id();
+                    print_msg(t, "RESEND", msg.buffer, msg.id, case_detail);
+                    wire.push_back(msg);
+
+                    m.reset_retransmit(now, Time::Duration());
+
+                    // reschedule for future retransmission test
+                    const Time::Duration dur = send.until_retransmit(now);
+                    retrans = now + dur;
+                }
+            }
+        }
+
+        // sender constructs a packet if send object is ready to accept it
+        if (send.ready() && t < end_sends)
+        {
+            ++count;
+            std::ostringstream os;
+            os << "Test packet #" << count;
+            const std::string s = os.str();
+            auto buffer = BufferAllocatedRc::Create((unsigned char *)s.c_str(), s.length() + 1, 0);
+            ReliableSend::Message &m = send.send(now, Time::Duration());
+            m.packet.buf = buffer;
+            Message msg;
+            msg.buffer = buffer;
+            send_id = msg.id = m.id();
+            print_msg(t, "SEND", msg.buffer, msg.id, case_detail);
+            wire.push_back(msg);
+
+            // at a future point in time, we will check the sender history for potential retransmits
+            retrans = now + send.until_retransmit(now);
+
+            // simulate packets being received out of order
+            if (!rand.randrange(reorder_prob) && wire.size() >= 2)
+            {
+                const size_t i1 = rand.randrange(wire.size());
+                const size_t i2 = rand.randrange(wire.size());
+                if (i1 != i2)
+                {
+                    case_detail << t.raw()
+                                << " Simulate packet reordering "
+                                << i1 << " <-> " << i2 << std::endl;
+                    std::swap(wire[i1], wire[i2]);
+                }
+            }
+        }
+
+        // simulate receiving packet
+        while (wire.size() >= wiresize || (!wire.empty() && !rand.randrange(8)))
+        {
+            Message msg = wire.front();
+            wire.pop_front();
+
+            case_detail << t.raw() << " Received packet [" << msg.id << "]" << std::endl;
+
+            // simulate dropped packet
+            if (rand.randrange(drop_prob))
+            {
+                // pass packet to reliable sequencing object
+                const unsigned int recv_flags = recv.receive(Packet(msg.buffer), msg.id);
+                if (recv_flags & ReliableRecv::ACK_TO_SENDER)
+                    acklist.push_back(msg.id);
+            }
+            else
+            {
+                case_detail << t.raw()
+                            << " Simulate dropped packet [" << msg.id << "]" << std::endl;
+            }
+        }
+
+        // is sequenced receive packet available?
+        while (recv.ready())
+        {
+            ReliableRecv::Message &m = recv.next_sequenced();
+            print_msg(t, "RECV", m.packet.buf, m.id(), case_detail);
+            if (m.id() != rec_id)
+                throw receive_sequence();
+            else
+                rec_id = m.id() + 1;
+
+            recv.advance();
+        }
+    }
+    case_detail << "Case Summary:\nrelsize=" << relsize
+                << " wiresize=" << wiresize
+                << " reorder=" << reorder_prob
+                << " drop=" << drop_prob
+                << " final_t=" << t.raw()
+                << " iterations=" << iterations
+                << " count=" << count
+                << " [" << send_id << '/' << (rec_id ? rec_id - 1 : 0) << ']'
+                << std::endl;
+    if (send_id != (rec_id ? rec_id - 1 : 0))
+        throw receive_sequence();
+}
+
+struct test_params
+{
+    int test_case;
+    openvpn::PacketIDControl::id_t relsize;
+    size_t wiresize;
+    unsigned int reorder_prob;
+    unsigned int drop_prob;
+};
+
+TEST(reliable, simulation)
+{
+    MTRand rand;
+    std::vector<test_params> sim_cases = {
+        {1, 4, 4, 10, 16},
+        {2, 2, 4, 10, 16},
+        {3, 4, 8, 10, 16},
+        {4, 4, 4, 2, 2},
+    };
+    const Time::Duration end = Time::Duration::seconds(1000);
+    const Time::Duration step = Time::Duration::binary_ms(100);
+    const Time::Duration end_sends = end - Time::Duration::seconds(5);
+    for (auto &sim_case : sim_cases)
+    {
+        const Time base = Time::now();
+        std::stringstream case_detail;
+        try
+        {
+            case_detail << "Test case " << sim_case.test_case << std::endl;
+            test(rand,
+                 base,
+                 end,
+                 step,
+                 end_sends,
+                 sim_case.relsize,
+                 sim_case.wiresize,
+                 sim_case.reorder_prob,
+                 sim_case.drop_prob,
+                 case_detail);
+        }
+        catch (const std::exception &e)
+        {
+            ASSERT_TRUE(false) << "Exception: " << e.what() << "\nDetail:\n"
+                               << case_detail.rdbuf();
+        }
+    }
+}
+
+/*
+// following are adapted from the original unit tests in common; preserved here
+// to show the ranges of test parameters, relsize, wiresize, reorder_prob, and
+// drop_prob that the original author inttended
+
+TEST(reliable, test1)
+{
+  MTRand rand;
+  const Time base = Time::now();
+  const Time::Duration end = Time::Duration::seconds(10000);
+  const Time::Duration step = Time::Duration::binary_ms(100);
+  const Time::Duration end_sends = end - Time::Duration::seconds(10);
+  test(rand, base, end, step, end_sends, 4, 4, 10, 16);
+}
+
+TEST(reliable, test2)
+{
+  MTRand rand;
+  const Time base = Time::now();
+  const Time::Duration end = Time::Duration::seconds(1000);
+  const Time::Duration step = Time::Duration::binary_ms(100);
+  const Time::Duration end_sends = end - Time::Duration::seconds(10);
+
+  for (id_t relsize = 2; relsize <= 8; relsize += 2)
+    for (size_t wiresize = 2; wiresize <= 8; wiresize += 2)
+      for (unsigned int reorder_prob = 2; reorder_prob <= 64; reorder_prob *= 2)
+    for (unsigned int drop_prob = 2; drop_prob <= 64; drop_prob *= 2)
+      test(rand, base, end, step, end_sends, relsize, wiresize, reorder_prob, drop_prob);
+}
+*/

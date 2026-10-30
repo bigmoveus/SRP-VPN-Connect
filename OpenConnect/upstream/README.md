@@ -1,1 +1,35 @@
-IyBPcGVuQ29ubmVjdAoKT3BlbkNvbm5lY3QgaXMgYW4gU1NMIFZQTiBjbGllbnQgaW5pdGlhbGx5IGNyZWF0ZWQgdG8gc3VwcG9ydCBbQ2lzY28ncyBBbnlDb25uZWN0IFNTTCBWUE5dKGh0dHBzOi8vd3d3LmNpc2NvLmNvbS9zaXRlL3VzL2VuL3Byb2R1Y3RzL3NlY3VyaXR5L3NlY3VyZS1jbGllbnQvaW5kZXguaHRtbCkuCgpJdCBoYXMgc2luY2UgYmVlbiBwb3J0ZWQgdG8gc3VwcG9ydCB0aGUgSnVuaXBlciBTU0wgVlBOICh3aGljaCBpcyBub3cga25vd24gYXMgW1B1bHNlIENvbm5lY3QgU2VjdXJlXShodHRwczovL3d3dy5pdmFudGkuY29tL3Byb2R1Y3RzL2Nvbm5lY3Qtc2VjdXJlLXZwbikpLAp0aGUgW1BhbG8gQWx0byBOZXR3b3JrcyBHbG9iYWxQcm90ZWN0IFNTTCBWUE5dKGh0dHBzOi8vd3d3LnBhbG9hbHRvbmV0d29ya3MuY29tL2ZlYXR1cmVzL3ZwbikKdGhlIFtGNSBCaWctSVAgU1NMIFZQTl0oaHR0cHM6Ly93d3cuZjUuY29tL3Byb2R1Y3RzL2JpZy1pcC1zZXJ2aWNlcyksCmFuZCB0aGUgW0ZvcnRpbmV0IEZvcnRpR2F0ZSBTU0wgVlBOXShodHRwczovL3d3dy5mb3J0aW5ldC5jb20vcHJvZHVjdHMvdnBuKS48L3A+CgpBbiBvcGVuY29ubmVjdCBWUE4gc2VydmVyIChvY3NlcnYpLCB3aGljaCBpbXBsZW1lbnRzIGFuIGltcHJvdmVkIHZlcnNpb24gb2YgdGhlIENpc2NvIEFueUNvbm5lY3QgcHJvdG9jb2wsIGhhcyBhbHNvIGJlZW4gd3JpdHRlbi4KWW91IGNhbiBmaW5kIGl0IG9uIEdpdGxhYiBhdCBbaHR0cHM6Ly9naXRsYWIuY29tL29wZW5jb25uZWN0L29jc2Vydl0oaHR0cHM6Ly9naXRsYWIuY29tL29wZW5jb25uZWN0L29jc2VydikuCgpJZiB5b3UncmUgbG9va2luZyBmb3IgdGhlIHN0YW5kYXJkIGB2cG5jLXNjcmlwdGAsIHdoaWNoIGlzIGludm9rZWQgYnkgT3BlbkNvbm5lY3QgZm9yIHJvdXRpbmcgYW5kIEROUyBzZXR1cCwKeW91IGNhbiBmaW5kIGl0IG9uIEdpdGxhYiBhdCBbaHR0cHM6Ly9naXRsYWIuY29tL29wZW5jb25uZWN0L3ZwbmMtc2NyaXB0c10oaHR0cHM6Ly9naXRsYWIuY29tL29wZW5jb25uZWN0L3ZwbmMtc2NyaXB0cykuCgojIyBMaWNlbmNlCgpPcGVuQ29ubmVjdCBpcyByZWxlYXNlZCB1bmRlciB0aGUgW0dOVSBMZXNzZXIgUHVibGljIExpY2Vuc2UsIHZlcnNpb24gMi4xXShodHRwczovL3d3dy5pbmZyYWRlYWQub3JnL29wZW5jb25uZWN0L2xpY2VuY2UuaHRtbCkuCgojIyBEb2N1bWVudGF0aW9uCgpEb2N1bWVudGF0aW9uIGZvciBPcGVuQ29ubmVjdCBpcyBidWlsdCBmcm9tIHRoZSBgd3d3L2AgZGlyZWN0b3J5IGluIHRoaXMgcmVwb3NpdG9yeSwgYW5kIGxpdmVzIGluIHJlbmRlcmVkIGZvcm0gYXQgW2h0dHBzOi8vd3d3LmluZnJhZGVhZC5vcmcvb3BlbmNvbm5lY3RdKGh0dHBzOi8vd3d3LmluZnJhZGVhZC5vcmcvb3BlbmNvbm5lY3QpLgoKQ29tbW9ubHktc291Z2h0IGRvY3VtZW50YXRpb246CgoqIFtNYW51YWxdKGh0dHBzOi8vd3d3LmluZnJhZGVhZC5vcmcvb3BlbmNvbm5lY3QvbWFudWFsLmh0bWwpCiogW0dldHRpbmcgU3RhcnRlZCAvIEJ1aWxkaW5nXShodHRwczovL3d3dy5pbmZyYWRlYWQub3JnL29wZW5jb25uZWN0L2J1aWxkaW5nLmh0bWwpIChpbmNsdWRlcyBidWlsZCBpbnN0cnVjdGlvbnMpCiogW1BhY2thZ2VzXShodHRwczovL3d3dy5pbmZyYWRlYWQub3JnL29wZW5jb25uZWN0L3BhY2thZ2VzLmh0bWwpCiAgIChpbmNsdWRpbmcgbGF0ZXN0IGRldmVsb3BtZW50IGJ1aWxkIG9mIHRoZSBDTEkgW2ZvciA2NC1iaXQgV2luZG93c10oaHR0cHM6Ly9naXRsYWIuY29tL29wZW5jb25uZWN0L29wZW5jb25uZWN0Ly0vam9icy9hcnRpZmFjdHMvbWFzdGVyL3Jhdy9vcGVuY29ubmVjdC1pbnN0YWxsZXItTWluR1c2NC1HbnVUTFMuZXhlP2pvYj1NaW5HVzY0L0dudVRMUyksCiAgIGFuZCBbZm9yIDMyLWJpdCBXaW5kb3dzXShodHRwczovL2dpdGxhYi5jb20vb3BlbmNvbm5lY3Qvb3BlbmNvbm5lY3QvLS9qb2JzL2FydGlmYWN0cy9tYXN0ZXIvcmF3L29wZW5jb25uZWN0LWluc3RhbGxlci1NaW5HVzMyLUdudVRMUy5leGU/am9iPU1pbkdXMzIvR251VExTKSkKKiBbQ29udHJpYnV0ZV0oaHR0cHM6Ly93d3cuaW5mcmFkZWFkLm9yZy9vcGVuY29ubmVjdC9jb250cmlidXRlLmh0bWwpCiogW01haWxpbmcgbGlzdCAvIEhlbHBdKGh0dHBzOi8vd3d3LmluZnJhZGVhZC5vcmcvb3BlbmNvbm5lY3QvbWFpbC5odG1sKQoqIFtHVUlzIC8gRnJvbnQgRW5kc10oaHR0cHM6Ly93d3cuaW5mcmFkZWFkLm9yZy9vcGVuY29ubmVjdC9ndWkuaHRtbCkKKiBbVlBOIFNlcnZlciAvIG9jc2Vydl0oaHR0cHM6Ly93d3cuaW5mcmFkZWFkLm9yZy9vY3NlcnYvKQoqIFtQcm90b2NvbC1zcGVjaWZpYyBkZXRhaWxzXShodHRwczovL3d3dy5pbmZyYWRlYWQub3JnL29wZW5jb25uZWN0L3Byb3RvY29scy5odG1sKQo=
+# OpenConnect
+
+OpenConnect is an SSL VPN client initially created to support [Cisco's AnyConnect SSL VPN](https://www.cisco.com/site/us/en/products/security/secure-client/index.html).
+
+It has since been ported to support the Juniper SSL VPN (which is now known as [Pulse Connect Secure](https://www.ivanti.com/products/connect-secure-vpn)),
+the [Palo Alto Networks GlobalProtect SSL VPN](https://www.paloaltonetworks.com/features/vpn)
+the [F5 Big-IP SSL VPN](https://www.f5.com/products/big-ip-services),
+and the [Fortinet FortiGate SSL VPN](https://www.fortinet.com/products/vpn).</p>
+
+An openconnect VPN server (ocserv), which implements an improved version of the Cisco AnyConnect protocol, has also been written.
+You can find it on Gitlab at [https://gitlab.com/openconnect/ocserv](https://gitlab.com/openconnect/ocserv).
+
+If you're looking for the standard `vpnc-script`, which is invoked by OpenConnect for routing and DNS setup,
+you can find it on Gitlab at [https://gitlab.com/openconnect/vpnc-scripts](https://gitlab.com/openconnect/vpnc-scripts).
+
+## Licence
+
+OpenConnect is released under the [GNU Lesser Public License, version 2.1](https://www.infradead.org/openconnect/licence.html).
+
+## Documentation
+
+Documentation for OpenConnect is built from the `www/` directory in this repository, and lives in rendered form at [https://www.infradead.org/openconnect](https://www.infradead.org/openconnect).
+
+Commonly-sought documentation:
+
+* [Manual](https://www.infradead.org/openconnect/manual.html)
+* [Getting Started / Building](https://www.infradead.org/openconnect/building.html) (includes build instructions)
+* [Packages](https://www.infradead.org/openconnect/packages.html)
+   (including latest development build of the CLI [for 64-bit Windows](https://gitlab.com/openconnect/openconnect/-/jobs/artifacts/master/raw/openconnect-installer-MinGW64-GnuTLS.exe?job=MinGW64/GnuTLS),
+   and [for 32-bit Windows](https://gitlab.com/openconnect/openconnect/-/jobs/artifacts/master/raw/openconnect-installer-MinGW32-GnuTLS.exe?job=MinGW32/GnuTLS))
+* [Contribute](https://www.infradead.org/openconnect/contribute.html)
+* [Mailing list / Help](https://www.infradead.org/openconnect/mail.html)
+* [GUIs / Front Ends](https://www.infradead.org/openconnect/gui.html)
+* [VPN Server / ocserv](https://www.infradead.org/ocserv/)
+* [Protocol-specific details](https://www.infradead.org/openconnect/protocols.html)

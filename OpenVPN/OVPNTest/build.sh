@@ -1,1 +1,35 @@
-IyEvYmluL2Jhc2gKIyBCdWlsZHMgdGhlIG1hY09TIHRlc3QgaGFybmVzcyBmb3IgdGhlIE9wZW5WUE4gZW5naW5lLgpzZXQgLWUKY2QgIiQoZGlybmFtZSAiJDAiKSIKUk9PVD0iJFBXRC8uLiIKQ09SRT0iJFJPT1QvLi4vQ29yZS9TUlBDb3JlIgpTREs9IiQoeGNydW4gLXNkayBtYWNvc3ggLS1zaG93LXNkay1wYXRoKSIKCiMgT2JqQysrIFRVIChDKysxNykg4oCUIHRoZSBjbGllbnQgZmHDp2FkZQp4Y3J1biBjbGFuZysrIC1hcmNoIGFybTY0IC1pc3lzcm9vdCAiJFNESyIgLW1tYWNvc3gtdmVyc2lvbi1taW49MTIuMCBcCiAgICAtc3RkPWMrKzE3IC1PMCAtZyAtZm9iamMtYXJjIC13IFwKICAgIC1JIiRDT1JFIiBcCiAgICAtSSIkUk9PVC91cHN0cmVhbSIgLUkiJFJPT1QvdXBzdHJlYW0vY2xpZW50IiAtSSIkUk9PVC9hc2lvL2luY2x1ZGUiIFwKICAgIC1JIiRST09UL2x6NC9saWIiIC1JIiRST09UL2pzb25jcHAvaW5jbHVkZSIgXAogICAgLUkiJFJPT1QvLi4vU29mdEV0aGVyL29wZW5zc2wvbWFjb3N4L2luY2x1ZGUiIFwKICAgIC1pbmNsdWRlICIkUk9PVC8uLi9Tb2Z0RXRoZXIvb3BlbnNzbC9vcGVuc3NsLXByZWZpeC5oIiBcCiAgICAtRFVTRV9PUEVOU1NMIC1EVVNFX0FTSU8gLURBU0lPX1NUQU5EQUxPTkUgXAogICAgLURPUEVOVlBOX0VYVEVSTkFMX1RVTl9GQUNUT1JZIC1ET1BFTlZQTl9FWFRFUk5BTF9UUkFOU1BPUlRfRkFDVE9SWSBcCiAgICAtYyAiJENPUkUvU1JQT3BlblZQTkNsaWVudC5tbSIgLW8gL3RtcC9TUlBPcGVuVlBOQ2xpZW50Lm8KCiMgT2JqQyBUVXMKeGNydW4gY2xhbmcgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkU0RLIiAtbW1hY29zeC12ZXJzaW9uLW1pbj0xMi4wIFwKICAgIC1PMCAtZyAtZm9iamMtYXJjIC13IC1JIiRDT1JFIiAtYyAiJENPUkUvU1NMb2cubSIgLW8gL3RtcC9TU0xvZy1vdnBuLm8KeGNydW4gY2xhbmcgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkU0RLIiAtbW1hY29zeC12ZXJzaW9uLW1pbj0xMi4wIFwKICAgIC1PMCAtZyAtZm9iamMtYXJjIC13IC1JIiRDT1JFIiAtYyBtYWluLm0gLW8gL3RtcC9vdnBudGVzdC1tYWluLm8KCnhjcnVuIGNsYW5nKysgLWFyY2ggYXJtNjQgLWlzeXNyb290ICIkU0RLIiAtbW1hY29zeC12ZXJzaW9uLW1pbj0xMi4wIFwKICAgIC1mcmFtZXdvcmsgRm91bmRhdGlvbiAtZnJhbWV3b3JrIE5ldHdvcmtFeHRlbnNpb24gLWZyYW1ld29yayBTZWN1cml0eSAtZnJhbWV3b3JrIE5ldHdvcmsgXAogICAgL3RtcC9TUlBPcGVuVlBOQ2xpZW50Lm8gL3RtcC9TU0xvZy1vdnBuLm8gL3RtcC9vdnBudGVzdC1tYWluLm8gXAogICAgIiRST09UL2J1aWxkL21hY29zeC9saWJTUlBPcGVuVlBOLmEiIFwKICAgICIkUk9PVC8uLi9Tb2Z0RXRoZXIvb3BlbnNzbC9tYWNvc3gvbGliL2xpYnNycHNlX3NzbC5hIiBcCiAgICAiJFJPT1QvLi4vU29mdEV0aGVyL29wZW5zc2wvbWFjb3N4L2xpYi9saWJzcnBzZV9jcnlwdG8uYSIgXAogICAgLWx6IC1saWNvbnYgLWxyZXNvbHYgXAogICAgLW8gb3ZwbnRlc3QKZWNobyBCVUlMVCBvdnBudGVzdAo=
+#!/bin/bash
+# Builds the macOS test harness for the OpenVPN engine.
+set -e
+cd "$(dirname "$0")"
+ROOT="$PWD/.."
+CORE="$ROOT/../Core/SRPCore"
+SDK="$(xcrun -sdk macosx --show-sdk-path)"
+
+# ObjC++ TU (C++17) — the client façade
+xcrun clang++ -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+    -std=c++17 -O0 -g -fobjc-arc -w \
+    -I"$CORE" \
+    -I"$ROOT/upstream" -I"$ROOT/upstream/client" -I"$ROOT/asio/include" \
+    -I"$ROOT/lz4/lib" -I"$ROOT/jsoncpp/include" \
+    -I"$ROOT/../SoftEther/openssl/macosx/include" \
+    -include "$ROOT/../SoftEther/openssl/openssl-prefix.h" \
+    -DUSE_OPENSSL -DUSE_ASIO -DASIO_STANDALONE \
+    -DOPENVPN_EXTERNAL_TUN_FACTORY -DOPENVPN_EXTERNAL_TRANSPORT_FACTORY \
+    -c "$CORE/SRPOpenVPNClient.mm" -o /tmp/SRPOpenVPNClient.o
+
+# ObjC TUs
+xcrun clang -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+    -O0 -g -fobjc-arc -w -I"$CORE" -c "$CORE/SSLog.m" -o /tmp/SSLog-ovpn.o
+xcrun clang -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+    -O0 -g -fobjc-arc -w -I"$CORE" -c main.m -o /tmp/ovpntest-main.o
+
+xcrun clang++ -arch arm64 -isysroot "$SDK" -mmacosx-version-min=12.0 \
+    -framework Foundation -framework NetworkExtension -framework Security -framework Network \
+    /tmp/SRPOpenVPNClient.o /tmp/SSLog-ovpn.o /tmp/ovpntest-main.o \
+    "$ROOT/build/macosx/libSRPOpenVPN.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_ssl.a" \
+    "$ROOT/../SoftEther/openssl/macosx/lib/libsrpse_crypto.a" \
+    -lz -liconv -lresolv \
+    -o ovpntest
+echo BUILT ovpntest

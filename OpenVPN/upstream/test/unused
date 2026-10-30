@@ -1,1 +1,392 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKLy8gVGhlc2UgY2xhc3NlcyBkZWZpbmUgZnVuY3Rpb24gb2JqZWN0cyB0byBiZSB1c2VkIGFzIGFzeW5jaHJvbm91cyBjYWxsYmFja3MKLy8gZm9yIEFzaW8gbWV0aG9kcy4gIFRoaW5rIG9mIHRoZXNlIGFzIG9wdGltaXplZCBzcGVjaWFsIGNhc2VzIG9mIGZ1bmN0aW9uCi8vIG9iamVjdHMgdGhhdCBjb3VsZCBiZSBtb3JlIGdlbmVyYWxseSAoYnV0IHBlcmhhcHMgbGVzcyBvcHRpbWFsbHkpIGRlZmluZWQKLy8gd2l0aCBsYW1iZGFzLgoKI2lmbmRlZiBPUEVOVlBOX0NPTU1PTl9BU0lPRElTUEFUQ0hfSAojZGVmaW5lIE9QRU5WUE5fQ09NTU9OX0FTSU9ESVNQQVRDSF9ICgojaW5jbHVkZSA8YXNpby5ocHA+CgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vc2l6ZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9yYy5ocHA+CgpuYW1lc3BhY2Ugb3BlbnZwbiB7CiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBhc3luY193cml0ZQoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBjbGFzcyBBc2lvRGlzcGF0Y2hXcml0ZQogIHsKICBwdWJsaWM6CiAgICBBc2lvRGlzcGF0Y2hXcml0ZShIYW5kbGVyIGhhbmRsZV93cml0ZSwgQyogb2JqKQogICAgICA6IGhhbmRsZV93cml0ZV8oaGFuZGxlX3dyaXRlKSwgb2JqXyhvYmopIHt9CgogICAgdm9pZCBvcGVyYXRvcigpKGNvbnN0IGFzaW86OmVycm9yX2NvZGUmIGVycm9yLCBjb25zdCBzaXplX3QgYnl0ZXNfc2VudCkKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVfd3JpdGVfKShlcnJvciwgYnl0ZXNfc2VudCk7CiAgICB9CgogIHByaXZhdGU6CiAgICBIYW5kbGVyIGhhbmRsZV93cml0ZV87CiAgICBSQ1B0cjxDPiBvYmpfOwogIH07CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyPgogIEFzaW9EaXNwYXRjaFdyaXRlPEMsIEhhbmRsZXI+IGFzaW9fZGlzcGF0Y2hfd3JpdGUoSGFuZGxlciBoYW5kbGVfd3JpdGUsIEMqIG9iaikKICB7CiAgICByZXR1cm4gQXNpb0Rpc3BhdGNoV3JpdGU8QywgSGFuZGxlcj4oaGFuZGxlX3dyaXRlLCBvYmopOwogIH0KCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBhc3luY19yZWFkIHdpdGggYXJndW1lbnQKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXIsIHR5cGVuYW1lIERhdGE+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoUmVhZAogIHsKICBwdWJsaWM6CiAgICBBc2lvRGlzcGF0Y2hSZWFkKEhhbmRsZXIgaGFuZGxlX3JlYWQsIEMqIG9iaiwgRGF0YSBkYXRhKQogICAgICA6IGhhbmRsZV9yZWFkXyhoYW5kbGVfcmVhZCksIG9ial8ob2JqKSwgZGF0YV8oZGF0YSkge30KCiAgICB2b2lkIG9wZXJhdG9yKCkoY29uc3QgYXNpbzo6ZXJyb3JfY29kZSYgZXJyb3IsIGNvbnN0IHNpemVfdCBieXRlc19yZWN2ZCkKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVfcmVhZF8pKGRhdGFfLCBlcnJvciwgYnl0ZXNfcmVjdmQpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVfcmVhZF87CiAgICBSQ1B0cjxDPiBvYmpfOwogICAgRGF0YSBkYXRhXzsKICB9OwoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlciwgdHlwZW5hbWUgRGF0YT4KICBBc2lvRGlzcGF0Y2hSZWFkPEMsIEhhbmRsZXIsIERhdGE+IGFzaW9fZGlzcGF0Y2hfcmVhZChIYW5kbGVyIGhhbmRsZV9yZWFkLCBDKiBvYmosIERhdGEgZGF0YSkKICB7CiAgICByZXR1cm4gQXNpb0Rpc3BhdGNoUmVhZDxDLCBIYW5kbGVyLCBEYXRhPihoYW5kbGVfcmVhZCwgb2JqLCBkYXRhKTsKICB9CgogIC8vIERpc3BhdGNoZXIgZm9yIGFzaW8gYXN5bmNfcmVhZCB3aXRob3V0IGFyZ3VtZW50CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyPgogIGNsYXNzIEFzaW9EaXNwYXRjaFJlYWROb0FyZwogIHsKICBwdWJsaWM6CiAgICBBc2lvRGlzcGF0Y2hSZWFkTm9BcmcoSGFuZGxlciBoYW5kbGVfcmVhZCwgQyogb2JqKQogICAgICA6IGhhbmRsZV9yZWFkXyhoYW5kbGVfcmVhZCksIG9ial8ob2JqKSB7fQoKICAgIHZvaWQgb3BlcmF0b3IoKShjb25zdCBhc2lvOjplcnJvcl9jb2RlJiBlcnJvciwgY29uc3Qgc2l6ZV90IGJ5dGVzX3JlY3ZkKQogICAgewogICAgICAob2JqXy5nZXQoKS0+KmhhbmRsZV9yZWFkXykoZXJyb3IsIGJ5dGVzX3JlY3ZkKTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIEhhbmRsZXIgaGFuZGxlX3JlYWRfOwogICAgUkNQdHI8Qz4gb2JqXzsKICB9OwoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBBc2lvRGlzcGF0Y2hSZWFkTm9Bcmc8QywgSGFuZGxlcj4gYXNpb19kaXNwYXRjaF9yZWFkX25vYXJnKEhhbmRsZXIgaGFuZGxlX3JlYWQsIEMqIG9iaikKICB7CiAgICByZXR1cm4gQXNpb0Rpc3BhdGNoUmVhZE5vQXJnPEMsIEhhbmRsZXI+KGhhbmRsZV9yZWFkLCBvYmopOwogIH0KCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBhc3luY193YWl0IHdpdGggYXJndW1lbnQKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXIsIHR5cGVuYW1lIERhdGE+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoVGltZXJBcmcKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoVGltZXJBcmcoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmosIERhdGEgZGF0YSkKICAgICAgOiBoYW5kbGVyXyhoYW5kbGVyKSwgb2JqXyhvYmopLCBkYXRhXyhkYXRhKSB7fQoKICAgIHZvaWQgb3BlcmF0b3IoKShjb25zdCBhc2lvOjplcnJvcl9jb2RlJiBlcnJvcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZGF0YV8sIGVycm9yKTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIEhhbmRsZXIgaGFuZGxlcl87CiAgICBSQ1B0cjxDPiBvYmpfOwogICAgRGF0YSBkYXRhXzsKICB9OwoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlciwgdHlwZW5hbWUgRGF0YT4KICBBc2lvRGlzcGF0Y2hUaW1lckFyZzxDLCBIYW5kbGVyLCBEYXRhPiBhc2lvX2Rpc3BhdGNoX3RpbWVyX2FyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogIHsKICAgIHJldHVybiBBc2lvRGlzcGF0Y2hUaW1lckFyZzxDLCBIYW5kbGVyLCBEYXRhPihoYW5kbGVyLCBvYmosIGRhdGEpOwogIH0KCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBhc3luY193YWl0IHdpdGhvdXQgYXJndW1lbnQKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXI+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoVGltZXIKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoVGltZXIoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmopCiAgICAgIDogaGFuZGxlcl8oaGFuZGxlciksIG9ial8ob2JqKSB7fQoKICAgIHZvaWQgb3BlcmF0b3IoKShjb25zdCBhc2lvOjplcnJvcl9jb2RlJiBlcnJvcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgfTsKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXI+CiAgQXNpb0Rpc3BhdGNoVGltZXI8QywgSGFuZGxlcj4gYXNpb19kaXNwYXRjaF90aW1lcihIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaikKICB7CiAgICByZXR1cm4gQXNpb0Rpc3BhdGNoVGltZXI8QywgSGFuZGxlcj4oaGFuZGxlciwgb2JqKTsKICB9CgogIC8vIERpc3BhdGNoZXIgZm9yIGFzaW8gYXN5bmNfY29ubmVjdCB3aXRoIGFyZ3VtZW50CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyLCB0eXBlbmFtZSBEYXRhPgogIGNsYXNzIEFzaW9EaXNwYXRjaENvbm5lY3RBcmcKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoQ29ubmVjdEFyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogICAgICA6IGhhbmRsZXJfKGhhbmRsZXIpLCBvYmpfKG9iaiksIGRhdGFfKGRhdGEpIHt9CgogICAgdm9pZCBvcGVyYXRvcigpKGNvbnN0IGFzaW86OmVycm9yX2NvZGUmIGVycm9yKQogICAgewogICAgICAob2JqXy5nZXQoKS0+KmhhbmRsZXJfKShkYXRhXywgZXJyb3IpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgICBEYXRhIGRhdGFfOwogIH07CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyLCB0eXBlbmFtZSBEYXRhPgogIEFzaW9EaXNwYXRjaENvbm5lY3RBcmc8QywgSGFuZGxlciwgRGF0YT4gYXNpb19kaXNwYXRjaF9jb25uZWN0X2FyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogIHsKICAgIHJldHVybiBBc2lvRGlzcGF0Y2hDb25uZWN0QXJnPEMsIEhhbmRsZXIsIERhdGE+KGhhbmRsZXIsIG9iaiwgZGF0YSk7CiAgfQoKICAvLyBEaXNwYXRjaGVyIGZvciBhc2lvIGFzeW5jX2Nvbm5lY3Qgd2l0aG91dCBhcmd1bWVudAoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBjbGFzcyBBc2lvRGlzcGF0Y2hDb25uZWN0CiAgewogIHB1YmxpYzoKICAgIEFzaW9EaXNwYXRjaENvbm5lY3QoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmopCiAgICAgIDogaGFuZGxlcl8oaGFuZGxlciksIG9ial8ob2JqKSB7fQoKICAgIHZvaWQgb3BlcmF0b3IoKShjb25zdCBhc2lvOjplcnJvcl9jb2RlJiBlcnJvcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgfTsKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXI+CiAgQXNpb0Rpc3BhdGNoQ29ubmVjdDxDLCBIYW5kbGVyPiBhc2lvX2Rpc3BhdGNoX2Nvbm5lY3QoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmopCiAgewogICAgcmV0dXJuIEFzaW9EaXNwYXRjaENvbm5lY3Q8QywgSGFuZGxlcj4oaGFuZGxlciwgb2JqKTsKICB9CgogIC8vIERpc3BhdGNoZXIgZm9yIGFzaW8gYXN5bmNfY29ubmVjdCAoQ29tcG9zZWRDb25uZWN0SGFuZGxlcikgd2l0aG91dCBhcmd1bWVudAoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBjbGFzcyBBc2lvRGlzcGF0Y2hDb21wb3NlZENvbm5lY3QKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoQ29tcG9zZWRDb25uZWN0KEhhbmRsZXIgaGFuZGxlciwgQyogb2JqKQogICAgICA6IGhhbmRsZXJfKGhhbmRsZXIpLCBvYmpfKG9iaikge30KCiAgICB2b2lkIG9wZXJhdG9yKCkoY29uc3QgYXNpbzo6ZXJyb3JfY29kZSYgZXJyb3IsIGFzaW86OmlwOjp0Y3A6OnJlc29sdmVyOjppdGVyYXRvciBlbmRwb2ludF9pdGVyYXRvcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IsIGVuZHBvaW50X2l0ZXJhdG9yKTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIEhhbmRsZXIgaGFuZGxlcl87CiAgICBSQ1B0cjxDPiBvYmpfOwogIH07CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyPgogIEFzaW9EaXNwYXRjaENvbXBvc2VkQ29ubmVjdDxDLCBIYW5kbGVyPiBhc2lvX2Rpc3BhdGNoX2NvbXBvc2VkX2Nvbm5lY3QoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmopCiAgewogICAgcmV0dXJuIEFzaW9EaXNwYXRjaENvbXBvc2VkQ29ubmVjdDxDLCBIYW5kbGVyPihoYW5kbGVyLCBvYmopOwogIH0KCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBhc3luY19hY2NlcHQgd2l0aCBhcmd1bWVudAoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlciwgdHlwZW5hbWUgRGF0YT4KICBjbGFzcyBBc2lvRGlzcGF0Y2hBY2NlcHRBcmcKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoQWNjZXB0QXJnKEhhbmRsZXIgaGFuZGxlciwgQyogb2JqLCBEYXRhIGRhdGEpCiAgICAgIDogaGFuZGxlcl8oaGFuZGxlciksIG9ial8ob2JqKSwgZGF0YV8oZGF0YSkge30KCiAgICB2b2lkIG9wZXJhdG9yKCkoY29uc3QgYXNpbzo6ZXJyb3JfY29kZSYgZXJyb3IpCiAgICB7CiAgICAgIChvYmpfLmdldCgpLT4qaGFuZGxlcl8pKGRhdGFfLCBlcnJvcik7CiAgICB9CgogIHByaXZhdGU6CiAgICBIYW5kbGVyIGhhbmRsZXJfOwogICAgUkNQdHI8Qz4gb2JqXzsKICAgIERhdGEgZGF0YV87CiAgfTsKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXIsIHR5cGVuYW1lIERhdGE+CiAgQXNpb0Rpc3BhdGNoQWNjZXB0QXJnPEMsIEhhbmRsZXIsIERhdGE+IGFzaW9fZGlzcGF0Y2hfYWNjZXB0X2FyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogIHsKICAgIHJldHVybiBBc2lvRGlzcGF0Y2hBY2NlcHRBcmc8QywgSGFuZGxlciwgRGF0YT4oaGFuZGxlciwgb2JqLCBkYXRhKTsKICB9CgogIC8vIERpc3BhdGNoZXIgZm9yIGFzaW8gcG9zdCB3aXRoIGFyZ3VtZW50CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyLCB0eXBlbmFtZSBEYXRhPgogIGNsYXNzIEFzaW9EaXNwYXRjaFBvc3RBcmcKICB7CiAgcHVibGljOgogICAgQXNpb0Rpc3BhdGNoUG9zdEFyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogICAgICA6IGhhbmRsZXJfKGhhbmRsZXIpLCBvYmpfKG9iaiksIGRhdGFfKGRhdGEpIHt9CgogICAgdm9pZCBvcGVyYXRvcigpKCkKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZGF0YV8pOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgICBEYXRhIGRhdGFfOwogIH07CgogIHRlbXBsYXRlIDx0eXBlbmFtZSBDLCB0eXBlbmFtZSBIYW5kbGVyLCB0eXBlbmFtZSBEYXRhPgogIEFzaW9EaXNwYXRjaFBvc3RBcmc8QywgSGFuZGxlciwgRGF0YT4gYXNpb19kaXNwYXRjaF9wb3N0X2FyZyhIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaiwgRGF0YSBkYXRhKQogIHsKICAgIHJldHVybiBBc2lvRGlzcGF0Y2hQb3N0QXJnPEMsIEhhbmRsZXIsIERhdGE+KGhhbmRsZXIsIG9iaiwgZGF0YSk7CiAgfQoKICAvLyBEaXNwYXRjaGVyIGZvciBhc2lvIHBvc3Qgd2l0aG91dCBhcmd1bWVudAoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBjbGFzcyBBc2lvRGlzcGF0Y2hQb3N0CiAgewogIHB1YmxpYzoKICAgIEFzaW9EaXNwYXRjaFBvc3QoSGFuZGxlciBoYW5kbGVyLCBDKiBvYmopCiAgICAgIDogaGFuZGxlcl8oaGFuZGxlciksIG9ial8ob2JqKSB7fQoKICAgIHZvaWQgb3BlcmF0b3IoKSgpCiAgICB7CiAgICAgIChvYmpfLmdldCgpLT4qaGFuZGxlcl8pKCk7CiAgICB9CgogIHByaXZhdGU6CiAgICBIYW5kbGVyIGhhbmRsZXJfOwogICAgUkNQdHI8Qz4gb2JqXzsKICB9OwoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlcj4KICBBc2lvRGlzcGF0Y2hQb3N0PEMsIEhhbmRsZXI+IGFzaW9fZGlzcGF0Y2hfcG9zdChIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaikKICB7CiAgICByZXR1cm4gQXNpb0Rpc3BhdGNoUG9zdDxDLCBIYW5kbGVyPihoYW5kbGVyLCBvYmopOwogIH0KCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXN5bmNocm9ub3VzIHJlc29sdmVyIHdpdGhvdXQgYXJndW1lbnQKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXIsIHR5cGVuYW1lIEVuZHBvaW50SXRlcmF0b3I+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoUmVzb2x2ZQogIHsKICBwdWJsaWM6CiAgICBBc2lvRGlzcGF0Y2hSZXNvbHZlKEhhbmRsZXIgaGFuZGxlciwgQyogb2JqKQogICAgICA6IGhhbmRsZXJfKGhhbmRsZXIpLCBvYmpfKG9iaikge30KCiAgICB2b2lkIG9wZXJhdG9yKCkoY29uc3QgYXNpbzo6ZXJyb3JfY29kZSYgZXJyb3IsIEVuZHBvaW50SXRlcmF0b3IgaXRlcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IsIGl0ZXIpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgfTsKCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXN5bmNocm9ub3VzIHJlc29sdmVyIHdpdGggYXJndW1lbnQKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXIsIHR5cGVuYW1lIEVuZHBvaW50SXRlcmF0b3IsIHR5cGVuYW1lIERhdGE+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoUmVzb2x2ZUFyZwogIHsKICBwdWJsaWM6CiAgICBBc2lvRGlzcGF0Y2hSZXNvbHZlQXJnKEhhbmRsZXIgaGFuZGxlciwgQyogb2JqLCBEYXRhIGRhdGEpCiAgICAgIDogaGFuZGxlcl8oaGFuZGxlciksIG9ial8ob2JqKSwgZGF0YV8oZGF0YSkge30KCiAgICB2b2lkIG9wZXJhdG9yKCkoY29uc3QgYXNpbzo6ZXJyb3JfY29kZSYgZXJyb3IsIEVuZHBvaW50SXRlcmF0b3IgaXRlcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IsIGl0ZXIsIGRhdGFfKTsKICAgIH0KCiAgcHJpdmF0ZToKICAgIEhhbmRsZXIgaGFuZGxlcl87CiAgICBSQ1B0cjxDPiBvYmpfOwogICAgRGF0YSBkYXRhXzsKICB9OwoKCiAgLy8gRGlzcGF0Y2hlciBmb3IgYXNpbyBzaWduYWwKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXI+CiAgY2xhc3MgQXNpb0Rpc3BhdGNoU2lnbmFsCiAgewogIHB1YmxpYzoKICAgIEFzaW9EaXNwYXRjaFNpZ25hbChIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaikKICAgICAgOiBoYW5kbGVyXyhoYW5kbGVyKSwgb2JqXyhvYmopIHt9CgogICAgdm9pZCBvcGVyYXRvcigpKGNvbnN0IGFzaW86OmVycm9yX2NvZGUmIGVycm9yLCBpbnQgc2lnbmFsX251bWJlcikKICAgIHsKICAgICAgKG9ial8uZ2V0KCktPipoYW5kbGVyXykoZXJyb3IsIHNpZ25hbF9udW1iZXIpOwogICAgfQoKICBwcml2YXRlOgogICAgSGFuZGxlciBoYW5kbGVyXzsKICAgIFJDUHRyPEM+IG9ial87CiAgfTsKCiAgdGVtcGxhdGUgPHR5cGVuYW1lIEMsIHR5cGVuYW1lIEhhbmRsZXI+CiAgQXNpb0Rpc3BhdGNoU2lnbmFsPEMsIEhhbmRsZXI+IGFzaW9fZGlzcGF0Y2hfc2lnbmFsKEhhbmRsZXIgaGFuZGxlciwgQyogb2JqKQogIHsKICAgIHJldHVybiBBc2lvRGlzcGF0Y2hTaWduYWw8QywgSGFuZGxlcj4oaGFuZGxlciwgb2JqKTsKICB9CgogIC8vIEdlbmVyYWwgcHVycG9zZSBkaXNwYXRjaGVyIHdpdGggZGF0YQoKICB0ZW1wbGF0ZSA8dHlwZW5hbWUgQywgdHlwZW5hbWUgSGFuZGxlciwgdHlwZW5hbWUgRGF0YT4KICBjbGFzcyBTaW1wbGVEaXNwYXRjaAogIHsKICBwdWJsaWM6CiAgICBTaW1wbGVEaXNwYXRjaChIYW5kbGVyIGhhbmRsZXIsIEMqIG9iaikKICAgICAgOiBoYW5kbGVyXyhoYW5kbGVyKSwgb2JqXyhvYmopIHt9CgogICAgdm9pZCBvcGVyYXRvcigpKERhdGEgZGF0YSkKICAgIHsKICAgICAgKG9ial8tPipoYW5kbGVyXykoZGF0YSk7CiAgICB9CgogIHByaXZhdGU6CiAgICBIYW5kbGVyIGhhbmRsZXJfOwogICAgQyogb2JqXzsKICB9OwoKfSAvLyBuYW1lc3BhY2Ugb3BlbnZwbgoKI2VuZGlmIC8vIE9QRU5WUE5fQ09NTU9OX0FTSU9ESVNQQVRDSF9ICg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+// These classes define function objects to be used as asynchronous callbacks
+// for Asio methods.  Think of these as optimized special cases of function
+// objects that could be more generally (but perhaps less optimally) defined
+// with lambdas.
+
+#ifndef OPENVPN_COMMON_ASIODISPATCH_H
+#define OPENVPN_COMMON_ASIODISPATCH_H
+
+#include <asio.hpp>
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/rc.hpp>
+
+namespace openvpn {
+  // Dispatcher for asio async_write
+
+  template <typename C, typename Handler>
+  class AsioDispatchWrite
+  {
+  public:
+    AsioDispatchWrite(Handler handle_write, C* obj)
+      : handle_write_(handle_write), obj_(obj) {}
+
+    void operator()(const asio::error_code& error, const size_t bytes_sent)
+    {
+      (obj_.get()->*handle_write_)(error, bytes_sent);
+    }
+
+  private:
+    Handler handle_write_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchWrite<C, Handler> asio_dispatch_write(Handler handle_write, C* obj)
+  {
+    return AsioDispatchWrite<C, Handler>(handle_write, obj);
+  }
+
+  // Dispatcher for asio async_read with argument
+
+  template <typename C, typename Handler, typename Data>
+  class AsioDispatchRead
+  {
+  public:
+    AsioDispatchRead(Handler handle_read, C* obj, Data data)
+      : handle_read_(handle_read), obj_(obj), data_(data) {}
+
+    void operator()(const asio::error_code& error, const size_t bytes_recvd)
+    {
+      (obj_.get()->*handle_read_)(data_, error, bytes_recvd);
+    }
+
+  private:
+    Handler handle_read_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+  template <typename C, typename Handler, typename Data>
+  AsioDispatchRead<C, Handler, Data> asio_dispatch_read(Handler handle_read, C* obj, Data data)
+  {
+    return AsioDispatchRead<C, Handler, Data>(handle_read, obj, data);
+  }
+
+  // Dispatcher for asio async_read without argument
+
+  template <typename C, typename Handler>
+  class AsioDispatchReadNoArg
+  {
+  public:
+    AsioDispatchReadNoArg(Handler handle_read, C* obj)
+      : handle_read_(handle_read), obj_(obj) {}
+
+    void operator()(const asio::error_code& error, const size_t bytes_recvd)
+    {
+      (obj_.get()->*handle_read_)(error, bytes_recvd);
+    }
+
+  private:
+    Handler handle_read_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchReadNoArg<C, Handler> asio_dispatch_read_noarg(Handler handle_read, C* obj)
+  {
+    return AsioDispatchReadNoArg<C, Handler>(handle_read, obj);
+  }
+
+  // Dispatcher for asio async_wait with argument
+
+  template <typename C, typename Handler, typename Data>
+  class AsioDispatchTimerArg
+  {
+  public:
+    AsioDispatchTimerArg(Handler handler, C* obj, Data data)
+      : handler_(handler), obj_(obj), data_(data) {}
+
+    void operator()(const asio::error_code& error)
+    {
+      (obj_.get()->*handler_)(data_, error);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+  template <typename C, typename Handler, typename Data>
+  AsioDispatchTimerArg<C, Handler, Data> asio_dispatch_timer_arg(Handler handler, C* obj, Data data)
+  {
+    return AsioDispatchTimerArg<C, Handler, Data>(handler, obj, data);
+  }
+
+  // Dispatcher for asio async_wait without argument
+
+  template <typename C, typename Handler>
+  class AsioDispatchTimer
+  {
+  public:
+    AsioDispatchTimer(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(const asio::error_code& error)
+    {
+      (obj_.get()->*handler_)(error);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchTimer<C, Handler> asio_dispatch_timer(Handler handler, C* obj)
+  {
+    return AsioDispatchTimer<C, Handler>(handler, obj);
+  }
+
+  // Dispatcher for asio async_connect with argument
+
+  template <typename C, typename Handler, typename Data>
+  class AsioDispatchConnectArg
+  {
+  public:
+    AsioDispatchConnectArg(Handler handler, C* obj, Data data)
+      : handler_(handler), obj_(obj), data_(data) {}
+
+    void operator()(const asio::error_code& error)
+    {
+      (obj_.get()->*handler_)(data_, error);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+  template <typename C, typename Handler, typename Data>
+  AsioDispatchConnectArg<C, Handler, Data> asio_dispatch_connect_arg(Handler handler, C* obj, Data data)
+  {
+    return AsioDispatchConnectArg<C, Handler, Data>(handler, obj, data);
+  }
+
+  // Dispatcher for asio async_connect without argument
+
+  template <typename C, typename Handler>
+  class AsioDispatchConnect
+  {
+  public:
+    AsioDispatchConnect(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(const asio::error_code& error)
+    {
+      (obj_.get()->*handler_)(error);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchConnect<C, Handler> asio_dispatch_connect(Handler handler, C* obj)
+  {
+    return AsioDispatchConnect<C, Handler>(handler, obj);
+  }
+
+  // Dispatcher for asio async_connect (ComposedConnectHandler) without argument
+
+  template <typename C, typename Handler>
+  class AsioDispatchComposedConnect
+  {
+  public:
+    AsioDispatchComposedConnect(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(const asio::error_code& error, asio::ip::tcp::resolver::iterator endpoint_iterator)
+    {
+      (obj_.get()->*handler_)(error, endpoint_iterator);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchComposedConnect<C, Handler> asio_dispatch_composed_connect(Handler handler, C* obj)
+  {
+    return AsioDispatchComposedConnect<C, Handler>(handler, obj);
+  }
+
+  // Dispatcher for asio async_accept with argument
+
+  template <typename C, typename Handler, typename Data>
+  class AsioDispatchAcceptArg
+  {
+  public:
+    AsioDispatchAcceptArg(Handler handler, C* obj, Data data)
+      : handler_(handler), obj_(obj), data_(data) {}
+
+    void operator()(const asio::error_code& error)
+    {
+      (obj_.get()->*handler_)(data_, error);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+  template <typename C, typename Handler, typename Data>
+  AsioDispatchAcceptArg<C, Handler, Data> asio_dispatch_accept_arg(Handler handler, C* obj, Data data)
+  {
+    return AsioDispatchAcceptArg<C, Handler, Data>(handler, obj, data);
+  }
+
+  // Dispatcher for asio post with argument
+
+  template <typename C, typename Handler, typename Data>
+  class AsioDispatchPostArg
+  {
+  public:
+    AsioDispatchPostArg(Handler handler, C* obj, Data data)
+      : handler_(handler), obj_(obj), data_(data) {}
+
+    void operator()()
+    {
+      (obj_.get()->*handler_)(data_);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+  template <typename C, typename Handler, typename Data>
+  AsioDispatchPostArg<C, Handler, Data> asio_dispatch_post_arg(Handler handler, C* obj, Data data)
+  {
+    return AsioDispatchPostArg<C, Handler, Data>(handler, obj, data);
+  }
+
+  // Dispatcher for asio post without argument
+
+  template <typename C, typename Handler>
+  class AsioDispatchPost
+  {
+  public:
+    AsioDispatchPost(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()()
+    {
+      (obj_.get()->*handler_)();
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchPost<C, Handler> asio_dispatch_post(Handler handler, C* obj)
+  {
+    return AsioDispatchPost<C, Handler>(handler, obj);
+  }
+
+  // Dispatcher for asynchronous resolver without argument
+
+  template <typename C, typename Handler, typename EndpointIterator>
+  class AsioDispatchResolve
+  {
+  public:
+    AsioDispatchResolve(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(const asio::error_code& error, EndpointIterator iter)
+    {
+      (obj_.get()->*handler_)(error, iter);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  // Dispatcher for asynchronous resolver with argument
+
+  template <typename C, typename Handler, typename EndpointIterator, typename Data>
+  class AsioDispatchResolveArg
+  {
+  public:
+    AsioDispatchResolveArg(Handler handler, C* obj, Data data)
+      : handler_(handler), obj_(obj), data_(data) {}
+
+    void operator()(const asio::error_code& error, EndpointIterator iter)
+    {
+      (obj_.get()->*handler_)(error, iter, data_);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+    Data data_;
+  };
+
+
+  // Dispatcher for asio signal
+
+  template <typename C, typename Handler>
+  class AsioDispatchSignal
+  {
+  public:
+    AsioDispatchSignal(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(const asio::error_code& error, int signal_number)
+    {
+      (obj_.get()->*handler_)(error, signal_number);
+    }
+
+  private:
+    Handler handler_;
+    RCPtr<C> obj_;
+  };
+
+  template <typename C, typename Handler>
+  AsioDispatchSignal<C, Handler> asio_dispatch_signal(Handler handler, C* obj)
+  {
+    return AsioDispatchSignal<C, Handler>(handler, obj);
+  }
+
+  // General purpose dispatcher with data
+
+  template <typename C, typename Handler, typename Data>
+  class SimpleDispatch
+  {
+  public:
+    SimpleDispatch(Handler handler, C* obj)
+      : handler_(handler), obj_(obj) {}
+
+    void operator()(Data data)
+    {
+      (obj_->*handler_)(data);
+    }
+
+  private:
+    Handler handler_;
+    C* obj_;
+  };
+
+} // namespace openvpn
+
+#endif // OPENVPN_COMMON_ASIODISPATCH_H

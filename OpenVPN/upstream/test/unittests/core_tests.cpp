@@ -1,1 +1,36 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlIDxndGVzdC9ndGVzdC5oPgoKCi8vIFdlIGFsc28gbmVlZCB0byBpbXBvcnQgaGVyZSBhbGwgaGVhZGVyIGZpbGVzIHRoYXQKLy8gZGVmaW5lIGdsb2JhbHMgc28gdGhhdCBjb25zdW1lcnMgdGhhdCB1c2UgdGhlbSBkZXNwaXRlCi8vIHJlcXVlc3RpbmcgdGhlbSBub3QgdG8gYmUgZGVjbGFyZWQgd2l0aCBPUEVOVlBOX0VYVEVSTgoKI2luY2x1ZGUgPGFzaW8uaHBwPgojaW5jbHVkZSAidGVzdF9oZWxwZXIuaHBwIgojaW5jbHVkZSA8b3BlbnZwbi9zc2wvc3NsY2hvb3NlLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vaW5pdC9pbml0cHJvY2Vzcy5ocHA+CgpvcGVudnBuOjpMb2dPdXRwdXRDb2xsZWN0b3IgKnRlc3RMb2c7CgppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCnsKICAgIHRlc3RMb2cgPSBuZXcgb3BlbnZwbjo6TG9nT3V0cHV0Q29sbGVjdG9yKCk7CiAgICA6OnRlc3Rpbmc6OkluaXRHb29nbGVUZXN0KCZhcmdjLCBhcmd2KTsKICAgIG9wZW52cG46OkluaXRQcm9jZXNzOjpJbml0IGluaXQ7CiAgICBhdXRvIHJldCA9IFJVTl9BTExfVEVTVFMoKTsKCiAgICBkZWxldGUgdGVzdExvZzsKICAgIHJldHVybiByZXQ7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include <gtest/gtest.h>
+
+
+// We also need to import here all header files that
+// define globals so that consumers that use them despite
+// requesting them not to be declared with OPENVPN_EXTERN
+
+#include <asio.hpp>
+#include "test_helper.hpp"
+#include <openvpn/ssl/sslchoose.hpp>
+#include <openvpn/init/initprocess.hpp>
+
+openvpn::LogOutputCollector *testLog;
+
+int main(int argc, char **argv)
+{
+    testLog = new openvpn::LogOutputCollector();
+    ::testing::InitGoogleTest(&argc, argv);
+    openvpn::InitProcess::Init init;
+    auto ret = RUN_ALL_TESTS();
+
+    delete testLog;
+    return ret;
+}

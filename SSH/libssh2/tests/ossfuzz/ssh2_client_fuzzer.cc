@@ -1,1 +1,97 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwojaW5jbHVkZSA8YXNzZXJ0Lmg+CiNpbmNsdWRlIDxlcnJuby5oPgojaW5jbHVkZSA8c3RkYm9vbC5oPgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0ZGxpYi5oPgojaW5jbHVkZSA8c3RyaW5nLmg+CiNpbmNsdWRlIDxzeXMvc29ja2V0Lmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUgPGxpYnNzaDIuaD4KI2luY2x1ZGUgInRlc3RpbnB1dC5oIgoKI2RlZmluZSBGVVpaX0FTU0VSVChDT05EKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgaWYoIShDT05EKSkgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICB7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgZnByaW50ZihzdGRlcnIsICJBc3NlcnRpb24gZmFpbGVkOiAiICNDT05EICJcbiVzIiwgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICAgIHN0cmVycm9yKGVycm5vKSk7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgIGFzc2VydCgoQ09ORCkpOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgIH0KCmV4dGVybiAiQyIgaW50IExMVk1GdXp6ZXJUZXN0T25lSW5wdXQoY29uc3QgdWludDhfdCAqZGF0YSwgc2l6ZV90IHNpemUpCnsKICBpbnQgc29ja2V0X2Zkc1syXSA9IHstMSwgLTF9OwogIHNzaXplX3Qgd3JpdHRlbjsKICBpbnQgcmM7CiAgTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uID0gTlVMTDsKICBpbnQgaGFuZHNoYWtlX2NvbXBsZXRlZCA9IDA7CgogIHJjID0gbGlic3NoMl9pbml0KDApOwoKICBpZihyYykgewogICAgZnByaW50ZihzdGRlcnIsICJsaWJzc2gyIGluaXRpYWxpemF0aW9uIGZhaWxlZCAoJWQpXG4iLCByYyk7CiAgICBnb3RvIEVYSVRfTEFCRUw7CiAgfQoKICAvLyBDcmVhdGUgYSBzb2NrZXQgcGFpciBzbyBkYXRhIGNhbiBiZSBzZW50IGluLgogIHJjID0gc29ja2V0cGFpcihBRl9VTklYLCBTT0NLX1NUUkVBTSwgMCwgc29ja2V0X2Zkcyk7CiAgRlVaWl9BU1NFUlQocmMgPT0gMCk7CgogIHdyaXR0ZW4gPSBzZW5kKHNvY2tldF9mZHNbMV0sIGRhdGEsIHNpemUsIDApOwoKICBpZih3cml0dGVuICE9IHNpemUpCiAgewogICAgLy8gSGFuZGxlIHdoYXRldmVyIGVycm9yIGNhc2Ugd2UncmUgaW4uCiAgICBmcHJpbnRmKHN0ZGVyciwgInNlbmQoKSBvZiAlenUgYnl0ZXMgcmV0dXJuZWQgJXp1ICglZClcbiIsCiAgICAgICAgICAgIHNpemUsCiAgICAgICAgICAgIHdyaXR0ZW4sCiAgICAgICAgICAgIGVycm5vKTsKICAgIGdvdG8gRVhJVF9MQUJFTDsKICB9CgogIHJjID0gc2h1dGRvd24oc29ja2V0X2Zkc1sxXSwgU0hVVF9XUik7CiAgaWYocmMpCiAgewogICAgZnByaW50ZihzdGRlcnIsICJzb2NrZXQgc2h1dGRvd24gZmFpbGVkICglZClcbiIsIHJjKTsKICAgIGdvdG8gRVhJVF9MQUJFTDsKICB9CgogIC8vIENyZWF0ZSBhIHNlc3Npb24gYW5kIHN0YXJ0IHRoZSBoYW5kc2hha2UgdXNpbmcgdGhlIGZ1enogZGF0YSBwYXNzZWQgaW4uCiAgc2Vzc2lvbiA9IGxpYnNzaDJfc2Vzc2lvbl9pbml0KCk7CiAgaWYoc2Vzc2lvbikgewogICAgbGlic3NoMl9zZXNzaW9uX3NldF9ibG9ja2luZyhzZXNzaW9uLCAxKTsKICB9CiAgZWxzZSB7CiAgICBnb3RvIEVYSVRfTEFCRUw7CiAgfQoKICBpZihsaWJzc2gyX3Nlc3Npb25faGFuZHNoYWtlKHNlc3Npb24sIHNvY2tldF9mZHNbMF0pKSB7CiAgICBnb3RvIEVYSVRfTEFCRUw7CiAgfQoKICAvLyBJZiB3ZSBnZXQgaGVyZSB0aGUgaGFuZHNoYWtlIGFjdHVhbGx5IGNvbXBsZXRlZC4KICBoYW5kc2hha2VfY29tcGxldGVkID0gMTsKCkVYSVRfTEFCRUw6CgogIGlmKHNlc3Npb24pCiAgewogICAgaWYoaGFuZHNoYWtlX2NvbXBsZXRlZCkKICAgIHsKICAgICAgbGlic3NoMl9zZXNzaW9uX2Rpc2Nvbm5lY3Qoc2Vzc2lvbiwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIk5vcm1hbCBTaHV0ZG93biwgVGhhbmsgeW91IGZvciBwbGF5aW5nIik7CiAgICB9CgogICAgbGlic3NoMl9zZXNzaW9uX2ZyZWUoc2Vzc2lvbik7CiAgfQoKICBsaWJzc2gyX2V4aXQoKTsKCiAgY2xvc2Uoc29ja2V0X2Zkc1swXSk7CiAgY2xvc2Uoc29ja2V0X2Zkc1sxXSk7CgogIHJldHVybiAwOwp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#include <assert.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <libssh2.h>
+#include "testinput.h"
+
+#define FUZZ_ASSERT(COND)                                                     \
+    if(!(COND))                                                               \
+    {                                                                         \
+      fprintf(stderr, "Assertion failed: " #COND "\n%s",                      \
+              strerror(errno));                                               \
+      assert((COND));                                                         \
+    }
+
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+{
+  int socket_fds[2] = {-1, -1};
+  ssize_t written;
+  int rc;
+  LIBSSH2_SESSION *session = NULL;
+  int handshake_completed = 0;
+
+  rc = libssh2_init(0);
+
+  if(rc) {
+    fprintf(stderr, "libssh2 initialization failed (%d)\n", rc);
+    goto EXIT_LABEL;
+  }
+
+  // Create a socket pair so data can be sent in.
+  rc = socketpair(AF_UNIX, SOCK_STREAM, 0, socket_fds);
+  FUZZ_ASSERT(rc == 0);
+
+  written = send(socket_fds[1], data, size, 0);
+
+  if(written != size)
+  {
+    // Handle whatever error case we're in.
+    fprintf(stderr, "send() of %zu bytes returned %zu (%d)\n",
+            size,
+            written,
+            errno);
+    goto EXIT_LABEL;
+  }
+
+  rc = shutdown(socket_fds[1], SHUT_WR);
+  if(rc)
+  {
+    fprintf(stderr, "socket shutdown failed (%d)\n", rc);
+    goto EXIT_LABEL;
+  }
+
+  // Create a session and start the handshake using the fuzz data passed in.
+  session = libssh2_session_init();
+  if(session) {
+    libssh2_session_set_blocking(session, 1);
+  }
+  else {
+    goto EXIT_LABEL;
+  }
+
+  if(libssh2_session_handshake(session, socket_fds[0])) {
+    goto EXIT_LABEL;
+  }
+
+  // If we get here the handshake actually completed.
+  handshake_completed = 1;
+
+EXIT_LABEL:
+
+  if(session)
+  {
+    if(handshake_completed)
+    {
+      libssh2_session_disconnect(session,
+                                 "Normal Shutdown, Thank you for playing");
+    }
+
+    libssh2_session_free(session);
+  }
+
+  libssh2_exit();
+
+  close(socket_fds[0]);
+  close(socket_fds[1]);
+
+  return 0;
+}

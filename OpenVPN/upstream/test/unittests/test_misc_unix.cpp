@@ -1,1 +1,65 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi90ZW1wZmlsZS5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnN0ZDo6c3RyaW5nIGNvbnRlbnQxID0gIkl0IHdhcyBhIGJyaWdodCBjb2xkIGRheSBpbiBBcHJpbCwgYW5kIHRoZSBjbG9ja3NcbiIKICAgICAgICAgICAgICAgICAgICAgICAid2VyZSBzdHJpa2luZyB0aGlydGVlbi4gV2luc3RvbiBTbWl0aCwgaGlzIGNoaW4gbnV6emxlZFxuIgogICAgICAgICAgICAgICAgICAgICAgICJpbnRvIGhpcyBicmVhc3QgaW4gYW4gZWZmb3J0IHRvIGVzY2FwZSB0aGUgdmlsZSB3aW5kLFxuIgogICAgICAgICAgICAgICAgICAgICAgICJzbGlwcGVkIHF1aWNrbHkgdGhyb3VnaCB0aGUgZ2xhc3MgZG9vcnMgb2YgVmljdG9yeVxuIgogICAgICAgICAgICAgICAgICAgICAgICJNYW5zaW9ucywgdGhvdWdoIG5vdCBxdWlja2x5IGVub3VnaCB0byBwcmV2ZW50IGFcbiIKICAgICAgICAgICAgICAgICAgICAgICAic3dpcmwgb2YgZ3JpdHR5IGR1c3QgZnJvbSBlbnRlcmluZyBhbG9uZyB3aXRoIGhpbS5cbiI7CgpzdGQ6OnN0cmluZyBjb250ZW50MiA9ICJUbyBiZSBvciBub3QgdG8gYmUsIHRoYXQgaXMgdGhlIHF1ZXN0aW9uP1xuIjsKClRFU1QobWlzYywgdGVtcGZpbGUpCnsKICAgIFRlbXBGaWxlIHRmKGdldFRlbXBEaXJQYXRoKCJ0ZW1wZmlsZS1YWFhYWFgiKSwgdHJ1ZSk7CgogICAgdGYud3JpdGUoY29udGVudDEpOwogICAgdGYucmVzZXQoKTsKICAgIGNvbnN0IHN0ZDo6c3RyaW5nIHMxID0gdGYucmVhZCgpOwogICAgQVNTRVJUX0VRKHMxLCBjb250ZW50MSk7CgogICAgdGYudHJ1bmNhdGUoKTsKICAgIHRmLndyaXRlKGNvbnRlbnQyKTsKICAgIHRmLnJlc2V0KCk7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBzMiA9IHRmLnJlYWQoKTsKICAgIEFTU0VSVF9FUShzMiwgY29udGVudDIpOwp9CgpURVNUKG1pc2MsIHRlbXBmaWxlX25hbWUpCnsKICAgIFRlbXBGaWxlIHRmKGdldFRlbXBEaXJQYXRoKCJ0ZW1wZmlsZS1YWFhYWFgiKSwgdHJ1ZSk7CiAgICBhdXRvIGZuID0gdGYuZmlsZW5hbWUoKTsKICAgIEFTU0VSVF9ORShzdGQ6OnN0cmluZzo6bnBvcywgZm4uZmluZCgidGVtcGZpbGUtIikpOwogICAgQVNTRVJUX0VRKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJYWFhYWFgiKSk7Cn0KClRFU1QobWlzYywgdGVtcGZpbGVfbmFtZV82WHMpCnsKICAgIFRlbXBGaWxlIHRmKGdldFRlbXBEaXJQYXRoKCJ0ZW1wWFhYWFhYZmlsZSIpLCB0cnVlKTsKICAgIGF1dG8gZm4gPSB0Zi5maWxlbmFtZSgpOwogICAgQVNTRVJUX05FKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJ0ZW1wIikpOwogICAgQVNTRVJUX05FKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJmaWxlIikpOwogICAgQVNTRVJUX0VRKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJYWFhYWFgiKSk7Cn0KClRFU1QobWlzYywgdGVtcGZpbGVfbmFtZV83WHMpCnsKICAgIFRlbXBGaWxlIHRmKGdldFRlbXBEaXJQYXRoKCJ0ZW1wWFhYWFhYWGZpbGUiKSwgdHJ1ZSk7CiAgICBhdXRvIGZuID0gdGYuZmlsZW5hbWUoKTsKICAgIEFTU0VSVF9ORShzdGQ6OnN0cmluZzo6bnBvcywgZm4uZmluZCgidGVtcCIpKTsKICAgIEFTU0VSVF9ORShzdGQ6OnN0cmluZzo6bnBvcywgZm4uZmluZCgiZmlsZSIpKTsKICAgIEFTU0VSVF9FUShzdGQ6OnN0cmluZzo6bnBvcywgZm4uZmluZCgiWFhYWFhYIikpOwp9CgpURVNUKG1pc2MsIHRlbXBmaWxlX25hbWVfNlg2WCkKewogICAgVGVtcEZpbGUgdGYoZ2V0VGVtcERpclBhdGgoInRlbXBYWFhYWFhmaWxlLVhYWFhYWCIpLCB0cnVlKTsKICAgIGF1dG8gZm4gPSB0Zi5maWxlbmFtZSgpOwogICAgQVNTRVJUX05FKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJ0ZW1wIikpOwogICAgQVNTRVJUX05FKHN0ZDo6c3RyaW5nOjpucG9zLCBmbi5maW5kKCJmaWxlIikpOwogICAgQVNTRVJUX0VRKGZuLnJmaW5kKCJYWFhYWFgiKSwgZm4uZmluZCgiWFhYWFhYIikpOwp9Cg==
+#include "test_common.hpp"
+
+#include <openvpn/common/tempfile.hpp>
+
+using namespace openvpn;
+
+std::string content1 = "It was a bright cold day in April, and the clocks\n"
+                       "were striking thirteen. Winston Smith, his chin nuzzled\n"
+                       "into his breast in an effort to escape the vile wind,\n"
+                       "slipped quickly through the glass doors of Victory\n"
+                       "Mansions, though not quickly enough to prevent a\n"
+                       "swirl of gritty dust from entering along with him.\n";
+
+std::string content2 = "To be or not to be, that is the question?\n";
+
+TEST(misc, tempfile)
+{
+    TempFile tf(getTempDirPath("tempfile-XXXXXX"), true);
+
+    tf.write(content1);
+    tf.reset();
+    const std::string s1 = tf.read();
+    ASSERT_EQ(s1, content1);
+
+    tf.truncate();
+    tf.write(content2);
+    tf.reset();
+    const std::string s2 = tf.read();
+    ASSERT_EQ(s2, content2);
+}
+
+TEST(misc, tempfile_name)
+{
+    TempFile tf(getTempDirPath("tempfile-XXXXXX"), true);
+    auto fn = tf.filename();
+    ASSERT_NE(std::string::npos, fn.find("tempfile-"));
+    ASSERT_EQ(std::string::npos, fn.find("XXXXXX"));
+}
+
+TEST(misc, tempfile_name_6Xs)
+{
+    TempFile tf(getTempDirPath("tempXXXXXXfile"), true);
+    auto fn = tf.filename();
+    ASSERT_NE(std::string::npos, fn.find("temp"));
+    ASSERT_NE(std::string::npos, fn.find("file"));
+    ASSERT_EQ(std::string::npos, fn.find("XXXXXX"));
+}
+
+TEST(misc, tempfile_name_7Xs)
+{
+    TempFile tf(getTempDirPath("tempXXXXXXXfile"), true);
+    auto fn = tf.filename();
+    ASSERT_NE(std::string::npos, fn.find("temp"));
+    ASSERT_NE(std::string::npos, fn.find("file"));
+    ASSERT_EQ(std::string::npos, fn.find("XXXXXX"));
+}
+
+TEST(misc, tempfile_name_6X6X)
+{
+    TempFile tf(getTempDirPath("tempXXXXXXfile-XXXXXX"), true);
+    auto fn = tf.filename();
+    ASSERT_NE(std::string::npos, fn.find("temp"));
+    ASSERT_NE(std::string::npos, fn.find("file"));
+    ASSERT_EQ(fn.rfind("XXXXXX"), fn.find("XXXXXX"));
+}

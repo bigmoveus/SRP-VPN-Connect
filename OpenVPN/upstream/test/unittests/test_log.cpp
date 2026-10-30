@@ -1,1 +1,39 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCgovLyBUaGUgb3ZwbmNsaS5jcHAgZmlsZSBpcyBub3QgYWxsIE9QRU5WUE5fRVhURVJOIHNhZmUgYW5kIHRvdGFsbHkgYnJlYWtzCi8vIGlmIGluY2x1ZGVkIGluIHR3byBmaWxlcy4gV2UgcHJvYmFibHkgbmVlZCB0byBmaXggdGhpcyBvciByZW5hbWUgdGhpcwovLyBmaWxlIHRlc3Rfb3ZwbmNsaSBhbmQgZG8gQUxMIHRlc3QgdGhhdCByZXF1aXJlIG92cG5jbGkgaW4gdGhpcyBmaWxlCi8vIChvciBoYXZlIG11bHRpcGxlIHRlc3Qgc3VpdGVzKQoKLy8gVGhpcyBmaWxlIG5lZWRzIHRvIGluY2x1ZGVkIHdpdGggT1BFTlZQTl9FWFRFUk4gc3RpbGwgZGVmaW5lZCBvdGhlcndpc2UKLy8gdGhlIGluY2x1ZGUgZnJvbSBvdnBuY2xpLmNwcCBicmVha3Mgd2l0aCBkdXBsaWNhdGUgc3ltYm9scwojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vYmFzZTY0LmhwcD4KCgojaW5jbHVkZSA8Y2xpZW50L292cG5jbGkuY3BwPgoKCiNpbmNsdWRlIDxzdHJpbmc+CiNpbmNsdWRlIDxzc3RyZWFtPgoKbmFtZXNwYWNlIHVuaXR0ZXN0cyB7ClRFU1QoTG9nSW5mb1Rlc3QsIFRlc3RMb2dJbmZvKQp7CiAgICBzdGQ6OnN0cmluZyBtc2coImxvZ01lc3NhZ2UiKTsKICAgIG9wZW52cG46OkNsaWVudEFQSTo6TG9nSW5mbyBsb2dJbmZvKG1zZyk7CgogICAgQVNTRVJUX0VRKGxvZ0luZm8udGV4dCwgbXNnKTsKfQp9IC8vIG5hbWVzcGFjZSB1bml0dGVzdHMK
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+#include "test_common.hpp"
+
+
+// The ovpncli.cpp file is not all OPENVPN_EXTERN safe and totally breaks
+// if included in two files. We probably need to fix this or rename this
+// file test_ovpncli and do ALL test that require ovpncli in this file
+// (or have multiple test suites)
+
+// This file needs to included with OPENVPN_EXTERN still defined otherwise
+// the include from ovpncli.cpp breaks with duplicate symbols
+#include <openvpn/common/base64.hpp>
+
+
+#include <client/ovpncli.cpp>
+
+
+#include <string>
+#include <sstream>
+
+namespace unittests {
+TEST(LogInfoTest, TestLogInfo)
+{
+    std::string msg("logMessage");
+    openvpn::ClientAPI::LogInfo logInfo(msg);
+
+    ASSERT_EQ(logInfo.text, msg);
+}
+} // namespace unittests

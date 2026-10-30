@@ -1,1 +1,262 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKI2luY2x1ZGUgPGlvc3RyZWFtPgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL3NpemUuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9jb21tb24vZXhjZXB0aW9uLmhwcD4KCiNpbmNsdWRlIDxvcGVudnBuL2lwL3Bpbmc2LmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vYWRkci9pcC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2FkZHIvcG9vbC5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2FkZHIvaXB2Ni5ocHA+CgojaWYgZGVmaW5lZChTSU42X0xFTikgfHwgZGVmaW5lZChfX0FQUExFX18pIHx8IGRlZmluZWQoX19GcmVlQlNEX18pCiNpbmNsdWRlIDxzeXMvc29ja2V0Lmg+CiNlbmRpZgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpzdGF0aWMgY29uc3QgdWludDhfdCBpY21wNl9wYWNrZXRbXSA9IHsKICAgIC8vIGNsYW5nLWZvcm1hdCBvZmYKICAgIDB4NjAsIDB4MDYsIDB4MjIsIDB4ZTUsIDB4MDAsIDB4NDAsIDB4M2EsIDB4MjgsIDB4MjYsIDB4MDEsIDB4MDIsIDB4ODEsIDB4ODQsIDB4ODAsIDB4MTQsIDB4ZTAsCiAgICAweGJjLCAweGMxLCAweDkxLCAweDIwLCAweGZjLCAweGEzLCAweDBlLCAweDIyLCAweDI2LCAweDAwLCAweDFmLCAweDE4LCAweDQ3LCAweDJiLCAweDg5LCAweDA1LAogICAgMHgyYSwgMHhjNCwgMHgzYiwgMHhmMywgMHhkNSwgMHg3NywgMHgyOSwgMHg0MiwgMHg4MCwgMHgwMCwgMHg5OSwgMHg5OSwgMHgzZiwgMHhkNCwgMHgwMCwgMHgwZSwKICAgIDB4NDMsIDB4ZDQsIDB4YzMsIDB4NWEsIDB4MDAsIDB4MDAsIDB4MDAsIDB4MDAsIDB4M2QsIDB4YzIsIDB4MGQsIDB4MDAsIDB4MDAsIDB4MDAsIDB4MDAsIDB4MDAsCiAgICAweDEwLCAweDExLCAweDEyLCAweDEzLCAweDE0LCAweDE1LCAweDE2LCAweDE3LCAweDE4LCAweDE5LCAweDFhLCAweDFiLCAweDFjLCAweDFkLCAweDFlLCAweDFmLAogICAgMHgyMCwgMHgyMSwgMHgyMiwgMHgyMywgMHgyNCwgMHgyNSwgMHgyNiwgMHgyNywgMHgyOCwgMHgyOSwgMHgyYSwgMHgyYiwgMHgyYywgMHgyZCwgMHgyZSwgMHgyZiwKICAgIDB4MzAsIDB4MzEsIDB4MzIsIDB4MzMsIDB4MzQsIDB4MzUsIDB4MzYsIDB4MzcKICAgIC8vIGNsYW5nLWZvcm1hdCBvbgoKfTsKCnN0YXRpYyBib29sIHZlcmJvc2UgPSBmYWxzZTsKClRFU1QoSVBBZGRyLCBpY21wNmNzdW0pCnsKICAgIGNvbnN0IElDTVB2NiAqaWNtcCA9IChjb25zdCBJQ01QdjYgKilpY21wNl9wYWNrZXQ7CiAgICBjb25zdCBzaXplX3QgbGVuID0gc2l6ZW9mKGljbXA2X3BhY2tldCk7CgogICAgaWYgKHZlcmJvc2UpCiAgICB7CiAgICAgICAgc3RkOjpjb3V0IDw8ICJGcm9tIDogIiA8PCBJUHY2OjpBZGRyOjpmcm9tX2luNl9hZGRyKCZpY21wLT5oZWFkLnNhZGRyKS50b19zdHJpbmcoKSA8PCBzdGQ6OmVuZGw7CiAgICAgICAgc3RkOjpjb3V0IDw8ICJUbyAgIDogIiA8PCBJUHY2OjpBZGRyOjpmcm9tX2luNl9hZGRyKCZpY21wLT5oZWFkLmRhZGRyKS50b19zdHJpbmcoKSA8PCBzdGQ6OmVuZGw7CiAgICB9CiAgICBjb25zdCBzdGQ6OnVpbnQxNl90IGNzdW0gPSBQaW5nNjo6Y3N1bV9pY21wKGljbXAsIGxlbik7CiAgICBpZiAodmVyYm9zZSkKICAgIHsKICAgICAgICBzdGQ6OmNvdXQgPDwgIkNoZWNrc3VtOiAiIDw8IGNzdW0gPDwgc3RkOjplbmRsOwogICAgfQogICAgQVNTRVJUX1RSVUUoY3N1bSA9PSAwKSA8PCAiY2hlY2tzdW09IiA8PCBjc3VtIDw8ICIgYnV0IHNob3VsZCBiZSB6ZXJvIjsKfQoKVEVTVChJUEFkZHIsIHBvb2wpCnsKICAgIElQOjpQb29sIHBvb2w7CiAgICBwb29sLmFkZF9yYW5nZShJUDo6UmFuZ2UoSVA6OkFkZHI6OmZyb21fc3RyaW5nKCIxLjIuMy40IiksIDE2KSk7CiAgICBwb29sLmFkZF9yYW5nZShJUDo6UmFuZ2UoSVA6OkFkZHI6OmZyb21fc3RyaW5nKCJGZTgwOjoyM2ExOmIxNTIiKSwgNCkpOwogICAgcG9vbC5hZGRfYWRkcihJUDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEwLjEwLjEuMSIpKTsKICAgIEFTU0VSVF9UUlVFKHBvb2wuYWNxdWlyZV9zcGVjaWZpY19hZGRyKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMS4yLjMuMTAiKSkpOwoKICAgIHN0ZDo6c3RyaW5nc3RyZWFtIHM7CiAgICBmb3IgKGludCBpID0gMDs7ICsraSkKICAgIHsKICAgICAgICBJUDo6QWRkciBhZGRyOwogICAgICAgIGlmIChpID09IDcpCiAgICAgICAgewogICAgICAgICAgICBwb29sLnJlbGVhc2VfYWRkcihJUDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEuMi4zLjciKSk7CiAgICAgICAgfQogICAgICAgIGVsc2UgaWYgKGkgPT0gMTEpCiAgICAgICAgewogICAgICAgICAgICBwb29sLnJlbGVhc2VfYWRkcihJUDo6QWRkcjo6ZnJvbV9zdHJpbmcoIjEuMi4zLjMiKSk7CiAgICAgICAgICAgIHBvb2wucmVsZWFzZV9hZGRyKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMS4yLjMuNCIpKTsKICAgICAgICAgICAgcG9vbC5yZWxlYXNlX2FkZHIoSVA6OkFkZHI6OmZyb21fc3RyaW5nKCIxLjIuMy41IikpOwogICAgICAgIH0KICAgICAgICBlbHNlCiAgICAgICAgewogICAgICAgICAgICBpZiAocG9vbC5hY3F1aXJlX2FkZHIoYWRkcikpCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIHMgPDwgYWRkciA8PCAiICgiIDw8IHBvb2wubl9pbl91c2UoKSA8PCAiKSIgPDwgc3RkOjplbmRsOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsc2UKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgIH0KICAgIH0KICAgIEFTU0VSVF9FUSgiMS4yLjMuNCAoMSlcbiIKICAgICAgICAgICAgICAiMS4yLjMuNSAoMilcbiIKICAgICAgICAgICAgICAiMS4yLjMuNiAoMylcbiIKICAgICAgICAgICAgICAiMS4yLjMuNyAoNClcbiIKICAgICAgICAgICAgICAiMS4yLjMuOCAoNSlcbiIKICAgICAgICAgICAgICAiMS4yLjMuOSAoNilcbiIKICAgICAgICAgICAgICAiMS4yLjMuMTEgKDgpXG4iCiAgICAgICAgICAgICAgIjEuMi4zLjEyICg4KVxuIgogICAgICAgICAgICAgICIxLjIuMy4xMyAoOSlcbiIKICAgICAgICAgICAgICAiMS4yLjMuMTQgKDEwKVxuIgogICAgICAgICAgICAgICIxLjIuMy4xNSAoOSlcbiIKICAgICAgICAgICAgICAiMS4yLjMuMTYgKDEwKVxuIgogICAgICAgICAgICAgICIxLjIuMy4xNyAoMTEpXG4iCiAgICAgICAgICAgICAgIjEuMi4zLjE4ICgxMilcbiIKICAgICAgICAgICAgICAiMS4yLjMuMTkgKDEzKVxuIgogICAgICAgICAgICAgICJmZTgwOjoyM2ExOmIxNTIgKDE0KVxuIgogICAgICAgICAgICAgICJmZTgwOjoyM2ExOmIxNTMgKDE1KVxuIgogICAgICAgICAgICAgICJmZTgwOjoyM2ExOmIxNTQgKDE2KVxuIgogICAgICAgICAgICAgICJmZTgwOjoyM2ExOmIxNTUgKDE3KVxuIgogICAgICAgICAgICAgICIxMC4xMC4xLjEgKDE4KVxuIgogICAgICAgICAgICAgICIxLjIuMy43ICgxOSlcbiIKICAgICAgICAgICAgICAiMS4yLjMuNCAoMjApXG4iCiAgICAgICAgICAgICAgIjEuMi4zLjUgKDIxKVxuIiwKICAgICAgICAgICAgICBzLnN0cigpKTsKfQoKVEVTVChQb29sLCBBY3F1aXJpbmdOb3RBdmFpbGFibGVBZGRyZXNzUmV0dXJuc0ZhbHNlKQp7CiAgICBhdXRvIHBvb2wgPSBJUDo6UG9vbHt9OwogICAgcG9vbC5hZGRfcmFuZ2UoSVA6OlJhbmdlKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMS4yLjMuNCIpLCAxNikpOwogICAgQVNTRVJUX0ZBTFNFKHBvb2wuYWNxdWlyZV9zcGVjaWZpY19hZGRyKElQOjpBZGRyOjpmcm9tX3N0cmluZygiMS4yLjMuNDIiKSkpOwp9CgpURVNUKFJhbmdlLCBFbXB0eVJhbmdlQmVnaW5FbmRJdGVyYXRvcnNBcmVFcXVhbCkKewogICAgYXV0byBlbXB0eV9yYW5nZSA9IElQOjpSYW5nZXt9OwogICAgQVNTRVJUX0ZBTFNFKGVtcHR5X3JhbmdlLmJlZ2luKCkgIT0gZW1wdHlfcmFuZ2UuZW5kKCkpOyAvLyBCZWNhdXNlIHVzaW5nIEFTU0VSVF9FUSBvciBBU1NFUlRfVFJVRSB3aXRoID09IHdvdWxkIHJlcXVpcmUgaW1wbGVtZW50aW5nIG9wZXJhdG9yPT0KfQoKc3RydWN0IHRlc3RfY2FzZQp7CiAgICBpbnQgc2hpZnQ7CiAgICB1aW50OF90IGlwWzE2XTsKfTsKCgoKdm9pZCBkb19zaGlmdF90ZXN0cyhjb25zdCBzdGQ6OnZlY3Rvcjx0ZXN0X2Nhc2U+ICZ0ZXN0X3ZlY3RvcnMsIGJvb2wgbGVmdHNoaWZ0KQp7CiAgICBzb2NrYWRkcl9pbjYgc2F7fTsKCiAgICBmb3IgKGludCBpID0gMDsgaSA8IDE2OyBpKyspCiAgICB7CiAgICAgICAgLyogZmlyc3QgdmVjdG9yIGhhcyB0byB1c2UgYSBzaGlmdCBvZiAwICAqLwogICAgICAgIHNhLnNpbjZfYWRkci5zNl9hZGRyW2ldID0gdGVzdF92ZWN0b3JzWzBdLmlwW2ldOwogICAgfQoKICAgIGZvciAoY29uc3QgYXV0byAmdCA6IHRlc3RfdmVjdG9ycykKICAgIHsKICAgICAgICAvLyBTaGlmdCBieSB6ZXJvIHNob3VsZCBub3QgY2hhbmdlIGFueXRoaW5nCiAgICAgICAgYXV0byBhZGRyID0gSVB2Njo6QWRkcjo6ZnJvbV9zb2NrYWRkcigmc2EpOwoKICAgICAgICBJUHY2OjpBZGRyIHNoaWZ0ZWRfYWRkcnt9OwoKICAgICAgICBpZiAobGVmdHNoaWZ0KQogICAgICAgICAgICBzaGlmdGVkX2FkZHIgPSBhZGRyIDw8IHQuc2hpZnQ7CiAgICAgICAgZWxzZQogICAgICAgICAgICBzaGlmdGVkX2FkZHIgPSBhZGRyID4+IHQuc2hpZnQ7CiAgICAgICAgYXV0byByZXQgPSBzaGlmdGVkX2FkZHIudG9fc29ja2FkZHIoKTsKCiAgICAgICAgc29ja2FkZHJfaW42IGNtcHt9OwojaWYgZGVmaW5lZChTSU42X0xFTikgfHwgZGVmaW5lZChfX0FQUExFX18pIHx8IGRlZmluZWQoX19GcmVlQlNEX18pCiAgICAgICAgLyogRW5hYmxlIHRoaXMgdGVzdCBvbiB0aGUgcGxhdGZvcm1zIHRoYXQgd2Uga25vdyB0byBoYXZlIHNpbjZfbGVuCiAgICAgICAgICogdG8gbm90IG9ubHkgZGVwZW5kIG9uIFNJTjZfTEVOICovCiAgICAgICAgY21wLnNpbjZfbGVuID0gc2l6ZW9mKHNvY2thZGRyX2luNik7CiNlbmRpZgogICAgICAgIGNtcC5zaW42X2ZhbWlseSA9IEFGX0lORVQ2OwogICAgICAgIGZvciAoaW50IGkgPSAwOyBpIDwgMTY7IGkrKykKICAgICAgICB7CiAgICAgICAgICAgIGNtcC5zaW42X2FkZHIuczZfYWRkcltpXSA9IHQuaXBbaV07CiAgICAgICAgfQoKICAgICAgICBpZiAobWVtY21wKCZjbXAsICZyZXQsIHNpemVvZihzb2NrYWRkcl9pbjYpKSAhPSAwKQogICAgICAgICAgICBzdGQ6OmNvdXQgPDwgIkJST0tFTiAiIDw8IHN0ZDo6dG9fc3RyaW5nKHQuc2hpZnQpIDw8IHN0ZDo6ZW5kbDsKCiAgICAgICAgRVhQRUNUX0VRKG1lbWNtcCgmY21wLCAmcmV0LCBzaXplb2Yoc29ja2FkZHJfaW42KSksIDApOwogICAgfQp9CgoKLyogdGVzdCB2ZWN0b3JzIGFyZSBnZW5lcmF0ZWQgd2l0aCBnZW5faXBfc2hpZnRzLnB5ICovClRFU1QoSVBBZGRyLCBsZWZ0X3NoaWZ0KQp7CiAgICBzdGQ6OnZlY3Rvcjx0ZXN0X2Nhc2U+IHRlc3Rze3swLCB7MHgxMSwgMHgyMiwgMHgzMywgMHg0NCwgMHg1NSwgMHg2NiwgMHg3NywgMHg4OCwgMHg5OSwgMHgwLCAweGFhLCAweGJiLCAweGNjLCAweGRkLCAweGVlLCAweGZmfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsxLCB7MHgyMiwgMHg0NCwgMHg2NiwgMHg4OCwgMHhhYSwgMHhjYywgMHhlZiwgMHgxMSwgMHgzMiwgMHgxLCAweDU1LCAweDc3LCAweDk5LCAweGJiLCAweGRkLCAweGZlfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHszMSwgezB4MmEsIDB4YjMsIDB4M2IsIDB4YzQsIDB4NGMsIDB4ODAsIDB4NTUsIDB4NWQsIDB4ZTYsIDB4NmUsIDB4ZjcsIDB4N2YsIDB4ODAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezMyLCB7MHg1NSwgMHg2NiwgMHg3NywgMHg4OCwgMHg5OSwgMHgwLCAweGFhLCAweGJiLCAweGNjLCAweGRkLCAweGVlLCAweGZmLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezMzLCB7MHhhYSwgMHhjYywgMHhlZiwgMHgxMSwgMHgzMiwgMHgxLCAweDU1LCAweDc3LCAweDk5LCAweGJiLCAweGRkLCAweGZlLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezQ1LCB7MHhjZSwgMHhmMSwgMHgxMywgMHgyMCwgMHgxNSwgMHg1NywgMHg3OSwgMHg5YiwgMHhiZCwgMHhkZiwgMHhlMCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezYzLCB7MHg0YywgMHg4MCwgMHg1NSwgMHg1ZCwgMHhlNiwgMHg2ZSwgMHhmNywgMHg3ZiwgMHg4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHs2NCwgezB4OTksIDB4MCwgMHhhYSwgMHhiYiwgMHhjYywgMHhkZCwgMHhlZSwgMHhmZiwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezY3LCB7MHhjOCwgMHg1LCAweDU1LCAweGRlLCAweDY2LCAweGVmLCAweDc3LCAweGY4LCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ODAsIHsweGFhLCAweGJiLCAweGNjLCAweGRkLCAweGVlLCAweGZmLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezk3LCB7MHg5OSwgMHhiYiwgMHhkZCwgMHhmZSwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7MTI3LCB7MHg4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7MTI4LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX19OwogICAgZG9fc2hpZnRfdGVzdHModGVzdHMsIHRydWUpOwp9CgpURVNUKElQQWRkciwgbGVmdF9zaGlmdF9yYW5kb20pCnsKICAgIHN0ZDo6dmVjdG9yPHRlc3RfY2FzZT4gdGVzdHN7CiAgICAgICAgezAsIHsweGJjLCAweDQ2LCAweGMsIDB4Y2IsIDB4OGYsIDB4ODUsIDB4MjUsIDB4OWEsIDB4NzQsIDB4OTEsIDB4ZDQsIDB4ODAsIDB4ZWQsIDB4MmQsIDB4ZTgsIDB4ZTB9fSwKICAgICAgICB7MSwgezB4NzgsIDB4OGMsIDB4MTksIDB4OTcsIDB4MWYsIDB4YSwgMHg0YiwgMHgzNCwgMHhlOSwgMHgyMywgMHhhOSwgMHgxLCAweGRhLCAweDViLCAweGQxLCAweGMwfX0sCiAgICAgICAgezMxLCB7MHhjNywgMHhjMiwgMHg5MiwgMHhjZCwgMHgzYSwgMHg0OCwgMHhlYSwgMHg0MCwgMHg3NiwgMHg5NiwgMHhmNCwgMHg3MCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgezMyLCB7MHg4ZiwgMHg4NSwgMHgyNSwgMHg5YSwgMHg3NCwgMHg5MSwgMHhkNCwgMHg4MCwgMHhlZCwgMHgyZCwgMHhlOCwgMHhlMCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgezMzLCB7MHgxZiwgMHhhLCAweDRiLCAweDM0LCAweGU5LCAweDIzLCAweGE5LCAweDEsIDB4ZGEsIDB4NWIsIDB4ZDEsIDB4YzAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgIHs0NSwgezB4YTQsIDB4YjMsIDB4NGUsIDB4OTIsIDB4M2EsIDB4OTAsIDB4MWQsIDB4YTUsIDB4YmQsIDB4MWMsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICB7NjMsIHsweDNhLCAweDQ4LCAweGVhLCAweDQwLCAweDc2LCAweDk2LCAweGY0LCAweDcwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgIHs2NCwgezB4NzQsIDB4OTEsIDB4ZDQsIDB4ODAsIDB4ZWQsIDB4MmQsIDB4ZTgsIDB4ZTAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgezY3LCB7MHhhNCwgMHg4ZSwgMHhhNCwgMHg3LCAweDY5LCAweDZmLCAweDQ3LCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgezgwLCB7MHhkNCwgMHg4MCwgMHhlZCwgMHgyZCwgMHhlOCwgMHhlMCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX0sCiAgICAgICAgezk3LCB7MHhkYSwgMHg1YiwgMHhkMSwgMHhjMCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgIHsxMjcsIHsweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fSwKICAgICAgICB7MTI4LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX19OwogICAgZG9fc2hpZnRfdGVzdHModGVzdHMsIHRydWUpOwp9CgpURVNUKElQQWRkciwgcmlnaHRfc2hpZnQpCnsKICAgIHN0ZDo6dmVjdG9yPHRlc3RfY2FzZT4gdGVzdHN7CiAgICAgICAgezAsIHsweDExLCAweDIyLCAweDMzLCAweDQ0LCAweDU1LCAweDY2LCAweDc3LCAweDg4LCAweDk5LCAweDAsIDB4YWEsIDB4YmIsIDB4Y2MsIDB4ZGQsIDB4ZWUsIDB4ZmZ9fSwKICAgICAgICB7MSwgezB4OCwgMHg5MSwgMHgxOSwgMHhhMiwgMHgyYSwgMHhiMywgMHgzYiwgMHhjNCwgMHg0YywgMHg4MCwgMHg1NSwgMHg1ZCwgMHhlNiwgMHg2ZSwgMHhmNywgMHg3Zn19LAogICAgICAgIHszMSwgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgyMiwgMHg0NCwgMHg2NiwgMHg4OCwgMHhhYSwgMHhjYywgMHhlZiwgMHgxMSwgMHgzMiwgMHgxLCAweDU1LCAweDc3fX0sCiAgICAgICAgezMyLCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDExLCAweDIyLCAweDMzLCAweDQ0LCAweDU1LCAweDY2LCAweDc3LCAweDg4LCAweDk5LCAweDAsIDB4YWEsIDB4YmJ9fSwKICAgICAgICB7MzMsIHsweDAsIDB4MCwgMHgwLCAweDAsIDB4OCwgMHg5MSwgMHgxOSwgMHhhMiwgMHgyYSwgMHhiMywgMHgzYiwgMHhjNCwgMHg0YywgMHg4MCwgMHg1NSwgMHg1ZH19LAogICAgICAgIHs0NSwgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4ODksIDB4MTEsIDB4OWEsIDB4MjIsIDB4YWIsIDB4MzMsIDB4YmMsIDB4NDQsIDB4YzgsIDB4NX19LAogICAgICAgIHs2MywgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDIyLCAweDQ0LCAweDY2LCAweDg4LCAweGFhLCAweGNjLCAweGVmLCAweDExfX0sCiAgICAgICAgezY0LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MTEsIDB4MjIsIDB4MzMsIDB4NDQsIDB4NTUsIDB4NjYsIDB4NzcsIDB4ODh9fSwKICAgICAgICB7NjcsIHsweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgyLCAweDI0LCAweDQ2LCAweDY4LCAweDhhLCAweGFjLCAweGNlLCAweGYxfX0sCiAgICAgICAgezgwLCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDExLCAweDIyLCAweDMzLCAweDQ0LCAweDU1LCAweDY2fX0sCiAgICAgICAgezk3LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHg4LCAweDkxLCAweDE5LCAweGEyfX0sCiAgICAgICAgezEyNywgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgIHsxMjgsIHsweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDB9fX07CiAgICBkb19zaGlmdF90ZXN0cyh0ZXN0cywgZmFsc2UpOwp9CgpURVNUKElQQWRkciwgcmlnaHRfc2hpZnRfcmFuZG9tKQp7CiAgICBzdGQ6OnZlY3Rvcjx0ZXN0X2Nhc2U+IHRlc3Rze3swLCB7MHg2ZCwgMHhmYiwgMHg0YSwgMHgxNSwgMHhiMywgMHg2YSwgMHhkOCwgMHgyNSwgMHg0MiwgMHg4MywgMHgyNywgMHg4MywgMHhhOSwgMHgyNywgMHgyZCwgMHgzfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsxLCB7MHgzNiwgMHhmZCwgMHhhNSwgMHhhLCAweGQ5LCAweGI1LCAweDZjLCAweDEyLCAweGExLCAweDQxLCAweDkzLCAweGMxLCAweGQ0LCAweDkzLCAweDk2LCAweDgxfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHszMSwgezB4MCwgMHgwLCAweDAsIDB4MCwgMHhkYiwgMHhmNiwgMHg5NCwgMHgyYiwgMHg2NiwgMHhkNSwgMHhiMCwgMHg0YSwgMHg4NSwgMHg2LCAweDRmLCAweDd9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezMyLCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDZkLCAweGZiLCAweDRhLCAweDE1LCAweGIzLCAweDZhLCAweGQ4LCAweDI1LCAweDQyLCAweDgzLCAweDI3LCAweDgzfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHszMywgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgzNiwgMHhmZCwgMHhhNSwgMHhhLCAweGQ5LCAweGI1LCAweDZjLCAweDEyLCAweGExLCAweDQxLCAweDkzLCAweGMxfX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHs0NSwgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDMsIDB4NmYsIDB4ZGEsIDB4NTAsIDB4YWQsIDB4OWIsIDB4NTYsIDB4YzEsIDB4MmEsIDB4MTQsIDB4MTl9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezYzLCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4ZGIsIDB4ZjYsIDB4OTQsIDB4MmIsIDB4NjYsIDB4ZDUsIDB4YjAsIDB4NGF9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezY0LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4NmQsIDB4ZmIsIDB4NGEsIDB4MTUsIDB4YjMsIDB4NmEsIDB4ZDgsIDB4MjV9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezY3LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4ZCwgMHhiZiwgMHg2OSwgMHg0MiwgMHhiNiwgMHg2ZCwgMHg1YiwgMHg0fX0sCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHs4MCwgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHg2ZCwgMHhmYiwgMHg0YSwgMHgxNSwgMHhiMywgMHg2YX19LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7OTcsIHsweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDM2LCAweGZkLCAweGE1LCAweGF9fSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgezEyNywgezB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MH19LAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7MTI4LCB7MHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwLCAweDAsIDB4MCwgMHgwfX19OwogICAgZG9fc2hpZnRfdGVzdHModGVzdHMsIGZhbHNlKTsKfQoKVEVTVChJUEFkZHIsIG1hcHBlZF92NCkKewogICAgSVA6OkFkZHIgdjZtYXBwZWR7Ijo6ZmZmZjoyMzMyOjEyM2EifTsKCgogICAgRVhQRUNUX1RSVUUodjZtYXBwZWQuaXNfbWFwcGVkX2FkZHJlc3MoKSk7CiAgICBJUDo6QWRkciBub3RNYXBwZWQgPSB2Nm1hcHBlZC50b192NF9hZGRyKCk7CgogICAgRVhQRUNUX0VRKHY2bWFwcGVkLnRvX3N0cmluZygpLCAiOjpmZmZmOjM1LjUwLjE4LjU4Iik7CiAgICBFWFBFQ1RfRVEobm90TWFwcGVkLnRvX3N0cmluZygpLCAiMzUuNTAuMTguNTgiKTsKCiAgICBFWFBFQ1RfRkFMU0UoSVA6OkFkZHJ7Ijo6ZmFmZjoyMzMyOjEyM2EifS5pc19tYXBwZWRfYWRkcmVzcygpKTsKICAgIEVYUEVDVF9GQUxTRShJUDo6QWRkcnsiOjoyMzMyOjEyM2EifS5pc19tYXBwZWRfYWRkcmVzcygpKTsKICAgIEVYUEVDVF9GQUxTRShJUDo6QWRkcnsiMTkyLjE2OC4wLjEyMyJ9LmlzX21hcHBlZF9hZGRyZXNzKCkpOwp9Cg==
+#include "test_common.hpp"
+#include <iostream>
+
+#include <openvpn/common/size.hpp>
+#include <openvpn/common/exception.hpp>
+
+#include <openvpn/ip/ping6.hpp>
+#include <openvpn/addr/ip.hpp>
+#include <openvpn/addr/pool.hpp>
+#include <openvpn/addr/ipv6.hpp>
+
+#if defined(SIN6_LEN) || defined(__APPLE__) || defined(__FreeBSD__)
+#include <sys/socket.h>
+#endif
+
+using namespace openvpn;
+
+static const uint8_t icmp6_packet[] = {
+    // clang-format off
+    0x60, 0x06, 0x22, 0xe5, 0x00, 0x40, 0x3a, 0x28, 0x26, 0x01, 0x02, 0x81, 0x84, 0x80, 0x14, 0xe0,
+    0xbc, 0xc1, 0x91, 0x20, 0xfc, 0xa3, 0x0e, 0x22, 0x26, 0x00, 0x1f, 0x18, 0x47, 0x2b, 0x89, 0x05,
+    0x2a, 0xc4, 0x3b, 0xf3, 0xd5, 0x77, 0x29, 0x42, 0x80, 0x00, 0x99, 0x99, 0x3f, 0xd4, 0x00, 0x0e,
+    0x43, 0xd4, 0xc3, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x3d, 0xc2, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37
+    // clang-format on
+
+};
+
+static bool verbose = false;
+
+TEST(IPAddr, icmp6csum)
+{
+    const ICMPv6 *icmp = (const ICMPv6 *)icmp6_packet;
+    const size_t len = sizeof(icmp6_packet);
+
+    if (verbose)
+    {
+        std::cout << "From : " << IPv6::Addr::from_in6_addr(&icmp->head.saddr).to_string() << std::endl;
+        std::cout << "To   : " << IPv6::Addr::from_in6_addr(&icmp->head.daddr).to_string() << std::endl;
+    }
+    const std::uint16_t csum = Ping6::csum_icmp(icmp, len);
+    if (verbose)
+    {
+        std::cout << "Checksum: " << csum << std::endl;
+    }
+    ASSERT_TRUE(csum == 0) << "checksum=" << csum << " but should be zero";
+}
+
+TEST(IPAddr, pool)
+{
+    IP::Pool pool;
+    pool.add_range(IP::Range(IP::Addr::from_string("1.2.3.4"), 16));
+    pool.add_range(IP::Range(IP::Addr::from_string("Fe80::23a1:b152"), 4));
+    pool.add_addr(IP::Addr::from_string("10.10.1.1"));
+    ASSERT_TRUE(pool.acquire_specific_addr(IP::Addr::from_string("1.2.3.10")));
+
+    std::stringstream s;
+    for (int i = 0;; ++i)
+    {
+        IP::Addr addr;
+        if (i == 7)
+        {
+            pool.release_addr(IP::Addr::from_string("1.2.3.7"));
+        }
+        else if (i == 11)
+        {
+            pool.release_addr(IP::Addr::from_string("1.2.3.3"));
+            pool.release_addr(IP::Addr::from_string("1.2.3.4"));
+            pool.release_addr(IP::Addr::from_string("1.2.3.5"));
+        }
+        else
+        {
+            if (pool.acquire_addr(addr))
+            {
+                s << addr << " (" << pool.n_in_use() << ")" << std::endl;
+            }
+            else
+                break;
+        }
+    }
+    ASSERT_EQ("1.2.3.4 (1)\n"
+              "1.2.3.5 (2)\n"
+              "1.2.3.6 (3)\n"
+              "1.2.3.7 (4)\n"
+              "1.2.3.8 (5)\n"
+              "1.2.3.9 (6)\n"
+              "1.2.3.11 (8)\n"
+              "1.2.3.12 (8)\n"
+              "1.2.3.13 (9)\n"
+              "1.2.3.14 (10)\n"
+              "1.2.3.15 (9)\n"
+              "1.2.3.16 (10)\n"
+              "1.2.3.17 (11)\n"
+              "1.2.3.18 (12)\n"
+              "1.2.3.19 (13)\n"
+              "fe80::23a1:b152 (14)\n"
+              "fe80::23a1:b153 (15)\n"
+              "fe80::23a1:b154 (16)\n"
+              "fe80::23a1:b155 (17)\n"
+              "10.10.1.1 (18)\n"
+              "1.2.3.7 (19)\n"
+              "1.2.3.4 (20)\n"
+              "1.2.3.5 (21)\n",
+              s.str());
+}
+
+TEST(Pool, AcquiringNotAvailableAddressReturnsFalse)
+{
+    auto pool = IP::Pool{};
+    pool.add_range(IP::Range(IP::Addr::from_string("1.2.3.4"), 16));
+    ASSERT_FALSE(pool.acquire_specific_addr(IP::Addr::from_string("1.2.3.42")));
+}
+
+TEST(Range, EmptyRangeBeginEndIteratorsAreEqual)
+{
+    auto empty_range = IP::Range{};
+    ASSERT_FALSE(empty_range.begin() != empty_range.end()); // Because using ASSERT_EQ or ASSERT_TRUE with == would require implementing operator==
+}
+
+struct test_case
+{
+    int shift;
+    uint8_t ip[16];
+};
+
+
+
+void do_shift_tests(const std::vector<test_case> &test_vectors, bool leftshift)
+{
+    sockaddr_in6 sa{};
+
+    for (int i = 0; i < 16; i++)
+    {
+        /* first vector has to use a shift of 0  */
+        sa.sin6_addr.s6_addr[i] = test_vectors[0].ip[i];
+    }
+
+    for (const auto &t : test_vectors)
+    {
+        // Shift by zero should not change anything
+        auto addr = IPv6::Addr::from_sockaddr(&sa);
+
+        IPv6::Addr shifted_addr{};
+
+        if (leftshift)
+            shifted_addr = addr << t.shift;
+        else
+            shifted_addr = addr >> t.shift;
+        auto ret = shifted_addr.to_sockaddr();
+
+        sockaddr_in6 cmp{};
+#if defined(SIN6_LEN) || defined(__APPLE__) || defined(__FreeBSD__)
+        /* Enable this test on the platforms that we know to have sin6_len
+         * to not only depend on SIN6_LEN */
+        cmp.sin6_len = sizeof(sockaddr_in6);
+#endif
+        cmp.sin6_family = AF_INET6;
+        for (int i = 0; i < 16; i++)
+        {
+            cmp.sin6_addr.s6_addr[i] = t.ip[i];
+        }
+
+        if (memcmp(&cmp, &ret, sizeof(sockaddr_in6)) != 0)
+            std::cout << "BROKEN " << std::to_string(t.shift) << std::endl;
+
+        EXPECT_EQ(memcmp(&cmp, &ret, sizeof(sockaddr_in6)), 0);
+    }
+}
+
+
+/* test vectors are generated with gen_ip_shifts.py */
+TEST(IPAddr, left_shift)
+{
+    std::vector<test_case> tests{{0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x0, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}},
+                                 {1, {0x22, 0x44, 0x66, 0x88, 0xaa, 0xcc, 0xef, 0x11, 0x32, 0x1, 0x55, 0x77, 0x99, 0xbb, 0xdd, 0xfe}},
+                                 {31, {0x2a, 0xb3, 0x3b, 0xc4, 0x4c, 0x80, 0x55, 0x5d, 0xe6, 0x6e, 0xf7, 0x7f, 0x80, 0x0, 0x0, 0x0}},
+                                 {32, {0x55, 0x66, 0x77, 0x88, 0x99, 0x0, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x0, 0x0, 0x0, 0x0}},
+                                 {33, {0xaa, 0xcc, 0xef, 0x11, 0x32, 0x1, 0x55, 0x77, 0x99, 0xbb, 0xdd, 0xfe, 0x0, 0x0, 0x0, 0x0}},
+                                 {45, {0xce, 0xf1, 0x13, 0x20, 0x15, 0x57, 0x79, 0x9b, 0xbd, 0xdf, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {63, {0x4c, 0x80, 0x55, 0x5d, 0xe6, 0x6e, 0xf7, 0x7f, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {64, {0x99, 0x0, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {67, {0xc8, 0x5, 0x55, 0xde, 0x66, 0xef, 0x77, 0xf8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {80, {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {97, {0x99, 0xbb, 0xdd, 0xfe, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {127, {0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {128, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}}};
+    do_shift_tests(tests, true);
+}
+
+TEST(IPAddr, left_shift_random)
+{
+    std::vector<test_case> tests{
+        {0, {0xbc, 0x46, 0xc, 0xcb, 0x8f, 0x85, 0x25, 0x9a, 0x74, 0x91, 0xd4, 0x80, 0xed, 0x2d, 0xe8, 0xe0}},
+        {1, {0x78, 0x8c, 0x19, 0x97, 0x1f, 0xa, 0x4b, 0x34, 0xe9, 0x23, 0xa9, 0x1, 0xda, 0x5b, 0xd1, 0xc0}},
+        {31, {0xc7, 0xc2, 0x92, 0xcd, 0x3a, 0x48, 0xea, 0x40, 0x76, 0x96, 0xf4, 0x70, 0x0, 0x0, 0x0, 0x0}},
+        {32, {0x8f, 0x85, 0x25, 0x9a, 0x74, 0x91, 0xd4, 0x80, 0xed, 0x2d, 0xe8, 0xe0, 0x0, 0x0, 0x0, 0x0}},
+        {33, {0x1f, 0xa, 0x4b, 0x34, 0xe9, 0x23, 0xa9, 0x1, 0xda, 0x5b, 0xd1, 0xc0, 0x0, 0x0, 0x0, 0x0}},
+        {45, {0xa4, 0xb3, 0x4e, 0x92, 0x3a, 0x90, 0x1d, 0xa5, 0xbd, 0x1c, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {63, {0x3a, 0x48, 0xea, 0x40, 0x76, 0x96, 0xf4, 0x70, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {64, {0x74, 0x91, 0xd4, 0x80, 0xed, 0x2d, 0xe8, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {67, {0xa4, 0x8e, 0xa4, 0x7, 0x69, 0x6f, 0x47, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {80, {0xd4, 0x80, 0xed, 0x2d, 0xe8, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {97, {0xda, 0x5b, 0xd1, 0xc0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {127, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {128, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}}};
+    do_shift_tests(tests, true);
+}
+
+TEST(IPAddr, right_shift)
+{
+    std::vector<test_case> tests{
+        {0, {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x0, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}},
+        {1, {0x8, 0x91, 0x19, 0xa2, 0x2a, 0xb3, 0x3b, 0xc4, 0x4c, 0x80, 0x55, 0x5d, 0xe6, 0x6e, 0xf7, 0x7f}},
+        {31, {0x0, 0x0, 0x0, 0x0, 0x22, 0x44, 0x66, 0x88, 0xaa, 0xcc, 0xef, 0x11, 0x32, 0x1, 0x55, 0x77}},
+        {32, {0x0, 0x0, 0x0, 0x0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x0, 0xaa, 0xbb}},
+        {33, {0x0, 0x0, 0x0, 0x0, 0x8, 0x91, 0x19, 0xa2, 0x2a, 0xb3, 0x3b, 0xc4, 0x4c, 0x80, 0x55, 0x5d}},
+        {45, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x89, 0x11, 0x9a, 0x22, 0xab, 0x33, 0xbc, 0x44, 0xc8, 0x5}},
+        {63, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x22, 0x44, 0x66, 0x88, 0xaa, 0xcc, 0xef, 0x11}},
+        {64, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88}},
+        {67, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2, 0x24, 0x46, 0x68, 0x8a, 0xac, 0xce, 0xf1}},
+        {80, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66}},
+        {97, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x8, 0x91, 0x19, 0xa2}},
+        {127, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+        {128, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}}};
+    do_shift_tests(tests, false);
+}
+
+TEST(IPAddr, right_shift_random)
+{
+    std::vector<test_case> tests{{0, {0x6d, 0xfb, 0x4a, 0x15, 0xb3, 0x6a, 0xd8, 0x25, 0x42, 0x83, 0x27, 0x83, 0xa9, 0x27, 0x2d, 0x3}},
+                                 {1, {0x36, 0xfd, 0xa5, 0xa, 0xd9, 0xb5, 0x6c, 0x12, 0xa1, 0x41, 0x93, 0xc1, 0xd4, 0x93, 0x96, 0x81}},
+                                 {31, {0x0, 0x0, 0x0, 0x0, 0xdb, 0xf6, 0x94, 0x2b, 0x66, 0xd5, 0xb0, 0x4a, 0x85, 0x6, 0x4f, 0x7}},
+                                 {32, {0x0, 0x0, 0x0, 0x0, 0x6d, 0xfb, 0x4a, 0x15, 0xb3, 0x6a, 0xd8, 0x25, 0x42, 0x83, 0x27, 0x83}},
+                                 {33, {0x0, 0x0, 0x0, 0x0, 0x36, 0xfd, 0xa5, 0xa, 0xd9, 0xb5, 0x6c, 0x12, 0xa1, 0x41, 0x93, 0xc1}},
+                                 {45, {0x0, 0x0, 0x0, 0x0, 0x0, 0x3, 0x6f, 0xda, 0x50, 0xad, 0x9b, 0x56, 0xc1, 0x2a, 0x14, 0x19}},
+                                 {63, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xdb, 0xf6, 0x94, 0x2b, 0x66, 0xd5, 0xb0, 0x4a}},
+                                 {64, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x6d, 0xfb, 0x4a, 0x15, 0xb3, 0x6a, 0xd8, 0x25}},
+                                 {67, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xd, 0xbf, 0x69, 0x42, 0xb6, 0x6d, 0x5b, 0x4}},
+                                 {80, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x6d, 0xfb, 0x4a, 0x15, 0xb3, 0x6a}},
+                                 {97, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x36, 0xfd, 0xa5, 0xa}},
+                                 {127, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}},
+                                 {128, {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}}};
+    do_shift_tests(tests, false);
+}
+
+TEST(IPAddr, mapped_v4)
+{
+    IP::Addr v6mapped{"::ffff:2332:123a"};
+
+
+    EXPECT_TRUE(v6mapped.is_mapped_address());
+    IP::Addr notMapped = v6mapped.to_v4_addr();
+
+    EXPECT_EQ(v6mapped.to_string(), "::ffff:35.50.18.58");
+    EXPECT_EQ(notMapped.to_string(), "35.50.18.58");
+
+    EXPECT_FALSE(IP::Addr{"::faff:2332:123a"}.is_mapped_address());
+    EXPECT_FALSE(IP::Addr{"::2332:123a"}.is_mapped_address());
+    EXPECT_FALSE(IP::Addr{"192.168.0.123"}.is_mapped_address());
+}

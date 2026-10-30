@@ -1,1 +1,80 @@
-T3BlblZQTiBwcm90b2NvbCB1bml0IHRlc3RzCj09PT09PT09PT09PT09PT09PT09PT09PT09PQoKVGhlIGBwcm90b1VuaXRUZXN0YCB1dGlsaXR5IGNhbiBiZSB0d2Vha2VkIHdpdGggYnVpbGQgdGltZSBvcHRpb25zCmNoYW5naW5nIHRoZSBiZWhhdmlvdXIuIFRoZXNlIGFyZSBzZXQgdmlhIENNYWtlIHZhcmlhYmxlcy4KCi0gICBgVEVTVF9QUk9UT19OVEhSRUFEU2AgLSBSdW5uaW5nIHRlc3QgdGhyZWFkcyAoZGVmYXVsdCBgMWApCgogICAgVGhlIG51bWJlciBvZiB0ZXN0IGNsaWVudC9zZXJ2ZXIgcGFpcnMgcnVubmluZyBpbiBwYXJhbGxlbC4KCiAgICAgICAgJCBjZCAkTzMvY29yZS9idWlsZCAmJiBjbWFrZSAtRFRFU1RfUFJPVE9fTlRIUkVBRFM9NCAuLgogICAgICAgICQgY21ha2UgLS1idWlsZCAuIC0tIHRlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMKICAgICAgICAkIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X2ZpbHRlcj0iUHJvdG9Vbml0VGVzdCoiCgotICAgYFRFU1RfUFJPVE9fUkVORUdgIC0gUmVuZ290aWF0aW9uIChkZWZhdWx0IGA5MDBgKQoKICAgIFRvIHNpbXVsYXRlIGxlc3MgZGF0YS1jaGFubmVsIGFjdGl2aXR5IGFuZCBtb3JlIFNTTCByZW5lZ290aWF0aW9ucwoKICAgICAgICAkIGNkICRPMy9jb3JlL2J1aWxkICYmIGNtYWtlIC1EVEVTVF9QUk9UT19SRU5FRz05MCAuLgogICAgICAgICQgY21ha2UgLS1idWlsZCAuIC0tIHRlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMKICAgICAgICAkIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X2ZpbHRlcj0iUHJvdG9Vbml0VGVzdCoiCgotICAgYFRFU1RfUFJPVE9fSVRFUmAgLSBJdGVyYXRpb25zIChkZWZhdWx0IGAxMDAwMDAwYCkKCiAgICBGb3IgdmVyYm9zZSBvdXRwdXQsIGxvd2VyIHRoZSBudW1iZXIgb2YgeG1pdC9yZWN2IGl0ZXJhdGlvbnMgYnkKICAgIGRlZmluaW5nIGBURVNUX1BST1RPX0lURVJgIHRvIGJlIGAxMDAwMGAgb3IgbGVzcywgZS5nLgoKICAgICAgICAkIGNkICRPMy9jb3JlL2J1aWxkICYmIGNtYWtlIC1EVEVTVF9QUk9UT19JVEVSPTEwMDAgLi4KICAgICAgICAkIGNtYWtlIC0tYnVpbGQgLiAtLSB0ZXN0L3VuaXR0ZXN0cy9jb3JlVW5pdFRlc3RzCiAgICAgICAgJCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9maWx0ZXI9IlByb3RvVW5pdFRlc3QqIgoKLSAgIGBURVNUX1BST1RPX1NJVEVSYCAtIEhpZ2gtbGV2ZWwgU2Vzc2lvbiBJdGVyYXRpb25zIChkZWZhdWx0IGAxYCkKCiAgICAgICAgJCBjZCAkTzMvY29yZS9idWlsZCAmJiBjbWFrZSAtRFRFU1RfUFJPVE9fU0lURVI9MiAuLgogICAgICAgICQgY21ha2UgLS1idWlsZCAuIC0tIHRlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMKICAgICAgICAkIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X2ZpbHRlcj0iUHJvdG9Vbml0VGVzdCoiCgotICAgYFRFU1RfUFJPVE9fVkVSQk9TRWAgLSBWZXJib3NlIGxvZyBvdXRwdXQgKGBPRkZgKQoKICAgIFRoaXMgd2lsbCBkdW1wIGRldGFpbHMgb2YgdGhlIHByb3RvY29sIHRyYWZmaWMgYXMgdGhlIHRlc3QgcnVucy4KICAgIFRoaXMgaXMgYSBib29sZWFuIGZsYWcuCgogICAgICAgICQgY2QgJE8zL2NvcmUvYnVpbGQgJiYgY21ha2UgLURURVNUX1BST1RPX1ZFUkJPU0U9T04gLi4KICAgICAgICAkIGNtYWtlIC0tYnVpbGQgLiAtLSB0ZXN0L3VuaXR0ZXN0cy9jb3JlVW5pdFRlc3RzCiAgICAgICAgJCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9maWx0ZXI9IlByb3RvVW5pdFRlc3QqIgoKTWJlZCBUTFMgc3BlY2lmaWMKLS0tLS0tLS0tLS0tLS0tLS0KCiMjIyBDYXZlYXRzCgpXaGVuIHVzaW5nIE1iZWRUTFMgYXMgYm90aCBjbGllbnQgYW5kIHNlcnZlciwgbWFrZSBzdXJlIHRvIGJ1aWxkIE1iZWRUTFMKb24gTWFjIE9TIFggd2l0aCBgT1NYX1NFUlZFUj0xYC4KClR5cGljYWwgb3V0cHV0Ci0tLS0tLS0tLS0tLS0tCgogICAgJCBjZCAkTzMvY29yZS9idWlsZAogICAgJCBjbWFrZSAuLgogICAgJCBjbWFrZSAtLWJ1aWxkIC4gLS0gdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cwogICAgJCB0aW1lIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X2ZpbHRlcj0iUHJvdG9Vbml0VGVzdCoiCiAgICBOb3RlOiBHb29nbGUgVGVzdCBmaWx0ZXIgPSBQcm90b1VuaXRUZXN0KgogICAgWz09PT09PT09PT1dIFJ1bm5pbmcgMyB0ZXN0cyBmcm9tIDEgdGVzdCBzdWl0ZS4KICAgIFstLS0tLS0tLS0tXSBHbG9iYWwgdGVzdCBlbnZpcm9ubWVudCBzZXQtdXAuCiAgICBbLS0tLS0tLS0tLV0gMyB0ZXN0cyBmcm9tIFByb3RvVW5pdFRlc3QKICAgIFsgUlVOICAgICAgXSBQcm90b1VuaXRUZXN0LmJhc2Vfc2luZ2xlX3RocmVhZF90bHNfZWttCiAgICAqKiogYXBwIGJ5dGVzPTEyNzI5NTYxNiBuZXRfYnl0ZXM9MTk2NTI2ODA5IGRhdGFfYnl0ZXM9NDE2MDYwMjUzIHByb2c9MDAwMDM3ODg1My8wMDAwMzc4ODU0IEQ9MTI3MDAvNjAwLzEyNjAwLzgwMCBOPTEwOS8xMDkgU0g9MTMwMDAvMTMwMDAgSEU9MC8wCiAgICBbICAgICAgIE9LIF0gUHJvdG9Vbml0VGVzdC5iYXNlX3NpbmdsZV90aHJlYWRfbm9fdGxzX2VrbSAoMjc5MjUgbXMpCiAgICBbIFJVTiAgICAgIF0gUHJvdG9Vbml0VGVzdC5iYXNlX211bHRpcGxlX3RocmVhZAogICAgKioqIGFwcCBieXRlcz0xMjgwOTE2MDAgbmV0X2J5dGVzPTE5NzU3MzM2OSBkYXRhX2J5dGVzPTQxNjIwMDE3MiBwcm9nPTAwMDAzODEyMjMvMDAwMDM4MTIyMiBEPTEwNjAwLzYwMC8xMDYwMC82MDAgTj0xMDkvMTA5IFNIPTEzMTAwLzEyOTAwIEhFPTAvMAogICAgWyAgICAgICBPSyBdIFByb3RvVW5pdFRlc3QuYmFzZV9tdWx0aXBsZV90aHJlYWQgKDI4NTc3IG1zKQogICAgWy0tLS0tLS0tLS1dIDMgdGVzdHMgZnJvbSBQcm90b1VuaXRUZXN0ICg4NDI1OCBtcyB0b3RhbCkKCiAgICBbLS0tLS0tLS0tLV0gR2xvYmFsIHRlc3QgZW52aXJvbm1lbnQgdGVhci1kb3duCiAgICBbPT09PT09PT09PV0gMyB0ZXN0cyBmcm9tIDEgdGVzdCBzdWl0ZSByYW4uICg4NDI1OCBtcyB0b3RhbCkKICAgIFsgIFBBU1NFRCAgXSAzIHRlc3RzLgoKICAgIHJlYWwJMW0yNCwzOTlzCiAgICB1c2VyCTFtMjMsNzM2cwogICAgc3lzCTBtMCw2MTZzCg==
+OpenVPN protocol unit tests
+===========================
+
+The `protoUnitTest` utility can be tweaked with build time options
+changing the behaviour. These are set via CMake variables.
+
+-   `TEST_PROTO_NTHREADS` - Running test threads (default `1`)
+
+    The number of test client/server pairs running in parallel.
+
+        $ cd $O3/core/build && cmake -DTEST_PROTO_NTHREADS=4 ..
+        $ cmake --build . -- test/unittests/coreUnitTests
+        $ ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+
+-   `TEST_PROTO_RENEG` - Rengotiation (default `900`)
+
+    To simulate less data-channel activity and more SSL renegotiations
+
+        $ cd $O3/core/build && cmake -DTEST_PROTO_RENEG=90 ..
+        $ cmake --build . -- test/unittests/coreUnitTests
+        $ ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+
+-   `TEST_PROTO_ITER` - Iterations (default `1000000`)
+
+    For verbose output, lower the number of xmit/recv iterations by
+    defining `TEST_PROTO_ITER` to be `10000` or less, e.g.
+
+        $ cd $O3/core/build && cmake -DTEST_PROTO_ITER=1000 ..
+        $ cmake --build . -- test/unittests/coreUnitTests
+        $ ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+
+-   `TEST_PROTO_SITER` - High-level Session Iterations (default `1`)
+
+        $ cd $O3/core/build && cmake -DTEST_PROTO_SITER=2 ..
+        $ cmake --build . -- test/unittests/coreUnitTests
+        $ ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+
+-   `TEST_PROTO_VERBOSE` - Verbose log output (`OFF`)
+
+    This will dump details of the protocol traffic as the test runs.
+    This is a boolean flag.
+
+        $ cd $O3/core/build && cmake -DTEST_PROTO_VERBOSE=ON ..
+        $ cmake --build . -- test/unittests/coreUnitTests
+        $ ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+
+Mbed TLS specific
+-----------------
+
+### Caveats
+
+When using MbedTLS as both client and server, make sure to build MbedTLS
+on Mac OS X with `OSX_SERVER=1`.
+
+Typical output
+--------------
+
+    $ cd $O3/core/build
+    $ cmake ..
+    $ cmake --build . -- test/unittests/coreUnitTests
+    $ time ./test/unittests/coreUnitTests --gtest_filter="ProtoUnitTest*"
+    Note: Google Test filter = ProtoUnitTest*
+    [==========] Running 3 tests from 1 test suite.
+    [----------] Global test environment set-up.
+    [----------] 3 tests from ProtoUnitTest
+    [ RUN      ] ProtoUnitTest.base_single_thread_tls_ekm
+    *** app bytes=127295616 net_bytes=196526809 data_bytes=416060253 prog=0000378853/0000378854 D=12700/600/12600/800 N=109/109 SH=13000/13000 HE=0/0
+    [       OK ] ProtoUnitTest.base_single_thread_no_tls_ekm (27925 ms)
+    [ RUN      ] ProtoUnitTest.base_multiple_thread
+    *** app bytes=128091600 net_bytes=197573369 data_bytes=416200172 prog=0000381223/0000381222 D=10600/600/10600/600 N=109/109 SH=13100/12900 HE=0/0
+    [       OK ] ProtoUnitTest.base_multiple_thread (28577 ms)
+    [----------] 3 tests from ProtoUnitTest (84258 ms total)
+
+    [----------] Global test environment tear-down
+    [==========] 3 tests from 1 test suite ran. (84258 ms total)
+    [  PASSED  ] 3 tests.
+
+    real	1m24,399s
+    user	1m23,736s
+    sys	0m0,616s

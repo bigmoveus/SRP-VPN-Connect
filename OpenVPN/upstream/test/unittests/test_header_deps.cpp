@@ -1,1 +1,13 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCi8vIHRoaXMgZmlsZSBhbGxvd3MgY2hlY2tpbmcgaGVhZGVycyBmb3IgIm91dCBvZiB0cmVlIiBkZXBlbmRlbmNpZXM7IG1hbmFnZS5ocHAKLy8gaXMgYW4gZXhhbXBsZQojaW5jbHVkZSA8b3BlbnZwbi9zZXJ2ZXIvbWFuYWdlLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKVEVTVChtaXNjLCBoZWFkZXJfZGVwcykKewogICAgLy8gdGhpcyBpcyBhIGNvbXBpbGUgdGVzdCwgbm8gcnVudGltZSB2YWx1ZQogICAgQVNTRVJUX1RSVUUodHJ1ZSk7Cn0K
+#include "test_common.hpp"
+
+// this file allows checking headers for "out of tree" dependencies; manage.hpp
+// is an example
+#include <openvpn/server/manage.hpp>
+
+using namespace openvpn;
+
+TEST(misc, header_deps)
+{
+    // this is a compile test, no runtime value
+    ASSERT_TRUE(true);
+}

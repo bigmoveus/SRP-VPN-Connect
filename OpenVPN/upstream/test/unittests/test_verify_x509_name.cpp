@@ -1,1 +1,143 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vICAgIENvcHlyaWdodCAoQykgMjAxOS0yMDIyIERhdmlkIFNvbW1lcnNldGggPGRhdmlkc0BvcGVudnBuLm5ldD4KLy8KLy8gICAgU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE1QTC0yLjAgT1IgQUdQTC0zLjAtb25seSBXSVRIIG9wZW52cG4zLW9wZW5zc2wtZXhjZXB0aW9uCi8vCgovLwoKI2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgojaW5jbHVkZSAib3BlbnZwbi9jbGllbnQvY2xpY29uc3RhbnRzLmhwcCIKI2luY2x1ZGUgIm9wZW52cG4vY29tbW9uL29wdGlvbnMuaHBwIgojaW5jbHVkZSAib3BlbnZwbi9zc2wvdmVyaWZ5X3g1MDlfbmFtZS5ocHAiCgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCm5hbWVzcGFjZSB1bml0dGVzdHMgewoKT3B0aW9uTGlzdCBwYXJzZV90ZXN0Y2ZnKHN0ZDo6c3RyaW5nICZjb25maWcpCnsKICAgIE9wdGlvbkxpc3Q6OkxpbWl0cyBsaW1pdHMoCiAgICAgICAgInByb2ZpbGUgaXMgdG9vIGxhcmdlIiwKICAgICAgICBQcm9maWxlUGFyc2VMaW1pdHM6Ok1BWF9QUk9GSUxFX1NJWkUsCiAgICAgICAgUHJvZmlsZVBhcnNlTGltaXRzOjpPUFRfT1ZFUkhFQUQsCiAgICAgICAgUHJvZmlsZVBhcnNlTGltaXRzOjpURVJNX09WRVJIRUFELAogICAgICAgIFByb2ZpbGVQYXJzZUxpbWl0czo6TUFYX0xJTkVfU0laRSwKICAgICAgICBQcm9maWxlUGFyc2VMaW1pdHM6Ok1BWF9ESVJFQ1RJVkVfU0laRSk7CiAgICBPcHRpb25MaXN0IG9wdHM7CiAgICBvcHRzLnBhcnNlX2Zyb21fY29uZmlnKGNvbmZpZywgJmxpbWl0cyk7CiAgICBvcHRzLnVwZGF0ZV9tYXAoKTsKICAgIHJldHVybiBvcHRzOwp9CgpURVNUKFZlcmlmeVg1MDlOYW1lLCBjb25maWdfbWlzc2luZ19hcmdzKQp7CiAgICAvLyBNaXNzaW5nIGJvdGggbmVlZGVkIGFyZ3VtZW50cwogICAgc3RkOjpzdHJpbmcgY29uZmlnID0gInZlcmlmeS14NTA5LW5hbWUiOwogICAgRVhQRUNUX1RIUk9XKFZlcmlmeVg1MDlOYW1lIGVycl9ub19hcmdzKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSksIG9wdGlvbl9lcnJvcik7Cn0KClRFU1QoVmVyaWZ5WDUwOU5hbWUsIGNvbmZpZ19pbmNvcnJlY3RfdHlwZSkKewogICAgLy8gSW5jb3JyZWN0IHR5cGUKICAgIHN0ZDo6c3RyaW5nIGNvbmZpZyA9ICJ2ZXJpZnkteDUwOS1uYW1lIGxvY2FsaG9zdCBub25zZW5zZS1hcmciOwogICAgRVhQRUNUX1RIUk9XKFZlcmlmeVg1MDlOYW1lIGVycl93cm9uZ190eXBlKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSksCiAgICAgICAgICAgICAgICAgb3B0aW9uX2Vycm9yKTsKfQoKVEVTVChWZXJpZnlYNTA5TmFtZSwgY29uZmlnX2NvcnJlY3RfZGVmYXVsdF90eXBlKQp7CiAgICAvLyBNaXNzaW5nIHR5cGUgYXJndW1lbnQgLSBkZWZhdWx0cyB0byBjb21wbGV0ZSBzdWJqZWN0IEROCiAgICBzdGQ6OnN0cmluZyBjb25maWcgPSAidmVyaWZ5LXg1MDktbmFtZSBcIkM9S0csIFNUPU5BLCBPPU9wZW5WUE4tVEVTVCwgQ049VGVzdC1TZXJ2ZXIsICIKICAgICAgICAgICAgICAgICAgICAgICAgICJlbWFpbEFkZHJlc3M9bWVAbXlob3N0Lm15ZG9tYWluXCIiOwogICAgVmVyaWZ5WDUwOU5hbWUgb2tfZGVmYXVsdF9zdWJqKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSk7Cn0KClRFU1QoVmVyaWZ5WDUwOU5hbWUsIGNvbmZpZ19jb3JyZWN0X3N1YmplY3QpCnsKICAgIC8vIENvcnJlY3QgLSB0eXBlOiBzdWJqZWN0CiAgICBzdGQ6OnN0cmluZyBjb25maWcgPSAidmVyaWZ5LXg1MDktbmFtZSBcIkM9S0csIFNUPU5BLCBPPU9wZW5WUE4tVEVTVCwgQ049VGVzdC1TZXJ2ZXIsICIKICAgICAgICAgICAgICAgICAgICAgICAgICJlbWFpbEFkZHJlc3M9bWVAbXlob3N0Lm15ZG9tYWluXCIgc3ViamVjdCI7CiAgICBWZXJpZnlYNTA5TmFtZSBva19zdWJqKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSk7Cn0KClRFU1QoVmVyaWZ5WDUwOU5hbWUsIGNvbmZpZ19jb3JyZWN0X25hbWUpCnsKICAgIC8vIENvcnJlY3QgLSB0eXBlOiBuYW1lCiAgICBzdGQ6OnN0cmluZyBjb25maWcgPSAidmVyaWZ5LXg1MDktbmFtZSBsb2NhbGhvc3QgbmFtZSI7CiAgICBWZXJpZnlYNTA5TmFtZSBva19uYW1lKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSk7Cn0KClRFU1QoVmVyaWZ5WDUwOU5hbWUsIGNvbmZpZ19zcXVvdGUpCnsKICAgIC8vIGVuc3VyZSB0aGF0IHNpbmdsZSBxdW90ZSBpcyBub3QgdHJlYXRlZCBhcyBuYW1lIHBhcnQKICAgIHN0ZDo6c3RyaW5nIGNvbmZpZyA9ICJ2ZXJpZnkteDUwOS1uYW1lICdzZXJ2ZXIuZXhhbXBsZS5vcmcnIjsKICAgIFZlcmlmeVg1MDlOYW1lIHZlcmlmeShwYXJzZV90ZXN0Y2ZnKGNvbmZpZykpOwogICAgQVNTRVJUX1RSVUUodmVyaWZ5LnZlcmlmeSgic2VydmVyLmV4YW1wbGUub3JnIikpOwp9CgpURVNUKFZlcmlmeVg1MDlOYW1lLCBjb25maWdfY29ycmVjdF9uYW1lX3ByZWZpeCkKewogICAgLy8gQ29ycmVjdCAtIHR5cGU6IG5hbWUtcHJlZml4CiAgICBzdGQ6OnN0cmluZyBjb25maWcgPSAidmVyaWZ5LXg1MDktbmFtZSBTZXJ2ZXItIG5hbWUtcHJlZml4IjsKICAgIFZlcmlmeVg1MDlOYW1lIG9rX25hbWVfcHJlZml4KHBhcnNlX3Rlc3RjZmcoY29uZmlnKSk7Cn0KClRFU1QoVmVyaWZ5WDUwOU5hbWUsIHRlc3Rfc3ViamVjdCkKewogICAgc3RkOjpzdHJpbmcgY29uZmlnID0gInZlcmlmeS14NTA5LW5hbWUgXCJDPUtHLCBTVD1OQSwgTz1PcGVuVlBOLVRFU1QsIENOPVRlc3QtU2VydmVyLCAiCiAgICAgICAgICAgICAgICAgICAgICAgICAiZW1haWxBZGRyZXNzPW1lQG15aG9zdC5teWRvbWFpblwiIjsKICAgIFZlcmlmeVg1MDlOYW1lIHZlcmlmeV9kZWYocGFyc2VfdGVzdGNmZyhjb25maWcpKTsKCiAgICBBU1NFUlRfVFJVRSh2ZXJpZnlfZGVmLnZlcmlmeSgKICAgICAgICAiQz1LRywgU1Q9TkEsIE89T3BlblZQTi1URVNULCBDTj1UZXN0LVNlcnZlciwgIgogICAgICAgICJlbWFpbEFkZHJlc3M9bWVAbXlob3N0Lm15ZG9tYWluIikpOwogICAgQVNTRVJUX0ZBTFNFKHZlcmlmeV9kZWYudmVyaWZ5KAogICAgICAgICJDPUtHLCBTVD1OQSwgTz1PcGVuVlBOLVRFU1QtRkFJTCwgQ049V3JvbmctU2VydmVyLCAiCiAgICAgICAgImVtYWlsQWRkcmVzcz1tZUBteWhvc3QubXlkb21haW4iKSk7CiAgICBBU1NFUlRfRkFMU0UodmVyaWZ5X2RlZi52ZXJpZnkoInNlcnZlci0xLmV4YW1wbGUub3JnIikpOwoKICAgIC8vIFRoaXMgaXMgYmFzaWNhbGx5IHRoZSBzYW1lIGNvbmZpZyBhcyB0aGUgb25lIGFib3ZlLAogICAgLy8ganVzdCB3aXRoIHRoZSAnc3ViamVjdCcgdHlwZSBkZWZpbmVkIGV4cGxpY2l0bHkKICAgIGNvbmZpZyA9ICJ2ZXJpZnkteDUwOS1uYW1lIFwiQz1LRywgU1Q9TkEsIE89T3BlblZQTi1URVNULCBDTj1UZXN0LVNlcnZlciwgIgogICAgICAgICAgICAgImVtYWlsQWRkcmVzcz1tZUBteWhvc3QubXlkb21haW5cIiBzdWJqZWN0IjsKICAgIFZlcmlmeVg1MDlOYW1lIHZlcmlmeV9zdWJqKHBhcnNlX3Rlc3RjZmcoY29uZmlnKSk7CgogICAgQVNTRVJUX1RSVUUodmVyaWZ5X3N1YmoudmVyaWZ5KAogICAgICAgICJDPUtHLCBTVD1OQSwgTz1PcGVuVlBOLVRFU1QsIENOPVRlc3QtU2VydmVyLCAiCiAgICAgICAgImVtYWlsQWRkcmVzcz1tZUBteWhvc3QubXlkb21haW4iKSk7CiAgICBBU1NFUlRfRkFMU0UodmVyaWZ5X3N1YmoudmVyaWZ5KAogICAgICAgICJDPUtHLCBTVD1OQSwgTz1PcGVuVlBOLVRFU1QtRkFJTCwgQ049V3JvbmctU2VydmVyLCAiCiAgICAgICAgImVtYWlsQWRkcmVzcz1tZUBteWhvc3QubXlkb21haW4iKSk7CiAgICBBU1NFUlRfRkFMU0UodmVyaWZ5X3N1YmoudmVyaWZ5KCJzZXJ2ZXItMS5leGFtcGxlLm9yZyIpKTsKfQoKVEVTVChWZXJpZnlYNTA5TmFtZSwgdGVzdF9uYW1lKQp7CiAgICBzdGQ6OnN0cmluZyBjb25maWcgPSAidmVyaWZ5LXg1MDktbmFtZSBzZXJ2ZXItMS5leGFtcGxlLm9yZyBuYW1lIjsKICAgIFZlcmlmeVg1MDlOYW1lIHZlcmlmeShwYXJzZV90ZXN0Y2ZnKGNvbmZpZykpOwoKICAgIEFTU0VSVF9UUlVFKHZlcmlmeS52ZXJpZnkoInNlcnZlci0xLmV4YW1wbGUub3JnIikpOwogICAgQVNTRVJUX0ZBTFNFKHZlcmlmeS52ZXJpZnkoInNlcnZlci0yLmV4YW1wbGUub3JnIikpOwogICAgQVNTRVJUX0ZBTFNFKHZlcmlmeS52ZXJpZnkoInNlcnZlciIpKTsKfQoKVEVTVChWZXJpZnlYNTA5TmFtZSwgdGVzdF9uYW1lX3ByZWZpeCkKewogICAgc3RkOjpzdHJpbmcgY29uZmlnID0gInZlcmlmeS14NTA5LW5hbWUgc2VydmVyIG5hbWUtcHJlZml4IjsKICAgIFZlcmlmeVg1MDlOYW1lIHZlcmlmeShwYXJzZV90ZXN0Y2ZnKGNvbmZpZykpOwoKICAgIEFTU0VSVF9UUlVFKHZlcmlmeS52ZXJpZnkoInNlcnZlci0xLmV4YW1wbGUub3JnIikpOwogICAgQVNTRVJUX1RSVUUodmVyaWZ5LnZlcmlmeSgic2VydmVyLTIuc3ViLmV4YW1wbGUubmV0IikpOwogICAgQVNTRVJUX1RSVUUodmVyaWZ5LnZlcmlmeSgic2VydmVyIikpOwogICAgQVNTRVJUX0ZBTFNFKHZlcmlmeS52ZXJpZnkoInNvbWUtb3RoZXIuZXhhbXBsZS5vcmciKSk7Cn0KCn0gLy8gbmFtZXNwYWNlIHVuaXR0ZXN0cwo=
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//    Copyright (C) 2019-2022 David Sommerseth <davids@openvpn.net>
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+//
+
+#include <iostream>
+#include "test_common.hpp"
+#include "openvpn/client/cliconstants.hpp"
+#include "openvpn/common/options.hpp"
+#include "openvpn/ssl/verify_x509_name.hpp"
+
+using namespace openvpn;
+
+namespace unittests {
+
+OptionList parse_testcfg(std::string &config)
+{
+    OptionList::Limits limits(
+        "profile is too large",
+        ProfileParseLimits::MAX_PROFILE_SIZE,
+        ProfileParseLimits::OPT_OVERHEAD,
+        ProfileParseLimits::TERM_OVERHEAD,
+        ProfileParseLimits::MAX_LINE_SIZE,
+        ProfileParseLimits::MAX_DIRECTIVE_SIZE);
+    OptionList opts;
+    opts.parse_from_config(config, &limits);
+    opts.update_map();
+    return opts;
+}
+
+TEST(VerifyX509Name, config_missing_args)
+{
+    // Missing both needed arguments
+    std::string config = "verify-x509-name";
+    EXPECT_THROW(VerifyX509Name err_no_args(parse_testcfg(config)), option_error);
+}
+
+TEST(VerifyX509Name, config_incorrect_type)
+{
+    // Incorrect type
+    std::string config = "verify-x509-name localhost nonsense-arg";
+    EXPECT_THROW(VerifyX509Name err_wrong_type(parse_testcfg(config)),
+                 option_error);
+}
+
+TEST(VerifyX509Name, config_correct_default_type)
+{
+    // Missing type argument - defaults to complete subject DN
+    std::string config = "verify-x509-name \"C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+                         "emailAddress=me@myhost.mydomain\"";
+    VerifyX509Name ok_default_subj(parse_testcfg(config));
+}
+
+TEST(VerifyX509Name, config_correct_subject)
+{
+    // Correct - type: subject
+    std::string config = "verify-x509-name \"C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+                         "emailAddress=me@myhost.mydomain\" subject";
+    VerifyX509Name ok_subj(parse_testcfg(config));
+}
+
+TEST(VerifyX509Name, config_correct_name)
+{
+    // Correct - type: name
+    std::string config = "verify-x509-name localhost name";
+    VerifyX509Name ok_name(parse_testcfg(config));
+}
+
+TEST(VerifyX509Name, config_squote)
+{
+    // ensure that single quote is not treated as name part
+    std::string config = "verify-x509-name 'server.example.org'";
+    VerifyX509Name verify(parse_testcfg(config));
+    ASSERT_TRUE(verify.verify("server.example.org"));
+}
+
+TEST(VerifyX509Name, config_correct_name_prefix)
+{
+    // Correct - type: name-prefix
+    std::string config = "verify-x509-name Server- name-prefix";
+    VerifyX509Name ok_name_prefix(parse_testcfg(config));
+}
+
+TEST(VerifyX509Name, test_subject)
+{
+    std::string config = "verify-x509-name \"C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+                         "emailAddress=me@myhost.mydomain\"";
+    VerifyX509Name verify_def(parse_testcfg(config));
+
+    ASSERT_TRUE(verify_def.verify(
+        "C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+        "emailAddress=me@myhost.mydomain"));
+    ASSERT_FALSE(verify_def.verify(
+        "C=KG, ST=NA, O=OpenVPN-TEST-FAIL, CN=Wrong-Server, "
+        "emailAddress=me@myhost.mydomain"));
+    ASSERT_FALSE(verify_def.verify("server-1.example.org"));
+
+    // This is basically the same config as the one above,
+    // just with the 'subject' type defined explicitly
+    config = "verify-x509-name \"C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+             "emailAddress=me@myhost.mydomain\" subject";
+    VerifyX509Name verify_subj(parse_testcfg(config));
+
+    ASSERT_TRUE(verify_subj.verify(
+        "C=KG, ST=NA, O=OpenVPN-TEST, CN=Test-Server, "
+        "emailAddress=me@myhost.mydomain"));
+    ASSERT_FALSE(verify_subj.verify(
+        "C=KG, ST=NA, O=OpenVPN-TEST-FAIL, CN=Wrong-Server, "
+        "emailAddress=me@myhost.mydomain"));
+    ASSERT_FALSE(verify_subj.verify("server-1.example.org"));
+}
+
+TEST(VerifyX509Name, test_name)
+{
+    std::string config = "verify-x509-name server-1.example.org name";
+    VerifyX509Name verify(parse_testcfg(config));
+
+    ASSERT_TRUE(verify.verify("server-1.example.org"));
+    ASSERT_FALSE(verify.verify("server-2.example.org"));
+    ASSERT_FALSE(verify.verify("server"));
+}
+
+TEST(VerifyX509Name, test_name_prefix)
+{
+    std::string config = "verify-x509-name server name-prefix";
+    VerifyX509Name verify(parse_testcfg(config));
+
+    ASSERT_TRUE(verify.verify("server-1.example.org"));
+    ASSERT_TRUE(verify.verify("server-2.sub.example.net"));
+    ASSERT_TRUE(verify.verify("server"));
+    ASSERT_FALSE(verify.verify("some-other.example.org"));
+}
+
+} // namespace unittests

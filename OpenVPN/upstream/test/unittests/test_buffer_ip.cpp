@@ -1,1 +1,119 @@
-Ly8gVGVzdCBmYXN0IEJ1ZmZlckZvcm1hdDo6aXB2NC9pcHY2LgovLyBWZXJpZnkgdGhhdCBmb3JtYXRpbmcgZXhhY3RseSBtYXRjaGVzIGluZXRfbnRvcCgpLgoKI2luY2x1ZGUgPGFycGEvaW5ldC5oPgoKI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2J1ZmZlci9idWZzdGF0aWMuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9idWZmZXIvYnVmaXAuaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9idWZmZXIvYnVmc3RyLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKc3RhdGljIHN0ZDo6c3RyaW5nIHRvX2hleChjb25zdCBzdGQ6OnVpbnQzMl90IHZhbHVlKQp7CiAgICBzdGQ6Om9zdHJpbmdzdHJlYW0gb3M7CiAgICBvcyA8PCBzdGQ6OmhleCA8PCB2YWx1ZTsKICAgIHJldHVybiBvcy5zdHIoKTsKfQoKVEVTVChidWZmZXJfaXAsIHVuc2lnbmVkX2RlY2ltYWwpCnsKICAgIHR5cGVkZWYgQnVmZmVyRm9ybWF0OjpVbnNpZ25lZERlY2ltYWw8c3RkOjp1aW50MzJfdD4gRGVjaW1hbDsKICAgIGZvciAoaW50IGkgPSAtMTAwMDsgaSA8IDEwMDA7ICsraSkKICAgIHsKICAgICAgICBTdGF0aWNCdWZmZXI8RGVjaW1hbDo6bWF4X2xlbmd0aCgpPiBidWY7CiAgICAgICAgRGVjaW1hbDo6d3JpdGUoYnVmLCBzdGQ6OnVpbnQzMl90KGkpKTsKICAgICAgICBBU1NFUlRfRVEoYnVmX3RvX3N0cmluZyhidWYpLCBzdGQ6OnRvX3N0cmluZyhzdGQ6OnVpbnQzMl90KGkpKSk7CiAgICB9Cn0KClRFU1QoYnVmZmVyX2lwLCBoZXgpCnsKICAgIHR5cGVkZWYgQnVmZmVyRm9ybWF0OjpIZXg8c3RkOjp1aW50MzJfdD4gSGV4OwogICAgZm9yIChpbnQgaSA9IC0xMDAwOyBpIDwgMTAwMDsgKytpKQogICAgewogICAgICAgIFN0YXRpY0J1ZmZlcjwxMD4gYnVmOwogICAgICAgIEhleDo6d3JpdGUoYnVmLCBzdGQ6OnVpbnQzMl90KGkpKTsKICAgICAgICBBU1NFUlRfRVEoYnVmX3RvX3N0cmluZyhidWYpLCB0b19oZXgoc3RkOjp1aW50MzJfdChpKSkpOwogICAgfQp9CgojaWZkZWYgSU5TVFJVTUVOVEFUSU9OX1NMT1dET1dOCnN0YXRpYyBjb25zdGV4cHIgaW50IElURVIgPSAxMDAwMDsKI2Vsc2UKc3RhdGljIGNvbnN0ZXhwciBpbnQgSVRFUiA9IDEwMDAwMDA7CiNlbmRpZgoKVEVTVChidWZmZXJfaXAsIGlwdjQpCnsKICAgIE1UUmFuZDo6UHRyIHBybmcobmV3IE1UUmFuZCgpKTsKICAgIGZvciAoaW50IGNvdW50ID0gMDsgY291bnQgPCBJVEVSOyArK2NvdW50KQogICAgewogICAgICAgIHN0ZDo6dWludDMyX3QgYWRkcjsKICAgICAgICBwcm5nLT5yYW5kX2ZpbGwoYWRkcik7CgogICAgICAgIFN0YXRpY0J1ZmZlcjwxNj4gYnVmOwogICAgICAgIEJ1ZmZlckZvcm1hdDo6aXB2NChidWYsIGFkZHIpOwoKICAgICAgICBjaGFyIGluX2J1ZmZlclsxNl07CiAgICAgICAgaWYgKDo6aW5ldF9udG9wKEFGX0lORVQsICZhZGRyLCBpbl9idWZmZXIsIHNpemVvZihpbl9idWZmZXIpKSA9PSBudWxscHRyKQogICAgICAgICAgICB0aHJvdyBFeGNlcHRpb24oImluZXRfbnRvcCBmYWlsZWQgZm9yIElQdjQiKTsKCiAgICAgICAgQVNTRVJUX0VRKHN0ZDo6c3RyaW5nKGluX2J1ZmZlciksIGJ1Zl90b19zdHJpbmcoYnVmKSk7CiAgICB9Cn0KClRFU1QoYnVmZmVyX2lwLCBpcHY2KQp7CiAgICBNVFJhbmQ6OlB0ciBwcm5nKG5ldyBNVFJhbmQoKSk7CiAgICBmb3IgKGludCBjb3VudCA9IDA7IGNvdW50IDwgSVRFUjsgKytjb3VudCkKICAgIHsKICAgICAgICBzdGQ6OnVpbnQ4X3QgYWRkclsxNl07CgogICAgICAgIHN3aXRjaCAocHJuZy0+cmFuZHJhbmdlMzIoMykpCiAgICAgICAgewogICAgICAgIGNhc2UgMDoKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgaWYgKHBybmctPnJhbmRib29sKCkpCiAgICAgICAgICAgICAgICAgICAgcHJuZy0+cmFuZF9ieXRlcyhhZGRyLCBzaXplb2YoYWRkcikpOwogICAgICAgICAgICAgICAgZWxzZQogICAgICAgICAgICAgICAgICAgIHN0ZDo6bWVtc2V0KGFkZHIsIDB4ZmYsIHNpemVvZihhZGRyKSk7CgogICAgICAgICAgICAgICAgc2l6ZV90IHN0YXJ0ID0gcHJuZy0+cmFuZHJhbmdlMzIoMTYpOwogICAgICAgICAgICAgICAgc2l6ZV90IGVuZCA9IHBybmctPnJhbmRyYW5nZTMyKDE2KTsKICAgICAgICAgICAgICAgIGlmIChlbmQgPCBzdGFydCkKICAgICAgICAgICAgICAgICAgICBzdGQ6OnN3YXAoc3RhcnQsIGVuZCk7CiAgICAgICAgICAgICAgICBpZiAocHJuZy0+cmFuZGJvb2woKSkKICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICBmb3IgKHNpemVfdCBpID0gc3RhcnQ7IGkgPCBlbmQ7ICsraSkKICAgICAgICAgICAgICAgICAgICAgICAgYWRkcltpXSA9IDA7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgZm9yIChzaXplX3QgaSA9IDA7IGkgPCAxNjsgKytpKQogICAgICAgICAgICAgICAgICAgICAgICBpZiAoaSA8IHN0YXJ0IHx8IGkgPj0gZW5kKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgYWRkcltpXSA9IDA7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgYnJlYWs7CiAgICAgICAgY2FzZSAxOgogICAgICAgICAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IDE2OyArK2kpCiAgICAgICAgICAgICAgICBhZGRyW2ldID0gcHJuZy0+cmFuZGJvb2woKSA/IDB4ZmYgOiAwOwogICAgICAgICAgICBicmVhazsKICAgICAgICBjYXNlIDI6CiAgICAgICAgICAgIHBybmctPnJhbmRfYnl0ZXMoYWRkciwgc2l6ZW9mKGFkZHIpKTsKICAgICAgICAgICAgYnJlYWs7CiAgICAgICAgfQoKICAgICAgICBTdGF0aWNCdWZmZXI8NDA+IGJ1ZjsKICAgICAgICBCdWZmZXJGb3JtYXQ6OmlwdjYoYnVmLCBhZGRyKTsKCiAgICAgICAgY2hhciBpbl9idWZmZXJbNDBdOwogICAgICAgIGlmICg6OmluZXRfbnRvcChBRl9JTkVUNiwgYWRkciwgaW5fYnVmZmVyLCBzaXplb2YoaW5fYnVmZmVyKSkgPT0gbnVsbHB0cikKICAgICAgICAgICAgdGhyb3cgRXhjZXB0aW9uKCJpbmV0X250b3AgZmFpbGVkIGZvciBJUHY2Iik7CgogICAgICAgIEFTU0VSVF9FUShzdGQ6OnN0cmluZyhpbl9idWZmZXIpLCBidWZfdG9fc3RyaW5nKGJ1ZikpOwogICAgfQp9Cg==
+// Test fast BufferFormat::ipv4/ipv6.
+// Verify that formating exactly matches inet_ntop().
+
+#include <arpa/inet.h>
+
+#include "test_common.hpp"
+
+#include <openvpn/buffer/bufstatic.hpp>
+#include <openvpn/buffer/bufip.hpp>
+#include <openvpn/buffer/bufstr.hpp>
+
+using namespace openvpn;
+
+static std::string to_hex(const std::uint32_t value)
+{
+    std::ostringstream os;
+    os << std::hex << value;
+    return os.str();
+}
+
+TEST(buffer_ip, unsigned_decimal)
+{
+    typedef BufferFormat::UnsignedDecimal<std::uint32_t> Decimal;
+    for (int i = -1000; i < 1000; ++i)
+    {
+        StaticBuffer<Decimal::max_length()> buf;
+        Decimal::write(buf, std::uint32_t(i));
+        ASSERT_EQ(buf_to_string(buf), std::to_string(std::uint32_t(i)));
+    }
+}
+
+TEST(buffer_ip, hex)
+{
+    typedef BufferFormat::Hex<std::uint32_t> Hex;
+    for (int i = -1000; i < 1000; ++i)
+    {
+        StaticBuffer<10> buf;
+        Hex::write(buf, std::uint32_t(i));
+        ASSERT_EQ(buf_to_string(buf), to_hex(std::uint32_t(i)));
+    }
+}
+
+#ifdef INSTRUMENTATION_SLOWDOWN
+static constexpr int ITER = 10000;
+#else
+static constexpr int ITER = 1000000;
+#endif
+
+TEST(buffer_ip, ipv4)
+{
+    MTRand::Ptr prng(new MTRand());
+    for (int count = 0; count < ITER; ++count)
+    {
+        std::uint32_t addr;
+        prng->rand_fill(addr);
+
+        StaticBuffer<16> buf;
+        BufferFormat::ipv4(buf, addr);
+
+        char in_buffer[16];
+        if (::inet_ntop(AF_INET, &addr, in_buffer, sizeof(in_buffer)) == nullptr)
+            throw Exception("inet_ntop failed for IPv4");
+
+        ASSERT_EQ(std::string(in_buffer), buf_to_string(buf));
+    }
+}
+
+TEST(buffer_ip, ipv6)
+{
+    MTRand::Ptr prng(new MTRand());
+    for (int count = 0; count < ITER; ++count)
+    {
+        std::uint8_t addr[16];
+
+        switch (prng->randrange32(3))
+        {
+        case 0:
+            {
+                if (prng->randbool())
+                    prng->rand_bytes(addr, sizeof(addr));
+                else
+                    std::memset(addr, 0xff, sizeof(addr));
+
+                size_t start = prng->randrange32(16);
+                size_t end = prng->randrange32(16);
+                if (end < start)
+                    std::swap(start, end);
+                if (prng->randbool())
+                {
+                    for (size_t i = start; i < end; ++i)
+                        addr[i] = 0;
+                }
+                else
+                {
+                    for (size_t i = 0; i < 16; ++i)
+                        if (i < start || i >= end)
+                            addr[i] = 0;
+                }
+            }
+            break;
+        case 1:
+            for (size_t i = 0; i < 16; ++i)
+                addr[i] = prng->randbool() ? 0xff : 0;
+            break;
+        case 2:
+            prng->rand_bytes(addr, sizeof(addr));
+            break;
+        }
+
+        StaticBuffer<40> buf;
+        BufferFormat::ipv6(buf, addr);
+
+        char in_buffer[40];
+        if (::inet_ntop(AF_INET6, addr, in_buffer, sizeof(in_buffer)) == nullptr)
+            throw Exception("inet_ntop failed for IPv6");
+
+        ASSERT_EQ(std::string(in_buffer), buf_to_string(buf));
+    }
+}

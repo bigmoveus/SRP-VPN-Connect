@@ -1,1 +1,277 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqCiAqIFNlbGYgdGVzdCwgYmFzZWQgb24gZXhhbXBsZS9zc2gyLmMuCiAqLwoKI2luY2x1ZGUgImxpYnNzaDJfc2V0dXAuaCIKI2luY2x1ZGUgPGxpYnNzaDIuaD4KCiNpZmRlZiBIQVZFX1NZU19TT0NLRVRfSAojaW5jbHVkZSA8c3lzL3NvY2tldC5oPgojZW5kaWYKI2lmZGVmIEhBVkVfVU5JU1REX0gKI2luY2x1ZGUgPHVuaXN0ZC5oPgojZW5kaWYKI2lmZGVmIEhBVkVfTkVUSU5FVF9JTl9ICiNpbmNsdWRlIDxuZXRpbmV0L2luLmg+CiNlbmRpZgojaWZkZWYgSEFWRV9BUlBBX0lORVRfSAojaW5jbHVkZSA8YXJwYS9pbmV0Lmg+CiNlbmRpZgoKI2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4gIC8qIGZvciBnZXRlbnYoKSAqLwoKc3RhdGljIGNvbnN0IGNoYXIgKmhvc3RuYW1lID0gIjEyNy4wLjAuMSI7CnN0YXRpYyBjb25zdCBpbnQgcG9ydF9udW1iZXIgPSA0NzExOwpzdGF0aWMgY29uc3QgY2hhciAqcHVia2V5ID0gImtleV9yc2EucHViIjsKc3RhdGljIGNvbnN0IGNoYXIgKnByaXZrZXkgPSAia2V5X3JzYSI7CnN0YXRpYyBjb25zdCBjaGFyICp1c2VybmFtZSA9ICJ1c2VybmFtZSI7CnN0YXRpYyBjb25zdCBjaGFyICpwYXNzd29yZCA9ICJwYXNzd29yZCI7CgpzdGF0aWMgdm9pZCBwb3J0YWJsZV9zbGVlcCh1bnNpZ25lZCBpbnQgc2Vjb25kcykKewojaWZkZWYgX1dJTjMyCiAgICBTbGVlcChzZWNvbmRzKTsKI2Vsc2UKICAgIHNsZWVwKHNlY29uZHMpOwojZW5kaWYKfQoKaW50IG1haW4oaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSkKewogICAgdWludDMyX3QgaG9zdGFkZHI7CiAgICBsaWJzc2gyX3NvY2tldF90IHNvY2s7CiAgICBpbnQgaSwgYXV0aF9wdyA9IDA7CiAgICBzdHJ1Y3Qgc29ja2FkZHJfaW4gc2luOwogICAgY29uc3QgY2hhciAqZmluZ2VycHJpbnQ7CiAgICBjaGFyICp1c2VyYXV0aGxpc3Q7CiAgICBpbnQgcmM7CiAgICBMSUJTU0gyX1NFU1NJT04gKnNlc3Npb24gPSBOVUxMOwogICAgTElCU1NIMl9DSEFOTkVMICpjaGFubmVsOwogICAgdW5zaWduZWQgaW50IGNvdW50ZXI7CgojaWZkZWYgX1dJTjMyCiAgICBXU0FEQVRBIHdzYWRhdGE7CgogICAgcmMgPSBXU0FTdGFydHVwKE1BS0VXT1JEKDIsIDApLCAmd3NhZGF0YSk7CiAgICBpZihyYykgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiV1NBU3RhcnR1cCBmYWlsZWQgd2l0aCBlcnJvcjogJWRcbiIsIHJjKTsKICAgICAgICByZXR1cm4gMTsKICAgIH0KI2VuZGlmCgogICAgKHZvaWQpYXJnYzsKICAgICh2b2lkKWFyZ3Y7CgogICAgI2lmZGVmIF9XSU4zMgogICAgI2RlZmluZSBMSUJTU0gyX0ZBTExCQUNLX1VTRVJfRU5WICJVU0VSTkFNRSIKICAgICNlbHNlCiAgICAjZGVmaW5lIExJQlNTSDJfRkFMTEJBQ0tfVVNFUl9FTlYgIkxPR05BTUUiCiAgICAjZW5kaWYKCiAgICBpZihnZXRlbnYoIlVTRVIiKSkKICAgICAgICB1c2VybmFtZSA9IGdldGVudigiVVNFUiIpOwogICAgZWxzZSBpZihnZXRlbnYoTElCU1NIMl9GQUxMQkFDS19VU0VSX0VOVikpCiAgICAgICAgdXNlcm5hbWUgPSBnZXRlbnYoTElCU1NIMl9GQUxMQkFDS19VU0VSX0VOVik7CgogICAgaWYoZ2V0ZW52KCJQUklWS0VZIikpCiAgICAgICAgcHJpdmtleSA9IGdldGVudigiUFJJVktFWSIpOwoKICAgIGlmKGdldGVudigiUFVCS0VZIikpCiAgICAgICAgcHVia2V5ID0gZ2V0ZW52KCJQVUJLRVkiKTsKCiAgICBob3N0YWRkciA9IGluZXRfYWRkcihob3N0bmFtZSk7CiAgICBpZihob3N0YWRkciA9PSAodWludDMyX3QpKC0xKSkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGNvbnZlcnQgJXMgaG9zdCBhZGRyZXNzXG4iLCBob3N0bmFtZSk7CiAgICAgICAgcmV0dXJuIDE7CiAgICB9CgogICAgcmMgPSBsaWJzc2gyX2luaXQoMCk7CiAgICBpZihyYykgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAibGlic3NoMiBpbml0aWFsaXphdGlvbiBmYWlsZWQgKCVkKVxuIiwgcmMpOwogICAgICAgIHJldHVybiAxOwogICAgfQoKICAgIHJjID0gMTsKCiAgICBzb2NrID0gc29ja2V0KEFGX0lORVQsIFNPQ0tfU1RSRUFNLCAwKTsKICAgIGlmKHNvY2sgPT0gTElCU1NIMl9JTlZBTElEX1NPQ0tFVCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiZmFpbGVkIHRvIGNyZWF0ZSBzb2NrZXQuXG4iKTsKICAgICAgICBnb3RvIHNodXRkb3duOwogICAgfQoKICAgIHNpbi5zaW5fZmFtaWx5ID0gQUZfSU5FVDsKICAgIHNpbi5zaW5fcG9ydCA9IGh0b25zKCh1bnNpZ25lZCBzaG9ydClwb3J0X251bWJlcik7CiAgICBzaW4uc2luX2FkZHIuc19hZGRyID0gaG9zdGFkZHI7CgogICAgZm9yKGNvdW50ZXIgPSAwOyBjb3VudGVyIDwgMzsgKytjb3VudGVyKSB7CiAgICAgICAgaWYoY29ubmVjdChzb2NrLCAoc3RydWN0IHNvY2thZGRyKikoJnNpbiksCiAgICAgICAgICAgICAgICAgICBzaXplb2Yoc3RydWN0IHNvY2thZGRyX2luKSkpIHsKICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsCiAgICAgICAgICAgICAgICAgICAgIkNvbm5lY3Rpb24gdG8gJXM6JWQgYXR0ZW1wdCAjJWQgZmFpbGVkOiByZXRyeWluZy4uLlxuIiwKICAgICAgICAgICAgICAgICAgICBob3N0bmFtZSwgcG9ydF9udW1iZXIsIGNvdW50ZXIpOwogICAgICAgICAgICBwb3J0YWJsZV9zbGVlcCgxICsgMipjb3VudGVyKTsKICAgICAgICB9CiAgICAgICAgZWxzZSB7CiAgICAgICAgICAgIGJyZWFrOwogICAgICAgIH0KICAgIH0KICAgIGlmKHNvY2sgPT0gTElCU1NIMl9JTlZBTElEX1NPQ0tFVCkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmFpbGVkIHRvIGNvbm5lY3QgdG8gJXM6JWRcbiIsCiAgICAgICAgICAgICAgICBob3N0bmFtZSwgcG9ydF9udW1iZXIpOwogICAgICAgIGdvdG8gc2h1dGRvd247CiAgICB9CgogICAgLyogQ3JlYXRlIGEgc2Vzc2lvbiBpbnN0YW5jZSBhbmQgc3RhcnQgaXQgdXAuIFRoaXMgd2lsbCB0cmFkZSB3ZWxjb21lCiAgICAgKiBiYW5uZXJzLCBleGNoYW5nZSBrZXlzLCBhbmQgc2V0dXAgY3J5cHRvLCBjb21wcmVzc2lvbiwgYW5kIE1BQyBsYXllcnMKICAgICAqLwogICAgc2Vzc2lvbiA9IGxpYnNzaDJfc2Vzc2lvbl9pbml0KCk7CiAgICBpZighc2Vzc2lvbikgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiQ291bGQgbm90IGluaXRpYWxpemUgU1NIIHNlc3Npb24uXG4iKTsKICAgICAgICBnb3RvIHNodXRkb3duOwogICAgfQoKICAgIGlmKGdldGVudigiRklYVFVSRV9UUkFDRV9BTExfQ09OTkVDVCIpIHx8CiAgICAgICBnZXRlbnYoIkZJWFRVUkVfVFJBQ0VfQUxMIikpIHsKICAgICAgICBsaWJzc2gyX3RyYWNlKHNlc3Npb24sIH4wKTsKICAgICAgICBmcHJpbnRmKHN0ZG91dCwgIlRyYWNlIGFsbCBlbmFibGVkLlxuIik7CiAgICB9CgogICAgbGlic3NoMl9zZXNzaW9uX3NldF9ibG9ja2luZyhzZXNzaW9uLCAxKTsKCiAgICB7CiAgICAgICAgaW50IHJldHJpZXMgPSAwLCByZXRyeSA9IDA7CiNpZmRlZiBMSUJTU0gyX1dJTkNORwogICAgICAgIC8qIEZJWE1FOiBSZXRyeSB0ZXN0cyB3aXRoIFdpbkNORyBkdWUgdG8gZmxha2luZXNzIGluIGhvc3RrZXkKICAgICAgICAgICB2ZXJpZmljYXRpb246IGh0dHBzOi8vZ2l0aHViLmNvbS9saWJzc2gyL2xpYnNzaDIvaXNzdWVzLzgwNCAqLwogICAgICAgIHJldHJpZXMgKz0gMjsKI2VuZGlmCiAgICAgICAgZG8gewogICAgICAgICAgICByYyA9IGxpYnNzaDJfc2Vzc2lvbl9oYW5kc2hha2Uoc2Vzc2lvbiwgc29jayk7CiAgICAgICAgICAgIGlmKHJjID09IDApIHsKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGZwcmludGYoc3RkZXJyLCAiRmFpbHVyZSBlc3RhYmxpc2hpbmcgU1NIIHNlc3Npb246ICVkXG4iLCByYyk7CiAgICAgICAgICAgIGlmKAojaWZkZWYgTElCU1NIMl9XSU5DTkcKICAgICAgICAgICAgICAgcmMgIT0gTElCU1NIMl9FUlJPUl9LRVlfRVhDSEFOR0VfRkFJTFVSRSB8fAojZW5kaWYKICAgICAgICAgICAgICAgKytyZXRyeSA+IHJldHJpZXMpIHsKICAgICAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGZwcmludGYoc3RkZXJyLCAiUmV0cnlpbmcuLi4gJWQgLyAlZFxuIiwgcmV0cnksIHJldHJpZXMpOwogICAgICAgIH0gd2hpbGUoMSk7CiAgICB9CgogICAgcmMgPSAxOwoKICAgIC8qIEF0IHRoaXMgcG9pbnQgd2UgaGF2ZSBub3QgeWV0IGF1dGhlbnRpY2F0ZWQuICBUaGUgZmlyc3QgdGhpbmcgdG8gZG8KICAgICAqIGlzIGNoZWNrIHRoZSBob3N0a2V5J3MgZmluZ2VycHJpbnQgYWdhaW5zdCBvdXIga25vd24gaG9zdHMgWW91ciBhcHAKICAgICAqIG1heSBoYXZlIGl0IGhhcmQgY29kZWQsIG1heSBnbyB0byBhIGZpbGUsIG1heSBwcmVzZW50IGl0IHRvIHRoZQogICAgICogdXNlciwgdGhhdCdzIHlvdXIgY2FsbAogICAgICovCiAgICBmaW5nZXJwcmludCA9IGxpYnNzaDJfaG9zdGtleV9oYXNoKHNlc3Npb24sIExJQlNTSDJfSE9TVEtFWV9IQVNIX1NIQTEpOwogICAgZnByaW50ZihzdGRlcnIsICJGaW5nZXJwcmludDogIik7CiAgICBmb3IoaSA9IDA7IGkgPCAyMDsgaSsrKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICIlMDJYICIsICh1bnNpZ25lZCBjaGFyKWZpbmdlcnByaW50W2ldKTsKICAgIH0KICAgIGZwcmludGYoc3RkZXJyLCAiXG4iKTsKCiAgICAvKiBjaGVjayB3aGF0IGF1dGhlbnRpY2F0aW9uIG1ldGhvZHMgYXJlIGF2YWlsYWJsZSAqLwogICAgdXNlcmF1dGhsaXN0ID0gbGlic3NoMl91c2VyYXV0aF9saXN0KHNlc3Npb24sIHVzZXJuYW1lLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICh1bnNpZ25lZCBpbnQpc3RybGVuKHVzZXJuYW1lKSk7CiAgICBpZih1c2VyYXV0aGxpc3QpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkF1dGhlbnRpY2F0aW9uIG1ldGhvZHM6ICVzXG4iLCB1c2VyYXV0aGxpc3QpOwogICAgICAgIGlmKHN0cnN0cih1c2VyYXV0aGxpc3QsICJwYXNzd29yZCIpKSB7CiAgICAgICAgICAgIGF1dGhfcHcgfD0gMTsKICAgICAgICB9CiAgICAgICAgaWYoc3Ryc3RyKHVzZXJhdXRobGlzdCwgImtleWJvYXJkLWludGVyYWN0aXZlIikpIHsKICAgICAgICAgICAgYXV0aF9wdyB8PSAyOwogICAgICAgIH0KICAgICAgICBpZihzdHJzdHIodXNlcmF1dGhsaXN0LCAicHVibGlja2V5IikpIHsKICAgICAgICAgICAgYXV0aF9wdyB8PSA0OwogICAgICAgIH0KCiAgICAgICAgaWYoYXV0aF9wdyAmIDQpIHsKICAgICAgICAgICAgLyogQXV0aGVudGljYXRlIGJ5IHB1YmxpYyBrZXkgKi8KICAgICAgICAgICAgaWYobGlic3NoMl91c2VyYXV0aF9wdWJsaWNrZXlfZnJvbWZpbGUoc2Vzc2lvbiwgdXNlcm5hbWUsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHB1YmtleSwgcHJpdmtleSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcGFzc3dvcmQpKSB7CiAgICAgICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIkF1dGhlbnRpY2F0aW9uIGJ5IHB1YmxpYyBrZXkgZmFpbGVkLlxuIik7CiAgICAgICAgICAgICAgICBnb3RvIHNodXRkb3duOwogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsc2UgewogICAgICAgICAgICAgICAgZnByaW50ZihzdGRlcnIsICJBdXRoZW50aWNhdGlvbiBieSBwdWJsaWMga2V5IHN1Y2NlZWRlZC5cbiIpOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgICAgIGVsc2UgewogICAgICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIk5vIHN1cHBvcnRlZCBhdXRoZW50aWNhdGlvbiBtZXRob2RzIGZvdW5kLlxuIik7CiAgICAgICAgICAgIGdvdG8gc2h1dGRvd247CiAgICAgICAgfQogICAgfQoKICAgIC8qIFJlcXVlc3QgYSBzZXNzaW9uIGNoYW5uZWwgb24gd2hpY2ggdG8gcnVuIGEgc2hlbGwgKi8KICAgIGNoYW5uZWwgPSBsaWJzc2gyX2NoYW5uZWxfb3Blbl9zZXNzaW9uKHNlc3Npb24pOwogICAgaWYoIWNoYW5uZWwpIHsKICAgICAgICBmcHJpbnRmKHN0ZGVyciwgIlVuYWJsZSB0byBvcGVuIGEgc2Vzc2lvblxuIik7CiAgICAgICAgZ290byBzaHV0ZG93bjsKICAgIH0KCiAgICAvKiBTb21lIGVudmlyb25tZW50IHZhcmlhYmxlcyBtYXkgYmUgc2V0LAogICAgICogSXQncyB1cCB0byB0aGUgc2VydmVyIHdoaWNoIG9uZXMgaXQnbGwgYWxsb3cgdGhvdWdoCiAgICAgKi8KICAgIGxpYnNzaDJfY2hhbm5lbF9zZXRlbnYoY2hhbm5lbCwgIkZPTyIsICJiYXIiKTsKCiAgICAvKiBSZXF1ZXN0IGEgdGVybWluYWwgd2l0aCAndmFuaWxsYScgdGVybWluYWwgZW11bGF0aW9uCiAgICAgKiBTZWUgL2V0Yy90ZXJtY2FwIGZvciBtb3JlIG9wdGlvbnMuIFRoaXMgaXMgdXNlZnVsIHdoZW4gb3BlbmluZwogICAgICogYW4gaW50ZXJhY3RpdmUgc2hlbGwuCiAgICAgKi8KICAgIGlmKGxpYnNzaDJfY2hhbm5lbF9yZXF1ZXN0X3B0eShjaGFubmVsLCAidmFuaWxsYSIpKSB7CiAgICAgICAgZnByaW50ZihzdGRlcnIsICJGYWlsZWQgcmVxdWVzdGluZyBwdHlcbiIpOwogICAgICAgIGdvdG8gc2tpcF9zaGVsbDsKICAgIH0KCiAgICAvKiBPcGVuIGEgU0hFTEwgb24gdGhhdCBwdHkgKi8KICAgIGlmKGxpYnNzaDJfY2hhbm5lbF9zaGVsbChjaGFubmVsKSkgewogICAgICAgIGZwcmludGYoc3RkZXJyLCAiVW5hYmxlIHRvIHJlcXVlc3Qgc2hlbGwgb24gYWxsb2NhdGVkIHB0eVxuIik7CiAgICAgICAgZ290byBzaHV0ZG93bjsKICAgIH0KCiAgICByYyA9IDA7Cgpza2lwX3NoZWxsOgoKICAgIGlmKGNoYW5uZWwpIHsKICAgICAgICBsaWJzc2gyX2NoYW5uZWxfZnJlZShjaGFubmVsKTsKICAgICAgICBjaGFubmVsID0gTlVMTDsKICAgIH0KCnNodXRkb3duOgoKICAgIGlmKHNlc3Npb24pIHsKICAgICAgICBsaWJzc2gyX3Nlc3Npb25fZGlzY29ubmVjdChzZXNzaW9uLCAiTm9ybWFsIFNodXRkb3duIik7CiAgICAgICAgbGlic3NoMl9zZXNzaW9uX2ZyZWUoc2Vzc2lvbik7CiAgICB9CgogICAgaWYoc29jayAhPSBMSUJTU0gyX0lOVkFMSURfU09DS0VUKSB7CiAgICAgICAgc2h1dGRvd24oc29jaywgMiAvKiBTSFVUX1JEV1IgKi8pOwojaWZkZWYgX1dJTjMyCiAgICAgICAgY2xvc2Vzb2NrZXQoc29jayk7CiNlbHNlCiAgICAgICAgY2xvc2Uoc29jayk7CiNlbmRpZgogICAgfQoKICAgIGZwcmludGYoc3RkZXJyLCAiYWxsIGRvbmVcbiIpOwoKICAgIGxpYnNzaDJfZXhpdCgpOwoKI2lmZGVmIF9XSU4zMgogICAgV1NBQ2xlYW51cCgpOwojZW5kaWYKCiAgICByZXR1cm4gcmM7Cn0K
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Self test, based on example/ssh2.c.
+ */
+
+#include "libssh2_setup.h"
+#include <libssh2.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>  /* for getenv() */
+
+static const char *hostname = "127.0.0.1";
+static const int port_number = 4711;
+static const char *pubkey = "key_rsa.pub";
+static const char *privkey = "key_rsa";
+static const char *username = "username";
+static const char *password = "password";
+
+static void portable_sleep(unsigned int seconds)
+{
+#ifdef _WIN32
+    Sleep(seconds);
+#else
+    sleep(seconds);
+#endif
+}
+
+int main(int argc, char *argv[])
+{
+    uint32_t hostaddr;
+    libssh2_socket_t sock;
+    int i, auth_pw = 0;
+    struct sockaddr_in sin;
+    const char *fingerprint;
+    char *userauthlist;
+    int rc;
+    LIBSSH2_SESSION *session = NULL;
+    LIBSSH2_CHANNEL *channel;
+    unsigned int counter;
+
+#ifdef _WIN32
+    WSADATA wsadata;
+
+    rc = WSAStartup(MAKEWORD(2, 0), &wsadata);
+    if(rc) {
+        fprintf(stderr, "WSAStartup failed with error: %d\n", rc);
+        return 1;
+    }
+#endif
+
+    (void)argc;
+    (void)argv;
+
+    #ifdef _WIN32
+    #define LIBSSH2_FALLBACK_USER_ENV "USERNAME"
+    #else
+    #define LIBSSH2_FALLBACK_USER_ENV "LOGNAME"
+    #endif
+
+    if(getenv("USER"))
+        username = getenv("USER");
+    else if(getenv(LIBSSH2_FALLBACK_USER_ENV))
+        username = getenv(LIBSSH2_FALLBACK_USER_ENV);
+
+    if(getenv("PRIVKEY"))
+        privkey = getenv("PRIVKEY");
+
+    if(getenv("PUBKEY"))
+        pubkey = getenv("PUBKEY");
+
+    hostaddr = inet_addr(hostname);
+    if(hostaddr == (uint32_t)(-1)) {
+        fprintf(stderr, "Failed to convert %s host address\n", hostname);
+        return 1;
+    }
+
+    rc = libssh2_init(0);
+    if(rc) {
+        fprintf(stderr, "libssh2 initialization failed (%d)\n", rc);
+        return 1;
+    }
+
+    rc = 1;
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock == LIBSSH2_INVALID_SOCKET) {
+        fprintf(stderr, "failed to create socket.\n");
+        goto shutdown;
+    }
+
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons((unsigned short)port_number);
+    sin.sin_addr.s_addr = hostaddr;
+
+    for(counter = 0; counter < 3; ++counter) {
+        if(connect(sock, (struct sockaddr*)(&sin),
+                   sizeof(struct sockaddr_in))) {
+            fprintf(stderr,
+                    "Connection to %s:%d attempt #%d failed: retrying...\n",
+                    hostname, port_number, counter);
+            portable_sleep(1 + 2*counter);
+        }
+        else {
+            break;
+        }
+    }
+    if(sock == LIBSSH2_INVALID_SOCKET) {
+        fprintf(stderr, "Failed to connect to %s:%d\n",
+                hostname, port_number);
+        goto shutdown;
+    }
+
+    /* Create a session instance and start it up. This will trade welcome
+     * banners, exchange keys, and setup crypto, compression, and MAC layers
+     */
+    session = libssh2_session_init();
+    if(!session) {
+        fprintf(stderr, "Could not initialize SSH session.\n");
+        goto shutdown;
+    }
+
+    if(getenv("FIXTURE_TRACE_ALL_CONNECT") ||
+       getenv("FIXTURE_TRACE_ALL")) {
+        libssh2_trace(session, ~0);
+        fprintf(stdout, "Trace all enabled.\n");
+    }
+
+    libssh2_session_set_blocking(session, 1);
+
+    {
+        int retries = 0, retry = 0;
+#ifdef LIBSSH2_WINCNG
+        /* FIXME: Retry tests with WinCNG due to flakiness in hostkey
+           verification: https://github.com/libssh2/libssh2/issues/804 */
+        retries += 2;
+#endif
+        do {
+            rc = libssh2_session_handshake(session, sock);
+            if(rc == 0) {
+                break;
+            }
+            fprintf(stderr, "Failure establishing SSH session: %d\n", rc);
+            if(
+#ifdef LIBSSH2_WINCNG
+               rc != LIBSSH2_ERROR_KEY_EXCHANGE_FAILURE ||
+#endif
+               ++retry > retries) {
+                break;
+            }
+            fprintf(stderr, "Retrying... %d / %d\n", retry, retries);
+        } while(1);
+    }
+
+    rc = 1;
+
+    /* At this point we have not yet authenticated.  The first thing to do
+     * is check the hostkey's fingerprint against our known hosts Your app
+     * may have it hard coded, may go to a file, may present it to the
+     * user, that's your call
+     */
+    fingerprint = libssh2_hostkey_hash(session, LIBSSH2_HOSTKEY_HASH_SHA1);
+    fprintf(stderr, "Fingerprint: ");
+    for(i = 0; i < 20; i++) {
+        fprintf(stderr, "%02X ", (unsigned char)fingerprint[i]);
+    }
+    fprintf(stderr, "\n");
+
+    /* check what authentication methods are available */
+    userauthlist = libssh2_userauth_list(session, username,
+                                         (unsigned int)strlen(username));
+    if(userauthlist) {
+        fprintf(stderr, "Authentication methods: %s\n", userauthlist);
+        if(strstr(userauthlist, "password")) {
+            auth_pw |= 1;
+        }
+        if(strstr(userauthlist, "keyboard-interactive")) {
+            auth_pw |= 2;
+        }
+        if(strstr(userauthlist, "publickey")) {
+            auth_pw |= 4;
+        }
+
+        if(auth_pw & 4) {
+            /* Authenticate by public key */
+            if(libssh2_userauth_publickey_fromfile(session, username,
+                                                   pubkey, privkey,
+                                                   password)) {
+                fprintf(stderr, "Authentication by public key failed.\n");
+                goto shutdown;
+            }
+            else {
+                fprintf(stderr, "Authentication by public key succeeded.\n");
+            }
+        }
+        else {
+            fprintf(stderr, "No supported authentication methods found.\n");
+            goto shutdown;
+        }
+    }
+
+    /* Request a session channel on which to run a shell */
+    channel = libssh2_channel_open_session(session);
+    if(!channel) {
+        fprintf(stderr, "Unable to open a session\n");
+        goto shutdown;
+    }
+
+    /* Some environment variables may be set,
+     * It's up to the server which ones it'll allow though
+     */
+    libssh2_channel_setenv(channel, "FOO", "bar");
+
+    /* Request a terminal with 'vanilla' terminal emulation
+     * See /etc/termcap for more options. This is useful when opening
+     * an interactive shell.
+     */
+    if(libssh2_channel_request_pty(channel, "vanilla")) {
+        fprintf(stderr, "Failed requesting pty\n");
+        goto skip_shell;
+    }
+
+    /* Open a SHELL on that pty */
+    if(libssh2_channel_shell(channel)) {
+        fprintf(stderr, "Unable to request shell on allocated pty\n");
+        goto shutdown;
+    }
+
+    rc = 0;
+
+skip_shell:
+
+    if(channel) {
+        libssh2_channel_free(channel);
+        channel = NULL;
+    }
+
+shutdown:
+
+    if(session) {
+        libssh2_session_disconnect(session, "Normal Shutdown");
+        libssh2_session_free(session);
+    }
+
+    if(sock != LIBSSH2_INVALID_SOCKET) {
+        shutdown(sock, 2 /* SHUT_RDWR */);
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
+    }
+
+    fprintf(stderr, "all done\n");
+
+    libssh2_exit();
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
+
+    return rc;
+}

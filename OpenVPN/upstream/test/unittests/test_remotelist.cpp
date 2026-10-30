@@ -1,1 +1,600 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9jbGllbnQvcmVtb3RlbGlzdC5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnN0cnVjdCBCdWxrUmVzb2x2ZU5vdGlmeUlnbiA6IFJlbW90ZUxpc3Q6OkJ1bGtSZXNvbHZlOjpOb3RpZnlDYWxsYmFjawp7CiAgICB2b2lkIGJ1bGtfcmVzb2x2ZV9kb25lKCkgb3ZlcnJpZGUKICAgIHsKICAgIH0KfTsKc3RydWN0IEJ1bGtSZXNvbHZlTm90aWZ5TG9nIDogUmVtb3RlTGlzdDo6QnVsa1Jlc29sdmU6Ok5vdGlmeUNhbGxiYWNrCnsKICAgIGV4cGxpY2l0IEJ1bGtSZXNvbHZlTm90aWZ5TG9nKGNvbnN0IHN0ZDo6c3RyaW5nICZtc2cgPSAiIikKICAgICAgICA6IG1zZ18obXNnKQogICAgewogICAgfQogICAgdm9pZCBidWxrX3Jlc29sdmVfZG9uZSgpIG92ZXJyaWRlCiAgICB7CiAgICAgICAgT1BFTlZQTl9MT0cobXNnXyk7CiAgICB9CiAgICBjb25zdCBzdGQ6OnN0cmluZyBtc2dfOwp9OwoKCgpURVNUKFJlbW90ZUxpc3QsIEN0b3JSZW1vdGVPdmVycmlkZSkKewogICAgc3RydWN0IFRlc3RPdmVycmlkZSA6IHB1YmxpYyBSZW1vdGVMaXN0OjpSZW1vdGVPdmVycmlkZQogICAgewogICAgICAgIFRlc3RPdmVycmlkZShjb25zdCBzdGQ6OnN0cmluZyAmc2VydmVyX2hvc3QsCiAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHN0ZDo6c3RyaW5nICZzZXJ2ZXJfcG9ydCwKICAgICAgICAgICAgICAgICAgICAgY29uc3QgUHJvdG9jb2wgJnRyYW5zcG9ydF9wcm90b2NvbCkKICAgICAgICB7CiAgICAgICAgICAgIGl0ZW1fLnJlc2V0KG5ldyBSZW1vdGVMaXN0OjpJdGVtKTsKICAgICAgICAgICAgaXRlbV8tPnNlcnZlcl9ob3N0ID0gc2VydmVyX2hvc3Q7CiAgICAgICAgICAgIGl0ZW1fLT5zZXJ2ZXJfcG9ydCA9IHNlcnZlcl9wb3J0OwogICAgICAgICAgICBpdGVtXy0+dHJhbnNwb3J0X3Byb3RvY29sID0gdHJhbnNwb3J0X3Byb3RvY29sOwogICAgICAgIH0KICAgICAgICBSZW1vdGVMaXN0OjpJdGVtOjpQdHIgZ2V0KCkgb3ZlcnJpZGUKICAgICAgICB7CiAgICAgICAgICAgIHJldHVybiBpdGVtXzsKICAgICAgICB9CiAgICAgICAgUmVtb3RlTGlzdDo6SXRlbTo6UHRyIGl0ZW1fOwogICAgfTsKCiAgICBUZXN0T3ZlcnJpZGUgdGVzdF9vdnIoIjEuMS4xLjEiLCAiMTExMSIsIFByb3RvY29sKFByb3RvY29sOjpVRFB2NCkpOwogICAgUmVtb3RlTGlzdCBybCgmdGVzdF9vdnIpOwoKICAgIEFTU0VSVF9FUShybC5kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLnNpemUoKSwgMVVMKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgwKS0+c2VydmVyX2hvc3QsICIxLjEuMS4xIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMCktPnNlcnZlcl9wb3J0LCAiMTExMSIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDApLT50cmFuc3BvcnRfcHJvdG9jb2wsIFByb3RvY29sKFByb3RvY29sOjpVRFB2NCkpOwp9CgoKClRFU1QoUmVtb3RlTGlzdCwgQ3RvclNpbmdsZUhvc3QpCnsKICAgIFJlbW90ZUxpc3QgcmwoIjEuMS4xLjEiLCAiMTExMSIsIFByb3RvY29sKFByb3RvY29sOjpUQ1B2NiksICIiKTsKICAgIEFTU0VSVF9FUShybC5kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLnNpemUoKSwgMVVMKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgwKS0+c2VydmVyX2hvc3QsICIxLjEuMS4xIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMCktPnNlcnZlcl9wb3J0LCAiMTExMSIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDApLT50cmFuc3BvcnRfcHJvdG9jb2wsIFByb3RvY29sKFByb3RvY29sOjpUQ1B2NikpOwp9ClRFU1QoUmVtb3RlTGlzdCwgQ3RvclNpbmdsZUhvc3RCYWRQb3J0KQp7CiAgICBKWV9FWFBFQ1RfVEhST1coCiAgICAgICAgUmVtb3RlTGlzdCgiMS4xLjEuMSIsICI5OTk5OSIsIFByb3RvY29sKFByb3RvY29sOjpUQ1B2NiksICJDdG9yU2luZ2xlSG9zdEJhZFBvcnQiKSwKICAgICAgICBIb3N0UG9ydDo6aG9zdF9wb3J0X2Vycm9yLAogICAgICAgICJDdG9yU2luZ2xlSG9zdEJhZFBvcnQiKTsKfQoKClRFU1QoUmVtb3RlTGlzdCwgQ3RvclJlbW90ZUxpc3QpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICJwcm90byB0Y3A2XG4iCiAgICAgICAgInJlbW90ZSAwLmRlZmF1bHQuaW52YWxpZFxuIgogICAgICAgICJwb3J0IDk5OTlcbiIKICAgICAgICAicmVtb3RlIDEuZG9tYWluLmludmFsaWQgMTExMSB1ZHBcbiIKICAgICAgICAiPGNvbm5lY3Rpb24+XG4iCiAgICAgICAgIiAgcmVtb3RlIDIuZG9tYWluLmludmFsaWRcbiIKICAgICAgICAiICBwb3J0IDg4ODhcbiIKICAgICAgICAiPC9jb25uZWN0aW9uPlxuIgogICAgICAgICI8Y29ubmVjdGlvbj5cbiIKICAgICAgICAiICBwcm90byB1ZHA2XG4iCiAgICAgICAgIiAgcmVtb3RlIDM6ZjAwZDo0OjoxXG4iCiAgICAgICAgIjwvY29ubmVjdGlvbj5cbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFJhbmRvbUFQSTo6UHRyIHJuZzsKICAgIFJlbW90ZUxpc3QgcmwoY2ZnLCAiIiwgMCwgbnVsbHB0ciwgcm5nKTsKICAgIEFTU0VSVF9FUShybC5kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLnNpemUoKSwgNFVMKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgwKS0+c2VydmVyX2hvc3QsICIwLmRlZmF1bHQuaW52YWxpZCIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDApLT5zZXJ2ZXJfcG9ydCwgIjk5OTkiKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgwKS0+dHJhbnNwb3J0X3Byb3RvY29sLCBQcm90b2NvbChQcm90b2NvbDo6VENQdjYpKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgxKS0+c2VydmVyX2hvc3QsICIxLmRvbWFpbi5pbnZhbGlkIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMSktPnNlcnZlcl9wb3J0LCAiMTExMSIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDEpLT50cmFuc3BvcnRfcHJvdG9jb2wsIFByb3RvY29sKFByb3RvY29sOjpVRFApKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgyKS0+c2VydmVyX2hvc3QsICIyLmRvbWFpbi5pbnZhbGlkIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMiktPnNlcnZlcl9wb3J0LCAiODg4OCIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDIpLT50cmFuc3BvcnRfcHJvdG9jb2wsIFByb3RvY29sKFByb3RvY29sOjpUQ1B2NikpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDMpLT5zZXJ2ZXJfaG9zdCwgIjM6ZjAwZDo0OjoxIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMyktPnNlcnZlcl9wb3J0LCAiOTk5OSIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDMpLT50cmFuc3BvcnRfcHJvdG9jb2wsIFByb3RvY29sKFByb3RvY29sOjpVRFB2NikpOwp9ClRFU1QoUmVtb3RlTGlzdCwgQ3RvclJlbW90ZUxpc3RDb25uQmxvY2tPbmx5KQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicmVtb3RlIDEubm9ibG9jay5pbnZhbGlkIDExMTEgdWRwXG4iCiAgICAgICAgIjxjb25uZWN0aW9uPlxuIgogICAgICAgICIgIHJlbW90ZSAyLmJsb2NrLmludmFsaWRcbiIKICAgICAgICAiPC9jb25uZWN0aW9uPlxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUmFuZG9tQVBJOjpQdHIgcm5nOwogICAgUmVtb3RlTGlzdCBybChjZmcsICIiLCBSZW1vdGVMaXN0OjpDT05OX0JMT0NLX09OTFksIG51bGxwdHIsIHJuZyk7CiAgICBBU1NFUlRfRVEocmwuZGVmaW5lZCgpLCB0cnVlKTsKICAgIEFTU0VSVF9FUShybC5zaXplKCksIDFVTCk7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMCktPnNlcnZlcl9ob3N0LCAiMi5ibG9jay5pbnZhbGlkIik7Cn0KVEVTVChSZW1vdGVMaXN0LCBDdG9yUmVtb3RlTGlzdEVtcHR5KQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygiIiwgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFJhbmRvbUFQSTo6UHRyIHJuZzsKICAgIEFTU0VSVF9USFJPVyhSZW1vdGVMaXN0KGNmZywgIiIsIDAsIG51bGxwdHIsIHJuZyksIG9wdGlvbl9lcnJvcik7CiAgICBSZW1vdGVMaXN0IHJsKGNmZywgIiIsIFJlbW90ZUxpc3Q6OkFMTE9XX0VNUFRZLCBudWxscHRyLCBybmcpOwp9ClRFU1QoUmVtb3RlTGlzdCwgQ3RvclJlbW90ZUxpc3RDb25uQmxvY2tGYWN0b3J5KQp7CiAgICBzdHJ1Y3QgVGVzdENvbm5CbG9jayA6IHB1YmxpYyBSZW1vdGVMaXN0OjpDb25uQmxvY2sKICAgIHsKICAgICAgICB2b2lkIG5ld19pdGVtKGNvbnN0IFJlbW90ZUxpc3Q6Okl0ZW0gJml0ZW0pIG92ZXJyaWRlCiAgICAgICAgewogICAgICAgICAgICBPUEVOVlBOX0xPRygiVGVzdENvbm5CbG9jazogIiA8PCBpdGVtLnRvX3N0cmluZygpKTsKICAgICAgICB9CiAgICB9OwogICAgc3RydWN0IFRlc3RDb25uQmxvY2tGYWN0b3J5IDogcHVibGljIFJlbW90ZUxpc3Q6OkNvbm5CbG9ja0ZhY3RvcnkKICAgIHsKICAgICAgICBSZW1vdGVMaXN0OjpDb25uQmxvY2s6OlB0ciBuZXdfY29ubl9ibG9jayhjb25zdCBPcHRpb25MaXN0OjpQdHIgJm9wdCkgb3ZlcnJpZGUKICAgICAgICB7CiAgICAgICAgICAgIGlmIChvcHQtPmV4aXN0cygiYmxvY2stb3B0aW9uIikpCiAgICAgICAgICAgICAgICByZXR1cm4gUmVtb3RlTGlzdDo6Q29ubkJsb2NrOjpQdHIobmV3IFRlc3RDb25uQmxvY2soKSk7CiAgICAgICAgICAgIHJldHVybiBSZW1vdGVMaXN0OjpDb25uQmxvY2s6OlB0cigpOwogICAgICAgIH0KICAgIH07CgogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgIjxibG9jaz5cbiIKICAgICAgICAiICByZW1vdGUgYmxvY2suaW52YWxpZFxuIgogICAgICAgICIgIGJsb2NrLW9wdGlvblxuIgogICAgICAgICI8L2Jsb2NrPlxuIgogICAgICAgICI8YmxvY2s+XG4iCiAgICAgICAgIiAgcmVtb3RlIGJsb2NrLmludmFsaWRcbiIKICAgICAgICAiICB1bmtub3duLWJsb2NrLW9wdGlvblxuIgogICAgICAgICI8L2Jsb2NrPlxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CiAgICBUZXN0Q29ubkJsb2NrRmFjdG9yeSB0Y2JmOwoKICAgIFJhbmRvbUFQSTo6UHRyIHJuZzsKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgUmVtb3RlTGlzdCBybDEoY2ZnLCAiYmxvY2siLCAwLCAmdGNiZiwgcm5nKTsKICAgIHN0ZDo6c3RyaW5nIG91dHB1dDEodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7CiAgICBBU1NFUlRfTkUob3V0cHV0MS5maW5kKCJUZXN0Q29ubkJsb2NrIiksIHN0ZDo6c3RyaW5nOjpucG9zKTsKICAgIEFTU0VSVF9FUShybDEuc2l6ZSgpLCAyVUwpOwoKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgUmVtb3RlTGlzdCBybDIoY2ZnLCAiYmxvY2siLCBSZW1vdGVMaXN0OjpDT05OX0JMT0NLX09NSVRfVU5ERUYsICZ0Y2JmLCBybmcpOwogICAgc3RkOjpzdHJpbmcgb3V0cHV0Mih0ZXN0TG9nLT5zdG9wQ29sbGVjdGluZygpKTsKICAgIEFTU0VSVF9ORShvdXRwdXQyLmZpbmQoIlRlc3RDb25uQmxvY2siKSwgc3RkOjpzdHJpbmc6Om5wb3MpOwogICAgQVNTRVJUX0VRKHJsMi5zaXplKCksIDFVTCk7Cn0KVEVTVChSZW1vdGVMaXN0LCBDdG9yUmVtb3RlTGlzdFdhcm5VbnN1cHBvcnRlZCkKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgIjxjb25uZWN0aW9uPlxuIgogICAgICAgICIgIHJlbW90ZSBibG9jay5pbnZhbGlkXG4iCiAgICAgICAgIiAgaHR0cC1wcm94eVxuIgogICAgICAgICIgIGh0dHAtcHJveHktb3B0aW9uXG4iCiAgICAgICAgIiAgaHR0cC1wcm94eS11c2VyLXBhc3NcbiIKICAgICAgICAiPC9jb25uZWN0aW9uPlxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUmFuZG9tQVBJOjpQdHIgcm5nOwogICAgdGVzdExvZy0+c3RhcnRDb2xsZWN0aW5nKCk7CiAgICBSZW1vdGVMaXN0IHJsKGNmZywgIiIsIFJlbW90ZUxpc3Q6OldBUk5fVU5TVVBQT1JURUQsIG51bGxwdHIsIHJuZyk7CiAgICBzdGQ6OnN0cmluZyBvdXRwdXQodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7CgogICAgQVNTRVJUX05FKG91dHB1dC5maW5kKCIgaHR0cC1wcm94eSAiKSwgc3RkOjpzdHJpbmc6Om5wb3MpOwogICAgQVNTRVJUX05FKG91dHB1dC5maW5kKCIgaHR0cC1wcm94eS1vcHRpb24gIiksIHN0ZDo6c3RyaW5nOjpucG9zKTsKICAgIEFTU0VSVF9ORShvdXRwdXQuZmluZCgiIGh0dHAtcHJveHktdXNlci1wYXNzICIpLCBzdGQ6OnN0cmluZzo6bnBvcyk7Cn0KVEVTVChSZW1vdGVMaXN0LCBDdG9yUmVtb3RlTGlzdEJsb2NrTGltaXQpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICI8Y29ubmVjdGlvbj5cbiIKICAgICAgICAiICByZW1vdGUgYmxvY2suaW52YWxpZFxuIgogICAgICAgICIgIGRpcmVjdGl2ZS13aXRoLWEtd2F5LXRvby1sb25nLW5hbWUtdG8tYmUtYWNjZXB0ZWQtYnktdGhlLWJsb2NrLXBhcnNlclxuIgogICAgICAgICI8L2Nvbm5lY3Rpb24+XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBSYW5kb21BUEk6OlB0ciBybmc7CiAgICBKWV9FWFBFQ1RfVEhST1coUmVtb3RlTGlzdChjZmcsICIiLCAwLCBudWxscHRyLCBybmcpLCBvcHRpb25fZXJyb3IsICJjb25uZWN0aW9uX2Jsb2NrIik7Cn0KCgpURVNUKFJlbW90ZUxpc3QsIExpc3RUcmF2ZXJzYWwpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICJyZW1vdGUgMS5kb21haW4udGxkIDExMTEgdWRwXG4iCiAgICAgICAgInJlbW90ZSAyLmRvbWFpbi50bGQgMjIyMiB1ZHBcbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIHVzaW5nIFJlc3VsdHNUeXBlID0gb3BlbnZwbl9pbzo6aXA6OnRjcDo6cmVzb2x2ZXI6OnJlc3VsdHNfdHlwZTsKICAgIHVzaW5nIEVuZHBvaW50VHlwZSA9IFJlc3VsdHNUeXBlOjplbmRwb2ludF90eXBlOwogICAgdXNpbmcgRW5kcG9pbnRMaXN0ID0gc3RkOjp2ZWN0b3I8RW5kcG9pbnRUeXBlPjsKCiAgICBzdGQ6OnN0cmluZyBhZGRyOwogICAgc3RkOjpzdHJpbmcgcG9ydDsKICAgIFByb3RvY29sIHByb3RvOwoKICAgIFJlbW90ZUxpc3Q6OlB0ciBybChuZXcgUmVtb3RlTGlzdChjZmcsICIiLCAwLCBudWxscHRyLCBudWxscHRyKSk7CiAgICBib29sIGF2YWlsYWJsZSA9IHJsLT5lbmRwb2ludF9hdmFpbGFibGUoJmFkZHIsICZwb3J0LCAmcHJvdG8pOwogICAgQVNTRVJUX0VRKGF2YWlsYWJsZSwgZmFsc2UpOwogICAgQVNTRVJUX0VRKGFkZHIsICIxLmRvbWFpbi50bGQiKTsKCiAgICAvLyBDcmVhdGUgZmFrZSByZXNvbHZlciByZXN1bHRzIGFuZCBmZWVkIHRoZW0gaW50byBSZW1vdGVMaXN0CiAgICBFbmRwb2ludFR5cGUgZXA7CiAgICBFbmRwb2ludExpc3QgZXBsOwogICAgZXBsLnB1c2hfYmFjayh7b3BlbnZwbl9pbzo6aXA6Om1ha2VfYWRkcmVzcygiMS4xLjEuMSIpLCAxMTExfSk7CiAgICBlcGwucHVzaF9iYWNrKHtvcGVudnBuX2lvOjppcDo6bWFrZV9hZGRyZXNzKCIxLjEuMS4xMSIpLCAxMTExfSk7CiAgICBlcGwucHVzaF9iYWNrKHtvcGVudnBuX2lvOjppcDo6bWFrZV9hZGRyZXNzKCIxOjoxIiksIDExMTF9KTsKICAgIFJlc3VsdHNUeXBlIHJlc3VsdHMoUmVzdWx0c1R5cGU6OmNyZWF0ZShlcGwuY2JlZ2luKCksIGVwbC5jZW5kKCksIGFkZHIsIHBvcnQpKTsKICAgIHJsLT5zZXRfZW5kcG9pbnRfcmFuZ2UocmVzdWx0cyk7CgogICAgLy8gSXRlcmF0ZSB0aHJvdWdoIHJlc3VsdHMKICAgIGF2YWlsYWJsZSA9IHJsLT5lbmRwb2ludF9hdmFpbGFibGUoJmFkZHIsICZwb3J0LCAmcHJvdG8pOwogICAgQVNTRVJUX0VRKGF2YWlsYWJsZSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEoYWRkciwgIjEuZG9tYWluLnRsZCIpOwogICAgQVNTRVJUX05PX1RIUk9XKHJsLT5nZXRfZW5kcG9pbnQoZXApKTsKICAgIEFTU0VSVF9FUShlcC5hZGRyZXNzKCkudG9fc3RyaW5nKCksICIxLjEuMS4xIik7CiAgICBybC0+bmV4dCgpOwogICAgQVNTRVJUX05PX1RIUk9XKHJsLT5nZXRfZW5kcG9pbnQoZXApKTsKICAgIEFTU0VSVF9FUShlcC5hZGRyZXNzKCkudG9fc3RyaW5nKCksICIxLjEuMS4xMSIpOwogICAgcmwtPm5leHQoKTsKICAgIEFTU0VSVF9OT19USFJPVyhybC0+Z2V0X2VuZHBvaW50KGVwKSk7CiAgICBBU1NFUlRfRVEoZXAuYWRkcmVzcygpLnRvX3N0cmluZygpLCAiMTo6MSIpOwoKICAgIHJsLT5uZXh0KCk7CiAgICBhdmFpbGFibGUgPSBybC0+ZW5kcG9pbnRfYXZhaWxhYmxlKCZhZGRyLCAmcG9ydCwgJnByb3RvKTsKICAgIEFTU0VSVF9FUShhdmFpbGFibGUsIGZhbHNlKTsKICAgIEFTU0VSVF9FUShhZGRyLCAiMi5kb21haW4udGxkIik7CgogICAgcmwtPm5leHQoKTsKICAgIGF2YWlsYWJsZSA9IHJsLT5lbmRwb2ludF9hdmFpbGFibGUoJmFkZHIsICZwb3J0LCAmcHJvdG8pOwogICAgQVNTRVJUX0VRKGF2YWlsYWJsZSwgZmFsc2UpOwogICAgQVNTRVJUX0VRKGFkZHIsICIxLmRvbWFpbi50bGQiKTsKfQoKClRFU1QoUmVtb3RlTGlzdCwgUmVtb3RlTGlzdEJ1bGtSZXNvbHZlKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicmVtb3RlLWNhY2hlLWxpZmV0aW1lIDFcbiIKICAgICAgICAicmVtb3RlIDEuMS4xLjEgMTExMSB1ZHBcbiIKICAgICAgICAicmVtb3RlIDI6Y2FmZTo6MSAyMjIyIHRjcFxuIgogICAgICAgICJyZW1vdGUgMy5kb21haW4udGxkIDMzMzMgdWRwNFxuIgogICAgICAgICJyZW1vdGUgMy5kb21haW4udGxkIDMzMzMzIHVkcFxuIgogICAgICAgICJyZW1vdGUgNC5kb21haW4udGxkIDQ0NDQgdWRwNlxuIgogICAgICAgICJyZW1vdGUgNS5ub3Jlc29sdmUudGxkIDU1NTUgdWRwNFxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUmFuZG9tQVBJOjpQdHIgcm5nKG5ldyBNVFJhbmQoMzczNTkyODU1OSkpOwogICAgUmVtb3RlTGlzdDo6UHRyIHJsKG5ldyBSZW1vdGVMaXN0KGNmZywgIiIsIDAsIG51bGxwdHIsIHJuZykpOwogICAgcmwtPnNldF9lbmFibGVfY2FjaGUodHJ1ZSk7CgogICAgb3BlbnZwbl9pbzo6aW9fY29udGV4dCBpb2N0eDsKICAgIFNlc3Npb25TdGF0czo6UHRyIHN0YXRzKG5ldyBTZXNzaW9uU3RhdHMoKSk7CiAgICBGYWtlQXN5bmNSZXNvbHZhYmxlPAogICAgICAgIFJlbW90ZUxpc3Q6OkJ1bGtSZXNvbHZlLAogICAgICAgIG9wZW52cG5faW86OmlvX2NvbnRleHQgJiwKICAgICAgICBjb25zdCBSZW1vdGVMaXN0OjpQdHIgJiwKICAgICAgICBjb25zdCBTZXNzaW9uU3RhdHM6OlB0ciAmPgogICAgICAgIGZha2VfYnVsa3Jlcyhpb2N0eCwgcmwsIHN0YXRzKTsKCiAgICBmYWtlX2J1bGtyZXMuc2V0X3Jlc3VsdHMoIjEuMS4xLjEiLCAiMTExMSIsIHt7IjEuMS4xLjEiLCAxMTExfX0pOwogICAgZmFrZV9idWxrcmVzLnNldF9yZXN1bHRzKCIyOmNhZmU6OjEiLCAiMjIyMiIsIHt7IjI6Y2FmZTo6MSIsIDIyMjJ9fSk7CiAgICBmYWtlX2J1bGtyZXMuc2V0X3Jlc3VsdHMoIjMuZG9tYWluLnRsZCIsICIzMzMzIiwge3siMy4zLjMuMyIsIDMzMzN9LCB7IjM6OjMiLCAzMzMzfX0pOwogICAgZmFrZV9idWxrcmVzLnNldF9yZXN1bHRzKCI0LmRvbWFpbi50bGQiLCAiNDQ0NCIsIHt7IjQuNC40LjQiLCA0NDQ0fSwgeyI0Ojo0IiwgNDQ0NH19KTsKCiAgICBCdWxrUmVzb2x2ZU5vdGlmeUxvZyBsb2dtc2coIjw8PFJlbW90ZUxpc3RCdWxrUmVzb2x2ZT4+PiIpOwogICAgdGVzdExvZy0+c3RhcnRDb2xsZWN0aW5nKCk7CiAgICBmYWtlX2J1bGtyZXMuc3RhcnQoJmxvZ21zZyk7CiAgICBzdGQ6OnN0cmluZyBvdXRwdXQodGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKSk7CiAgICBBU1NFUlRfTkUob3V0cHV0LmZpbmQoIjw8PFJlbW90ZUxpc3RCdWxrUmVzb2x2ZT4+PiIpLCBzdGQ6OnN0cmluZzo6bnBvcyk7CgogICAgQVNTRVJUX0VRKDVVTCwgcmwtPnNpemUoKSkKICAgICAgICA8PCAiVW5leHBlY3RlZCByZW1vdGUgbGlzdCBpdGVtIGNvdW50IiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBvdXRwdXQ7CgogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgwKS0+cmVzX2FkZHJfbGlzdF9kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgwKS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpLCAxVUwpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgwKS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiMS4xLjEuMSIpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgxKS0+cmVzX2FkZHJfbGlzdF9kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgxKS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpLCAxVUwpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgxKS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiMjpjYWZlOjoxIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDIpLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDIpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDFVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDIpLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICIzLjMuMy4zIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDJVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICIzLjMuMy4zIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5hdCgxKS0+dG9fc3RyaW5nKCksICIzOjozIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5hY3R1YWxfaG9zdCgpLCBybC0+Z2V0X2l0ZW0oMiktPmFjdHVhbF9ob3N0KCkpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdF9kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpLCAxVUwpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiNDo6NCIpOwoKCiAgICAvLyBQcm9jZXNzIFBVU0ggcmVwbHksIHNldHRpbmcgY2FjaGUgbGlmZXRpbWUgdG8gMjQgaG91cnMKICAgIE9wdGlvbkxpc3QgcHVzaF9vcHRpb25zOwogICAgcHVzaF9vcHRpb25zLnBhcnNlX2Zyb21fY29uZmlnKCJyZW1vdGUtY2FjaGUtbGlmZXRpbWUgODY0MDBcbiIsIG51bGxwdHIpOwogICAgcHVzaF9vcHRpb25zLnVwZGF0ZV9tYXAoKTsKICAgIHJsLT5wcm9jZXNzX3B1c2gocHVzaF9vcHRpb25zKTsKCiAgICBybC0+bmV4dCgpOwogICAgcmwtPm5leHQoKTsKICAgIHJsLT5uZXh0KCk7CiAgICBybC0+bmV4dCgpOwoKICAgIC8vIE5vdyBhdCBJUHY2IGFkZHJlc3Mgb2YgJ3JlbW90ZSAzLmRvbWFpbi50bGQgMzMzMzMgdWRwJwogICAgYXV0byBlcCA9IGZha2VfYnVsa3Jlcy5pbml0X2VuZHBvaW50KCk7CiAgICBybC0+Z2V0X2VuZHBvaW50KGVwKTsKICAgIEFTU0VSVF9FUShlcC5hZGRyZXNzKCkudG9fc3RyaW5nKCksICIzOjozIik7CgoKICAgIC8vIFRlc3QgcmUtcmVzb2x2ZSBvZiBsaXN0IGl0ZW1zIHdpdGggZGlmZmVyZW50IHJlc3VsdHMKICAgIGZha2VfYnVsa3Jlcy5zZXRfcmVzdWx0cygiMy5kb21haW4udGxkIiwgIjMzMzMiLCB7eyIzMzM6OjMzMyIsIDMzMzN9LCB7IjMzOjozMyIsIDMzMzN9LCB7IjMzLjMzLjMzLjMzIiwgMzMzM319KTsKICAgIGZha2VfYnVsa3Jlcy5zZXRfcmVzdWx0cygiNC5kb21haW4udGxkIiwgIjQ0NDQiLCB7eyI0NDo6NDQiLCA0NDQ0fSwgeyI0NDQ6OjQ0NCIsIDQ0NDR9fSk7CgogICAgc3RkOjp0aGlzX3RocmVhZDo6c2xlZXBfZm9yKHN0ZDo6Y2hyb25vOjpzZWNvbmRzKDEpKTsgLy8gZm9yIGNhY2hlIGRlY2F5LCBzb3JyeSBtb20KICAgIEJ1bGtSZXNvbHZlTm90aWZ5SWduIGlnbm9yZTsKICAgIHRlc3RMb2ctPnN0YXJ0Q29sbGVjdGluZygpOwogICAgZmFrZV9idWxrcmVzLnN0YXJ0KCZpZ25vcmUpOwogICAgb3V0cHV0ID0gdGVzdExvZy0+c3RvcENvbGxlY3RpbmcoKTsKCiAgICBBU1NFUlRfRVEoNVVMLCBybC0+c2l6ZSgpKQogICAgICAgIDw8ICJVbmV4cGVjdGVkIHJlbW90ZSBsaXN0IGl0ZW0gY291bnQiIDw8IHN0ZDo6ZW5kbAogICAgICAgIDw8IG91dHB1dDsKCiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDApLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDApLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDFVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDApLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICIxLjEuMS4xIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDEpLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDEpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDFVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDEpLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICIyOmNhZmU6OjEiKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMiktPnJlc19hZGRyX2xpc3RfZGVmaW5lZCgpLCB0cnVlKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMiktPnJlc19hZGRyX2xpc3QtPnNpemUoKSwgMVVMKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMiktPnJlc19hZGRyX2xpc3QtPmF0KDApLT50b19zdHJpbmcoKSwgIjMzLjMzLjMzLjMzIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDNVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICIzMzM6OjMzMyIpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgzKS0+cmVzX2FkZHJfbGlzdC0+YXQoMSktPnRvX3N0cmluZygpLCAiMzM6OjMzIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5hdCgyKS0+dG9fc3RyaW5nKCksICIzMy4zMy4zMy4zMyIpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdF9kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpLCAyVUwpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSg0KS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiNDQ6OjQ0Iik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDQpLT5yZXNfYWRkcl9saXN0LT5hdCgxKS0+dG9fc3RyaW5nKCksICI0NDQ6OjQ0NCIpOwoKICAgIC8vIE5vdyB3ZSBzaG91bGQgYmUgYXQgZmlyc3QgYWRkcmVzcyBvZiAncmVtb3RlIDMuZG9tYWluLnRsZCAzMzMzMyB1ZHAnCiAgICAvLyBhcyB0aGUgaXRlbSBhZGRyZXNzIGluZGV4IHdhcyByZXNldAogICAgcmwtPmdldF9lbmRwb2ludChlcCk7CiAgICBBU1NFUlRfRVEoZXAuYWRkcmVzcygpLnRvX3N0cmluZygpLCAiMzMzOjozMzMiKTsKCgogICAgLy8gYmFjayB0byBvbGQgcmVzdWx0cywgYWRkIDMzMzMzIGluIGNhc2UgaXQgZ2V0cyByYW5kb21pemVkIGJlZm9yZSB0aGUgb3RoZXIgMy5kb21haW4udGxkCiAgICBmYWtlX2J1bGtyZXMuc2V0X3Jlc3VsdHMoIjMuZG9tYWluLnRsZCIsICIzMzMzIiwge3siMy4zLjMuMyIsIDMzMzN9LCB7IjM6OjMiLCAzMzMzfX0pOwogICAgZmFrZV9idWxrcmVzLnNldF9yZXN1bHRzKCIzLmRvbWFpbi50bGQiLCAiMzMzMzMiLCB7eyIzLjMuMy4zIiwgMzMzMzN9LCB7IjM6OjMiLCAzMzMzM319KTsKICAgIGZha2VfYnVsa3Jlcy5zZXRfcmVzdWx0cygiNC5kb21haW4udGxkIiwgIjQ0NDQiLCB7eyI0LjQuNC40IiwgNDQ0NH0sIHsiNDo6NCIsIDQ0NDR9fSk7CgogICAgdGVzdExvZy0+c3RhcnRDb2xsZWN0aW5nKCk7CiAgICBmYWtlX2J1bGtyZXMuc3RhcnQoJmlnbm9yZSk7CiAgICBvdXRwdXQgPSB0ZXN0TG9nLT5zdG9wQ29sbGVjdGluZygpOwoKICAgIC8vIENhY2hlIHdhcyBzdGlsbCBiZSBnb29kLCBpLmUuIG5vIHVwZGF0ZWQgMyBhbmQgNAogICAgQVNTRVJUX0VRKDVVTCwgcmwtPnNpemUoKSkKICAgICAgICA8PCAiVW5leHBlY3RlZCByZW1vdGUgbGlzdCBpdGVtIGNvdW50IiA8PCBzdGQ6OmVuZGwKICAgICAgICA8PCBvdXRwdXQ7CgogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgyKS0+cmVzX2FkZHJfbGlzdF9kZWZpbmVkKCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgyKS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpLCAxVUwpOwogICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbSgyKS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiMzMuMzMuMzMuMzMiKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMyktPnJlc19hZGRyX2xpc3RfZGVmaW5lZCgpLCB0cnVlKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMyktPnJlc19hZGRyX2xpc3QtPnNpemUoKSwgM1VMKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMyktPnJlc19hZGRyX2xpc3QtPmF0KDApLT50b19zdHJpbmcoKSwgIjMzMzo6MzMzIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDMpLT5yZXNfYWRkcl9saXN0LT5hdCgxKS0+dG9fc3RyaW5nKCksICIzMzo6MzMiKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oMyktPnJlc19hZGRyX2xpc3QtPmF0KDIpLT50b19zdHJpbmcoKSwgIjMzLjMzLjMzLjMzIik7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDQpLT5yZXNfYWRkcl9saXN0X2RlZmluZWQoKSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDQpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDJVTCk7CiAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKDQpLT5yZXNfYWRkcl9saXN0LT5hdCgwKS0+dG9fc3RyaW5nKCksICI0NDo6NDQiKTsKICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oNCktPnJlc19hZGRyX2xpc3QtPmF0KDEpLT50b19zdHJpbmcoKSwgIjQ0NDo6NDQ0Iik7CgoKICAgIC8vIEFuZCBub3cgZm9yIHNvbWV0aGluZyBjb21wbGV0ZWx5IGRpZmZlcmVudAogICAgcmwtPnJlc2V0X2NhY2hlKCk7CiAgICBybC0+cmFuZG9taXplKCk7CgogICAgdGVzdExvZy0+c3RhcnRDb2xsZWN0aW5nKCk7CiAgICBmYWtlX2J1bGtyZXMuc3RhcnQoJmlnbm9yZSk7CiAgICBvdXRwdXQgPSB0ZXN0TG9nLT5zdG9wQ29sbGVjdGluZygpOwoKICAgIEFTU0VSVF9FUSg1VUwsIHJsLT5zaXplKCkpCiAgICAgICAgPDwgIlVuZXhwZWN0ZWQgcmVtb3RlIGxpc3QgaXRlbSBjb3VudCIgPDwgc3RkOjplbmRsCiAgICAgICAgPDwgb3V0cHV0OwoKICAgIGZvciAoc2l6ZV90IGkgPSAwOyBpIDwgcmwtPnNpemUoKTsgKytpKQogICAgewogICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3RfZGVmaW5lZCgpLCB0cnVlKTsKICAgICAgICBpZiAocmwtPmdldF9pdGVtKGkpLT5zZXJ2ZXJfaG9zdFswXSA9PSAnMScpCiAgICAgICAgewogICAgICAgICAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKGkpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDFVTCk7CiAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPmF0KDApLT50b19zdHJpbmcoKSwgIjEuMS4xLjEiKTsKICAgICAgICB9CiAgICAgICAgZWxzZSBpZiAocmwtPmdldF9pdGVtKGkpLT5zZXJ2ZXJfaG9zdFswXSA9PSAnMicpCiAgICAgICAgewogICAgICAgICAgICBBU1NFUlRfRVEocmwtPmdldF9pdGVtKGkpLT5yZXNfYWRkcl9saXN0LT5zaXplKCksIDFVTCk7CiAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPmF0KDApLT50b19zdHJpbmcoKSwgIjI6Y2FmZTo6MSIpOwogICAgICAgIH0KICAgICAgICBlbHNlIGlmIChybC0+Z2V0X2l0ZW0oaSktPnNlcnZlcl9ob3N0WzBdID09ICczJykKICAgICAgICB7CiAgICAgICAgICAgIGlmIChybC0+Z2V0X2l0ZW0oaSktPnRyYW5zcG9ydF9wcm90b2NvbC5pc19pcHY0KCkpCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPnNpemUoKSwgMVVMKTsKICAgICAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPmF0KDApLT50b19zdHJpbmcoKSwgIjMuMy4zLjMiKTsKICAgICAgICAgICAgfQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPnNpemUoKSwgMlVMKTsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICBlbHNlIGlmIChybC0+Z2V0X2l0ZW0oaSktPnNlcnZlcl9ob3N0WzBdID09ICc0JykKICAgICAgICB7CiAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnJlc19hZGRyX2xpc3QtPnNpemUoKSwgMVVMKTsKICAgICAgICAgICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbShpKS0+cmVzX2FkZHJfbGlzdC0+YXQoMCktPnRvX3N0cmluZygpLCAiNDo6NCIpOwogICAgICAgIH0KICAgIH0KCiAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IHJsLT5zaXplKCk7ICsraSkKICAgIHsKICAgICAgICBmb3IgKHNpemVfdCBqID0gMDsgaiA8IHJsLT5nZXRfaXRlbShpKS0+cmVzX2FkZHJfbGlzdC0+c2l6ZSgpOyArK2opCiAgICAgICAgewogICAgICAgICAgICBzdGQ6OnN0cmluZyBob3N0OwogICAgICAgICAgICBzdGQ6OnN0cmluZyBwb3J0OwogICAgICAgICAgICBQcm90b2NvbCBwcm90bzsKICAgICAgICAgICAgQVNTRVJUX0VRKHJsLT5lbmRwb2ludF9hdmFpbGFibGUoJmhvc3QsICZwb3J0LCAmcHJvdG8pLCB0cnVlKTsKICAgICAgICAgICAgQVNTRVJUX0VRKHJsLT5nZXRfaXRlbShpKS0+YWN0dWFsX2hvc3QoKSwgaG9zdCk7CiAgICAgICAgICAgIEFTU0VSVF9FUShybC0+Z2V0X2l0ZW0oaSktPnNlcnZlcl9wb3J0LCBwb3J0KTsKICAgICAgICAgICAgaWYgKHJsLT5jdXJyZW50X3RyYW5zcG9ydF9wcm90b2NvbCgpLmlzX2lwdjQoKQogICAgICAgICAgICAgICAgfHwgcmwtPmN1cnJlbnRfdHJhbnNwb3J0X3Byb3RvY29sKCkuaXNfaXB2NigpKQogICAgICAgICAgICB7CiAgICAgICAgICAgICAgICBBU1NFUlRfRVEocmwtPmN1cnJlbnRfdHJhbnNwb3J0X3Byb3RvY29sKCksIHByb3RvKTsKICAgICAgICAgICAgfQoKICAgICAgICAgICAgYXV0byBlcDEgPSBmYWtlX2J1bGtyZXMuaW5pdF9lbmRwb2ludCgpOwogICAgICAgICAgICBhdXRvIGVwMiA9IGZha2VfYnVsa3Jlcy5pbml0X2VuZHBvaW50KCk7CiAgICAgICAgICAgIHJsLT5nZXRfZW5kcG9pbnQoZXAxKTsKICAgICAgICAgICAgcmwtPmdldF9pdGVtKGkpLT5nZXRfZW5kcG9pbnQoZXAyLCBqKTsKICAgICAgICAgICAgQVNTRVJUX0VRKGVwMSwgZXAyKTsKCiAgICAgICAgICAgIHJsLT5uZXh0KCk7CiAgICAgICAgfQogICAgfQp9CgoKClRFU1QoUmVtb3RlTGlzdCwgUmVtb3RlUmFuZG9tSG9zdG5hbWUpCnsKICAgIE9wdGlvbkxpc3QgY2ZnOwogICAgY2ZnLnBhcnNlX2Zyb21fY29uZmlnKAogICAgICAgICJyZW1vdGUtcmFuZG9tLWhvc3RuYW1lXG4iCiAgICAgICAgInJlbW90ZSAxLjEuMS4xXG4iCiAgICAgICAgInJlbW90ZSAyLmRvbWFpbi5pbnZhbGlkXG4iCiAgICAgICAgIjxjb25uZWN0aW9uPlxuIgogICAgICAgICIgIHJlbW90ZSAzLmRvbWFpbi5pbnZhbGlkXG4iCiAgICAgICAgIjwvY29ubmVjdGlvbj5cbiIKICAgICAgICAiPGNvbm5lY3Rpb24+XG4iCiAgICAgICAgIiAgcmVtb3RlIDQ6Y2FmZTo6MVxuIgogICAgICAgICI8L2Nvbm5lY3Rpb24+XG4iLAogICAgICAgIG51bGxwdHIpOwogICAgY2ZnLnVwZGF0ZV9tYXAoKTsKCiAgICBSYW5kb21BUEk6OlB0ciBybmcobmV3IEZha2VTZWN1cmVSYW5kKDB4ZjcpKTsKICAgIFJlbW90ZUxpc3QgcmwoY2ZnLCAiIiwgMCwgbnVsbHB0ciwgcm5nKTsKCiAgICBBU1NFUlRfRVEocmwuc2l6ZSgpLCA0VUwpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDApLT5hY3R1YWxfaG9zdCgpLCAiMS4xLjEuMSIpOwogICAgQVNTRVJUX0VRKHJsLmdldF9pdGVtKDEpLT5hY3R1YWxfaG9zdCgpLCAiZjdmOGY5ZmFmYmZjLjIuZG9tYWluLmludmFsaWQiKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgyKS0+YWN0dWFsX2hvc3QoKSwgImZkZmVmZjAwMDEwMi4zLmRvbWFpbi5pbnZhbGlkIik7CiAgICBBU1NFUlRfRVEocmwuZ2V0X2l0ZW0oMyktPmFjdHVhbF9ob3N0KCksICI0OmNhZmU6OjEiKTsKICAgIHJsLm5leHQoKTsKICAgIEFTU0VSVF9FUShybC5jdXJyZW50X3NlcnZlcl9ob3N0KCksICIwMzA0MDUwNjA3MDguMi5kb21haW4uaW52YWxpZCIpOwogICAgcmwubmV4dCgpOwogICAgQVNTRVJUX0VRKHJsLmN1cnJlbnRfc2VydmVyX2hvc3QoKSwgIjA5MGEwYjBjMGQwZS4zLmRvbWFpbi5pbnZhbGlkIik7CgogICAgQVNTRVJUX0VRKHJsLmdldF9lbmFibGVfY2FjaGUoKSwgZmFsc2UpOwogICAgcmwuc2V0X2VuYWJsZV9jYWNoZSh0cnVlKTsKICAgIEFTU0VSVF9FUShybC5nZXRfZW5hYmxlX2NhY2hlKCksIHRydWUpOwogICAgcmwubmV4dCgpOwogICAgcmwubmV4dCgpOwoKICAgIHJsLm5leHQoKTsKICAgIEFTU0VSVF9FUShybC5jdXJyZW50X3NlcnZlcl9ob3N0KCksICIwMzA0MDUwNjA3MDguMi5kb21haW4uaW52YWxpZCIpOwogICAgcmwubmV4dCgpOwogICAgQVNTRVJUX0VRKHJsLmN1cnJlbnRfc2VydmVyX2hvc3QoKSwgIjA5MGEwYjBjMGQwZS4zLmRvbWFpbi5pbnZhbGlkIik7Cn0KVEVTVChSZW1vdGVMaXN0LCBSZW1vdGVSYW5kb21Ib3N0bmFtZU5vUk5HKQp7CiAgICBPcHRpb25MaXN0IGNmZzsKICAgIGNmZy5wYXJzZV9mcm9tX2NvbmZpZygKICAgICAgICAicmVtb3RlLXJhbmRvbS1ob3N0bmFtZVxuIgogICAgICAgICJyZW1vdGUgZG9tYWluLmludmFsaWRcbiIsCiAgICAgICAgbnVsbHB0cik7CiAgICBjZmcudXBkYXRlX21hcCgpOwoKICAgIFJhbmRvbUFQSTo6UHRyIG5vX3JuZzsKICAgIFJlbW90ZUxpc3QgcmwoY2ZnLCAiIiwgMCwgbnVsbHB0ciwgbm9fcm5nKTsKICAgIEFTU0VSVF9FUShybC5jdXJyZW50X3NlcnZlcl9ob3N0KCksICJkb21haW4uaW52YWxpZCIpOwp9CgoKVEVTVChSZW1vdGVMaXN0LCBPdmVycmlkZUZ1bmN0aW9ucykKewogICAgT3B0aW9uTGlzdCBjZmc7CiAgICBjZmcucGFyc2VfZnJvbV9jb25maWcoCiAgICAgICAgInJlbW90ZS1yYW5kb20taG9zdG5hbWVcbiIKICAgICAgICAicmVtb3RlIGNvbmZpZy5ob3N0LmludmFsaWQgMTExMSB1ZHA2XG4iCiAgICAgICAgInJlbW90ZSBjb25maWcuaG9zdC5pbnZhbGlkIDExMTEgdGNwXG4iCiAgICAgICAgInJlbW90ZSBjb25maWcuaG9zdC5pbnZhbGlkIDExMTEgdGxzNFxuIiwKICAgICAgICBudWxscHRyKTsKICAgIGNmZy51cGRhdGVfbWFwKCk7CgogICAgUmFuZG9tQVBJOjpQdHIgcm5nKG5ldyBGYWtlU2VjdXJlUmFuZCgweGY3KSk7CiAgICBSZW1vdGVMaXN0IHJsKGNmZywgIiIsIDAsIG51bGxwdHIsIHJuZyk7CiAgICBBU1NFUlRfRVEocmwuc2l6ZSgpLCAzVUwpOwoKICAgIHJsLnNldF9wcm90b192ZXJzaW9uX292ZXJyaWRlKElQOjpBZGRyOjpWZXJzaW9uOjpWNik7CiAgICBmb3IgKHNpemVfdCBpID0gMDsgaSA8IHJsLnNpemUoKTsgKytpKQogICAgICAgIEFTU0VSVF9UUlVFKHJsLmdldF9pdGVtKGkpLT50cmFuc3BvcnRfcHJvdG9jb2wuaXNfaXB2NigpKTsKCiAgICBybC5zZXRfcHJvdG9fdmVyc2lvbl9vdmVycmlkZShJUDo6QWRkcjo6VmVyc2lvbjo6VjQpOwogICAgZm9yIChzaXplX3QgaSA9IDA7IGkgPCBybC5zaXplKCk7ICsraSkKICAgICAgICBBU1NFUlRfVFJVRShybC5nZXRfaXRlbShpKS0+dHJhbnNwb3J0X3Byb3RvY29sLmlzX2lwdjQoKSk7CgogICAgcmwuaGFuZGxlX3Byb3RvX292ZXJyaWRlKFByb3RvY29sKFByb3RvY29sOjpVRFB2NCksIHRydWUpOwogICAgQVNTRVJUX0VRKHJsLnNpemUoKSwgMVVMKTsKICAgIEFTU0VSVF9FUShybC5jdXJyZW50X3RyYW5zcG9ydF9wcm90b2NvbCgpLCBQcm90b2NvbChQcm90b2NvbDo6VENQdjQpKTsKCiAgICBybC5zZXRfcG9ydF9vdmVycmlkZSgiNDcxMSIpOwogICAgQVNTRVJUX0VRKHJsLnNpemUoKSwgMVVMKTsKICAgIEFTU0VSVF9FUShybC5nZXRfaXRlbSgwKS0+c2VydmVyX3BvcnQsICI0NzExIik7CgogICAgcmwuc2V0X3NlcnZlcl9vdmVycmlkZSgib3ZlcnJpZGUuaG9zdC5pbnZhbGlkIik7CiAgICBBU1NFUlRfRVEocmwuc2l6ZSgpLCAxVUwpOwogICAgQVNTRVJUX0VRKHJsLmN1cnJlbnRfc2VydmVyX2hvc3QoKSwgIm92ZXJyaWRlLmhvc3QuaW52YWxpZCIpOwp9Cg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+
+#include "test_common.hpp"
+
+#include <openvpn/client/remotelist.hpp>
+
+using namespace openvpn;
+
+struct BulkResolveNotifyIgn : RemoteList::BulkResolve::NotifyCallback
+{
+    void bulk_resolve_done() override
+    {
+    }
+};
+struct BulkResolveNotifyLog : RemoteList::BulkResolve::NotifyCallback
+{
+    explicit BulkResolveNotifyLog(const std::string &msg = "")
+        : msg_(msg)
+    {
+    }
+    void bulk_resolve_done() override
+    {
+        OPENVPN_LOG(msg_);
+    }
+    const std::string msg_;
+};
+
+
+
+TEST(RemoteList, CtorRemoteOverride)
+{
+    struct TestOverride : public RemoteList::RemoteOverride
+    {
+        TestOverride(const std::string &server_host,
+                     const std::string &server_port,
+                     const Protocol &transport_protocol)
+        {
+            item_.reset(new RemoteList::Item);
+            item_->server_host = server_host;
+            item_->server_port = server_port;
+            item_->transport_protocol = transport_protocol;
+        }
+        RemoteList::Item::Ptr get() override
+        {
+            return item_;
+        }
+        RemoteList::Item::Ptr item_;
+    };
+
+    TestOverride test_ovr("1.1.1.1", "1111", Protocol(Protocol::UDPv4));
+    RemoteList rl(&test_ovr);
+
+    ASSERT_EQ(rl.defined(), true);
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.get_item(0)->server_host, "1.1.1.1");
+    ASSERT_EQ(rl.get_item(0)->server_port, "1111");
+    ASSERT_EQ(rl.get_item(0)->transport_protocol, Protocol(Protocol::UDPv4));
+}
+
+
+
+TEST(RemoteList, CtorSingleHost)
+{
+    RemoteList rl("1.1.1.1", "1111", Protocol(Protocol::TCPv6), "");
+    ASSERT_EQ(rl.defined(), true);
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.get_item(0)->server_host, "1.1.1.1");
+    ASSERT_EQ(rl.get_item(0)->server_port, "1111");
+    ASSERT_EQ(rl.get_item(0)->transport_protocol, Protocol(Protocol::TCPv6));
+}
+TEST(RemoteList, CtorSingleHostBadPort)
+{
+    JY_EXPECT_THROW(
+        RemoteList("1.1.1.1", "99999", Protocol(Protocol::TCPv6), "CtorSingleHostBadPort"),
+        HostPort::host_port_error,
+        "CtorSingleHostBadPort");
+}
+
+
+TEST(RemoteList, CtorRemoteList)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "proto tcp6\n"
+        "remote 0.default.invalid\n"
+        "port 9999\n"
+        "remote 1.domain.invalid 1111 udp\n"
+        "<connection>\n"
+        "  remote 2.domain.invalid\n"
+        "  port 8888\n"
+        "</connection>\n"
+        "<connection>\n"
+        "  proto udp6\n"
+        "  remote 3:f00d:4::1\n"
+        "</connection>\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng;
+    RemoteList rl(cfg, "", 0, nullptr, rng);
+    ASSERT_EQ(rl.defined(), true);
+    ASSERT_EQ(rl.size(), 4UL);
+    ASSERT_EQ(rl.get_item(0)->server_host, "0.default.invalid");
+    ASSERT_EQ(rl.get_item(0)->server_port, "9999");
+    ASSERT_EQ(rl.get_item(0)->transport_protocol, Protocol(Protocol::TCPv6));
+    ASSERT_EQ(rl.get_item(1)->server_host, "1.domain.invalid");
+    ASSERT_EQ(rl.get_item(1)->server_port, "1111");
+    ASSERT_EQ(rl.get_item(1)->transport_protocol, Protocol(Protocol::UDP));
+    ASSERT_EQ(rl.get_item(2)->server_host, "2.domain.invalid");
+    ASSERT_EQ(rl.get_item(2)->server_port, "8888");
+    ASSERT_EQ(rl.get_item(2)->transport_protocol, Protocol(Protocol::TCPv6));
+    ASSERT_EQ(rl.get_item(3)->server_host, "3:f00d:4::1");
+    ASSERT_EQ(rl.get_item(3)->server_port, "9999");
+    ASSERT_EQ(rl.get_item(3)->transport_protocol, Protocol(Protocol::UDPv6));
+}
+TEST(RemoteList, CtorRemoteListConnBlockOnly)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote 1.noblock.invalid 1111 udp\n"
+        "<connection>\n"
+        "  remote 2.block.invalid\n"
+        "</connection>\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng;
+    RemoteList rl(cfg, "", RemoteList::CONN_BLOCK_ONLY, nullptr, rng);
+    ASSERT_EQ(rl.defined(), true);
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.get_item(0)->server_host, "2.block.invalid");
+}
+TEST(RemoteList, CtorRemoteListEmpty)
+{
+    OptionList cfg;
+    cfg.parse_from_config("", nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng;
+    ASSERT_THROW(RemoteList(cfg, "", 0, nullptr, rng), option_error);
+    RemoteList rl(cfg, "", RemoteList::ALLOW_EMPTY, nullptr, rng);
+}
+TEST(RemoteList, CtorRemoteListConnBlockFactory)
+{
+    struct TestConnBlock : public RemoteList::ConnBlock
+    {
+        void new_item(const RemoteList::Item &item) override
+        {
+            OPENVPN_LOG("TestConnBlock: " << item.to_string());
+        }
+    };
+    struct TestConnBlockFactory : public RemoteList::ConnBlockFactory
+    {
+        RemoteList::ConnBlock::Ptr new_conn_block(const OptionList::Ptr &opt) override
+        {
+            if (opt->exists("block-option"))
+                return RemoteList::ConnBlock::Ptr(new TestConnBlock());
+            return RemoteList::ConnBlock::Ptr();
+        }
+    };
+
+    OptionList cfg;
+    cfg.parse_from_config(
+        "<block>\n"
+        "  remote block.invalid\n"
+        "  block-option\n"
+        "</block>\n"
+        "<block>\n"
+        "  remote block.invalid\n"
+        "  unknown-block-option\n"
+        "</block>\n",
+        nullptr);
+    cfg.update_map();
+    TestConnBlockFactory tcbf;
+
+    RandomAPI::Ptr rng;
+    testLog->startCollecting();
+    RemoteList rl1(cfg, "block", 0, &tcbf, rng);
+    std::string output1(testLog->stopCollecting());
+    ASSERT_NE(output1.find("TestConnBlock"), std::string::npos);
+    ASSERT_EQ(rl1.size(), 2UL);
+
+    testLog->startCollecting();
+    RemoteList rl2(cfg, "block", RemoteList::CONN_BLOCK_OMIT_UNDEF, &tcbf, rng);
+    std::string output2(testLog->stopCollecting());
+    ASSERT_NE(output2.find("TestConnBlock"), std::string::npos);
+    ASSERT_EQ(rl2.size(), 1UL);
+}
+TEST(RemoteList, CtorRemoteListWarnUnsupported)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "<connection>\n"
+        "  remote block.invalid\n"
+        "  http-proxy\n"
+        "  http-proxy-option\n"
+        "  http-proxy-user-pass\n"
+        "</connection>\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng;
+    testLog->startCollecting();
+    RemoteList rl(cfg, "", RemoteList::WARN_UNSUPPORTED, nullptr, rng);
+    std::string output(testLog->stopCollecting());
+
+    ASSERT_NE(output.find(" http-proxy "), std::string::npos);
+    ASSERT_NE(output.find(" http-proxy-option "), std::string::npos);
+    ASSERT_NE(output.find(" http-proxy-user-pass "), std::string::npos);
+}
+TEST(RemoteList, CtorRemoteListBlockLimit)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "<connection>\n"
+        "  remote block.invalid\n"
+        "  directive-with-a-way-too-long-name-to-be-accepted-by-the-block-parser\n"
+        "</connection>\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng;
+    JY_EXPECT_THROW(RemoteList(cfg, "", 0, nullptr, rng), option_error, "connection_block");
+}
+
+
+TEST(RemoteList, ListTraversal)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote 1.domain.tld 1111 udp\n"
+        "remote 2.domain.tld 2222 udp\n",
+        nullptr);
+    cfg.update_map();
+
+    using ResultsType = openvpn_io::ip::tcp::resolver::results_type;
+    using EndpointType = ResultsType::endpoint_type;
+    using EndpointList = std::vector<EndpointType>;
+
+    std::string addr;
+    std::string port;
+    Protocol proto;
+
+    RemoteList::Ptr rl(new RemoteList(cfg, "", 0, nullptr, nullptr));
+    bool available = rl->endpoint_available(&addr, &port, &proto);
+    ASSERT_EQ(available, false);
+    ASSERT_EQ(addr, "1.domain.tld");
+
+    // Create fake resolver results and feed them into RemoteList
+    EndpointType ep;
+    EndpointList epl;
+    epl.push_back({openvpn_io::ip::make_address("1.1.1.1"), 1111});
+    epl.push_back({openvpn_io::ip::make_address("1.1.1.11"), 1111});
+    epl.push_back({openvpn_io::ip::make_address("1::1"), 1111});
+    ResultsType results(ResultsType::create(epl.cbegin(), epl.cend(), addr, port));
+    rl->set_endpoint_range(results);
+
+    // Iterate through results
+    available = rl->endpoint_available(&addr, &port, &proto);
+    ASSERT_EQ(available, true);
+    ASSERT_EQ(addr, "1.domain.tld");
+    ASSERT_NO_THROW(rl->get_endpoint(ep));
+    ASSERT_EQ(ep.address().to_string(), "1.1.1.1");
+    rl->next();
+    ASSERT_NO_THROW(rl->get_endpoint(ep));
+    ASSERT_EQ(ep.address().to_string(), "1.1.1.11");
+    rl->next();
+    ASSERT_NO_THROW(rl->get_endpoint(ep));
+    ASSERT_EQ(ep.address().to_string(), "1::1");
+
+    rl->next();
+    available = rl->endpoint_available(&addr, &port, &proto);
+    ASSERT_EQ(available, false);
+    ASSERT_EQ(addr, "2.domain.tld");
+
+    rl->next();
+    available = rl->endpoint_available(&addr, &port, &proto);
+    ASSERT_EQ(available, false);
+    ASSERT_EQ(addr, "1.domain.tld");
+}
+
+
+TEST(RemoteList, RemoteListBulkResolve)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote-cache-lifetime 1\n"
+        "remote 1.1.1.1 1111 udp\n"
+        "remote 2:cafe::1 2222 tcp\n"
+        "remote 3.domain.tld 3333 udp4\n"
+        "remote 3.domain.tld 33333 udp\n"
+        "remote 4.domain.tld 4444 udp6\n"
+        "remote 5.noresolve.tld 5555 udp4\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng(new MTRand(3735928559));
+    RemoteList::Ptr rl(new RemoteList(cfg, "", 0, nullptr, rng));
+    rl->set_enable_cache(true);
+
+    openvpn_io::io_context ioctx;
+    SessionStats::Ptr stats(new SessionStats());
+    FakeAsyncResolvable<
+        RemoteList::BulkResolve,
+        openvpn_io::io_context &,
+        const RemoteList::Ptr &,
+        const SessionStats::Ptr &>
+        fake_bulkres(ioctx, rl, stats);
+
+    fake_bulkres.set_results("1.1.1.1", "1111", {{"1.1.1.1", 1111}});
+    fake_bulkres.set_results("2:cafe::1", "2222", {{"2:cafe::1", 2222}});
+    fake_bulkres.set_results("3.domain.tld", "3333", {{"3.3.3.3", 3333}, {"3::3", 3333}});
+    fake_bulkres.set_results("4.domain.tld", "4444", {{"4.4.4.4", 4444}, {"4::4", 4444}});
+
+    BulkResolveNotifyLog logmsg("<<<RemoteListBulkResolve>>>");
+    testLog->startCollecting();
+    fake_bulkres.start(&logmsg);
+    std::string output(testLog->stopCollecting());
+    ASSERT_NE(output.find("<<<RemoteListBulkResolve>>>"), std::string::npos);
+
+    ASSERT_EQ(5UL, rl->size())
+        << "Unexpected remote list item count" << std::endl
+        << output;
+
+    ASSERT_EQ(rl->get_item(0)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(0)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(0)->res_addr_list->at(0)->to_string(), "1.1.1.1");
+    ASSERT_EQ(rl->get_item(1)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(1)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(1)->res_addr_list->at(0)->to_string(), "2:cafe::1");
+    ASSERT_EQ(rl->get_item(2)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->at(0)->to_string(), "3.3.3.3");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->size(), 2UL);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(0)->to_string(), "3.3.3.3");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(1)->to_string(), "3::3");
+    ASSERT_EQ(rl->get_item(3)->actual_host(), rl->get_item(2)->actual_host());
+    ASSERT_EQ(rl->get_item(4)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->at(0)->to_string(), "4::4");
+
+
+    // Process PUSH reply, setting cache lifetime to 24 hours
+    OptionList push_options;
+    push_options.parse_from_config("remote-cache-lifetime 86400\n", nullptr);
+    push_options.update_map();
+    rl->process_push(push_options);
+
+    rl->next();
+    rl->next();
+    rl->next();
+    rl->next();
+
+    // Now at IPv6 address of 'remote 3.domain.tld 33333 udp'
+    auto ep = fake_bulkres.init_endpoint();
+    rl->get_endpoint(ep);
+    ASSERT_EQ(ep.address().to_string(), "3::3");
+
+
+    // Test re-resolve of list items with different results
+    fake_bulkres.set_results("3.domain.tld", "3333", {{"333::333", 3333}, {"33::33", 3333}, {"33.33.33.33", 3333}});
+    fake_bulkres.set_results("4.domain.tld", "4444", {{"44::44", 4444}, {"444::444", 4444}});
+
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // for cache decay, sorry mom
+    BulkResolveNotifyIgn ignore;
+    testLog->startCollecting();
+    fake_bulkres.start(&ignore);
+    output = testLog->stopCollecting();
+
+    ASSERT_EQ(5UL, rl->size())
+        << "Unexpected remote list item count" << std::endl
+        << output;
+
+    ASSERT_EQ(rl->get_item(0)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(0)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(0)->res_addr_list->at(0)->to_string(), "1.1.1.1");
+    ASSERT_EQ(rl->get_item(1)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(1)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(1)->res_addr_list->at(0)->to_string(), "2:cafe::1");
+    ASSERT_EQ(rl->get_item(2)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->at(0)->to_string(), "33.33.33.33");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->size(), 3UL);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(0)->to_string(), "333::333");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(1)->to_string(), "33::33");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(2)->to_string(), "33.33.33.33");
+    ASSERT_EQ(rl->get_item(4)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->size(), 2UL);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->at(0)->to_string(), "44::44");
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->at(1)->to_string(), "444::444");
+
+    // Now we should be at first address of 'remote 3.domain.tld 33333 udp'
+    // as the item address index was reset
+    rl->get_endpoint(ep);
+    ASSERT_EQ(ep.address().to_string(), "333::333");
+
+
+    // back to old results, add 33333 in case it gets randomized before the other 3.domain.tld
+    fake_bulkres.set_results("3.domain.tld", "3333", {{"3.3.3.3", 3333}, {"3::3", 3333}});
+    fake_bulkres.set_results("3.domain.tld", "33333", {{"3.3.3.3", 33333}, {"3::3", 33333}});
+    fake_bulkres.set_results("4.domain.tld", "4444", {{"4.4.4.4", 4444}, {"4::4", 4444}});
+
+    testLog->startCollecting();
+    fake_bulkres.start(&ignore);
+    output = testLog->stopCollecting();
+
+    // Cache was still be good, i.e. no updated 3 and 4
+    ASSERT_EQ(5UL, rl->size())
+        << "Unexpected remote list item count" << std::endl
+        << output;
+
+    ASSERT_EQ(rl->get_item(2)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->size(), 1UL);
+    ASSERT_EQ(rl->get_item(2)->res_addr_list->at(0)->to_string(), "33.33.33.33");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->size(), 3UL);
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(0)->to_string(), "333::333");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(1)->to_string(), "33::33");
+    ASSERT_EQ(rl->get_item(3)->res_addr_list->at(2)->to_string(), "33.33.33.33");
+    ASSERT_EQ(rl->get_item(4)->res_addr_list_defined(), true);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->size(), 2UL);
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->at(0)->to_string(), "44::44");
+    ASSERT_EQ(rl->get_item(4)->res_addr_list->at(1)->to_string(), "444::444");
+
+
+    // And now for something completely different
+    rl->reset_cache();
+    rl->randomize();
+
+    testLog->startCollecting();
+    fake_bulkres.start(&ignore);
+    output = testLog->stopCollecting();
+
+    ASSERT_EQ(5UL, rl->size())
+        << "Unexpected remote list item count" << std::endl
+        << output;
+
+    for (size_t i = 0; i < rl->size(); ++i)
+    {
+        ASSERT_EQ(rl->get_item(i)->res_addr_list_defined(), true);
+        if (rl->get_item(i)->server_host[0] == '1')
+        {
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->size(), 1UL);
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->at(0)->to_string(), "1.1.1.1");
+        }
+        else if (rl->get_item(i)->server_host[0] == '2')
+        {
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->size(), 1UL);
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->at(0)->to_string(), "2:cafe::1");
+        }
+        else if (rl->get_item(i)->server_host[0] == '3')
+        {
+            if (rl->get_item(i)->transport_protocol.is_ipv4())
+            {
+                ASSERT_EQ(rl->get_item(i)->res_addr_list->size(), 1UL);
+                ASSERT_EQ(rl->get_item(i)->res_addr_list->at(0)->to_string(), "3.3.3.3");
+            }
+            else
+            {
+                ASSERT_EQ(rl->get_item(i)->res_addr_list->size(), 2UL);
+            }
+        }
+        else if (rl->get_item(i)->server_host[0] == '4')
+        {
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->size(), 1UL);
+            ASSERT_EQ(rl->get_item(i)->res_addr_list->at(0)->to_string(), "4::4");
+        }
+    }
+
+    for (size_t i = 0; i < rl->size(); ++i)
+    {
+        for (size_t j = 0; j < rl->get_item(i)->res_addr_list->size(); ++j)
+        {
+            std::string host;
+            std::string port;
+            Protocol proto;
+            ASSERT_EQ(rl->endpoint_available(&host, &port, &proto), true);
+            ASSERT_EQ(rl->get_item(i)->actual_host(), host);
+            ASSERT_EQ(rl->get_item(i)->server_port, port);
+            if (rl->current_transport_protocol().is_ipv4()
+                || rl->current_transport_protocol().is_ipv6())
+            {
+                ASSERT_EQ(rl->current_transport_protocol(), proto);
+            }
+
+            auto ep1 = fake_bulkres.init_endpoint();
+            auto ep2 = fake_bulkres.init_endpoint();
+            rl->get_endpoint(ep1);
+            rl->get_item(i)->get_endpoint(ep2, j);
+            ASSERT_EQ(ep1, ep2);
+
+            rl->next();
+        }
+    }
+}
+
+
+
+TEST(RemoteList, RemoteRandomHostname)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote-random-hostname\n"
+        "remote 1.1.1.1\n"
+        "remote 2.domain.invalid\n"
+        "<connection>\n"
+        "  remote 3.domain.invalid\n"
+        "</connection>\n"
+        "<connection>\n"
+        "  remote 4:cafe::1\n"
+        "</connection>\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng(new FakeSecureRand(0xf7));
+    RemoteList rl(cfg, "", 0, nullptr, rng);
+
+    ASSERT_EQ(rl.size(), 4UL);
+    ASSERT_EQ(rl.get_item(0)->actual_host(), "1.1.1.1");
+    ASSERT_EQ(rl.get_item(1)->actual_host(), "f7f8f9fafbfc.2.domain.invalid");
+    ASSERT_EQ(rl.get_item(2)->actual_host(), "fdfeff000102.3.domain.invalid");
+    ASSERT_EQ(rl.get_item(3)->actual_host(), "4:cafe::1");
+    rl.next();
+    ASSERT_EQ(rl.current_server_host(), "030405060708.2.domain.invalid");
+    rl.next();
+    ASSERT_EQ(rl.current_server_host(), "090a0b0c0d0e.3.domain.invalid");
+
+    ASSERT_EQ(rl.get_enable_cache(), false);
+    rl.set_enable_cache(true);
+    ASSERT_EQ(rl.get_enable_cache(), true);
+    rl.next();
+    rl.next();
+
+    rl.next();
+    ASSERT_EQ(rl.current_server_host(), "030405060708.2.domain.invalid");
+    rl.next();
+    ASSERT_EQ(rl.current_server_host(), "090a0b0c0d0e.3.domain.invalid");
+}
+TEST(RemoteList, RemoteRandomHostnameNoRNG)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote-random-hostname\n"
+        "remote domain.invalid\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr no_rng;
+    RemoteList rl(cfg, "", 0, nullptr, no_rng);
+    ASSERT_EQ(rl.current_server_host(), "domain.invalid");
+}
+
+
+TEST(RemoteList, OverrideFunctions)
+{
+    OptionList cfg;
+    cfg.parse_from_config(
+        "remote-random-hostname\n"
+        "remote config.host.invalid 1111 udp6\n"
+        "remote config.host.invalid 1111 tcp\n"
+        "remote config.host.invalid 1111 tls4\n",
+        nullptr);
+    cfg.update_map();
+
+    RandomAPI::Ptr rng(new FakeSecureRand(0xf7));
+    RemoteList rl(cfg, "", 0, nullptr, rng);
+    ASSERT_EQ(rl.size(), 3UL);
+
+    rl.set_proto_version_override(IP::Addr::Version::V6);
+    for (size_t i = 0; i < rl.size(); ++i)
+        ASSERT_TRUE(rl.get_item(i)->transport_protocol.is_ipv6());
+
+    rl.set_proto_version_override(IP::Addr::Version::V4);
+    for (size_t i = 0; i < rl.size(); ++i)
+        ASSERT_TRUE(rl.get_item(i)->transport_protocol.is_ipv4());
+
+    rl.handle_proto_override(Protocol(Protocol::UDPv4), true);
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.current_transport_protocol(), Protocol(Protocol::TCPv4));
+
+    rl.set_port_override("4711");
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.get_item(0)->server_port, "4711");
+
+    rl.set_server_override("override.host.invalid");
+    ASSERT_EQ(rl.size(), 1UL);
+    ASSERT_EQ(rl.current_server_host(), "override.host.invalid");
+}

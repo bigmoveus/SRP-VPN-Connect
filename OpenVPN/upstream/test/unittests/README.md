@@ -1,1 +1,90 @@
-IyBVbml0IHRlc3QgZnJhbWV3b3JrIGZvciBPcGVuVlBOMyAjCgpUaGUgdW5pdCB0ZXN0IGZyYW1ld29yayBpcyB3cml0dGVuIGluIHRoZSBbR29vZ2xlIFRlc3RdKGh0dHBzOi8vZ2l0aHViLmNvbS9nb29nbGUvZ29vZ2xldGVzdCkKZnJhbWV3b3JrLgoKIyMgQnVpbGRpbmcvcnVubmluZyB0aGUgdW5pdCB0ZXN0cyAjIwpCZWZvcmUgYnVpbGRpbmcgdGhlIHVuaXQgdGVzdHMgdGhlbXNlbHZlcywgeW91IHNob3VsZCBidWlsZCB0aGUgZGVwZW5kZW5jaWVzCmFzIGRlc2NyaWJlZCBpbiB0aGUgW1JFQURNRS5yc3RdKC4uLy4uL1JFQURNRS5yc3QpLgoKVGhlIHVuaXQgdGVzdCBjbWFrZSBmaWxlcyBhc3N1bWUgaGVyZSB0aGF0IHRoZSBkZXBzIGRpcmVjdG9yeSBpcyBvbiB0aGUgc2FtZQpsZXZlbCBhcyB0aGUgb3BlbnZwbjMgZGlyZWN0b3J5IHVubGVzcyBvdmVycmlkZGVuIGJ5IHRoZSBERVBfRElSIHZhcmlhYmxlLgoKVGhlIGRpcmVjdG9yeSBmb3IgY21ha2UgdG8gYnVpbGQgYSBwcm9qZWN0IGNhbiBiZSBldmVyeXdoZXJlLCBidXQgaXQgaXMgcmVjb21tZW5kZWQgdG8ga2VlcAppdCBvdXRzaWRlIG9mIHRoZSBzb3VyY2UgdHJlZS4KCkJ1aWxkaW5nIHVuaXQgdGVzdHMgKGFzc3VtaW5nIHlvdSBhcmUgaW4gdGhlIG9wZW52cG4zIGRpcmVjdG9yeSk6CgogICAg4p6cIG1rZGlyIC4uL3VuaXRfdGVzdF9idWlsZAogICAg4p6cIGNkIC4uL3VuaXRfdGVzdF9idWlsZAogICAg4p6cIGNtYWtlIC4uL29wZW52cG4zCiAgICDinpwgY21ha2UgLS1idWlsZCAuIC0tdGFyZ2V0IGNvcmVVbml0VGVzdHMKCk5vdGU6IE9uIExpbnV4IGFuZCBNYWMgT1MgeW91IGNhbiB1c2UgYG1ha2UgY29yZVVuaXRUZXN0c2AgaW5zdGVhZCBvZiBgY21ha2UgLS1idWlsZGAKClJ1biB0aGUgdW5pdCB0ZXN0czoKCiAgICDinpwgIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X3NodWZmbGUKCk9uIGEgTWFjIHdpdGggT3BlblNTTCBmcm9tIFtob21lYnJld10oYnJldy5zaCk6CgogICAg4p6cIGNtYWtlIC4uL29wZW52cG4zIC1ET1BFTlNTTF9ST09UX0RJUj0vdXNyL2xvY2FsL29wdC9vcGVuc3NsQDEuMQoKVXNpbmcgbWJlZCBUTFMgaW5zdGVhZCBvZiBPcGVuU1NMCgogICAg4p6cIGNtYWtlIC4uL29wZW52cG4zIC1EVVNFX01CRURUTFMKCkEgZnVsbCBsaXN0IG9mIGJ1aWxkIG9wdGlvbnMgY2FuIHNob3duIHRvZ2V0aGVyIHdpdGggc2hvcnQgZGVzY3JpcHRpb25zIGNhbiBiZSBzaG93biB3aXRoCgogICAg4p6cIGNtYWtlIC1MSCAuCgpFeGFtcGxhcnkgY29tbWFuZHMgZm9yIGJ1aWxkaW5nIGFuZCBydW5uaW5nIG9uIFdpbmRvd3M6CgogICAg4p6cIGNtYWtlIC1EREVQX0RJUj1DOlxvM1xkZXBzIC1EVVNFX01CRURUTFM9dHJ1ZSAtRENNQUtFX0dFTkVSQVRPUl9QTEFURk9STT14NjQgQzpcbzNcb3BlbnZwbjMKICAgIOKenCBjbWFrZSAtLWJ1aWxkIC4gLS10YXJnZXQgY29yZVVuaXRUZXN0cwogICAg4p6cIHRlc3RcdW5pdHRlc3RzXERlYnVnXGNvcmVVbml0VGVzdHMuZXhlIC0tZ3Rlc3Rfb3V0cHV0PSJ4bWw6dGVzdF9jb3JlLnhtbCIgLS1ndGVzdF9zaHVmZmxlCgojIyMgRnJlcXVlbnRseSB1c2VkIGNvbW1hbmQgbGluZSBvcHRpb25zICMjIwoKU2hvdyB0aGUgaGVscCBmb3IgZ3Rlc3QgY29tbWFuZCBsaW5lIG9wdGlvbnM6CgogICAg4p6cIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWhlbHAKClJ1biBvbmx5IHRlc3RzIHN0YXJ0aW5nIHdpdGggQmFzZTY0IG9yIGEgc2VwY2lmaWMgQmFzZTY0IHRlc3Q6CgogICAg4p6cIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X2ZpbHRlcj0nQmFzZTY0LionCiAgICDinpwgLi90ZXN0L3VuaXR0ZXN0cy9jb3JlVW5pdFRlc3RzIC0tZ3Rlc3RfZmlsdGVyPUJhc2U2NC50b29zaG9ydGRlc3QKClJ1biBhbGwgdGVzdCBidXQgdGhlIEJhc2U2NCB0ZXN0cwoKICAgIOKenCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9maWx0ZXI9Jy1CYXNlNjQuKicKCk11bHRpcGxlIHBhdHRlcm4gY2FuIGJlIHNwZWNpZmllZCB3aXRoIGEgbGlzdCBzZXBhcmF0ZWQgYnkgOgoKICAgIOKenCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9maWx0ZXI9J09wZW5TU0xfWDUwOV9nZXRfc2VyaWFsLio6QmFzZTY0LionCgoKU2h1ZmZsZSBvcmRlciB0aGUgb3JkZXIgaW4gd2hpY2ggdGhlIHRlc3RzIGFyZSBydW46CgogICAg4p6cIC4vdGVzdC91bml0dGVzdHMvY29yZVVuaXRUZXN0cyAtLWd0ZXN0X3NodWZmbGUKCklmIGEgY2VydGFpbiBvcmRlciB5aWVsZHMgZmFpbHVyZXMsIHJlcGVhdCB0aGF0IG9yZGVyOgoKICAgIOKenCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9zaHVmZmxlIC0tZ3Rlc3RfcmFuZG9tX3NlZWQ9MjMKClJ1biBhbHNvIHRoZSB0ZXN0cyB0aGF0IGFyZSBub3JtYWxseSBkaXNhYmxlZAoKICAgIOKenCAuL3Rlc3QvdW5pdHRlc3RzL2NvcmVVbml0VGVzdHMgLS1ndGVzdF9hbHNvX3J1bl9kaXNhYmxlZF90ZXN0cwoKIyMgV3JpdGluZyB1bml0IHRlc3RzICMjCgpFYWNoIG5ldyB0ZXN0IHN1aXRlIHNob3VsZCBiZSBhIG5ldyBhIGZpbGUgY2FsbGVkIGB0ZXN0X3N1aXRlbmFtZS5jcHBgIGFuZCBhZGRlZCB0byB0aGUKYENNYWtlTGlzdHMudHh0YCBmaWxlLiBFYWNoIHRlc3QgaW5jbHVkZXMgYW4gYCNpbmNsdWRlIHRlc3RfY29tbW9uLmhwcGAgYXQgdGhlIHRvcCB0byBzZXR1cApjb21tb24gb3BlbnZwbjMgbGlicmFyeSBwYXJhbWV0ZXJzLgoKQ3VycmVudGx5IGFsbCB0ZXN0cyBjYW4gZml0IGluIHRoZSBzYW1lIGNvbXBpbGF0aW9uIHVuaXQgYGNvcmVVbml0VGVzdHNgLiBJZiBhIHVuaXQgdGVzdApyZXF1aXJlcyBzcGVjaWFsIGNvbXBpbGUvaW5jbHVkZXMgb3Igb3RoZXIgb3B0aW9ucyB0aGF0IGFyZSBub3QgY29tcGF0aWJsZSB3aXRoIHRoZSByZXN0IG9mCnRoZSB1bml0IHRlc3RzLCBhbm90aGVyICBjb21waWxhdGlvbiB1bml0IHNob3VsZCBiZSBhZGRlZCB0byB0aGUgQ01BS0VMaXN0cy50eHQKClRoZSBgdGVzdF9oZWxwZXIuY2NgIGZpbGUgYWRkcyBoZWxwZXIgZnVuY3Rpb25zIHRoYXQgY2FuIGJlIHVzZWQgZm9yIHVuaXQgdGVzdHMuIFNlZSB0aGUgZmlsZQpmb3IgbW9yZSBpbmZvcm1hdGlvbi4K
+# Unit test framework for OpenVPN3 #
+
+The unit test framework is written in the [Google Test](https://github.com/google/googletest)
+framework.
+
+## Building/running the unit tests ##
+Before building the unit tests themselves, you should build the dependencies
+as described in the [README.rst](../../README.rst).
+
+The unit test cmake files assume here that the deps directory is on the same
+level as the openvpn3 directory unless overridden by the DEP_DIR variable.
+
+The directory for cmake to build a project can be everywhere, but it is recommended to keep
+it outside of the source tree.
+
+Building unit tests (assuming you are in the openvpn3 directory):
+
+    ➜ mkdir ../unit_test_build
+    ➜ cd ../unit_test_build
+    ➜ cmake ../openvpn3
+    ➜ cmake --build . --target coreUnitTests
+
+Note: On Linux and Mac OS you can use `make coreUnitTests` instead of `cmake --build`
+
+Run the unit tests:
+
+    ➜  ./test/unittests/coreUnitTests --gtest_shuffle
+
+On a Mac with OpenSSL from [homebrew](brew.sh):
+
+    ➜ cmake ../openvpn3 -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1
+
+Using mbed TLS instead of OpenSSL
+
+    ➜ cmake ../openvpn3 -DUSE_MBEDTLS
+
+A full list of build options can shown together with short descriptions can be shown with
+
+    ➜ cmake -LH .
+
+Examplary commands for building and running on Windows:
+
+    ➜ cmake -DDEP_DIR=C:\o3\deps -DUSE_MBEDTLS=true -DCMAKE_GENERATOR_PLATFORM=x64 C:\o3\openvpn3
+    ➜ cmake --build . --target coreUnitTests
+    ➜ test\unittests\Debug\coreUnitTests.exe --gtest_output="xml:test_core.xml" --gtest_shuffle
+
+### Frequently used command line options ###
+
+Show the help for gtest command line options:
+
+    ➜ ./test/unittests/coreUnitTests --help
+
+Run only tests starting with Base64 or a sepcific Base64 test:
+
+    ➜ ./test/unittests/coreUnitTests --gtest_filter='Base64.*'
+    ➜ ./test/unittests/coreUnitTests --gtest_filter=Base64.tooshortdest
+
+Run all test but the Base64 tests
+
+    ➜ ./test/unittests/coreUnitTests --gtest_filter='-Base64.*'
+
+Multiple pattern can be specified with a list separated by :
+
+    ➜ ./test/unittests/coreUnitTests --gtest_filter='OpenSSL_X509_get_serial.*:Base64.*'
+
+
+Shuffle order the order in which the tests are run:
+
+    ➜ ./test/unittests/coreUnitTests --gtest_shuffle
+
+If a certain order yields failures, repeat that order:
+
+    ➜ ./test/unittests/coreUnitTests --gtest_shuffle --gtest_random_seed=23
+
+Run also the tests that are normally disabled
+
+    ➜ ./test/unittests/coreUnitTests --gtest_also_run_disabled_tests
+
+## Writing unit tests ##
+
+Each new test suite should be a new a file called `test_suitename.cpp` and added to the
+`CMakeLists.txt` file. Each test includes an `#include test_common.hpp` at the top to setup
+common openvpn3 library parameters.
+
+Currently all tests can fit in the same compilation unit `coreUnitTests`. If a unit test
+requires special compile/includes or other options that are not compatible with the rest of
+the unit tests, another  compilation unit should be added to the CMAKELists.txt
+
+The `test_helper.cc` file adds helper functions that can be used for unit tests. See the file
+for more information.

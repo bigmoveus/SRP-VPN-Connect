@@ -1,1 +1,178 @@
-I2luY2x1ZGUgInN0cnVjdHVyZS5oIgoKI2luY2x1ZGUgImxvZ2dlcnMvbmV0d29ya19sb2dnZXIuaCIKCmVudW0KewogICAga09iZnVzY2F0b3JUbHNBcHBsaWNhdGlvbkRhdGFUeXBlID0gMjMsCiAgICBrT2JmdXNjYXRvclRsc0xlZ2FjeVZlcnNpb25NYWpvciAgPSAweDAzLAogICAga09iZnVzY2F0b3JUbHNMZWdhY3lWZXJzaW9uTWlub3IgID0gMHgwMwp9OwoKc3RhdGljIHVpbnQzMl90IG9iZnVzY2F0b3JjbGllbnRHZXRTa2lwTGVuZ3RoKHR1bm5lbF90ICp0LCBzYnVmX3QgKmJ1ZikKewogICAgb2JmdXNjYXRvcmNsaWVudF90c3RhdGVfdCAqdHMgPSB0dW5uZWxHZXRTdGF0ZSh0KTsKCiAgICBpZiAodHMtPnNraXAgPT0ga09iZnVzY2F0b3JTa2lwTm9uZSkKICAgIHsKICAgICAgICByZXR1cm4gMDsKICAgIH0KCiAgICB1aW50MzJfdCBwYWNrZXRfbGVuZ3RoID0gc2J1ZkdldExlbmd0aChidWYpOwoKICAgIGlmIChwYWNrZXRfbGVuZ3RoIDwgc2l6ZW9mKHN0cnVjdCBpcF9oZHIpKQogICAgewogICAgICAgIHJldHVybiAwOwogICAgfQoKICAgIHN0cnVjdCBpcF9oZHIgKmlwaGVhZGVyID0gKHN0cnVjdCBpcF9oZHIgKikgc2J1ZkdldFJhd1B0cihidWYpOwoKICAgIGlmIChJUEhfVihpcGhlYWRlcikgIT0gNCkKICAgIHsKICAgICAgICByZXR1cm4gMDsKICAgIH0KCiAgICB1aW50MzJfdCBpcF9oZWFkZXJfbGVuZ3RoID0gKCh1aW50MzJfdCkgSVBIX0hMKGlwaGVhZGVyKSkgKiA0VTsKCiAgICBpZiAoaXBfaGVhZGVyX2xlbmd0aCA8IElQX0hMRU4gfHwgcGFja2V0X2xlbmd0aCA8IGlwX2hlYWRlcl9sZW5ndGgpCiAgICB7CiAgICAgICAgcmV0dXJuIDA7CiAgICB9CgogICAgaWYgKHRzLT5za2lwID09IGtPYmZ1c2NhdG9yU2tpcElwdjQpCiAgICB7CiAgICAgICAgcmV0dXJuIGlwX2hlYWRlcl9sZW5ndGg7CiAgICB9CgogICAgaWYgKElQSF9QUk9UTyhpcGhlYWRlcikgPT0gSVBQUk9UT19UQ1ApCiAgICB7CiAgICAgICAgaWYgKHBhY2tldF9sZW5ndGggPCBpcF9oZWFkZXJfbGVuZ3RoICsgc2l6ZW9mKHN0cnVjdCB0Y3BfaGRyKSkKICAgICAgICB7CiAgICAgICAgICAgIHJldHVybiBpcF9oZWFkZXJfbGVuZ3RoOwogICAgICAgIH0KCiAgICAgICAgc3RydWN0IHRjcF9oZHIgKnRjcF9oZWFkZXIgICAgICAgID0gKHN0cnVjdCB0Y3BfaGRyICopICgoKHVpbnQ4X3QgKikgc2J1ZkdldFJhd1B0cihidWYpKSArIGlwX2hlYWRlcl9sZW5ndGgpOwogICAgICAgIHVpbnQzMl90ICAgICAgICB0Y3BfaGVhZGVyX2xlbmd0aCA9IFRDUEhfSERSTEVOX0JZVEVTKHRjcF9oZWFkZXIpOwoKICAgICAgICBpZiAodGNwX2hlYWRlcl9sZW5ndGggPCBzaXplb2Yoc3RydWN0IHRjcF9oZHIpIHx8IHBhY2tldF9sZW5ndGggPCBpcF9oZWFkZXJfbGVuZ3RoICsgdGNwX2hlYWRlcl9sZW5ndGgpCiAgICAgICAgewogICAgICAgICAgICByZXR1cm4gaXBfaGVhZGVyX2xlbmd0aDsKICAgICAgICB9CgogICAgICAgIHJldHVybiBpcF9oZWFkZXJfbGVuZ3RoICsgdGNwX2hlYWRlcl9sZW5ndGg7CiAgICB9CgogICAgaWYgKElQSF9QUk9UTyhpcGhlYWRlcikgPT0gSVBQUk9UT19VRFApCiAgICB7CiAgICAgICAgaWYgKHBhY2tldF9sZW5ndGggPCBpcF9oZWFkZXJfbGVuZ3RoICsgVURQX0hMRU4pCiAgICAgICAgewogICAgICAgICAgICByZXR1cm4gaXBfaGVhZGVyX2xlbmd0aDsKICAgICAgICB9CgogICAgICAgIHJldHVybiBpcF9oZWFkZXJfbGVuZ3RoICsgVURQX0hMRU47CiAgICB9CgogICAgcmV0dXJuIGlwX2hlYWRlcl9sZW5ndGg7Cn0KCnZvaWQgb2JmdXNjYXRvcmNsaWVudEFwcGx5WG9yKHR1bm5lbF90ICp0LCBsaW5lX3QgKmwsIHNidWZfdCAqYnVmKQp7CiAgICBvYmZ1c2NhdG9yY2xpZW50X3RzdGF0ZV90ICp0cyAgICAgICAgICA9IHR1bm5lbEdldFN0YXRlKHQpOwogICAgdWludDMyX3QgICAgICAgICAgICAgICAgICAgcGF5bG9hZF9sZW4gPSBzYnVmR2V0TGVuZ3RoKGJ1Zik7CiAgICB1aW50MzJfdCAgICAgICAgICAgICAgICAgICBza2lwX2xlbmd0aCA9IHR1bm5lbGNoYWluSXNXb3JrZXJQYWNrZXRMaW5lKHR1bm5lbEdldENoYWluKHQpLCBsKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPyBvYmZ1c2NhdG9yY2xpZW50R2V0U2tpcExlbmd0aCh0LCBidWYpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA6IDA7CgogICAgaWYgKHNraXBfbGVuZ3RoID49IHBheWxvYWRfbGVuKQogICAgewogICAgICAgIHJldHVybjsKICAgIH0KCiAgICBvYmZ1c2NhdG9yY2xpZW50WG9yQnl0ZShzYnVmR2V0TXV0YWJsZVB0cihidWYpICsgc2tpcF9sZW5ndGgsIHBheWxvYWRfbGVuIC0gc2tpcF9sZW5ndGgsIHRzLT54b3Jfa2V5KTsKfQoKc3RhdGljIHNidWZfdCAqb2JmdXNjYXRvcmNsaWVudENsb25lQnVmZmVyV2l0aFBhZGRpbmcobGluZV90ICpsLCBzYnVmX3QgKmJ1ZikKewogICAgYnVmZmVyX3Bvb2xfdCAqcG9vbCAgICAgICAgPSBsaW5lR2V0QnVmZmVyUG9vbChsKTsKICAgIHVpbnQzMl90ICAgICAgIHBheWxvYWRfbGVuID0gc2J1ZkdldExlbmd0aChidWYpOwogICAgYXNzZXJ0KHBheWxvYWRfbGVuIDw9IFVJTlQxNl9NQVgpOwogICAgLy8gS2VlcCB0aGUgY2hhaW4ncyBvbndhcmQgcGFkZGluZyBhcyB3ZWxsIGFzIHJvb20gZm9yIHRoaXMgcmVjb3JkIGhlYWRlci4KICAgIGNvbnN0IHVpbnQxNl90IHBhZGRpbmcgPSBtYXgoYnVmZmVycG9vbEdldExhcmdlQnVmZmVyUGFkZGluZyhwb29sKSwga09iZnVzY2F0b3JUbHNSZWNvcmRIZWFkZXJTaXplKTsKICAgIHNidWZfdCAgICAgICAgKmNsb25lICAgPSBidWZmZXJwb29sR2V0QmVzdEZpdChwb29sLCBwYXlsb2FkX2xlbiwgcGFkZGluZyk7CgogICAgc2J1ZlNldExlbmd0aChjbG9uZSwgcGF5bG9hZF9sZW4pOwogICAgc2J1ZldyaXRlQnVmKGNsb25lLCBidWYsIHBheWxvYWRfbGVuKTsKICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwoKICAgIHJldHVybiBjbG9uZTsKfQoKYm9vbCBvYmZ1c2NhdG9yY2xpZW50V3JhcFRsc1JlY29yZEhlYWRlcihsaW5lX3QgKmwsIHNidWZfdCAqKmJ1Zl9pbykKewogICAgc2J1Zl90ICAqYnVmICAgICAgICAgPSAqYnVmX2lvOwogICAgdWludDMyX3QgcGF5bG9hZF9sZW4gPSBzYnVmR2V0TGVuZ3RoKGJ1Zik7CgogICAgaWYgKHBheWxvYWRfbGVuID4gVUlOVDE2X01BWCkKICAgIHsKICAgICAgICBMT0dXKCJPYmZ1c2NhdG9yQ2xpZW50OiBwYXlsb2FkIGxlbmd0aCAldSBleGNlZWRzIFRMUyByZWNvcmQgaGVhZGVyIGxpbWl0LCBkcm9wcGVkIiwgcGF5bG9hZF9sZW4pOwogICAgICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICBpZiAoc2J1ZkdldExlZnRDYXBhY2l0eShidWYpIDwga09iZnVzY2F0b3JUbHNSZWNvcmRIZWFkZXJTaXplKQogICAgewogICAgICAgIGJ1ZiA9IG9iZnVzY2F0b3JjbGllbnRDbG9uZUJ1ZmZlcldpdGhQYWRkaW5nKGwsIGJ1Zik7CiAgICB9CgogICAgYXNzZXJ0KHNidWZHZXRMZWZ0Q2FwYWNpdHkoYnVmKSA+PSBrT2JmdXNjYXRvclRsc1JlY29yZEhlYWRlclNpemUpOwoKICAgIHNidWZTaGlmdExlZnQoYnVmLCBrT2JmdXNjYXRvclRsc1JlY29yZEhlYWRlclNpemUpOwoKICAgIHVpbnQ4X3QgKnJlY29yZCA9IHNidWZHZXRNdXRhYmxlUHRyKGJ1Zik7CiAgICByZWNvcmRbMF0gICAgICAgPSBrT2JmdXNjYXRvclRsc0FwcGxpY2F0aW9uRGF0YVR5cGU7CiAgICByZWNvcmRbMV0gICAgICAgPSBrT2JmdXNjYXRvclRsc0xlZ2FjeVZlcnNpb25NYWpvcjsKICAgIHJlY29yZFsyXSAgICAgICA9IGtPYmZ1c2NhdG9yVGxzTGVnYWN5VmVyc2lvbk1pbm9yOwoKICAgIHVpbnQxNl90IHBheWxvYWRfbGVuX25ldHdvcmsgPSBodG9ucygodWludDE2X3QpIHBheWxvYWRfbGVuKTsKICAgIHNidWZCeXRlQ29weShyZWNvcmQgKyAzLCAmcGF5bG9hZF9sZW5fbmV0d29yaywgc2l6ZW9mKHBheWxvYWRfbGVuX25ldHdvcmspKTsKCiAgICAqYnVmX2lvID0gYnVmOwogICAgcmV0dXJuIHRydWU7Cn0KCmJvb2wgb2JmdXNjYXRvcmNsaWVudFN0cmlwVGxzUmVjb3JkSGVhZGVyKGxpbmVfdCAqbCwgc2J1Zl90ICpidWYpCnsKICAgIGlmIChzYnVmR2V0TGVuZ3RoKGJ1ZikgPCBrT2JmdXNjYXRvclRsc1JlY29yZEhlYWRlclNpemUpCiAgICB7CiAgICAgICAgTE9HVygiT2JmdXNjYXRvckNsaWVudDogdHJ1bmNhdGVkIFRMUy1saWtlIHBheWxvYWQgKCV1IGJ5dGVzKSwgZHJvcHBlZCIsIHNidWZHZXRMZW5ndGgoYnVmKSk7CiAgICAgICAgbGluZVJldXNlQnVmZmVyKGwsIGJ1Zik7CiAgICAgICAgcmV0dXJuIGZhbHNlOwogICAgfQoKICAgIHVpbnQ4X3QgKnJlY29yZCA9IHNidWZHZXRNdXRhYmxlUHRyKGJ1Zik7CgogICAgaWYgKHJlY29yZFswXSAhPSBrT2JmdXNjYXRvclRsc0FwcGxpY2F0aW9uRGF0YVR5cGUgfHwgcmVjb3JkWzFdICE9IGtPYmZ1c2NhdG9yVGxzTGVnYWN5VmVyc2lvbk1ham9yIHx8CiAgICAgICAgcmVjb3JkWzJdICE9IGtPYmZ1c2NhdG9yVGxzTGVnYWN5VmVyc2lvbk1pbm9yKQogICAgewogICAgICAgIExPR1coIk9iZnVzY2F0b3JDbGllbnQ6IGludmFsaWQgVExTLWxpa2UgcmVjb3JkIGhlYWRlciwgZHJvcHBlZCIpOwogICAgICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICB1aW50MTZfdCBwYXlsb2FkX2xlbl9uZXR3b3JrID0gMDsKICAgIHNidWZCeXRlQ29weSgmcGF5bG9hZF9sZW5fbmV0d29yaywgcmVjb3JkICsgMywgc2l6ZW9mKHBheWxvYWRfbGVuX25ldHdvcmspKTsKCiAgICB1aW50MzJfdCBwYXlsb2FkX2xlbiAgICAgICAgICA9IG50b2hzKHBheWxvYWRfbGVuX25ldHdvcmspOwogICAgdWludDMyX3QgZXhwZWN0ZWRfcGF5bG9hZF9sZW4gPSBzYnVmR2V0TGVuZ3RoKGJ1ZikgLSBrT2JmdXNjYXRvclRsc1JlY29yZEhlYWRlclNpemU7CgogICAgaWYgKHBheWxvYWRfbGVuICE9IGV4cGVjdGVkX3BheWxvYWRfbGVuKQogICAgewogICAgICAgIExPR1coCiAgICAgICAgICAgICJPYmZ1c2NhdG9yQ2xpZW50OiBUTFMtbGlrZSByZWNvcmQgbGVuZ3RoIG1pc21hdGNoICgldSAhPSAldSksIGRyb3BwZWQiLCBwYXlsb2FkX2xlbiwgZXhwZWN0ZWRfcGF5bG9hZF9sZW4pOwogICAgICAgIGxpbmVSZXVzZUJ1ZmZlcihsLCBidWYpOwogICAgICAgIHJldHVybiBmYWxzZTsKICAgIH0KCiAgICBzYnVmU2hpZnRSaWdodChidWYsIGtPYmZ1c2NhdG9yVGxzUmVjb3JkSGVhZGVyU2l6ZSk7CiAgICByZXR1cm4gdHJ1ZTsKfQo=
+#include "structure.h"
+
+#include "loggers/network_logger.h"
+
+enum
+{
+    kObfuscatorTlsApplicationDataType = 23,
+    kObfuscatorTlsLegacyVersionMajor  = 0x03,
+    kObfuscatorTlsLegacyVersionMinor  = 0x03
+};
+
+static uint32_t obfuscatorclientGetSkipLength(tunnel_t *t, sbuf_t *buf)
+{
+    obfuscatorclient_tstate_t *ts = tunnelGetState(t);
+
+    if (ts->skip == kObfuscatorSkipNone)
+    {
+        return 0;
+    }
+
+    uint32_t packet_length = sbufGetLength(buf);
+
+    if (packet_length < sizeof(struct ip_hdr))
+    {
+        return 0;
+    }
+
+    struct ip_hdr *ipheader = (struct ip_hdr *) sbufGetRawPtr(buf);
+
+    if (IPH_V(ipheader) != 4)
+    {
+        return 0;
+    }
+
+    uint32_t ip_header_length = ((uint32_t) IPH_HL(ipheader)) * 4U;
+
+    if (ip_header_length < IP_HLEN || packet_length < ip_header_length)
+    {
+        return 0;
+    }
+
+    if (ts->skip == kObfuscatorSkipIpv4)
+    {
+        return ip_header_length;
+    }
+
+    if (IPH_PROTO(ipheader) == IPPROTO_TCP)
+    {
+        if (packet_length < ip_header_length + sizeof(struct tcp_hdr))
+        {
+            return ip_header_length;
+        }
+
+        struct tcp_hdr *tcp_header        = (struct tcp_hdr *) (((uint8_t *) sbufGetRawPtr(buf)) + ip_header_length);
+        uint32_t        tcp_header_length = TCPH_HDRLEN_BYTES(tcp_header);
+
+        if (tcp_header_length < sizeof(struct tcp_hdr) || packet_length < ip_header_length + tcp_header_length)
+        {
+            return ip_header_length;
+        }
+
+        return ip_header_length + tcp_header_length;
+    }
+
+    if (IPH_PROTO(ipheader) == IPPROTO_UDP)
+    {
+        if (packet_length < ip_header_length + UDP_HLEN)
+        {
+            return ip_header_length;
+        }
+
+        return ip_header_length + UDP_HLEN;
+    }
+
+    return ip_header_length;
+}
+
+void obfuscatorclientApplyXor(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    obfuscatorclient_tstate_t *ts          = tunnelGetState(t);
+    uint32_t                   payload_len = sbufGetLength(buf);
+    uint32_t                   skip_length = tunnelchainIsWorkerPacketLine(tunnelGetChain(t), l)
+                                                 ? obfuscatorclientGetSkipLength(t, buf)
+                                                 : 0;
+
+    if (skip_length >= payload_len)
+    {
+        return;
+    }
+
+    obfuscatorclientXorByte(sbufGetMutablePtr(buf) + skip_length, payload_len - skip_length, ts->xor_key);
+}
+
+static sbuf_t *obfuscatorclientCloneBufferWithPadding(line_t *l, sbuf_t *buf)
+{
+    buffer_pool_t *pool        = lineGetBufferPool(l);
+    uint32_t       payload_len = sbufGetLength(buf);
+    assert(payload_len <= UINT16_MAX);
+    // Keep the chain's onward padding as well as room for this record header.
+    const uint16_t padding = max(bufferpoolGetLargeBufferPadding(pool), kObfuscatorTlsRecordHeaderSize);
+    sbuf_t        *clone   = bufferpoolGetBestFit(pool, payload_len, padding);
+
+    sbufSetLength(clone, payload_len);
+    sbufWriteBuf(clone, buf, payload_len);
+    lineReuseBuffer(l, buf);
+
+    return clone;
+}
+
+bool obfuscatorclientWrapTlsRecordHeader(line_t *l, sbuf_t **buf_io)
+{
+    sbuf_t  *buf         = *buf_io;
+    uint32_t payload_len = sbufGetLength(buf);
+
+    if (payload_len > UINT16_MAX)
+    {
+        LOGW("ObfuscatorClient: payload length %u exceeds TLS record header limit, dropped", payload_len);
+        lineReuseBuffer(l, buf);
+        return false;
+    }
+
+    if (sbufGetLeftCapacity(buf) < kObfuscatorTlsRecordHeaderSize)
+    {
+        buf = obfuscatorclientCloneBufferWithPadding(l, buf);
+    }
+
+    assert(sbufGetLeftCapacity(buf) >= kObfuscatorTlsRecordHeaderSize);
+
+    sbufShiftLeft(buf, kObfuscatorTlsRecordHeaderSize);
+
+    uint8_t *record = sbufGetMutablePtr(buf);
+    record[0]       = kObfuscatorTlsApplicationDataType;
+    record[1]       = kObfuscatorTlsLegacyVersionMajor;
+    record[2]       = kObfuscatorTlsLegacyVersionMinor;
+
+    uint16_t payload_len_network = htons((uint16_t) payload_len);
+    sbufByteCopy(record + 3, &payload_len_network, sizeof(payload_len_network));
+
+    *buf_io = buf;
+    return true;
+}
+
+bool obfuscatorclientStripTlsRecordHeader(line_t *l, sbuf_t *buf)
+{
+    if (sbufGetLength(buf) < kObfuscatorTlsRecordHeaderSize)
+    {
+        LOGW("ObfuscatorClient: truncated TLS-like payload (%u bytes), dropped", sbufGetLength(buf));
+        lineReuseBuffer(l, buf);
+        return false;
+    }
+
+    uint8_t *record = sbufGetMutablePtr(buf);
+
+    if (record[0] != kObfuscatorTlsApplicationDataType || record[1] != kObfuscatorTlsLegacyVersionMajor ||
+        record[2] != kObfuscatorTlsLegacyVersionMinor)
+    {
+        LOGW("ObfuscatorClient: invalid TLS-like record header, dropped");
+        lineReuseBuffer(l, buf);
+        return false;
+    }
+
+    uint16_t payload_len_network = 0;
+    sbufByteCopy(&payload_len_network, record + 3, sizeof(payload_len_network));
+
+    uint32_t payload_len          = ntohs(payload_len_network);
+    uint32_t expected_payload_len = sbufGetLength(buf) - kObfuscatorTlsRecordHeaderSize;
+
+    if (payload_len != expected_payload_len)
+    {
+        LOGW(
+            "ObfuscatorClient: TLS-like record length mismatch (%u != %u), dropped", payload_len, expected_payload_len);
+        lineReuseBuffer(l, buf);
+        return false;
+    }
+
+    sbufShiftRight(buf, kObfuscatorTlsRecordHeaderSize);
+    return true;
+}

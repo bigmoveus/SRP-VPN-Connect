@@ -1,1 +1,15 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwoKI2luY2x1ZGUgInJ1bm5lci5oIgoKaW50IHRlc3QoTElCU1NIMl9TRVNTSU9OICpzZXNzaW9uKQp7CiAgICByZXR1cm4gdGVzdF9hdXRoX3B1YmtleShzZXNzaW9uLCBURVNUX0FVVEhfU0hPVUxERkFJTCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICJsaWJzc2gyIiwgLyogc2V0IGluIERvY2tlcmZpbGUgKi8KICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5VTEwsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAia2V5X2RzYV93cm9uZy5wdWIiLCAvKiBOb3QgYXV0aG9yaXplZCBvbiBzZXJ2ZXIgKi8KICAgICAgICAgICAgICAgICAgICAgICAgICAgICJrZXlfZHNhX3dyb25nIik7Cn0K
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "runner.h"
+
+int test(LIBSSH2_SESSION *session)
+{
+    return test_auth_pubkey(session, TEST_AUTH_SHOULDFAIL,
+                            "libssh2", /* set in Dockerfile */
+                            NULL,
+                            "key_dsa_wrong.pub", /* Not authorized on server */
+                            "key_dsa_wrong");
+}

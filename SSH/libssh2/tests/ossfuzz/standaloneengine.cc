@@ -1,1 +1,77 @@
-LyogQ29weXJpZ2h0IChDKSBUaGUgbGlic3NoMiBwcm9qZWN0IGFuZCBpdHMgY29udHJpYnV0b3JzLgogKgogKiBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCiAqLwojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHN0ZGxpYi5oPgoKI2luY2x1ZGUgInRlc3RpbnB1dC5oIgoKLyoqCiAqIE1haW4gcHJvY2VkdXJlIGZvciBzdGFuZGFsb25lIGZ1enppbmcgZW5naW5lLgogKgogKiBSZWFkcyBmaWxlbmFtZXMgZnJvbSB0aGUgYXJndW1lbnQgYXJyYXkuIEZvciBlYWNoIGZpbGVuYW1lLCByZWFkIHRoZSBmaWxlCiAqIGludG8gbWVtb3J5IGFuZCB0aGVuIGNhbGwgdGhlIGZ1enppbmcgaW50ZXJmYWNlIHdpdGggdGhlIGRhdGEuCiAqLwppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCnsKICBpbnQgaWk7CiAgZm9yKGlpID0gMTsgaWkgPCBhcmdjOyBpaSsrKQogIHsKICAgIEZJTEUgKmluZmlsZTsKICAgIHByaW50ZigiWyVzXSAiLCBhcmd2W2lpXSk7CgogICAgLyogVHJ5IGFuZCBvcGVuIHRoZSBmaWxlLiAqLwogICAgaW5maWxlID0gZm9wZW4oYXJndltpaV0sICJyYiIpOwogICAgaWYoaW5maWxlKQogICAgewogICAgICB1aW50OF90ICpidWZmZXIgPSBOVUxMOwogICAgICBzaXplX3QgYnVmZmVyX2xlbjsKCiAgICAgIHByaW50ZigiT3BlbmVkLi4gIik7CgogICAgICAvKiBHZXQgdGhlIGxlbmd0aCBvZiB0aGUgZmlsZS4gKi8KICAgICAgZnNlZWsoaW5maWxlLCAwTCwgU0VFS19FTkQpOwogICAgICBidWZmZXJfbGVuID0gZnRlbGwoaW5maWxlKTsKCiAgICAgIC8qIFJlc2V0IHRoZSBmaWxlIGluZGljYXRvciB0byB0aGUgYmVnaW5uaW5nIG9mIHRoZSBmaWxlLiAqLwogICAgICBmc2VlayhpbmZpbGUsIDBMLCBTRUVLX1NFVCk7CgogICAgICAvKiBBbGxvY2F0ZSBhIGJ1ZmZlciBmb3IgdGhlIGZpbGUgY29udGVudHMuICovCiAgICAgIGJ1ZmZlciA9ICh1aW50OF90ICopY2FsbG9jKGJ1ZmZlcl9sZW4sIHNpemVvZih1aW50OF90KSk7CiAgICAgIGlmKGJ1ZmZlcikKICAgICAgewogICAgICAgIC8qIFJlYWQgYWxsIHRoZSB0ZXh0IGZyb20gdGhlIGZpbGUgaW50byB0aGUgYnVmZmVyLiAqLwogICAgICAgIGZyZWFkKGJ1ZmZlciwgc2l6ZW9mKHVpbnQ4X3QpLCBidWZmZXJfbGVuLCBpbmZpbGUpOwogICAgICAgIHByaW50ZigiUmVhZCAlenUgYnl0ZXMsIGZ1enppbmcuLiAiLCBidWZmZXJfbGVuKTsKCiAgICAgICAgLyogQ2FsbCB0aGUgZnV6emVyIHdpdGggdGhlIGRhdGEuICovCiAgICAgICAgTExWTUZ1enplclRlc3RPbmVJbnB1dChidWZmZXIsIGJ1ZmZlcl9sZW4pOwoKICAgICAgICBwcmludGYoImNvbXBsZXRlLiIpOwoKICAgICAgICAvKiBGcmVlIHRoZSBidWZmZXIgYXMgaXQncyBubyBsb25nZXIgbmVlZGVkLiAqLwogICAgICAgIGZyZWUoYnVmZmVyKTsKICAgICAgICBidWZmZXIgPSBOVUxMOwogICAgICB9CiAgICAgIGVsc2UKICAgICAgewogICAgICAgIGZwcmludGYoc3RkZXJyLAogICAgICAgICAgICAgICAgIlslc10gRmFpbGVkIHRvIGFsbG9jYXRlICV6dSBieXRlcyBcbiIsCiAgICAgICAgICAgICAgICBhcmd2W2lpXSwKICAgICAgICAgICAgICAgIGJ1ZmZlcl9sZW4pOwogICAgICB9CgogICAgICAvKiBDbG9zZSB0aGUgZmlsZSBhcyBpdCdzIG5vIGxvbmdlciBuZWVkZWQuICovCiAgICAgIGZjbG9zZShpbmZpbGUpOwogICAgICBpbmZpbGUgPSBOVUxMOwogICAgfQogICAgZWxzZQogICAgewogICAgICAvKiBGYWlsZWQgdG8gb3BlbiB0aGUgZmlsZS4gTWF5YmUgd3JvbmcgbmFtZSBvciB3cm9uZyBwZXJtaXNzaW9ucz8gKi8KICAgICAgZnByaW50ZihzdGRlcnIsICJbJXNdIE9wZW4gZmFpbGVkLiBcbiIsIGFyZ3ZbaWldKTsKICAgIH0KCiAgICBwcmludGYoIlxuIik7CiAgfQp9Cg==
+/* Copyright (C) The libssh2 project and its contributors.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "testinput.h"
+
+/**
+ * Main procedure for standalone fuzzing engine.
+ *
+ * Reads filenames from the argument array. For each filename, read the file
+ * into memory and then call the fuzzing interface with the data.
+ */
+int main(int argc, char **argv)
+{
+  int ii;
+  for(ii = 1; ii < argc; ii++)
+  {
+    FILE *infile;
+    printf("[%s] ", argv[ii]);
+
+    /* Try and open the file. */
+    infile = fopen(argv[ii], "rb");
+    if(infile)
+    {
+      uint8_t *buffer = NULL;
+      size_t buffer_len;
+
+      printf("Opened.. ");
+
+      /* Get the length of the file. */
+      fseek(infile, 0L, SEEK_END);
+      buffer_len = ftell(infile);
+
+      /* Reset the file indicator to the beginning of the file. */
+      fseek(infile, 0L, SEEK_SET);
+
+      /* Allocate a buffer for the file contents. */
+      buffer = (uint8_t *)calloc(buffer_len, sizeof(uint8_t));
+      if(buffer)
+      {
+        /* Read all the text from the file into the buffer. */
+        fread(buffer, sizeof(uint8_t), buffer_len, infile);
+        printf("Read %zu bytes, fuzzing.. ", buffer_len);
+
+        /* Call the fuzzer with the data. */
+        LLVMFuzzerTestOneInput(buffer, buffer_len);
+
+        printf("complete.");
+
+        /* Free the buffer as it's no longer needed. */
+        free(buffer);
+        buffer = NULL;
+      }
+      else
+      {
+        fprintf(stderr,
+                "[%s] Failed to allocate %zu bytes \n",
+                argv[ii],
+                buffer_len);
+      }
+
+      /* Close the file as it's no longer needed. */
+      fclose(infile);
+      infile = NULL;
+    }
+    else
+    {
+      /* Failed to open the file. Maybe wrong name or wrong permissions? */
+      fprintf(stderr, "[%s] Open failed. \n", argv[ii]);
+    }
+
+    printf("\n");
+  }
+}

@@ -1,1 +1,56 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKI2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9hbGlnbm1lbnQuaHBwPgoKI2luY2x1ZGUgPGNzdGRpbnQ+CiNpbmNsdWRlIDxjc3RkbGliPgojaW5jbHVkZSA8Y3RpbWU+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKClRFU1QoQWxpZ25tZW50U2FmZUV4dHJhY3RUZXN0LCBFeHRyYWN0SW50RnJvbU1pc2FsaWduZWREYXRhKQp7CiAgICBpbnQgaSA9IDE7CiAgICB1bnNpZ25lZCBjaGFyIGRhdGFbMzJdOwogICAgZGF0YVswXSA9IDB4RjA7CiAgICBtZW1jcHkoZGF0YSArIDEsICZpLCBzaXplb2YoaSkpOwogICAgaW50IHZhbHVlID0gYWxpZ25tZW50X3NhZmVfZXh0cmFjdDxpbnQ+KGRhdGEgKyAxKTsKICAgIEVYUEVDVF9FUSh2YWx1ZSwgaSk7Cn0KClRFU1QoQWxpZ25tZW50U2FmZUV4dHJhY3RUZXN0LCBFeHRyYWN0RG91YmxlRnJvbU1pc2FsaWduZWREYXRhKQp7CiAgICBkb3VibGUgZCA9IDk4LjY7CiAgICB1bnNpZ25lZCBjaGFyIGRhdGFbMzJdOwogICAgZGF0YVswXSA9IDB4RjA7CiAgICBtZW1jcHkoZGF0YSArIDEsICZkLCBzaXplb2YoZCkpOwogICAgZG91YmxlIHZhbHVlID0gYWxpZ25tZW50X3NhZmVfZXh0cmFjdDxkb3VibGU+KGRhdGEgKyAxKTsKICAgIEVYUEVDVF9FUSh2YWx1ZSwgZCk7Cn0KClRFU1QoQWxpZ25tZW50U2FmZUV4dHJhY3RUZXN0LCBFeHRyYWN0U3RydWN0RnJvbU1pc2FsaWduZWREYXRhKQp7CiAgICBzdHJ1Y3QgVGVzdFN0cnVjdAogICAgewogICAgICAgIGludCBhID0gNDI7CiAgICAgICAgZmxvYXQgYiA9IDk4LjZmOwogICAgfSB0ZXN0X3N0cnVjdDsKCiAgICB1bnNpZ25lZCBjaGFyIGRhdGFbMzJdOwogICAgZGF0YVswXSA9IDB4RjA7CiAgICBtZW1jcHkoZGF0YSArIDEsICZ0ZXN0X3N0cnVjdCwgc2l6ZW9mKHRlc3Rfc3RydWN0KSk7CiAgICBUZXN0U3RydWN0IHZhbHVlID0gYWxpZ25tZW50X3NhZmVfZXh0cmFjdDxUZXN0U3RydWN0PihkYXRhICsgMSk7CiAgICBFWFBFQ1RfRVEodmFsdWUuYSwgdGVzdF9zdHJ1Y3QuYSk7CiAgICBFWFBFQ1RfRVEodmFsdWUuYiwgdGVzdF9zdHJ1Y3QuYik7Cn0K
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+#include "test_common.hpp"
+
+#include <openvpn/common/alignment.hpp>
+
+#include <cstdint>
+#include <cstdlib>
+#include <ctime>
+
+using namespace openvpn;
+
+TEST(AlignmentSafeExtractTest, ExtractIntFromMisalignedData)
+{
+    int i = 1;
+    unsigned char data[32];
+    data[0] = 0xF0;
+    memcpy(data + 1, &i, sizeof(i));
+    int value = alignment_safe_extract<int>(data + 1);
+    EXPECT_EQ(value, i);
+}
+
+TEST(AlignmentSafeExtractTest, ExtractDoubleFromMisalignedData)
+{
+    double d = 98.6;
+    unsigned char data[32];
+    data[0] = 0xF0;
+    memcpy(data + 1, &d, sizeof(d));
+    double value = alignment_safe_extract<double>(data + 1);
+    EXPECT_EQ(value, d);
+}
+
+TEST(AlignmentSafeExtractTest, ExtractStructFromMisalignedData)
+{
+    struct TestStruct
+    {
+        int a = 42;
+        float b = 98.6f;
+    } test_struct;
+
+    unsigned char data[32];
+    data[0] = 0xF0;
+    memcpy(data + 1, &test_struct, sizeof(test_struct));
+    TestStruct value = alignment_safe_extract<TestStruct>(data + 1);
+    EXPECT_EQ(value.a, test_struct.a);
+    EXPECT_EQ(value.b, test_struct.b);
+}

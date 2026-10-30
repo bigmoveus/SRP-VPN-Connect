@@ -1,1 +1,20 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9maWxlLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vc3NsL3NzbGNob29zZS5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2NyeXB0by9jcnlwdG9hbGdzLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vY3J5cHRvL2hhc2hzdHIuaHBwPgoKdXNpbmcgbmFtZXNwYWNlIG9wZW52cG47CgpURVNUKGNyeXB0bywgaGFzaHN0cikKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgY29udGVudCA9IHJlYWRfdGV4dF91dGY4KFVOSVRURVNUX1NPVVJDRV9ESVIgIi9pbnB1dC8xOTg0LnR4dCIpOwoKICAgIERpZ2VzdEZhY3Rvcnk6OlB0ciBkaWdlc3RfZmFjdG9yeShuZXcgQ3J5cHRvRGlnZXN0RmFjdG9yeTxTU0xMaWI6OkNyeXB0b0FQST4oKSk7CiAgICBIYXNoU3RyaW5nIGhhc2goKmRpZ2VzdF9mYWN0b3J5LCBDcnlwdG9BbGdzOjpNRDUpOwogICAgaGFzaC51cGRhdGUoY29udGVudCk7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBhY3R1YWwgPSBoYXNoLmZpbmFsX2hleCgpOwogICAgY29uc3Qgc3RkOjpzdHJpbmcgZXhwZWN0ZWQgPSAiMmJlYTdhODNiZjk0OTcxYWYyNjM3MjEyNmViYmE3ZTMiOwogICAgQVNTRVJUX0VRKGFjdHVhbCwgZXhwZWN0ZWQpOwp9Cg==
+#include "test_common.hpp"
+
+#include <openvpn/common/file.hpp>
+#include <openvpn/ssl/sslchoose.hpp>
+#include <openvpn/crypto/cryptoalgs.hpp>
+#include <openvpn/crypto/hashstr.hpp>
+
+using namespace openvpn;
+
+TEST(crypto, hashstr)
+{
+    const std::string content = read_text_utf8(UNITTEST_SOURCE_DIR "/input/1984.txt");
+
+    DigestFactory::Ptr digest_factory(new CryptoDigestFactory<SSLLib::CryptoAPI>());
+    HashString hash(*digest_factory, CryptoAlgs::MD5);
+    hash.update(content);
+    const std::string actual = hash.final_hex();
+    const std::string expected = "2bea7a83bf94971af26372126ebba7e3";
+    ASSERT_EQ(actual, expected);
+}

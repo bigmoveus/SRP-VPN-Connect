@@ -1,1 +1,68 @@
-I2luY2x1ZGUgInRlc3RfY29tbW9uLmhwcCIKCiNpbmNsdWRlIDxvcGVudnBuL2NvbW1vbi9ob3N0cG9ydC5ocHA+Cgp1c2luZyBuYW1lc3BhY2Ugb3BlbnZwbjsKCnN0YXRpYyB2b2lkIHRlc3QoY29uc3Qgc3RkOjpzdHJpbmcgJnN0ciwKICAgICAgICAgICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyAmZGVmYXVsdF9wb3J0LAogICAgICAgICAgICAgICAgIGNvbnN0IGJvb2wgYWxsb3dfdW5peCwKICAgICAgICAgICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyAmZXhwZWN0ZWRfaG9zdCwKICAgICAgICAgICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyAmZXhwZWN0ZWRfcG9ydCwKICAgICAgICAgICAgICAgICBjb25zdCB1bnNpZ25lZCBpbnQgZXhwZWN0ZWRfcG9ydG51bSwKICAgICAgICAgICAgICAgICBjb25zdCBib29sIGV4cGVjdGVkX3N0YXR1cykKewogICAgc3RkOjpzdHJpbmcgaG9zdDsKICAgIHN0ZDo6c3RyaW5nIHBvcnQ7CiAgICB1bnNpZ25lZCBpbnQgcG9ydF9zYXZlID0gMDsKCiAgICBjb25zdCBib29sIHN0YXR1cyA9IEhvc3RQb3J0OjpzcGxpdF9ob3N0X3BvcnQoc3RyLCBob3N0LCBwb3J0LCBkZWZhdWx0X3BvcnQsIGFsbG93X3VuaXgsICZwb3J0X3NhdmUpOwogICAgaWYgKGV4cGVjdGVkX3N0YXR1cykKICAgIHsKICAgICAgICBpZiAoIXN0YXR1cykKICAgICAgICAgICAgT1BFTlZQTl9USFJPV19FWENFUFRJT04oImZhaWxlZCB0byBwYXJzZSAiIDw8IHN0ciA8PCAiIGRlZmF1bHRfcG9ydD0iIDw8IGRlZmF1bHRfcG9ydCA8PCAiIGFsbG93X3VuaXg9IiA8PCBhbGxvd191bml4KTsKICAgICAgICBpZiAoZXhwZWN0ZWRfaG9zdCAhPSBob3N0KQogICAgICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiaW5jb25zaXN0ZW50IGhvc3QgIiA8PCBzdHIgPDwgIiBleHBlY3RlZD0iIDw8IGV4cGVjdGVkX2hvc3QgPDwgIiBhY3R1YWw9IiA8PCBob3N0KTsKICAgICAgICBpZiAoZXhwZWN0ZWRfcG9ydCAhPSBwb3J0KQogICAgICAgICAgICBPUEVOVlBOX1RIUk9XX0VYQ0VQVElPTigiaW5jb25zaXN0ZW50IHBvcnQgIiA8PCBzdHIgPDwgIiBleHBlY3RlZD0iIDw8IGV4cGVjdGVkX3BvcnQgPDwgIiBhY3R1YWwtIiA8PCBwb3J0KTsKICAgICAgICBpZiAoZXhwZWN0ZWRfcG9ydG51bSAhPSBwb3J0X3NhdmUpCiAgICAgICAgICAgIE9QRU5WUE5fVEhST1dfRVhDRVBUSU9OKCJpbmNvbnNpc3RlbnQgcG9ydG51bSAiIDw8IHN0ciA8PCAiIGV4cGVjdGVkPSIgPDwgZXhwZWN0ZWRfcG9ydG51bSA8PCAiIGFjdHVhbD0iIDw8IHBvcnRfc2F2ZSk7CiAgICB9CiAgICBlbHNlCiAgICB7CiAgICAgICAgaWYgKHN0YXR1cykKICAgICAgICAgICAgT1BFTlZQTl9USFJPV19FWENFUFRJT04oInBhcnNlIHNob3VsZCBoYXZlIGZhaWxlZDogIiA8PCBzdHIpOwogICAgfQp9CgpURVNUKG1pc2MsIGhvc3RfcG9ydCkKewogICAgdGVzdCgiZm9vLmJhci5nb3YiLCAiIiwgZmFsc2UsICIiLCAiIiwgMCwgZmFsc2UpOwogICAgdGVzdCgiZm9vLmJhci5nb3YiLCAiMTIzNCIsIGZhbHNlLCAiZm9vLmJhci5nb3YiLCAiMTIzNCIsIDEyMzQsIHRydWUpOwogICAgdGVzdCgiZm9vLmJhci5nb3Y6NTY3OCIsICIxMjM0IiwgZmFsc2UsICJmb28uYmFyLmdvdiIsICI1Njc4IiwgNTY3OCwgdHJ1ZSk7CiAgICB0ZXN0KCJmb28uYmFyLmdvdjo1Njc4IiwgIiIsIGZhbHNlLCAiZm9vLmJhci5nb3YiLCAiNTY3OCIsIDU2NzgsIHRydWUpOwogICAgdGVzdCgiW2Zvby5iYXIuZ292XTo1Njc4IiwgIjU1NTU1NSIsIGZhbHNlLCAiZm9vLmJhci5nb3YiLCAiNTY3OCIsIDU2NzgsIHRydWUpOwogICAgdGVzdCgiW2Zvby5iYXIuZ292XSIsICIxMjM0IiwgZmFsc2UsICJmb28uYmFyLmdvdiIsICIxMjM0IiwgMTIzNCwgdHJ1ZSk7CiAgICB0ZXN0KCJbZm9vLmJhci5nb3ZdIiwgIjEyMzQ1NiIsIGZhbHNlLCAiIiwgIiIsIDAsIGZhbHNlKTsKICAgIHRlc3QoIjEuMi4zLjQ6NTY3OCIsICIiLCBmYWxzZSwgIjEuMi4zLjQiLCAiNTY3OCIsIDU2NzgsIHRydWUpOwogICAgdGVzdCgiWzEuMi4zLjRdOjU2NzgiLCAiIiwgZmFsc2UsICIxLjIuMy40IiwgIjU2NzgiLCA1Njc4LCB0cnVlKTsKICAgIHRlc3QoIlsxLjIuMy40XSIsICI1Njc4IiwgZmFsc2UsICIxLjIuMy40IiwgIjU2NzgiLCA1Njc4LCB0cnVlKTsKICAgIHRlc3QoIls6OjBdIiwgIjk5OTkiLCBmYWxzZSwgIjo6MCIsICI5OTk5IiwgOTk5OSwgdHJ1ZSk7CiAgICB0ZXN0KCJbOjowXSIsICIiLCBmYWxzZSwgIiIsICIiLCAwLCBmYWxzZSk7CiAgICB0ZXN0KCJbOjowXTo5OTk5IiwgIiIsIGZhbHNlLCAiOjowIiwgIjk5OTkiLCA5OTk5LCB0cnVlKTsKICAgIHRlc3QoIiIsICIiLCBmYWxzZSwgIiIsICIiLCAwLCBmYWxzZSk7CiAgICB0ZXN0KCI6IiwgIiIsIGZhbHNlLCAiIiwgIiIsIDAsIGZhbHNlKTsKICAgIHRlc3QoIng6IiwgIiIsIGZhbHNlLCAiIiwgIiIsIDAsIGZhbHNlKTsKICAgIHRlc3QoIjo0IiwgIiIsIGZhbHNlLCAiIiwgIiIsIDAsIGZhbHNlKTsKICAgIHRlc3QoIltdOjEyMzQiLCAiIiwgZmFsc2UsICIiLCAiIiwgMCwgZmFsc2UpOwogICAgdGVzdCgiW2ZlODA6OjE0NDM6NzZmZjpmZTJlOjE0NzldIiwgIjQwNDAiLCBmYWxzZSwgImZlODA6OjE0NDM6NzZmZjpmZTJlOjE0NzkiLCAiNDA0MCIsIDQwNDAsIHRydWUpOwogICAgdGVzdCgiW2ZlODA6OjE0NDM6NzZmZjpmZTJlOjE0N2FdOjgwODAiLCAiNDA0MCIsIGZhbHNlLCAiZmU4MDo6MTQ0Mzo3NmZmOmZlMmU6MTQ3YSIsICI4MDgwIiwgODA4MCwgdHJ1ZSk7CiAgICB0ZXN0KCJmZTgwOjoxNDQzOjc2ZmY6ZmUyZToxNDc3IiwgIjQwNDAiLCBmYWxzZSwgImZlODA6OjE0NDM6NzZmZjpmZTJlOjE0NzciLCAiNDA0MCIsIDQwNDAsIHRydWUpOwogICAgdGVzdCgiW2Zvb10iLCAiIiwgZmFsc2UsICIiLCAiIiwgMCwgZmFsc2UpOwogICAgdGVzdCgiWyIsICIiLCBmYWxzZSwgIiIsICIiLCAwLCBmYWxzZSk7CiAgICB0ZXN0KCJdIiwgIiIsIGZhbHNlLCAiIiwgIiIsIDAsIGZhbHNlKTsKCiAgICB0ZXN0KCIvZm9vL2JhciIsICJ1bml4IiwgZmFsc2UsICIiLCAiIiwgMCwgZmFsc2UpOwogICAgdGVzdCgiL2Zvby9iYXIiLCAidW5peCIsIHRydWUsICIvZm9vL2JhciIsICJ1bml4IiwgMCwgdHJ1ZSk7CiAgICB0ZXN0KCIvZm9vL2Jhcjp1bml4IiwgIiIsIHRydWUsICIvZm9vL2JhciIsICJ1bml4IiwgMCwgdHJ1ZSk7Cn0K
+#include "test_common.hpp"
+
+#include <openvpn/common/hostport.hpp>
+
+using namespace openvpn;
+
+static void test(const std::string &str,
+                 const std::string &default_port,
+                 const bool allow_unix,
+                 const std::string &expected_host,
+                 const std::string &expected_port,
+                 const unsigned int expected_portnum,
+                 const bool expected_status)
+{
+    std::string host;
+    std::string port;
+    unsigned int port_save = 0;
+
+    const bool status = HostPort::split_host_port(str, host, port, default_port, allow_unix, &port_save);
+    if (expected_status)
+    {
+        if (!status)
+            OPENVPN_THROW_EXCEPTION("failed to parse " << str << " default_port=" << default_port << " allow_unix=" << allow_unix);
+        if (expected_host != host)
+            OPENVPN_THROW_EXCEPTION("inconsistent host " << str << " expected=" << expected_host << " actual=" << host);
+        if (expected_port != port)
+            OPENVPN_THROW_EXCEPTION("inconsistent port " << str << " expected=" << expected_port << " actual-" << port);
+        if (expected_portnum != port_save)
+            OPENVPN_THROW_EXCEPTION("inconsistent portnum " << str << " expected=" << expected_portnum << " actual=" << port_save);
+    }
+    else
+    {
+        if (status)
+            OPENVPN_THROW_EXCEPTION("parse should have failed: " << str);
+    }
+}
+
+TEST(misc, host_port)
+{
+    test("foo.bar.gov", "", false, "", "", 0, false);
+    test("foo.bar.gov", "1234", false, "foo.bar.gov", "1234", 1234, true);
+    test("foo.bar.gov:5678", "1234", false, "foo.bar.gov", "5678", 5678, true);
+    test("foo.bar.gov:5678", "", false, "foo.bar.gov", "5678", 5678, true);
+    test("[foo.bar.gov]:5678", "555555", false, "foo.bar.gov", "5678", 5678, true);
+    test("[foo.bar.gov]", "1234", false, "foo.bar.gov", "1234", 1234, true);
+    test("[foo.bar.gov]", "123456", false, "", "", 0, false);
+    test("1.2.3.4:5678", "", false, "1.2.3.4", "5678", 5678, true);
+    test("[1.2.3.4]:5678", "", false, "1.2.3.4", "5678", 5678, true);
+    test("[1.2.3.4]", "5678", false, "1.2.3.4", "5678", 5678, true);
+    test("[::0]", "9999", false, "::0", "9999", 9999, true);
+    test("[::0]", "", false, "", "", 0, false);
+    test("[::0]:9999", "", false, "::0", "9999", 9999, true);
+    test("", "", false, "", "", 0, false);
+    test(":", "", false, "", "", 0, false);
+    test("x:", "", false, "", "", 0, false);
+    test(":4", "", false, "", "", 0, false);
+    test("[]:1234", "", false, "", "", 0, false);
+    test("[fe80::1443:76ff:fe2e:1479]", "4040", false, "fe80::1443:76ff:fe2e:1479", "4040", 4040, true);
+    test("[fe80::1443:76ff:fe2e:147a]:8080", "4040", false, "fe80::1443:76ff:fe2e:147a", "8080", 8080, true);
+    test("fe80::1443:76ff:fe2e:1477", "4040", false, "fe80::1443:76ff:fe2e:1477", "4040", 4040, true);
+    test("[foo]", "", false, "", "", 0, false);
+    test("[", "", false, "", "", 0, false);
+    test("]", "", false, "", "", 0, false);
+
+    test("/foo/bar", "unix", false, "", "", 0, false);
+    test("/foo/bar", "unix", true, "/foo/bar", "unix", 0, true);
+    test("/foo/bar:unix", "", true, "/foo/bar", "unix", 0, true);
+}

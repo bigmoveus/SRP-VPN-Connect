@@ -1,1 +1,67 @@
-I2luY2x1ZGUgPGlvc3RyZWFtPgojaW5jbHVkZSAidGVzdF9jb21tb24uaHBwIgoKI2luY2x1ZGUgPG9wZW52cG4vY29tbW9uL3NpemUuaHBwPgoKI2luY2x1ZGUgPG9wZW52cG4vYnVmZmVyL2J1ZmZlci5ocHA+CiNpbmNsdWRlIDxvcGVudnBuL2lwL2NzdW0uaHBwPgojaW5jbHVkZSA8b3BlbnZwbi9yYW5kb20vbXRyYW5kYXBpLmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKc3RkOjp1aW50MTZfdCBpcF9jaGVja3N1bV9zbG93KGNvbnN0IHZvaWQgKmlwLCBzaXplX3Qgc2l6ZSkKewogICAgY29uc3Qgc3RkOjp1aW50MTZfdCAqYnVmID0gKGNvbnN0IHN0ZDo6dWludDE2X3QgKilpcDsKICAgIHN0ZDo6dWludDMyX3QgY2tzdW0gPSAwOwoKICAgIHdoaWxlIChzaXplID49IHNpemVvZihzdGQ6OnVpbnQxNl90KSkKICAgIHsKICAgICAgICBja3N1bSArPSAqYnVmKys7CiAgICAgICAgc2l6ZSAtPSBzaXplb2Yoc3RkOjp1aW50MTZfdCk7CiAgICB9CgogICAgaWYgKHNpemUpCiAgICAgICAgY2tzdW0gKz0gKih1aW50OF90ICopYnVmOwoKICAgIGNrc3VtID0gKGNrc3VtID4+IDE2KSArIChja3N1bSAmIDB4ZmZmZik7CiAgICBja3N1bSArPSAoY2tzdW0gPj4gMTYpOwogICAgcmV0dXJuIHN0YXRpY19jYXN0PHVpbnQxNl90Pih+Y2tzdW0pOwp9CgpURVNUKG1pc2MsIHN0cmVzc19jc3VtKQp7CiAgICBSYW5kb21BUEk6OlB0ciBwcm5nKG5ldyBNVFJhbmQpOwogICAgQnVmZmVyQWxsb2NhdGVkIGJ1ZigyNTYsIDApOwoKICAgIGZvciAobG9uZyBpID0gMDsgaSA8IDEwMDAwMDA7ICsraSkKICAgIHsKICAgICAgICBidWYuaW5pdF9oZWFkcm9vbSgwKTsKICAgICAgICBjb25zdCBzaXplX3Qgc2l6ZSA9IDE2ICsgKHBybmctPnJhbmRfZ2V0PHN0ZDo6dWludDhfdD4oKSAmIDEyNyk7CiAgICAgICAgc3RkOjp1aW50OF90ICpyYXcgPSBidWYud3JpdGVfYWxsb2Moc2l6ZSk7CiAgICAgICAgcHJuZy0+cmFuZF9ieXRlcyhyYXcsIHNpemUpOwogICAgICAgIGNvbnN0IHN0ZDo6dWludDE2X3Qgb3JpZ19jc3VtID0gSVBDaGVja3N1bTo6Y2hlY2tzdW0ocmF3LCBzaXplKTsKICAgICAgICBBU1NFUlRfRVEob3JpZ19jc3VtLCBpcF9jaGVja3N1bV9zbG93KHJhdywgc2l6ZSkpIDw8ICJjaGVja3N1bSBhbGdvcml0aG0gaW5jb25zaXN0ZW5jeSAjMSI7CgogICAgICAgIHN0ZDo6dWludDhfdCBvbGRfcHJlZml4WzE2XTsKICAgICAgICBzdGQ6Om1lbWNweShvbGRfcHJlZml4LCByYXcsIDE2KTsKICAgICAgICBjb25zdCBpbnQgbiA9IChwcm5nLT5yYW5kX2dldDxzdGQ6OnVpbnQ4X3Q+KCkgJiA3KTsKICAgICAgICBmb3IgKGludCBqID0gMDsgaiA8IG47ICsraikKICAgICAgICB7CiAgICAgICAgICAgIGNvbnN0IHNpemVfdCBpZHggPSAocHJuZy0+cmFuZF9nZXQ8c3RkOjp1aW50OF90PigpICYgMTUpOwogICAgICAgICAgICBjb25zdCBzdGQ6OnVpbnQ4X3QgbmV3dmFsID0gcHJuZy0+cmFuZF9nZXQ8c3RkOjp1aW50OF90PigpOwogICAgICAgICAgICByYXdbaWR4XSA9IG5ld3ZhbDsKICAgICAgICB9CiAgICAgICAgY29uc3Qgc3RkOjp1aW50MTZfdCB1cGRhdGVkX2NzdW0gPSBJUENoZWNrc3VtOjpjZm9sZChJUENoZWNrc3VtOjpkaWZmMTYob2xkX3ByZWZpeCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByYXcsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSVBDaGVja3N1bTo6Y3VuZm9sZChvcmlnX2NzdW0pKSk7CiAgICAgICAgY29uc3Qgc3RkOjp1aW50MTZfdCB2ZXJpZnlfY3N1bSA9IElQQ2hlY2tzdW06OmNoZWNrc3VtKHJhdywgc2l6ZSk7CiAgICAgICAgQVNTRVJUX0VRKHZlcmlmeV9jc3VtLCBpcF9jaGVja3N1bV9zbG93KHJhdywgc2l6ZSkpIDw8ICJjaGVja3N1bSBhbGdvcml0aG0gaW5jb25zaXN0ZW5jeSAjMiI7CiAgICAgICAgQVNTRVJUX0VRKHVwZGF0ZWRfY3N1bSwgdmVyaWZ5X2NzdW0pCiAgICAgICAgICAgIDw8IGkKICAgICAgICAgICAgPDwgIiBzaXplPSIgPDwgc2l6ZSA8PCAiIG49IiA8PCBuCiAgICAgICAgICAgIDw8ICIgb3JpZz0iIDw8IG9yaWdfY3N1bQogICAgICAgICAgICA8PCAiIHVwZGF0ZWQ9IiA8PCB1cGRhdGVkX2NzdW0KICAgICAgICAgICAgPDwgIiB2ZXJpZnk9IiA8PCB2ZXJpZnlfY3N1bQogICAgICAgICAgICA8PCBzdGQ6OmVuZGw7CiAgICB9Cn0K
+#include <iostream>
+#include "test_common.hpp"
+
+#include <openvpn/common/size.hpp>
+
+#include <openvpn/buffer/buffer.hpp>
+#include <openvpn/ip/csum.hpp>
+#include <openvpn/random/mtrandapi.hpp>
+
+using namespace openvpn;
+
+std::uint16_t ip_checksum_slow(const void *ip, size_t size)
+{
+    const std::uint16_t *buf = (const std::uint16_t *)ip;
+    std::uint32_t cksum = 0;
+
+    while (size >= sizeof(std::uint16_t))
+    {
+        cksum += *buf++;
+        size -= sizeof(std::uint16_t);
+    }
+
+    if (size)
+        cksum += *(uint8_t *)buf;
+
+    cksum = (cksum >> 16) + (cksum & 0xffff);
+    cksum += (cksum >> 16);
+    return static_cast<uint16_t>(~cksum);
+}
+
+TEST(misc, stress_csum)
+{
+    RandomAPI::Ptr prng(new MTRand);
+    BufferAllocated buf(256, 0);
+
+    for (long i = 0; i < 1000000; ++i)
+    {
+        buf.init_headroom(0);
+        const size_t size = 16 + (prng->rand_get<std::uint8_t>() & 127);
+        std::uint8_t *raw = buf.write_alloc(size);
+        prng->rand_bytes(raw, size);
+        const std::uint16_t orig_csum = IPChecksum::checksum(raw, size);
+        ASSERT_EQ(orig_csum, ip_checksum_slow(raw, size)) << "checksum algorithm inconsistency #1";
+
+        std::uint8_t old_prefix[16];
+        std::memcpy(old_prefix, raw, 16);
+        const int n = (prng->rand_get<std::uint8_t>() & 7);
+        for (int j = 0; j < n; ++j)
+        {
+            const size_t idx = (prng->rand_get<std::uint8_t>() & 15);
+            const std::uint8_t newval = prng->rand_get<std::uint8_t>();
+            raw[idx] = newval;
+        }
+        const std::uint16_t updated_csum = IPChecksum::cfold(IPChecksum::diff16(old_prefix,
+                                                                                raw,
+                                                                                IPChecksum::cunfold(orig_csum)));
+        const std::uint16_t verify_csum = IPChecksum::checksum(raw, size);
+        ASSERT_EQ(verify_csum, ip_checksum_slow(raw, size)) << "checksum algorithm inconsistency #2";
+        ASSERT_EQ(updated_csum, verify_csum)
+            << i
+            << " size=" << size << " n=" << n
+            << " orig=" << orig_csum
+            << " updated=" << updated_csum
+            << " verify=" << verify_csum
+            << std::endl;
+    }
+}

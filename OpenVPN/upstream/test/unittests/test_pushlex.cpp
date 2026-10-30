@@ -1,1 +1,111 @@
-Ly8gICAgT3BlblZQTiAtLSBBbiBhcHBsaWNhdGlvbiB0byBzZWN1cmVseSB0dW5uZWwgSVAgbmV0d29ya3MKLy8gICAgICAgICAgICAgICBvdmVyIGEgc2luZ2xlIHBvcnQsIHdpdGggc3VwcG9ydCBmb3IgU1NML1RMUy1iYXNlZAovLyAgICAgICAgICAgICAgIHNlc3Npb24gYXV0aGVudGljYXRpb24gYW5kIGtleSBleGNoYW5nZSwKLy8gICAgICAgICAgICAgICBwYWNrZXQgZW5jcnlwdGlvbiwgcGFja2V0IGF1dGhlbnRpY2F0aW9uLCBhbmQKLy8gICAgICAgICAgICAgICBwYWNrZXQgY29tcHJlc3Npb24uCi8vCi8vICAgIENvcHlyaWdodCAoQykgMjAxMi0gT3BlblZQTiBJbmMuCi8vCi8vICAgIFNQRFgtTGljZW5zZS1JZGVudGlmaWVyOiBNUEwtMi4wIE9SIEFHUEwtMy4wLW9ubHkgV0lUSCBvcGVudnBuMy1vcGVuc3NsLWV4Y2VwdGlvbgovLwoKLyoqCiAgIEBmaWxlCiAgIEBicmllZiBVbml0IHRlc3QgZm9yIFB1c2hMZXgKKi8KCiNpbmNsdWRlICJ0ZXN0X2NvbW1vbi5ocHAiCgojaW5jbHVkZSA8b3BlbnZwbi9idWZmZXIvYnVmc3RyLmhwcD4KI2luY2x1ZGUgPG9wZW52cG4vb3B0aW9ucy9wdXNobGV4LmhwcD4KCnVzaW5nIG5hbWVzcGFjZSBvcGVudnBuOwoKc3RhdGljIHN0ZDo6c3RyaW5nIGdldF9uZXh0KFB1c2hMZXggJnBsKQp7CiAgICBpZiAocGwuZGVmaW5lZCgpKQogICAgICAgIHJldHVybiBwbC5uZXh0KCk7CiAgICBlbHNlCiAgICAgICAgcmV0dXJuIHN0ZDo6c3RyaW5nKCk7Cn0KCi8vIHBhcnNlIGEgUFVTSF9VUERBVEUgbWVzc2FnZQpURVNUKHB1c2hsZXgsIHRlc3RfMSkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgY3N2ID0gIlBVU0hfVVBEQVRFLHJvdXRlIDEwLjkuMC4wIDI1NS4yNTUuMC4wLHJvdXRlIDguOC44Ljgscm91dGUtaXB2NiBmZDY5OjovNjQiOwogICAgUHVzaExleCBwbChjb25zdF9idWZfZnJvbV9zdHJpbmcoY3N2KSwgdHJ1ZSk7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAicm91dGUgMTAuOS4wLjAgMjU1LjI1NS4wLjAiKTsKICAgIEFTU0VSVF9FUShnZXRfbmV4dChwbCksICJyb3V0ZSA4LjguOC44Iik7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAicm91dGUtaXB2NiBmZDY5OjovNjQiKTsKICAgIEFTU0VSVF9GQUxTRShwbC5kZWZpbmVkKCkpOwp9CgovLyBwYXJzZSBhIFBVU0hfVVBEQVRFIG1lc3NhZ2Ugd2l0aCB0b3J0dXJlZCBTdGFuZGFyZExleCBxdW90aW5nClRFU1QocHVzaGxleCwgdGVzdF8yKQp7CiAgICBjb25zdCBzdGQ6OnN0cmluZyBjc3YgPSAiUFVTSF9VUERBVEUsZWNobyBcIm9uZSx0d28sdGhyZWVcIiwscm91dGUgMS4yLjMuNCxlY2hvIFxcXCIsZWNobyBcImZvb1wiLGVjaG8gXFwsLGVjaG8gZmluLCI7CiAgICBQdXNoTGV4IHBsKGNvbnN0X2J1Zl9mcm9tX3N0cmluZyhjc3YpLCB0cnVlKTsKICAgIEFTU0VSVF9FUShnZXRfbmV4dChwbCksICJlY2hvIFwib25lLHR3byx0aHJlZVwiIik7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAiIik7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAicm91dGUgMS4yLjMuNCIpOwogICAgQVNTRVJUX0VRKGdldF9uZXh0KHBsKSwgImVjaG8gXFxcIiIpOwogICAgQVNTRVJUX0VRKGdldF9uZXh0KHBsKSwgImVjaG8gXCJmb29cIiIpOwogICAgQVNTRVJUX0VRKGdldF9uZXh0KHBsKSwgImVjaG8gXFwsIik7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAiZWNobyBmaW4iKTsKICAgIEFTU0VSVF9FUShnZXRfbmV4dChwbCksICIiKTsKICAgIEFTU0VSVF9GQUxTRShwbC5kZWZpbmVkKCkpOwp9CgovLyB0ZXN0IFB1c2hMZXggd2l0aCBkaXNjYXJkX3ByZWZpeCA9PSBmYWxzZQpURVNUKHB1c2hsZXgsIHRlc3RfMykKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgY3N2ID0gIlBVU0hfVVBEQVRFLHJvdXRlIDEwLjkuMC4wIDI1NS4yNTUuMC4wLHJvdXRlIDguOC44Ljgscm91dGUtaXB2NiBmZDY5OjovNjQiOwogICAgUHVzaExleCBwbChjb25zdF9idWZfZnJvbV9zdHJpbmcoY3N2KSwgZmFsc2UpOwogICAgQVNTRVJUX0VRKGdldF9uZXh0KHBsKSwgIlBVU0hfVVBEQVRFIik7IC8vIHRoaXMgaXMgaGVyZSBiZWNhdXNlIGRpc2NhcmRfcHJlZml4ID09IGZhbHNlCiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAicm91dGUgMTAuOS4wLjAgMjU1LjI1NS4wLjAiKTsKICAgIEFTU0VSVF9FUShnZXRfbmV4dChwbCksICJyb3V0ZSA4LjguOC44Iik7CiAgICBBU1NFUlRfRVEoZ2V0X25leHQocGwpLCAicm91dGUtaXB2NiBmZDY5OjovNjQiKTsKICAgIEFTU0VSVF9GQUxTRShwbC5kZWZpbmVkKCkpOwp9CgovLyB0ZXN0IFB1c2hMZXggd2l0aCBhIG51bGwgbWVzc2FnZQpURVNUKHB1c2hsZXgsIHRlc3RfNCkKewogICAgY29uc3Qgc3RkOjpzdHJpbmcgY3N2ID0gIlBVU0hfVVBEQVRFLCI7CiAgICBQdXNoTGV4IHBsKGNvbnN0X2J1Zl9mcm9tX3N0cmluZyhjc3YpLCB0cnVlKTsKICAgIEFTU0VSVF9GQUxTRShwbC5kZWZpbmVkKCkpOwp9CgovLyB0ZXN0IFB1c2hMZXggd2l0aCBhIG51bGwgYnVmZmVyClRFU1QocHVzaGxleCwgdGVzdF81KQp7CiAgICBDb25zdEJ1ZmZlciBjYnVmOwogICAgUHVzaExleCBwbChjYnVmLCB0cnVlKTsKICAgIEFTU0VSVF9GQUxTRShwbC5kZWZpbmVkKCkpOwp9CgovLyB0ZXN0IHRoYXQgUHVzaExleCB0aHJvd3MgYW4gZXhjZXB0aW9uIHdoZW4gcHJlZml4Ci8vIGlzIHVucmVjb2duaXplZApURVNUKHB1c2hsZXgsIHRlc3RfZXhjZXB0aW9uXzEpCnsKICAgIEpZX0VYUEVDVF9USFJPVygKICAgICAgICB7CiAgICAgICAgICAgIGNvbnN0IHN0ZDo6c3RyaW5nIGNzdiA9ICJGT08scm91dGUgMTAuOS4wLjAgMjU1LjI1NS4wLjAscm91dGUgOC44LjguOCxyb3V0ZS1pcHY2IGZkNjk6Oi82NCI7CiAgICAgICAgICAgIFB1c2hMZXggcGwoY29uc3RfYnVmX2Zyb21fc3RyaW5nKGNzdiksIHRydWUpOwogICAgICAgIH0sCiAgICAgICAgUHVzaExleDo6cHVzaGxleF9lcnJvciwKICAgICAgICAicHVzaGxleF9lcnJvcjogbm90IGEgdmFsaWQgUFVTSF94IG1lc3NhZ2UgWzFdIik7Cn0KCi8vIHRlc3QgdGhhdCBQdXNoTGV4IHRocm93cyBhbiBleGNlcHRpb24gd2hlbiBwcmVmaXgKLy8gaXMgbm90IGZvbGxvd2VkIGJ5IGEgY29tbWEgKCIsIikKVEVTVChwdXNobGV4LCB0ZXN0X2V4Y2VwdGlvbl8yKQp7CiAgICBKWV9FWFBFQ1RfVEhST1coCiAgICAgICAgewogICAgICAgICAgICBjb25zdCBzdGQ6OnN0cmluZyBjc3YgPSAiUFVTSF9GT08uLi4iOwogICAgICAgICAgICBQdXNoTGV4IHBsKGNvbnN0X2J1Zl9mcm9tX3N0cmluZyhjc3YpLCB0cnVlKTsKICAgICAgICB9LAogICAgICAgIFB1c2hMZXg6OnB1c2hsZXhfZXJyb3IsCiAgICAgICAgInB1c2hsZXhfZXJyb3I6IG5vdCBhIHZhbGlkIFBVU0hfeCBtZXNzYWdlIFsyXSIpOwp9Cg==
+//    OpenVPN -- An application to securely tunnel IP networks
+//               over a single port, with support for SSL/TLS-based
+//               session authentication and key exchange,
+//               packet encryption, packet authentication, and
+//               packet compression.
+//
+//    Copyright (C) 2012- OpenVPN Inc.
+//
+//    SPDX-License-Identifier: MPL-2.0 OR AGPL-3.0-only WITH openvpn3-openssl-exception
+//
+
+/**
+   @file
+   @brief Unit test for PushLex
+*/
+
+#include "test_common.hpp"
+
+#include <openvpn/buffer/bufstr.hpp>
+#include <openvpn/options/pushlex.hpp>
+
+using namespace openvpn;
+
+static std::string get_next(PushLex &pl)
+{
+    if (pl.defined())
+        return pl.next();
+    else
+        return std::string();
+}
+
+// parse a PUSH_UPDATE message
+TEST(pushlex, test_1)
+{
+    const std::string csv = "PUSH_UPDATE,route 10.9.0.0 255.255.0.0,route 8.8.8.8,route-ipv6 fd69::/64";
+    PushLex pl(const_buf_from_string(csv), true);
+    ASSERT_EQ(get_next(pl), "route 10.9.0.0 255.255.0.0");
+    ASSERT_EQ(get_next(pl), "route 8.8.8.8");
+    ASSERT_EQ(get_next(pl), "route-ipv6 fd69::/64");
+    ASSERT_FALSE(pl.defined());
+}
+
+// parse a PUSH_UPDATE message with tortured StandardLex quoting
+TEST(pushlex, test_2)
+{
+    const std::string csv = "PUSH_UPDATE,echo \"one,two,three\",,route 1.2.3.4,echo \\\",echo \"foo\",echo \\,,echo fin,";
+    PushLex pl(const_buf_from_string(csv), true);
+    ASSERT_EQ(get_next(pl), "echo \"one,two,three\"");
+    ASSERT_EQ(get_next(pl), "");
+    ASSERT_EQ(get_next(pl), "route 1.2.3.4");
+    ASSERT_EQ(get_next(pl), "echo \\\"");
+    ASSERT_EQ(get_next(pl), "echo \"foo\"");
+    ASSERT_EQ(get_next(pl), "echo \\,");
+    ASSERT_EQ(get_next(pl), "echo fin");
+    ASSERT_EQ(get_next(pl), "");
+    ASSERT_FALSE(pl.defined());
+}
+
+// test PushLex with discard_prefix == false
+TEST(pushlex, test_3)
+{
+    const std::string csv = "PUSH_UPDATE,route 10.9.0.0 255.255.0.0,route 8.8.8.8,route-ipv6 fd69::/64";
+    PushLex pl(const_buf_from_string(csv), false);
+    ASSERT_EQ(get_next(pl), "PUSH_UPDATE"); // this is here because discard_prefix == false
+    ASSERT_EQ(get_next(pl), "route 10.9.0.0 255.255.0.0");
+    ASSERT_EQ(get_next(pl), "route 8.8.8.8");
+    ASSERT_EQ(get_next(pl), "route-ipv6 fd69::/64");
+    ASSERT_FALSE(pl.defined());
+}
+
+// test PushLex with a null message
+TEST(pushlex, test_4)
+{
+    const std::string csv = "PUSH_UPDATE,";
+    PushLex pl(const_buf_from_string(csv), true);
+    ASSERT_FALSE(pl.defined());
+}
+
+// test PushLex with a null buffer
+TEST(pushlex, test_5)
+{
+    ConstBuffer cbuf;
+    PushLex pl(cbuf, true);
+    ASSERT_FALSE(pl.defined());
+}
+
+// test that PushLex throws an exception when prefix
+// is unrecognized
+TEST(pushlex, test_exception_1)
+{
+    JY_EXPECT_THROW(
+        {
+            const std::string csv = "FOO,route 10.9.0.0 255.255.0.0,route 8.8.8.8,route-ipv6 fd69::/64";
+            PushLex pl(const_buf_from_string(csv), true);
+        },
+        PushLex::pushlex_error,
+        "pushlex_error: not a valid PUSH_x message [1]");
+}
+
+// test that PushLex throws an exception when prefix
+// is not followed by a comma (",")
+TEST(pushlex, test_exception_2)
+{
+    JY_EXPECT_THROW(
+        {
+            const std::string csv = "PUSH_FOO...";
+            PushLex pl(const_buf_from_string(csv), true);
+        },
+        PushLex::pushlex_error,
+        "pushlex_error: not a valid PUSH_x message [2]");
+}

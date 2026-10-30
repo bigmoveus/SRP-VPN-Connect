@@ -1,1 +1,64 @@
-IyBDb3B5cmlnaHQgKEMpIEFsZXhhbmRlciBMYW1haXNvbiA8YWxleGFuZGVyLmxhbWFpc29uQGdtYWlsLmNvbT4KIyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjogQlNELTMtQ2xhdXNlCgpGUk9NIGRlYmlhbjp0ZXN0aW5nLXNsaW0KClJVTiBhcHQtZ2V0IHVwZGF0ZSBcCiAmJiBhcHQtZ2V0IGluc3RhbGwgLXkgb3BlbnNzaC1zZXJ2ZXIgXAogJiYgYXB0LWdldCBjbGVhbiBcCiAmJiBybSAtcmYgL3Zhci9saWIvYXB0L2xpc3RzLyoKUlVOIFsgLWQgL3Zhci9ydW4vc3NoZCBdIHx8IG1rZGlyIC92YXIvcnVuL3NzaGQKCiMgQ2htb2RkaW5nIGJlY2F1c2UsIHdoZW4gYnVpbGRpbmcgb24gV2luZG93cywgZmlsZXMgYXJlIGNvcGllZCBpbiB3aXRoCiMgLXJ3eHIteHIteCBwZXJtaXNzaW9ucy4KIwojIENvcHlpbmcgdG8gYSB0ZW1wIGxvY2F0aW9uLCB0aGVuIG1vdmluZyBiZWNhdXNlIGNobW9kZGluZyB0aGUgY29waWVkIGZpbGUgaGFzCiMgbm8gZWZmZWN0IChEb2NrZXIgQVVGUy1yZWxhdGVkIGJ1ZyBtYXliZT8pCgojIEhvc3Qga2V5cwpDT1BZIHNzaF9ob3N0X3JzYV9rZXkgL3RtcC9ldGMvc3NoL3NzaF9ob3N0X3JzYV9rZXkKUlVOIGluc3RhbGwgLW0gMDYwMCAvdG1wL2V0Yy9zc2gvc3NoX2hvc3RfcnNhX2tleSAvZXRjL3NzaC9zc2hfaG9zdF9yc2Ffa2V5CgpDT1BZIHNzaF9ob3N0X2VjZHNhX2tleSAvdG1wL2V0Yy9zc2gvc3NoX2hvc3RfZWNkc2Ffa2V5ClJVTiBpbnN0YWxsIC1tIDA2MDAgL3RtcC9ldGMvc3NoL3NzaF9ob3N0X2VjZHNhX2tleSAvZXRjL3NzaC9zc2hfaG9zdF9lY2RzYV9rZXkKCkNPUFkgc3NoX2hvc3RfZWQyNTUxOV9rZXkgL3RtcC9ldGMvc3NoL3NzaF9ob3N0X2VkMjU1MTlfa2V5ClJVTiBpbnN0YWxsIC1tIDA2MDAgL3RtcC9ldGMvc3NoL3NzaF9ob3N0X2VkMjU1MTlfa2V5IC9ldGMvc3NoL3NzaF9ob3N0X2VkMjU1MTlfa2V5CgojIFRydXN0ZWQgQ0Ega2V5cwpDT1BZIGNhX2VjZHNhIC90bXAvZXRjL3NzaC9jYV9lY2RzYQpSVU4gaW5zdGFsbCAtbSAwNjAwIC90bXAvZXRjL3NzaC9jYV9lY2RzYSAvZXRjL3NzaC9jYV9lY2RzYQoKQ09QWSBjYV9yc2EgL3RtcC9ldGMvc3NoL2NhX3JzYQpSVU4gaW5zdGFsbCAtbSAwNjAwIC90bXAvZXRjL3NzaC9jYV9yc2EgL2V0Yy9zc2gvY2FfcnNhCgpDT1BZIGNhX3VzZXJfa2V5cy5wdWIgL3RtcC9ldGMvc3NoL2NhX3VzZXJfa2V5cy5wdWIKUlVOIGluc3RhbGwgLW0gMDYwMCAvdG1wL2V0Yy9zc2gvY2FfdXNlcl9rZXlzLnB1YiAvZXRjL3NzaC9jYV91c2VyX2tleXMucHViCgojIFVzZXIKUlVOIGFkZHVzZXIgLS1kaXNhYmxlZC1wYXNzd29yZCAtLWdlY29zICdUZXN0IHVzZXIgZm9yIGxpYnNzaDIgaW50ZWdyYXRpb24gdGVzdHMnIGxpYnNzaDIKUlVOIGVjaG8gJ2xpYnNzaDI6bXkgdGVzdCBwYXNzd29yZCcgfCBjaHBhc3N3ZAoKIyBDb25maWcKUlVOIHNlZCAtaSAncy9LYmRJbnRlcmFjdGl2ZUF1dGhlbnRpY2F0aW9uIG5vL0tiZEludGVyYWN0aXZlQXV0aGVudGljYXRpb24geWVzLycgL2V0Yy9zc2gvc3NoZF9jb25maWcKQ09QWSBzc2hkX2NvbmZpZyAvdG1wL2V0Yy9zc2gvc3NoZF9jb25maWcKUlVOIGNhdCAvdG1wL2V0Yy9zc2gvc3NoZF9jb25maWcgPj4gL2V0Yy9zc2gvc3NoZF9jb25maWcKUlVOIGVjaG8gJ1RydXN0ZWRVc2VyQ0FLZXlzIC9ldGMvc3NoL2NhX3VzZXJfa2V5cy5wdWInID4+IC9ldGMvc3NoL3NzaGRfY29uZmlnCgoKIyBTU0ggbG9naW4gZml4LiBPdGhlcndpc2UgdXNlciBpcyBraWNrZWQgb2ZmIGFmdGVyIGxvZ2luClJVTiBzZWQgJ3Mvc2Vzc2lvblxzKnJlcXVpcmVkXHMqcGFtX2xvZ2ludWlkLnNvL3Nlc3Npb24gb3B0aW9uYWwgcGFtX2xvZ2ludWlkLnNvL2cnIC1pIC9ldGMvcGFtLmQvc3NoZAoKVVNFUiBsaWJzc2gyCgpSVU4gbWtkaXIgLXAgL2hvbWUvbGlic3NoMi8uc3NoClJVTiBta2RpciAtcCAvaG9tZS9saWJzc2gyL3NhbmRib3gKCkNPUFkgYXV0aG9yaXplZF9rZXlzIC90bXAvbGlic3NoMi8uc3NoL2F1dGhvcml6ZWRfa2V5cwpSVU4gaW5zdGFsbCAtbSAwNjAwIC90bXAvbGlic3NoMi8uc3NoL2F1dGhvcml6ZWRfa2V5cyAvaG9tZS9saWJzc2gyLy5zc2gvYXV0aG9yaXplZF9rZXlzCgpVU0VSIHJvb3QKCkVYUE9TRSAyMgojIC1lIGdpdmVzIGxvZ3MgdmlhICdkb2NrZXIgbG9ncycKQ01EIFsiL3Vzci9zYmluL3NzaGQiLCAiLUQiLCAiLWUiXQo=
+# Copyright (C) Alexander Lamaison <alexander.lamaison@gmail.com>
+# SPDX-License-Identifier: BSD-3-Clause
+
+FROM debian:testing-slim
+
+RUN apt-get update \
+ && apt-get install -y openssh-server \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+RUN [ -d /var/run/sshd ] || mkdir /var/run/sshd
+
+# Chmodding because, when building on Windows, files are copied in with
+# -rwxr-xr-x permissions.
+#
+# Copying to a temp location, then moving because chmodding the copied file has
+# no effect (Docker AUFS-related bug maybe?)
+
+# Host keys
+COPY ssh_host_rsa_key /tmp/etc/ssh/ssh_host_rsa_key
+RUN install -m 0600 /tmp/etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_rsa_key
+
+COPY ssh_host_ecdsa_key /tmp/etc/ssh/ssh_host_ecdsa_key
+RUN install -m 0600 /tmp/etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_ecdsa_key
+
+COPY ssh_host_ed25519_key /tmp/etc/ssh/ssh_host_ed25519_key
+RUN install -m 0600 /tmp/etc/ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key
+
+# Trusted CA keys
+COPY ca_ecdsa /tmp/etc/ssh/ca_ecdsa
+RUN install -m 0600 /tmp/etc/ssh/ca_ecdsa /etc/ssh/ca_ecdsa
+
+COPY ca_rsa /tmp/etc/ssh/ca_rsa
+RUN install -m 0600 /tmp/etc/ssh/ca_rsa /etc/ssh/ca_rsa
+
+COPY ca_user_keys.pub /tmp/etc/ssh/ca_user_keys.pub
+RUN install -m 0600 /tmp/etc/ssh/ca_user_keys.pub /etc/ssh/ca_user_keys.pub
+
+# User
+RUN adduser --disabled-password --gecos 'Test user for libssh2 integration tests' libssh2
+RUN echo 'libssh2:my test password' | chpasswd
+
+# Config
+RUN sed -i 's/KbdInteractiveAuthentication no/KbdInteractiveAuthentication yes/' /etc/ssh/sshd_config
+COPY sshd_config /tmp/etc/ssh/sshd_config
+RUN cat /tmp/etc/ssh/sshd_config >> /etc/ssh/sshd_config
+RUN echo 'TrustedUserCAKeys /etc/ssh/ca_user_keys.pub' >> /etc/ssh/sshd_config
+
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's/session\s*required\s*pam_loginuid.so/session optional pam_loginuid.so/g' -i /etc/pam.d/sshd
+
+USER libssh2
+
+RUN mkdir -p /home/libssh2/.ssh
+RUN mkdir -p /home/libssh2/sandbox
+
+COPY authorized_keys /tmp/libssh2/.ssh/authorized_keys
+RUN install -m 0600 /tmp/libssh2/.ssh/authorized_keys /home/libssh2/.ssh/authorized_keys
+
+USER root
+
+EXPOSE 22
+# -e gives logs via 'docker logs'
+CMD ["/usr/sbin/sshd", "-D", "-e"]
