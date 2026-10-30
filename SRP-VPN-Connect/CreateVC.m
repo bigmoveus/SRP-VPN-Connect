@@ -191,7 +191,6 @@ static const NSInteger kFieldPsiphonEntry = 34;
                                                                   target:self
                                                                   action:@selector(onSave)];
     self.navigationItem.rightBarButtonItem = self.saveItem;
-    [self validate];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -199,7 +198,6 @@ static const NSInteger kFieldPsiphonEntry = 34;
     // Sub-screens may have changed the mode/method — rebuild; field text lives in the model.
     [self.textCellCache removeAllObjects];
     [self.tableView reloadData];
-    [self validate];
 }
 
 #pragma mark - validation / actions
@@ -260,13 +258,16 @@ static const NSInteger kFieldPsiphonEntry = 34;
     if (self.modal.server.length == 0) return @"Enter the WaterWall server.";
     NSInteger port = self.modal.port.integerValue;
     if (port < 1 || port > 65535) return @"Enter a WaterWall port between 1 and 65535.";
-    error = [SRPWaterWallChainConfig validationErrorForApplicationSecret:self.modal.password forConfiguration:configuration];
+    // An untouched field is nil; validate it as empty so the message names the missing value.
+    error = [SRPWaterWallChainConfig validationErrorForApplicationSecret:self.modal.password ?: @""
+                                                        forConfiguration:configuration];
     if (error != nil) return error;
     error = [SRPWaterWallChainConfig validationErrorForApplicationUsername:self.modal.username
                                                                     secret:self.modal.password
                                                            forConfiguration:configuration];
     if (error != nil) return error;
-    error = [SRPWaterWallChainConfig validationErrorForOuterSecret:self.modal.waterwallOuterSecret forConfiguration:configuration];
+    error = [SRPWaterWallChainConfig validationErrorForOuterSecret:self.modal.waterwallOuterSecret ?: @""
+                                                  forConfiguration:configuration];
     if (error != nil) return error;
     return nil;
 }
@@ -309,104 +310,137 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     return [self isSoftEther] && [self.modal.seAuthMethod isEqualToString:@"anonymous"];
 }
 
-- (void)validate {
-    BOOL ok = self.modal.server.length > 0;
+/// The first reason the profile cannot be saved yet, or nil once it is complete.
+/// Save stays tappable: a disabled button gave no hint about which field was wrong.
+- (NSString *)validationMessage {
+    BOOL hasServer = self.modal.server.length > 0;
     if ([self isSoftEther]) {
         // SoftEther: username is always required; password unless anonymous /
         // certificate; a certificate must be imported for certificate auth.
-        ok = ok && self.modal.username.length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.username.length == 0) return @"Enter the username.";
         if ([self.modal.seAuthMethod isEqualToString:@"certificate"]) {
-            ok = ok && self.modal.certKey.length > 0;
-        } else if (![self isSEAnonymousMode]) {
-            ok = ok && self.modal.password.length > 0;
+            if (self.modal.certKey.length == 0) return @"Import a client certificate.";
+        } else if (![self isSEAnonymousMode] && self.modal.password.length == 0) {
+            return @"Enter the password.";
         }
         NSInteger c = self.modal.seConnections;
-        ok = ok && (c >= 1 && c <= 32);
+        if (c < 1 || c > 32) return @"Use between 1 and 32 connections.";
     }
     else if ([self isOpenConnect]) {
         // OpenConnect (AnyConnect): server + username; password or certificate
-        ok = ok && self.modal.username.length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.username.length == 0) return @"Enter the username.";
         if ([self isCertificateMode]) {
-            ok = ok && self.modal.certKey.length > 0;
-        } else {
-            ok = ok && self.modal.password.length > 0;
+            if (self.modal.certKey.length == 0) return @"Import a client certificate.";
+        } else if (self.modal.password.length == 0) {
+            return @"Enter the password.";
         }
     }
     else if ([self isSSH]) {
         // SSH: server + username + password (v1 is password auth). The relay
         // credentials are optional — only needed when the server-side relay
         // enforces its own authentication.
-        ok = ok && self.modal.username.length > 0 && self.modal.password.length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.username.length == 0) return @"Enter the username.";
+        if (self.modal.password.length == 0) return @"Enter the password.";
     }
     else if ([self isOpenVPN]) {
         // OpenVPN: server + an imported .ovpn profile (credentials live in the
         // profile: client certificate / auth-user-pass).
-        ok = ok && self.modal.ovpnProfile.length > 0;
-        if ([self ovpnNeedsAuth]) {
-            ok = ok && self.modal.username.length > 0 && self.modal.password.length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.ovpnProfile.length == 0) return @"Import an OpenVPN profile.";
+        if ([self ovpnNeedsAuth] && (self.modal.username.length == 0 || self.modal.password.length == 0)) {
+            return @"This OpenVPN profile needs a username and password.";
         }
         if (self.modal.ovpnStunnelEnabled && self.modal.ovpnStunnelPort.length > 0) {
             NSInteger sp = self.modal.ovpnStunnelPort.integerValue;
-            ok = ok && (sp >= 1 && sp <= 65535);
+            if (sp < 1 || sp > 65535) return @"Enter a stunnel port between 1 and 65535.";
         }
     }
     else if ([self isWireGuard]) {
         // WireGuard: server + a config — imported .conf or complete manual entry
-        ok = ok && [self.modal wgEffectiveConfig].length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if ([self.modal wgEffectiveConfig].length == 0) return @"Import or enter a WireGuard configuration.";
     }
     else if ([self isAether]) {
+        // Private: own WireGuard server — a complete config is required.
+        // Public: zero-config (Cloudflare WARP) — nothing is required.
         if ([self isAetherPrivate]) {
-            // Private: own WireGuard server — a complete config is required
-            ok = ok && [self.modal wgEffectiveConfig].length > 0;
-        } else {
-            // Public: zero-config (Cloudflare WARP) — nothing is required
-            ok = YES;
+            if (!hasServer) return @"Enter the server address.";
+            if ([self.modal wgEffectiveConfig].length == 0) return @"Import or enter a WireGuard configuration.";
         }
     }
     else if ([self isWaterWall]) {
-        ok = [self waterWallValidationError] == nil;
+        NSString *error = [self waterWallValidationError];
+        if (error != nil) return error;
     }
     else if ([self isPsiphon]) {
         // Psiphon: at least one server entry is required
-        ok = self.modal.psiphonServerEntry.length > 0;
+        if (self.modal.psiphonServerEntry.length == 0) return @"Add a Psiphon server entry.";
     }
     else if ([self isCertificateMode]) {
         // Certificate authentication: host + an imported client certificate;
         // the username is optional (identity hint / outer identity) and no
         // password is required.
-        ok = ok && self.modal.certKey.length > 0;
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.certKey.length == 0) return @"Import a client certificate.";
     } else {
-        ok = ok && self.modal.username.length > 0 && self.modal.password.length > 0;
-        // At least one authentication method must be enabled
-        ok = ok && (self.modal.MSCHAP2 || self.modal.allowLegacyPapChap || self.modal.eapConfig.eapMschapv2Enabled);
+        if (!hasServer) return @"Enter the server address.";
+        if (self.modal.username.length == 0) return @"Enter the username.";
+        if (self.modal.password.length == 0) return @"Enter the password.";
+        if (!(self.modal.MSCHAP2 || self.modal.allowLegacyPapChap || self.modal.eapConfig.eapMschapv2Enabled)) {
+            return @"Enable at least one authentication method.";
+        }
     }
     switch (self.modal.proxyMode) {
         case 1: // Manual: proxy address + port required
-            ok = ok && self.modal.proxyAddress.length > 0 && self.modal.proxyPort.length > 0;
+            if (self.modal.proxyAddress.length == 0 || self.modal.proxyPort.length == 0) {
+                return @"Enter the proxy address and port.";
+            }
             break;
         case 2: { // Auto: a valid http(s) PAC URL required
             NSURL *pac = [NSURL URLWithString:self.modal.pacURL ?: @""];
-            ok = ok && pac != nil && ([pac.scheme isEqualToString:@"http"] || [pac.scheme isEqualToString:@"https"])
-                 && pac.host.length > 0;
+            if (pac == nil || !([pac.scheme isEqualToString:@"http"] || [pac.scheme isEqualToString:@"https"]) ||
+                pac.host.length == 0) {
+                return @"Enter an http or https PAC URL.";
+            }
             break;
         }
         default:
             break;
     }
-    if (![self isSoftEther] && self.modal.customSniEnabled) {
-        // Custom SNI must be a bare hostname (no scheme, port, path, spaces)
-        ok = ok && [NodeModel isValidCustomSni:self.modal.customSni];
+    if (![self isSoftEther] && self.modal.customSniEnabled && ![NodeModel isValidCustomSni:self.modal.customSni]) {
+        return @"Custom SNI must be a bare hostname, without a scheme, port, path or spaces.";
     }
-    self.saveItem.enabled = ok;
+    return nil;
+}
+
+/// Pasted values often carry a trailing space or newline, and the secure UUID
+/// field hides it; none of these fields can legitimately start or end with one.
+- (void)trimEdgeWhitespace {
+    NSCharacterSet *edges = NSCharacterSet.whitespaceAndNewlineCharacterSet;
+    self.modal.server = [self.modal.server stringByTrimmingCharactersInSet:edges];
+    self.modal.port = [self.modal.port stringByTrimmingCharactersInSet:edges];
+    self.modal.customSni = [self.modal.customSni stringByTrimmingCharactersInSet:edges];
+    self.modal.proxyAddress = [self.modal.proxyAddress stringByTrimmingCharactersInSet:edges];
+    self.modal.proxyPort = [self.modal.proxyPort stringByTrimmingCharactersInSet:edges];
+    if ([self isWaterWall]) {
+        NSString *application = [self waterWallConfiguration][@"application"];
+        if ([application isEqualToString:@"vless"] || [application isEqualToString:@"vmess"]) {
+            self.modal.password = [self.modal.password stringByTrimmingCharactersInSet:edges];
+        }
+    }
 }
 
 - (void)onSave {
-    if ([self isWaterWall]) {
-        NSString *error = [self waterWallValidationError];
-        if (error != nil) {
-            [self showInfoAlertWithTitle:@"Invalid WaterWall Configuration" message:error];
-            return;
-        }
+    [self.view endEditing:YES];
+    [self trimEdgeWhitespace];
+    NSString *message = [self validationMessage];
+    if (message != nil) {
+        [self showInfoAlertWithTitle:[self isWaterWall] ? @"Invalid WaterWall Configuration" : @"Profile Incomplete"
+                             message:message];
+        return;
     }
     [self.owner saveNode];
 }
@@ -519,13 +553,11 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         case kFieldWWOuterSecret: self.modal.waterwallOuterSecret = field.text; break;
         default: break;
     }
-    [self validate];
 }
 
 - (void)proxyModeChanged:(UISegmentedControl *)seg {
     self.modal.proxyMode = seg.selectedSegmentIndex;
     [self.tableView reloadData];
-    [self validate];
 }
 
 - (void)onSleepChanged:(UISegmentedControl *)seg {
@@ -546,7 +578,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         self.modal.port = @"51820";
     }
     [self.tableView reloadData];
-    [self validate];
 }
 
 - (void)aetherTorChanged:(UISegmentedControl *)seg {
@@ -667,7 +698,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
 
         default: break;
     }
-    [self validate];
 }
 
 #pragma mark - table view
@@ -1777,7 +1807,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         }
     }
     [self.tableView reloadData];
-    [self validate];
 }
 
 @end
