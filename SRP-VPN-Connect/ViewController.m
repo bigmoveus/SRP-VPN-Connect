@@ -14,7 +14,12 @@
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource>
 
 @property (nonatomic,strong) SRPProfileLatencyTester *latencyTester;
+@property (nonatomic,strong) SRPProfileTCPPinger *tcpPinger;      // pull-to-refresh run over every profile
+@property (nonatomic,strong) SRPProfileTCPPinger *singlePinger;   // swipe action on one profile
 @property (nonatomic,strong) NSMutableDictionary<NSString *, NSString *> *latencyResults;
+/// Milliseconds behind each finished result (-1 = failed); absent while a test runs.
+@property (nonatomic,strong) NSMutableDictionary<NSString *, NSNumber *> *latencyMilliseconds;
+@property (nonatomic,strong) UIRefreshControl *pingControl;
 @property (nonatomic,strong) UITableView * homeTableview;
 @property (nonatomic,strong) NSMutableArray * nodaArray;
 @property (nonatomic,strong) HomeHeaderView * header;
@@ -86,6 +91,11 @@
         [self.homeTableview.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
         [self.homeTableview.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
     ]];
+    // Pull down to time the TCP handshake to every profile's server
+    self.pingControl = [UIRefreshControl new];
+    self.pingControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to ping every profile"];
+    [self.pingControl addTarget:self action:@selector(pingAllProfiles) forControlEvents:UIControlEventValueChanged];
+    self.homeTableview.refreshControl = self.pingControl;
 
     self.emptyLabel = [UILabel new];
     self.emptyLabel.text = @"No profiles yet — tap + to add";
@@ -97,7 +107,11 @@
 
     self.nodaArray = [userNodeData shareInstance].nodeArray;
     self.latencyTester = [SRPProfileLatencyTester new];
+    self.tcpPinger = [SRPProfileTCPPinger new];
+    self.singlePinger = [SRPProfileTCPPinger new];
     self.latencyResults = [NSMutableDictionary new];
+    self.latencyMilliseconds = [NSMutableDictionary new];
+    [self loadSavedLatency];
     self.selectIndex = -1;
 
     [[PDVPNManager sharedManager] setupVPNManager];
@@ -197,12 +211,122 @@
     }
     NodeModel *sel = [NodeModel shareInstance].selectNode;
     BOOL selected = (sel.nodeId.length > 0 && [sel.nodeId isEqualToString:modal.nodeId]);
+    NSNumber *milliseconds = self.latencyMilliseconds[modal.nodeId];
     [node configureWithTitle:title
                     subtitle:subtitle
                        badge:modal.nodeName
                      latency:self.latencyResults[modal.nodeId]
+                latencyColor:milliseconds ? [SRPProfileLatencyTester colorForMilliseconds:milliseconds.integerValue] : nil
                     selected:selected];
     return node;
+}
+
+#pragma mark - latency
+
+static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
+
+- (void)loadSavedLatency {
+    NSDictionary *saved = [NSUserDefaults.standardUserDefaults dictionaryForKey:kSRPSavedLatencyKey];
+    for (NSString *nodeID in saved) {
+        NSDictionary *entry = saved[nodeID];
+        if (![entry isKindOfClass:NSDictionary.class] || ![entry[@"text"] isKindOfClass:NSString.class] ||
+            ![entry[@"ms"] isKindOfClass:NSNumber.class]) continue;
+        self.latencyResults[nodeID] = entry[@"text"];
+        self.latencyMilliseconds[nodeID] = entry[@"ms"];
+    }
+}
+
+/// Keeps the last finished result of each existing profile across launches.
+- (void)saveLatency {
+    NSMutableDictionary *saved = [NSMutableDictionary new];
+    for (NodeModel *profile in self.nodaArray) {
+        NSString *text = self.latencyResults[profile.nodeId];
+        NSNumber *milliseconds = self.latencyMilliseconds[profile.nodeId];
+        if (text.length > 0 && milliseconds != nil) saved[profile.nodeId] = @{@"text": text, @"ms": milliseconds};
+    }
+    [NSUserDefaults.standardUserDefaults setObject:saved forKey:kSRPSavedLatencyKey];
+}
+
+/// milliseconds is NSNotFound while a test runs.
+- (void)recordLatency:(NSString *)text milliseconds:(NSInteger)milliseconds forNode:(NSString *)nodeID {
+    if (nodeID.length == 0) return;
+    self.latencyResults[nodeID] = text;
+    if (milliseconds == NSNotFound) {
+        [self.latencyMilliseconds removeObjectForKey:nodeID];
+    } else {
+        self.latencyMilliseconds[nodeID] = @(milliseconds);
+    }
+    [self.homeTableview reloadData];
+}
+
+/// A cancelled test leaves no result rather than a stale "Testing…".
+- (void)clearUnfinishedLatencyForNodes:(NSArray<NSString *> *)nodeIDs {
+    for (NSString *nodeID in nodeIDs) {
+        if (self.latencyMilliseconds[nodeID] == nil && [self.latencyResults[nodeID] isEqualToString:@"Testing…"]) {
+            [self.latencyResults removeObjectForKey:nodeID];
+        }
+    }
+    [self.homeTableview reloadData];
+}
+
+- (void)pingAllProfiles {
+    NodeModel *connected = PDVPNManager.sharedManager.status == YDVPNStatusConnected ? [self connectedProfileForLatency] : nil;
+    NSMutableArray<NodeModel *> *profiles = [NSMutableArray new];
+    for (NodeModel *profile in self.nodaArray) {
+        // The connected profile is measured through its tunnel instead
+        if (connected != nil && [profile.nodeId isEqualToString:connected.nodeId]) continue;
+        if ([SRPProfileTCPPinger endpointHostForProfile:profile port:NULL] == nil) continue;
+        [profiles addObject:profile];
+        [self recordLatency:@"Testing…" milliseconds:NSNotFound forNode:profile.nodeId];
+    }
+    if (connected != nil) [self measureConnectedProfileLatency];
+    if (profiles.count == 0) {
+        [self.pingControl endRefreshing];
+        if (connected == nil) {
+            [self.view makeToast:@"None of these profiles has a TCP server to ping; connect to one to measure its delay"
+                        duration:2.5 position:CSToastPositionCenter];
+        }
+        return;
+    }
+    NSArray<NSString *> *nodeIDs = [profiles valueForKey:@"nodeId"];
+    __weak typeof(self) weakSelf = self;
+    [self.tcpPinger pingProfiles:profiles result:^(NSString *nodeID, NSInteger milliseconds, BOOL timedOut) {
+        [weakSelf recordLatency:[SRPProfileTCPPinger textForMilliseconds:milliseconds timedOut:timedOut]
+                   milliseconds:milliseconds forNode:nodeID];
+    } progress:^(NSUInteger completed, NSUInteger total) {
+        weakSelf.pingControl.attributedTitle = [[NSAttributedString alloc] initWithString:
+            [NSString stringWithFormat:@"Pinged %lu of %lu", (unsigned long)completed, (unsigned long)total]];
+    } finished:^{
+        ViewController *strongSelf = weakSelf;
+        [strongSelf clearUnfinishedLatencyForNodes:nodeIDs];
+        [strongSelf saveLatency];
+        [strongSelf.pingControl endRefreshing];
+        strongSelf.pingControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to ping every profile"];
+    }];
+}
+
+- (void)pingProfile:(NodeModel *)profile {
+    NodeModel *connected = PDVPNManager.sharedManager.status == YDVPNStatusConnected ? [self connectedProfileForLatency] : nil;
+    if (connected != nil && [connected.nodeId isEqualToString:profile.nodeId]) {
+        [self measureConnectedProfileLatency];
+        return;
+    }
+    if ([SRPProfileTCPPinger endpointHostForProfile:profile port:NULL] == nil) {
+        [self.view makeToast:@"This profile has no TCP server to ping; connect to it to measure its delay"
+                    duration:2.5 position:CSToastPositionCenter];
+        return;
+    }
+    NSString *nodeID = profile.nodeId;
+    [self recordLatency:@"Testing…" milliseconds:NSNotFound forNode:nodeID];
+    __weak typeof(self) weakSelf = self;
+    [self.singlePinger pingProfiles:@[profile] result:^(NSString *resultID, NSInteger milliseconds, BOOL timedOut) {
+        [weakSelf recordLatency:[SRPProfileTCPPinger textForMilliseconds:milliseconds timedOut:timedOut]
+                   milliseconds:milliseconds forNode:resultID];
+    } progress:nil finished:^{
+        ViewController *strongSelf = weakSelf;
+        [strongSelf clearUnfinishedLatencyForNodes:@[nodeID]];
+        [strongSelf saveLatency];
+    }];
 }
 
 - (NodeModel *)connectedProfileForLatency {
@@ -223,18 +347,14 @@
     NodeModel *profile = [self connectedProfileForLatency];
     if (profile == nil) return;
     __weak typeof(self) weakSelf = self;
-    [self.latencyTester measureProfile:profile update:^(NSString *nodeID, NSString *text) {
+    [self.latencyTester measureProfile:profile update:^(NSString *nodeID, NSString *text, NSInteger milliseconds) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            weakSelf.latencyResults[nodeID] = text;
-            [weakSelf.homeTableview reloadData];
+            [weakSelf recordLatency:text milliseconds:milliseconds forNode:nodeID];
+            if (milliseconds != NSNotFound) [weakSelf saveLatency];
         });
     } finished:^{
         dispatch_async(dispatch_get_main_queue(), ^{
-            ViewController *strongSelf = weakSelf;
-            if ([strongSelf.latencyResults[profile.nodeId] isEqualToString:@"Testing…"]) {
-                [strongSelf.latencyResults removeObjectForKey:profile.nodeId];
-            }
-            [strongSelf.homeTableview reloadData];
+            [weakSelf clearUnfinishedLatencyForNodes:@[profile.nodeId]];
         });
     }];
 }
@@ -340,6 +460,19 @@
     [self.homeTableview reloadData];
 }
 
+-(UISwipeActionsConfiguration *)tableView:(UITableView *)tableView leadingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NodeModel *profile = self.nodaArray[indexPath.row];
+    __weak typeof(self) weakSelf = self;
+    UIContextualAction *ping = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal
+                                                                       title:@"Ping"
+                                                                     handler:^(UIContextualAction *action, UIView *view, void (^completion)(BOOL)) {
+        [weakSelf pingProfile:profile];
+        completion(YES);
+    }];
+    ping.backgroundColor = UIColor.systemBlueColor;
+    return [UISwipeActionsConfiguration configurationWithActions:@[ping]];
+}
+
 -(UISwipeActionsConfiguration *)tableView:(UITableView *)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {
     __weak typeof(self)weakSelf = self;
     UIContextualAction *delete = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive
@@ -354,6 +487,7 @@
         }
         [self2.nodaArray removeObjectAtIndex:indexPath.row];
         [userNodeData shareInstance].nodeArray = self2.nodaArray;
+        [self2 saveLatency];   // drops the deleted profile's result
         if (self2.selectIndex == indexPath.row) {
             self2.selectIndex = -1;
             [NodeModel shareInstance].selectNode = [NodeModel new];

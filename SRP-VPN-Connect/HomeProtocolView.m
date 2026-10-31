@@ -137,8 +137,18 @@
                      badge:(NSString *)badge
                    latency:(NSString *)latency
                   selected:(BOOL)selected {
+    [self configureWithTitle:title subtitle:subtitle badge:badge latency:latency latencyColor:nil selected:selected];
+}
+
+- (void)configureWithTitle:(NSString *)title
+                  subtitle:(NSString *)subtitle
+                     badge:(NSString *)badge
+                   latency:(NSString *)latency
+              latencyColor:(UIColor *)latencyColor
+                  selected:(BOOL)selected {
     [self configureWithTitle:title subtitle:subtitle badge:badge selected:selected];
     _latencyLabel.text = latency.length > 0 ? latency : @"Ping: —";
+    _latencyLabel.textColor = latencyColor ?: UIColor.secondaryLabelColor;
 }
 
 @end
