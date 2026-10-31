@@ -22,6 +22,7 @@ from supported_matrix import SupportedMatrix, candidate_specs, builder_input
 # Each step is one live test in its own VPN session. A peer action fires when the
 # test logs its marker, so recovery and the retry limit meet a real server failure.
 LIFECYCLE_STEPS = (
+    ("tcp-ping", "testProfileTCPPingUsesThePhysicalNetworkWhenConfigured", {"SRP_TCP_PING_LIVE_TEST": "1"}, None),
     ("sleep-modes", "testWaterWallLiveSleepModesWhenConfigured", {"SRP_SLEEP_MODES_TEST": "1"}, None),
     ("runtime-recovery", "testWaterWallLiveSleepAndRuntimeRecoveryWhenConfigured", {"SRP_RECOVERY_TEST": "1"}, None),
     ("retry-reset", "testWaterWallLiveRetryBudgetWhenConfigured", {"SRP_RETRY_LIVE_TEST": "1"}, None),

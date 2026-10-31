@@ -39,11 +39,16 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <dispatch/data.h>
 #import <fcntl.h>
+#import <netinet/in.h>
 #import <sys/socket.h>
 #import <unistd.h>
 
 @interface UIViewController (SRPProfileEditorTesting)
 - (NSString *)validationMessage;
+@end
+
+@interface UIViewController (SRPHomeScreenTesting)
+- (void)pingAllProfiles;
 @end
 
 @interface SRPWaterWallClient (SRPLifecycleTesting)
@@ -1667,6 +1672,67 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertFalse([SRPProfileLatencyTester isSuccessfulResponse:nil error:nil]);
 }
 
+- (NodeModel *)pingProfileOfType:(NSString *)type server:(NSString *)server port:(NSString *)port {
+    NodeModel *profile = [NodeModel new];
+    profile.protocolType = type;
+    profile.server = server;
+    profile.port = port;
+    return profile;
+}
+
+- (void)testProfileTCPPingEndpointsAndText {
+    uint16_t port = 0;
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"sstp" server:@" vpn.example.com \n" port:@""]
+                                                                port:&port], @"vpn.example.com");
+    XCTAssertEqual(port, 443);
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"ssh" server:@"203.0.113.5" port:@"2222"]
+                                                                port:&port], @"203.0.113.5");
+    XCTAssertEqual(port, 2222);
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"openconnect" server:@"203.0.113.6" port:@"8443"]
+                                                                port:&port], @"203.0.113.6");
+    XCTAssertEqual(port, 8443);
+    for (NSString *type in @[@"wireguard", @"amnezia", @"aether", @"psiphon"]) {
+        XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:type server:@"203.0.113.5" port:@"443"]
+                                                            port:&port], @"%@", type);
+    }
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"sstp" server:@"" port:@"443"] port:&port]);
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"sstp" server:@"203.0.113.5" port:@"70000"] port:&port]);
+
+    // OpenVPN defaults to UDP; the first remote's protocol wins over a proto line
+    NodeModel *openvpn = [self pingProfileOfType:@"openvpn" server:@"203.0.113.7" port:@"1194"];
+    openvpn.ovpnProfile = @"client\nremote 203.0.113.7 1194\n";
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:openvpn port:&port]);
+    openvpn.ovpnProfile = @"client\nproto tcp-client\nremote 203.0.113.7 1194\n";
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:openvpn port:&port], @"203.0.113.7");
+    XCTAssertEqual(port, 1194);
+    openvpn.ovpnProfile = @"client\nproto tcp\nremote 203.0.113.7 1194 udp\n";
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:openvpn port:&port]);
+    openvpn.ovpnStunnelEnabled = YES;
+    openvpn.ovpnStunnelHost = @"tls.example.com";
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:openvpn port:&port], @"tls.example.com");
+    XCTAssertEqual(port, 443);
+
+    NodeModel *waterwall = [self pingProfileOfType:@"waterwall" server:@"203.0.113.8" port:@"2083"];
+    NSMutableDictionary *configuration = [@{@"version": @3, @"mode": @"chain", @"input": @"connections", @"application": @"vmess",
+                                            @"mux": @NO, @"outer": @"none", @"http": @"off", @"http-version": @1,
+                                            @"obfuscator": @NO, @"carrier": @"tcp", @"quic-carrier": @"datagram",
+                                            @"node-options": @{}, @"bgp4": @NO} mutableCopy];
+    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port], @"203.0.113.8");
+    XCTAssertEqual(port, 2083);
+    configuration[@"carrier"] = @"kcp";
+    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port]);
+    configuration[@"carrier"] = @"tcp";
+    configuration[@"outer"] = @"quic";
+    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port]);
+
+    XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:85 timedOut:NO], @"TCP: 85 ms");
+    XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:YES], @"TCP: Timeout");
+    XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:NO], @"TCP: Failed");
+}
+
 - (void)testWaterWallBGP4UsesTheRegisteredOuterChain {
     NSDictionary *configuration = [self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"bgp4"];
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
@@ -2439,8 +2505,9 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTestExpectation *expectation = [self expectationWithDescription:@"HTTPS 204 through WaterWall"];
     __block NSString *result;
     SRPProfileLatencyTester *tester = [SRPProfileLatencyTester new];
-    [tester measureProfile:model update:^(NSString *nodeID, NSString *text) {
+    [tester measureProfile:model update:^(NSString *nodeID, NSString *text, NSInteger milliseconds) {
         (void)nodeID;
+        (void)milliseconds;
         result = text;
     } finished:^{
         [expectation fulfill];
@@ -2827,6 +2894,84 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 #else
     XCTSkip(@"Runtime recovery instrumentation requires a Debug build.");
 #endif
+}
+
+- (NSDictionary<NSString *, NSNumber *> *)tcpPingEndpoints:(NSArray<NSString *> *)endpoints {
+    NSMutableArray<NodeModel *> *profiles = [NSMutableArray new];
+    NSMutableDictionary<NSString *, NSString *> *names = [NSMutableDictionary new];
+    for (NSString *endpoint in endpoints) {
+        NSArray<NSString *> *parts = [endpoint componentsSeparatedByString:@":"];
+        NodeModel *profile = [self pingProfileOfType:@"sstp" server:parts[0] port:parts[1]];
+        names[profile.nodeId] = endpoint;
+        [profiles addObject:profile];
+    }
+    NSMutableDictionary<NSString *, NSNumber *> *results = [NSMutableDictionary new];
+    XCTestExpectation *finished = [self expectationWithDescription:@"TCP pings finish"];
+    SRPProfileTCPPinger *pinger = [SRPProfileTCPPinger new];
+    [pinger pingProfiles:profiles result:^(NSString *nodeID, NSInteger milliseconds, BOOL timedOut) {
+        (void)timedOut;
+        results[names[nodeID]] = @(milliseconds);
+    } progress:nil finished:^{
+        [finished fulfill];
+    }];
+    [self waitForExpectations:@[finished] timeout:10];
+    NSLog(@"TCP ping results: %@", results);
+    return results;
+}
+
+- (BOOL)defaultRouteAcceptsTCPHost:(NSString *)host port:(NSString *)port {
+    nw_connection_t connection = nw_connection_create(nw_endpoint_create_host(host.UTF8String, port.UTF8String),
+        nw_parameters_create_secure_tcp(NW_PARAMETERS_DISABLE_PROTOCOL, NW_PARAMETERS_DEFAULT_CONFIGURATION));
+    XCTestExpectation *settled = [self expectationWithDescription:@"Default-route TCP connection settles"];
+    __block BOOL ready = NO;
+    __block BOOL done = NO;
+    nw_connection_set_queue(connection, dispatch_get_main_queue());
+    nw_connection_set_state_changed_handler(connection, ^(nw_connection_state_t state, nw_error_t error) {
+        (void)error;
+        if (done || (state != nw_connection_state_ready && state != nw_connection_state_waiting &&
+                     state != nw_connection_state_failed)) return;
+        done = YES;
+        ready = state == nw_connection_state_ready;
+        [settled fulfill];
+    });
+    nw_connection_start(connection);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        if (done) return;
+        done = YES;
+        [settled fulfill];
+    });
+    [self waitForExpectations:@[settled] timeout:5];
+    nw_connection_cancel(connection);
+    return ready;
+}
+
+- (void)testProfileTCPPingUsesThePhysicalNetworkWhenConfigured {
+    if (![NSProcessInfo.processInfo.environment[@"SRP_TCP_PING_LIVE_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    // 192.0.2.1 never answers on the physical network
+    NSArray<NSString *> *endpoints = @[@"1.1.1.1:443", @"192.0.2.1:443"];
+    NSDictionary<NSString *, NSNumber *> *direct = [self tcpPingEndpoints:endpoints];
+    XCTAssertGreaterThanOrEqual(direct[@"1.1.1.1:443"].integerValue, 0);
+    XCTAssertEqual(direct[@"192.0.2.1:443"].integerValue, -1);
+    @try {
+        NodeModel *model = [self liveWaterWallModelFromEnvironment];
+        XCTAssertNotNil(model);
+        if (model == nil) return;
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        // Through the tunnel its own TCP stack accepts the same connection at once
+        XCTAssertTrue([self defaultRouteAcceptsTCPHost:@"192.0.2.1" port:@"443"]);
+        NSDictionary<NSString *, NSNumber *> *connected = [self tcpPingEndpoints:endpoints];
+        XCTAssertGreaterThanOrEqual(connected[@"1.1.1.1:443"].integerValue, 0);
+        XCTAssertEqual(connected[@"192.0.2.1:443"].integerValue, -1);
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
 }
 
 #if TARGET_OS_IPHONE
@@ -3396,6 +3541,95 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         XCTAssertEqualWithAccuracy(badge.intrinsicContentSize.width, badge.bounds.size.width, 0.5);
         XCTAssertLessThanOrEqual(CGRectGetMaxY(badge.frame), CGRectGetMinY(latency.frame));
         XCTAssertLessThanOrEqual(CGRectGetMaxX(latency.frame), CGRectGetWidth(cell.contentView.bounds));
+    }
+}
+
+- (void)testProfileLatencyColorsAndCardTint {
+    XCTAssertEqualObjects([SRPProfileLatencyTester colorForMilliseconds:150], UIColor.systemGreenColor);
+    XCTAssertEqualObjects([SRPProfileLatencyTester colorForMilliseconds:200], UIColor.systemOrangeColor);
+    XCTAssertEqualObjects([SRPProfileLatencyTester colorForMilliseconds:499], UIColor.systemOrangeColor);
+    XCTAssertEqualObjects([SRPProfileLatencyTester colorForMilliseconds:500], UIColor.systemRedColor);
+    XCTAssertEqualObjects([SRPProfileLatencyTester colorForMilliseconds:-1], UIColor.systemRedColor);
+    HomeProtocolView *cell = [[NSClassFromString(@"HomeProtocolView") alloc] initWithStyle:UITableViewCellStyleDefault
+                                                                           reuseIdentifier:nil];
+    [cell configureWithTitle:@"Test profile" subtitle:@"server.example.com:443" badge:@"SSTP VPN"
+                     latency:@"TCP: 85 ms" latencyColor:UIColor.systemGreenColor selected:NO];
+    XCTAssertEqualObjects(SRPLatencyLabel(cell.contentView, @"TCP: 85 ms").textColor, UIColor.systemGreenColor);
+    // A reused cell without a result falls back to the neutral color
+    [cell configureWithTitle:@"Test profile" subtitle:@"server.example.com:443" badge:@"SSTP VPN" latency:nil selected:NO];
+    XCTAssertEqualObjects(SRPLatencyLabel(cell.contentView, @"Ping: —").textColor, UIColor.secondaryLabelColor);
+}
+
+static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
+    int socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in address = {.sin_len = sizeof(address), .sin_family = AF_INET, .sin_addr.s_addr = htonl(INADDR_LOOPBACK)};
+    bind(socketDescriptor, (struct sockaddr *)&address, sizeof(address));
+    if (listening) listen(socketDescriptor, 4);
+    socklen_t length = sizeof(address);
+    getsockname(socketDescriptor, (struct sockaddr *)&address, &length);
+    *descriptor = socketDescriptor;
+    return ntohs(address.sin_port);
+}
+
+- (void)testProfileTCPPingTimesOpenAndClosedPorts {
+    int listener = -1;
+    int unused = -1;
+    uint16_t openPort = SRPTestLoopbackPort(&listener, YES);
+    uint16_t closedPort = SRPTestLoopbackPort(&unused, NO);
+    close(unused);
+    NodeModel *open = [self pingProfileOfType:@"ssh" server:@"127.0.0.1" port:@(openPort).stringValue];
+    NodeModel *closed = [self pingProfileOfType:@"ssh" server:@"127.0.0.1" port:@(closedPort).stringValue];
+    NSMutableDictionary<NSString *, NSNumber *> *results = [NSMutableDictionary new];
+    NSMutableArray<NSString *> *progress = [NSMutableArray new];
+    XCTestExpectation *finished = [self expectationWithDescription:@"Both TCP pings finish"];
+    SRPProfileTCPPinger *pinger = [SRPProfileTCPPinger new];
+    [pinger pingProfiles:@[open, closed] result:^(NSString *nodeID, NSInteger milliseconds, BOOL timedOut) {
+        (void)timedOut;
+        results[nodeID] = @(milliseconds);
+    } progress:^(NSUInteger completed, NSUInteger total) {
+        [progress addObject:[NSString stringWithFormat:@"%lu/%lu", (unsigned long)completed, (unsigned long)total]];
+    } finished:^{
+        [finished fulfill];
+    }];
+    [self waitForExpectations:@[finished] timeout:5];
+    close(listener);
+    XCTAssertGreaterThanOrEqual(results[open.nodeId].integerValue, 0);
+    XCTAssertEqual(results[closed.nodeId].integerValue, -1);
+    XCTAssertEqualObjects(progress, (@[@"1/2", @"2/2"]));
+}
+
+- (void)testHomeScreenPingsEveryTCPProfileAndKeepsTheResults {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id savedBefore = [defaults objectForKey:@"SRPProfileLatency"];
+    int listener = -1;
+    uint16_t port = SRPTestLoopbackPort(&listener, YES);
+    NodeModel *tcp = [self pingProfileOfType:@"ssh" server:@"127.0.0.1" port:@(port).stringValue];
+    NodeModel *udp = [self pingProfileOfType:@"wireguard" server:@"127.0.0.1" port:@"51820"];
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[@[tcp, udp] mutableCopy] forKey:@"nodaArray"];
+    @try {
+        [home pingAllProfiles];
+        NSDictionary<NSString *, NSString *> *results = [home valueForKey:@"latencyResults"];
+        XCTAssertEqualObjects(results[tcp.nodeId], @"Testing…");
+        NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5];
+        while ([results[tcp.nodeId] isEqualToString:@"Testing…"] && deadline.timeIntervalSinceNow > 0) {
+            [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        }
+        XCTAssertTrue([results[tcp.nodeId] hasPrefix:@"TCP: "], @"%@", results[tcp.nodeId]);
+        XCTAssertFalse([results[tcp.nodeId] isEqualToString:@"TCP: Failed"]);
+        XCTAssertNil(results[udp.nodeId]);   // a UDP profile is left untested
+        NSDictionary *saved = [defaults dictionaryForKey:@"SRPProfileLatency"];
+        XCTAssertEqualObjects(saved[tcp.nodeId][@"text"], results[tcp.nodeId]);
+        XCTAssertNil(saved[udp.nodeId]);
+        UITableView *table = [home valueForKey:@"homeTableview"];
+        UISwipeActionsConfiguration *swipe = [(id<UITableViewDelegate>)home tableView:table
+                                       leadingSwipeActionsConfigurationForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+        XCTAssertEqualObjects(swipe.actions.firstObject.title, @"Ping");
+    } @finally {
+        close(listener);
+        if (savedBefore) [defaults setObject:savedBefore forKey:@"SRPProfileLatency"];
+        else [defaults removeObjectForKey:@"SRPProfileLatency"];
     }
 }
 

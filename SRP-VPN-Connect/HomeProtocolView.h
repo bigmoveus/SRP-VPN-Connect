@@ -20,6 +20,13 @@ NS_ASSUME_NONNULL_BEGIN
                      badge:(NSString *)badge
                    latency:(nullable NSString *)latency
                   selected:(BOOL)selected;
+/// latencyColor tints the latency text; nil keeps the secondary label color.
+- (void)configureWithTitle:(NSString *)title
+                  subtitle:(NSString *)subtitle
+                     badge:(NSString *)badge
+                   latency:(nullable NSString *)latency
+              latencyColor:(nullable UIColor *)latencyColor
+                  selected:(BOOL)selected;
 
 @end
 

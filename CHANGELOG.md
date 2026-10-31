@@ -6,6 +6,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Added
 - WaterWall profiles offer Auto Reconnect, Retry Times, Switch to Wi-Fi When Available and On Sleep under Options, like the other protocols.
+- Pull down the profile list to TCP-ping every profile's server, or swipe a profile right to ping only that one. The handshake is timed over the physical network even while the VPN is connected, progress is shown during the run, and profiles without a TCP server (UDP transports, WARP, server entries) are skipped; the connected profile keeps its delay measured through the tunnel.
+- Ping results are colored (green below 200 ms, orange below 500 ms, red from 500 ms or on failure) and kept across launches.
 
 ### Fixed
 - WaterWall Options showed the SSTP description; it now describes the WaterWall options.
@@ -14,6 +16,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Development
 - The device test matrix gains `--lifecycle`, which checks the sleep modes, reconnects and the retry limit against a real peer that it stops and restarts, and `SRP_TEST_WW_UPLOAD_ONLY` for upload-only runs; it now always builds the shipped Release runtime.
+- The `--lifecycle` device run also checks that TCP ping measures the physical network while the VPN is connected.
 
 ## 1.2.0 (27) - 2026-10-31
 
