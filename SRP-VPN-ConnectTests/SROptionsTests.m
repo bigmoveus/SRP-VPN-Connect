@@ -1262,10 +1262,11 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 
     NSMutableDictionary *obfuscator = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"tls"] mutableCopy];
     obfuscator[@"obfuscator"] = @YES;
-    obfuscator[@"node-options"] = @{@"obfuscator": @{@"method": @"xor", @"xor_key": @0, @"skip": @"transport",
+    obfuscator[@"node-options"] = @{@"obfuscator": @{@"method": @"xor", @"xor_key": @0, @"skip": @"none",
                                                        @"tls_record_header": @YES, @"tls_header": @NO}};
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:obfuscator]);
-    for (NSDictionary *settings in @[@{@"method": @"aes"}, @{@"xor_key": @256}, @{@"skip": @"other"}, @{@"tls_header": @1}]) {
+    for (NSDictionary *settings in @[@{@"method": @"aes"}, @{@"xor_key": @256}, @{@"skip": @"other"}, @{@"tls_header": @1},
+                                     @{@"skip": @"ipv4"}, @{@"skip": @"transport"}]) {
         NSMutableDictionary *configuration = [obfuscator mutableCopy];
         configuration[@"node-options"] = @{@"obfuscator": settings};
         XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
