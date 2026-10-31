@@ -116,6 +116,8 @@ void tcpoverudpclientTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_cont
 void tcpoverudpclientTunnelUpStreamInit(tunnel_t *t, line_t *l);
 void tcpoverudpclientTunnelUpStreamFinish(tunnel_t *t, line_t *l);
 void tcpoverudpclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void tcpoverudpclientTunnelUpStreamPause(tunnel_t *t, line_t *l);
+void tcpoverudpclientTunnelUpStreamResume(tunnel_t *t, line_t *l);
 
 void tcpoverudpclientTunnelDownStreamEst(tunnel_t *t, line_t *l);
 void tcpoverudpclientTunnelDownStreamFinish(tunnel_t *t, line_t *l);
