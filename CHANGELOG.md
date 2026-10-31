@@ -12,6 +12,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Fixed
 - TCP ping skipped WaterWall profiles that carry QUIC over a TCP stream; they are pinged like the other TCP transports now.
 
+### Changed
+- WaterWall VPN comes first in the protocol list of the profile editor.
+
 ### Development
 - The `--lifecycle` device run checks that Auto Switch connects through another profile of the same server when the selected one cannot reach it, and that the outer TCP connections are measured.
 

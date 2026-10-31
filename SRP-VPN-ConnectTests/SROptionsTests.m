@@ -29,6 +29,7 @@
 #if TARGET_OS_IPHONE
 #import "CreateVC.h"
 #import "HomeProtocolView.h"
+#import "SRPProtocolViewController.h"
 #import "SRPGeoIPCountryViewController.h"
 #import "SRPAetherClient.h"
 #import "SRPPsiphonClient.h"
@@ -4088,6 +4089,17 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
                                   @"Log Level", @"TLS Fragmentation", @"First Chunk (bytes)", @"Following Chunks (bytes)",
                                   @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
     XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
+}
+
+- (void)testProtocolListStartsWithWaterWall {
+    SRPProtocolViewController *picker = [[SRPProtocolViewController alloc] initWithNodeModel:[NodeModel new]];
+    NSMutableArray<NSString *> *titles = [NSMutableArray new];
+    for (NSInteger row = 0; row < [picker tableView:picker.tableView numberOfRowsInSection:0]; row++) {
+        UITableViewCell *cell = [picker tableView:picker.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
+        [titles addObject:cell.textLabel.text ?: @""];
+    }
+    XCTAssertEqualObjects(titles, (@[@"WaterWall VPN", @"SSTP VPN", @"SoftEther VPN", @"SSL VPN", @"SSH VPN", @"OpenVPN",
+                                     @"WireGuard VPN", @"AmneziaWG VPN", @"Aether VPN", @"Psiphon VPN"]));
 }
 #endif
 

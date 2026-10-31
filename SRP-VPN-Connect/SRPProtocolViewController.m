@@ -27,7 +27,7 @@
 }
 
 - (NSArray<NSString *> *)types {
-    return @[@"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether", @"waterwall", @"psiphon"];
+    return @[@"waterwall", @"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether", @"psiphon"];
 }
 
 + (NSString *)titleForType:(NSString *)type {
