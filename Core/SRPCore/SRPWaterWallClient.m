@@ -142,10 +142,27 @@ static NSData *SRPWWDnsPacket(NSString *source, uint16_t identifier, NSString *d
     return [NSData dataWithBytes:p length:sizeof(p)];
 }
 
+// PacketsToConnection answers handshakes, acknowledges and resets flows and serves
+// fake DNS on the device itself, so only relayed payload shows the server path works.
+static BOOL SRPWWPacketCarriesRemotePayload(const uint8_t *packet, size_t length) {
+    if ((packet[0] >> 4) != 4) return NO;
+    size_t ihl = (size_t)(packet[0] & 0x0f) * 4;
+    size_t total = MIN(length, ((size_t)packet[2] << 8) | packet[3]);
+    if (ihl < 20 || total < ihl + 8) return NO;
+    if (packet[9] == IPPROTO_TCP) {
+        if (total < ihl + 20) return NO;
+        size_t header = (size_t)(packet[ihl + 12] >> 4) * 4;
+        return header >= 20 && total > ihl + header;
+    }
+    return packet[9] == IPPROTO_UDP && (((uint16_t)packet[ihl] << 8) | packet[ihl + 1]) != 53;
+}
+
 static void SRPWWPacket(void *context, const uint8_t *packet, size_t length) {
     SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
     if (client == nil || packet == NULL || length < 20) return;
-    atomic_store_explicit(&client->_lastOutputAt, NSProcessInfo.processInfo.systemUptime, memory_order_relaxed);
+    if (SRPWWPacketCarriesRemotePayload(packet, length)) {
+        atomic_store_explicit(&client->_lastOutputAt, NSProcessInfo.processInfo.systemUptime, memory_order_relaxed);
+    }
     @autoreleasepool {
         NSData *data = [NSData dataWithBytes:packet length:length];
         int family = (packet[0] >> 4) == 6 ? AF_INET6 : AF_INET;
@@ -284,7 +301,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 - (void)startHealthMonitor {
     if (_healthTimer || (!_probeTCP && !_probeUDP)) return;
     _healthTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
-    dispatch_source_set_timer(_healthTimer, dispatch_time(DISPATCH_TIME_NOW, 15 * NSEC_PER_SEC), 15 * NSEC_PER_SEC, NSEC_PER_SEC);
+    // Check often, but probe only after 15 seconds without relayed payload.
+    dispatch_source_set_timer(_healthTimer, dispatch_time(DISPATCH_TIME_NOW, 5 * NSEC_PER_SEC), 5 * NSEC_PER_SEC, NSEC_PER_SEC);
     dispatch_source_set_event_handler(_healthTimer, ^{
         if (self->_closed || self->_sleepPaused || !self->_up || self->_probeStage != 3) return;
         NSTimeInterval age = NSProcessInfo.processInfo.systemUptime -

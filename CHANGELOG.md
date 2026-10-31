@@ -9,6 +9,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Fixed
 - WaterWall Options showed the SSTP description; it now describes the WaterWall options.
+- WaterWall did not notice a stopped server, so Auto Reconnect and Retry Times never started. Only data relayed from the server now counts as live traffic, and the server is probed once it has been silent for 15 seconds (checked every 5 seconds).
 
 ## 1.2.0 (27) - 2026-10-31
 
