@@ -3194,18 +3194,29 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 }
 
 - (void)testWaterWallSleepModes {
-    for (NSNumber *mode in @[@2, @1, @0]) {
+    // {On Sleep, Auto Reconnect}: Stay keeps the runtime, Pause always resumes,
+    // Off resumes only with Auto Reconnect and otherwise ends the tunnel.
+    for (NSArray<NSNumber *> *item in @[@[@2, @NO], @[@1, @NO], @[@0, @YES], @[@0, @NO]]) {
+        NSInteger mode = item[0].integerValue;
+        BOOL reconnect = item[1].boolValue;
+        BOOL resumes = mode == 1 || (mode == 0 && reconnect);
         SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
-        client.onSleep = mode.integerValue;
-        client.autoReconnect = NO;
-        [self startWaterWallLifecycleClient:client failure:nil];
+        client.onSleep = mode;
+        client.autoReconnect = reconnect;
+        __block NSString *failure;
+        [self startWaterWallLifecycleClient:client failure:^(NSString *reason) {
+            failure = reason;
+        }];
         [client pauseForSleep];
         [client wakeFromSleep];
         XCTestExpectation *transition = [self expectationWithDescription:@"Sleep mode transition"];
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 150 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-            XCTAssertEqual(client.runtimeStarts, mode.integerValue == 1 ? 2 : 1);
-            XCTAssertEqual([[client valueForKey:@"up"] boolValue], mode.integerValue != 0);
+            XCTAssertEqual(client.runtimeStarts, resumes ? 2 : 1);
+            XCTAssertEqual([[client valueForKey:@"up"] boolValue], mode == 2 || resumes);
             XCTAssertFalse([[client valueForKey:@"sleepPaused"] boolValue]);
+            BOOL ends = mode == 0 && !reconnect;
+            XCTAssertEqual([[client valueForKey:@"closed"] boolValue], ends);
+            XCTAssertEqual(failure != nil, ends);
             [client closeAndWait];
             [transition fulfill];
         });

@@ -804,6 +804,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
             self->_failedAttempts = 0;
             SSLogM(@"WaterWall: device wake: reconnecting the connection");
             [self startRuntimeLocked];
+        } else {
+            // Off without Auto Reconnect leaves no data plane; end the tunnel
+            // instead of keeping a VPN that silently drops every packet.
+            [self failWithReason:@"The connection was closed while the device slept."];
         }
     });
 }
