@@ -24,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)configurationUsesTLS:(NSDictionary *)configuration;
 + (BOOL)configurationAllowsFragmentation:(NSDictionary *)configuration;
 + (BOOL)configurationAllowsRouting:(NSDictionary *)configuration;
+// Reaches the server over UDP (WireGuard, KCP or QUIC datagrams) rather than over TCP.
++ (BOOL)configurationUsesUDPCarrier:(NSDictionary *)configuration;
 + (NSString *)coreJSON;
 + (NSString *)coreJSONWithLogLevel:(NSInteger)level;
 + (nullable NSString *)nodesJSONForConfiguration:(NSDictionary *)configuration

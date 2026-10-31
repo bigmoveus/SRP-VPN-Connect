@@ -25,6 +25,8 @@ void tcpconnectorTunnelUpStreamFinish(tunnel_t *t, line_t *l)
     }
     weventSetUserData(ls->io, NULL);
 
+    // Sample while the socket is surely open; a failed flush may close it.
+    tcpqualityRecordClose(&ls->quality, ls->io, 0);
     tcpconnectorFlushWriteQueue(ls);
 
     wioClose(ls->io);

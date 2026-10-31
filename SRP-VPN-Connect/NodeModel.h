@@ -116,6 +116,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,copy,nullable) NSString * waterwallDNSProbeIP;
 @property (nonatomic,assign) BOOL waterwallFakeDNS;
 @property (nonatomic,assign) BOOL waterwallSmartRouting;
+/// Lets a failing or lossy connection move to another WaterWall profile of the same server.
+@property (nonatomic,assign) BOOL waterwallAutoSwitch;
 
 /// Psiphon: "shared" (default, the bundled SRP server) or "private" (own
 /// psiphond — psiphonServerEntry carries its hex-encoded server entry)

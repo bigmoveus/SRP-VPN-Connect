@@ -43,8 +43,145 @@
     nw_path_monitor_t _pathMonitor;
     BOOL _lastPathHadWifi;
     _Atomic(NSTimeInterval) _lastOutputAt;
+    NSArray<SRPWaterWallCandidate *> *_candidates;
+    NSUInteger _candidateIndex;
+    NSMutableIndexSet *_lossyCandidates;
+    SRPWaterWallLinkQuality *_linkQuality;
+    dispatch_source_t _qualityTimer;
+    NSUInteger _qualityReadings;
+    BOOL _lossHandled;
 }
 @property (nonatomic) NSTimeInterval lastOutputAt;
+@end
+
+@implementation SRPWaterWallCandidate
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _name = @"WaterWall";
+        _remoteAddress = @"127.0.0.1";
+        _tunnelAddress = @"10.89.0.1";
+        _probeAddress = @"1.1.1.1";
+        _dnsProbeAddress = @"1.1.1.1";
+        _probeTCP = YES;
+        _probeUDP = YES;
+        _dnsServers = @[@"1.1.1.1", @"1.0.0.1"];
+    }
+    return self;
+}
+
+@end
+
+typedef struct {
+    uint64_t sent;
+    uint64_t retransmitted;
+    uint64_t received;
+    uint64_t timedOut;
+    uint32_t srtt;
+    uint32_t rto;
+} SRPWWLinkSample;
+
+enum {
+    SRPWWLinkHistory = 24,   // samples kept: two minutes at the default interval
+    SRPWWLossSamples = 6,    // samples judged for retransmissions: 30 seconds
+};
+static const uint64_t SRPWWLossMinimumPackets = 500;
+static const uint64_t SRPWWLossPercent = 15;
+static const uint64_t SRPWWTimeoutLimit = 2;
+
+static uint64_t SRPWWGrowth(uint64_t now, uint64_t before) {
+    return now > before ? now - before : 0;
+}
+
+static SRPWaterWallLinkTotals SRPWWReadLinkTotals(void) {
+    SRPWaterWallTCPQuality quality = {0};
+    SRPWaterWallBridgeReadTCPQuality(&quality);
+    return (SRPWaterWallLinkTotals){
+        .sentPackets = quality.tx_packets,
+        .retransmittedPackets = quality.retransmitted_packets,
+        .receivedBytes = quality.rx_bytes,
+        .timedOutConnections = quality.timed_out_connections,
+        .maxRTTMilliseconds = quality.max_srtt_ms,
+        .maxRTOMilliseconds = quality.max_rto_ms,
+    };
+}
+
+@implementation SRPWaterWallLinkQuality {
+    SRPWaterWallLinkTotals _last;
+    BOOL _hasBaseline;
+    SRPWWLinkSample _samples[SRPWWLinkHistory];
+    NSUInteger _count;
+    NSUInteger _next;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) _interval = 5;
+    return self;
+}
+
+- (void)addTotals:(SRPWaterWallLinkTotals)totals {
+    if (_hasBaseline) {
+        _samples[_next] = (SRPWWLinkSample){
+            .sent = SRPWWGrowth(totals.sentPackets, _last.sentPackets),
+            .retransmitted = SRPWWGrowth(totals.retransmittedPackets, _last.retransmittedPackets),
+            .received = SRPWWGrowth(totals.receivedBytes, _last.receivedBytes),
+            .timedOut = SRPWWGrowth(totals.timedOutConnections, _last.timedOutConnections),
+            .srtt = totals.maxRTTMilliseconds,
+            .rto = totals.maxRTOMilliseconds,
+        };
+        _next = (_next + 1) % SRPWWLinkHistory;
+        _count = MIN(_count + 1, (NSUInteger)SRPWWLinkHistory);
+    }
+    _last = totals;
+    _hasBaseline = YES;
+}
+
+- (void)clearSamples {
+    _hasBaseline = NO;
+    _count = 0;
+    _next = 0;
+}
+
+- (SRPWWLinkSample)sumOfLastSamples:(NSUInteger)count {
+    SRPWWLinkSample sum = {0};
+    for (NSUInteger index = 0; index < MIN(count, _count); index++) {
+        SRPWWLinkSample sample = _samples[(_next + SRPWWLinkHistory - 1 - index) % SRPWWLinkHistory];
+        sum.sent += sample.sent;
+        sum.retransmitted += sample.retransmitted;
+        sum.received += sample.received;
+        sum.timedOut += sample.timedOut;
+        sum.srtt = MAX(sum.srtt, sample.srtt);
+        sum.rto = MAX(sum.rto, sample.rto);
+    }
+    return sum;
+}
+
+- (NSString *)lossReason {
+    SRPWWLinkSample recent = [self sumOfLastSamples:SRPWWLossSamples];
+    if (_count >= SRPWWLossSamples && recent.sent >= SRPWWLossMinimumPackets &&
+        recent.retransmitted * 100 >= recent.sent * SRPWWLossPercent) {
+        return [NSString stringWithFormat:@"%llu%% of the packets sent to the server were retransmitted in the last %.0f seconds",
+                recent.retransmitted * 100 / recent.sent, (double)SRPWWLossSamples * _interval];
+    }
+    SRPWWLinkSample history = [self sumOfLastSamples:SRPWWLinkHistory];
+    if (history.timedOut >= SRPWWTimeoutLimit) {
+        return [NSString stringWithFormat:@"the network dropped %llu connections to the server in the last %.0f seconds",
+                history.timedOut, MIN(_count, (NSUInteger)SRPWWLinkHistory) * _interval];
+    }
+    return nil;
+}
+
+- (NSString *)summaryOfLastSamples:(NSUInteger)count {
+    SRPWWLinkSample sum = [self sumOfLastSamples:count];
+    if (sum.sent == 0 && sum.received == 0 && sum.timedOut == 0) return nil;
+    return [NSString stringWithFormat:@"%llu packets sent, %.1f%% retransmitted, %llu KB received, "
+            "%llu connections dropped by the network, RTT up to %u ms, RTO up to %u ms",
+            sum.sent, sum.sent > 0 ? 100.0 * sum.retransmitted / sum.sent : 0, sum.received / 1024,
+            sum.timedOut, sum.srtt, sum.rto];
+}
+
 @end
 
 @implementation SRPWaterWallClient
@@ -386,6 +523,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
             if (self->_connectedCb) self->_connectedCb();
             [self drainInjectedPacketsLocked];
             [self startHealthMonitor];
+            [self startQualityMonitor];
         });
     };
     if (_settingsCb) {
@@ -413,6 +551,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     if (_healthTimer) {
         dispatch_source_cancel(_healthTimer);
         _healthTimer = nil;
+    }
+    if (_qualityTimer) {
+        dispatch_source_cancel(_qualityTimer);
+        _qualityTimer = nil;
     }
     _probeStage = 0;
     _probeHTTPStarted = NO;
@@ -484,19 +626,110 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     if (self) {
         _worker = dispatch_queue_create("srp.waterwall", DISPATCH_QUEUE_SERIAL);
         dispatch_queue_set_specific(_worker, (__bridge const void *)self, (__bridge void *)self, NULL);
-        _remoteAddress = @"127.0.0.1";
-        _tunnelAddress = @"10.89.0.1";
-        _probeAddress = @"1.1.1.1";
-        _dnsProbeAddress = @"1.1.1.1";
-        _probeTCP = YES;
-        _probeUDP = YES;
-        _dnsServers = @[@"1.1.1.1", @"1.0.0.1"];
+        [self applyCandidate:[SRPWaterWallCandidate new]];
+        _fallbacks = @[];
+        _qualityInterval = 5;
         _mtu = 1420;
         _autoReconnect = YES;
         _switchToWifi = YES;
         _onSleep = 2;
     }
     return self;
+}
+
++ (SRPWaterWallLinkTotals)currentLinkTotals {
+    return SRPWWReadLinkTotals();
+}
+
+- (void)applyCandidate:(SRPWaterWallCandidate *)candidate {
+    _profileName = candidate.name;
+    _nodesJSON = candidate.nodesJSON;
+    _remoteAddress = candidate.remoteAddress;
+    _endpointIP = candidate.endpointIP;
+    _endpointIPs = candidate.endpointIPs;
+    _tunnelAddress = candidate.tunnelAddress;
+    _probeAddress = candidate.probeAddress;
+    _dnsProbeAddress = candidate.dnsProbeAddress;
+    _probeTCP = candidate.probeTCP;
+    _probeUDP = candidate.probeUDP;
+    _dnsServers = candidate.dnsServers;
+    _allowedIPs = candidate.allowedIPs;
+    _udpCarrier = candidate.udpCarrier;
+}
+
+- (SRPWaterWallCandidate *)currentCandidate {
+    SRPWaterWallCandidate *candidate = [SRPWaterWallCandidate new];
+    candidate.name = _profileName;
+    candidate.nodesJSON = _nodesJSON;
+    candidate.remoteAddress = _remoteAddress;
+    candidate.endpointIP = _endpointIP;
+    candidate.endpointIPs = _endpointIPs;
+    candidate.tunnelAddress = _tunnelAddress;
+    candidate.probeAddress = _probeAddress;
+    candidate.dnsProbeAddress = _dnsProbeAddress;
+    candidate.probeTCP = _probeTCP;
+    candidate.probeUDP = _probeUDP;
+    candidate.dnsServers = _dnsServers;
+    candidate.allowedIPs = _allowedIPs;
+    candidate.udpCarrier = _udpCarrier;
+    return candidate;
+}
+
+- (void)switchToCandidate:(NSUInteger)index {
+    _candidateIndex = index;
+    [self applyCandidate:_candidates[index]];
+}
+
+// After heavy loss: the next profile with the other carrier, else the next one,
+// skipping every profile that already lost packets on this network.
+- (NSUInteger)candidateAfterLoss {
+    NSUInteger sameCarrier = NSNotFound;
+    for (NSUInteger step = 1; step < _candidates.count; step++) {
+        NSUInteger index = (_candidateIndex + step) % _candidates.count;
+        if ([_lossyCandidates containsIndex:index]) continue;
+        if (_candidates[index].udpCarrier != _udpCarrier) return index;
+        if (sameCarrier == NSNotFound) sameCarrier = index;
+    }
+    return sameCarrier;
+}
+
+- (void)startQualityMonitor {
+    if (_qualityTimer || _qualityInterval <= 0) return;
+    _linkQuality.interval = _qualityInterval;
+    [_linkQuality clearSamples];
+    [_linkQuality addTotals:SRPWWReadLinkTotals()];
+    _qualityReadings = 0;
+    _lossHandled = NO;
+    uint64_t interval = (uint64_t)(_qualityInterval * NSEC_PER_SEC);
+    _qualityTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
+    dispatch_source_set_timer(_qualityTimer, dispatch_time(DISPATCH_TIME_NOW, (int64_t)interval), interval, interval / 10);
+    dispatch_source_set_event_handler(_qualityTimer, ^{ [self readLinkQuality]; });
+    dispatch_resume(_qualityTimer);
+}
+
+- (void)readLinkQuality {
+    if (_closed || _sleepPaused || !_up) return;
+    [_linkQuality addTotals:SRPWWReadLinkTotals()];
+    NSUInteger perMinute = MAX((NSUInteger)1, (NSUInteger)llround(60 / _qualityInterval));
+    if (++_qualityReadings % perMinute == 0) {
+        NSString *summary = [_linkQuality summaryOfLastSamples:perMinute];
+        if (summary) SSLogM(@"WaterWall: last minute on %@: %@", _profileName, summary);
+    }
+    NSString *reason = _linkQuality.lossReason;
+    if (reason == nil || _lossHandled) return;
+    _lossHandled = YES;
+    [_lossyCandidates addIndex:_candidateIndex];
+    NSUInteger next = [self candidateAfterLoss];
+    if (next == NSNotFound) {
+        SSLogM(@"WaterWall: %@ on %@; %@", reason, _profileName,
+               _candidates.count > 1 ? @"the other profiles of this server lost packets on this network too, so it stays"
+                                     : @"no other profile of this server can take over");
+        return;
+    }
+    SSLogM(@"WaterWall: %@ on %@; switching to %@", reason, _profileName, _candidates[next].name);
+    [self switchToCandidate:next];
+    _failedAttempts = 0;
+    [self startRuntimeLocked];
 }
 
 - (void)stopRuntimeLocked {
@@ -568,6 +801,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _reconnectPending = YES;
     SSLogM(@"WaterWall: %@; reconnecting in 2s (attempt %ld%@)", reason, (long)_failedAttempts,
            _retryTimes > 0 ? [NSString stringWithFormat:@" of %ld", (long)_retryTimes] : @"");
+    if (_candidates.count > 1) {
+        [self switchToCandidate:(_candidateIndex + 1) % _candidates.count];
+        SSLogM(@"WaterWall: the next attempt uses %@", _profileName);
+    }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), _worker, ^{
         self->_reconnectPending = NO;
         if (!self->_closed && !self->_sleepPaused) [self startRuntimeLocked];
@@ -604,6 +841,12 @@ static void SRPWWFailure(void *context, int code, const char *message) {
             SSLogM(@"WaterWall: %@; migrating the connection to the new path",
                    hasWifi ? @"Wi-Fi became available" : @"Wi-Fi became unavailable");
             strongSelf->_failedAttempts = 0;
+            // What failed or lost packets on the previous network says nothing about this one.
+            [strongSelf->_lossyCandidates removeAllIndexes];
+            if (strongSelf->_candidateIndex != 0) {
+                [strongSelf switchToCandidate:0];
+                SSLogM(@"WaterWall: returning to %@ on the new network", strongSelf->_profileName);
+            }
             [strongSelf startRuntimeLocked];
         }
     });
@@ -629,6 +872,14 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _sleepPaused = NO;
     _reconnectPending = NO;
     _failedAttempts = 0;
+    _candidates = [@[[self currentCandidate]] arrayByAddingObjectsFromArray:_fallbacks];
+    _candidateIndex = 0;
+    _lossyCandidates = [NSMutableIndexSet new];
+    _linkQuality = [SRPWaterWallLinkQuality new];
+    if (_fallbacks.count > 0) {
+        SSLogM(@"WaterWall: Auto Switch can move %@ to %lu other profiles of the same server",
+               _profileName, (unsigned long)_fallbacks.count);
+    }
     SSLogSetLevel((SSLogLevel)_logLevel);
     dispatch_async(_worker, ^{
         [self startRuntimeLocked];

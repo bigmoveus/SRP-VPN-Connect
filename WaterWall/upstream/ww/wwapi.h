@@ -43,6 +43,7 @@
 #include "net/packet_tunnel.h"
 #include "net/pipe_tunnel.h"
 #include "net/sync_dns.h"
+#include "net/tcp_quality.h"
 #include "net/tls_client_hello.h"
 #include "net/traffic_shaper.h"
 #include "net/tunnel.h"

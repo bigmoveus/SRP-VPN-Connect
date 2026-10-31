@@ -16,6 +16,7 @@ static NodeModel * modal = nil;
         _logLevel = 0;   // normal
         _protocolType = @"sstp";
         _waterwallFakeDNS = YES;
+        _waterwallAutoSwitch = YES;
         _seAuthMethod = @"standardPassword";
         _seConnections = 1;
         _ocProtocol = @"anyconnect";

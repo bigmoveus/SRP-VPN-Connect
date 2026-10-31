@@ -55,6 +55,27 @@ int SRPWaterWallBridgeSubmitPacket(SRPWaterWallBridge *bridge,
  */
 int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge);
 
+typedef struct SRPWaterWallTCPQuality {
+  uint64_t tx_packets;
+  uint64_t retransmitted_packets;
+  uint64_t rx_bytes;
+  uint64_t rx_out_of_order_bytes;
+  uint64_t closed_connections;
+  uint64_t failed_connections;
+  uint64_t timed_out_connections;
+  uint32_t max_srtt_ms;
+  uint32_t max_rto_ms;
+} SRPWaterWallTCPQuality;
+
+/*
+ * ReadTCPQuality reports the kernel counters of WaterWall's outbound TCP
+ * connections. The counts are cumulative for the process, across runtime
+ * restarts; max_srtt_ms and max_rto_ms cover only the connections sampled since
+ * the previous call. Everything stays zero where the platform has no such
+ * counters. It may be called from any thread, with or without a runtime.
+ */
+void SRPWaterWallBridgeReadTCPQuality(SRPWaterWallTCPQuality *quality);
+
 #ifdef __cplusplus
 }
 #endif

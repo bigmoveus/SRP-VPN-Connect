@@ -386,6 +386,9 @@ static NSString *SRPMaskedURI(NSString *uri) {
     if (safeServer[@"wg_private_key"]) safeServer[@"wg_private_key"] = @"***";
     if (safeServer[@"wg_preshared_key"]) safeServer[@"wg_preshared_key"] = @"***";
     if (safeServer[@"ww_config"]) safeServer[@"ww_config"] = @"***";
+    if (safeServer[@"ww_fallbacks"]) {
+        safeServer[@"ww_fallbacks"] = [NSString stringWithFormat:@"%lu profiles", (unsigned long)[server[@"ww_fallbacks"] count]];
+    }
     NSLog(@"connect>>%@", safeServer);
     // TLS pre-check with a user dialog on untrusted certificates applies to
     // all protocols: SSTP, SoftEther and OpenConnect (AnyConnect/F5/...).
@@ -467,11 +470,23 @@ static NSString *SRPMaskedURI(NSString *uri) {
                       @"wg_private_key", @"wg_peer_public_key", @"wg_address",
                       @"wg_keepalive", @"log_level", @"tls_frag", @"tls_frag_first",
                       @"tls_frag_following", @"ww_fake_dns", @"ww_smart_routing", @"ww_geoip_db_path", @"ww_test_id",
-                      @"ww_outer_secret", @"auto_reconnect", @"retry_times", @"switch_to_wifi", @"on_sleep"];
+                      @"ww_outer_secret", @"auto_reconnect", @"retry_times", @"switch_to_wifi", @"on_sleep",
+                      @"desc", @"ww_auto_switch"];
     NSMutableDictionary *configuration = [NSMutableDictionary new];
     for (NSString *key in keys) {
         if (server[key] != nil) configuration[key] = server[key];
     }
+    NSMutableArray<NSDictionary *> *fallbacks = [NSMutableArray new];
+    for (NSDictionary *fallback in server[@"ww_fallbacks"]) {
+        NSMutableDictionary *options = [NSMutableDictionary new];
+        for (NSString *key in keys) {
+            // The other profiles reach the tunnel with their Keychain references only.
+            if ([key isEqualToString:@"password"] || [key isEqualToString:@"ww_outer_secret"]) continue;
+            if (fallback[key] != nil) options[key] = fallback[key];
+        }
+        [fallbacks addObject:options];
+    }
+    if (fallbacks.count > 0) configuration[@"ww_fallbacks"] = fallbacks;
     NSDictionary *providerConfiguration = @{@"type": @(0),
                                             @"node_id": server[@"node_id"] ?: @"",
                                             @"waterwall": configuration,

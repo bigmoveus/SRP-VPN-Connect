@@ -4,6 +4,13 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- Auto Switch for WaterWall profiles, on by default under Options: when the connection fails, Auto Reconnect tries the next WaterWall profile of the same server, and when the network loses too many packets (15% of the packets sent within 30 seconds, or two connections dropped within two minutes) the connection moves to a profile with the other carrier (TCP or UDP) that has not lost packets on that network yet. A network change returns to the selected profile.
+- WaterWall measures its TCP connections to the server (packets sent and retransmitted, data received, round-trip time, retransmission timeout and connections the network dropped) and writes a summary to the log every minute while traffic flows.
+
+### Development
+- The `--lifecycle` device run checks that Auto Switch connects through another profile of the same server when the selected one cannot reach it, and that the outer TCP connections are measured.
+
 ## 1.2.0 (28) - 2026-10-31
 
 ### Added

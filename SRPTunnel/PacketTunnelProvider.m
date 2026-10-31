@@ -823,14 +823,16 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     return NO;
 }
 
-- (void)startWaterWallWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
-    SSLogM(@"WaterWall: parsing profile");
+// Turns one WaterWall profile into its node graph and tunnel settings. resolver only
+// resolves the server address; failure receives the reason when the profile is unusable.
+- (nullable SRPWaterWallCandidate *)waterWallCandidateWithOptions:(NSDictionary *)v
+                                                          resolver:(SRPWaterWallClient *)resolver
+                                                           failure:(NSString **)failure {
     NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:v[@"ww_config"]];
     if (configuration == nil) {
-        completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The WaterWall configuration is invalid."}]);
-        return;
+        *failure = @"The WaterWall configuration is invalid.";
+        return nil;
     }
-    SSLogM(@"WaterWall: profile parsed");
     BOOL requiresGeoIP = [configuration[@"geoip"][@"iran-direct"] boolValue] ||
                          [configuration[@"geoip"][@"countries"] count] > 0;
     if (requiresGeoIP) {
@@ -838,15 +840,104 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         NSError *databaseError = nil;
         if (databaseURL == nil || ![SRPGeoIPDatabase.sharedDatabase validateDatabaseAtURL:databaseURL error:&databaseError]) {
             NSString *message = databaseError.localizedDescription ?: @"A valid GeoIP country database is required.";
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{
-                NSLocalizedDescriptionKey: [@"GeoIP is enabled but its database is unavailable: " stringByAppendingString:message]
-            }]);
-            return;
+            *failure = [@"GeoIP is enabled but its database is unavailable: " stringByAppendingString:message];
+            return nil;
         }
         NSMutableDictionary *options = [v mutableCopy];
         options[@"ww_geoip_db_path"] = databaseURL.path;
         v = options;
     }
+    NSString *secret = [v[@"ww_secret_ref"] length] > 0 ? [SRPKeychain passwordForKey:v[@"ww_secret_ref"]] : v[@"password"];
+    SRPWaterWallCandidate *candidate = [SRPWaterWallCandidate new];
+    candidate.name = [v[@"desc"] length] > 0 ? v[@"desc"] : [SRPWaterWallChainConfig summaryForConfiguration:configuration];
+    candidate.udpCarrier = [SRPWaterWallChainConfig configurationUsesUDPCarrier:configuration];
+    if ([configuration[@"mode"] isEqualToString:@"chain"]) {
+        NSDictionary *application = configuration[@"node-options"][@"application"];
+        NSString *protocol = application[@"protocol"] ?: application[@"proto"];
+        if ([configuration[@"application"] isEqualToString:@"http-proxy"]) candidate.probeUDP = NO;
+        if ([protocol isEqualToString:@"tcp"] || [protocol isEqualToString:@"connect"]) {
+            candidate.probeUDP = NO;
+        } else if ([protocol isEqualToString:@"udp"] || [protocol isEqualToString:@"udp-associate"]) {
+            candidate.probeTCP = NO;
+        }
+    }
+    if ([configuration[@"input"] isEqualToString:@"raw-ipv4"] || [configuration[@"outer"] isEqualToString:@"aead"]) candidate.tunnelAddress = @"10.44.0.4";
+    NSString *serverAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
+    NSString *endpointAddress = v[@"endpoint_ip"];
+    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration] &&
+        ![SRPWaterWallChainConfig isDirectConfiguration:configuration]) {
+        endpointAddress = [resolver resolvedAddressForHost:endpointAddress.length > 0 ? endpointAddress : serverAddress];
+        if (endpointAddress.length == 0) {
+            *failure = @"The WaterWall server address could not be resolved.";
+            return nil;
+        }
+        candidate.endpointIP = endpointAddress;
+        candidate.endpointIPs = @[endpointAddress];
+    }
+    NSString *nodesJSON;
+    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
+        NSDictionary *wg;
+        NSString *wgConfig = v[@"wg_conf"];
+        if (wgConfig.length > 0) {
+            wg = [SRPWaterWallChainConfig wireGuardConfigurationWithConfig:wgConfig];
+        } else {
+            wg = [SRPWaterWallChainConfig wireGuardConfigurationWithPrivateKey:v[@"wg_private_key"] ?: @""
+                                                                  serverPublicKey:v[@"wg_peer_public_key"] ?: @""
+                                                                           server:v[@"address"] ?: @""
+                                                                             port:[v[@"port"] integerValue]
+                                                                     clientAddress:v[@"wg_address"] ?: @""
+                                                                         keepalive:[v[@"wg_keepalive"] integerValue]];
+        }
+        nodesJSON = wg[@"nodesJSON"];
+        candidate.tunnelAddress = wg[@"tunnelAddress"];
+        candidate.dnsServers = wg[@"dnsServers"];
+        candidate.allowedIPs = wg[@"allowedIPs"];
+        candidate.endpointIP = wg[@"endpointIP"];
+        candidate.endpointIPs = wg[@"endpointIPs"];
+    } else {
+        NSString *outerSecret = v[@"ww_outer_secret"];
+        if ([v[@"ww_outer_secret_ref"] length] > 0) {
+            outerSecret = [SRPKeychain passwordForKey:v[@"ww_outer_secret_ref"]] ?: outerSecret;
+        }
+        SSLogM(@"WaterWall: generating node graph");
+        nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
+                                                                server:endpointAddress.length > 0 ? endpointAddress : serverAddress
+                                                                  port:[v[@"port"] integerValue]
+                                                                   sni:[v[@"sni"] length] > 0 ? v[@"sni"] : serverAddress
+                                                             verifyTLS:![v[@"allowInsecure"] boolValue]
+                                                                secret:secret
+                                                           outerSecret:outerSecret
+                                                               options:v];
+    }
+    if (nodesJSON.length == 0) {
+        *failure = @"The WaterWall profile is incomplete or invalid.";
+        return nil;
+    }
+    SSLogM(@"WaterWall: node graph generated");
+    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
+        NSDictionary *graph = [NSJSONSerialization JSONObjectWithData:[nodesJSON dataUsingEncoding:NSUTF8StringEncoding]
+                                                               options:0
+                                                                 error:nil];
+        NSArray<NSDictionary *> *nodes = graph[@"nodes"];
+        candidate.probeUDP = candidate.probeUDP && [nodes.lastObject[@"type"] isEqualToString:@"TcpUdpConnector"];
+    }
+    candidate.nodesJSON = nodesJSON;
+    candidate.remoteAddress = serverAddress;
+    candidate.probeAddress = [v[@"ww_probe_ip"] length] > 0 ? v[@"ww_probe_ip"] : @"1.1.1.1";
+    BOOL fakeDNS = (v[@"ww_fake_dns"] == nil || [v[@"ww_fake_dns"] boolValue]) &&
+                   [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
+    candidate.dnsProbeAddress = fakeDNS ? @"198.18.0.2" :
+                                [v[@"ww_dns_probe_ip"] length] > 0 ? v[@"ww_dns_probe_ip"] : candidate.probeAddress;
+    if (fakeDNS) candidate.dnsServers = @[@"198.18.0.2"];
+    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
+        candidate.probeTCP = candidate.probeTCP && SRPWWProbeAddressAllowed(candidate.probeAddress, candidate.allowedIPs);
+        candidate.probeUDP = candidate.probeUDP && SRPWWProbeAddressAllowed(candidate.dnsProbeAddress, candidate.allowedIPs);
+    }
+    if (candidate.endpointIP.length == 0) candidate.endpointIP = v[@"endpoint_ip"];
+    return candidate;
+}
+
+- (void)startWaterWallWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
     if ([v[@"ww_test_id"] length] > 0) {
         NSURL *container = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
         NSString *base = container ? container.path : NSHomeDirectory();
@@ -866,80 +957,30 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         if (freopen(path.fileSystemRepresentation, "a", stderr) != NULL) setvbuf(stderr, NULL, _IOLBF, 0);
 #endif
     }
-    NSString *secret = [v[@"ww_secret_ref"] length] > 0 ? [SRPKeychain passwordForKey:v[@"ww_secret_ref"]] : v[@"password"];
     SRPWaterWallClient *client = [SRPWaterWallClient new];
     client.liveDiagnostics = [v[@"ww_test_id"] length] > 0;
-    if ([configuration[@"mode"] isEqualToString:@"chain"]) {
-        NSDictionary *application = configuration[@"node-options"][@"application"];
-        NSString *protocol = application[@"protocol"] ?: application[@"proto"];
-        if ([configuration[@"application"] isEqualToString:@"http-proxy"]) client.probeUDP = NO;
-        if ([protocol isEqualToString:@"tcp"] || [protocol isEqualToString:@"connect"]) {
-            client.probeUDP = NO;
-        } else if ([protocol isEqualToString:@"udp"] || [protocol isEqualToString:@"udp-associate"]) {
-            client.probeTCP = NO;
-        }
-    }
-    if ([configuration[@"input"] isEqualToString:@"raw-ipv4"] || [configuration[@"outer"] isEqualToString:@"aead"]) client.tunnelAddress = @"10.44.0.4";
-    NSString *serverAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
-    NSString *endpointAddress = v[@"endpoint_ip"];
-    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration] &&
-        ![SRPWaterWallChainConfig isDirectConfiguration:configuration]) {
-        endpointAddress = [client resolvedAddressForHost:endpointAddress.length > 0 ? endpointAddress : serverAddress];
-        if (endpointAddress.length == 0) {
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{
-                NSLocalizedDescriptionKey: @"The WaterWall server address could not be resolved."
-            }]);
-            return;
-        }
-        client.endpointIP = endpointAddress;
-        client.endpointIPs = @[endpointAddress];
-    }
-    NSString *nodesJSON;
-    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
-        NSDictionary *wg;
-        NSString *wgConfig = v[@"wg_conf"];
-        if (wgConfig.length > 0) {
-            wg = [SRPWaterWallChainConfig wireGuardConfigurationWithConfig:wgConfig];
-        } else {
-            wg = [SRPWaterWallChainConfig wireGuardConfigurationWithPrivateKey:v[@"wg_private_key"] ?: @""
-                                                                  serverPublicKey:v[@"wg_peer_public_key"] ?: @""
-                                                                           server:v[@"address"] ?: @""
-                                                                             port:[v[@"port"] integerValue]
-                                                                     clientAddress:v[@"wg_address"] ?: @""
-                                                                         keepalive:[v[@"wg_keepalive"] integerValue]];
-        }
-        nodesJSON = wg[@"nodesJSON"];
-        client.tunnelAddress = wg[@"tunnelAddress"];
-        client.dnsServers = wg[@"dnsServers"];
-        client.allowedIPs = wg[@"allowedIPs"];
-        client.endpointIP = wg[@"endpointIP"];
-        client.endpointIPs = wg[@"endpointIPs"];
-    } else {
-        NSString *outerSecret = v[@"ww_outer_secret"];
-        if ([v[@"ww_outer_secret_ref"] length] > 0) {
-            outerSecret = [SRPKeychain passwordForKey:v[@"ww_outer_secret_ref"]] ?: outerSecret;
-        }
-        SSLogM(@"WaterWall: generating node graph");
-        nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
-                                                                server:endpointAddress.length > 0 ? endpointAddress : serverAddress
-                                                                  port:[v[@"port"] integerValue]
-                                                                   sni:[v[@"sni"] length] > 0 ? v[@"sni"] : serverAddress
-                                                             verifyTLS:![v[@"allowInsecure"] boolValue]
-                                                                secret:secret
-                                                           outerSecret:outerSecret
-                                                               options:v];
-    }
-    if (nodesJSON.length == 0) {
-        completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The WaterWall profile is incomplete or invalid."}]);
+    SSLogM(@"WaterWall: parsing profile");
+    NSString *failure = nil;
+    SRPWaterWallCandidate *selected = [self waterWallCandidateWithOptions:v resolver:client failure:&failure];
+    if (selected == nil) {
+        completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: failure}]);
         return;
     }
-    SSLogM(@"WaterWall: node graph generated");
-    if (![SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
-        NSDictionary *graph = [NSJSONSerialization JSONObjectWithData:[nodesJSON dataUsingEncoding:NSUTF8StringEncoding]
-                                                               options:0
-                                                                 error:nil];
-        NSArray<NSDictionary *> *nodes = graph[@"nodes"];
-        client.probeUDP = client.probeUDP && [nodes.lastObject[@"type"] isEqualToString:@"TcpUdpConnector"];
+    SSLogM(@"WaterWall: profile parsed");
+    [client applyCandidate:selected];
+    if (v[@"ww_auto_switch"] == nil || [v[@"ww_auto_switch"] boolValue]) {
+        NSMutableArray<SRPWaterWallCandidate *> *fallbacks = [NSMutableArray new];
+        for (NSDictionary *options in v[@"ww_fallbacks"]) {
+            if (![options isKindOfClass:NSDictionary.class]) continue;
+            NSString *reason = nil;
+            SRPWaterWallCandidate *fallback = [self waterWallCandidateWithOptions:options resolver:client failure:&reason];
+            if (fallback != nil) {
+                [fallbacks addObject:fallback];
+            } else {
+                SSLogM(@"WaterWall: Auto Switch skips %@: %@", options[@"desc"] ?: @"a profile", reason);
+            }
+        }
+        client.fallbacks = fallbacks;
     }
     client.logLevel = [v[@"log_level"] isEqualToString:@"debug"] ? 2 : [v[@"log_level"] isEqualToString:@"expert"] ? 1 : 0;
     client.autoReconnect = v[@"auto_reconnect"] ? [v[@"auto_reconnect"] boolValue] : YES;
@@ -949,19 +990,6 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     client.onSleep = [onSleep isEqualToString:@"off"] ? 0 : [onSleep isEqualToString:@"pause"] ? 1 : 2;
     self.onSleepMode = client.onSleep;
     client.coreJSON = [SRPWaterWallChainConfig coreJSONWithLogLevel:client.logLevel];
-    client.nodesJSON = nodesJSON;
-    client.remoteAddress = [v[@"address"] length] > 0 ? v[@"address"] : @"127.0.0.1";
-    client.probeAddress = [v[@"ww_probe_ip"] length] > 0 ? v[@"ww_probe_ip"] : @"1.1.1.1";
-    BOOL fakeDNS = (v[@"ww_fake_dns"] == nil || [v[@"ww_fake_dns"] boolValue]) &&
-                   [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
-    client.dnsProbeAddress = fakeDNS ? @"198.18.0.2" :
-                             [v[@"ww_dns_probe_ip"] length] > 0 ? v[@"ww_dns_probe_ip"] : client.probeAddress;
-    if (fakeDNS) client.dnsServers = @[@"198.18.0.2"];
-    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
-        client.probeTCP = client.probeTCP && SRPWWProbeAddressAllowed(client.probeAddress, client.allowedIPs);
-        client.probeUDP = client.probeUDP && SRPWWProbeAddressAllowed(client.dnsProbeAddress, client.allowedIPs);
-    }
-    if (client.endpointIP.length == 0) client.endpointIP = v[@"endpoint_ip"];
     self.wwClient = client;
 
     __block BOOL finished = NO;
@@ -1317,7 +1345,12 @@ static void SRPTunnelLogCap(NSString *path) {
             return;
         }
         if ([command isEqualToString:@"state"]) {
+            SRPWaterWallLinkTotals link = [SRPWaterWallClient currentLinkTotals];
             NSDictionary *state = @{
+                @"profileName": self.wwClient.profileName ?: @"",
+                @"linkSentPackets": @(link.sentPackets),
+                @"linkRetransmittedPackets": @(link.retransmittedPackets),
+                @"linkReceivedBytes": @(link.receivedBytes),
                 @"up": @([self.wwClient valueForKey:@"up"] != nil && [[self.wwClient valueForKey:@"up"] boolValue]),
                 @"sleepPaused": @([[self.wwClient valueForKey:@"sleepPaused"] boolValue]),
                 @"reconnectPending": @([[self.wwClient valueForKey:@"reconnectPending"] boolValue]),

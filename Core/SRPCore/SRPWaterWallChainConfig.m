@@ -391,6 +391,14 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     return [configuration[@"mode"] isEqualToString:@"chain"] && [configuration[@"input"] isEqualToString:@"connections"];
 }
 
++ (BOOL)configurationUsesUDPCarrier:(NSDictionary *)configuration {
+    if ([self isWireGuardConfiguration:configuration]) return YES;
+    if (![configuration[@"mode"] isEqualToString:@"chain"]) return NO;
+    // QUIC's stream carrier runs over a TCP connection, like the chain's default carrier.
+    return [configuration[@"carrier"] isEqualToString:@"kcp"] ||
+           ([configuration[@"outer"] isEqualToString:@"quic"] && ![configuration[@"quic-carrier"] isEqualToString:@"stream"]);
+}
+
 + (NSString *)summaryForConfiguration:(NSDictionary *)configuration {
     if ([self isWireGuardConfiguration:configuration]) return @"WireGuard";
     if ([self isDirectConfiguration:configuration]) return @"Direct (diagnostics)";

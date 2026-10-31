@@ -109,6 +109,7 @@
         if (modal.waterwallDNSProbeIP.length > 0) d[@"ww_dns_probe_ip"] = modal.waterwallDNSProbeIP;
         d[@"ww_fake_dns"] = @(modal.waterwallFakeDNS);
         d[@"ww_smart_routing"] = @(modal.waterwallSmartRouting);
+        d[@"ww_auto_switch"] = @(modal.waterwallAutoSwitch);
     }
     if ([modal.protocolType isEqualToString:@"psiphon"]) {
         if (modal.psiphonMode.length > 0) d[@"psi_mode"] = modal.psiphonMode;
@@ -188,6 +189,51 @@
         d[@"sni"] = modal.customSni;
     }
     return d;
+}
+
+static NSString *SRPServerKey(NSString *server) {
+    return [server stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString ?: @"";
+}
+
+// The chain of WaterWall connect parameters, or nil for WireGuard, direct and invalid ones.
+static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
+    NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:parameters[@"ww_config"]];
+    if (configuration == nil || [SRPWaterWallChainConfig isWireGuardConfiguration:configuration] ||
+        [SRPWaterWallChainConfig isDirectConfiguration:configuration]) return nil;
+    return configuration;
+}
+
++(NSArray<NSDictionary*>*)waterWallFallbacksForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles {
+    static const NSUInteger limit = 8;
+    NSString *server = SRPServerKey(profile.server);
+    if (![profile.protocolType isEqualToString:@"waterwall"] || !profile.waterwallAutoSwitch || server.length == 0) return @[];
+    NSDictionary *own = [self checkConnectParmer:profile];
+    NSDictionary *ownConfiguration = SRPSwitchableConfiguration(own);
+    if (ownConfiguration == nil) return @[];
+    BOOL udp = [SRPWaterWallChainConfig configurationUsesUDPCarrier:ownConfiguration];
+    NSMutableArray<NSDictionary*> *otherCarrier = [NSMutableArray new];
+    NSMutableArray<NSDictionary*> *sameCarrier = [NSMutableArray new];
+    for (NodeModel *candidate in profiles) {
+        if (candidate == profile || [candidate.nodeId isEqualToString:profile.nodeId]) continue;
+        if (![candidate.protocolType isEqualToString:@"waterwall"] || ![SRPServerKey(candidate.server) isEqualToString:server]) continue;
+        // Fallbacks travel with Keychain references only, never a plaintext secret.
+        NSMutableDictionary *parameters = [[self checkConnectParmer:candidate] mutableCopy];
+        [parameters removeObjectsForKeys:@[@"password", @"ww_outer_secret"]];
+        NSDictionary *configuration = SRPSwitchableConfiguration(parameters);
+        // A copy of the selected profile connects the same way, so it cannot take over.
+        if (configuration == nil || ([parameters[@"ww_config"] isEqualToString:own[@"ww_config"]] &&
+                                     [parameters[@"port"] isEqualToString:own[@"port"]])) continue;
+        [([SRPWaterWallChainConfig configurationUsesUDPCarrier:configuration] != udp ? otherCarrier : sameCarrier) addObject:parameters];
+    }
+    NSArray<NSDictionary*> *ordered = [otherCarrier arrayByAddingObjectsFromArray:sameCarrier];
+    return ordered.count > limit ? [ordered subarrayWithRange:NSMakeRange(0, limit)] : ordered;
+}
+
++(NSDictionary*)connectParametersForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles {
+    NSMutableDictionary *parameters = [[self checkConnectParmer:profile] mutableCopy];
+    NSArray<NSDictionary*> *fallbacks = [self waterWallFallbacksForProfile:profile amongProfiles:profiles];
+    if (fallbacks.count > 0) parameters[@"ww_fallbacks"] = fallbacks;
+    return parameters;
 }
 
 +(NodeModel*)getModalForDic:(NSDictionary*)selectDic {
@@ -280,6 +326,7 @@
         modal.waterwallDNSProbeIP = selectDic[@"ww_dns_probe_ip"];
         modal.waterwallFakeDNS = selectDic[@"ww_fake_dns"] != nil ? [selectDic[@"ww_fake_dns"] boolValue] : YES;
         modal.waterwallSmartRouting = [selectDic[@"ww_smart_routing"] boolValue];
+        modal.waterwallAutoSwitch = selectDic[@"ww_auto_switch"] != nil ? [selectDic[@"ww_auto_switch"] boolValue] : YES;
         modal.psiphonMode = selectDic[@"psi_mode"];
         modal.psiphonServerEntry = selectDic[@"psi_entry"];
         modal.psiphonLimitProtocols = selectDic[@"psi_protos"];

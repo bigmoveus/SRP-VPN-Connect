@@ -61,6 +61,8 @@
 - (void)finishProbe;
 - (void)handleProbePacket:(NSData *)packet;
 - (void)startHealthMonitor;
+- (void)startQualityMonitor;
+- (void)stopProbe;
 - (void)healthProbeFailed:(NSString *)reason;
 - (BOOL)runtimeCanAcceptPackets;
 - (int)submitPacketToRuntime:(NSData *)packet;
@@ -130,6 +132,17 @@ __attribute__((weak)) int SRPWaterWallBridgeSubmitPacket(SRPWaterWallBridge *bri
 __attribute__((weak)) int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge) {
     (void)bridge;
     return 0;
+}
+
+// Every reading adds the growth, like the traffic of one interval on the outer connections.
+static SRPWaterWallTCPQuality SRPTestWWQuality;
+static SRPWaterWallTCPQuality SRPTestWWQualityGrowth;
+
+__attribute__((weak)) void SRPWaterWallBridgeReadTCPQuality(SRPWaterWallTCPQuality *quality) {
+    SRPTestWWQuality.tx_packets += SRPTestWWQualityGrowth.tx_packets;
+    SRPTestWWQuality.retransmitted_packets += SRPTestWWQualityGrowth.retransmitted_packets;
+    SRPTestWWQuality.timed_out_connections += SRPTestWWQualityGrowth.timed_out_connections;
+    *quality = SRPTestWWQuality;
 }
 
 static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
@@ -2796,6 +2809,53 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 #endif
 }
 
+- (void)testWaterWallLiveAutoSwitchWhenConfigured {
+#if DEBUG
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_AUTO_SWITCH_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    NodeModel *selected = [self liveWaterWallModelFromEnvironment];
+    NodeModel *working = [self liveWaterWallModelFromEnvironment];
+    XCTAssertNotNil(selected);
+    if (selected == nil || working == nil) return;
+    // Nothing answers on the selected profile's port, so only the other profile can connect.
+    // A failure moves to the next profile only through Auto Reconnect, which the harness turns off.
+    selected.port = environment[@"SRP_AUTO_SWITCH_CLOSED_PORT"] ?: @"9";
+    selected.autoReconnect = YES;
+    selected.retryTimes = 3;
+    working.nodeId = [working.nodeId stringByAppendingString:@"-fallback"];
+    working.desc = @"WaterWall live fallback";
+    NSMutableDictionary *server = [[CheckConnectData connectParametersForProfile:selected
+                                                                    amongProfiles:@[selected, working]] mutableCopy];
+    XCTAssertEqual([server[@"ww_fallbacks"] count], 1U);
+    if ([environment[@"SRP_WW_TEST_ID"] length] > 0) server[@"ww_test_id"] = environment[@"SRP_WW_TEST_ID"];
+    @try {
+        NSString *error = nil;
+        XCTAssertTrue([self waitForLiveVPNConnection:manager server:server error:&error], @"%@", error);
+        if (manager.status != YDVPNStatusConnected) return;
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+        NSDictionary *state = [self waterWallProviderCommand:@"state" manager:manager];
+        XCTAssertEqualObjects(state[@"profileName"], working.desc);
+        XCTAssertTrue([self waterWallLiveHTTPS204:working]);
+        XCTAssertTrue([self waterWallLiveHTTPS204:working]);
+        state = [self waterWallProviderCommand:@"state" manager:manager];
+        NSLog(@"Auto Switch link counters: %@ packets sent, %@ retransmitted, %@ bytes received",
+              state[@"linkSentPackets"], state[@"linkRetransmittedPackets"], state[@"linkReceivedBytes"]);
+        XCTAssertGreaterThan([state[@"linkSentPackets"] unsignedLongLongValue], 0ULL,
+                             @"The outer TCP connections must be measured");
+    } @finally {
+        if ([environment[@"SRP_FETCH_LOGS"] boolValue]) [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Provider state requires a Debug build.");
+#endif
+}
+
 - (void)testWaterWallLiveRetryBudgetWhenConfigured {
 #if DEBUG
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
@@ -3396,6 +3456,107 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     [client closeAndWait];
 }
 
+- (SRPWaterWallCandidate *)waterWallCandidateNamed:(NSString *)name udp:(BOOL)udp {
+    SRPWaterWallCandidate *candidate = [SRPWaterWallCandidate new];
+    candidate.name = name;
+    candidate.nodesJSON = [NSString stringWithFormat:@"{\"name\":\"%@\"}", name];
+    candidate.udpCarrier = udp;
+    return candidate;
+}
+
+// The tunnel starts the monitor once the data plane is up, and every restart starts a new observation.
+- (void)restartQualityMonitorOfClient:(SRPWaterWallClient *)client {
+    dispatch_sync([client valueForKey:@"worker"], ^{
+        [client stopProbe];
+        [client startQualityMonitor];
+    });
+}
+
+- (void)waitForRuntimeStarts:(NSInteger)starts ofClient:(SRPWaterWallLifecycleTestClient *)client {
+    XCTNSPredicateExpectation *started = [[XCTNSPredicateExpectation alloc]
+        initWithPredicate:[NSPredicate predicateWithFormat:@"runtimeStarts == %ld", (long)starts] object:client];
+    [self waitForExpectations:@[started] timeout:5];
+}
+
+- (void)testWaterWallLinkQualityFlagsHeavyRetransmissionAndDroppedConnections {
+    SRPWaterWallLinkQuality *quality = [SRPWaterWallLinkQuality new];
+    SRPWaterWallLinkTotals totals = {0};
+    [quality addTotals:totals];
+    for (int sample = 0; sample < 6; sample++) {
+        totals.sentPackets += 200;
+        totals.retransmittedPackets += 4;
+        [quality addTotals:totals];
+    }
+    XCTAssertNil(quality.lossReason, @"2%% retransmissions is an ordinary network");
+    XCTAssertTrue([[quality summaryOfLastSamples:12] containsString:@"1200 packets sent, 2.0% retransmitted"]);
+    for (int sample = 0; sample < 6; sample++) {
+        totals.sentPackets += 200;
+        totals.retransmittedPackets += 40;
+        [quality addTotals:totals];
+    }
+    XCTAssertTrue([quality.lossReason containsString:@"20% of the packets sent to the server were retransmitted in the last 30 seconds"]);
+
+    [quality clearSamples];
+    [quality addTotals:totals];
+    for (int sample = 0; sample < 6; sample++) {
+        totals.sentPackets += 20;
+        totals.retransmittedPackets += 10;
+        [quality addTotals:totals];
+    }
+    XCTAssertNil(quality.lossReason, @"A handful of packets proves nothing");
+    totals.timedOutConnections += 2;
+    [quality addTotals:totals];
+    XCTAssertTrue([quality.lossReason containsString:@"the network dropped 2 connections to the server"]);
+    [quality clearSamples];
+    XCTAssertNil([quality summaryOfLastSamples:12]);
+}
+
+- (void)testWaterWallAutoSwitchReconnectsWithTheNextProfile {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.profileName = @"TCP";
+    client.nodesJSON = @"{\"name\":\"TCP\"}";
+    SRPWaterWallCandidate *kcp = [self waterWallCandidateNamed:@"KCP" udp:YES];
+    client.fallbacks = @[kcp];
+    client.failuresBeforeSuccess = 1;
+    [self startWaterWallLifecycleClient:client failure:nil];
+    [self waitForRuntimeStarts:2 ofClient:client];
+    XCTAssertEqualObjects(client.nodesJSON, kcp.nodesJSON);
+    XCTAssertEqualObjects(client.profileName, @"KCP");
+    XCTAssertTrue(client.udpCarrier);
+    [client closeAndWait];
+}
+
+- (void)testWaterWallAutoSwitchLeavesALossyConnectionForTheOtherCarrier {
+    SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+    client.profileName = @"TCP";
+    client.nodesJSON = @"{\"name\":\"TCP\"}";
+    SRPWaterWallCandidate *tcp = [self waterWallCandidateNamed:@"TCP 2" udp:NO];
+    SRPWaterWallCandidate *kcp = [self waterWallCandidateNamed:@"KCP" udp:YES];
+    client.fallbacks = @[tcp, kcp];
+    client.qualityInterval = 0.02;
+    SRPTestWWQuality = (SRPWaterWallTCPQuality){0};
+    SRPTestWWQualityGrowth = (SRPWaterWallTCPQuality){.tx_packets = 200, .retransmitted_packets = 40};
+    [self startWaterWallLifecycleClient:client failure:nil];
+    [self waitForRuntimeStarts:1 ofClient:client];
+    [self restartQualityMonitorOfClient:client];
+    [self waitForRuntimeStarts:2 ofClient:client];
+    XCTAssertEqualObjects(client.nodesJSON, kcp.nodesJSON, @"Heavy TCP loss moves to the UDP carrier first");
+    [self restartQualityMonitorOfClient:client];
+    [self waitForRuntimeStarts:3 ofClient:client];
+    XCTAssertEqualObjects(client.nodesJSON, tcp.nodesJSON);
+    [self restartQualityMonitorOfClient:client];
+    XCTestExpectation *settled = [self expectationWithDescription:@"Every profile lost packets, so the connection stays"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 500 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
+        XCTAssertEqual(client.runtimeStarts, 3);
+        XCTAssertEqualObjects(client.nodesJSON, tcp.nodesJSON);
+        [settled fulfill];
+    });
+    [self waitForExpectations:@[settled] timeout:2];
+    dispatch_sync([client valueForKey:@"worker"], ^{ [client stopProbe]; });
+    SRPTestWWQualityGrowth = (SRPWaterWallTCPQuality){0};
+    [client closeAndWait];
+}
+
 - (void)testWaterWallSleepModes {
     // {On Sleep, Auto Reconnect}: Stay keeps the runtime, Pause always resumes,
     // Off resumes only with Auto Reconnect and otherwise ends the tunnel.
@@ -3807,12 +3968,14 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
     UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
-    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Retry Times", @"Switch to Wi-Fi When Available", @"On Sleep",
-                                  @"Log Level", @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
+    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Retry Times", @"Auto Switch", @"Switch to Wi-Fi When Available",
+                                  @"On Sleep", @"Log Level", @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
     XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
     NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
     XCTAssertTrue([footer containsString:@"Auto Reconnect restarts WaterWall"]);
+    XCTAssertTrue([footer containsString:@"Auto Switch uses the other WaterWall profiles of the same server"]);
     XCTAssertFalse([footer containsString:@"SSTP"]);
+    XCTAssertTrue(((UISwitch *)[self optionControlTitled:@"Auto Switch" inEditor:editor]).on);
 
     UISwitch *reconnect = [self optionControlTitled:@"Auto Reconnect" inEditor:editor];
     reconnect.on = NO;
@@ -3830,6 +3993,9 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     UISwitch *wifi = [self optionControlTitled:@"Switch to Wi-Fi When Available" inEditor:editor];
     wifi.on = NO;
     [wifi sendActionsForControlEvents:UIControlEventValueChanged];
+    UISwitch *autoSwitch = [self optionControlTitled:@"Auto Switch" inEditor:editor];
+    autoSwitch.on = NO;
+    [autoSwitch sendActionsForControlEvents:UIControlEventValueChanged];
     UISegmentedControl *sleep = [self optionControlTitled:@"On Sleep" inEditor:editor];
     sleep.selectedSegmentIndex = 1;
     [sleep sendActionsForControlEvents:UIControlEventValueChanged];
@@ -3840,12 +4006,65 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertTrue(result.autoReconnect);
     XCTAssertEqual(result.retryTimes, 3);
     XCTAssertFalse(result.switchToWifi);
+    XCTAssertFalse(result.waterwallAutoSwitch);
     XCTAssertEqual(result.onSleep, 1);
     NSDictionary *options = [CheckConnectData checkConnectParmer:result];
     XCTAssertEqualObjects(options[@"auto_reconnect"], @YES);
     XCTAssertEqualObjects(options[@"retry_times"], @3);
     XCTAssertEqualObjects(options[@"switch_to_wifi"], @NO);
+    XCTAssertEqualObjects(options[@"ww_auto_switch"], @NO);
     XCTAssertEqualObjects(options[@"on_sleep"], @"pause");
+    XCTAssertFalse([CheckConnectData getModalForDic:options].waterwallAutoSwitch);
+    NSMutableDictionary *older = [options mutableCopy];
+    [older removeObjectForKey:@"ww_auto_switch"];
+    XCTAssertTrue([CheckConnectData getModalForDic:older].waterwallAutoSwitch, @"Profiles saved before Auto Switch get it on");
+}
+
+- (NodeModel *)waterWallProfileNamed:(NSString *)name server:(NSString *)server
+                       configuration:(NSDictionary *)configuration {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.desc = name;
+    model.server = server;
+    model.port = @"443";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertNotNil(model.waterwallConfigJSON, @"%@ needs a valid chain", name);
+    return model;
+}
+
+- (void)testWaterWallAutoSwitchOffersTheOtherCarrierOfTheSameServerFirst {
+    NSDictionary *tcp = [self vmessNoneProfileConfiguration];
+    NSMutableDictionary *kcp = [tcp mutableCopy];
+    kcp[@"carrier"] = @"kcp";
+    NSMutableDictionary *quicStream = [tcp mutableCopy];
+    quicStream[@"outer"] = @"quic";
+    quicStream[@"quic-carrier"] = @"stream";
+    NodeModel *selected = [self waterWallProfileNamed:@"TCP" server:@"waterwall.example" configuration:tcp];
+    NodeModel *sameCarrier = [self waterWallProfileNamed:@"QUIC stream" server:@"WaterWall.Example " configuration:quicStream];
+    NodeModel *otherCarrier = [self waterWallProfileNamed:@"KCP" server:@"waterwall.example" configuration:kcp];
+    NodeModel *otherServer = [self waterWallProfileNamed:@"Elsewhere" server:@"other.example" configuration:kcp];
+    NodeModel *direct = [self waterWallProfileNamed:@"Direct" server:@"waterwall.example"
+                                      configuration:[SRPWaterWallChainConfig configurationFromLegacyPreset:@"direct"]];
+    NodeModel *copy = [self waterWallProfileNamed:@"Copy" server:@"waterwall.example" configuration:tcp];
+    NodeModel *sstp = [NodeModel new];
+    sstp.server = @"waterwall.example";
+    NSArray<NodeModel *> *profiles = @[selected, sameCarrier, sstp, otherServer, otherCarrier, direct, copy];
+
+    NSArray<NSDictionary *> *fallbacks = [CheckConnectData waterWallFallbacksForProfile:selected amongProfiles:profiles];
+    XCTAssertEqualObjects([fallbacks valueForKey:@"desc"], (@[@"KCP", @"QUIC stream"]));
+    for (NSDictionary *fallback in fallbacks) {
+        XCTAssertNil(fallback[@"password"], @"Fallbacks carry the Keychain reference, not the secret");
+        XCTAssertGreaterThan([fallback[@"ww_secret_ref"] length], 0U);
+    }
+    NSDictionary *parameters = [CheckConnectData connectParametersForProfile:selected amongProfiles:profiles];
+    XCTAssertEqual([parameters[@"ww_fallbacks"] count], 2U);
+    XCTAssertTrue([SRPWaterWallChainConfig configurationUsesUDPCarrier:kcp]);
+    XCTAssertFalse([SRPWaterWallChainConfig configurationUsesUDPCarrier:quicStream]);
+
+    selected.waterwallAutoSwitch = NO;
+    XCTAssertEqual([CheckConnectData waterWallFallbacksForProfile:selected amongProfiles:profiles].count, 0U);
+    XCTAssertNil([CheckConnectData connectParametersForProfile:selected amongProfiles:profiles][@"ww_fallbacks"]);
 }
 
 - (void)testWaterWallOptionRowsKeepFragmentationAndRoutingAfterSleep {
@@ -3859,8 +4078,8 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
     UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
-    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Switch to Wi-Fi When Available", @"On Sleep", @"Log Level",
-                                  @"TLS Fragmentation", @"First Chunk (bytes)", @"Following Chunks (bytes)",
+    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Auto Switch", @"Switch to Wi-Fi When Available", @"On Sleep",
+                                  @"Log Level", @"TLS Fragmentation", @"First Chunk (bytes)", @"Following Chunks (bytes)",
                                   @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
     XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
 }

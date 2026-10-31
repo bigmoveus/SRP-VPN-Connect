@@ -409,7 +409,9 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
     }
 
     __weak typeof(self)weakSelf = self;
-    [[PDVPNManager sharedManager] connectUsing:[CheckConnectData checkConnectParmer:[NodeModel shareInstance].selectNode] auth:^(YDUnsafeAuthResponse  _Nonnull response) {
+    [[PDVPNManager sharedManager] connectUsing:[CheckConnectData connectParametersForProfile:[NodeModel shareInstance].selectNode
+                                                                              amongProfiles:self.nodaArray]
+                                          auth:^(YDUnsafeAuthResponse  _Nonnull response) {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSString *issue = [PDVPNManager sharedManager].lastTLSIssue ?: @"The identity of the server can't be verified.";
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"DANGEROUS!"

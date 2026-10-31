@@ -31,6 +31,7 @@ LIFECYCLE_STEPS = (
     ("peer-recovery", "testWaterWallLivePeerRecoveryWhenConfigured", {"SRP_PEER_RECOVERY_TEST": "1"}, "restart"),
     ("retry-exhausted", "testWaterWallLiveRetryBudgetWhenConfigured",
      {"SRP_RETRY_LIVE_TEST": "1", "SRP_REAL_PEER_RETRY": "1", "SRP_RETRY_NO_RECOVERY": "1"}, "stop"),
+    ("auto-switch", "testWaterWallLiveAutoSwitchWhenConfigured", {"SRP_AUTO_SWITCH_TEST": "1"}, None),
 )
 
 

@@ -72,6 +72,7 @@ static const NSInteger kSwitchSEUdpAccel = 18;
 static const NSInteger kSwitchSENatT = 19;
 static const NSInteger kSwitchWWFakeDNS = 40;
 static const NSInteger kSwitchWWSmartRouting = 41;
+static const NSInteger kSwitchWWAutoSwitch = 43;
 static const NSInteger kFieldWWOuterSecret = 42;
 
 // SoftEther segmented control tags
@@ -682,6 +683,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         case kSwitchSETLSVerify: self.modal.TLS = !sw.isOn; break;   // TLS field = allowUntrusted (inverted)
         case kSwitchWWFakeDNS: self.modal.waterwallFakeDNS = sw.isOn; break;
         case kSwitchWWSmartRouting: self.modal.waterwallSmartRouting = sw.isOn; break;
+        case kSwitchWWAutoSwitch: self.modal.waterwallAutoSwitch = sw.isOn; break;
         case kSwitchSEUdpAccel: self.modal.seUdpAcceleration = sw.isOn; break;
         case kSwitchSENatT:
             self.modal.seNatTraversal = sw.isOn;
@@ -795,7 +797,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"Auto (PAC) proxy is not supported for SoftEther profiles yet; the connection will be made directly.";
     }
     if (section == 4 && [self isWaterWall]) {
-        NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error. Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open.";
+        NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error. Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); a network change returns to this profile. Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open.";
         NSDictionary *configuration = [self waterWallConfiguration];
         if ([SRPWaterWallChainConfig configurationAllowsFragmentation:configuration]) {
             base = [base stringByAppendingString:@" TLS Fragmentation splits the outer TLS ClientHello into smaller writes."];
@@ -927,13 +929,13 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
         case 4: // OPTIONS
             if ([self isWaterWall]) {
-                // Auto Reconnect (+Retry Times when on), Switch to Wi-Fi,
-                // On Sleep, Log Level (+ TLS Fragmentation where the chain
-                // has an outer TLS handshake, + the two routing switches)
+                // Auto Reconnect (+Retry Times when on), Auto Switch, Switch
+                // to Wi-Fi, On Sleep, Log Level (+ TLS Fragmentation where the
+                // chain has an outer TLS handshake, + the two routing switches)
                 NSDictionary *configuration = [self waterWallConfiguration];
                 BOOL fragmentation = [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration];
                 BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
-                return (self.modal.autoReconnect ? 5 : 4) + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) +
+                return (self.modal.autoReconnect ? 6 : 5) + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) +
                        (routing ? 2 : 0);
             }
             if ([self isWireGuard] || [self isPsiphon]) {
@@ -1391,34 +1393,37 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             NSInteger shifted = ar ? row : row + 1;   // align rows after Retry Times
             if (shifted == 2) {
-                return [self switchCellWithTitle:@"Switch to Wi-Fi When Available" on:self.modal.switchToWifi tag:kSwitchSwitchToWifi];
+                return [self switchCellWithTitle:@"Auto Switch" on:self.modal.waterwallAutoSwitch tag:kSwitchWWAutoSwitch];
             }
             if (shifted == 3) {
+                return [self switchCellWithTitle:@"Switch to Wi-Fi When Available" on:self.modal.switchToWifi tag:kSwitchSwitchToWifi];
+            }
+            if (shifted == 4) {
                 return [self segmentCellWithTitle:@"On Sleep" items:@[@"Off", @"Pause", @"Stay"]
                                          selected:self.modal.onSleep action:@selector(onSleepChanged:) tag:kSegmentOnSleep];
             }
-            if (shifted == 4) {
+            if (shifted == 5) {
                 return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
                                          selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
             }
             NSDictionary *configuration = [self waterWallConfiguration];
             BOOL fragmentation = [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration];
             BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
-            if (fragmentation && shifted == 5) {
+            if (fragmentation && shifted == 6) {
                 return [self segmentCellWithTitle:@"TLS Fragmentation" items:@[@"Off", @"Auto", @"Manual"]
                                          selected:self.modal.tlsFragMode action:@selector(tlsFragChanged:) tag:kSegmentTLSFrag];
             }
-            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 6) {
+            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 7) {
                 return [self textCellWithTitle:@"First Chunk (bytes)"
                                           text:(self.modal.tlsFragFirst > 0 ? @(self.modal.tlsFragFirst).stringValue : nil)
                                    placeholder:@"32" tag:kFieldTLSFragFirst keyboardType:UIKeyboardTypeNumberPad secure:NO];
             }
-            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 7) {
+            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 8) {
                 return [self textCellWithTitle:@"Following Chunks (bytes)"
                                           text:(self.modal.tlsFragFollowing > 0 ? @(self.modal.tlsFragFollowing).stringValue : nil)
                                    placeholder:@"256" tag:kFieldTLSFragFollowing keyboardType:UIKeyboardTypeNumberPad secure:NO];
             }
-            NSInteger routingRow = 5 + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0);
+            NSInteger routingRow = 6 + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0);
             if (routing && shifted == routingRow) {
                 return [self switchCellWithTitle:@"Remote DNS (Fake IP)" on:self.modal.waterwallFakeDNS tag:kSwitchWWFakeDNS];
             }
