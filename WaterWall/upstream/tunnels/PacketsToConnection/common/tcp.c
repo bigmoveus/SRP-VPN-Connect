@@ -245,7 +245,8 @@ err_t lwipThreadPtcTcpAccptCallback(void *arg, struct tcp_pcb *newpcb, err_t err
     {
         LOGW("PacketsToConnection: TCP aggregate pending-byte budget is full; refusing a new flow");
         tcp_abort(newpcb);
-        return ERR_MEM;
+        // lwIP aborts the PCB again for any other error, after it has been freed.
+        return ERR_ABRT;
     }
     line_t       *l  = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), owner_wid);
     ptc_lstate_t *ls = lineGetState(l, t);
