@@ -56,6 +56,30 @@
     return @"Microsoft SSTP over TLS";
 }
 
++ (void)applyProtocol:(NSString *)type toModel:(NodeModel *)model {
+    model.protocolType = type;
+    model.nodeName = nil;   // the getter derives the name from the protocol
+    // Protocol-specific defaults (same as the old action sheet)
+    if ([type isEqualToString:@"ssh"]) {
+        model.port = @"22";
+        model.sshUdpRelay = NO;   // relay off by default — enable only when the server has the HEV relay
+    } else if ([type isEqualToString:@"openvpn"]) {
+        model.port = @"1194";
+    } else if ([type isEqualToString:@"wireguard"]) {
+        model.port = @"51820";
+    } else if ([type isEqualToString:@"amnezia"]) {
+        model.port = @"51821";
+    } else if ([type isEqualToString:@"aether"]) {
+        model.aetherTransport = @"masque-both";
+        model.aetherScan = @"balanced";
+    } else if ([type isEqualToString:@"waterwall"]) {
+        model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
+        model.port = @"443";
+    } else if ([type isEqualToString:@"softether"] && model.hubName.length == 0) {
+        model.hubName = @"DEFAULT";
+    }
+}
+
 #pragma mark - Table view
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -82,28 +106,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString *type = self.types[indexPath.row];
-    self.model.protocolType = type;
-    self.model.nodeName = nil;   // the getter derives the name from the protocol
-    // Protocol-specific defaults (same as the old action sheet)
-    if ([type isEqualToString:@"ssh"]) {
-        self.model.port = @"22";
-        self.model.sshUdpRelay = NO;   // relay off by default — enable only when the server has the HEV relay
-    } else if ([type isEqualToString:@"openvpn"]) {
-        self.model.port = @"1194";
-    } else if ([type isEqualToString:@"wireguard"]) {
-        self.model.port = @"51820";
-    } else if ([type isEqualToString:@"amnezia"]) {
-        self.model.port = @"51821";
-    } else if ([type isEqualToString:@"aether"]) {
-        self.model.aetherTransport = @"masque-both";
-        self.model.aetherScan = @"balanced";
-    } else if ([type isEqualToString:@"waterwall"]) {
-        self.model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
-        self.model.port = @"443";
-    } else if ([type isEqualToString:@"softether"] && self.model.hubName.length == 0) {
-        self.model.hubName = @"DEFAULT";
-    }
+    [SRPProtocolViewController applyProtocol:self.types[indexPath.row] toModel:self.model];
     [self.navigationController popViewControllerAnimated:YES];
 }
 

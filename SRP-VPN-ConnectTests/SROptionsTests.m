@@ -4101,6 +4101,35 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(titles, (@[@"WaterWall VPN", @"SSTP VPN", @"SoftEther VPN", @"SSL VPN", @"SSH VPN", @"OpenVPN",
                                      @"WireGuard VPN", @"AmneziaWG VPN", @"Aether VPN", @"Psiphon VPN"]));
 }
+
+- (void)testNewProfileStartsAsWaterWall {
+    CreateVC *create = [NSClassFromString(@"CreateVC") new];
+    [create loadViewIfNeeded];
+    NodeModel *model = [create valueForKey:@"modal"];
+    XCTAssertEqualObjects(model.protocolType, @"waterwall");
+    XCTAssertEqualObjects(model.nodeName, @"WaterWall VPN");
+    XCTAssertEqualObjects(model.port, @"443");
+    XCTAssertEqualObjects(model.waterwallConfigJSON,
+                          [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]]);
+    XCTAssertTrue(model.MSCHAP2);
+
+    SRPProtocolViewController *picker = [[SRPProtocolViewController alloc] initWithNodeModel:model];
+    UITableViewCell *first = [picker tableView:picker.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertEqualObjects(first.textLabel.text, @"WaterWall VPN");
+    XCTAssertEqual(first.accessoryType, UITableViewCellAccessoryCheckmark);
+}
+
+- (void)testEditingAProfileKeepsItsProtocol {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"sstp";
+    model.port = @"8443";
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    NodeModel *edited = [create valueForKey:@"modal"];
+    XCTAssertEqualObjects(edited.protocolType, @"sstp");
+    XCTAssertEqualObjects(edited.port, @"8443");
+    XCTAssertNil(edited.waterwallConfigJSON);
+}
 #endif
 
 - (void)testWaterWallMatrixGenerationForLocalTesting {

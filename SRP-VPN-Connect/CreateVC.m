@@ -1873,11 +1873,11 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         self.modal = _t_modal;
     }else{
         self.modal = [NodeModel new];
-        self.modal.MSCHAP2 = TRUE;
-        self.modal.protocolType = @"sstp";
+        self.modal.MSCHAP2 = TRUE;   // SSTP defaults, kept for a switch to SSTP
         self.modal.authMethod = @"password";
+        [SRPProtocolViewController applyProtocol:@"waterwall" toModel:self.modal];
     }
-    // nodeName defaults to the protocol name (SSTP / SoftEther) via the getter
+    // nodeName defaults to the protocol name (WaterWall VPN / SSTP VPN / ...) via the getter
 
     self.tableVC = [[SRPProfileEditViewController alloc] initWithStyle:UITableViewStyleGrouped];
     self.tableVC.owner = self;
