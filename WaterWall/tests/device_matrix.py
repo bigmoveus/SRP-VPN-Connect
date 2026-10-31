@@ -51,9 +51,11 @@ class DeviceMatrix(SupportedMatrix):
         self.control = os.environ.get("SRP_TEST_SSH_CONTROL", "none")
         # A key avoids handing the harness a password; without one, the askpass flow is used.
         self.identity = os.environ.get("SRP_TEST_SSH_IDENTITY")
-        # The test credentials are public fixtures, so isolated ports can be limited to one client.
+        # The test credentials are public fixtures, so isolated ports are limited to known clients:
+        # one address, or a comma-separated list such as the harness host and a phone on cellular.
         source = os.environ.get("SRP_TEST_ALLOWED_SOURCE")
-        self.allowed_source = str(ipaddress.IPv4Address(source)) if source else None
+        sources = [str(ipaddress.IPv4Address(part.strip())) for part in source.split(",")] if source else []
+        self.allowed_source = ", ".join(sources) if sources else None
         self.remote_dir = "/tmp/srp-device-matrix"
         self.remote_binary = self.remote_dir + "/Waterwall"
         self.remote_pid = self.remote_dir + "/peer.pid"
@@ -86,7 +88,9 @@ class DeviceMatrix(SupportedMatrix):
                 "-o", "PubkeyAuthentication=no", "-o", "KbdInteractiveAuthentication=no"]
 
     def firewall_match(self):
-        return f"ip saddr {self.allowed_source} " if self.allowed_source else ""
+        if not self.allowed_source:
+            return ""
+        return f"ip saddr {{ {self.allowed_source} }} " if "," in self.allowed_source else f"ip saddr {self.allowed_source} "
 
     def ssh(self, command, timeout=60):
         if not self.host:
