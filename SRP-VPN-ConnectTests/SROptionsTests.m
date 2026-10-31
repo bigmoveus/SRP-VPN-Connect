@@ -3443,6 +3443,95 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertEqualObjects(saved.firstObject.server, @"sstp.example");
     XCTAssertEqualObjects(saved.firstObject.password, @" secret ");
 }
+
+- (NSArray<NSString *> *)optionTitlesOfEditor:(UITableViewController *)editor {
+    NSInteger rows = [editor tableView:editor.tableView numberOfRowsInSection:4];
+    NSMutableArray<NSString *> *titles = [NSMutableArray new];
+    for (NSInteger row = 0; row < rows; row++) {
+        UITableViewCell *cell = [editor tableView:editor.tableView
+                            cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:4]];
+        [titles addObject:cell.textLabel.text ?: @""];
+    }
+    return titles;
+}
+
+- (id)optionControlTitled:(NSString *)title inEditor:(UITableViewController *)editor {
+    NSInteger rows = [editor tableView:editor.tableView numberOfRowsInSection:4];
+    for (NSInteger row = 0; row < rows; row++) {
+        UITableViewCell *cell = [editor tableView:editor.tableView
+                            cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:4]];
+        if ([cell.textLabel.text isEqualToString:title]) return cell.accessoryView;
+    }
+    return nil;
+}
+
+- (void)testWaterWallProfileOffersConnectionOptions {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @"waterwall.example";
+    model.port = @"443";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Retry Times", @"Switch to Wi-Fi When Available", @"On Sleep",
+                                  @"Log Level", @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
+    NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
+    XCTAssertTrue([footer containsString:@"Auto Reconnect restarts WaterWall"]);
+    XCTAssertFalse([footer containsString:@"SSTP"]);
+
+    UISwitch *reconnect = [self optionControlTitled:@"Auto Reconnect" inEditor:editor];
+    reconnect.on = NO;
+    [reconnect sendActionsForControlEvents:UIControlEventValueChanged];
+    NSMutableArray<NSString *> *withoutRetry = [rows mutableCopy];
+    [withoutRetry removeObject:@"Retry Times"];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], withoutRetry);
+    reconnect = [self optionControlTitled:@"Auto Reconnect" inEditor:editor];
+    reconnect.on = YES;
+    [reconnect sendActionsForControlEvents:UIControlEventValueChanged];
+
+    UITextField *retry = [self optionControlTitled:@"Retry Times" inEditor:editor];
+    retry.text = @"3";
+    [retry sendActionsForControlEvents:UIControlEventEditingChanged];
+    UISwitch *wifi = [self optionControlTitled:@"Switch to Wi-Fi When Available" inEditor:editor];
+    wifi.on = NO;
+    [wifi sendActionsForControlEvents:UIControlEventValueChanged];
+    UISegmentedControl *sleep = [self optionControlTitled:@"On Sleep" inEditor:editor];
+    sleep.selectedSegmentIndex = 1;
+    [sleep sendActionsForControlEvents:UIControlEventValueChanged];
+    [self tapSaveOnProfileEditor:editor];
+
+    XCTAssertEqual(saved.count, 1U);
+    NodeModel *result = saved.firstObject;
+    XCTAssertTrue(result.autoReconnect);
+    XCTAssertEqual(result.retryTimes, 3);
+    XCTAssertFalse(result.switchToWifi);
+    XCTAssertEqual(result.onSleep, 1);
+    NSDictionary *options = [CheckConnectData checkConnectParmer:result];
+    XCTAssertEqualObjects(options[@"auto_reconnect"], @YES);
+    XCTAssertEqualObjects(options[@"retry_times"], @3);
+    XCTAssertEqualObjects(options[@"switch_to_wifi"], @NO);
+    XCTAssertEqualObjects(options[@"on_sleep"], @"pause");
+}
+
+- (void)testWaterWallOptionRowsKeepFragmentationAndRoutingAfterSleep {
+    NSMutableDictionary *configuration = [[self vmessNoneProfileConfiguration] mutableCopy];
+    configuration[@"outer"] = @"tls";
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.autoReconnect = NO;
+    model.tlsFragMode = 2;
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Switch to Wi-Fi When Available", @"On Sleep", @"Log Level",
+                                  @"TLS Fragmentation", @"First Chunk (bytes)", @"Following Chunks (bytes)",
+                                  @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
+}
 #endif
 
 - (void)testWaterWallMatrixGenerationForLocalTesting {
