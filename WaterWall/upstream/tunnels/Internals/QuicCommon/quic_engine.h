@@ -99,8 +99,20 @@ extern "C"
     uint64_t ww_quic_now_us(void);
     /* Absolute monotonic microseconds; UINT64_MAX means no pending work. */
     uint64_t    ww_quic_engine_deadline(const ww_quic_engine_t *engine);
+    /* Wire output and READY come first; held plaintext is not offered, and
+     * CLOSED waits until the plaintext staged before it has been consumed. */
     bool        ww_quic_engine_peek(const ww_quic_engine_t *engine, ww_quic_event_t *event);
     void        ww_quic_engine_consume(ww_quic_engine_t *engine);
+    /* While held, plaintext stays staged and further stream bytes stay unread,
+     * so QUIC flow control pushes back on the peer instead of losing packets. */
+    void        ww_quic_engine_hold(ww_quic_engine_t *engine, bool held);
+    /* True while held plaintext still precedes a staged CLOSED or later output. */
+    bool        ww_quic_engine_holding(const ww_quic_engine_t *engine);
+    /* True while received application bytes are staged or still unread. */
+    bool        ww_quic_engine_application_pending(const ww_quic_engine_t *engine);
+    /* Reads stream bytes deferred by a hold or a full staging budget once
+     * neither applies. True when that left a deliverable event. */
+    bool        ww_quic_engine_resume_read(ww_quic_engine_t *engine);
     void        ww_quic_engine_storage(const ww_quic_engine_t *engine, ww_quic_storage_t *storage);
     bool        ww_quic_engine_ready(const ww_quic_engine_t *engine);
     bool        ww_quic_engine_closed(const ww_quic_engine_t *engine);

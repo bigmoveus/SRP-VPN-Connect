@@ -2,8 +2,6 @@
 
 void quicclientTunnelUpStreamPause(tunnel_t *t, line_t *l)
 {
-    if (quicCanRelay(t, l))
-    {
-        tunnelNextUpStreamPause(t, l);
-    }
+    /* Not gated on quicCanRelay: a carrier drain still honors the application hold. */
+    quicHoldApplication(t, l, true);
 }

@@ -4,6 +4,10 @@
 
 void quicPressure(quic_context_t *context)
 {
+    if (quicApplicationFinished(context))
+    {
+        return;
+    }
     quic_tstate_t    *state = tunnelGetState(context->tunnel);
     ww_quic_storage_t storage;
     ww_quic_engine_storage(context->engine, &storage);
@@ -57,9 +61,15 @@ static bool quicDeliverEvent(quic_context_t *context)
         }
         return true;
     }
-    quic_tstate_t *state  = tunnelGetState(context->tunnel);
-    bool           wire   = event.type == WW_QUIC_EVENT_DATAGRAM;
-    uint32_t       prefix = wire && state->stream_carrier ? 4 : 0;
+    quic_tstate_t *state = tunnelGetState(context->tunnel);
+    bool           wire  = event.type == WW_QUIC_EVENT_DATAGRAM;
+    if (wire ? quicCarrierFinished(context) : quicApplicationFinished(context))
+    {
+        /* Output toward a side that already finished has no reader. */
+        ww_quic_engine_consume(context->engine);
+        return true;
+    }
+    uint32_t prefix = wire && state->stream_carrier ? 4 : 0;
     assert(event.length <= WW_QUIC_WRITE_CHUNK);
     /* Retire staging before allocating the onward buffer, so their heap
      * allocations never overlap at the output backlog's hard boundary. */
@@ -173,7 +183,11 @@ void quicPump(quic_context_t *context)
         }
         if (ww_quic_engine_closed(context->engine))
         {
-            quicFail(context, ww_quic_engine_error(context->engine));
+            /* Held plaintext precedes CLOSED; the application's Resume delivers both. */
+            if (! ww_quic_engine_holding(context->engine))
+            {
+                quicFail(context, ww_quic_engine_error(context->engine));
+            }
             break;
         }
         if (quicFeedInput(context))
@@ -181,6 +195,10 @@ void quicPump(quic_context_t *context)
             continue;
         }
         if (quicWriteApplication(context, false))
+        {
+            continue;
+        }
+        if (ww_quic_engine_resume_read(context->engine))
         {
             continue;
         }
@@ -194,6 +212,10 @@ void quicPump(quic_context_t *context)
     if (quicSurvived(context))
     {
         quicReconcileFinal(context);
+    }
+    if (quicSurvived(context))
+    {
+        quicReconcileCarrierDrain(context);
     }
     if (quicSurvived(context))
     {
@@ -231,28 +253,34 @@ void quicFinalWire(quic_context_t *context)
     }
 }
 
-void quicReleaseFinalDrain(quic_context_t *context)
+bool quicApplicationPending(quic_context_t *context)
 {
-    if (! context->close_drain_held)
+    return ww_quic_engine_application_pending(context->engine) || context->active_input != NULL ||
+           bufferqueueGetBufCount(&context->input) > 0;
+}
+
+/* After the carrier finished, the application receives what had arrived and
+ * then its Finish; an engine failure ends the drain through quicFail. */
+void quicReconcileCarrierDrain(quic_context_t *context)
+{
+    if (! context->carrier_drain || quicApplicationPending(context))
     {
         return;
     }
-    tunnel_t *t = context->tunnel;
-    line_t   *l = context->line;
-    lineRef(l);
-    context->close_drain_held = false;
-    if (lineEndCloseDrain(l))
+    context->carrier_drain = false;
+    quicRetire(context);
+}
+
+/* True when the line owner's destroy waited for this drain; the caller must
+ * finish the still-open side before completing that destroy. */
+bool quicEndFinalDrain(quic_context_t *context)
+{
+    if (! context->close_drain_held)
     {
-        if (lineIsAlive(l))
-        {
-            tunnelNextUpStreamFinish(t, l);
-        }
-        if (lineIsAlive(l))
-        {
-            lineDestroy(l);
-        }
+        return false;
     }
-    lineUnref(l);
+    context->close_drain_held = false;
+    return lineEndCloseDrain(context->line);
 }
 
 void quicReconcileFinal(quic_context_t *context)
@@ -266,16 +294,8 @@ void quicReconcileFinal(quic_context_t *context)
     if (storage.send_bytes == 0 && storage.wire_bytes == 0 && storage.plaintext_bytes == 0 &&
         context->active_application == NULL && bufferqueueGetBufCount(&context->application) == 0)
     {
-        tunnel_t  *t         = context->tunnel;
-        line_t    *l         = context->line;
-        const bool finish_up = context->finish_up;
         context->final_flush = false;
-        quicReleaseFinalDrain(context);
-        quicDetach(context);
-        if (! finish_up && lineIsAlive(l))
-        {
-            tunnelPrevDownStreamFinish(t, l);
-        }
+        quicRetire(context);
         return;
     }
     if (ww_quic_now_us() < context->final_deadline_us)
@@ -283,6 +303,5 @@ void quicReconcileFinal(quic_context_t *context)
         return;
     }
     context->final_flush = false;
-    quicReleaseFinalDrain(context);
     quicFail(context, "graceful close acknowledgement deadline exceeded");
 }

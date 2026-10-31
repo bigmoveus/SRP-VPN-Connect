@@ -59,6 +59,9 @@ void            quicCompleteLineInit(quic_context_t *context);
 void quicSubmitApplication(tunnel_t *t, line_t *l, sbuf_t *buffer);
 void quicSubmitCarrier(tunnel_t *t, line_t *l, sbuf_t *buffer);
 bool quicCanRelay(tunnel_t *t, line_t *l);
+/* Maps the application's Pause/Resume onto QUIC flow control. Pausing the
+ * carrier instead would also drop acknowledgements on a datagram carrier. */
+void quicHoldApplication(tunnel_t *t, line_t *l, bool hold);
 
 typedef enum quic_finish_side
 {

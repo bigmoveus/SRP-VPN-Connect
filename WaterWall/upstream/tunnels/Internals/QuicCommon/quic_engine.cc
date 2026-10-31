@@ -553,6 +553,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     explicit ww_quic_engine(const ww_quic_config *configuration)
         : config(configuration), alarms(configuration->settings), writer(this), generator(kConnectionIdLength),
           cache(16), events(size_t(configuration->settings.max_buffered_buffers) * 2 + 2, configuration->settings),
+          plaintext(size_t(configuration->settings.max_buffered_buffers) + 1, configuration->settings),
           ledger(configuration->settings.max_buffered_buffers, configuration->settings), created_us(ww_quic_now_us())
     {
         // Synthetic identities are stable for the borrowed carrier association.
@@ -585,7 +586,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         if (copy == nullptr)
             Fatal(config->settings);
         std::memcpy(copy, data, length);
-        events.push_back({type, copy, length});
+        (wire ? events : plaintext).push_back({type, copy, length});
         bytes += length;
         allocation += charge;
         ++entries;
@@ -630,7 +631,24 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     void OnCanCreateNewOutgoingUnidirectionalStream() override {}
 
     webtransport::Stream *Stream() const { return session ? session->GetStreamById(0) : nullptr; }
-    void                  Read()
+    /* Unread bytes stay in QUICHE, whose stream flow control then holds the
+     * peer back without loss; a client never auto-tunes that window upward. */
+    bool ReadBlocked() const
+    {
+        return held || storage.plaintext_bytes + WW_QUIC_WRITE_CHUNK > config->settings.receive_window_bytes ||
+               storage.plaintext_entries >= config->settings.max_buffered_buffers;
+    }
+    /* Wire output never waits behind held plaintext, while CLOSED still
+     * follows every plaintext event staged before it. */
+    const Ring<Event> *NextQueue() const
+    {
+        if (! events.empty() && events.front().type != WW_QUIC_EVENT_CLOSED)
+            return &events;
+        if (! plaintext.empty())
+            return held ? nullptr : &plaintext;
+        return events.empty() ? nullptr : &events;
+    }
+    void Read()
     {
         auto *stream = Stream();
         if (stream == nullptr || closed)
@@ -641,6 +659,11 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         char bytes[WW_QUIC_WRITE_CHUNK];
         for (;;)
         {
+            if (ReadBlocked())
+            {
+                read_deferred = true;
+                return;
+            }
             auto   result = stream->Read(absl::MakeSpan(bytes));
             size_t offset = 0;
             if (! config->settings.is_client && ! marker_received && result.bytes_read != 0)
@@ -899,13 +922,16 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         session.reset();
         client_crypto.reset();
         server_crypto.reset();
-        while (! events.empty())
+        for (Ring<Event> *queue : {&events, &plaintext})
         {
-            if (events.front().bytes)
-                config->settings.deallocate(events.front().bytes);
-            events.pop_front();
+            while (! queue->empty())
+            {
+                if (queue->front().bytes)
+                    config->settings.deallocate(queue->front().bytes);
+                queue->pop_front();
+            }
+            queue->Release();
         }
-        events.Release();
         ledger.Release();
         storage         = {};
         wire_allocation = plaintext_allocation = 0;
@@ -923,6 +949,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     std::unique_ptr<quic::QuicCryptoServerConfig> server_crypto;
     std::unique_ptr<Session>                      session;
     Ring<Event>                                   events;
+    Ring<Event>                                   plaintext;
     Ring<Ledger>                                  ledger;
     ww_quic_storage_t                             storage{};
     size_t                                        wire_allocation = 0, plaintext_allocation = 0;
@@ -936,6 +963,8 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     bool                                          marker_sent     = false;
     bool                                          ready           = false;
     bool                                          closed          = false;
+    bool                                          held            = false;
+    bool                                          read_deferred   = false;
 };
 
 extern "C" uint64_t ww_quic_now_us(void)
@@ -1233,16 +1262,18 @@ extern "C" uint64_t ww_quic_engine_deadline(const ww_quic_engine_t *engine)
 extern "C" bool ww_quic_engine_peek(const ww_quic_engine_t *engine, ww_quic_event_t *event)
 {
     assert(engine && event);
-    if (engine->events.empty())
+    const auto *queue = engine->NextQueue();
+    if (queue == nullptr)
         return false;
-    const auto &front = engine->events.front();
+    const auto &front = queue->front();
     *event            = {front.type, front.bytes, front.length};
     return true;
 }
 extern "C" void ww_quic_engine_consume(ww_quic_engine_t *engine)
 {
-    assert(engine && ! engine->events.empty());
-    const auto &front = engine->events.front();
+    assert(engine && engine->NextQueue() != nullptr);
+    auto       *queue = const_cast<Ring<ww_quic_engine::Event> *>(engine->NextQueue());
+    const auto &front = queue->front();
     if (front.bytes)
     {
         bool wire = front.type == WW_QUIC_EVENT_DATAGRAM;
@@ -1251,7 +1282,43 @@ extern "C" void ww_quic_engine_consume(ww_quic_engine_t *engine)
         (wire ? engine->wire_allocation : engine->plaintext_allocation) -= front.length;
         engine->config->settings.deallocate(front.bytes);
     }
-    engine->events.pop_front();
+    queue->pop_front();
+}
+extern "C" void ww_quic_engine_hold(ww_quic_engine_t *engine, bool held)
+{
+    assert(engine);
+    engine->held = held;
+}
+extern "C" bool ww_quic_engine_holding(const ww_quic_engine_t *engine)
+{
+    assert(engine);
+    return engine->held && ! engine->plaintext.empty();
+}
+extern "C" bool ww_quic_engine_application_pending(const ww_quic_engine_t *engine)
+{
+    assert(engine);
+    if (! engine->plaintext.empty())
+        return true;
+    if (engine->closed || ! engine->handshake_ready)
+        return false;
+    const auto *stream = engine->Stream();
+    return stream != nullptr && stream->ReadableBytes() > 0;
+}
+extern "C" bool ww_quic_engine_resume_read(ww_quic_engine_t *engine)
+try
+{
+    assert(engine);
+    if (engine->closed || ! engine->read_deferred || engine->ReadBlocked())
+        return false;
+    engine->read_deferred = false;
+    // Reading may grant flow-control credit; flush its window update now.
+    if (engine->AfterDrive() && engine->session)
+        engine->session->connection()->OnCanWrite();
+    return engine->NextQueue() != nullptr;
+}
+catch (...)
+{
+    Fatal(engine->config->settings);
 }
 extern "C" void ww_quic_engine_storage(const ww_quic_engine_t *engine, ww_quic_storage_t *storage)
 {

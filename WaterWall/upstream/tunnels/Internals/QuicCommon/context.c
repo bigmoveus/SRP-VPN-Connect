@@ -95,14 +95,22 @@ void quicDetach(quic_context_t *context)
 void quicFail(quic_context_t *context, const char *reason)
 {
     assert(context->attached && context->driving);
-    tunnel_t      *t                = context->tunnel;
-    line_t        *l                = context->line;
-    bool           next_initialized = context->next_init_sent;
-    bool           finish_up        = context->finish_up;
-    bool           finish_down      = context->finish_down;
-    quic_tstate_t *state            = tunnelGetState(t);
+    quic_tstate_t *state = tunnelGetState(context->tunnel);
     LOGW("%s: closing association: %s", state->client ? "QuicClient" : "QuicServer", reason);
-    quicReleaseFinalDrain(context);
+    quicRetire(context);
+}
+
+/* Detaches, finishes each side that has not finished, then completes a line
+ * destroy deferred behind the final drain. The caller keeps the line referenced. */
+void quicRetire(quic_context_t *context)
+{
+    assert(context->attached);
+    tunnel_t  *t                = context->tunnel;
+    line_t    *l                = context->line;
+    const bool next_initialized = context->next_init_sent;
+    const bool finish_up        = context->finish_up;
+    const bool finish_down      = context->finish_down;
+    const bool destroy_deferred = quicEndFinalDrain(context);
     quicDetach(context);
     if (next_initialized && ! finish_down && lineIsAlive(l))
     {
@@ -111,6 +119,10 @@ void quicFail(quic_context_t *context, const char *reason)
     if (! finish_up && lineIsAlive(l))
     {
         tunnelPrevDownStreamFinish(t, l);
+    }
+    if (destroy_deferred && lineIsAlive(l))
+    {
+        lineDestroy(l);
     }
 }
 
@@ -197,9 +209,26 @@ quic_finish_scope_t quicBeginFinish(tunnel_t *t, line_t *l, quic_finish_side_t s
     {
         context->finish_down = true;
     }
-    quicCancelTimer(context);
-    if (context->final_flush)
+    if (mode == kQuicFinishFlushApplication)
     {
+        /* Plaintext held for the application is now dropped on delivery. */
+        ww_quic_engine_hold(context->engine, false);
+    }
+    quicCancelTimer(context);
+    if (context->final_flush || context->carrier_drain)
+    {
+        /* One side finished first and this is the other: nothing pending can
+         * reach either peer, and neither side may receive further output. */
+        context->final_flush   = false;
+        context->carrier_drain = false;
+        quicRetire(context);
+        return scope;
+    }
+    if (mode == kQuicFinishDiscardCarrier && ! was_finishing && quicApplicationPending(context))
+    {
+        /* The peer's bytes already arrived; a held application still receives
+         * them before its Finish, as a carrier close follows its last byte. */
+        context->carrier_drain = true;
         quicArm(context, true);
         return scope;
     }
@@ -252,6 +281,30 @@ bool quicCanRelay(tunnel_t *t, line_t *l)
     return ! context->finish_up && ! context->finish_down;
 }
 
+void quicHoldApplication(tunnel_t *t, line_t *l, bool hold)
+{
+    quic_context_t *context = quicGetContext(t, l);
+    if (context == NULL || quicApplicationFinished(context))
+    {
+        return;
+    }
+    ww_quic_engine_hold(context->engine, hold);
+    if (hold)
+    {
+        return;
+    }
+    if (quicEnter(context))
+    {
+        quicPump(context);
+        quicLeave(context);
+    }
+    else
+    {
+        /* The active driver re-arms immediately instead of awaiting an alarm. */
+        ++context->input_generation;
+    }
+}
+
 void quicCloseAdmission(tunnel_t *t)
 {
     quic_tstate_t *state = tunnelGetState(t);
@@ -265,13 +318,25 @@ void quicQuiesceWorker(tunnel_t *t, wid_t wid)
     while (state->workers[wid] != NULL)
     {
         quic_context_t *session = state->workers[wid];
+        line_t         *line    = session->line;
         assert(! session->driving);
-        quicReleaseFinalDrain(session);
-        quicDetach(session);
-        if (lineIsAlive(session->line))
+        /* Detach frees an undriven session; the line must outlive both paths. */
+        lineRef(line);
+        if (session->final_flush)
         {
-            tunnelBypassLine(t, session->line);
+            /* The application already finished; the carrier still awaits Finish. */
+            session->final_flush = false;
+            quicRetire(session);
         }
+        else
+        {
+            quicDetach(session);
+            if (lineIsAlive(line))
+            {
+                tunnelBypassLine(t, line);
+            }
+        }
+        lineUnref(line);
     }
 }
 
