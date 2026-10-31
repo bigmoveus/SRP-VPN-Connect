@@ -162,8 +162,9 @@ void vmessclientRefreshDownstreamPause(tunnel_t *t, line_t *l)
     }
     const bool full    = usage.bytes >= kVmessClientInputPauseBytes || usage.charge >= kVmessClientInputPauseCharge;
     const bool drained = usage.bytes <= kVmessClientInputResumeBytes && usage.charge <= kVmessClientInputResumeCharge;
-    const bool transport_paused = ls->kind == kVmessClientLineKindDirect ? ls->next_paused : ls->carrier_paused;
-    const bool paused           = transport_paused || (ls->downstream_pause_sent ? ! drained : full);
+    /* Only our own backlog may stop reads: a transport that pauses our writes
+     * until its handshake completes still has to read that handshake. */
+    const bool paused = ls->downstream_pause_sent ? ! drained : full;
     if (paused == ls->downstream_pause_sent)
         return;
 
