@@ -1740,6 +1740,12 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     configuration[@"outer"] = @"quic";
     waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
     XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port]);
+    // QUIC's stream carrier runs over a TCP connection to the same port.
+    configuration[@"quic-carrier"] = @"stream";
+    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    XCTAssertNotNil(waterwall.waterwallConfigJSON);
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port], @"203.0.113.8");
+    XCTAssertEqual(port, 2083);
 
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:85 timedOut:NO], @"TCP: 85 ms");
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:YES], @"TCP: Timeout");

@@ -259,9 +259,8 @@ static const NSTimeInterval kSRPTCPPingTimeout = 2.5;
     } else if ([type isEqualToString:@"waterwall"]) {
         NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:profile.waterwallConfigJSON] ?:
                                       [SRPWaterWallChainConfig defaultConfiguration];
-        if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration] ||
-            [SRPWaterWallChainConfig isDirectConfiguration:configuration] ||
-            [configuration[@"carrier"] isEqualToString:@"kcp"] || [configuration[@"outer"] isEqualToString:@"quic"]) {
+        if ([SRPWaterWallChainConfig isDirectConfiguration:configuration] ||
+            [SRPWaterWallChainConfig configurationUsesUDPCarrier:configuration]) {
             return nil;
         }
     } else {
