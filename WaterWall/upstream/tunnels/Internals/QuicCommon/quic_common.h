@@ -62,6 +62,9 @@ bool quicCanRelay(tunnel_t *t, line_t *l);
 /* Maps the application's Pause/Resume onto QUIC flow control. Pausing the
  * carrier instead would also drop acknowledgements on a datagram carrier. */
 void quicHoldApplication(tunnel_t *t, line_t *l, bool hold);
+/* The carrier's Pause/Resume of our wire output; the application is resumed
+ * only when neither this nor our own send backlog still holds it. */
+void quicSetCarrierPaused(tunnel_t *t, line_t *l, bool paused);
 
 typedef enum quic_finish_side
 {

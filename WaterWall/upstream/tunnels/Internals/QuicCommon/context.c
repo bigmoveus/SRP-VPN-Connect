@@ -305,6 +305,30 @@ void quicHoldApplication(tunnel_t *t, line_t *l, bool hold)
     }
 }
 
+void quicSetCarrierPaused(tunnel_t *t, line_t *l, bool paused)
+{
+    quic_context_t *context = quicGetContext(t, l);
+    if (context == NULL || quicApplicationFinished(context) || context->carrier_paused == paused)
+    {
+        return;
+    }
+    context->carrier_paused = paused;
+    if (context->pressure)
+    {
+        // Our send backlog already holds the application; quicPressure resumes it.
+        return;
+    }
+    quic_tstate_t *state = tunnelGetState(t);
+    if (paused)
+    {
+        state->output->application_pause(t, l);
+    }
+    else
+    {
+        state->output->application_resume(t, l);
+    }
+}
+
 void quicCloseAdmission(tunnel_t *t)
 {
     quic_tstate_t *state = tunnelGetState(t);
