@@ -168,7 +168,8 @@ static void SRPWWLog(void *context, int level, const char *message, size_t lengt
     if (!client.liveDiagnostics) return;
     @autoreleasepool {
         if (message == NULL) return;
-        if (level < 4) {
+        // A debug-level diagnostic run keeps every line; otherwise only errors and known flow events.
+        if (level < 4 && client.logLevel < 2) {
             static const char *const prefixes[] = {
                 "VmessClient:", "TcpConnector: received close", "PacketsToConnection: closing flow",
                 "PacketsToConnection: closing TCP flow",

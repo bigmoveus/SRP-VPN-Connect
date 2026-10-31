@@ -861,6 +861,10 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         [handle seekToEndOfFile];
         [handle writeData:[message dataUsingEncoding:NSUTF8StringEncoding]];
         [handle closeFile];
+#if !DEBUG
+        // Fatal runtime contract checks print to stderr just before _Exit; keep them with the test log.
+        if (freopen(path.fileSystemRepresentation, "a", stderr) != NULL) setvbuf(stderr, NULL, _IOLBF, 0);
+#endif
     }
     NSString *secret = [v[@"ww_secret_ref"] length] > 0 ? [SRPKeychain passwordForKey:v[@"ww_secret_ref"]] : v[@"password"];
     SRPWaterWallClient *client = [SRPWaterWallClient new];
