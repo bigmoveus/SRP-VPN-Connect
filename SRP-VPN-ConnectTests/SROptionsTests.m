@@ -2030,10 +2030,14 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     for (NSUInteger index = 0; index < CC_SHA256_DIGEST_LENGTH; index++) {
         [expectedDigest appendFormat:@"%02x", digest[index]];
     }
+    // Upload-only leaves the server silent apart from each upload's reply, so the
+    // health monitor keeps probing while the uploads run.
+    BOOL uploadOnly = [environment[@"SRP_WW_UPLOAD_ONLY"] boolValue];
+    NSUInteger transfers = connections * (uploadOnly ? 1 : 2);
     NSDate *startedAt = NSDate.date;
     NSDate *deadline = [startedAt dateByAddingTimeInterval:duration];
     XCTestExpectation *load = [self expectationWithDescription:@"Sustained parallel live downloads and verified uploads"];
-    load.expectedFulfillmentCount = connections * 2;
+    load.expectedFulfillmentCount = transfers;
     NSMutableArray<NSString *> *errors = [NSMutableArray new];
     NSLock *resultsLock = [NSLock new];
     NSMutableArray<NSMutableDictionary *> *downloads = [NSMutableArray new];
@@ -2055,8 +2059,10 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         if (manager.status == YDVPNStatusDisconnected) [session invalidateAndCancel];
     }];
     for (NSUInteger index = 0; index < connections; index++) {
-        [self startSustainedDownloadForIndex:index sequence:0 session:session baseURL:baseURL deadline:deadline
-                                 stressBytes:stressBytes expectation:load errors:errors resultsLock:resultsLock statistics:downloads];
+        if (!uploadOnly) {
+            [self startSustainedDownloadForIndex:index sequence:0 session:session baseURL:baseURL deadline:deadline
+                                     stressBytes:stressBytes expectation:load errors:errors resultsLock:resultsLock statistics:downloads];
+        }
         [self startSustainedUploadForIndex:index sequence:0 session:session baseURL:baseURL deadline:deadline
                                    payload:payload expectedDigest:expectedDigest expectation:load errors:errors
                                resultsLock:resultsLock statistics:uploads];
@@ -2086,9 +2092,9 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSTimeInterval actualDuration = -startedAt.timeIntervalSinceNow;
     NSLog(@"Sustained full-duplex: %.2f seconds, downloaded=%llu, uploaded=%llu, download_requests=%lu, upload_requests=%lu, errors=%@, finished=%lu/%lu, timeouts=%lu, VPN status=%ld",
           actualDuration, downloaded, uploaded, (unsigned long)downloadRequests, (unsigned long)uploadRequests,
-          errors, (unsigned long)finished, (unsigned long)(connections * 2), (unsigned long)timeouts, (long)manager.status);
+          errors, (unsigned long)finished, (unsigned long)transfers, (unsigned long)timeouts, (long)manager.status);
     BOOL passed = manager.status == YDVPNStatusConnected && errors.count == 0 && timeouts == 0 &&
-                  actualDuration >= duration && finished == connections * 2 && downloaded > 0 && uploaded > 0;
+                  actualDuration >= duration && finished == transfers && (uploadOnly || downloaded > 0) && uploaded > 0;
     if (!passed && [environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) {
         [self logWaterWallProviderFile:@"native-log" manager:manager];
         [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
@@ -2674,6 +2680,55 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 #endif
 }
 
+- (void)testWaterWallLiveSleepModesWhenConfigured {
+#if DEBUG
+    if (![NSProcessInfo.processInfo.environment[@"SRP_SLEEP_MODES_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    @try {
+        // {On Sleep, Auto Reconnect}, each in its own VPN session
+        for (NSArray<NSNumber *> *item in @[@[@2, @YES], @[@1, @NO], @[@0, @YES], @[@0, @NO]]) {
+            NodeModel *model = [self liveWaterWallModelFromEnvironment];
+            XCTAssertNotNil(model);
+            if (model == nil) return;
+            model.onSleep = item[0].integerValue;
+            model.autoReconnect = item[1].boolValue;
+            BOOL closes = model.onSleep != 2;
+            BOOL resumes = model.onSleep != 0 || model.autoReconnect;
+            NSString *error = nil;
+            XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+            if (manager.status != YDVPNStatusConnected) return;
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+            NSLog(@"Sleep mode %ld with auto reconnect %d", (long)model.onSleep, model.autoReconnect);
+            [self waterWallProviderCommand:@"sleep" manager:manager];
+            XCTAssertTrue([self waitForWaterWallState:@"sleepPaused" value:closes manager:manager timeout:5]);
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:!closes manager:manager timeout:5]);
+            [self waterWallProviderCommand:@"wake" manager:manager];
+            if (resumes) {
+                XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
+                XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+                [self waitForLiveVPNDisconnect:manager];
+            } else {
+                // Off without Auto Reconnect ends the tunnel with a reason
+                XCTAssertTrue([self waitForLiveVPNDisconnectedStatus:manager timeout:15]);
+                NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+                NSString *message = [shared objectForKey:@"SRPLastError"][@"message"];
+                XCTAssertTrue([message containsString:@"closed while the device slept"], @"%@", message);
+            }
+            XCTAssertEqual(manager.status, YDVPNStatusDisconnected);
+            [NSThread sleepForTimeInterval:2];
+        }
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Sleep instrumentation requires a Debug build.");
+#endif
+}
+
 - (void)testWaterWallLiveRetryBudgetWhenConfigured {
 #if DEBUG
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
@@ -2694,7 +2749,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         if (manager.status != YDVPNStatusConnected) return;
         if ([environment[@"SRP_REAL_PEER_RETRY"] boolValue]) {
             NSLog(@"SRP peer-failure test ready");
-            XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:45]);
+            // Stopping the peer, 15 idle seconds and three health attempts take up to a minute.
+            XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:75]);
             if (!model.autoReconnect) {
                 XCTAssertTrue([self waitForLiveVPNDisconnectedStatus:manager timeout:15]);
                 return;
@@ -2756,7 +2812,9 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
         if (manager.status != YDVPNStatusConnected) return;
         NSLog(@"SRP peer-failure test ready");
-        XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:30]);
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:75]);
+        // The harness restarts the stopped peer once the client has seen the failure.
+        NSLog(@"SRP peer-failure observed");
         XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:45]);
         XCTAssertTrue([self waterWallLiveHTTPS204:model]);
         XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);

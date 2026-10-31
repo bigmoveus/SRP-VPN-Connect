@@ -12,11 +12,25 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from urllib.parse import urlsplit, urlunsplit
 
 from matrix import UUID, GEO_DATABASE, run_logged, tail, write_json
 from supported_matrix import SupportedMatrix, candidate_specs, builder_input
+
+# Each step is one live test in its own VPN session. A peer action fires when the
+# test logs its marker, so recovery and the retry limit meet a real server failure.
+LIFECYCLE_STEPS = (
+    ("sleep-modes", "testWaterWallLiveSleepModesWhenConfigured", {"SRP_SLEEP_MODES_TEST": "1"}, None),
+    ("runtime-recovery", "testWaterWallLiveSleepAndRuntimeRecoveryWhenConfigured", {"SRP_RECOVERY_TEST": "1"}, None),
+    ("retry-reset", "testWaterWallLiveRetryBudgetWhenConfigured", {"SRP_RETRY_LIVE_TEST": "1"}, None),
+    ("reconnect-disabled", "testWaterWallLiveRetryBudgetWhenConfigured",
+     {"SRP_RETRY_LIVE_TEST": "1", "SRP_RETRY_DISABLE_AUTORECONNECT": "1"}, None),
+    ("peer-recovery", "testWaterWallLivePeerRecoveryWhenConfigured", {"SRP_PEER_RECOVERY_TEST": "1"}, "restart"),
+    ("retry-exhausted", "testWaterWallLiveRetryBudgetWhenConfigured",
+     {"SRP_RETRY_LIVE_TEST": "1", "SRP_REAL_PEER_RETRY": "1", "SRP_RETRY_NO_RECOVERY": "1"}, "stop"),
+)
 
 
 class DeviceMatrix(SupportedMatrix):
@@ -323,7 +337,8 @@ class DeviceMatrix(SupportedMatrix):
             "TEST_RUNNER_SRP_WW_OUTER_SECRET": entry.get("outerSecret", ""),
             "TEST_RUNNER_SRP_WW_CONFIG_JSON": json.dumps(config, separators=(",", ":")),
             "TEST_RUNNER_SRP_WW_TEST_ID": name,
-            "TEST_RUNNER_SRP_WW_STRESS_BYTES": "16777216",
+            "TEST_RUNNER_SRP_WW_STRESS_BYTES": os.environ.get("SRP_TEST_WW_STRESS_BYTES", "16777216"),
+            "TEST_RUNNER_SRP_WW_UPLOAD_ONLY": os.environ.get("SRP_TEST_WW_UPLOAD_ONLY", "0"),
             "TEST_RUNNER_SRP_WW_STRESS_CONNECTIONS": os.environ.get("SRP_TEST_WW_STRESS_CONNECTIONS", "4"),
             "TEST_RUNNER_SRP_STRESS_DURATION": str(self.args.duration),
             "TEST_RUNNER_SRP_STRESS_ROUNDS": "1",
@@ -516,7 +531,79 @@ class DeviceMatrix(SupportedMatrix):
                         "-authenticationKeyIssuerID", os.environ["SRP_TEST_ASC_ISSUER_ID"]]
         return command + [f"DEVELOPMENT_TEAM={self.team}", "CODE_SIGN_STYLE=Automatic"]
 
+    def run_monitored(self, command, log, env, timeout, markers):
+        """Runs a test and calls markers[text] the first time text appears in its output."""
+        pending = dict(markers)
+        with log.open("w") as output:
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       env=env, text=True, errors="replace")
+            watchdog = threading.Timer(timeout, process.kill)
+            watchdog.start()
+            try:
+                for line in process.stdout:
+                    output.write(line)
+                    output.flush()
+                    for marker in [marker for marker in pending if marker in line]:
+                        pending.pop(marker)()
+                return process.wait()
+            finally:
+                watchdog.cancel()
+                if process.poll() is None:
+                    process.kill()
+                    process.wait()
+
+    def run_lifecycle_case(self, item, client_path):
+        name = item[0]
+        result = {"id": name, "configuration": self.effective_configuration(item),
+                  "client_path": str(client_path), "lifecycle": [], "teardown": {}}
+        restart = lambda: self.start_remote_peer(item, client_path)
+        actions = {"stop": {"SRP peer-failure test ready": self.stop_remote_peer},
+                   "restart": {"SRP peer-failure test ready": self.stop_remote_peer,
+                               "SRP peer-failure observed": restart}}
+        wanted = [label for label in os.environ.get("SRP_TEST_LIFECYCLE_STEPS", "").split(",") if label]
+        selected = [step for step in LIFECYCLE_STEPS if not wanted or step[0] in wanted]
+        try:
+            for label, test, extra, action in selected:
+                if not self._remote_peer_pids():
+                    restart()
+                env = self.environment(item, client_path)
+                env.update({"TEST_RUNNER_" + key: value for key, value in extra.items()})
+                log = self.work / f"{name}-{label}.log"
+                started = time.monotonic()
+                status = self.run_monitored(self.xcode_command(env, test), log, env,
+                                            self.args.duration * 3 + 600, actions.get(action, {}))
+                text = log.read_text(errors="replace") if log.exists() else ""
+                passed = status == 0 and "TEST SUCCEEDED" in text and f"-[SROptionsTests {test}]' passed" in text
+                result["lifecycle"].append({"step": label, "status": "passed" if passed else "failed",
+                                            "duration_s": round(time.monotonic() - started, 3),
+                                            "error": "" if passed else tail(log)})
+                print(f"{name} {label}: {'passed' if passed else 'failed'}", flush=True)
+            result["teardown"] = {"passed": True}
+        except Exception as error:
+            result["error"] = str(error)
+            result["teardown"] = {"passed": False, "error": str(error)}
+        finally:
+            try:
+                self.stop_device_vpn()
+            except Exception as error:
+                result["teardown"] = {"passed": False, "error": str(error)}
+            try:
+                self.stop_remote_peer(item)
+            except Exception as error:
+                result["teardown"] = {"passed": False, "error": str(error)}
+        steps = result["lifecycle"]
+        result["status"] = "passed" if (not result.get("error") and selected and len(steps) == len(selected) and
+                                        all(step["status"] == "passed" for step in steps) and
+                                        result["teardown"].get("passed", False)) else "failed"
+        self.results.append(result)
+        write_json(self.work / "results.json", {"summary": self.summary, "cases": self.results})
+        print(f"{name}: {result['status']} lifecycle={[(step['step'], step['status']) for step in steps]} "
+              f"teardown={result['teardown']}", flush=True)
+        return result
+
     def run_case(self, item, client_path):
+        if self.args.lifecycle:
+            return self.run_lifecycle_case(item, client_path)
         name = item[0]
         result = {"id": name, "configuration": self.effective_configuration(item),
                   "client_path": str(client_path), "peer_path": str(self.work / f"{name}-peer.json"),
@@ -563,8 +650,9 @@ class DeviceMatrix(SupportedMatrix):
                                       "error": "" if passed else tail(log)}
                 elif full_duplex:
                     match = re.search(r"Sustained full-duplex: ([0-9.]+) seconds, downloaded=(\d+), uploaded=(\d+), download_requests=(\d+), upload_requests=(\d+), errors=\(\s*\), finished=(\d+)/(\d+), timeouts=(\d+)(?:, VPN status=-?\d+)?", text)
+                    upload_only = os.environ.get("SRP_TEST_WW_UPLOAD_ONLY") == "1"
                     passed = (status == 0 and match is not None and float(match[1]) >= self.args.duration and
-                              match[2] != "0" and match[3] != "0" and match[6] == match[7] and
+                              (match[2] != "0" or upload_only) and match[3] != "0" and match[6] == match[7] and
                               match[8] == "0" and "TEST SUCCEEDED" in text)
                     result["tcp"] = {"status": "passed" if passed else "failed",
                                       "duration_s": float(match[1]) if match else round(time.monotonic() - started, 3),
@@ -635,8 +723,9 @@ class DeviceMatrix(SupportedMatrix):
         self.args.port = 4097
         self.args.cover_port = 4098
         native_build_log = self.work / "native-build.log"
+        # Every app configuration links the same archive path, so keep it the shipped Release runtime.
         if run_logged(["cmake", "--build", str(self.root / "WaterWall/build/ios"),
-                       "--target", "SRPWaterWallRuntime", "--config", self.configuration, "-j2"],
+                       "--target", "SRPWaterWallRuntime", "--config", "Release", "-j2"],
                       native_build_log, timeout=600) != 0:
             raise RuntimeError(tail(native_build_log))
         clients = self.prepare_clients(selected)
@@ -680,6 +769,8 @@ def main():
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--case-start", type=int, default=0, help="Zero-based index in the filtered candidate list")
     parser.add_argument("--case-limit", type=int, help="Maximum number of candidates in this run")
+    parser.add_argument("--lifecycle", action="store_true",
+                        help="Run the reconnect, retry and sleep checks against a real peer instead of throughput")
     args = parser.parse_args()
     if args.case_start < 0 or (args.case_limit is not None and args.case_limit < 1):
         parser.error("case-start must be nonnegative and case-limit must be positive")
