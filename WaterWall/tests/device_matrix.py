@@ -525,6 +525,9 @@ class DeviceMatrix(SupportedMatrix):
         udp = env["TEST_RUNNER_SRP_WW_UDP_STRESS"] == "1"
         if not udp:
             result["udp"] = {"status": "not-applicable", "reason": "The generated connector does not support application UDP"}
+        elif os.environ.get("SRP_TEST_WW_FULL_DUPLEX") == "1":
+            udp = False
+            result["udp"] = {"status": "not-applicable", "reason": "The full-duplex test exercises TCP only"}
         started = time.monotonic()
         try:
             self.start_remote_peer(item, client_path)
