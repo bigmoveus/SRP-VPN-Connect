@@ -731,6 +731,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (nodeOptions[@"obfuscator"] != nil) {
         NSString *error = SRPWWObfuscatorError(nodeOptions[@"obfuscator"]);
         if (error != nil) return error;
+        // The server re-derives each skip from its own buffer boundaries, which a connection stream does not keep.
+        NSString *skip = nodeOptions[@"obfuscator"][@"skip"];
+        if (!raw && skip != nil && ![skip isEqualToString:@"none"]) return @"obfuscator.skip must be none for connection input.";
     }
     if (nodeOptions[@"kcp"] != nil) {
         NSString *error = SRPWWKCPError(nodeOptions[@"kcp"]);
