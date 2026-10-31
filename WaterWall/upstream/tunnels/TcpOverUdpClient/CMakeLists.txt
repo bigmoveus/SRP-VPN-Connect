@@ -9,6 +9,8 @@ add_library(TcpOverUdpClient STATIC
                     upstream/init.c
                     upstream/fin.c
                     upstream/payload.c
+                    upstream/pause.c
+                    upstream/resume.c
                     downstream/est.c
                     downstream/fin.c
                     downstream/payload.c
