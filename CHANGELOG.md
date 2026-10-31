@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (28) - 2026-10-31
+
 ### Added
 - WaterWall profiles offer Auto Reconnect, Retry Times, Switch to Wi-Fi When Available and On Sleep under Options, like the other protocols.
 - Pull down the profile list to TCP-ping every profile's server, or swipe a profile right to ping only that one. The handshake is timed over the physical network even while the VPN is connected, progress is shown during the run, and profiles without a TCP server (UDP transports, WARP, server entries) are skipped; the connected profile keeps its delay measured through the tunnel.
