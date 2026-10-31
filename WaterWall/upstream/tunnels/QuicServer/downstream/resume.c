@@ -2,8 +2,6 @@
 
 void quicserverTunnelDownStreamResume(tunnel_t *t, line_t *l)
 {
-    if (quicCanRelay(t, l))
-    {
-        tunnelPrevDownStreamResume(t, l);
-    }
+    /* Not gated on quicCanRelay: a carrier drain still honors the application hold. */
+    quicHoldApplication(t, l, false);
 }
