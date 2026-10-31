@@ -22,5 +22,11 @@ void httpclientTunnelDownStreamResume(tunnel_t *t, line_t *l)
     {
         return;
     }
+    ls->next_paused = false;
+    if (ls->h2_source_paused)
+    {
+        // The queued HTTP/2 DATA backlog still holds prev until nghttp2 drains it.
+        return;
+    }
     tunnelPrevDownStreamResume(t, l);
 }
