@@ -17,6 +17,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Development
 - The device test matrix gains `--lifecycle`, which checks the sleep modes, reconnects and the retry limit against a real peer that it stops and restarts, and `SRP_TEST_WW_UPLOAD_ONLY` for upload-only runs; it now always builds the shipped Release runtime.
 - The `--lifecycle` device run also checks that TCP ping measures the physical network while the VPN is connected.
+- `SRP_TEST_ALLOWED_SOURCE` accepts a comma-separated list of client addresses, so a device on cellular can reach the isolated test peer alongside the harness host.
 
 ## 1.2.0 (27) - 2026-10-31
 
