@@ -1316,6 +1316,28 @@ static bool parseHttp1ResponseHeaders(const char *headers, httpclient_h1_respons
     return true;
 }
 
+/* Flow control can hold queued DATA indefinitely, so bound that backlog at its
+ * producer. False when the Pause/Resume callback closed this direction. */
+static bool httpclientRefreshHttp2SourcePressure(tunnel_t *t, line_t *l, httpclient_lstate_t *ls)
+{
+    const size_t pending = h2DataPendingBytes(&ls->h2_data);
+    const bool   pause   = ! ls->h2_source_paused && pending > kHttpClientHttp2PauseDataBytes;
+    const bool   resume  = ls->h2_source_paused && pending < kHttpClientHttp2ResumeDataBytes;
+    if ((! pause && ! resume) || ls->prev_finished)
+    {
+        return true;
+    }
+    ls->h2_source_paused = pause;
+    if (ls->next_paused)
+    {
+        // Next's own Pause already holds prev; its Resume checks this backlog first.
+        return true;
+    }
+    const bool alive = pause ? lineCallWithRef(l, tunnelPrevDownStreamPause, t)
+                             : lineCallWithRef(l, tunnelPrevDownStreamResume, t);
+    return alive && httpclientCanSendUpstream(ls);
+}
+
 static bool sendNghttp2Outbound(tunnel_t *t, line_t *l, httpclient_lstate_t *ls)
 {
     if (UNLIKELY(! httpclientCanSendUpstream(ls)))
@@ -1397,7 +1419,7 @@ static bool sendNghttp2Outbound(tunnel_t *t, line_t *l, httpclient_lstate_t *ls)
         }
     }
 
-    return true;
+    return httpclientRefreshHttp2SourcePressure(t, l, ls);
 }
 
 static sbuf_t *httpclientCollectHttp2Startup(line_t *l, httpclient_lstate_t *ls)

@@ -132,6 +132,8 @@ typedef struct httpclient_lstate_s
     httpclient_h1_body_mode_t h1_body_mode;
 
     bool h2_headers_received;
+    bool h2_source_paused; // our DATA backlog paused prev
+    bool next_paused;      // next paused prev through us
     bool response_complete;
     bool prev_finished;
     bool next_finished;
@@ -175,6 +177,8 @@ enum
     kHttpClientHttp1NestedMaxBytes   = 1024 * 1024,
     kHttpClientHttp1NestedMaxCharge  = 2 * 1024 * 1024,
     kHttpClientHttp2DataBytes        = 16 * 1024 - 9,
+    kHttpClientHttp2PauseDataBytes   = 1024 * 1024,
+    kHttpClientHttp2ResumeDataBytes  = 256 * 1024,
     kHttpClientHttp2SettingsMaxCount = 5,
     kHttpClientHttp2StreamWindow     = 6 * 1024 * 1024,
     kHttpClientHttp2ConnectionWindow = 15 * 1024 * 1024,
