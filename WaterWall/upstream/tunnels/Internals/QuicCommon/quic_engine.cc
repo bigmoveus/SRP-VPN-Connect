@@ -460,10 +460,17 @@ class Session final : public quic::QuicGenericSessionBase, public RepositoryObje
         incoming_created_ = true;
         return QuicGenericSessionBase::CreateIncomingStream(id);
     }
+    void OnConnectionClosed(const quic::QuicConnectionCloseFrame &frame, quic::ConnectionCloseSource source) override
+    {
+        close_error_ = frame.quic_error_code;
+        QuicGenericSessionBase::OnConnectionClosed(frame, source);
+    }
+    quic::QuicErrorCode close_error() const { return close_error_; }
 
   private:
     bool                                    is_client_;
     bool                                    incoming_created_ = false;
+    quic::QuicErrorCode                     close_error_      = quic::QUIC_NO_ERROR;
     ProofHandler                            proof_handler_;
     ServerCryptoHelper                      server_helper_;
     std::unique_ptr<quic::QuicCryptoStream> crypto_;
@@ -611,6 +618,9 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     void OnSessionReady() override { handshake_ready = true; }
     void OnSessionClosed(webtransport::SessionErrorCode, const std::string &message) override
     {
+        const quic::QuicErrorCode reason = session ? session->close_error() : quic::QUIC_NO_ERROR;
+        network_timeout = reason == quic::QUIC_NETWORK_IDLE_TIMEOUT || reason == quic::QUIC_HANDSHAKE_TIMEOUT ||
+                          reason == quic::QUIC_TOO_MANY_RTOS;
         Fail(message.empty() ? "QUIC connection closed" : message);
     }
     void OnIncomingBidirectionalStreamAvailable() override
@@ -913,7 +923,10 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         Reap();
         if (! closed && ! ready &&
             ww_quic_now_us() - created_us >= uint64_t(config->settings.handshake_timeout_ms) * 1000)
+        {
+            network_timeout = true;
             Fail("QUIC handshake/stream-opening deadline exceeded");
+        }
         return ! closed;
     }
     void Retire()
@@ -963,6 +976,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     bool                                          marker_sent     = false;
     bool                                          ready           = false;
     bool                                          closed          = false;
+    bool                                          network_timeout = false;
     bool                                          held            = false;
     bool                                          read_deferred   = false;
 };
@@ -1324,6 +1338,19 @@ extern "C" void ww_quic_engine_storage(const ww_quic_engine_t *engine, ww_quic_s
 {
     assert(engine && storage);
     *storage = engine->storage;
+}
+extern "C" void ww_quic_engine_link_stats(ww_quic_engine_t *engine, ww_quic_link_stats_t *stats)
+{
+    assert(engine && stats);
+    *stats                 = {};
+    stats->network_timeout = engine->network_timeout;
+    if (! engine->session)
+        return;
+    const quic::QuicConnectionStats &counters = engine->session->connection()->GetStats();
+    stats->packets_sent                       = counters.packets_sent;
+    stats->packets_lost                       = counters.packets_lost;
+    stats->bytes_received                     = counters.bytes_received;
+    stats->srtt_ms                            = uint32_t(std::max<int64_t>(0, counters.srtt_us) / 1000);
 }
 extern "C" bool ww_quic_engine_ready(const ww_quic_engine_t *engine)
 {

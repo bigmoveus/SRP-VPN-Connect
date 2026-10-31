@@ -8,7 +8,7 @@ void tcpconnectorLinestateInitialize(tcpconnector_lstate_t *ls)
     ls->io               = NULL;
     ls->idle_handle      = NULL;
     ls->active_write     = (buffer_budget_reservation_t) {0};
-    ls->quality          = (tcp_quality_state_t) {0};
+    ls->quality          = (link_quality_tcp_state_t) {0};
     ls->queue_pause_sent = false;
     ls->write_paused     = false;
     ls->read_paused      = false;

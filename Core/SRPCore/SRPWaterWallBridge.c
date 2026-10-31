@@ -3,7 +3,7 @@
 #include "SRPNEPacketDevice.h"
 #include "hosted_runtime.h"
 #include "global_state.h"
-#include "net/tcp_quality.h"
+#include "net/link_quality.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -186,12 +186,12 @@ int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge) {
   return 0;
 }
 
-void SRPWaterWallBridgeReadTCPQuality(SRPWaterWallTCPQuality *quality) {
+void SRPWaterWallBridgeReadLinkCounters(SRPWaterWallLinkCounters *quality) {
   if (quality == NULL) {
     return;
   }
-  tcp_quality_totals_t totals;
-  tcpqualityReadTotals(&totals);
+  link_quality_totals_t totals;
+  linkqualityReadTotals(&totals);
   quality->tx_packets = totals.tx_packets;
   quality->retransmitted_packets = totals.retransmitted_packets;
   quality->rx_bytes = totals.rx_bytes;

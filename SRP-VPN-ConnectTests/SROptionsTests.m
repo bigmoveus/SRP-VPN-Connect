@@ -135,10 +135,10 @@ __attribute__((weak)) int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge) {
 }
 
 // Every reading adds the growth, like the traffic of one interval on the outer connections.
-static SRPWaterWallTCPQuality SRPTestWWQuality;
-static SRPWaterWallTCPQuality SRPTestWWQualityGrowth;
+static SRPWaterWallLinkCounters SRPTestWWQuality;
+static SRPWaterWallLinkCounters SRPTestWWQualityGrowth;
 
-__attribute__((weak)) void SRPWaterWallBridgeReadTCPQuality(SRPWaterWallTCPQuality *quality) {
+__attribute__((weak)) void SRPWaterWallBridgeReadLinkCounters(SRPWaterWallLinkCounters *quality) {
     SRPTestWWQuality.tx_packets += SRPTestWWQualityGrowth.tx_packets;
     SRPTestWWQuality.retransmitted_packets += SRPTestWWQualityGrowth.retransmitted_packets;
     SRPTestWWQuality.timed_out_connections += SRPTestWWQualityGrowth.timed_out_connections;
@@ -3540,8 +3540,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     SRPWaterWallCandidate *kcp = [self waterWallCandidateNamed:@"KCP" udp:YES];
     client.fallbacks = @[tcp, kcp];
     client.qualityInterval = 0.02;
-    SRPTestWWQuality = (SRPWaterWallTCPQuality){0};
-    SRPTestWWQualityGrowth = (SRPWaterWallTCPQuality){.tx_packets = 200, .retransmitted_packets = 40};
+    SRPTestWWQuality = (SRPWaterWallLinkCounters){0};
+    SRPTestWWQualityGrowth = (SRPWaterWallLinkCounters){.tx_packets = 200, .retransmitted_packets = 40};
     [self startWaterWallLifecycleClient:client failure:nil];
     [self waitForRuntimeStarts:1 ofClient:client];
     [self restartQualityMonitorOfClient:client];
@@ -3559,7 +3559,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     });
     [self waitForExpectations:@[settled] timeout:2];
     dispatch_sync([client valueForKey:@"worker"], ^{ [client stopProbe]; });
-    SRPTestWWQualityGrowth = (SRPWaterWallTCPQuality){0};
+    SRPTestWWQualityGrowth = (SRPWaterWallLinkCounters){0};
     [client closeAndWait];
 }
 

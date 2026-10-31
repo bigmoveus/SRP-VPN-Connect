@@ -35,6 +35,9 @@ typedef struct tcpoverudpclient_lstate_s
     tcpoverudp_fec_decoder_t *fec_decoder;       // optional fec decoder
     uint64_t                  last_recv;         // last received timestamp
     uint64_t                  close_deadline;    // bounded final KCP delivery window
+    uint64_t                  received_bytes;    // UDP payload received from the server
+    link_quality_carrier_state_t quality;        // KCP counters folded into the link totals
+    bool                      receive_timed_out; // closed because the server stopped answering
     context_queue_t           cq_u;              // context queue upstream
     bool                      source_paused;     // our KCP send-queue pressure
     bool                      downstream_paused; // downstream consumer hold; KCP control continues
@@ -136,3 +139,4 @@ void tcpoverudpclientDeliverReceived(tunnel_t *t, line_t *l);
 void tcpoverudpclientBeginClose(tcpoverudpclient_lstate_t *ls);
 void tcpoverudpclientCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held);
 bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush);
+void tcpoverudpclientRecordLinkQuality(tcpoverudpclient_lstate_t *ls, uint64_t now_ms, bool final);

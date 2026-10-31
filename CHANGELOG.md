@@ -7,6 +7,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Added
 - Auto Switch for WaterWall profiles, on by default under Options: when the connection fails, Auto Reconnect tries the next WaterWall profile of the same server, and when the network loses too many packets (15% of the packets sent within 30 seconds, or two connections dropped within two minutes) the connection moves to a profile with the other carrier (TCP or UDP) that has not lost packets on that network yet. A network change returns to the selected profile.
 - WaterWall measures its TCP connections to the server (packets sent and retransmitted, data received, round-trip time, retransmission timeout and connections the network dropped) and writes a summary to the log every minute while traffic flows.
+- The measurement also covers the UDP carriers: KCP segments sent again, QUIC packets declared lost, and KCP or QUIC sessions that stopped hearing from the server. Auto Switch therefore moves a lossy KCP or QUIC connection to a TCP profile as well.
 
 ### Fixed
 - TCP ping skipped WaterWall profiles that carry QUIC over a TCP stream; they are pinged like the other TCP transports now.

@@ -55,7 +55,7 @@ int SRPWaterWallBridgeSubmitPacket(SRPWaterWallBridge *bridge,
  */
 int SRPWaterWallBridgeStop(SRPWaterWallBridge *bridge);
 
-typedef struct SRPWaterWallTCPQuality {
+typedef struct SRPWaterWallLinkCounters {
   uint64_t tx_packets;
   uint64_t retransmitted_packets;
   uint64_t rx_bytes;
@@ -65,16 +65,17 @@ typedef struct SRPWaterWallTCPQuality {
   uint64_t timed_out_connections;
   uint32_t max_srtt_ms;
   uint32_t max_rto_ms;
-} SRPWaterWallTCPQuality;
+} SRPWaterWallLinkCounters;
 
 /*
- * ReadTCPQuality reports the kernel counters of WaterWall's outbound TCP
- * connections. The counts are cumulative for the process, across runtime
- * restarts; max_srtt_ms and max_rto_ms cover only the connections sampled since
- * the previous call. Everything stays zero where the platform has no such
- * counters. It may be called from any thread, with or without a runtime.
+ * ReadLinkCounters reports the connections that carry traffic to the server:
+ * the kernel counters of TCP sockets and the session counters of the KCP and
+ * QUIC carriers, where a QUIC packet declared lost counts as retransmitted.
+ * The counts are cumulative for the process, across runtime restarts;
+ * max_srtt_ms and max_rto_ms cover only what was sampled since the previous
+ * call. It may be called from any thread, with or without a runtime.
  */
-void SRPWaterWallBridgeReadTCPQuality(SRPWaterWallTCPQuality *quality);
+void SRPWaterWallBridgeReadLinkCounters(SRPWaterWallLinkCounters *quality);
 
 #ifdef __cplusplus
 }

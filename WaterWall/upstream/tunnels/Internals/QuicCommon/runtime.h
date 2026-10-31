@@ -31,6 +31,7 @@ struct quic_context
     ww_quic_carrier_t           carrier;
     uint64_t                    input_generation;
     uint64_t                    final_deadline_us;
+    link_quality_carrier_state_t quality; // client counters folded into the link totals
     bool                        final_flush : 1;
     bool                        carrier_drain : 1;
     bool                        close_drain_held : 1;
@@ -55,6 +56,7 @@ void            quicReleaseActive(quic_context_t *context, bool application);
 bool            quicFeedInput(quic_context_t *context);
 void            quicPressure(quic_context_t *context);
 void            quicPump(quic_context_t *context);
+void            quicRecordLinkQuality(quic_context_t *context, bool final);
 void            quicFinalWire(quic_context_t *context);
 void            quicReconcileFinal(quic_context_t *context);
 void            quicReconcileCarrierDrain(quic_context_t *context);

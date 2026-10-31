@@ -97,6 +97,7 @@ void tcpoverudpclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf
     ls->last_recv = wloopNowMS(getWorkerLoop(lineGetWID(l)));
     ls->ping_sent = false;
 
+    ls->received_bytes += sbufGetLength(buf);
     if (ls->fec_decoder != NULL)
     {
         if (! tcpoverudpFecDecodePacket(ls->fec_decoder,

@@ -84,7 +84,7 @@ typedef struct tcpconnector_lstate_s
     // Combined adapter/WIO retention: active allocation remains charged until write completion.
     buffer_budget_t             write_budget;
     buffer_budget_reservation_t active_write;
-    tcp_quality_state_t         quality; // last kernel counters folded into the process-wide totals
+    link_quality_tcp_state_t    quality; // last kernel counters folded into the process-wide totals
     bool                        queue_pause_sent;
     bool           write_paused : 1;
     bool           read_paused : 1;

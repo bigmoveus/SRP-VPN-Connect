@@ -67,6 +67,15 @@ extern "C"
         size_t               length;
     } ww_quic_event_t;
 
+    typedef struct ww_quic_link_stats
+    {
+        uint64_t packets_sent; /* Retransmissions included. */
+        uint64_t packets_lost;
+        uint64_t bytes_received;
+        uint32_t srtt_ms;
+        bool     network_timeout; /* Ended by an idle, handshake or loss-recovery timeout. */
+    } ww_quic_link_stats_t;
+
     typedef struct ww_quic_storage
     {
         size_t send_bytes; /* Every accepted chunk, including unsent/unacknowledged. */
@@ -114,6 +123,8 @@ extern "C"
      * neither applies. True when that left a deliverable event. */
     bool        ww_quic_engine_resume_read(ww_quic_engine_t *engine);
     void        ww_quic_engine_storage(const ww_quic_engine_t *engine, ww_quic_storage_t *storage);
+    /* Cumulative connection counters; zero until the session exists. */
+    void        ww_quic_engine_link_stats(ww_quic_engine_t *engine, ww_quic_link_stats_t *stats);
     bool        ww_quic_engine_ready(const ww_quic_engine_t *engine);
     bool        ww_quic_engine_closed(const ww_quic_engine_t *engine);
     const char *ww_quic_engine_error(const ww_quic_engine_t *engine);

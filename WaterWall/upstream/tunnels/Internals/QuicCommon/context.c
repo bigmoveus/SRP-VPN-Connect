@@ -9,9 +9,27 @@ quic_context_t *quicGetContext(tunnel_t *t, line_t *l)
     return state->context;
 }
 
+void quicRecordLinkQuality(quic_context_t *context, bool final)
+{
+    quic_tstate_t *state = tunnelGetState(context->tunnel);
+    if (! state->client || ! context->started)
+    {
+        return;
+    }
+    ww_quic_link_stats_t stats;
+    ww_quic_engine_link_stats(context->engine, &stats);
+    linkqualityRecordCarrier(&context->quality, ww_quic_now_us() / 1000, final, stats.packets_sent, stats.packets_lost,
+                             stats.bytes_received, stats.srtt_ms, 0);
+    if (final)
+    {
+        linkqualityRecordCarrierEnd(stats.network_timeout);
+    }
+}
+
 static void quicFree(quic_context_t *context)
 {
     assert(! context->attached && ! context->driving);
+    quicRecordLinkQuality(context, true);
     ww_quic_engine_destroy(context->engine);
     memoryFree(context);
 }

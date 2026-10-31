@@ -179,6 +179,7 @@ void quicPump(quic_context_t *context)
         ww_quic_engine_start(context->engine);
     }
     ww_quic_engine_tick(context->engine);
+    quicRecordLinkQuality(context, false);
     unsigned work = 0;
     for (; work < kQuicPumpWork && quicSurvived(context); ++work)
     {

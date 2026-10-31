@@ -95,8 +95,8 @@ static uint64_t SRPWWGrowth(uint64_t now, uint64_t before) {
 }
 
 static SRPWaterWallLinkTotals SRPWWReadLinkTotals(void) {
-    SRPWaterWallTCPQuality quality = {0};
-    SRPWaterWallBridgeReadTCPQuality(&quality);
+    SRPWaterWallLinkCounters quality = {0};
+    SRPWaterWallBridgeReadLinkCounters(&quality);
     return (SRPWaterWallLinkTotals){
         .sentPackets = quality.tx_packets,
         .retransmittedPackets = quality.retransmitted_packets,
@@ -176,10 +176,11 @@ static SRPWaterWallLinkTotals SRPWWReadLinkTotals(void) {
 - (NSString *)summaryOfLastSamples:(NSUInteger)count {
     SRPWWLinkSample sum = [self sumOfLastSamples:count];
     if (sum.sent == 0 && sum.received == 0 && sum.timedOut == 0) return nil;
+    // QUIC reports no retransmission timeout, so the RTO appears only when a TCP or KCP connection had one.
     return [NSString stringWithFormat:@"%llu packets sent, %.1f%% retransmitted, %llu KB received, "
-            "%llu connections dropped by the network, RTT up to %u ms, RTO up to %u ms",
+            "%llu connections dropped by the network, RTT up to %u ms%@",
             sum.sent, sum.sent > 0 ? 100.0 * sum.retransmitted / sum.sent : 0, sum.received / 1024,
-            sum.timedOut, sum.srtt, sum.rto];
+            sum.timedOut, sum.srtt, sum.rto > 0 ? [NSString stringWithFormat:@", RTO up to %u ms", sum.rto] : @""];
 }
 
 @end

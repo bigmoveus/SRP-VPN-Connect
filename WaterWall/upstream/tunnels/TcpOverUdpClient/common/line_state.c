@@ -102,6 +102,9 @@ void tcpoverudpclientLinestateDestroy(tcpoverudpclient_lstate_t *ls)
 {
     assert(ls->k_handle != NULL && ls->k_timer != NULL);
 
+    tcpoverudpclientRecordLinkQuality(ls, wloopNowMS(weventGetLoop(ls->k_timer)), true);
+    linkqualityRecordCarrierEnd(ls->receive_timed_out);
+
     weventSetUserData(ls->k_timer, NULL);
     wtimerDelete(ls->k_timer);
 

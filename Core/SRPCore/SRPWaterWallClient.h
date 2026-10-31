@@ -28,8 +28,8 @@ typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
 @property (nonatomic) BOOL udpCarrier;
 @end
 
-// Counters of WaterWall's outer TCP connections: the counts are cumulative, the
-// maxima cover the connections sampled since the previous reading.
+// Counters of WaterWall's connections to the server (TCP, KCP and QUIC): the counts
+// are cumulative, the maxima cover what was sampled since the previous reading.
 typedef struct SRPWaterWallLinkTotals {
     uint64_t sentPackets;
     uint64_t retransmittedPackets;
@@ -39,7 +39,7 @@ typedef struct SRPWaterWallLinkTotals {
     uint32_t maxRTOMilliseconds;
 } SRPWaterWallLinkTotals;
 
-// Rates WaterWall's outer TCP connections from counters read at a fixed interval.
+// Rates WaterWall's connections to the server from counters read at a fixed interval.
 @interface SRPWaterWallLinkQuality : NSObject
 // Seconds between two readings, used for the wording of reasons and summaries.
 @property (nonatomic) NSTimeInterval interval;
@@ -83,7 +83,7 @@ typedef struct SRPWaterWallLinkTotals {
 @property (nonatomic) BOOL switchToWifi;
 @property (nonatomic) NSInteger onSleep;
 
-// The counters of the process's outer TCP connections; reading restarts the two maxima.
+// The counters of the process's connections to the server; reading restarts the two maxima.
 + (SRPWaterWallLinkTotals)currentLinkTotals;
 - (nullable NSString *)resolvedAddressForHost:(NSString *)value;
 // Copies the profile's node graph and tunnel settings; call it before starting.

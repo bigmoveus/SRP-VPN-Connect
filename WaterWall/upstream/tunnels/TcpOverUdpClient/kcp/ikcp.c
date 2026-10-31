@@ -292,6 +292,8 @@ ikcpcb* ikcp_create(IUINT32 conv, void *user)
 	kcp->fastlimit = IKCP_FASTACK_LIMIT;
 	kcp->nocwnd = 0;
 	kcp->xmit = 0;
+	kcp->sent_segments = 0;
+	kcp->resent_segments = 0;
 	kcp->dead_link = IKCP_DEADLINK;
 	kcp->output = NULL;
 	kcp->writelog = NULL;
@@ -1094,6 +1096,10 @@ void ikcp_flush(ikcpcb *kcp)
 
 		if (needsend) {
 			int need;
+			kcp->sent_segments++;
+			if (segment->xmit > 1) {
+				kcp->resent_segments++;
+			}
 			segment->ts = current;
 			segment->wnd = seg.wnd;
 			segment->una = kcp->rcv_nxt;

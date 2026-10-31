@@ -299,6 +299,9 @@ struct IKCPCB
 	IUINT32 nodelay, updated;
 	IUINT32 ts_probe, probe_wait;
 	IUINT32 dead_link, incr;
+	// Data segments put on the wire, and how many of those were sent again (timeout or fast resend).
+	// Keep this layout identical to TcpOverUdpClient's copy: a full build links only one of them.
+	IUINT64 sent_segments, resent_segments;
 	struct IQUEUEHEAD snd_queue;
 	struct IQUEUEHEAD rcv_queue;
 	struct IQUEUEHEAD snd_buf;

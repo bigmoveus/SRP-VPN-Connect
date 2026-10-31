@@ -168,7 +168,7 @@ add_library(ww STATIC
     net/generic_sniffer.c
     net/ipv4_packet_view.c
     net/egress_pin.c
-    net/tcp_quality.c
+    net/link_quality.c
     net/socket_filter_option.c
     net/wchecksum.c
     net/wchecksum_default.c

@@ -19,7 +19,7 @@ static void handleQueueOverflow(tunnel_t *t, line_t *l, tcpconnector_tstate_t *t
         LOGF("TcpConnector: failed to remove idle item for FD:%x ", wioGetFD(ls->io));
         abortProgramNow(1);
     }
-    tcpqualityRecordClose(&ls->quality, ls->io, 0);
+    linkqualityRecordTcpClose(&ls->quality, ls->io, 0);
     weventSetUserData(ls->io, NULL);
     wioClose(ls->io);
 
@@ -74,7 +74,7 @@ static void handleNormalWrite(tunnel_t *t, line_t *l, tcpconnector_tstate_t *ts,
     if (LIKELY(nwrite >= 0))
     {
         localidletableKeepIdleItemForAtleast(tcpconnectorGetLineIdleTable(ts, l), ls->idle_handle, kReadWriteTimeoutMs);
-        tcpqualitySample(&ls->quality, ls->io);
+        linkqualitySampleTcp(&ls->quality, ls->io);
         if (nwrite < bytes)
         {
             ls->write_paused     = true;

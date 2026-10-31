@@ -109,6 +109,13 @@ static void tcpoverudpclientFinishCloseIfSettled(tunnel_t *t, line_t *l, tcpover
     tcpoverudpclientCompleteCloseDrain(t, l, drain_held);
 }
 
+void tcpoverudpclientRecordLinkQuality(tcpoverudpclient_lstate_t *ls, uint64_t now_ms, bool final)
+{
+    const ikcpcb *kcp = ls->k_handle;
+    linkqualityRecordCarrier(&ls->quality, now_ms, final, kcp->sent_segments, kcp->resent_segments,
+                             ls->received_bytes, (uint32_t) max(kcp->rx_srtt, 0), (uint32_t) max(kcp->rx_rto, 0));
+}
+
 bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush)
 {
     assert(ls != NULL && ls->k_handle != NULL && ls->line != NULL && lineIsAlive(ls->line));
@@ -124,6 +131,7 @@ bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush)
         ikcp_flush(ls->k_handle);
     }
     ikcp_update(ls->k_handle, (IUINT32) current_time);
+    tcpoverudpclientRecordLinkQuality(ls, current_time, false);
 
     while (lineIsAlive(l) && ls->k_handle != NULL && contextqueueLen(&ls->cq_u) > 0)
     {
@@ -198,8 +206,9 @@ void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer)
         {
             LOGW("TcpOverUdpClient -> KCP[%d]: no data received for too long, closing connection", ls->k_handle->conv);
 
-            tunnel_t *t = ls->tunnel;
-            line_t   *l = ls->line;
+            tunnel_t *t           = ls->tunnel;
+            line_t   *l           = ls->line;
+            ls->receive_timed_out = true;
             tcpoverudpclientBeginClose(ls);
             ls->close_deadline = current_time;
 

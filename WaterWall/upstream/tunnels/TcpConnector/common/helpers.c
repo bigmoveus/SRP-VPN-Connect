@@ -47,7 +47,7 @@ void tcpconnectorOnClose(wio_t *io)
         {
             lineMarkFallbackPeerWriteClosed(l);
         }
-        tcpqualityRecordClose(&ls->quality, io, wioGetError(io));
+        linkqualityRecordTcpClose(&ls->quality, io, wioGetError(io));
 
         local_idle_item_t *idle_item = ls->idle_handle;
         ls->idle_handle              = NULL;
@@ -82,7 +82,7 @@ static void onRecv(wio_t *io, sbuf_t *buf)
     tcpconnector_lstate_t *ls = lineGetState(l, t);
     tcpconnectorApplyReadPreference(ls);
     localidletableKeepIdleItemForAtleast(tcpconnectorGetLineIdleTable(ts, l), ls->idle_handle, kReadWriteTimeoutMs);
-    tcpqualitySample(&ls->quality, io);
+    linkqualitySampleTcp(&ls->quality, io);
 
     tunnelPrevDownStreamPayload(t, l, buf);
 }
@@ -193,7 +193,7 @@ void tcpconnectorOnWriteComplete(wio_t *io)
         return;
     tcpconnectorApplyReadPreference(ls);
     tcpconnectorRefreshWriteBudget(ls);
-    tcpqualitySample(&ls->quality, io);
+    linkqualitySampleTcp(&ls->quality, io);
     if (! wioCheckWriteComplete(io))
         return;
     line_t   *line = ls->line;
@@ -223,7 +223,7 @@ void tcpconnectorOnIdleConnectionExpire(local_idle_item_t *idle_tcp)
     line_t   *l = ls->line;
 
     LOGW("TcpConnector: expired 1 tcp connection on FD:%x ", wioGetFD(ls->io));
-    tcpqualityRecordClose(&ls->quality, ls->io, 0);
+    linkqualityRecordTcpClose(&ls->quality, ls->io, 0);
     weventSetUserData(ls->io, NULL);
     tcpconnectorFlushWriteQueue(ls);
     wioClose(ls->io);
