@@ -103,9 +103,11 @@
 @end
 
 // Lifecycle tests never start a bridge; the app test bundle has no engine linkage.
+static SRPWaterWallCallbacks SRPTestWWCallbacks;
+
 __attribute__((weak)) SRPWaterWallBridge *SRPWaterWallBridgeStart(const SRPWaterWallConfig *config,
                                                                  const SRPWaterWallCallbacks *callbacks) {
-    (void)callbacks;
+    SRPTestWWCallbacks = *callbacks;
     return (SRPWaterWallBridge *)config;
 }
 
@@ -3020,6 +3022,33 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     [client healthProbeFailed:@"idle probe failure"];
     XCTAssertEqualObjects(failure, @"idle probe failure");
     XCTAssertTrue([[client valueForKey:@"closed"] boolValue]);
+}
+
+- (void)testWaterWallLocalHandshakesDoNotHideAStalledServer {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.coreJSON = @"{}";
+    client.nodesJSON = @"{}";
+    [client startRuntimeLocked];
+    // A SYN-ACK or reset comes from the device's own TCP stack, not the server
+    NSMutableData *synAck = [NSMutableData dataWithLength:40];
+    uint8_t *bytes = synAck.mutableBytes;
+    bytes[0] = 0x45;
+    bytes[3] = 40;
+    bytes[9] = IPPROTO_TCP;
+    bytes[32] = 0x50;
+    bytes[33] = 0x12;
+    SRPTestWWCallbacks.packet(SRPTestWWCallbacks.context, synAck.bytes, synAck.length);
+    XCTAssertEqual([[client valueForKey:@"lastOutputAt"] doubleValue], 0);
+    NSMutableData *payload = [NSMutableData dataWithLength:41];
+    bytes = payload.mutableBytes;
+    bytes[0] = 0x45;
+    bytes[3] = 41;
+    bytes[9] = IPPROTO_TCP;
+    bytes[32] = 0x50;
+    bytes[33] = 0x18;
+    SRPTestWWCallbacks.packet(SRPTestWWCallbacks.context, payload.bytes, payload.length);
+    XCTAssertGreaterThan([[client valueForKey:@"lastOutputAt"] doubleValue], 0);
+    [client closeAndWait];
 }
 
 - (void)testWaterWallProbeBackpressureRetriesWithoutReconnect {
