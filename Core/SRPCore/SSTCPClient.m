@@ -2,6 +2,7 @@
 #import "SSTCPClient.h"
 #import "SSTCPClient+Private.h"
 #import <Network/Network.h>
+#import <stdatomic.h>
 #import "sstp/utils.h"
 #import <CommonCrypto/CommonCrypto.h>
 #import <Security/Security.h>
@@ -25,6 +26,15 @@
 
 
 static long long __refCount__ = 0;
+static _Atomic int64_t __sendBacklog__ = 0;
+
+void SSSendBacklogAdd(int64_t bytes) {
+    atomic_fetch_add_explicit(&__sendBacklog__, bytes, memory_order_relaxed);
+}
+
+int64_t SSSendBacklogBytes(void) {
+    return MAX(0, atomic_load_explicit(&__sendBacklog__, memory_order_relaxed));
+}
 
 @implementation SSTCPClient {
     // Note: transport here is the actual underlying transport protocol
@@ -125,8 +135,12 @@ static long long __refCount__ = 0;
             }
         };
         if (content != nil && dispatch_data_get_size(content) > 0) {
-            NSData *ocContent = (NSData *)content;
-            [strongSelf handleMessage:ocContent];
+            // Under sustained traffic this queue never idles, so the objects each received packet
+            // autoreleases piled up until the extension hit its memory limit; drain them per chunk
+            @autoreleasepool {
+                NSData *ocContent = (NSData *)content;
+                [strongSelf handleMessage:ocContent];
+            }
         }
         // Content was NULL, so directly schedule the next receive
         if (strongSelf.cancelling == SSTCPSocketStateIDLE) {

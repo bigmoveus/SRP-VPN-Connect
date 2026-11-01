@@ -5,10 +5,13 @@
 #import <SRPParser/SRPParser.h>
 #import "SRPKeychain.h"
 #import <arpa/inet.h>
+#import <mach/mach.h>
+#import <stdatomic.h>
 
 @interface PacketTunnelProvider ()
 @property (nonatomic) NSInteger onSleepMode;   // 0=off 1=pause 2=stay (from the profile)
 @property (nonatomic) BOOL sstpActive;
+@property (nonatomic) BOOL sstpPacketFlowStarted;   // the SSTP read loop runs once per tunnel, across reconnects
 @property (nonatomic, strong) SRPSoftEtherClient *seClient;   // non-nil while a SoftEther session is active
 @property (nonatomic, strong) SRPOpenConnectClient *ocClient;  // non-nil while an OpenConnect session is active
 @property (nonatomic, strong) SRPSSHClient *sshClient;  // non-nil while an SSH session is active
@@ -35,6 +38,8 @@ static long g_ovpnInPackets = 0, g_ovpnOutPackets = 0;
 static long g_aeInPackets = 0, g_aeOutPackets = 0;
 static long g_wwInPackets = 0, g_wwOutPackets = 0;
 static void logIPv4(NSString *dir, NSData *pkt, long n);
+static void SRPLogSSTPMemoryIfHigh(void);
+static uint64_t SRPFootprintBytes(void);
 
 -(instancetype)init {
     self = [super init];
@@ -137,7 +142,14 @@ static void logIPv4(NSString *dir, NSData *pkt, long n);
     };
 
     [[lwIP shared] SetlwFailureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SSTP connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SSTP connection failed"}];
+        if (finished) {
+            // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -150,7 +162,7 @@ static void logIPv4(NSString *dir, NSData *pkt, long n);
                 return finish(e);
             }
             __strong PacketTunnelProvider *strongSelf = weakSelf;
-            [strongSelf readPackets];
+            [strongSelf startSSTPPacketFlow];
             finish(nil);
         }];
     }];
@@ -1087,15 +1099,29 @@ static void logIPv4(NSString *dir, NSData *pkt, long n) {
 #endif
 }
 
--(void)readPackets {
+// Every PPP link-up (reconnects too) applies the settings again, but the output callback is set
+// and the read loop started only once: replacing the callback while the SSTP queue was calling it
+// freed the block mid-call under load, and each reconnect added another read loop.
+-(void)startSSTPPacketFlow {
+    if (self.sstpPacketFlowStarted) {
+        return;
+    }
+    self.sstpPacketFlowStarted = YES;
+    SSLogM(@"SSTP memory at link-up %.1f MiB", (double)SRPFootprintBytes() / (1024.0 * 1024.0));
+    __weak PacketTunnelProvider *weakSelf = self;
     [[lwIP shared] SetlwIPOutputCallback:^(NSData *ipPacket, int family) {
         g_outPackets++;
         if (g_outPackets <= 20 || g_outPackets % 100 == 0) {
             logIPv4(@"to-phone", ipPacket, g_outPackets);
         }
-        [self.packetFlow writePackets:@[ipPacket] withProtocols:@[@(family)]];
+        [weakSelf.packetFlow writePackets:@[ipPacket] withProtocols:@[@(family)]];
     }];
+    [self readPackets];
+}
+
+-(void)readPackets {
     [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> * _Nonnull packets, NSArray<NSNumber *> * _Nonnull protocols) {
+      @autoreleasepool {
         for (NSInteger i = 0; i < packets.count; i ++) {
             // Only IPv4 is supported for now; skip IPv6 packets without killing the read loop
             if (protocols[i].intValue == AF_INET6) {
@@ -1111,8 +1137,46 @@ static void logIPv4(NSString *dir, NSData *pkt, long n) {
             }
             [[lwIP shared] WriteIPPacket:packets[i] family:protocols[i].intValue];
         }
-        [self readPackets];
+      }
+        [self readPacketsWhenSendBacklogAllows:0];
     }];
+}
+
+// Upload backpressure: while the SSTP connection holds more unsent data than its budget, wait
+// before taking more packets from the device, so the device's TCP slows down instead of the
+// extension buffering past its memory limit (seen within seconds of a fast upload). A backlog
+// that does not drain within two seconds is read past rather than stalling the tunnel.
+-(void)readPacketsWhenSendBacklogAllows:(NSInteger)waits {
+    if (waits < 400 && [[lwIP shared] sendBacklogFull]) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_MSEC)),
+                       dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            [self readPacketsWhenSendBacklogAllows:waits + 1];
+        });
+        return;
+    }
+    if (waits >= 400) {
+        SSLogM(@"SSTP upload backlog did not drain in 2 s (%@); reading on", [[lwIP shared] uploadBacklogDescription]);
+    }
+    SRPLogSSTPMemoryIfHigh();
+    [self readPackets];
+}
+
+static uint64_t SRPFootprintBytes(void) {
+    task_vm_info_data_t info = {0};
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    return task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS ? info.phys_footprint : 0;
+}
+
+// Once a second at most, and only near the 50 MB extension limit: where the memory went
+static void SRPLogSSTPMemoryIfHigh(void) {
+    static _Atomic int64_t lastLog = 0;
+    int64_t now = (int64_t)CFAbsoluteTimeGetCurrent();
+    if (now == atomic_load(&lastLog)) return;
+    uint64_t footprint = SRPFootprintBytes();
+    if (footprint < 30 * 1024 * 1024) return;
+    atomic_store(&lastLog, now);
+    SSLogM(@"SSTP memory %.1f MiB; %@", (double)footprint / (1024.0 * 1024.0),
+           [[lwIP shared] uploadBacklogDescription]);
 }
 
 -(nullable NSDictionary *)parse:(NSString *)uri {

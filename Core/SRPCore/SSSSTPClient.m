@@ -46,7 +46,14 @@ status_t x_sstp_send_fn(sstp_stream_st *stream, sstp_buff_st *tx,
         memcpy(copy, message, length);
         dispatch_data_t content = dispatch_data_create(copy, length, nil, DISPATCH_DATA_DESTRUCTOR_FREE);
         NSString *tag = client.tag;
+        SSSendBacklogAdd(length);
         nw_connection_send(client.socket, content, NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT, true, ^(nw_error_t  _Nullable error) {
+            SSSendBacklogAdd(-length);
+            // Holding the client keeps its pppd buffers (tx, ctx) alive until the send completes;
+            // after a close (sleep, reconnect, stop) there is nothing left to continue.
+            if (client.cancelling != SSTCPSocketStateIDLE) {
+                return;
+            }
             if (error) {
                 SSLogI(@"%@ nw_connection_send failure:%@", tag, error);
                 complete(stream, tx, ctx, SSTP_FAIL);

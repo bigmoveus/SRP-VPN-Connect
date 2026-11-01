@@ -19,6 +19,12 @@ typedef void(^lwFailureCallback)(NSString *reason);
 /// The global worker queue
 @property (nonatomic, readonly, strong)dispatch_queue_t worker;
 
+/// YES while the SSTP connection holds more unsent bytes than its upload budget; the packet
+/// loop waits before reading more from the device.
+-(BOOL)sendBacklogFull;
+/// Where the unsent bytes wait, for the tunnel log.
+-(NSString *)uploadBacklogDescription;
+
 /// Set the GEOIP database path
 /// - Parameter geoip: database path
 +(void)setup:(NSString *)geoip;

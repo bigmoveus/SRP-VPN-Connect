@@ -108,31 +108,12 @@ static status_t ppp_process_data(sstp_pppd_st *ctx);
 static void ppp_send_complete(sstp_stream_st *stream, sstp_buff_st *buf,
     sstp_pppd_st *ctx, status_t status)
 {
+    /* The stream copies each frame before sstp_stream_send returns, so the send loop never
+     * stops early and nothing is left to process here. Processing again from the network
+     * queue raced the worker that fills rx_buf and corrupted the PPP buffers under upload. */
     if (SSTP_OKAY != status)
     {
         x_debug("Failed to complete write to pppd");
-    }
-
-    /* Continue processing input */
-    status = ppp_process_data(ctx);
-    switch (status)
-    {
-    case SSTP_INPROG:
-        /* Will invoke this function again */
-        break;
-
-    case SSTP_OKAY:
-        /* Record the number of bytes sent */
-
-        /* We had to trottle the recevie operation, re-start */
-//            TODO: 事件添加
-//        event_add(ctx->ev_recv, NULL);
-        break;
-
-    case SSTP_FAIL:
-    default:
-        x_debug("Failed to receive data from pppd");
-        break;
     }
 }
 

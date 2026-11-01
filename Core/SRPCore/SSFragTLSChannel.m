@@ -4,6 +4,7 @@
 //
 
 #import "SSFragTLSChannel.h"
+#import "SSTCPClient.h"
 #import "SSLog.h"
 #import <Security/Security.h>
 #import <openssl/ssl.h>
@@ -263,9 +264,12 @@
             free(buf);
             return;
         }
-        dispatch_data_t dd = dispatch_data_create(buf, n, _queue, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+        // FREE hands buf to the data object; DEFAULT made a copy and every sent chunk leaked
+        dispatch_data_t dd = dispatch_data_create(buf, n, NULL, DISPATCH_DATA_DESTRUCTOR_FREE);
+        SSSendBacklogAdd(n);
         nw_connection_send(_conn, dd, NW_CONNECTION_DEFAULT_MESSAGE_CONTEXT, false,
                            ^(nw_error_t error) {
+            SSSendBacklogAdd(-(int64_t)n);
             if (error) SSLogI(@"TLS-frag: send error %@", error);
         });
         _burstStart = NO;
@@ -283,7 +287,10 @@
 }
 
 - (void)sendPlaintext:(NSData *)data {
+    // Counted from here until SSL_write takes it (the encrypted chunks are counted on their own)
+    SSSendBacklogAdd((int64_t)data.length);
     dispatch_async(_queue, ^{
+        SSSendBacklogAdd(-(int64_t)data.length);
         if (self->_closed || !self->_handshakeDone) return;
 
         const uint8_t *bytes = data.bytes;
@@ -312,7 +319,9 @@
 - (void)startReceiveLoop {
     if (_closed) return;
     __weak SSFragTLSChannel *weakSelf = self;
-    nw_connection_receive(_conn, 1, UINT32_MAX, ^(dispatch_data_t content, nw_content_context_t context,
+    // At most 64 KB per read, like the plain path: an unbounded read handed over everything the
+    // network had buffered, and the decrypted copies of a large burst exceeded the memory limit
+    nw_connection_receive(_conn, 1, UINT16_MAX, ^(dispatch_data_t content, nw_content_context_t context,
                                                   bool is_complete, nw_error_t receive_error) {
         SSFragTLSChannel *strongSelf = weakSelf;
         if (!strongSelf) return;
@@ -341,8 +350,10 @@
         uint8_t buf[16384];
         int n = SSL_read(_ssl, buf, sizeof(buf));
         if (n > 0) {
-
-            if (_onPlaintext) _onPlaintext([NSData dataWithBytes:buf length:n]);
+            // Each chunk's objects go before the next one; the receive queue rarely idles under load
+            @autoreleasepool {
+                if (_onPlaintext) _onPlaintext([NSData dataWithBytes:buf length:n]);
+            }
             continue;
         }
         int code = SSL_get_error(_ssl, n);

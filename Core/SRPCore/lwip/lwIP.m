@@ -8,6 +8,7 @@
 #include <netinet/ip6.h>
 #include <netinet/in.h>
 #include <lwip/stats.h>
+#include <stdatomic.h>
 #include <resolv.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -70,6 +71,9 @@ static int8_t __memory__[2048];
     SSTPPPPState _pppState;
     BOOL _closedManually;
     BOOL _authFailed;
+    BOOL _linkEverEstablished;    // PPP came up once in this tunnel; later drops are reconnects
+    BOOL _connectionEstablished;  // the current SSTP connection reached ESTABLISHED
+    BOOL _clientDisconnected;     // the current client's disconnect was handled
     NSData *_eapTlsCertPem;	/* EAP-TLS client credentials, retained for the session */
     NSData *_eapTlsKeyPem;
 
@@ -85,6 +89,9 @@ static int8_t __memory__[2048];
     BOOL _pathSwitchInProgress;   // deliberate close for a path migration
     NSString *_serverHost;        // SSTP server host/IP — excluded from tunnel routes
 }
+
+// Bytes of device packets handed to the worker and not yet framed into PPP (see WriteIPPacket)
+static _Atomic int64_t __workerBacklog__ = 0;
 
 static void netif_ppp_print_function(const char *buf) {
     NSLog(@"[Y] PPP => %s", buf);   // level-gated upstream in ppp_log_write
@@ -380,6 +387,9 @@ static u32_t netif_pppos_output_cb_fn(ppp_pcb *pcb, u8_t *data, u32_t len, void 
         [self startPathMonitor];
         _closedManually = NO;
         _authFailed = NO;
+        _linkEverEstablished = NO;
+        _clientDisconnected = NO;
+        _connectionEstablished = NO;
         _serverHost = sstp.host;
         _sstpClient = [[SSSSTPClient alloc] initWithTarget:protocol.host port:protocol.port proto:(SSProtocolTypeTCP) family:AF_INET];
         _sstpClient.delegate = self;
@@ -486,6 +496,10 @@ static u32_t netif_pppos_output_cb_fn(ppp_pcb *pcb, u8_t *data, u32_t len, void 
         _failedAttempts = 0;
         SSLogM(@"device wake: reconnecting the SSTP connection");
         [self reconnect];
+    } else if (_mFailureCallback) {
+        // Off without Auto Reconnect leaves no connection; end the tunnel
+        // instead of keeping a VPN that silently drops every packet.
+        _mFailureCallback(@"The connection was closed while the device slept.");
     }
 }
 
@@ -618,6 +632,23 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
     _mOutputCallback = callback;
 }
 
+// About twice the bandwidth-delay product of 100 Mbit/s at 50 ms. Network.framework keeps
+// buffering after its send completions, so this budget leaves it most of the 50 MB limit.
+static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
+
+-(BOOL)sendBacklogFull {
+    return [self uploadBacklogBytes] > kSSTPSendBacklogLimit;
+}
+
+-(int64_t)uploadBacklogBytes {
+    return MAX(0, atomic_load_explicit(&__workerBacklog__, memory_order_relaxed)) + SSSendBacklogBytes();
+}
+
+-(NSString *)uploadBacklogDescription {
+    return [NSString stringWithFormat:@"%lld bytes waiting for PPP framing, %lld for the network",
+            MAX(0, atomic_load_explicit(&__workerBacklog__, memory_order_relaxed)), SSSendBacklogBytes()];
+}
+
 -(void)WriteOut:(NSData *)packet family:(int)family{
     if (_mOutputCallback == nil) {
         return;
@@ -679,10 +710,17 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
 }
 
 -(void)WriteIPPacket:(NSData *)packet family:(int)family {
+    // Packets waiting for the worker count toward the upload budget too: PPP framing can be
+    // slower than the device delivers an upload, and this queue then grew without limit
+    int64_t length = (int64_t)packet.length;
+    atomic_fetch_add_explicit(&__workerBacklog__, length, memory_order_relaxed);
     dispatch_async(self.worker, ^{
-        int ret = [self WriteIPPacketInQueue:packet family:family];
-        if (ret != 0) {
-            SSLogI(@"WriteIPPacketInQueue: %d", ret);
+        @autoreleasepool {
+            int ret = [self WriteIPPacketInQueue:packet family:family];
+            atomic_fetch_sub_explicit(&__workerBacklog__, length, memory_order_relaxed);
+            if (ret != 0) {
+                SSLogI(@"WriteIPPacketInQueue: %d", ret);
+            }
         }
     });
 }
@@ -805,39 +843,24 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
 #pragma mark pppd
 - (void)tcpClient:(SSTCPClient *)client didChangeState:(SSClientState)state {
     if (state == SSClientStateDisconnected) {
-        BOOL wasEstablished = (_pppState == SSTPPPPState_ESTABLISHED);
-        _pppState = SSTPPPPState_CLOSE;
-        if (__ppp__ == NULL) {
-            if (!wasEstablished && !_closedManually && !_pathSwitchInProgress) {
-                // Never established: with a retry limit, retry up to
-                // retryTimes before giving up; otherwise fail immediately
-                // (historic behavior). Auto Reconnect off = fail at once.
-                if (_autoReconnect && _maxRetries > 0 && SSReconnectAttemptAllowed(_failedAttempts, _maxRetries)) {
-                    _failedAttempts++;
-                    SSLogM(@"connect failed; retry %ld of %ld in 2s",
-                           (long)_failedAttempts, (long)_maxRetries);
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), self.worker, ^{
-                        [self reconnect];
-                    });
-                    return;
-                }
-                if (_mFailureCallback) {
-                    // Proxy failures carry their own reason (detection /
-                    // negotiation / PAC); keep them distinct from TLS errors
-                    NSString *reason = client.connectionError.length > 0
-                        ? client.connectionError
-                        : _failedAttempts > 0
-                            ? [NSString stringWithFormat:@"Cannot reach the server after %ld attempts. Check the host, port and certificate settings.", (long)(_failedAttempts + 1)]
-                            : @"Cannot reach the server (DNS/TCP/TLS failed). Check the host, port and certificate settings.";
-                    _mFailureCallback(reason);
-                }
-            }
+        // Only the current client's first disconnect counts: a client replaced by a reconnect
+        // can still report one while its last sends finish
+        if (client != _sstpClient || _clientDisconnected) {
             return;
         }
-        netif_remove(&__pppos_netif__);
-        ppp_close(__ppp__, 0);
-        ppp_free(__ppp__);
-        __ppp__ = NULL;
+        _clientDisconnected = YES;
+        // A server-side disconnect reaches the SSTP state machine first, so _pppState already
+        // reads Close here; whether this connection was up comes from its own flag
+        BOOL wasEstablished = _connectionEstablished;
+        BOOL pppStarted = __ppp__ != NULL;
+        _connectionEstablished = NO;
+        _pppState = SSTPPPPState_CLOSE;
+        if (pppStarted) {
+            netif_remove(&__pppos_netif__);
+            ppp_close(__ppp__, 0);
+            ppp_free(__ppp__);
+            __ppp__ = NULL;
+        }
         if (_closedManually || _pathSwitchInProgress || _sleepPaused) {
             return;
         }
@@ -846,6 +869,39 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
             SSLogM(@"skipping reconnect after authentication failure");
             return;
         }
+        if (!wasEstablished && !_linkEverEstablished) {
+            if (pppStarted) {
+                // The server ended PPP before the first link came up, which a retry does not change
+                if (_mFailureCallback) {
+                    _mFailureCallback(@"The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.");
+                }
+                return;
+            }
+            // Never reached PPP: with a retry limit, retry up to
+            // retryTimes before giving up; otherwise fail immediately
+            // (historic behavior). Auto Reconnect off = fail at once.
+            if (_autoReconnect && _maxRetries > 0 && SSReconnectAttemptAllowed(_failedAttempts, _maxRetries)) {
+                _failedAttempts++;
+                SSLogM(@"connect failed; retry %ld of %ld in 2s",
+                       (long)_failedAttempts, (long)_maxRetries);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), self.worker, ^{
+                    [self reconnect];
+                });
+                return;
+            }
+            if (_mFailureCallback) {
+                // Proxy failures carry their own reason (detection /
+                // negotiation / PAC); keep them distinct from TLS errors
+                NSString *reason = client.connectionError.length > 0
+                    ? client.connectionError
+                    : _failedAttempts > 0
+                        ? [NSString stringWithFormat:@"Cannot reach the server after %ld attempts. Check the host, port and certificate settings.", (long)(_failedAttempts + 1)]
+                        : @"Cannot reach the server (DNS/TCP/TLS failed). Check the host, port and certificate settings.";
+                _mFailureCallback(reason);
+            }
+            return;
+        }
+        // The tunnel was up (now or before a reconnect): Auto Reconnect and Retry Times decide
         if (!_autoReconnect) {
             // Auto Reconnect off: surface the drop instead of reconnecting
             if (_mFailureCallback) {
@@ -873,6 +929,8 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
 
 -(void)reconnect {
     SSProtocol *protocol = NWRunLoop.currentRunLoop.protocol;
+    _clientDisconnected = NO;
+    _connectionEstablished = NO;
     _sstpClient = [[SSSSTPClient alloc] initWithTarget:protocol.host port:protocol.port proto:(SSProtocolTypeTCP) family:AF_INET];
     _sstpClient.delegate = self;
     _sstpClient.tag = @"sstp client";
@@ -880,15 +938,24 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
 }
 
 - (void)tcpClient:(SSTCPClient *)client didReceiveMessage:(uint8_t *)pkt length:(int)length {
+    if (client != _sstpClient) {
+        return;   // a replaced client must not feed the current PPP session
+    }
     pppos_input(__ppp__, pkt, length);
 }
 
 -(void)tcpClient:(SSTCPClient *)client didReceiveIPPacket:(uint8_t *)packet length:(int)length {
+    if (client != _sstpClient) {
+        return;
+    }
     NSData *ipPacket = [[NSData alloc] initWithBytesNoCopy:packet length:length freeWhenDone:NO];
     [[lwIP shared] WriteOut:ipPacket family:AF_INET];
 }
 
 - (void)tcpClient:(SSTCPClient *)client didChangeSSTPState:(SSTPPPPState)state {
+    if (client != _sstpClient) {
+        return;   // late state from a client a reconnect replaced
+    }
     if (state == SSTPPPPState_OPEN) {
         SSSstp *sstp = (SSSstp *)NWRunLoop.currentRunLoop.protocol;
         __ppp__ = pppos_create(&__pppos_netif__, netif_pppos_output_cb_fn, netif_ppp_link_status_cb_fn, NULL);
@@ -980,6 +1047,8 @@ x_stats_display_memp(struct stats_mem *mem, int idx)
     }
     if (state == SSTPPPPState_ESTABLISHED) {
         _failedAttempts = 0;   // a working connection resets the retry budget
+        _linkEverEstablished = YES;
+        _connectionEstablished = YES;
     }
     _pppState = state;
     SSLogM(@"tcpClient: %@ didChangeSSTPState: %@", client.tag, [lwIP GetState:state]);

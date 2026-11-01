@@ -37,6 +37,12 @@ typedef enum : NSUInteger {
 @end
 
 
+/// Bytes the SSTP connection was handed and has not sent yet (both the plain and the TLS
+/// fragmentation path). The packet loop stops reading from the device above a budget, so an
+/// upload faster than the server path cannot outgrow the extension's memory limit.
+FOUNDATION_EXPORT void SSSendBacklogAdd(int64_t bytes);
+FOUNDATION_EXPORT int64_t SSSendBacklogBytes(void);
+
 @interface SSTCPClient : NSObject
 
 /// Current client instance count

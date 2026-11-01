@@ -6,12 +6,22 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Fixed
 - SSTP crashed the VPN extension as soon as a connection started, because WaterWall's lwIP network stack had replaced the one SSTP uses. WaterWall's copy now has its own symbol names, so each protocol keeps its own stack.
+- SSTP could crash the VPN extension under heavy traffic: every batch of packets read from the device replaced the callback that was writing received packets back. It is now set once, and a reconnect no longer starts another read loop.
+- An SSTP upload faster than the path to the server made the VPN extension exceed its memory limit within seconds. The tunnel now stops reading from the device while 1 MB waits for PPP framing or for the network, with or without TLS Fragmentation.
+- Under upload, every finished SSTP send processed the PPP buffers again on the network queue while the tunnel was filling them, which could corrupt frames.
+- With TLS Fragmentation, SSTP kept a copy of every encrypted chunk it sent, so an upload ran the VPN extension out of memory within seconds.
+- Heavy SSTP traffic, such as eight downloads at once or any download with TLS Fragmentation, could run the VPN extension out of memory. The objects each packet left for release piled up while the packet queues never went idle, and with TLS Fragmentation every read took everything the network had buffered. Each batch of packets now releases its objects, and TLS Fragmentation reads at most 64 KB at a time.
+- SSTP could crash the VPN extension when a connection closed with sends still in flight, as when the device slept with On Sleep set to Pause or Off, or on a reconnect.
+- After the server ended an SSTP session, Auto Reconnect gave up instead of reconnecting when Retry Times was unlimited, because the drop was taken for a connection that never came up. Late events from a replaced connection no longer reach the new one.
+- When an SSTP connection ended for good after it was up (Auto Reconnect off, Retry Times used up, or On Sleep set to Off without Auto Reconnect after the device woke), the VPN stayed connected without a working tunnel; it now disconnects with a message.
 - SSTP sent a Custom SNI that was switched off when the profile still held its hostname.
 - With Custom SNI on, the certificate check before an SSTP connection ignored it and reported an untrusted certificate when the Host field is an IP address; it now checks the certificate against the Custom SNI, as the connection does.
+- When an SSTP server ended PPP before the first link came up, for example because it accepts none of the profile's authentication methods, the error read "Connection lost (auto reconnect is off)."; it now says the server closed the connection during PPP negotiation.
 - An SSTP profile that uses only PEAP, EAP-TTLS or TEAP could not be saved.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.
+- The SSTP tunnel log records the extension's memory when the link comes up and, near the memory limit, how much data waits for PPP framing and for the network.
 
 ### Development
 - The WaterWall runtime build fails when one of WaterWall's lwIP symbols keeps a name the other protocols' lwIP uses (`WaterWall/tests/lwip_prefix_contract.py`); `WaterWall/generate_lwip_prefix.py` regenerates `srp_lwip_prefix.h` after an lwIP upgrade.
