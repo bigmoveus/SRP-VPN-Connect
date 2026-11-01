@@ -151,6 +151,8 @@ list(REMOVE_DUPLICATES SRP_QUIC_ARCHIVE_FILES)
 list(REMOVE_DUPLICATES SRP_QUIC_ARCHIVE_TARGETS)
 
 set(SRP_RUNTIME_ARCHIVE ${CMAKE_CURRENT_BINARY_DIR}/libSRPWaterWallRuntime.a)
+set(SRP_LWIP_PREFIX_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/upstream/ww/lwip/srp_lwip_prefix.h)
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
 add_custom_command(
     OUTPUT ${SRP_RUNTIME_ARCHIVE}
     COMMAND /usr/bin/libtool -static -o ${SRP_RUNTIME_ARCHIVE}
@@ -208,6 +210,9 @@ add_custom_command(
         $<TARGET_FILE:libuuid>
         $<TARGET_FILE:waterwall_cpp_allocator>
         ${SRP_QUIC_ARCHIVE_FILES}
+    # The other protocols link their own lwIP, so none of WaterWall's may stay unprefixed.
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/lwip_prefix_contract.py
+        ${SRP_LWIP_PREFIX_HEADER} $<TARGET_FILE:ww_lwip> ${SRP_RUNTIME_ARCHIVE}
     DEPENDS
         SRPWaterWallBridge
         NEPacketDevice
@@ -267,10 +272,12 @@ add_custom_command(
     COMMENT "Packing the self-contained WaterWall runtime archive"
 )
 add_custom_target(SRPWaterWallRuntime ALL DEPENDS ${SRP_RUNTIME_ARCHIVE})
-find_package(Python3 COMPONENTS Interpreter REQUIRED)
 add_test(NAME srp_openssl_prefix_contract
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/openssl_prefix_contract.py
                  $<TARGET_FILE:OpenSSL::SSL> $<TARGET_FILE:OpenSSL::Crypto>)
+add_test(NAME srp_lwip_prefix_contract
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/lwip_prefix_contract.py
+                 ${SRP_LWIP_PREFIX_HEADER} $<TARGET_FILE:ww_lwip> ${SRP_RUNTIME_ARCHIVE})
 
 if(BUILD_TESTING AND CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_executable(srp_waterwall_host_poc tests/host_poc.c)

@@ -32,6 +32,10 @@
 #ifndef LWIP_LWIPOPTS_H
 #define LWIP_LWIPOPTS_H
 
+// SSTP links its own lwIP; every lwIP header includes this file first, so the rename
+// keeps WaterWall's copy on its own srpww_* symbols.
+#include "srp_lwip_prefix.h"
+
 #include <wconfig.h>
 
 #include <stdint.h>
