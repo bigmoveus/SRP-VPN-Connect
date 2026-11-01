@@ -37,6 +37,11 @@ typedef NS_ENUM(NSInteger, SSProxyHopType) {
 /// keyword, which is why the string is parsed here.
 + (NSArray<SSProxyHop *> *)hopsFromPACResultString:(NSString *)result;
 
+/// A PAC script names proxies but not their credentials: the profile's proxy
+/// username and password go to every proxy hop (DIRECT needs none).
++ (void)applyUsername:(nullable NSString *)username password:(nullable NSString *)password
+               toHops:(NSArray<SSProxyHop *> *)hops;
+
 /// SOCKS5 greeting: 05 01 00 without credentials, 05 02 00 02 with.
 + (NSData *)socks5GreetingWithCredentials:(BOOL)hasCredentials;
 /// RFC 1929 username/password authentication packet.

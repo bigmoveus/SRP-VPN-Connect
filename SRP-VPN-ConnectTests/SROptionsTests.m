@@ -4163,6 +4163,24 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertNil([editor validationMessage]);
 }
 
+// The proxy a PAC script picks may ask for a password, so Auto takes the credentials too
+- (void)testSSTPAutoProxyTakesTheProxyCredentials {
+    NodeModel *model = [NodeModel new];
+    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    model.proxyMode = 2;
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    NSInteger rows = [editor tableView:editor.tableView numberOfRowsInSection:3];
+    NSMutableArray<NSString *> *titles = [NSMutableArray new];
+    for (NSInteger row = 0; row < rows; row++) {
+        UITableViewCell *cell = [editor tableView:editor.tableView
+                            cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:3]];
+        [titles addObject:cell.textLabel.text ?: @""];
+    }
+    XCTAssertEqualObjects(titles, (@[@"Mode", @"PAC URL", @"Username", @"Password"]));
+}
+
 - (void)testProfileSaveKeepsPasswordWhitespace {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"sstp";

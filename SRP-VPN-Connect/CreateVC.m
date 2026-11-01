@@ -813,6 +813,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     if (section == 3 && self.modal.proxyMode == 2 && [self isSoftEther]) {
         return @"Auto (PAC) proxy is not supported for SoftEther profiles yet; the connection will be made directly.";
     }
+    if (section == 3 && self.modal.proxyMode == 2 && [self isSSTP]) {
+        return @"The PAC script picks the proxy for the connection to the VPN server; the username and password go to that proxy when it asks for them.";
+    }
     if (section == 4 && [self isWaterWall]) {
         NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error. Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); a network change returns to this profile. Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open.";
         NSDictionary *configuration = [self waterWallConfiguration];
@@ -941,7 +944,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             switch (self.modal.proxyMode) {
                 case 1: return 5; // Mode, Address, Port, Username, Password
-                case 2: return 2; // Mode, PAC URL
+                case 2: return 4; // Mode, PAC URL, Username, Password
                 default: return 1; // Mode
             }
         case 4: // OPTIONS
@@ -1391,6 +1394,15 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         if (self.modal.proxyMode == 2 && indexPath.row == 1) {
             return [self textCellWithTitle:@"PAC URL" text:self.modal.pacURL placeholder:@"https://example.com/proxy.pac"
                                        tag:kFieldPacURL keyboardType:UIKeyboardTypeURL secure:NO];
+        }
+        // The proxy the PAC script picks may ask for a password too
+        if (self.modal.proxyMode == 2 && indexPath.row == 2) {
+            return [self textCellWithTitle:@"Username" text:self.modal.proxyUsername placeholder:@"Optional"
+                                       tag:kFieldProxyUsername keyboardType:UIKeyboardTypeDefault secure:NO];
+        }
+        if (self.modal.proxyMode == 2 && indexPath.row == 3) {
+            return [self textCellWithTitle:@"Password" text:self.modal.proxyPassword placeholder:@"Optional"
+                                       tag:kFieldProxyPassword keyboardType:UIKeyboardTypeDefault secure:YES];
         }
     }
     if (indexPath.section == 4) {

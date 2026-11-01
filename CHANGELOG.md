@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- SSTP profiles with Proxy set to Auto (PAC) take a username and password for the proxy the PAC script picks; before, a PAC proxy that asks for a password could not be used.
+
 ### Fixed
 - SSTP crashed the VPN extension as soon as a connection started, because WaterWall's lwIP network stack had replaced the one SSTP uses. WaterWall's copy now has its own symbol names, so each protocol keeps its own stack.
 - SSTP could crash the VPN extension under heavy traffic: every batch of packets read from the device replaced the callback that was writing received packets back. It is now set once, and a reconnect no longer starts another read loop.

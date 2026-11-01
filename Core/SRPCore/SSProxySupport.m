@@ -54,6 +54,18 @@
     return hops;
 }
 
++ (void)applyUsername:(NSString *)username password:(NSString *)password toHops:(NSArray<SSProxyHop *> *)hops {
+    if (username.length == 0) {
+        return;
+    }
+    for (SSProxyHop *hop in hops) {
+        if (hop.type != SSProxyHopTypeDirect) {
+            hop.username = username;
+            hop.password = password ?: @"";
+        }
+    }
+}
+
 #pragma mark - SOCKS5 wire format
 
 + (NSData *)socks5GreetingWithCredentials:(BOOL)hasCredentials {

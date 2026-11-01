@@ -105,6 +105,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
             done(nil, [self proxyError:@"No usable proxy returned by PAC"]);
             return;
         }
+        [SSProxySupport applyUsername:proxyUsername password:proxyPassword toHops:hops];
         NSLog(@"[Y] PAC result: %@", result);
         done(hops, nil);
     }];

@@ -58,6 +58,23 @@
     XCTAssertEqual(hops[2].type, SSProxyHopTypeDirect);
 }
 
+- (void)testPacProxiesTakeTheProfileCredentials {
+    NSArray<SSProxyHop *> *hops = [SSProxySupport hopsFromPACResultString:
+        @"PROXY proxy1.example.com:8080; SOCKS5 proxy2.example.com:1080; DIRECT"];
+    [SSProxySupport applyUsername:@"user" password:@"pass" toHops:hops];
+    XCTAssertEqualObjects(hops[0].username, @"user");
+    XCTAssertEqualObjects(hops[0].password, @"pass");
+    XCTAssertEqualObjects(hops[1].username, @"user");
+    XCTAssertEqualObjects(hops[1].password, @"pass");
+    XCTAssertNil(hops[2].username);
+
+    // Without a username the proxies stay unauthenticated
+    hops = [SSProxySupport hopsFromPACResultString:@"PROXY proxy1.example.com:8080"];
+    [SSProxySupport applyUsername:@"" password:@"pass" toHops:hops];
+    XCTAssertNil(hops[0].username);
+    XCTAssertNil(hops[0].password);
+}
+
 - (void)testPacJunkSkipped {
     XCTAssertEqual([SSProxySupport hopsFromPACResultString:@""].count, 0);
     XCTAssertEqual([SSProxySupport hopsFromPACResultString:@"BOGUS x:1"].count, 0);
