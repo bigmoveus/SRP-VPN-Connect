@@ -13,6 +13,7 @@
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
 #import "SSFragTLSChannel.h"
+#import "SRPCertificateStore.h"
 #import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
 #import <SRPParser/PDVPNManager.h>
@@ -3205,6 +3206,26 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     }
     model.password = environment[@"SRP_LIVE_PASSWORD"];
     model.proxyPassword = environment[@"SRP_LIVE_PROXY_PASSWORD"];
+    // Certificate login: the PKCS#12 and its passphrase come in their own variables and are imported
+    // as the editor imports a file; the import is removed when the test ends
+    NSString *p12Base64 = environment[@"SRP_LIVE_CERT_P12_BASE64"];
+    if (p12Base64.length > 0) {
+        NSData *p12 = [[NSData alloc] initWithBase64EncodedString:p12Base64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        NSError *error = nil;
+        SRPCertificateInfo *certificate = p12 ? [SRPCertificateStore importP12:p12
+                                                                    passphrase:environment[@"SRP_LIVE_CERT_PASSPHRASE"] ?: @""
+                                                                         error:&error] : nil;
+        if (certificate == nil) {
+            NSLog(@"Live profile: the certificate could not be imported: %@", error.localizedDescription);
+            return nil;
+        }
+        [self addTeardownBlock:^{
+            [SRPCertificateStore removeCertificateWithRef:certificate.ref];
+        }];
+        model.authMethod = @"certificate";
+        model.certKey = certificate.ref;
+        model.certName = certificate.name;
+    }
     return model;
 }
 
