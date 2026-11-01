@@ -60,6 +60,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - `testDocumentationScreenshotsWhenRequested` renders the WaterWall screens with example values for the documentation when `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1` is set.
 - The device matrix's server side no longer requires an HTTP Host, because the generated client and the app may send different names by design.
 - The device matrix builds its BGP4 framing cases with the `bgp4` configuration switch. It put the flag in node-options, which the app refuses, so none of those combinations ever ran.
+- The device matrix's GeoIP cases check the routing: the reference server's log shows whether each download came straight from the phone or through WaterWall. Before, they only measured traffic.
 
 ## 1.2.0 (29) - 2026-10-31
 

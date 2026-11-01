@@ -427,7 +427,7 @@ class DeviceMatrix(SupportedMatrix):
         self.ensure_health_server()
         lookup = shutil.which("mmdblookup") or os.environ.get("SRP_GEOIP_LOOKUP", "/tmp/srp-geoip-lookup")
         if not os.access(lookup, os.X_OK):
-            # The pre-check only confirms the bundled database; the GeoIP cases still assert routing.
+            # The pre-check only confirms the bundled database; each GeoIP case still checks its routing in run_case.
             print(f"GeoIP database pre-check skipped: no lookup tool at {lookup}", flush=True)
             lookup = None
         for name, ip, expected in (("geoip-direct-country", self.host, "TR"),
@@ -622,8 +622,11 @@ class DeviceMatrix(SupportedMatrix):
             udp = False
             result["udp"] = {"status": "not-applicable", "reason": "The full-duplex test exercises TCP only"}
         started = time.monotonic()
+        reference_log = "/tmp/srp-https-throughput-server.log"
         try:
             self.start_remote_peer(item, client_path)
+            if name.startswith("geoip-"):
+                reference_lines = int(self.ssh(f"wc -l < {reference_log}").strip() or 0)
             log = self.work / f"{name}-device.log"
             full_duplex = os.environ.get("SRP_TEST_WW_FULL_DUPLEX") == "1"
             network_transition = os.environ.get("SRP_TEST_WW_NETWORK_TRANSITION") == "1"
@@ -691,6 +694,19 @@ class DeviceMatrix(SupportedMatrix):
                                   "average_jitter_ms": float(timing[2]) if timing else None,
                                   "max_rtt_ms": float(timing[3]) if timing else None,
                                   "error": "" if udp_passed else "UDP transfer failed; see device log"}
+            if name.startswith("geoip-"):
+                # The reference server logs each download with its client address: the office address means the
+                # router sent it direct, the server's own address means it went through WaterWall.
+                requests = re.findall(r'^(\S+) - - \[[^\]]*\] "GET /throughput\.bin',
+                                      self.ssh(f"tail -n +{reference_lines + 1} {reference_log}"), re.M)
+                sources = set(filter(None, os.environ.get("SRP_TEST_ALLOWED_SOURCE", "").split(",")))
+                direct = sum(address in sources for address in requests)
+                proxied = sum(address in (self.host, "127.0.0.1") for address in requests)
+                expected = "proxied" if name == "geoip-default-proxy" else "direct"
+                routed = (direct > 0 and proxied == 0) if expected == "direct" else (proxied > 0 and direct == 0)
+                result["routing"] = {"status": "passed" if routed else "failed", "expected": expected,
+                                     "direct_requests": direct, "proxied_requests": proxied,
+                                     "other_requests": len(requests) - direct - proxied}
             self.stop_remote_peer(item)
             result["teardown"] = {"passed": True}
         except Exception as error:
@@ -707,6 +723,7 @@ class DeviceMatrix(SupportedMatrix):
                 result["teardown"] = {"passed": False, "error": str(error)}
         result["status"] = "failed" if (result.get("error") or result["tcp"].get("status") == "failed" or
             result["udp"].get("status") == "failed" or result.get("ping", {}).get("status") == "failed" or
+            result.get("routing", {}).get("status") == "failed" or
             not result["teardown"].get("passed", False)) else "passed"
         self.results.append(result)
         write_json(self.work / "results.json", {"summary": self.summary, "cases": self.results})
