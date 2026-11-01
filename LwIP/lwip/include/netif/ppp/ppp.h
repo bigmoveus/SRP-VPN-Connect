@@ -195,6 +195,9 @@ typedef unsigned char  u_char;
 /* Link status callback function prototype */
 typedef void (*ppp_link_status_cb_fn)(ppp_pcb *pcb, int err_code, void *ctx);
 
+/* Room for the reason an EAP server certificate was refused (ppp_settings.eap_cert_rejected) */
+#define PPP_EAP_CERT_REASON_LEN 160
+
 /*
  * PPP configuration.
  */
@@ -288,10 +291,19 @@ typedef struct ppp_settings_s {
   u8_t  eap_md5_enable;          /* Allow EAP-MD5 (never set by the app: no keys, no server proof) */
   u8_t  eap_identity_privacy;    /* Outer identity is the anonymous one */
   u8_t  eap_tls13_enabled;       /* Allow TLS 1.3 for the PEAP tunnel */
+  /* The EAP TLS handshake (PEAP, EAP-TTLS, TEAP or EAP-TLS) began / completed: a server that
+   * ends EAP in between refused the TLS offer itself, not the credentials. */
+  u8_t  eap_tls_hs_started;
+  u8_t  eap_tls_hs_done;
   u8_t  eap_disable_legacy_tls;  /* Require >= TLS 1.2 for the PEAP tunnel */
   const char *eap_anonymous_identity; /* Outer identity when privacy is on */
   u8_t  peap_cert_check;         /* Compare inner TLS cert fingerprint */
   u8_t  peap_cert_sha256[32];    /* Expected inner leaf SHA256 fingerprint */
+  /* When the EAP server's leaf is not the SSTP server's (RRAS relaying EAP to a separate
+   * RADIUS server), the platform checks its chain (DER, leaf first) against the roots the
+   * device trusts; nonzero = trusted. A refusal leaves its reason in eap_cert_rejected. */
+  int (*eap_cert_trust)(const u_char *const *ders, const int *lens, int count, char *reason, int reason_len);
+  char  eap_cert_rejected[PPP_EAP_CERT_REASON_LEN]; /* why the EAP server certificate was refused, "" if not */
   u8_t  peap_require_cb;         /* Fail PEAP unless a verified Crypto-Binding TLV was exchanged */
   u8_t  eap_ttls_inner;          /* TTLS phase-2 method: EAP_TTLS_INNER_* (see ppp_impl.h) */
   /* EAP-TLS client credentials (PEM blobs borrowed from the upper layer;

@@ -24,11 +24,16 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP ran the TLS Fragmentation mode that was not chosen: Manual ignored the chunk sizes and used the automatic ones, and Auto used fixed 32- and 256-byte chunks. Each mode now runs as chosen.
 - The SSTP profile editor accepted Manual TLS Fragmentation chunks above 4096 and 16384 bytes, which failed only when connecting; it now names the limit on save.
 - An SSTP proxy that cannot be reached was reported as an unsupported proxy protocol after about 20 seconds; the error now names the proxy address and the reason, at once when the connection is refused.
+- A wrong password on an SSTP server that ends the call together with its refusal, as MikroTik does with RADIUS, was reported as a failed negotiation of the authentication methods; it is now reported as a rejected username or password. A server that ends PPP without a refusal gets a message naming the phase it ended: negotiation, authentication or the tunnel address.
+- When an SSTP server ended the call but kept its TCP connection open, as SoftEther does when it accepts none of the profile's authentication methods, the connection waited 30 seconds and then said the server did not respond; it now ends at once with the reason.
 - SSTP answered an EAP-MD5 challenge with the password whichever EAP methods the profile allowed. FreeRADIUS offers EAP-MD5 first, so PEAP, EAP-MSCHAPv2 and certificate profiles behind it logged in with EAP-MD5 instead and passed no traffic (EAP-MD5 gives no keys for the crypto binding), and any server could obtain a hash of the password to guess at. The profile's own method is now asked for, and unknown methods are refused the same way.
+- With Identity Privacy on, a server that refuses the anonymous outer identity, as Windows RRAS does with local accounts, was reported as a wrong username or password only; the message now names Identity Privacy too. A refused client certificate is reported as such instead of as a wrong password.
+- With EAP TLS 1.3 on (the default), PEAP and the other TLS-based EAP methods failed against Windows Server NPS, which has no TLS 1.3 for EAP and drops the offer. When a server ends EAP during the TLS handshake of a TLS 1.3 offer, SSTP now connects again once, offering TLS 1.2.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.
 - The SSTP tunnel log records the extension's memory when the link comes up and, near the memory limit, how much data waits for PPP framing and for the network.
+- SSTP accepted any certificate from an EAP server on another host than the SSTP server, as when RRAS relays PEAP, EAP-TTLS, TEAP or EAP-TLS to a RADIUS server. That certificate must now chain to a root the device trusts, as the outer connection's does, unless Allow Insecure is on; a RADIUS server with a private CA needs that CA installed and trusted on the device. A refused certificate is named in the error.
 
 ### Development
 - The WaterWall runtime build fails when one of WaterWall's lwIP symbols keeps a name the other protocols' lwIP uses (`WaterWall/tests/lwip_prefix_contract.py`); `WaterWall/generate_lwip_prefix.py` regenerates `srp_lwip_prefix.h` after an lwIP upgrade.

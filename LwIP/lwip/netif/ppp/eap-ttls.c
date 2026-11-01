@@ -19,16 +19,11 @@
  * to a 4-octet boundary.  EAP is tunnelled in EAP-Message AVPs (code 79,
  * RFC 2865), one EAP packet per AVP.
  *
- * Inner TLS certificate policy: like the PEAP engine, BoringSSL cannot
- * use the Apple trust store, so the inner leaf SHA256 is compared with
- * the outer SSTP connection's leaf.  A match is accepted silently.
- * KNOWN LIMITATION: when the EAP server is a different host than the
- * SSTP concentrator (e.g. RRAS relaying to FreeRADIUS), the certificates
- * legitimately differ; in that case a loud warning naming both
- * identities is logged and the connection is allowed to continue in
- * both strict and insecure modes — strict inner-cert pinning for the
- * split-host case needs a proper trust evaluation and is left for a
- * later phase.
+ * Inner TLS certificate policy: the same as the PEAP engine
+ * (eap_tls_server_cert_acceptable): the inner leaf is the outer SSTP
+ * connection's leaf, or, when the EAP server is a different host than the
+ * SSTP concentrator (e.g. RRAS relaying to FreeRADIUS), chains to a root
+ * the device trusts; allowInsecure skips the check.
  *
  * The TLS-over-EAP transport (BIO pair, L/M/S fragmentation, ack pacing)
  * mirrors the PEAP engine; it is duplicated rather than factored out to
@@ -169,52 +164,7 @@ void eap_ttls_free(ppp_pcb *pcb) {
  * Certificate policy for the inner TLS tunnel, see the file header.
  */
 static int ttls_verify_cert(eap_ttls_state *st) {
-	if (!st->pcb->settings.peap_cert_check) {
-		ppp_warn("TTLS: inner TLS certificate NOT verified (allowInsecure is on)");
-		return 1;
-	}
-	X509 *cert = SSL_get_peer_certificate(st->ssl);
-	if (cert == NULL) {
-		ppp_error("TTLS: server presented no inner TLS certificate");
-		return 0;
-	}
-	int derlen = i2d_X509(cert, NULL);
-	if (derlen <= 0) {
-		X509_free(cert);
-		return 0;
-	}
-	u_char *der = (u_char *)malloc(derlen);
-	u_char *dp = der;
-	u_char digest[SHA256_DIGEST_LENGTH];
-	i2d_X509(cert, &dp);
-	SHA256(der, derlen, digest);
-	free(der);
-	X509_free(cert);
-	if (memcmp(digest, st->pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH) == 0) {
-		ppp_info("TTLS: inner TLS certificate fingerprint matches the outer connection");
-		return 1;
-	}
-	/* Split-host case (e.g. RRAS relaying EAP to a separate RADIUS
-	 * server): the inner identity legitimately differs from the outer
-	 * SSTP identity.  No trust evaluation exists for it yet; log both
-	 * prominently and continue (see the file header). */
-	{
-		char inner_fp[65], outer_fp[65];
-		int i;
-		for (i = 0; i < 32; i++) {
-			snprintf(inner_fp + 2 * i, 3, "%02x", digest[i]);
-			snprintf(outer_fp + 2 * i, 3, "%02x",
-			    st->pcb->settings.peap_cert_sha256[i]);
-		}
-		inner_fp[64] = outer_fp[64] = '\0';
-		ppp_warn("TTLS: inner EAP TLS certificate differs from the SSTP outer connection");
-		ppp_warn("TTLS: inner leaf SHA256 %s", inner_fp);
-		ppp_warn("TTLS: outer leaf SHA256 %s (this is expected when the "
-		    "EAP server is a different host than the SSTP concentrator; "
-		    "accepted for now, strict split-host pinning is not implemented yet)",
-		    outer_fp);
-	}
-	return 1;
+	return eap_tls_server_cert_acceptable(st->pcb, st->ssl, "EAP-TTLS");
 }
 
 /* Drain pending TLS output into the tx queue. */
@@ -769,9 +719,11 @@ static void ttls_feed_tls(eap_ttls_state *st, u_char id, const u_char *data, int
 		BIO_write(st->net_bio, data, len);
 
 	if (!st->handshake_done) {
+		st->pcb->settings.eap_tls_hs_started = 1;	/* see ppp_settings */
 		int ret = SSL_do_handshake(st->ssl);
 		if (ret == 1) {
 			st->handshake_done = 1;
+			st->pcb->settings.eap_tls_hs_done = 1;
 			st->phase = TTLS_PHASE_INNER;
 			ppp_info("TTLS: TLS handshake complete (%s)", SSL_get_version(st->ssl));
 			if (!ttls_verify_cert(st)) {

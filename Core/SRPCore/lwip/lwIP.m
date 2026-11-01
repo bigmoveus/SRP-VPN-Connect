@@ -24,6 +24,7 @@
 #import "SSSSTPClient.h"
 #import "SSLog.h"
 #import "SSNetOptions.h"
+#import <Security/Security.h>
 #include "netif/ppp/pppos.h"
 #include "netif/ppp/ppp_impl.h"
 #include "netif/ppp/eap-ttls.h"
@@ -74,6 +75,8 @@ static int8_t __memory__[2048];
     BOOL _linkEverEstablished;    // PPP came up once in this tunnel; later drops are reconnects
     BOOL _connectionEstablished;  // the current SSTP connection reached ESTABLISHED
     BOOL _clientDisconnected;     // the current client's disconnect was handled
+    BOOL _eapTls13Fallback;       // the server ended EAP on a TLS 1.3 offer; later attempts offer TLS 1.2
+    u8_t _pppLastPhase;           // the furthest PPP phase this connection reached
     NSData *_eapTlsCertPem;	/* EAP-TLS client credentials, retained for the session */
     NSData *_eapTlsKeyPem;
 
@@ -138,6 +141,76 @@ static err_t netif_output_ip6_callback(struct netif *netif, struct pbuf *p,
         }
     }
     return ERR_OK;
+}
+
+// An EAP server on another host than the SSTP server (RRAS relaying to RADIUS) shows its own
+// certificate; like the outer TLS, it must chain to a root the device trusts.
+static int srp_eap_cert_trusted(const u_char *const *ders, const int *lens, int count, char *reason, int reason_len) {
+    NSMutableArray *certificates = [NSMutableArray new];
+    for (int i = 0; i < count; i++) {
+        NSData *der = [NSData dataWithBytes:ders[i] length:(NSUInteger)lens[i]];
+        SecCertificateRef certificate = SecCertificateCreateWithData(NULL, (__bridge CFDataRef)der);
+        if (certificate != NULL) {
+            [certificates addObject:(__bridge_transfer id)certificate];
+        }
+    }
+    if (certificates.count == 0) {
+        snprintf(reason, reason_len, "its certificate could not be read");
+        return 0;
+    }
+    SecPolicyRef policy = SecPolicyCreateSSL(true, NULL);
+    SecTrustRef trust = NULL;
+    OSStatus status = SecTrustCreateWithCertificates((__bridge CFArrayRef)certificates, policy, &trust);
+    CFRelease(policy);
+    if (status != errSecSuccess || trust == NULL) {
+        snprintf(reason, reason_len, "its certificate could not be evaluated (%d)", (int)status);
+        return 0;
+    }
+    CFErrorRef error = NULL;
+    BOOL trusted = SecTrustEvaluateWithError(trust, &error);
+    if (!trusted) {
+        NSString *description = error != NULL ? ((__bridge NSError *)error).localizedDescription : @"not trusted";
+        snprintf(reason, reason_len, "%s", description.UTF8String);
+    }
+    if (error != NULL) {
+        CFRelease(error);
+    }
+    CFRelease(trust);
+    return trusted ? 1 : 0;
+}
+
+// The server ended EAP after a TLS 1.3 offer and before the TLS handshake completed
+static BOOL SRPEapTlsRefusedTls13(ppp_pcb *pcb) {
+#if EAP_SUPPORT
+    return pcb != NULL && pcb->settings.eap_tls13_enabled && pcb->settings.eap_tls_hs_started &&
+           !pcb->settings.eap_tls_hs_done;
+#else
+    return NO;
+#endif
+}
+
+// With Identity Privacy the server sees "anonymous" until the tunnel is up, and a server that
+// checks that outer identity (as RRAS does with local accounts) refuses it
+static NSString *SRPAuthenticationFailure(ppp_pcb *pcb) {
+#if EAP_SUPPORT
+    if (pcb != NULL && pcb->settings.eap_tls_cert_pem != NULL) {
+        return @"Authentication failed. The server rejected the client certificate; check that the server trusts its issuer and that it is still valid.";
+    }
+    if (pcb != NULL && pcb->settings.eap_identity_privacy) {
+        return @"Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; if it checks the outer identity, turn Identity Privacy off.";
+    }
+#endif
+    return @"Authentication failed. The server rejected the username or password.";
+}
+
+// Why the EAP server's certificate was refused, or nil when it was not
+static NSString *SRPEapCertificateRefusal(ppp_pcb *pcb) {
+#if EAP_SUPPORT
+    if (pcb != NULL && pcb->settings.eap_cert_rejected[0] != '\0') {
+        return [NSString stringWithFormat:@"The EAP server's certificate is not trusted: %s. Install its root certificate on the device, or turn on Allow Insecure in the profile.", pcb->settings.eap_cert_rejected];
+    }
+#endif
+    return nil;
 }
 
 static void netif_ppp_link_status_cb_fn(ppp_pcb *pcb, int err_code, void *ctx) {
@@ -230,8 +303,11 @@ static void netif_ppp_link_status_cb_fn(ppp_pcb *pcb, int err_code, void *ctx) {
     NSString *reason = nil;
     switch (err_code) {
         case PPPERR_AUTHFAIL:
+            if (SRPEapTlsRefusedTls13(pcb) && !ip->_eapTls13Fallback) {
+                break;   // not the credentials: the disconnect that follows retries with TLS 1.2
+            }
             ip->_authFailed = YES;
-            reason = @"Authentication failed. The server rejected the username or password.";
+            reason = SRPEapCertificateRefusal(pcb) ?: SRPAuthenticationFailure(pcb);
             break;
         case PPPERR_CONNECT:
             reason = @"Connection lost during PPP negotiation.";
@@ -248,6 +324,11 @@ static void netif_ppp_link_status_cb_fn(ppp_pcb *pcb, int err_code, void *ctx) {
 }
 
 static void netif_ppp_notify_phase_cb_fn(ppp_pcb *pcb, u8_t phase, void *ctx) {
+    // The message about a server that ended PPP names the furthest phase the link reached;
+    // termination passes through ESTABLISH again, which must not count
+    if (phase >= PPP_PHASE_ESTABLISH && phase <= PPP_PHASE_RUNNING && phase > lwIP.shared->_pppLastPhase) {
+        lwIP.shared->_pppLastPhase = phase;
+    }
     switch (phase) {
         case PPP_PHASE_DEAD:
             SSLogI(@"phase: DEAD");
@@ -390,6 +471,7 @@ static u32_t netif_pppos_output_cb_fn(ppp_pcb *pcb, u8_t *data, u32_t len, void 
         _linkEverEstablished = NO;
         _clientDisconnected = NO;
         _connectionEstablished = NO;
+        _eapTls13Fallback = NO;
         _serverHost = sstp.host;
         _sstpClient = [[SSSSTPClient alloc] initWithTarget:protocol.host port:protocol.port proto:(SSProtocolTypeTCP) family:AF_INET];
         _sstpClient.delegate = self;
@@ -853,6 +935,13 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
         // reads Close here; whether this connection was up comes from its own flag
         BOOL wasEstablished = _connectionEstablished;
         BOOL pppStarted = __ppp__ != NULL;
+        u8_t pppPhase = pppStarted ? _pppLastPhase : PPP_PHASE_DEAD;
+        NSString *certificateRefusal = pppStarted ? SRPEapCertificateRefusal(__ppp__) : nil;
+        BOOL tls13Refused = pppStarted && SRPEapTlsRefusedTls13(__ppp__);
+        // The server's own refusal (CHAP or EAP Failure) is known before the link status callback,
+        // which only runs once LCP has finished terminating
+        NSString *authFailure = pppStarted && __ppp__->err_code == PPPERR_AUTHFAIL
+            ? (certificateRefusal ?: SRPAuthenticationFailure(__ppp__)) : nil;
         _connectionEstablished = NO;
         _pppState = SSTPPPPState_CLOSE;
         if (pppStarted) {
@@ -864,6 +953,25 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
         if (_closedManually || _pathSwitchInProgress || _sleepPaused) {
             return;
         }
+        if (tls13Refused && !_eapTls13Fallback && !wasEstablished) {
+            // Microsoft NPS has no TLS 1.3 for EAP and ends the exchange on a TLS 1.3 offer before
+            // any credential is checked; the same server takes a TLS 1.2 offer
+            _eapTls13Fallback = YES;
+            _authFailed = NO;
+            SSLogM(@"EAP: the server ended the TLS handshake of a TLS 1.3 offer; retrying with TLS 1.2");
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.worker, ^{
+                [self reconnect];
+            });
+            return;
+        }
+        if (authFailure != nil && !_authFailed) {
+            // Do not retry: the credentials or the certificate must be fixed first
+            _authFailed = YES;
+            if (_mFailureCallback) {
+                _mFailureCallback(authFailure);
+            }
+            return;
+        }
         if (_authFailed) {
             // Authentication failure: do not retry, the user must fix credentials
             SSLogM(@"skipping reconnect after authentication failure");
@@ -873,7 +981,7 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
             if (pppStarted) {
                 // The server ended PPP before the first link came up, which a retry does not change
                 if (_mFailureCallback) {
-                    _mFailureCallback(@"The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.");
+                    _mFailureCallback(certificateRefusal ?: [lwIP reasonForServerCloseInPhase:pppPhase]);
                 }
                 return;
             }
@@ -1023,9 +1131,14 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
         }
         __ppp__->settings.eap_identity_privacy = sstp.eapIdentityPrivacy ? 1 : 0;
         __ppp__->settings.eap_anonymous_identity = sstp.eapAnonymousIdentity.length > 0 ? sstp.eapAnonymousIdentity.UTF8String : "anonymous";
-        __ppp__->settings.eap_tls13_enabled = sstp.eapTls13Enabled ? 1 : 0;
+        __ppp__->settings.eap_tls13_enabled = sstp.eapTls13Enabled && !_eapTls13Fallback ? 1 : 0;
+        __ppp__->settings.eap_tls_hs_started = 0;
+        __ppp__->settings.eap_tls_hs_done = 0;
+        _pppLastPhase = PPP_PHASE_DEAD;
         __ppp__->settings.eap_disable_legacy_tls = sstp.eapDisableLegacyTls ? 1 : 0;
         __ppp__->settings.peap_cert_check = sstp.allowInsecure ? 0 : 1;
+        __ppp__->settings.eap_cert_trust = srp_eap_cert_trusted;
+        __ppp__->settings.eap_cert_rejected[0] = '\0';
         if (__ppp__->settings.peap_cert_check) {
             /* Pin the inner TLS certificate to the outer connection's leaf
              * certificate: the SSTP TLS layer already verified the server at
@@ -1052,6 +1165,26 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
     }
     _pppState = state;
     SSLogM(@"tcpClient: %@ didChangeSSTPState: %@", client.tag, [lwIP GetState:state]);
+    if (state == SSTPPPPState_CLOSE && !_closedManually) {
+        // The server ended the SSTP call (Call Disconnect or Abort). Some keep the TCP connection
+        // open afterwards, as SoftEther does when it accepts none of the profile's authentication
+        // methods, so the call ends here instead of at the TCP close
+        [self tcpClient:client didChangeState:SSClientStateDisconnected];
+    }
+}
+
+// What the server turned down when it ended PPP before the first link came up, by the PPP
+// phase the link had reached
++(NSString *)reasonForServerCloseInPhase:(u8_t)phase {
+    switch (phase) {
+        case PPP_PHASE_AUTHENTICATE:
+            return @"The server closed the connection during authentication. Check the username and password.";
+        case PPP_PHASE_NETWORK:
+        case PPP_PHASE_RUNNING:
+            return @"The server closed the connection while assigning the tunnel address. Check the server's address pool.";
+        default:
+            return @"The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.";
+    }
 }
 
 +(NSString *)GetState:(SSTPPPPState)state {

@@ -15,10 +15,11 @@
  *
  * Client credentials: PEM blobs via ppp_settings (eap_tls_cert_pem /
  * eap_tls_key_pem), owned by the upper layer.  BoringSSL verifies nothing
- * itself (SSL_VERIFY_NONE); the caller applies its own certificate policy
- * (for bare EAP-TLS and inner use the engine reports the peer leaf SHA256
- * comparison result via the done callback log only — the PEAP/TTLS policy
- * of "pin to the outer leaf, warn + continue on split-host" applies).
+ * itself (SSL_VERIFY_NONE); eap_tls_server_cert_acceptable() is the policy
+ * of every TLS-based EAP method: the EAP server's leaf must be the outer
+ * SSTP leaf (fingerprint pin), or, when the EAP server is another host
+ * (RRAS relaying to RADIUS), chain to a root the device trusts, which the
+ * platform checks through settings.eap_cert_trust.  allowInsecure skips it.
  *
  * MPPE keys (RFC 5216 2.3): TLS exporter "client EAP encryption", 64
  * octets; MS-MPPE-Recv-Key = first 32 (NAS recv = client send),
@@ -149,48 +150,79 @@ static void etls_flush(eap_tls_engine *e, u_char id) {
 		etls_send_ack(e, id);
 }
 
-/* Report the peer certificate's relation to the outer SSTP leaf. */
-static void etls_report_cert(eap_tls_engine *e) {
-	X509 *cert = SSL_get_peer_certificate(e->ssl);
-	if (cert == NULL) {
-		ppp_error("EAP-TLS: server presented no TLS certificate");
-		return;
+#define EAPTLS_MAX_CHAIN	8	/* certificates of the EAP server chain handed to the platform */
+
+/* Platform trust check of an EAP server chain that is not the SSTP server's own. */
+static int etls_chain_trusted(ppp_pcb *pcb, SSL *ssl, const char *method) {
+	STACK_OF(X509) *chain = SSL_get_peer_cert_chain(ssl);
+	const u_char *ders[EAPTLS_MAX_CHAIN];
+	u_char *owned[EAPTLS_MAX_CHAIN];
+	int lens[EAPTLS_MAX_CHAIN];
+	int count = chain != NULL ? (int)sk_X509_num(chain) : 0;
+	int i, n = 0, ok = 0;
+	char reason[PPP_EAP_CERT_REASON_LEN] = "";
+
+	for (i = 0; i < count && n < EAPTLS_MAX_CHAIN; i++) {
+		X509 *c = sk_X509_value(chain, i);
+		int len = i2d_X509(c, NULL);
+		u_char *p;
+		if (len <= 0 || (owned[n] = (u_char *)malloc(len)) == NULL)
+			continue;
+		p = owned[n];
+		i2d_X509(c, &p);
+		ders[n] = owned[n];
+		lens[n++] = len;
 	}
-	int derlen = i2d_X509(cert, NULL);
-	if (derlen <= 0) {
-		X509_free(cert);
-		return;
+	if (n == 0 || pcb->settings.eap_cert_trust == NULL)
+		snprintf(reason, sizeof(reason), "it is not the SSTP server certificate and cannot be checked");
+	else
+		ok = pcb->settings.eap_cert_trust(ders, lens, n, reason, sizeof(reason));
+	for (i = 0; i < n; i++)
+		free(owned[i]);
+	if (ok) {
+		ppp_info("%s: the EAP server certificate is not the SSTP server's, and the device trusts it", method);
+		return 1;
 	}
-	u_char *der = (u_char *)malloc(derlen);
-	u_char *dp = der;
+	ppp_error("%s: EAP server certificate refused: %s", method, reason);
+	snprintf(pcb->settings.eap_cert_rejected, sizeof(pcb->settings.eap_cert_rejected), "%s", reason);
+	return 0;
+}
+
+int eap_tls_server_cert_acceptable(ppp_pcb *pcb, SSL *ssl, const char *method) {
+	X509 *cert;
+	u_char *der, *dp;
 	u_char digest[SHA256_DIGEST_LENGTH];
+	int derlen;
+
+	if (!pcb->settings.peap_cert_check) {
+		ppp_warn("%s: EAP server certificate NOT verified (allowInsecure is on)", method);
+		return 1;
+	}
+	cert = SSL_get_peer_certificate(ssl);
+	if (cert == NULL) {
+		ppp_error("%s: the EAP server presented no certificate", method);
+		snprintf(pcb->settings.eap_cert_rejected, sizeof(pcb->settings.eap_cert_rejected),
+		    "the EAP server presented no certificate");
+		return 0;
+	}
+	derlen = i2d_X509(cert, NULL);
+	der = derlen > 0 ? (u_char *)malloc(derlen) : NULL;
+	if (der == NULL) {
+		X509_free(cert);
+		return 0;
+	}
+	dp = der;
 	i2d_X509(cert, &dp);
 	SHA256(der, derlen, digest);
 	free(der);
 	X509_free(cert);
-	if (!e->pcb->settings.peap_cert_check) {
-		ppp_warn("EAP-TLS: TLS certificate NOT verified (allowInsecure is on)");
-		return;
+	if (memcmp(digest, pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH) == 0) {
+		ppp_info("%s: the EAP server certificate is the SSTP server's", method);
+		return 1;
 	}
-	if (memcmp(digest, e->pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH) == 0) {
-		ppp_info("EAP-TLS: TLS certificate fingerprint matches the outer connection");
-		return;
-	}
-	{
-		char inner_fp[65], outer_fp[65];
-		int i;
-		for (i = 0; i < 32; i++) {
-			snprintf(inner_fp + 2 * i, 3, "%02x", digest[i]);
-			snprintf(outer_fp + 2 * i, 3, "%02x",
-			    e->pcb->settings.peap_cert_sha256[i]);
-		}
-		inner_fp[64] = outer_fp[64] = '\0';
-		ppp_warn("EAP-TLS: EAP TLS certificate differs from the SSTP outer connection");
-		ppp_warn("EAP-TLS: EAP leaf SHA256 %s", inner_fp);
-		ppp_warn("EAP-TLS: outer leaf SHA256 %s (expected when the EAP server "
-		    "is a different host than the SSTP concentrator; accepted for now, "
-		    "strict split-host pinning is not implemented yet)", outer_fp);
-	}
+	/* Split host (RRAS relaying EAP to a separate RADIUS server): another certificate is
+	 * accepted when it chains to a root the device trusts */
+	return etls_chain_trusted(pcb, ssl, method);
 }
 
 static void etls_feed(eap_tls_engine *e, u_char id, const u_char *data, int len) {
@@ -198,12 +230,17 @@ static void etls_feed(eap_tls_engine *e, u_char id, const u_char *data, int len)
 		BIO_write(e->net_bio, data, len);
 
 	if (!e->handshake_done) {
+		e->pcb->settings.eap_tls_hs_started = 1;	/* see ppp_settings */
 		int ret = SSL_do_handshake(e->ssl);
 		if (ret == 1) {
 			e->handshake_done = 1;
+			e->pcb->settings.eap_tls_hs_done = 1;
 			e->done = 1;
 			ppp_info("EAP-TLS: TLS handshake complete (%s)", SSL_get_version(e->ssl));
-			etls_report_cert(e);
+			if (!eap_tls_server_cert_acceptable(e->pcb, e->ssl, "EAP-TLS")) {
+				etls_fail(e);
+				return;
+			}
 			if (e->done_cb != NULL)
 				e->done_cb(e->done_arg, 1);
 		} else {

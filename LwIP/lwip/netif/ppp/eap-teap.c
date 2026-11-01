@@ -40,10 +40,9 @@
  * EAP-MSCHAPv2 provides no EMSK, so only the MSK Compound MAC is used
  * (Crypto-Binding flags = CMAC_MSK).
  *
- * Inner TLS certificate policy: same as the TTLS engine (fingerprint
- * comparison against the outer SSTP leaf; a mismatch — legitimate for
- * split-host RRAS->RADIUS relaying — is logged loudly with both
- * fingerprints and allowed; strict split-host pinning is future work).
+ * Inner TLS certificate policy: same as the PEAP and TTLS engines
+ * (eap_tls_server_cert_acceptable: the outer SSTP leaf, or for split-host
+ * RRAS->RADIUS relaying a chain to a root the device trusts).
  *
  * The TLS-over-EAP transport mirrors the PEAP/TTLS engines, including
  * the FreeRADIUS every-fragment-L reassembly handling.
@@ -211,48 +210,7 @@ void eap_teap_free(ppp_pcb *pcb) {
  * Certificate policy for the inner TLS tunnel, see the file header.
  */
 static int teap_verify_cert(eap_teap_state *st) {
-	if (!st->pcb->settings.peap_cert_check) {
-		ppp_warn("TEAP: inner TLS certificate NOT verified (allowInsecure is on)");
-		return 1;
-	}
-	X509 *cert = SSL_get_peer_certificate(st->ssl);
-	if (cert == NULL) {
-		ppp_error("TEAP: server presented no inner TLS certificate");
-		return 0;
-	}
-	int derlen = i2d_X509(cert, NULL);
-	if (derlen <= 0) {
-		X509_free(cert);
-		return 0;
-	}
-	u_char *der = (u_char *)malloc(derlen);
-	u_char *dp = der;
-	u_char digest[SHA256_DIGEST_LENGTH];
-	i2d_X509(cert, &dp);
-	SHA256(der, derlen, digest);
-	free(der);
-	X509_free(cert);
-	if (memcmp(digest, st->pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH) == 0) {
-		ppp_info("TEAP: inner TLS certificate fingerprint matches the outer connection");
-		return 1;
-	}
-	{
-		char inner_fp[65], outer_fp[65];
-		int i;
-		for (i = 0; i < 32; i++) {
-			snprintf(inner_fp + 2 * i, 3, "%02x", digest[i]);
-			snprintf(outer_fp + 2 * i, 3, "%02x",
-			    st->pcb->settings.peap_cert_sha256[i]);
-		}
-		inner_fp[64] = outer_fp[64] = '\0';
-		ppp_warn("TEAP: inner EAP TLS certificate differs from the SSTP outer connection");
-		ppp_warn("TEAP: inner leaf SHA256 %s", inner_fp);
-		ppp_warn("TEAP: outer leaf SHA256 %s (this is expected when the "
-		    "EAP server is a different host than the SSTP concentrator; "
-		    "accepted for now, strict split-host pinning is not implemented yet)",
-		    outer_fp);
-	}
-	return 1;
+	return eap_tls_server_cert_acceptable(st->pcb, st->ssl, "TEAP");
 }
 
 /* TLS 1.2 P_hash with the negotiated cipher's PRF digest.
@@ -928,9 +886,11 @@ static void teap_feed_tls(eap_teap_state *st, u_char id, const u_char *data, int
 		BIO_write(st->net_bio, data, len);
 
 	if (!st->handshake_done) {
+		st->pcb->settings.eap_tls_hs_started = 1;	/* see ppp_settings */
 		int ret = SSL_do_handshake(st->ssl);
 		if (ret == 1) {
 			st->handshake_done = 1;
+			st->pcb->settings.eap_tls_hs_done = 1;
 			st->phase = TEAP_PHASE_INNER;
 			ppp_info("TEAP: TLS handshake complete (%s)", SSL_get_version(st->ssl));
 			if (!teap_verify_cert(st)) {

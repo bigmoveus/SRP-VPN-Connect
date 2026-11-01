@@ -65,6 +65,12 @@ int eap_tls_engine_mppe_keys(eap_tls_engine *e, ppp_pcb *pcb);
  * crypto-binding when EAP-TLS is the inner method). */
 int eap_tls_engine_export_km(eap_tls_engine *e, u_char out[64]);
 
+/* Certificate policy of every TLS-based EAP method (EAP-TLS, PEAP, EAP-TTLS, TEAP): the EAP
+ * server's leaf is the SSTP server's, or chains to a root the device trusts. Returns 1 to go
+ * on; on 0 the reason is in pcb->settings.eap_cert_rejected. `method` names the log lines. */
+struct ssl_st;
+int eap_tls_server_cert_acceptable(ppp_pcb *pcb, struct ssl_st *ssl, const char *method);
+
 /* Bare-mode wrapper bound to the pcb (used by eap.c's type-13 dispatch). */
 void eap_tls_input(ppp_pcb *pcb, u_char id, const u_char *payload, int len);
 void eap_tls_free(ppp_pcb *pcb);

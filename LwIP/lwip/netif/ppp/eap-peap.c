@@ -21,12 +21,13 @@
  * the TLS Message Length field (Windows NPS mis-computes the compound
  * MAC without it).
  *
- * Inner TLS certificate policy: BoringSSL cannot use the Apple trust
- * store, so when the profile has allowInsecure OFF we pin the inner leaf
- * to the SHA256 fingerprint of the outer SSTP connection's leaf
- * certificate (which the Network framework already verified); a mismatch
- * fails authentication.  With allowInsecure ON any inner certificate is
- * accepted and a warning is logged.  Never silently skipped.
+ * Inner TLS certificate policy (eap_tls_server_cert_acceptable): BoringSSL
+ * cannot use the Apple trust store, so when the profile has allowInsecure
+ * OFF the inner leaf must be the outer SSTP connection's leaf (which the
+ * Network framework already verified), or, for an EAP server on another
+ * host, chain to a root the device trusts (checked by the platform);
+ * otherwise authentication fails.  With allowInsecure ON any inner
+ * certificate is accepted and a warning is logged.  Never silently skipped.
  */
 
 #include "netif/ppp/ppp_opts.h"
@@ -190,42 +191,7 @@ void eap_peap_free(ppp_pcb *pcb) {
  * Certificate policy for the inner TLS tunnel, see the file header.
  */
 static int peap_verify_cert(eap_peap_state *st) {
-	if (!st->pcb->settings.peap_cert_check) {
-		ppp_warn("PEAP: inner TLS certificate NOT verified (allowInsecure is on)");
-		return 1;
-	}
-	X509 *cert = SSL_get_peer_certificate(st->ssl);
-	if (cert == NULL) {
-		ppp_error("PEAP: server presented no inner TLS certificate");
-		return 0;
-	}
-	int derlen = i2d_X509(cert, NULL);
-	if (derlen <= 0) {
-		X509_free(cert);
-		return 0;
-	}
-	u_char *der = (u_char *)malloc(derlen);
-	u_char *dp = der;
-	u_char digest[SHA256_DIGEST_LENGTH];
-	i2d_X509(cert, &dp);
-	SHA256(der, derlen, digest);
-	free(der);
-	X509_free(cert);
-	if (memcmp(digest, st->pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH) != 0) {
-		/* Split-host deployments (e.g. RRAS relaying EAP to a separate RADIUS
-		 * server) legitimately present a different inner identity. Warn loudly
-		 * with both fingerprints and continue — strict split-host pinning is
-		 * deferred, see the note at the top of this file. */
-		u_char outer[SHA256_DIGEST_LENGTH];
-		memcpy(outer, st->pcb->settings.peap_cert_sha256, SHA256_DIGEST_LENGTH);
-		ppp_warn("PEAP: inner TLS identity differs from the SSTP outer host "
-		         "(expected when the EAP server is a different host). inner SHA256 %02x%02x%02x%02x… outer SHA256 %02x%02x%02x%02x…",
-		         digest[0], digest[1], digest[2], digest[3],
-		         outer[0], outer[1], outer[2], outer[3]);
-		return 1;
-	}
-	ppp_info("PEAP: inner TLS certificate fingerprint matches the outer connection");
-	return 1;
+	return eap_tls_server_cert_acceptable(st->pcb, st->ssl, "PEAP");
 }
 
 /* Drain pending TLS output into the tx queue. */
@@ -882,9 +848,11 @@ static void peap_feed_tls(eap_peap_state *st, u_char id, const u_char *data, int
 		BIO_write(st->net_bio, data, len);
 
 	if (!st->handshake_done) {
+		st->pcb->settings.eap_tls_hs_started = 1;	/* see ppp_settings */
 		int ret = SSL_do_handshake(st->ssl);
 		if (ret == 1) {
 			st->handshake_done = 1;
+			st->pcb->settings.eap_tls_hs_done = 1;
 			st->phase = PEAP_PHASE_INNER;
 			ppp_info("PEAP: TLS handshake complete (%s)", SSL_get_version(st->ssl));
 			if (!peap_verify_cert(st)) {
