@@ -14,6 +14,7 @@
 #import "SRPPsiphonEntriesViewController.h"
 #import "SRPWaterWallConfigViewController.h"
 #import <SRPCore/SSAuthCapabilities.h>
+#import <SRPCore/SSProtocol.h>
 #import <SRPCore/SRPWaterWallChainConfig.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <objc/runtime.h>
@@ -205,6 +206,10 @@ static const NSInteger kFieldPsiphonEntry = 34;
 
 - (BOOL)isSoftEther {
     return [self.modal.protocolType isEqualToString:@"softether"];
+}
+
+- (BOOL)isSSTP {
+    return [self.modal.protocolType isEqualToString:@"sstp"];
 }
 
 - (BOOL)isOpenConnect {
@@ -416,6 +421,15 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     }
     if (![self isSoftEther] && self.modal.customSniEnabled && ![NodeModel isValidCustomSni:self.modal.customSni]) {
         return @"Custom SNI must be a bare hostname, without a scheme, port, path or spaces.";
+    }
+    // Empty sizes mean the placeholders; larger ones would only be refused when connecting
+    if ([self isSSTP] && self.modal.tlsFragMode == 2) {
+        if (self.modal.tlsFragFirst > SSTlsFragMaxFirstChunk) {
+            return [NSString stringWithFormat:@"First Chunk can be at most %ld bytes.", (long)SSTlsFragMaxFirstChunk];
+        }
+        if (self.modal.tlsFragFollowing > SSTlsFragMaxFollowingChunk) {
+            return [NSString stringWithFormat:@"Following Chunks can be at most %ld bytes.", (long)SSTlsFragMaxFollowingChunk];
+        }
     }
     return nil;
 }

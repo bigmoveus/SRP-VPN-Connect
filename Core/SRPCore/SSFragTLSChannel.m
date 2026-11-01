@@ -4,12 +4,21 @@
 //
 
 #import "SSFragTLSChannel.h"
+#import "SSProtocol.h"
 #import "SSTCPClient.h"
 #import "SSLog.h"
 #import <Security/Security.h>
 #import <openssl/ssl.h>
 #import <openssl/err.h>
 #import <openssl/x509.h>
+
+SSFragMode SSFragModeFromProfileValue(NSInteger value) {
+    switch (value) {
+        case 1: return SSFragModeAuto;
+        case 2: return SSFragModeManual;
+        default: return SSFragModeOff;
+    }
+}
 
 @implementation SSFragTLSConfig
 
@@ -28,7 +37,9 @@
     if (_mode == SSFragModeOff) return nil;
     if (_mode == SSFragModeAuto) return nil;   // sizes are computed at connect time
     if (_firstChunk == 0 || _followingChunk == 0) return @"chunk sizes must be > 0";
-    if (_firstChunk > 4096 || _followingChunk > 16384) return @"chunk sizes out of bounds";
+    if (_firstChunk > (NSUInteger)SSTlsFragMaxFirstChunk || _followingChunk > (NSUInteger)SSTlsFragMaxFollowingChunk) {
+        return @"chunk sizes out of bounds";
+    }
     if (_maxExtraDelayMs > 250) return @"extra delay out of bounds";
     return nil;
 }

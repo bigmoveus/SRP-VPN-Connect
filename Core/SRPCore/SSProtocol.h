@@ -3,6 +3,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/// Largest manual TLS fragmentation chunks; the SSTP connection refuses larger ones, and the
+/// profile editor checks them on save.
+FOUNDATION_EXPORT const NSInteger SSTlsFragMaxFirstChunk;
+FOUNDATION_EXPORT const NSInteger SSTlsFragMaxFollowingChunk;
+
 typedef enum : NSUInteger {
     SSClientType_DIRECT = 0,
     SSClientType_HTTP,
@@ -150,8 +155,9 @@ typedef enum : UInt8 {
 @property (nonatomic)BOOL disableLegacyOuterTls;
 
 /// TLS fragmentation (TCP write splitting of the handshake output, OFF by
-/// default): 0 = off, 1 = split. Sizes apply to the first write of a burst
-/// and the following writes. Effective on NEW connections only.
+/// default): the profile value, 0 = Off, 1 = Auto, 2 = Manual (see
+/// SSFragModeFromProfileValue). Manual sizes apply to the first write of a
+/// burst and the following writes. Effective on NEW connections only.
 @property (nonatomic)NSInteger tlsFragMode;
 @property (nonatomic)NSInteger tlsFragFirst;       // bytes, default 32
 @property (nonatomic)NSInteger tlsFragFollowing;   // bytes, default 256

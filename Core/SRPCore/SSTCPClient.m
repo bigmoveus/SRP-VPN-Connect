@@ -154,7 +154,7 @@ int64_t SSSendBacklogBytes(void) {
 /// handshake bytes can be written in ordered chunks.
 -(BOOL)useFragChannel {
     SSSstp *sstpCfg = [_protocol isKindOfClass:SSSstp.class] ? (SSSstp *)_protocol : nil;
-    return sstpCfg != nil && sstpCfg.tlsFragMode > 0 && _protocol.tls;
+    return sstpCfg != nil && SSFragModeFromProfileValue(sstpCfg.tlsFragMode) != SSFragModeOff && _protocol.tls;
 }
 
 -(void)handleMessage:(NSData *)message {
@@ -432,7 +432,7 @@ int64_t SSSendBacklogBytes(void) {
 -(void)startFragHandshake {
     SSSstp *sstpCfg = (SSSstp *)_protocol;
     SSFragTLSConfig *cfg = [SSFragTLSConfig new];
-    cfg.mode = sstpCfg.tlsFragMode == 2 ? SSFragModeAuto : SSFragModeManual;
+    cfg.mode = SSFragModeFromProfileValue(sstpCfg.tlsFragMode);
     cfg.firstChunk = sstpCfg.tlsFragFirst > 0 ? sstpCfg.tlsFragFirst : 32;
     cfg.followingChunk = sstpCfg.tlsFragFollowing > 0 ? sstpCfg.tlsFragFollowing : 256;
     cfg.maxExtraDelayMs = sstpCfg.tlsFragDelayMs > 0 ? sstpCfg.tlsFragDelayMs : 0;

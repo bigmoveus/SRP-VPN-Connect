@@ -27,6 +27,10 @@ typedef NS_ENUM(NSInteger, SSFragMode) {
     SSFragModeAuto = 2,     // computed from the network path (see .m)
 };
 
+/// A profile's `tls_frag` holds the editor's choice: 0 = Off, 1 = Auto, 2 = Manual. Every
+/// protocol maps it here, so the mode that runs is the one the editor shows.
+FOUNDATION_EXPORT SSFragMode SSFragModeFromProfileValue(NSInteger value);
+
 @interface SSFragTLSConfig : NSObject
 @property (nonatomic) SSFragMode mode;
 @property (nonatomic) NSUInteger firstChunk;       // manual: bytes in the first write of a burst

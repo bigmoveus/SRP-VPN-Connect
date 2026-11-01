@@ -12,6 +12,7 @@
 #import "SRPEapConfig.h"
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
+#import "SSFragTLSChannel.h"
 #import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
 #import <SRPParser/PDVPNManager.h>
@@ -4107,6 +4108,58 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertNil([editor validationMessage]);
     edited.eapConfig.peapEnabled = NO;
     edited.eapConfig.ttlsInnerMethod = SRPTtlsInnerMethodPAP;
+    XCTAssertNil([editor validationMessage]);
+}
+
+// The editor stores the index of its TLS Fragmentation choice; SSTP must run that mode, and only
+// Manual asks for the chunk sizes it runs with.
+- (void)testSSTPFragmentationRunsTheModeTheEditorShows {
+    NSDictionary<NSString *, NSNumber *> *modes = @{@"Off": @(SSFragModeOff), @"Auto": @(SSFragModeAuto),
+                                                    @"Manual": @(SSFragModeManual)};
+    NodeModel *model = [NodeModel new];
+    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    model.server = @"vpn.example";
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    UISegmentedControl *fragmentation = [self optionControlTitled:@"TLS Fragmentation" inEditor:editor];
+    XCTAssertEqual(fragmentation.numberOfSegments, (NSInteger)modes.count);
+    for (NSInteger index = 0; index < fragmentation.numberOfSegments; index++) {
+        NSString *title = [fragmentation titleForSegmentAtIndex:index];
+        fragmentation.selectedSegmentIndex = index;
+        [fragmentation sendActionsForControlEvents:UIControlEventValueChanged];
+        NodeModel *edited = [editor valueForKey:@"modal"];
+        NSNumber *stored = [CheckConnectData checkConnectParmer:edited][@"tls_frag"];
+        XCTAssertEqual(SSFragModeFromProfileValue(stored.integerValue), modes[title].integerValue, @"%@", title);
+        BOOL sizes = [[self optionTitlesOfEditor:editor] containsObject:@"First Chunk (bytes)"];
+        XCTAssertEqual(sizes, [title isEqualToString:@"Manual"], @"%@", title);
+    }
+}
+
+// Chunks the SSTP connection would refuse are named on save instead of failing the connection
+- (void)testSSTPNamesManualFragmentationChunksItCannotSend {
+    NodeModel *model = [NodeModel new];
+    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    model.server = @"sstp.example";
+    model.username = @"user";
+    model.password = @"secret";
+    model.authMethod = @"password";
+    model.MSCHAP2 = YES;
+    model.tlsFragMode = 2;
+    model.tlsFragFirst = 4097;
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    XCTAssertEqualObjects([editor validationMessage], @"First Chunk can be at most 4096 bytes.");
+    NodeModel *edited = [editor valueForKey:@"modal"];
+    edited.tlsFragFirst = 4096;
+    edited.tlsFragFollowing = 16385;
+    XCTAssertEqualObjects([editor validationMessage], @"Following Chunks can be at most 16384 bytes.");
+    edited.tlsFragFollowing = 16384;
+    XCTAssertNil([editor validationMessage]);
+    // Auto ignores the manual sizes
+    edited.tlsFragMode = 1;
+    edited.tlsFragFirst = 9999;
     XCTAssertNil([editor validationMessage]);
 }
 

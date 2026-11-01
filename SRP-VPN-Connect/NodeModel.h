@@ -177,9 +177,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// OPTIONS section
 /// Require TLS >= 1.2 on the outer SSTP TLS connection (default OFF)
 @property (nonatomic,assign) BOOL disableLegacyOuterTls;
-/// SSTP TLS fragmentation: TCP write splitting of the handshake —
-/// 0 = Off (default), 1 = Manual (custom chunk sizes), 2 = Auto (computed
-/// from the access network and the ClientHello structure)
+/// TLS fragmentation: TCP write splitting of the handshake, in the order of
+/// the editor's choices — 0 = Off (default), 1 = Auto (computed from the
+/// access network and the ClientHello structure), 2 = Manual (custom chunk sizes)
 @property (nonatomic,assign) NSInteger tlsFragMode;
 @property (nonatomic,assign) NSInteger tlsFragFirst;       // bytes, 0 = 32
 @property (nonatomic,assign) NSInteger tlsFragFollowing;   // bytes, 0 = 256

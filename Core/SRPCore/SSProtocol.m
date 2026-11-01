@@ -6,6 +6,9 @@
 #include <openssl/asn1.h>
 #include <openssl/obj_mac.h>
 
+const NSInteger SSTlsFragMaxFirstChunk = 4096;
+const NSInteger SSTlsFragMaxFollowingChunk = 16384;
+
 @implementation SSProtocol
 
 - (instancetype)init

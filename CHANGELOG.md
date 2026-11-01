@@ -18,6 +18,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - With Custom SNI on, the certificate check before an SSTP connection ignored it and reported an untrusted certificate when the Host field is an IP address; it now checks the certificate against the Custom SNI, as the connection does.
 - When an SSTP server ended PPP before the first link came up, for example because it accepts none of the profile's authentication methods, the error read "Connection lost (auto reconnect is off)."; it now says the server closed the connection during PPP negotiation.
 - An SSTP profile that uses only PEAP, EAP-TTLS or TEAP could not be saved.
+- SSTP ran the TLS Fragmentation mode that was not chosen: Manual ignored the chunk sizes and used the automatic ones, and Auto used fixed 32- and 256-byte chunks. Each mode now runs as chosen.
+- The SSTP profile editor accepted Manual TLS Fragmentation chunks above 4096 and 16384 bytes, which failed only when connecting; it now names the limit on save.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.
