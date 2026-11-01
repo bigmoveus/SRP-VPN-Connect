@@ -24,6 +24,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP ran the TLS Fragmentation mode that was not chosen: Manual ignored the chunk sizes and used the automatic ones, and Auto used fixed 32- and 256-byte chunks. Each mode now runs as chosen.
 - The SSTP profile editor accepted Manual TLS Fragmentation chunks above 4096 and 16384 bytes, which failed only when connecting; it now names the limit on save.
 - An SSTP proxy that cannot be reached was reported as an unsupported proxy protocol after about 20 seconds; the error now names the proxy address and the reason, at once when the connection is refused.
+- SSTP answered an EAP-MD5 challenge with the password whichever EAP methods the profile allowed. FreeRADIUS offers EAP-MD5 first, so PEAP, EAP-MSCHAPv2 and certificate profiles behind it logged in with EAP-MD5 instead and passed no traffic (EAP-MD5 gives no keys for the crypto binding), and any server could obtain a hash of the password to guess at. The profile's own method is now asked for, and unknown methods are refused the same way.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.

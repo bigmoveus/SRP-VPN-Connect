@@ -1235,6 +1235,37 @@ static void eap_send_nak(ppp_pcb *pcb, u_char id, u_char type) {
 	ppp_write(pcb, p);
 }
 
+/*
+ * The method a Nak suggests when the server offers one the profile does not allow: the same
+ * order the request handlers prefer (PEAP, EAP-TTLS, TEAP, EAP-TLS with a certificate, bare
+ * EAP-MSCHAPv2); 0 when none is enabled.
+ */
+static u_char eap_client_allowed_type(ppp_pcb *pcb) {
+	if (pcb->settings.eap_peap_enable)
+		return EAPT_PEAP;
+	if (pcb->settings.eap_ttls_enable)
+		return EAPT_TTLS;
+	if (pcb->settings.eap_teap_enable)
+		return EAPT_TEAP;
+	if (pcb->settings.eap_tls_cert_pem != NULL && pcb->settings.eap_tls_key_pem != NULL)
+		return EAPT_TLS;
+	if (pcb->settings.eap_mschapv2_enable)
+		return EAPT_MSCHAPV2;
+	return 0;
+}
+
+/* Answer an offered method the profile does not allow with a Nak for one it does, or fail. */
+static void eap_refuse_type(ppp_pcb *pcb, u_char id, const char *offered) {
+	u_char want = eap_client_allowed_type(pcb);
+	if (want == 0) {
+		ppp_error("EAP: %s offered but no allowed EAP method remains; failing", offered);
+		auth_withpeer_fail(pcb, PPP_EAP);
+		return;
+	}
+	ppp_info("EAP: %s offered but not allowed; NAKing in favor of type %d", offered, want);
+	eap_send_nak(pcb, id, want);
+}
+
 #ifdef USE_SRP
 static char *
 name_of_pn_file()
@@ -1686,6 +1717,13 @@ static void eap_request(ppp_pcb *pcb, u_char *inp, int id, int len) {
 		return;
 
 	case EAPT_MD5CHAP:
+		/* No profile enables EAP-MD5: it proves nothing about the server, derives no keys for
+		 * the SSTP crypto binding, and its answer is an offline-guessable hash of the password.
+		 * FreeRADIUS offers it first by default; the Nak steers it to an allowed method. */
+		if (!pcb->settings.eap_md5_enable) {
+			eap_refuse_type(pcb, id, "EAP-MD5");
+			break;
+		}
 		if (len < 1) {
 			ppp_error("EAP: received MD5-Challenge with no data");
 			/* Bogus request; wait for something real. */
@@ -2114,8 +2152,8 @@ static void eap_request(ppp_pcb *pcb, u_char *inp, int id, int len) {
 		break;
 
 	default:
-		ppp_info("EAP: unknown authentication type %d; Naking", typenum);
-		eap_send_nak(pcb, id, EAPT_SRP);
+		ppp_info("EAP: unknown authentication type %d", typenum);
+		eap_refuse_type(pcb, id, "an unknown method");
 		break;
 	}
 

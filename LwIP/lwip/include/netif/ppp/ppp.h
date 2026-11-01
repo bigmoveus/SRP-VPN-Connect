@@ -285,6 +285,7 @@ typedef struct ppp_settings_s {
   u8_t  eap_ttls_enable;         /* Allow/prefer EAP-TTLS as the EAP method */
   u8_t  eap_teap_enable;         /* Allow/prefer TEAP as the EAP method */
   u8_t  eap_mschapv2_enable;     /* Allow bare EAP-MSCHAPv2 */
+  u8_t  eap_md5_enable;          /* Allow EAP-MD5 (never set by the app: no keys, no server proof) */
   u8_t  eap_identity_privacy;    /* Outer identity is the anonymous one */
   u8_t  eap_tls13_enabled;       /* Allow TLS 1.3 for the PEAP tunnel */
   u8_t  eap_disable_legacy_tls;  /* Require >= TLS 1.2 for the PEAP tunnel */
