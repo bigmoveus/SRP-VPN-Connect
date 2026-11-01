@@ -412,6 +412,8 @@
 }
 
 - (void)applicationChanged:(NSString *)application {
+    // Picking the current application again keeps its UUID or password
+    if ([application isEqualToString:self.configuration[@"application"]]) return;
     NSMutableDictionary *configuration = [self.configuration mutableCopy];
     NSMutableDictionary *options = [self mutableNodeOptions];
     [options removeObjectForKey:@"application"];
@@ -558,6 +560,12 @@
 }
 
 - (void)setGeoIPCountries:(NSSet<NSString *> *)countries {
+    // Choosing a country turns routing on, so it needs the database the GeoIP Routing switch installs
+    NSError *error = nil;
+    if (countries.count > 0 && ![SRPGeoIPDatabase.sharedDatabase installBundledDatabaseIfNeeded:&error]) {
+        [self showGeoIPMessage:error.localizedDescription ?: @"Upload or download a valid Country MMDB before enabling GeoIP routing."];
+        return;
+    }
     NSMutableDictionary *configuration = [self.configuration mutableCopy];
     NSMutableDictionary *geoIP = [self mutableGeoIPConfiguration];
     if (countries.count > 0) {

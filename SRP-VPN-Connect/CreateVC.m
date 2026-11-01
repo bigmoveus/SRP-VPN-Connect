@@ -252,6 +252,12 @@ static const NSInteger kFieldPsiphonEntry = 34;
     return [SRPWaterWallChainConfig configurationNeedsOuterSecret:[self waterWallConfiguration]];
 }
 
+/// Auto Switch moves between Chain profiles of the same server; WireGuard and Direct have none to move to.
+- (BOOL)waterWallOffersAutoSwitch {
+    NSDictionary *configuration = [self waterWallConfiguration];
+    return ![SRPWaterWallChainConfig isWireGuardConfiguration:configuration] && ![SRPWaterWallChainConfig isDirectConfiguration:configuration];
+}
+
 - (NSString *)waterWallValidationError {
     NSDictionary *configuration = [self waterWallConfiguration];
     NSString *error = [SRPWaterWallChainConfig validationErrorForConfiguration:configuration];
@@ -275,6 +281,11 @@ static const NSInteger kFieldPsiphonEntry = 34;
     error = [SRPWaterWallChainConfig validationErrorForOuterSecret:self.modal.waterwallOuterSecret ?: @""
                                                   forConfiguration:configuration];
     if (error != nil) return error;
+    // The ClientHello is cut only below 16384 bytes, so a larger first chunk would send it whole
+    if (self.modal.tlsFragMode == 2 && self.modal.tlsFragFirst >= 16384 &&
+        [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration]) {
+        return @"First Chunk must be smaller than 16384 bytes.";
+    }
     return nil;
 }
 
@@ -817,7 +828,11 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"The PAC script picks the proxy for the connection to the VPN server; the username and password go to that proxy when it asks for them.";
     }
     if (section == 4 && [self isWaterWall]) {
-        NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error. Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); a network change returns to this profile. Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open.";
+        NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error.";
+        if ([self waterWallOffersAutoSwitch]) {
+            base = [base stringByAppendingString:@" Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); when Switch to Wi-Fi When Available moves the connection to a new network, it returns to this profile."];
+        }
+        base = [base stringByAppendingString:@" Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open."];
         NSDictionary *configuration = [self waterWallConfiguration];
         if ([SRPWaterWallChainConfig configurationAllowsFragmentation:configuration]) {
             base = [base stringByAppendingString:@" TLS Fragmentation splits the outer TLS ClientHello into smaller writes."];
@@ -949,14 +964,14 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
         case 4: // OPTIONS
             if ([self isWaterWall]) {
-                // Auto Reconnect (+Retry Times when on), Auto Switch, Switch
+                // Auto Reconnect (+Retry Times when on), Auto Switch (Chain mode only), Switch
                 // to Wi-Fi, On Sleep, Log Level (+ TLS Fragmentation where the
                 // chain has an outer TLS handshake, + the two routing switches)
                 NSDictionary *configuration = [self waterWallConfiguration];
                 BOOL fragmentation = [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration];
                 BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
-                return (self.modal.autoReconnect ? 6 : 5) + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) +
-                       (routing ? 2 : 0);
+                return (self.modal.autoReconnect ? 6 : 5) - ([self waterWallOffersAutoSwitch] ? 0 : 1) +
+                       (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) + (routing ? 2 : 0);
             }
             if ([self isWireGuard] || [self isPsiphon]) {
                 // Log Level only — WireGuard/AmneziaWG roam and retry by
@@ -1421,6 +1436,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                                            tag:kFieldRetryTimes keyboardType:UIKeyboardTypeNumberPad secure:NO];
             }
             NSInteger shifted = ar ? row : row + 1;   // align rows after Retry Times
+            if (![self waterWallOffersAutoSwitch] && shifted >= 2) shifted += 1;
             if (shifted == 2) {
                 return [self switchCellWithTitle:@"Auto Switch" on:self.modal.waterwallAutoSwitch tag:kSwitchWWAutoSwitch];
             }

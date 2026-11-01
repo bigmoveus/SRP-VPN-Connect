@@ -139,7 +139,9 @@ def peer_nodes(client_root, port, cert, key, cover_port):
             server_type = "MuxServer"
         elif kind == "HttpClient":
             server_type = "HttpServer"
-            for field in ("host", "path", "method", "http-version", "websocket", "upgrade",
+            # No expected Host: the generated client uses the builder's SNI, while the app sends the server name
+            # whenever the chain has no TLS layer, so the two may differ by design.
+            for field in ("path", "method", "http-version", "websocket", "upgrade",
                           "upgrade-protocol", "content-type", "http1-mode", "split",
                           "websocket-origin", "websocket-subprotocol", "headers"):
                 if field in node["settings"]:

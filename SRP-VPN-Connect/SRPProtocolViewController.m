@@ -106,7 +106,9 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [SRPProtocolViewController applyProtocol:self.types[indexPath.row] toModel:self.model];
+    // Tapping the protocol the profile already has keeps its settings
+    NSString *type = self.types[indexPath.row];
+    if (![type isEqualToString:self.model.protocolType]) [SRPProtocolViewController applyProtocol:type toModel:self.model];
     [self.navigationController popViewControllerAnimated:YES];
 }
 

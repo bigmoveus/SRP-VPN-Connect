@@ -205,7 +205,7 @@ static NSString *SRPWWKCPError(NSDictionary *settings) {
     long long dataShards = settings[@"fec-data-shards"] != nil ? [settings[@"fec-data-shards"] longLongValue] : 10;
     long long parityShards = settings[@"fec-parity-shards"] != nil ? [settings[@"fec-parity-shards"] longLongValue] : 3;
     if (dataShards + parityShards > 255) return @"KCP FEC data and parity shards cannot exceed 255 in total.";
-    long long sendWindow = settings[@"kcp-send-window"] != nil ? [settings[@"kcp-send-window"] longLongValue] : 8192;
+    long long sendWindow = settings[@"kcp-send-window"] != nil ? [settings[@"kcp-send-window"] longLongValue] : 128;  // the builder's default
     if (settings[@"kcp-initial-cwnd"] != nil && (!SRPWWRange(settings, @"kcp-initial-cwnd", 1, sendWindow))) return @"kcp.kcp-initial-cwnd must be positive and no greater than kcp-send-window.";
     long long ping = settings[@"ping-interval-ms"] != nil ? [settings[@"ping-interval-ms"] longLongValue] : 10000;
     long long timeout = settings[@"no-recv-timeout-ms"] != nil ? [settings[@"no-recv-timeout-ms"] longLongValue] : 30000;
@@ -851,10 +851,13 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     BOOL kcp = [configuration[@"carrier"] isEqualToString:@"kcp"];
     NSString *application = configuration[@"application"];
     NSString *outer = configuration[@"outer"];
+    // An empty SNI means the server, except for Reality, whose default cover is www.cloudflare.com
+    NSString *effectiveSNI = sni.length > 0 ? sni : [outer isEqualToString:@"reality"] ? @"www.cloudflare.com" : server;
     NSDictionary *advanced = configuration[@"node-options"] ?: @{};
     BOOL bgp4 = [configuration[@"bgp4"] boolValue] && ![outer isEqualToString:@"bgp4"];
     NSString *afterBGP4 = hasOuter ? outer : kcp ? @"kcp" : @"connector";
-    NSString *afterObfuscator = bgp4 ? @"bgp4" : hasHTTP ? @"http" : afterBGP4;
+    NSString *afterHTTP = bgp4 ? @"bgp4" : afterBGP4;
+    NSString *afterObfuscator = hasHTTP ? @"http" : afterHTTP;
     NSString *afterApplication = obfuscator ? @"obfuscator" : afterObfuscator;
     NSString *afterInput = raw ? afterApplication : application;
     NSMutableArray *nodes = [NSMutableArray arrayWithObject:@{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}, @"next": direct || !raw ? @"ptc" : @"pts"}];
@@ -941,14 +944,14 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         if (hasHTTP) {
             SRPWWHTTPVersion(httpVersionValue, &httpVersion);
             NSString *scheme = [outer isEqualToString:@"tls"] || [outer isEqualToString:@"reality"] ? @"https" : @"http";
-            NSDictionary *settings = [self settings:@{@"host": sni.length > 0 ? sni : server, @"path": @"/", @"scheme": scheme,
+            NSDictionary *settings = [self settings:@{@"host": effectiveSNI, @"path": @"/", @"scheme": scheme,
                                                       @"port": @(port), @"http-version": httpVersionValue,
                                                       @"websocket": @([configuration[@"http"] isEqualToString:@"websocket"])}
                                           overrides:advanced[@"http"]
-                                           required:@{@"host": sni.length > 0 ? sni : server, @"port": @(port),
+                                           required:@{@"host": effectiveSNI, @"port": @(port),
                                                       @"http-version": httpVersionValue,
                                                       @"websocket": @([configuration[@"http"] isEqualToString:@"websocket"])}];
-            [nodes addObject:@{@"name": @"http", @"type": @"HttpClient", @"settings": settings, @"next": hasOuter ? outer : kcp ? @"kcp" : @"connector"}];
+            [nodes addObject:@{@"name": @"http", @"type": @"HttpClient", @"settings": settings, @"next": afterHTTP}];
         }
         if (bgp4) {
             [nodes addObject:@{@"name": @"bgp4", @"type": @"Bgp4Client", @"settings": @{}, @"next": afterBGP4}];
@@ -956,7 +959,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         if (hasOuter) {
             NSMutableDictionary *outerSettings = [NSMutableDictionary new];
             if ([outer isEqualToString:@"tls"] || [outer isEqualToString:@"reality"] || quic) {
-                outerSettings[@"sni"] = sni.length > 0 ? sni : [outer isEqualToString:@"reality"] ? @"www.cloudflare.com" : server;
+                outerSettings[@"sni"] = effectiveSNI;
                 outerSettings[@"verify"] = @(verifyTLS);
             }
             if ([outer isEqualToString:@"tls"]) outerSettings[@"alpns"] = @[@"http/1.1"];
@@ -971,8 +974,10 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 outerSettings[@"protocol"] = @"h3"; outerSettings[@"carrier-mode"] = configuration[@"quic-carrier"];
             }
             if ([options[@"tls_frag"] integerValue] > 0 && [self configurationAllowsFragmentation:configuration]) {
-                NSInteger firstCut = MAX(1, [options[@"tls_frag_first"] integerValue] ?: 32);
-                NSInteger following = MAX(1, [options[@"tls_frag_following"] integerValue] ?: 256);
+                // Auto uses the default sizes; only Manual takes the profile's
+                BOOL manual = [options[@"tls_frag"] integerValue] == 2;
+                NSInteger firstCut = manual ? MAX(1, [options[@"tls_frag_first"] integerValue] ?: 32) : 32;
+                NSInteger following = manual ? MAX(1, [options[@"tls_frag_following"] integerValue] ?: 256) : 256;
                 NSMutableArray *cuts = [NSMutableArray new];
                 for (NSInteger offset = firstCut; offset < 16384 && cuts.count < 64; offset += following) [cuts addObject:@[@(offset), @0, @100]];
                 outerSettings[@"fragment"] = @{@"mode": @"counter", @"count": @1, @"tls-hello-fragment": @YES, @"tls-hello-timeout-ms": @1000, @"cuts": cuts};
@@ -982,7 +987,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 outerSettings[@"algorithm"] = advanced[@"outer"][@"method"];
             }
             if ([outer isEqualToString:@"tls"] || [outer isEqualToString:@"reality"] || quic) {
-                outerSettings[@"sni"] = sni.length > 0 ? sni : [outer isEqualToString:@"reality"] ? @"www.cloudflare.com" : server;
+                outerSettings[@"sni"] = effectiveSNI;
                 outerSettings[@"verify"] = @(verifyTLS);
             }
             if (hasHTTP && httpVersion > 0 && ([outer isEqualToString:@"tls"] || [outer isEqualToString:@"reality"])) {

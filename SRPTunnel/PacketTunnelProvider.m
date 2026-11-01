@@ -912,11 +912,15 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
         if ([v[@"ww_outer_secret_ref"] length] > 0) {
             outerSecret = [SRPKeychain passwordForKey:v[@"ww_outer_secret_ref"]] ?: outerSecret;
         }
+        // The SNI field applies to outer TLS, Reality and QUIC only. Left empty it means the server name, except for
+        // Reality, where the builder uses its www.cloudflare.com cover; the server argument is a resolved address.
+        NSString *typedSNI = [SRPWaterWallChainConfig configurationUsesTLS:configuration] ? v[@"sni"] : nil;
+        NSString *sni = typedSNI.length > 0 ? typedSNI : [configuration[@"outer"] isEqualToString:@"reality"] ? @"" : serverAddress;
         SSLogM(@"WaterWall: generating node graph");
         nodesJSON = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration
                                                                 server:endpointAddress.length > 0 ? endpointAddress : serverAddress
                                                                   port:[v[@"port"] integerValue]
-                                                                   sni:[v[@"sni"] length] > 0 ? v[@"sni"] : serverAddress
+                                                                   sni:sni
                                                              verifyTLS:![v[@"allowInsecure"] boolValue]
                                                                 secret:secret
                                                            outerSecret:outerSecret

@@ -31,17 +31,30 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - With Identity Privacy on, a server that refuses the anonymous outer identity, as Windows RRAS does with local accounts, was reported as a wrong username or password only; the message now names Identity Privacy too. A refused client certificate is reported as such instead of as a wrong password.
 - With EAP TLS 1.3 on (the default), PEAP and the other TLS-based EAP methods failed against Windows Server NPS, which has no TLS 1.3 for EAP and drops the offer. When a server ends EAP during the TLS handshake of a TLS 1.3 offer, SSTP now connects again once, offering TLS 1.2.
 - In the WaterWall Advanced Node Settings editors and the Psiphon Server Entries editor, opening the keyboard moved the whole screen up, so the back and save buttons sat under the status bar. The screen now stays in place; the text still ends above the keyboard.
+- A WaterWall Reality profile with the SNI left empty sent the server's name instead of the www.cloudflare.com cover the profile editor describes. An empty SNI means www.cloudflare.com for Reality again, as before the tunnel started connecting to the resolved server address.
+- WaterWall TLS Fragmentation set to Auto used the Manual chunk sizes stored in the profile. Auto now always cuts at 32 and then every 256 bytes; only Manual uses the profile's sizes.
+- With BGP4 Framing and an HTTP or WebSocket layer both on, WaterWall left the HTTP layer out of the chain. HTTP now sits inside the BGP4 framing, in the order the configuration screen lists them.
+- A WaterWall SNI hidden because the outer layer has no TLS (None, AEAD or BGP4) was still sent as the HTTP Host; it is now ignored and the Host is the Server field.
+- Ticking countries for WaterWall GeoIP routing while the GeoIP Routing switch was off turned routing on without installing the country database, so the connection failed; ticking a country now installs it as the switch does.
+- Tapping the protocol a profile already has in the Protocol list reset the profile to that protocol's defaults, and tapping the current WaterWall Application cleared its UUID or password. Both now leave the profile as it is.
+- An empty Port in WaterWall's WireGuard mode connected to 443 although the field showed 51820; it now means 51820.
+- The WaterWall KCP settings check measured kcp-initial-cwnd against a send window of 8192, while the chain uses 128 unless kcp-send-window is set.
+- The WaterWall profile editor accepted a Manual TLS Fragmentation First Chunk of 16384 bytes or more, which leaves the ClientHello whole; it now names the limit on save.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.
 - The SSTP tunnel log records the extension's memory when the link comes up and, near the memory limit, how much data waits for PPP framing and for the network.
 - SSTP accepted any certificate from an EAP server on another host than the SSTP server, as when RRAS relays PEAP, EAP-TTLS, TEAP or EAP-TLS to a RADIUS server. That certificate must now chain to a root the device trusts, as the outer connection's does, unless Allow Insecure is on; a RADIUS server with a private CA needs that CA installed and trusted on the device. A refused certificate is named in the error.
+- WaterWall's Auto Switch option is shown only in Chain mode, because WireGuard and Direct have no other profiles to switch to. Its note now says that a network change returns to the chosen profile when Switch to Wi-Fi When Available moves the connection.
 
 ### Development
 - The WaterWall runtime build fails when one of WaterWall's lwIP symbols keeps a name the other protocols' lwIP uses (`WaterWall/tests/lwip_prefix_contract.py`); `WaterWall/generate_lwip_prefix.py` regenerates `srp_lwip_prefix.h` after an lwIP upgrade.
 - Live device tests for a profile of any protocol: `testProfileLiveConnectionAndThroughputWhenConfigured` runs downloads, uploads or both, or expects a refusal, and `testProfileLiveLifecycleWhenConfigured` checks the sleep modes, a session the server ends and the retry limit. The profile comes as JSON in `SRP_LIVE_PROFILE_JSON` and its password in `SRP_LIVE_PASSWORD`; `SRP_ACCEPT_UNTRUSTED` answers the untrusted-certificate prompt.
 - A live connection that does not come up no longer fails the test on its own timeout, so a test that expects a refusal can pass.
 - The live profile tests can log in with a client certificate: `SRP_LIVE_CERT_P12_BASE64` carries the PKCS#12 and `SRP_LIVE_CERT_PASSPHRASE` its passphrase. The test imports it as the profile editor does and removes it afterwards.
+- The unit tests link in Release builds again. Tests added since 31 October referred to app classes directly, which the Release app does not export; they now reach them through `NSClassFromString`, as the other tests do.
+- `testDocumentationScreenshotsWhenRequested` renders the WaterWall screens with example values for the documentation when `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1` is set.
+- The device matrix's server side no longer requires an HTTP Host, because the generated client and the app may send different names by design.
 
 ## 1.2.0 (29) - 2026-10-31
 

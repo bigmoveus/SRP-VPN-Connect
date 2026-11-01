@@ -55,6 +55,10 @@
 - (void)pingAllProfiles;
 @end
 
+@interface UIViewController (SRPWaterWallConfigTesting)
+- (void)applicationChanged:(NSString *)application;
+@end
+
 @interface UIViewController (SRPWaterWallNodeOptionsTesting)
 - (instancetype)initWithConfiguration:(NSDictionary *)configuration
                                 layer:(NSString *)layer
@@ -699,6 +703,68 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
             XCTAssertEqualObjects(cuts[1][0], @288);
         }
     }
+}
+
+- (void)testWaterWallFragmentationAutoKeepsTheDefaultSizes {
+    NSDictionary *configuration = [self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"tls"];
+    NSDictionary<NSNumber *, NSArray *> *expected = @{@1: @[@32, @288], @2: @[@100, @150]};
+    for (NSNumber *mode in expected) {
+        NSDictionary *options = @{@"tls_frag": mode, @"tls_frag_first": @100, @"tls_frag_following": @50};
+        NSDictionary *byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:options][@"nodes"]];
+        NSArray *cuts = byName[@"tls"][@"settings"][@"fragment"][@"cuts"];
+        XCTAssertEqualObjects(cuts[0][0], expected[mode][0], @"mode %@", mode);
+        XCTAssertEqualObjects(cuts[1][0], expected[mode][1], @"mode %@", mode);
+    }
+}
+
+- (void)testWaterWallEmptySNIUsesTheServerOrTheRealityCover {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"tls"] mutableCopy];
+    configuration[@"http"] = @"websocket";
+    for (NSString *outer in @[@"tls", @"reality"]) {
+        configuration[@"outer"] = outer;
+        NSString *json = [SRPWaterWallChainConfig nodesJSONForConfiguration:configuration server:@"waterwall.example.com" port:18447
+                                                                        sni:@"" verifyTLS:YES
+                                                                     secret:@"00112233-4455-6677-8899-aabbccddeeff"
+                                                                outerSecret:@"outer-secret" options:@{}];
+        NSDictionary *byName = [self waterWallNodesByName:[self waterWallJSONObject:json][@"nodes"]];
+        NSString *expected = [outer isEqualToString:@"reality"] ? @"www.cloudflare.com" : @"waterwall.example.com";
+        XCTAssertEqualObjects(byName[outer][@"settings"][@"sni"], expected);
+        XCTAssertEqualObjects(byName[@"http"][@"settings"][@"host"], expected, @"%@", outer);
+    }
+}
+
+- (void)testWaterWallBGP4FramingWrapsTheHTTPLayer {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"tls"] mutableCopy];
+    configuration[@"obfuscator"] = @YES;
+    configuration[@"http"] = @"http";
+    configuration[@"bgp4"] = @YES;
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    NSDictionary *byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:@{}][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"vless"][@"next"], @"obfuscator");
+    XCTAssertEqualObjects(byName[@"obfuscator"][@"next"], @"http");
+    XCTAssertEqualObjects(byName[@"http"][@"next"], @"bgp4");
+    XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"tls");
+    XCTAssertEqualObjects(byName[@"tls"][@"next"], @"connector");
+}
+
+- (void)testWaterWallKCPInitialWindowFitsTheBuilderSendWindow {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"none"] mutableCopy];
+    configuration[@"carrier"] = @"kcp";
+    configuration[@"node-options"] = @{@"kcp": @{@"kcp-initial-cwnd": @200}};
+    XCTAssertEqualObjects([SRPWaterWallChainConfig validationErrorForConfiguration:configuration],
+                          @"kcp.kcp-initial-cwnd must be positive and no greater than kcp-send-window.");
+    configuration[@"node-options"] = @{@"kcp": @{@"kcp-initial-cwnd": @200, @"kcp-send-window": @256}};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+}
+
+- (void)testWaterWallWireGuardModeDefaultsToTheWireGuardPort {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.port = @"";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
+    XCTAssertEqualObjects(model.port, @"51820");
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
+    XCTAssertEqualObjects(model.port, @"443");
 }
 
 - (void)testGeoIPConfigurationBuildsDirectIranRuleAndKeepsFakeDNS {
@@ -3195,7 +3261,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NodeModel *model = [NodeModel new];
     model.MSCHAP2 = YES;
     model.authMethod = @"password";
-    [SRPProtocolViewController applyProtocol:fields[@"protocolType"] toModel:model];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:fields[@"protocolType"] toModel:model];
     model.nodeId = environment[@"SRP_LIVE_TEST_ID"] ?: @"live-profile-test";
     model.desc = @"Live profile test";
     for (NSString *key in fields) {
@@ -3221,7 +3287,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     if (p12Base64.length > 0) {
         NSData *p12 = [[NSData alloc] initWithBase64EncodedString:p12Base64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
         NSError *error = nil;
-        SRPCertificateInfo *certificate = p12 ? [SRPCertificateStore importP12:p12
+        SRPCertificateInfo *certificate = p12 ? [NSClassFromString(@"SRPCertificateStore") importP12:p12
                                                                     passphrase:environment[@"SRP_LIVE_CERT_PASSPHRASE"] ?: @""
                                                                          error:&error] : nil;
         if (certificate == nil) {
@@ -3229,7 +3295,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
             return nil;
         }
         [self addTeardownBlock:^{
-            [SRPCertificateStore removeCertificateWithRef:certificate.ref];
+            [NSClassFromString(@"SRPCertificateStore") removeCertificateWithRef:certificate.ref];
         }];
         model.authMethod = @"certificate";
         model.certKey = certificate.ref;
@@ -4147,7 +4213,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NSDictionary<NSString *, NSNumber *> *modes = @{@"Off": @(SSFragModeOff), @"Auto": @(SSFragModeAuto),
                                                     @"Manual": @(SSFragModeManual)};
     NodeModel *model = [NodeModel new];
-    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"sstp" toModel:model];
     model.server = @"vpn.example";
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
@@ -4169,7 +4235,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
 // Chunks the SSTP connection would refuse are named on save instead of failing the connection
 - (void)testSSTPNamesManualFragmentationChunksItCannotSend {
     NodeModel *model = [NodeModel new];
-    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"sstp" toModel:model];
     model.server = @"sstp.example";
     model.username = @"user";
     model.password = @"secret";
@@ -4196,7 +4262,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
 // The proxy a PAC script picks may ask for a password, so Auto takes the credentials too
 - (void)testSSTPAutoProxyTakesTheProxyCredentials {
     NodeModel *model = [NodeModel new];
-    [SRPProtocolViewController applyProtocol:@"sstp" toModel:model];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"sstp" toModel:model];
     model.proxyMode = 2;
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
@@ -4375,7 +4441,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
 }
 
 - (void)testProtocolListStartsWithWaterWall {
-    SRPProtocolViewController *picker = [[SRPProtocolViewController alloc] initWithNodeModel:[NodeModel new]];
+    SRPProtocolViewController *picker = [[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:[NodeModel new]];
     NSMutableArray<NSString *> *titles = [NSMutableArray new];
     for (NSInteger row = 0; row < [picker tableView:picker.tableView numberOfRowsInSection:0]; row++) {
         UITableViewCell *cell = [picker tableView:picker.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
@@ -4396,7 +4462,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
                           [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]]);
     XCTAssertTrue(model.MSCHAP2);
 
-    SRPProtocolViewController *picker = [[SRPProtocolViewController alloc] initWithNodeModel:model];
+    SRPProtocolViewController *picker = [[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model];
     UITableViewCell *first = [picker tableView:picker.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     XCTAssertEqualObjects(first.textLabel.text, @"WaterWall VPN");
     XCTAssertEqual(first.accessoryType, UITableViewCellAccessoryCheckmark);
@@ -4412,6 +4478,70 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(edited.protocolType, @"sstp");
     XCTAssertEqualObjects(edited.port, @"8443");
     XCTAssertNil(edited.waterwallConfigJSON);
+}
+
+- (void)testPickingTheCurrentProtocolKeepsTheProfile {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
+    NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    configuration[@"outer"] = @"reality";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    model.port = @"18447";
+    UITableViewController *picker = [[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model];
+    [picker tableView:picker.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertEqualObjects(model.port, @"18447");
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"outer"], @"reality");
+    [picker tableView:picker.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+    XCTAssertEqualObjects(model.protocolType, @"sstp");
+}
+
+- (void)testPickingTheCurrentWaterWallApplicationKeepsItsSecret {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
+    UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
+    [waterWall applicationChanged:@"vless"];
+    XCTAssertEqualObjects(model.password, @"00112233-4455-6677-8899-aabbccddeeff");
+    [waterWall applicationChanged:@"trojan"];
+    XCTAssertNil(model.password);
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"application"], @"trojan");
+}
+
+- (void)testWaterWallAutoSwitchOnlyForChainMode {
+    for (NSString *mode in @[@"wireguard", @"direct", @"chain"]) {
+        NodeModel *model = [NodeModel new];
+        model.protocolType = @"waterwall";
+        model.waterwallConfigJSON = [mode isEqualToString:@"chain"] ?
+            [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]] :
+            [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": mode, @"node-options": @{}}];
+        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+        NSArray<NSString *> *titles = [self optionTitlesOfEditor:editor];
+        NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
+        BOOL chain = [mode isEqualToString:@"chain"];
+        XCTAssertEqual([titles containsObject:@"Auto Switch"], chain, @"%@: %@", mode, titles);
+        XCTAssertEqual([footer containsString:@"Auto Switch"], chain, @"%@", mode);
+        XCTAssertEqualObjects(titles[chain ? 3 : 2], @"Switch to Wi-Fi When Available", @"%@", mode);
+        XCTAssertEqualObjects(titles.lastObject, chain ? @"Direct LAN Routing" : @"Log Level", @"%@", mode);
+    }
+}
+
+- (void)testWaterWallManualFirstChunkMustCutTheClientHello {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @"waterwall.example.com";
+    model.port = @"443";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
+    model.tlsFragMode = 2;
+    model.tlsFragFirst = 16384;
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    XCTAssertEqualObjects([editor validationMessage], @"First Chunk must be smaller than 16384 bytes.");
+    NodeModel *edited = [editor valueForKey:@"modal"];
+    edited.tlsFragFirst = 16383;
+    XCTAssertNil([editor validationMessage]);
 }
 
 /// Plays the editing and keyboard notifications on the editors whose text view follows the keyboard, inside CreateVC as
@@ -4507,6 +4637,127 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     textView.text = @"{\"mtu\": 1400}";
     [editor done];
     XCTAssertEqualObjects(saved[@"node-options"][@"packet"], @{@"mtu": @1400});
+}
+
+- (NSIndexPath *)visibleRowTitled:(NSString *)title inTable:(UITableView *)table {
+    for (UITableViewCell *cell in table.visibleCells) {
+        if ([cell.textLabel.text isEqualToString:title]) return [table indexPathForCell:cell];
+    }
+    return nil;
+}
+
+- (void)scrollTableToEnd:(UITableView *)table {
+    [table layoutIfNeeded];
+    CGFloat end = table.contentSize.height + table.adjustedContentInset.bottom - CGRectGetHeight(table.bounds);
+    [table setContentOffset:CGPointMake(0, MAX(-table.adjustedContentInset.top, end)) animated:NO];
+}
+
+/// Renders the WaterWall screens with example values for the documentation site, without saving any profile.
+/// Run it with TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1, then copy tmp/srp-docs-screenshots out of the app's data container.
+- (void)testDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    NodeModel *(^profile)(NSString *, NSDictionary *) = ^NodeModel *(NSString *description, NSDictionary *changes) {
+        NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+        [configuration addEntriesFromDictionary:changes];
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
+        model.desc = description;
+        model.server = @"server.example.com";
+        model.password = @"00000000-0000-4000-8000-000000000000";
+        model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+        return model;
+    };
+    NodeModel *reality = profile(@"Example: VLESS + Reality", @{@"outer": @"reality"});
+    reality.waterwallOuterSecret = @"example-password";
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[
+        profile(@"Example: VLESS + TLS", @{}), reality,
+        profile(@"Example: Trojan + TLS", @{@"application": @"trojan"}),
+        profile(@"Example: VMess + KCP", @{@"application": @"vmess", @"outer": @"none", @"carrier": @"kcp"})]]
+            forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    NodeModel *model = profile(@"Example: VLESS + TLS", @{});
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+    shoot(create, @"profile-editor");
+    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] atScrollPosition:UITableViewScrollPositionTop animated:NO];
+    shoot(nil, @"profile-options");
+    [self scrollTableToEnd:editorTable];
+    shoot(nil, @"profile-options-end");
+    [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model] animated:NO];
+    shoot(nil, @"protocol");
+    [navigation popToRootViewControllerAnimated:NO];
+
+    UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
+    [navigation pushViewController:waterWall animated:NO];
+    shoot(nil, @"waterwall");
+    NSIndexPath *outer = [self visibleRowTitled:@"Outer" inTable:waterWall.tableView];
+    XCTAssertNotNil(outer);
+    if (outer != nil) {
+        [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:outer];
+        shoot(nil, @"waterwall-outer");
+        [navigation popToViewController:waterWall animated:NO];
+    }
+    [self scrollTableToEnd:waterWall.tableView];
+    shoot(nil, @"waterwall-advanced-geoip");
+    [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.6]];
+    UITextView *textView = [navigation.topViewController valueForKey:@"textView"];
+    textView.text = @"{\n  \"mtu\": 1400\n}";
+    [textView.delegate textViewDidChange:textView];
+    [textView resignFirstResponder];
+    shoot(nil, @"node-editor");
+    [navigation popToViewController:waterWall animated:NO];
+    [navigation pushViewController:[[NSClassFromString(@"SRPGeoIPCountryViewController") alloc] initWithSelectedCodes:[NSSet setWithObject:@"IR"]
+                                                                                   geoIPEnabled:YES
+                                                                              enabledDidChange:nil
+                                                                                     completion:^(NSSet<NSString *> *codes) {}]
+                          animated:NO];
+    shoot(nil, @"geoip-countries");
+
+    CreateVC *realityHost = [self profileEditorHostForModel:reality saved:[NSMutableArray new]];
+    shoot(realityHost, @"profile-editor-reality");
+    UINavigationController *realityNavigation = (UINavigationController *)realityHost.childViewControllers.firstObject;
+    [((UITableViewController *)realityNavigation.topViewController).tableView
+        scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:NO];
+    shoot(nil, @"profile-editor-reality-authentication");
+
+    NodeModel *wireGuard = profile(@"Example: WireGuard", @{});
+    wireGuard.port = @"51820";
+    wireGuard.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
+    CreateVC *wireGuardHost = [self profileEditorHostForModel:wireGuard saved:[NSMutableArray new]];
+    shoot(wireGuardHost, @"profile-editor-wireguard");
+    UINavigationController *wireGuardNavigation = (UINavigationController *)wireGuardHost.childViewControllers.firstObject;
+    [wireGuardNavigation pushViewController:[[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:wireGuard] animated:NO];
+    shoot(nil, @"wireguard-manual");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
 }
 #endif
 

@@ -2,6 +2,7 @@
 #import "NodeModel.h"
 #import "CheckConnectData.h"
 #import "SRPEapConfig.h"
+#import "../Core/SRPCore/SRPWaterWallChainConfig.h"
 
 @implementation NodeModel
 static NodeModel * modal = nil;
@@ -79,6 +80,11 @@ static NodeModel * modal = nil;
 
 -(NSString*)port {
     if(_port.length==0) {
+        // WaterWall's WireGuard mode offers 51820 as the hint, like the WireGuard protocol
+        if ([_protocolType isEqualToString:@"waterwall"] &&
+            [SRPWaterWallChainConfig isWireGuardConfiguration:[SRPWaterWallChainConfig configurationWithJSON:_waterwallConfigJSON] ?: @{}]) {
+            return @"51820";
+        }
         return @"443";
     }
     return _port;
