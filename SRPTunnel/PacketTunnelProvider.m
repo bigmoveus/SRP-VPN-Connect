@@ -71,7 +71,8 @@ static void logIPv4(NSString *dir, NSData *pkt, long n);
     }
     p.eapTls13Enabled = v[@"eap_tls13"] ? [v[@"eap_tls13"] boolValue] : YES;
     p.eapDisableLegacyTls = v[@"eap_disable_legacy_tls"] ? [v[@"eap_disable_legacy_tls"] boolValue] : YES;
-    p.domain = v[@"sni"];
+    // A Custom SNI that was switched off keeps its hostname in the profile; it must not reach the handshake
+    p.domain = [v[@"custom_sni"] boolValue] ? v[@"sni"] : nil;
 
     // Certificate authentication: unwrap the client .p12 from the shared
     // Keychain (only the cert_ref UUID crosses the profile -> tunnel boundary)

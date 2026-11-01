@@ -58,6 +58,7 @@ typedef void(^YDFetchCompletion)(NETunnelProviderManager *manager);
     NSUInteger _connectionGeneration;
     BOOL _certChecked;
     BOOL _certTrusted;
+    NSString *_certVerifyHost;   // the name the probe checks the certificate against, when not the URL host
 }
 +(instancetype)sharedManager{
     static PDVPNManager *__manager__;
@@ -417,6 +418,9 @@ static NSString *SRPMaskedURI(NSString *uri) {
         _certChecked = NO;
         _certTrusted = NO;
         _lastTLSIssue = nil;
+        // SSTP verifies the certificate against the Custom SNI when it is on, so the probe does too
+        BOOL customSni = [server[@"type"] isEqualToString:@"sstp"] && [server[@"custom_sni_enabled"] boolValue];
+        _certVerifyHost = customSni && [server[@"sni"] length] > 0 ? server[@"sni"] : nil;
 
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://%@:%@", address, port]]];
         request.HTTPMethod = @"HEAD"; // headers only, no body download
@@ -1304,6 +1308,12 @@ static NSString *SRPMaskedURI(NSString *uri) {
     if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
         SecTrustRef serverTrust = challenge.protectionSpace.serverTrust;
         _certChecked = YES;
+        NSString *verifyHost = _certVerifyHost ?: challenge.protectionSpace.host;
+        if (_certVerifyHost.length > 0) {
+            SecPolicyRef policy = SecPolicyCreateSSL(true, (__bridge CFStringRef)_certVerifyHost);
+            SecTrustSetPolicies(serverTrust, policy);
+            CFRelease(policy);
+        }
 
         CFErrorRef cfError = NULL;
         BOOL trusted = SecTrustEvaluateWithError(serverTrust, &cfError);
@@ -1317,7 +1327,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
             _certTrusted = NO;
             _lastTLSIssue = [self describeTrustFailure:serverTrust
                                                  error:(__bridge NSError *)cfError
-                                                  host:challenge.protectionSpace.host];
+                                                  host:verifyHost];
             if (cfError) {
                 CFRelease(cfError);
             }
