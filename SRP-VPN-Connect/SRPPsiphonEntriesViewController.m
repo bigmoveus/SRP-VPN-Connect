@@ -5,6 +5,7 @@
 
 #import "SRPPsiphonEntriesViewController.h"
 #import "NodeModel.h"
+#import <IQKeyboardManager.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 @interface SRPPsiphonEntriesViewController () <UITextViewDelegate, UIDocumentPickerDelegate>
@@ -25,6 +26,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    // The text view follows keyboardLayoutGuide. IQKeyboardManager would also lift CreateVC, which holds the whole
+    // navigation stack, and push the bar buttons under the status bar.
+    [[IQKeyboardManager sharedManager].disabledDistanceHandlingClasses addObject:self.class];
     self.title = @"Server Entries";
     self.view.backgroundColor = UIColor.systemBackgroundColor;
 

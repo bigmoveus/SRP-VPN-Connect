@@ -6,6 +6,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Added
 - SSTP profiles with Proxy set to Auto (PAC) take a username and password for the proxy the PAC script picks; before, a PAC proxy that asks for a password could not be used.
+- The WaterWall Advanced Node Settings editors (Packet, Application and the other layers) work as a JSON editor. A line under the text says whether the JSON is valid or names the line and column of the first error, as the save alert now does too; a new line keeps the indentation, one level deeper after `{` or `[`; and Format pretty-prints valid JSON.
 
 ### Fixed
 - SSTP crashed the VPN extension as soon as a connection started, because WaterWall's lwIP network stack had replaced the one SSTP uses. WaterWall's copy now has its own symbol names, so each protocol keeps its own stack.
@@ -29,6 +30,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP answered an EAP-MD5 challenge with the password whichever EAP methods the profile allowed. FreeRADIUS offers EAP-MD5 first, so PEAP, EAP-MSCHAPv2 and certificate profiles behind it logged in with EAP-MD5 instead and passed no traffic (EAP-MD5 gives no keys for the crypto binding), and any server could obtain a hash of the password to guess at. The profile's own method is now asked for, and unknown methods are refused the same way.
 - With Identity Privacy on, a server that refuses the anonymous outer identity, as Windows RRAS does with local accounts, was reported as a wrong username or password only; the message now names Identity Privacy too. A refused client certificate is reported as such instead of as a wrong password.
 - With EAP TLS 1.3 on (the default), PEAP and the other TLS-based EAP methods failed against Windows Server NPS, which has no TLS 1.3 for EAP and drops the offer. When a server ends EAP during the TLS handshake of a TLS 1.3 offer, SSTP now connects again once, offering TLS 1.2.
+- In the WaterWall Advanced Node Settings editors and the Psiphon Server Entries editor, opening the keyboard moved the whole screen up, so the back and save buttons sat under the status bar. The screen now stays in place; the text still ends above the keyboard.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.

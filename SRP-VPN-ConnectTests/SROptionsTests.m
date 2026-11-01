@@ -55,6 +55,15 @@
 - (void)pingAllProfiles;
 @end
 
+@interface UIViewController (SRPWaterWallNodeOptionsTesting)
+- (instancetype)initWithConfiguration:(NSDictionary *)configuration
+                                layer:(NSString *)layer
+                                title:(NSString *)title
+                           completion:(void (^)(NSDictionary *configuration))completion;
+- (void)format;
+- (void)done;
+@end
+
 @interface SRPWaterWallClient (SRPLifecycleTesting)
 - (void)startRuntimeLocked;
 - (void)stopRuntimeLocked;
@@ -4403,6 +4412,101 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(edited.protocolType, @"sstp");
     XCTAssertEqualObjects(edited.port, @"8443");
     XCTAssertNil(edited.waterwallConfigJSON);
+}
+
+/// Plays the editing and keyboard notifications on the editors whose text view follows the keyboard, inside CreateVC as
+/// the app shows them. They are posted so the test also runs while a hardware keyboard hides the software one.
+- (void)testKeyboardKeepsProfileNavigationBarInPlace {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.rootViewController = create;
+    [window makeKeyAndVisible];
+    UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
+    [navigation pushViewController:waterWall animated:NO];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.2]];
+    UINavigationBar *bar = navigation.navigationBar;
+    CGFloat barTop = CGRectGetMinY([bar convertRect:bar.bounds toView:nil]);
+    CGRect keyboard = CGRectMake(0, CGRectGetHeight(window.bounds) - 336, CGRectGetWidth(window.bounds), 336);
+    NSDictionary *keyboardInfo = @{UIKeyboardFrameEndUserInfoKey: [NSValue valueWithCGRect:keyboard],
+                                   UIKeyboardAnimationDurationUserInfoKey: @0.25};
+    NSNotificationCenter *center = NSNotificationCenter.defaultCenter;
+
+    NSArray<void (^)(void)> *openers = @[
+        ^{ [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]]; },
+        ^{ [navigation pushViewController:[[NSClassFromString(@"SRPPsiphonEntriesViewController") alloc] initWithNodeModel:model]
+                                  animated:NO]; },
+    ];
+    for (void (^open)(void) in openers) {
+        open();
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.6]];
+        UIViewController *editor = navigation.topViewController;
+        UITextView *textView = [editor valueForKey:@"textView"];
+        [center postNotificationName:UITextViewTextDidBeginEditingNotification object:textView];
+        [center postNotificationName:UIKeyboardWillShowNotification object:nil userInfo:keyboardInfo];
+        // Checked at once: IQKeyboardManager sets the moved frame inside its animation block, and a real hide
+        // notification from a hardware keyboard would move it back.
+        XCTAssertEqualWithAccuracy(CGRectGetMinY([bar convertRect:bar.bounds toView:nil]), barTop, 0.5, @"%@", editor);
+        [center postNotificationName:UIKeyboardWillHideNotification object:nil userInfo:keyboardInfo];
+        [center postNotificationName:UITextViewTextDidEndEditingNotification object:textView];
+        [navigation popToViewController:waterWall animated:NO];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+    }
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+- (void)testWaterWallNodeOptionsEditorChecksAndFormatsJSON {
+    __block NSDictionary *saved = nil;
+    UIViewController *editor = [[NSClassFromString(@"SRPWaterWallNodeOptionsViewController") alloc]
+        initWithConfiguration:[self vmessNoneProfileConfiguration] layer:@"packet" title:@"Packet"
+                   completion:^(NSDictionary *configuration) { saved = configuration; }];
+    [editor loadViewIfNeeded];
+    UITextView *textView = [editor valueForKey:@"textView"];
+    UILabel *status = [editor valueForKey:@"statusLabel"];
+    UIButton *format = [editor valueForKey:@"formatButton"];
+    XCTAssertEqualObjects(textView.text, @"{\n\n}");
+    XCTAssertEqualObjects(status.text, @"No settings: WaterWall defaults");
+
+    // Columns count characters, not UTF-8 bytes.
+    NSDictionary<NSString *, NSString *> *errors = @{
+        @"{\n  \"mtu\": 1500\n  \"udp-idle-timeout-ms\": 30000\n}": @"Line 3, column 3: ",
+        @"{\"éé\": tru}": @"Line 1, column 8: ",
+        @"[1500]": @"Advanced node settings must be a JSON object.",
+    };
+    for (NSString *text in errors) {
+        textView.text = text;
+        [textView.delegate textViewDidChange:textView];
+        XCTAssertTrue([status.text hasPrefix:errors[text]], @"%@ -> %@", text, status.text);
+        XCTAssertFalse(format.enabled);
+    }
+
+    textView.text = @"{\"path\":\"/ws\",\"mtu\":1500}";
+    [textView.delegate textViewDidChange:textView];
+    XCTAssertEqualObjects(status.text, @"Valid JSON");
+    XCTAssertTrue(format.enabled);
+    [editor format];
+    XCTAssertEqualObjects(textView.text, @"{\n  \"mtu\" : 1500,\n  \"path\" : \"/ws\"\n}");
+
+    NSDictionary<NSString *, NSString *> *newlines = @{@"{\n  \"a\": [": @"{\n  \"a\": [\n    ",
+                                                       @"{\n  \"a\": 1,": @"{\n  \"a\": 1,\n  "};
+    for (NSString *text in newlines) {
+        textView.text = text;
+        textView.selectedRange = NSMakeRange(text.length, 0);
+        XCTAssertFalse([textView.delegate textView:textView shouldChangeTextInRange:textView.selectedRange replacementText:@"\n"]);
+        XCTAssertEqualObjects(textView.text, newlines[text]);
+    }
+    textView.text = @"}";
+    XCTAssertTrue([textView.delegate textView:textView shouldChangeTextInRange:NSMakeRange(1, 0) replacementText:@"\n"]);
+
+    textView.text = @"{\"mtu\": 1400}";
+    [editor done];
+    XCTAssertEqualObjects(saved[@"node-options"][@"packet"], @{@"mtu": @1400});
 }
 #endif
 

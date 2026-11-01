@@ -1,11 +1,12 @@
 #import "SRPWaterWallConfigViewController.h"
 #import "SRPGeoIPCountryViewController.h"
 #import "NodeModel.h"
+#import <IQKeyboardManager.h>
 #import <SRPCore/SRPGeoIPDatabase.h>
 #import <SRPCore/SRPWaterWallChainConfig.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-@interface SRPWaterWallNodeOptionsViewController : UIViewController
+@interface SRPWaterWallNodeOptionsViewController : UIViewController <UITextViewDelegate>
 
 - (instancetype)initWithConfiguration:(NSDictionary *)configuration
                                 layer:(NSString *)layer
@@ -30,6 +31,54 @@
     NSString *_layer;
     void (^_completion)(NSDictionary *configuration);
     UITextView *_textView;
+    UILabel *_statusLabel;
+    UIButton *_formatButton;
+}
+
+// Empty text keeps the WaterWall defaults. Otherwise *message says why the text is not a JSON object, with the
+// line and column of a syntax error.
++ (NSDictionary *)settingsWithText:(NSString *)text message:(NSString **)message {
+    if ([text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].length == 0) return @{};
+    NSData *data = [text dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *error = nil;
+    id settings = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+    if ([settings isKindOfClass:NSDictionary.class]) return settings;
+    if (settings != nil) {
+        *message = @"Advanced node settings must be a JSON object.";
+        return nil;
+    }
+    NSString *reason = error.userInfo[NSDebugDescriptionErrorKey] ?: @"Invalid JSON.";
+    NSNumber *index = error.userInfo[@"NSJSONSerializationErrorIndex"];
+    if (index == nil) {
+        *message = reason;
+        return nil;
+    }
+    NSRange around = [reason rangeOfString:@" around "];
+    if (around.location != NSNotFound) reason = [reason substringToIndex:around.location];
+    // The index counts UTF-8 bytes; the line and column count characters as the editor shows them.
+    NSData *head = [data subdataWithRange:NSMakeRange(0, MIN(index.unsignedIntegerValue, data.length))];
+    NSArray<NSString *> *lines = [([[NSString alloc] initWithData:head encoding:NSUTF8StringEncoding] ?: @"")
+                                  componentsSeparatedByString:@"\n"];
+    *message = [NSString stringWithFormat:@"Line %lu, column %lu: %@", (unsigned long)lines.count,
+                (unsigned long)lines.lastObject.length + 1, reason];
+    return nil;
+}
+
++ (NSString *)textWithSettings:(NSDictionary *)settings {
+    NSData *data = [NSJSONSerialization dataWithJSONObject:settings
+                                                   options:NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys |
+                                                           NSJSONWritingWithoutEscapingSlashes
+                                                     error:nil];
+    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @"{}";
+}
+
+// A new line keeps the indentation of the line it breaks, one level deeper after { or [.
++ (NSString *)newlineForText:(NSString *)text location:(NSUInteger)location {
+    NSRange line = [text lineRangeForRange:NSMakeRange(location, 0)];
+    NSString *head = [text substringWithRange:NSMakeRange(line.location, location - line.location)];
+    NSString *indent = [head substringToIndex:[head rangeOfString:@"^[ \t]*" options:NSRegularExpressionSearch].length];
+    NSString *code = [head stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+    return [NSString stringWithFormat:@"\n%@%@", indent, [code hasSuffix:@"{"] || [code hasSuffix:@"["] ? @"  " : @""];
 }
 
 - (instancetype)initWithConfiguration:(NSDictionary *)configuration
@@ -48,36 +97,55 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    // The editor follows keyboardLayoutGuide. IQKeyboardManager would also lift CreateVC, which holds the whole
+    // navigation stack, and push the bar buttons under the status bar.
+    [[IQKeyboardManager sharedManager].disabledDistanceHandlingClasses addObject:self.class];
     self.view.backgroundColor = UIColor.systemBackgroundColor;
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
                                                                                           target:self
                                                                                           action:@selector(done)];
 
-    NSDictionary *settings = _configuration[@"node-options"][_layer] ?: @{};
-    NSData *data = [NSJSONSerialization dataWithJSONObject:settings
-                                                   options:NSJSONWritingPrettyPrinted | NSJSONWritingSortedKeys
-                                                     error:nil];
-    NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @"{}";
-
     _textView = [[UITextView alloc] initWithFrame:CGRectZero];
     _textView.translatesAutoresizingMaskIntoConstraints = NO;
     _textView.font = [UIFont monospacedSystemFontOfSize:14 weight:UIFontWeightRegular];
-    _textView.text = text;
+    _textView.text = [self.class textWithSettings:_configuration[@"node-options"][_layer] ?: @{}];
+    _textView.textContainerInset = UIEdgeInsetsMake(8, 11, 8, 11);
     _textView.autocorrectionType = UITextAutocorrectionTypeNo;
     _textView.autocapitalizationType = UITextAutocapitalizationTypeNone;
     _textView.smartQuotesType = UITextSmartQuotesTypeNo;
     _textView.smartDashesType = UITextSmartDashesTypeNo;
+    _textView.smartInsertDeleteType = UITextSmartInsertDeleteTypeNo;
     _textView.keyboardType = UIKeyboardTypeASCIICapable;
     _textView.alwaysBounceVertical = YES;
+    _textView.delegate = self;
     [self.view addSubview:_textView];
+
+    _statusLabel = [UILabel new];
+    _statusLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleFootnote];
+    _statusLabel.adjustsFontForContentSizeCategory = YES;
+    _statusLabel.numberOfLines = 0;
+    _formatButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_formatButton setTitle:@"Format" forState:UIControlStateNormal];
+    [_formatButton addTarget:self action:@selector(format) forControlEvents:UIControlEventTouchUpInside];
+    [_formatButton setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    [_formatButton setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+    UIStackView *footer = [[UIStackView alloc] initWithArrangedSubviews:@[_statusLabel, _formatButton]];
+    footer.translatesAutoresizingMaskIntoConstraints = NO;
+    footer.alignment = UIStackViewAlignmentCenter;
+    footer.spacing = 8;
+    [self.view addSubview:footer];
 
     UILayoutGuide *guide = self.view.safeAreaLayoutGuide;
     [NSLayoutConstraint activateConstraints:@[
         [_textView.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor],
         [_textView.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
         [_textView.topAnchor constraintEqualToAnchor:guide.topAnchor],
-        [_textView.bottomAnchor constraintEqualToAnchor:self.view.keyboardLayoutGuide.topAnchor]
+        [_textView.bottomAnchor constraintEqualToAnchor:footer.topAnchor],
+        [footer.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:16],
+        [footer.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor constant:-16],
+        [footer.bottomAnchor constraintEqualToAnchor:self.view.keyboardLayoutGuide.topAnchor]
     ]];
+    [self textViewDidChange:_textView];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -93,21 +161,35 @@
     [self presentViewController:alert animated:YES completion:nil];
 }
 
+- (void)textViewDidChange:(UITextView *)textView {
+    NSString *message = nil;
+    NSDictionary *settings = [self.class settingsWithText:textView.text message:&message];
+    _statusLabel.text = settings == nil ? message : settings.count == 0 ? @"No settings: WaterWall defaults" : @"Valid JSON";
+    _statusLabel.textColor = settings == nil ? UIColor.systemRedColor : UIColor.secondaryLabelColor;
+    _formatButton.enabled = settings != nil;
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    if (![text isEqualToString:@"\n"]) return YES;
+    NSString *newline = [self.class newlineForText:textView.text location:range.location];
+    if (newline.length == 1) return YES;
+    [textView insertText:newline];
+    return NO;
+}
+
+- (void)format {
+    NSString *message = nil;
+    NSDictionary *settings = [self.class settingsWithText:_textView.text message:&message];
+    if (settings == nil) return;
+    // Not replaceRange:withText:, which applied smart quotes despite smartQuotesType.
+    _textView.text = [self.class textWithSettings:settings];
+}
+
 - (void)done {
-    NSString *text = [_textView.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-    id settings = @{};
-    if (text.length > 0) {
-        NSError *error = nil;
-        settings = [NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding]
-                                                   options:0
-                                                     error:&error];
-        if (settings == nil) {
-            [self showError:error.localizedDescription ?: @"Enter a valid JSON object, or leave the editor empty for defaults."];
-            return;
-        }
-    }
-    if (![settings isKindOfClass:NSDictionary.class]) {
-        [self showError:@"Advanced node settings must be a JSON object."];
+    NSString *message = nil;
+    NSDictionary *settings = [self.class settingsWithText:_textView.text message:&message];
+    if (settings == nil) {
+        [self showError:message];
         return;
     }
 
