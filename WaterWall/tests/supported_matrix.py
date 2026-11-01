@@ -101,11 +101,16 @@ def candidate_specs():
 
 def builder_input(item, port):
     name, app, outer, mux, http, obfuscator, carrier, quic, input_mode, version, mode, options = item
+    # BGP4 framing is a configuration switch, not a node setting; the validator refuses it in node-options.
+    options = dict(options)
+    bgp4 = options.pop("bgp4", False)
     configuration = {"version": 3, "mode": mode, "node-options": options}
     if mode == "chain":
         configuration.update({"input": input_mode, "application": app, "mux": mux,
             "outer": outer, "http": http, "http-version": version,
             "obfuscator": obfuscator, "carrier": carrier, "quic-carrier": quic})
+        if bgp4:
+            configuration["bgp4"] = True
     entry = {"id": name, "configuration": configuration, "server": "127.0.0.1",
              "port": port, "sni": "localhost", "verifyTLS": False,
              "options": {"ww_fake_dns": True}}

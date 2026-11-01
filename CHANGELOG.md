@@ -55,6 +55,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The unit tests link in Release builds again. Tests added since 31 October referred to app classes directly, which the Release app does not export; they now reach them through `NSClassFromString`, as the other tests do.
 - `testDocumentationScreenshotsWhenRequested` renders the WaterWall screens with example values for the documentation when `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1` is set.
 - The device matrix's server side no longer requires an HTTP Host, because the generated client and the app may send different names by design.
+- The device matrix builds its BGP4 framing cases with the `bgp4` configuration switch. It put the flag in node-options, which the app refuses, so none of those combinations ever ran.
 
 ## 1.2.0 (29) - 2026-10-31
 
