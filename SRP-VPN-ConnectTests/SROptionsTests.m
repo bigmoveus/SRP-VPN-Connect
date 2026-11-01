@@ -2315,6 +2315,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     __block NSUInteger received = 0;
     __block NSUInteger errors = 0;
     __block NSUInteger timeouts = 0;
+    __block NSUInteger retries = 0;
     __block BOOL completed = NO;
     __block BOOL succeeded = NO;
     __block NSUInteger inflightIdentifier = 0;
@@ -2337,9 +2338,9 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         BOOL passed = success && errors == 0 && sent == received && sent >= (NSUInteger)(duration * 10) && elapsed >= duration;
         NSTimeInterval averageRTT = received > 0 ? rttTotal / received * 1000 : 0;
         NSTimeInterval averageJitter = received > 1 ? jitterTotal / (received - 1) * 1000 : 0;
-        NSLog(@"Sustained UDP: %.2f seconds, sent=%lu, received=%lu, errors=%lu, timeouts=%lu, passed=%d, rtt_ms=%.3f, jitter_ms=%.3f, max_rtt_ms=%.3f",
+        NSLog(@"Sustained UDP: %.2f seconds, sent=%lu, received=%lu, errors=%lu, timeouts=%lu, passed=%d, rtt_ms=%.3f, jitter_ms=%.3f, max_rtt_ms=%.3f, retries=%lu",
               elapsed, (unsigned long)sent, (unsigned long)received, (unsigned long)errors, (unsigned long)timeouts, passed,
-              averageRTT, averageJitter, maximumRTT * 1000);
+              averageRTT, averageJitter, maximumRTT * 1000, (unsigned long)retries);
         [lock unlock];
         nw_connection_cancel(connection);
         sendNext = nil;
@@ -2438,6 +2439,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
             [lock lock];
             BOOL timedOut = !completed && inflightIdentifier == identifier;
             BOOL retry = timedOut && inflightAttempts < 3;
+            if (retry) retries++;
             if (timedOut && !retry) {
                 timeouts++;
                 errors++;
@@ -2460,7 +2462,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         }
     });
     nw_connection_start(connection);
-    [self waitForExpectations:@[expectation] timeout:duration + 20];
+    // Every lost datagram costs a 5-second retry, and a direct path loses a few in a long run
+    [self waitForExpectations:@[expectation] timeout:duration + 60];
     [lock lock];
     BOOL passed = completed && succeeded && errors == 0 && sent == received && sent >= (NSUInteger)(duration * 10);
     [lock unlock];
@@ -3103,11 +3106,15 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTestExpectation *settled = [self expectationWithDescription:@"Default-route TCP connection settles"];
     __block BOOL ready = NO;
     __block BOOL done = NO;
+    __block nw_connection_state_t lastState = nw_connection_state_invalid;
+    __block int lastError = 0;
     nw_connection_set_queue(connection, dispatch_get_main_queue());
     nw_connection_set_state_changed_handler(connection, ^(nw_connection_state_t state, nw_error_t error) {
-        (void)error;
-        if (done || (state != nw_connection_state_ready && state != nw_connection_state_waiting &&
-                     state != nw_connection_state_failed)) return;
+        if (done) return;
+        lastState = state;
+        lastError = error ? nw_error_get_error_code(error) : 0;
+        if (state != nw_connection_state_ready && state != nw_connection_state_waiting &&
+            state != nw_connection_state_failed) return;
         done = YES;
         ready = state == nw_connection_state_ready;
         [settled fulfill];
@@ -3120,6 +3127,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     });
     [self waitForExpectations:@[settled] timeout:5];
     nw_connection_cancel(connection);
+    NSLog(@"Default-route TCP %@:%@ settled in state %d, error %d", host, port, lastState, lastError);
     return ready;
 }
 
