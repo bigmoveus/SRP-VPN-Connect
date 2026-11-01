@@ -2868,6 +2868,8 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
         XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);
         if ([environment[@"SRP_RECOVERY_SLEEP_ONLY"] boolValue]) return;
         [self waterWallProviderCommand:@"fail-runtime" manager:manager];
+        // The runtime exits a moment after the command; until then the old one still reports up
+        XCTAssertTrue([self waitForWaterWallState:@"up" value:NO manager:manager timeout:5]);
         XCTAssertTrue([self waitForWaterWallState:@"up" value:YES manager:manager timeout:30]);
         XCTAssertTrue([self performSustainedLiveStressDownloads:manager environment:environment]);
         [self waitForLiveVPNDisconnect:manager];

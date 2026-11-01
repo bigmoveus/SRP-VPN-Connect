@@ -62,6 +62,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The device matrix builds its BGP4 framing cases with the `bgp4` configuration switch. It put the flag in node-options, which the app refuses, so none of those combinations ever ran.
 - The device matrix's GeoIP cases check the routing: the reference server's log shows whether each download came straight from the phone or through WaterWall. Before, they only measured traffic.
 - The live tests' sustained UDP check waits up to 60 seconds past its duration instead of 20, and its log line counts the datagrams it sent again. Each lost datagram costs a 5-second retry, so paths that lose a few in 90 seconds ran out of time although UDP worked. The TCP ping test logs the state its default-route check ends in.
+- The runtime recovery test waits for WaterWall to stop before it waits for the restart. It checked for the restart while the old runtime still reported itself up, so its second round of downloads and UDP began before the restart.
 
 ## 1.2.0 (29) - 2026-10-31
 
