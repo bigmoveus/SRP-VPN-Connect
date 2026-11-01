@@ -1887,13 +1887,17 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     };
     issuedStart = YES;
     if (![manager connectUsing:server auth:^(YDUnsafeAuthResponse response) {
-        if (response) response(NO);
+        // The app asks before trusting an unverified certificate; a test can answer as the user would.
+        BOOL accept = [NSProcessInfo.processInfo.environment[@"SRP_ACCEPT_UNTRUSTED"] boolValue];
+        NSLog(@"Live connection: untrusted certificate prompt %@", accept ? @"accepted" : @"declined");
+        if (response) response(accept);
     }]) {
         if (error) *error = @"The app rejected the generated profile.";
         return NO;
     }
     NSTimeInterval connectionTimeout = [NSProcessInfo.processInfo.environment[@"SRP_CONNECTION_TIMEOUT"] doubleValue] ?: 90;
-    [self waitForExpectations:@[stateChange] timeout:MAX(1, connectionTimeout)];
+    // XCTWaiter leaves a timeout to the caller, which may expect the connection not to come up
+    [XCTWaiter waitForExpectations:@[stateChange] timeout:MAX(1, connectionTimeout)];
     if (manager.status == YDVPNStatusConnected) return YES;
     if (error) {
         NSDictionary *lastError = [shared objectForKey:@"SRPLastError"];
@@ -1918,6 +1922,10 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 - (void)waitForLiveVPNDisconnect:(PDVPNManager *)manager {
     if (![self waitForLiveVPNManagerReady:manager]) return;
     if (manager.status == YDVPNStatusDisconnected) return;
+    // A test that never started the tunnel leaves the manager at IDLE, with no status change to come
+    NETunnelProviderManager *provider = [manager valueForKey:@"providerManager"];
+    NEVPNStatus actual = provider.connection.status;
+    if (actual == NEVPNStatusDisconnected || actual == NEVPNStatusInvalid) return;
     [manager disconnect];
     if (manager.status == YDVPNStatusDisconnected) return;
     XCTNSNotificationExpectation *stateChange =
@@ -2621,6 +2629,10 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     XCTAssertNotNil(model);
     if (model == nil) return;
     model.autoReconnect = NO;
+    [self runLiveFullDuplexForModel:model manager:manager environment:environment];
+}
+
+- (void)runLiveFullDuplexForModel:(NodeModel *)model manager:(PDVPNManager *)manager environment:(NSDictionary *)environment {
     @try {
         NSString *error = nil;
         NSMutableDictionary *server = [[CheckConnectData checkConnectParmer:model] mutableCopy];
@@ -3159,6 +3171,154 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     model.aetherTor = @"off";
     model.logLevel = 2;
     XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+}
+
+// A profile of any protocol from SRP_LIVE_PROFILE_JSON (NodeModel keys, eapConfig as its dictionary).
+// The secrets come in their own variables, so the JSON can be logged with the results.
+- (NodeModel *)liveProfileModelFromEnvironment {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    NSData *json = [environment[@"SRP_LIVE_PROFILE_JSON"] dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *fields = json ? [NSJSONSerialization JSONObjectWithData:json options:0 error:nil] : nil;
+    if (![fields isKindOfClass:NSDictionary.class] || ![fields[@"protocolType"] isKindOfClass:NSString.class]) return nil;
+    // Start from what the editor gives a new profile of this protocol
+    NodeModel *model = [NodeModel new];
+    model.MSCHAP2 = YES;
+    model.authMethod = @"password";
+    [SRPProtocolViewController applyProtocol:fields[@"protocolType"] toModel:model];
+    model.nodeId = environment[@"SRP_LIVE_TEST_ID"] ?: @"live-profile-test";
+    model.desc = @"Live profile test";
+    for (NSString *key in fields) {
+        id value = fields[key];
+        if ([@[@"password", @"proxyPassword", @"waterwallOuterSecret"] containsObject:key]) return nil;
+        if ([key isEqualToString:@"eapConfig"]) {
+            if (![value isKindOfClass:NSDictionary.class]) return nil;
+            model.eapConfig = [SRPEapConfig fromDictionary:value];
+            continue;
+        }
+        @try {
+            [model setValue:value forKey:key];
+        } @catch (NSException *exception) {
+            NSLog(@"Live profile: %@ cannot be set: %@", key, exception.reason);
+            return nil;
+        }
+    }
+    model.password = environment[@"SRP_LIVE_PASSWORD"];
+    model.proxyPassword = environment[@"SRP_LIVE_PROXY_PASSWORD"];
+    return model;
+}
+
+- (void)testProfileLiveConnectionAndThroughputWhenConfigured {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    if (![environment[@"SRP_PROFILE_LIVE_TEST"] isEqualToString:@"1"]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
+        manager.status == YDVPNStatusDisconnecting) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    NodeModel *model = [self liveProfileModelFromEnvironment];
+    XCTAssertNotNil(model);
+    if (model == nil) return;
+    if ([environment[@"SRP_LIVE_EXPECT_FAILURE"] isEqualToString:@"1"]) {
+        // A setting the server refuses must end with a message instead of connecting or hanging
+        NSString *error = nil;
+        NSDate *startedAt = NSDate.date;
+        BOOL connected = [self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error];
+        NSLog(@"Live expected failure: connected=%d after %.1f seconds, error: %@",
+              connected, -startedAt.timeIntervalSinceNow, error);
+        [self waitForLiveVPNDisconnect:manager];
+        if ([environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+        XCTAssertFalse(connected);
+        return;
+    }
+    if ([environment[@"SRP_FULL_DUPLEX_TEST"] isEqualToString:@"1"]) {
+        [self runLiveFullDuplexForModel:model manager:manager environment:environment];
+        return;
+    }
+    XCTAssertTrue([self runLiveConnectionRoundsForModel:model manager:manager environment:environment]);
+}
+
+// Retries HTTPS through the tunnel until it answers, for a reconnect the tunnel makes on its own.
+- (BOOL)waitForLiveHTTPS204:(NodeModel *)model timeout:(NSTimeInterval)timeout {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeout];
+    while (NSDate.date.timeIntervalSince1970 < deadline.timeIntervalSince1970) {
+        if (PDVPNManager.sharedManager.status == YDVPNStatusDisconnected) return NO;
+        if ([self waterWallLiveHTTPS204:model]) return YES;
+        [NSThread sleepForTimeInterval:1];
+    }
+    return NO;
+}
+
+- (NSString *)liveLastErrorSince:(NSDate *)date {
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    NSDictionary *lastError = [shared objectForKey:@"SRPLastError"];
+    NSDate *when = lastError[@"date"];
+    return [when isKindOfClass:NSDate.class] && [when compare:date] != NSOrderedAscending ? lastError[@"message"] : nil;
+}
+
+// Recovery of any protocol: SRP_LIFECYCLE_STEP is sleep-modes, peer-drop or retry-exhausted. The last
+// two log a marker on which the harness breaks the server side (ends the session, stops the server).
+- (void)testProfileLiveLifecycleWhenConfigured {
+#if DEBUG
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    NSString *step = environment[@"SRP_LIFECYCLE_STEP"];
+    if (![environment[@"SRP_PROFILE_LIVE_TEST"] isEqualToString:@"1"] || step.length == 0) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    XCTAssertTrue([self waitForLiveVPNManagerReady:manager]);
+    if (manager.status != YDVPNStatusDisconnected) {
+        XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    }
+    @try {
+        BOOL sleepModes = [step isEqualToString:@"sleep-modes"];
+        // {On Sleep, Auto Reconnect}, each in its own VPN session; the other steps use the profile as given
+        NSArray<NSArray<NSNumber *> *> *items = sleepModes ? @[@[@2, @YES], @[@1, @NO], @[@0, @YES], @[@0, @NO]] : @[@[]];
+        for (NSArray<NSNumber *> *item in items) {
+            NodeModel *model = [self liveProfileModelFromEnvironment];
+            XCTAssertNotNil(model);
+            if (model == nil) return;
+            if (sleepModes) {
+                model.onSleep = item[0].integerValue;
+                model.autoReconnect = item[1].boolValue;
+            }
+            NSString *error = nil;
+            XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
+            if (manager.status != YDVPNStatusConnected) return;
+            XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+            NSDate *broken = NSDate.date;
+            BOOL resumes;
+            if (sleepModes) {
+                [self waterWallProviderCommand:@"sleep" manager:manager];
+                [NSThread sleepForTimeInterval:3];
+                [self waterWallProviderCommand:@"wake" manager:manager];
+                resumes = model.onSleep != 0 || model.autoReconnect;
+            } else {
+                NSLog(@"SRP peer-failure test ready");
+                [NSThread sleepForTimeInterval:5];
+                resumes = [step isEqualToString:@"peer-drop"] && model.autoReconnect;
+            }
+            NSString *label = sleepModes ? [NSString stringWithFormat:@"sleep mode %ld, auto reconnect %d",
+                                            (long)model.onSleep, model.autoReconnect] : step;
+            if (resumes) {
+                BOOL recovered = [self waitForLiveHTTPS204:model timeout:60];
+                NSLog(@"Live %@: recovered=%d after %.1f seconds", label, recovered, -broken.timeIntervalSinceNow);
+                XCTAssertTrue(recovered, @"%@", label);
+            } else {
+                // A connection that is gone for good must end the VPN with a reason, not leave it up
+                NSTimeInterval limit = [step isEqualToString:@"retry-exhausted"] ? 30 + 10.0 * MAX(1, model.retryTimes) : 30;
+                BOOL ended = [self waitForLiveVPNDisconnectedStatus:manager timeout:limit];
+                NSString *message = [self liveLastErrorSince:broken];
+                NSLog(@"Live %@: disconnected=%d after %.1f seconds, error: %@", label, ended, -broken.timeIntervalSinceNow, message);
+                XCTAssertTrue(ended, @"%@", label);
+                XCTAssertTrue(message.length > 0, @"%@", label);
+            }
+            [self waitForLiveVPNDisconnect:manager];
+            [NSThread sleepForTimeInterval:2];
+        }
+    } @finally {
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+    }
+#else
+    XCTSkip(@"Sleep instrumentation requires a Debug build.");
+#endif
 }
 
 - (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {

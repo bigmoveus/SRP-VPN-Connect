@@ -25,6 +25,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Development
 - The WaterWall runtime build fails when one of WaterWall's lwIP symbols keeps a name the other protocols' lwIP uses (`WaterWall/tests/lwip_prefix_contract.py`); `WaterWall/generate_lwip_prefix.py` regenerates `srp_lwip_prefix.h` after an lwIP upgrade.
+- Live device tests for a profile of any protocol: `testProfileLiveConnectionAndThroughputWhenConfigured` runs downloads, uploads or both, or expects a refusal, and `testProfileLiveLifecycleWhenConfigured` checks the sleep modes, a session the server ends and the retry limit. The profile comes as JSON in `SRP_LIVE_PROFILE_JSON` and its password in `SRP_LIVE_PASSWORD`; `SRP_ACCEPT_UNTRUSTED` answers the untrusted-certificate prompt.
+- A live connection that does not come up no longer fails the test on its own timeout, so a test that expects a refusal can pass.
 
 ## 1.2.0 (29) - 2026-10-31
 
