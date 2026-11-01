@@ -10,6 +10,8 @@
 #import <arpa/inet.h>
 #import <sys/socket.h>
 #import <unistd.h>
+#import <errno.h>
+#import <string.h>
 
 NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
 
@@ -19,6 +21,10 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
 @property (nonatomic, strong) nw_connection_t conn;
 @property (nonatomic, strong) NSMutableData *buffer;
 @property (nonatomic) BOOL done;
+@property (nonatomic) BOOL ready;                     // the TCP connection to the proxy came up
+@property (nonatomic, copy) NSString *waitingReason;  // why it could not, while it is waiting
+@property (nonatomic, copy) NSString *host;
+@property (nonatomic) NSInteger port;
 @end
 
 @implementation SSProxyProbe
@@ -31,6 +37,25 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
 + (NSError *)proxyError:(NSString *)message {
     return [NSError errorWithDomain:SSProxyErrorDomain code:-1
                            userInfo:@{NSLocalizedDescriptionKey: message}];
+}
+
+/// Why a probe stopped: a proxy whose TCP connection never came up is unreachable (-20), however
+/// the failure arrived first (state change, send or receive completion).
++ (NSError *)failureOfProbe:(SSProxyProbe *)probe error:(nw_error_t)error {
+    if (probe.ready) {
+        return [self proxyError:@"Proxy connection failed"];
+    }
+    if (probe.waitingReason == nil && error != nil && nw_error_get_error_domain(error) == nw_error_domain_posix) {
+        probe.waitingReason = @(strerror(nw_error_get_error_code(error)));
+    }
+    return [self unreachableProxyError:probe.host port:probe.port probe:probe];
+}
+
+/// The TCP connection to the proxy itself never came up (-20): no proxy protocol was tried.
++ (NSError *)unreachableProxyError:(NSString *)host port:(NSInteger)port probe:(SSProxyProbe *)probe {
+    NSString *message = [NSString stringWithFormat:@"Cannot reach the proxy %@:%ld (%@). Check the proxy address and port.",
+                         host, (long)port, probe.waitingReason ?: @"no answer"];
+    return [NSError errorWithDomain:SSProxyErrorDomain code:-20 userInfo:@{NSLocalizedDescriptionKey: message}];
 }
 
 #pragma mark - entry point
@@ -247,9 +272,10 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
             completion(@[hop], nil);
             return;
         }
-        // SOCKS5 auth/negotiation verdicts are final — the proxy IS socks
+        // SOCKS5 auth/negotiation verdicts are final — the proxy IS socks; and a proxy that
+        // cannot be reached at all does not answer HTTP CONNECT either
         if ([error.domain isEqualToString:SSProxyErrorDomain] &&
-            (error.code == -10 || error.code == -11 || error.code == -12)) {
+            (error.code == -10 || error.code == -11 || error.code == -12 || error.code == -20)) {
             completion(nil, error);
             return;
         }
@@ -272,7 +298,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
             // An HTTP status (e.g. 407) proves an HTTP proxy — never
             // "unknown protocol"
             if ([httpError.domain isEqualToString:SSProxyErrorDomain] &&
-                (httpError.code == -10 || httpError.code == -11 || httpError.code == -13)) {
+                (httpError.code == -10 || httpError.code == -11 || httpError.code == -13 || httpError.code == -20)) {
                 completion(nil, httpError);
                 return;
             }
@@ -293,12 +319,28 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
                                                              NW_PARAMETERS_DEFAULT_CONFIGURATION);
     probe.conn = nw_connection_create(endpoint, params);
     probe.buffer = [NSMutableData new];
+    probe.host = host;
+    probe.port = port;
     nw_connection_set_queue(probe.conn, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0));
     nw_connection_set_state_changed_handler(probe.conn, ^(nw_connection_state_t state, nw_error_t error) {
         if (probe.done) return;
-        if (state == nw_connection_state_failed || state == nw_connection_state_cancelled) {
+        if (state == nw_connection_state_ready) {
+            probe.ready = YES;
+        } else if (state == nw_connection_state_waiting && error != nil) {
+            int code = nw_error_get_error_code(error);
+            nw_error_domain_t domain = nw_error_get_error_domain(error);
+            probe.waitingReason = domain == nw_error_domain_posix ? @(strerror(code))
+                                : domain == nw_error_domain_dns ? @"its name could not be resolved"
+                                : [NSString stringWithFormat:@"error %d", code];
+            // A refused connection is final; other waits get the probe's own timeout
+            if (nw_error_get_error_domain(error) == nw_error_domain_posix && code == ECONNREFUSED) {
+                probe.done = YES;
+                nw_connection_cancel(probe.conn);
+                onError([self failureOfProbe:probe error:error]);
+            }
+        } else if (state == nw_connection_state_failed || state == nw_connection_state_cancelled) {
             probe.done = YES;
-            onError([self proxyError:@"Proxy connection failed"]);
+            onError([self failureOfProbe:probe error:error]);
         }
     });
     nw_connection_start(probe.conn);
@@ -323,7 +365,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
         }
         if (receive_error != nil) {
             probe.done = YES;
-            onError([self proxyError:@"Proxy connection failed"]);
+            onError([self failureOfProbe:probe error:receive_error]);
             return;
         }
         if (probe.buffer.length >= needed) {
@@ -334,7 +376,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
         }
         if (is_complete) {
             probe.done = YES;
-            onError([self proxyError:@"Proxy connection failed"]);
+            onError([self failureOfProbe:probe error:nil]);
             return;
         }
         [self probeReceive:probe needed:needed error:onError ok:onData];
@@ -350,7 +392,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
         if (probe.done) return;
         if (error != nil) {
             probe.done = YES;
-            onError([self proxyError:@"Proxy connection failed"]);
+            onError([self failureOfProbe:probe error:error]);
             return;
         }
         onSent();
@@ -370,7 +412,8 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
  *   -10 proxy authentication required (no credentials given)
  *   -11 proxy authentication failed (credentials rejected)
  *   -12 SOCKS5 negotiation failed (proxy understood but refused)
- *   -13 HTTP CONNECT failed with an HTTP status */
+ *   -13 HTTP CONNECT failed with an HTTP status
+ *   -20 the proxy itself cannot be reached (see unreachableProxyError) */
 + (void)trySOCKS5:(NSString *)host port:(NSInteger)port
          username:(NSString *)username password:(NSString *)password
        targetHost:(NSString *)targetHost targetPort:(NSInteger)targetPort
@@ -391,7 +434,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
                    dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         if (!finished) {
             [self probeClose:probe];
-            finish([self proxyError:@"SOCKS5 negotiation timed out"]);
+            finish(probe.ready ? [self proxyError:@"SOCKS5 negotiation timed out"] : [self failureOfProbe:probe error:nil]);
         }
     });
 
@@ -471,7 +514,7 @@ NSString * const SSProxyErrorDomain = @"SSProxyErrorDomain";
                    dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         if (!finished) {
             [self probeClose:probe];
-            finish([self proxyError:@"HTTP CONNECT timed out"]);
+            finish(probe.ready ? [self proxyError:@"HTTP CONNECT timed out"] : [self failureOfProbe:probe error:nil]);
         }
     });
 

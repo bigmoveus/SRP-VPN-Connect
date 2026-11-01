@@ -23,6 +23,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - An SSTP profile that uses only PEAP, EAP-TTLS or TEAP could not be saved.
 - SSTP ran the TLS Fragmentation mode that was not chosen: Manual ignored the chunk sizes and used the automatic ones, and Auto used fixed 32- and 256-byte chunks. Each mode now runs as chosen.
 - The SSTP profile editor accepted Manual TLS Fragmentation chunks above 4096 and 16384 bytes, which failed only when connecting; it now names the limit on save.
+- An SSTP proxy that cannot be reached was reported as an unsupported proxy protocol after about 20 seconds; the error now names the proxy address and the reason, at once when the connection is refused.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.
