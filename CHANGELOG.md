@@ -8,6 +8,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP crashed the VPN extension as soon as a connection started, because WaterWall's lwIP network stack had replaced the one SSTP uses. WaterWall's copy now has its own symbol names, so each protocol keeps its own stack.
 - SSTP sent a Custom SNI that was switched off when the profile still held its hostname.
 - With Custom SNI on, the certificate check before an SSTP connection ignored it and reported an untrusted certificate when the Host field is an IP address; it now checks the certificate against the Custom SNI, as the connection does.
+- An SSTP profile that uses only PEAP, EAP-TTLS or TEAP could not be saved.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.

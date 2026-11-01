@@ -9,6 +9,7 @@
 #import <XCTest/XCTest.h>
 #import "NodeModel.h"
 #import "CheckConnectData.h"
+#import "SRPEapConfig.h"
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
 #import "SRPGeoIPDatabase.h"
@@ -3926,6 +3927,27 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects([editor validationMessage], @"Enter a VMess UUID or a short string ID of 1 to 30 UTF-8 bytes.");
     [self tapSaveOnProfileEditor:editor];
     XCTAssertEqual(saved.count, 0U);
+}
+
+- (void)testSSTPProfileNeedsOneAuthenticationMethodAndAcceptsEAPAlone {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"sstp";
+    model.server = @"sstp.example";
+    model.username = @"user";
+    model.password = @"secret";
+    model.authMethod = @"password";
+    model.MSCHAP2 = NO;
+    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    XCTAssertEqualObjects([editor validationMessage], @"Enable at least one authentication method.");
+    // A Windows server that only takes PEAP (or another EAP method) needs no MS-CHAPv2 or PAP / CHAP
+    NodeModel *edited = [editor valueForKey:@"modal"];
+    edited.eapConfig.peapEnabled = YES;
+    XCTAssertNil([editor validationMessage]);
+    edited.eapConfig.peapEnabled = NO;
+    edited.eapConfig.ttlsInnerMethod = SRPTtlsInnerMethodPAP;
+    XCTAssertNil([editor validationMessage]);
 }
 
 - (void)testProfileSaveKeepsPasswordWhitespace {

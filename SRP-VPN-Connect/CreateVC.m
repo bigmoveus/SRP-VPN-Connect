@@ -390,7 +390,10 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         if (!hasServer) return @"Enter the server address.";
         if (self.modal.username.length == 0) return @"Enter the username.";
         if (self.modal.password.length == 0) return @"Enter the password.";
-        if (!(self.modal.MSCHAP2 || self.modal.allowLegacyPapChap || self.modal.eapConfig.eapMschapv2Enabled)) {
+        SRPEapConfig *eap = self.modal.eapConfig;
+        BOOL eapMethod = eap.eapMschapv2Enabled || eap.peapEnabled || eap.teapEnabled ||
+                         eap.ttlsInnerMethod != SRPTtlsInnerMethodDisabled;
+        if (!(self.modal.MSCHAP2 || self.modal.allowLegacyPapChap || eapMethod)) {
             return @"Enable at least one authentication method.";
         }
     }
