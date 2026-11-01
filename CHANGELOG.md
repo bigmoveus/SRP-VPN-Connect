@@ -40,6 +40,10 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - An empty Port in WaterWall's WireGuard mode connected to 443 although the field showed 51820; it now means 51820.
 - The WaterWall KCP settings check measured kcp-initial-cwnd against a send window of 8192, while the chain uses 128 unless kcp-send-window is set.
 - The WaterWall profile editor accepted a Manual TLS Fragmentation First Chunk of 16384 bytes or more, which leaves the ClientHello whole; it now names the limit on save.
+- A profile kept its WireGuard keys and settings when its protocol changed, so a WaterWall profile in WireGuard mode could connect with keys entered for the WireGuard, AmneziaWG or Aether protocol, and the other way round. A profile moved to another protocol now starts without them.
+- WireGuard private keys, preshared keys and imported configs were saved in the app's settings file. They are now kept in the Keychain and the profile keeps only a reference; saved profiles move their keys there when the app first loads them.
+- A saved WireGuard profile that had both an imported config and manual keys lost the import when the app loaded it. Only a config generated from the manual fields is now dropped on load.
+- Deleting a profile left its passwords and WireGuard keys in the Keychain; they are now removed with the profile.
 
 ### Changed
 - New profiles start as WaterWall VPN with its default configuration on port 443 instead of SSTP; existing profiles keep their protocol.

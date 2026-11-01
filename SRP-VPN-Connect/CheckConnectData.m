@@ -334,11 +334,6 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.wgH2 = [selectDic[@"wg_h2"] integerValue];
         modal.wgH3 = [selectDic[@"wg_h3"] integerValue];
         modal.wgH4 = [selectDic[@"wg_h4"] integerValue];
-        // A generated wg_conf must never shadow later manual edits — when
-        // manual fields exist, regenerate on save instead.
-        if (modal.wgPrivateKey.length > 0) {
-            modal.wgConfig = nil;
-        }
         modal.desc = selectDic[@"desc"];
         // Stable identity; legacy profiles without one get a fresh id (migration
         // persists it on the next save).
@@ -425,10 +420,56 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         else {
             modal.password = @"";
         }
+        // WireGuard keys come from the Keychain. Older saves kept them in the profile, together with the
+        // config generated from the manual fields as if it had been imported.
+        modal.wgSecretRef = selectDic[@"wg_secret_ref"];
+        NSString *storedKeys = modal.wgSecretRef.length > 0 ? [SRPKeychain passwordForKey:modal.wgSecretRef] : nil;
+        NSDictionary *wireGuard = storedKeys.length > 0 ?
+            [NSJSONSerialization JSONObjectWithData:[storedKeys dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] : nil;
+        if ([wireGuard isKindOfClass:NSDictionary.class]) {
+            modal.wgConfig = wireGuard[@"conf"];
+            modal.wgPrivateKey = wireGuard[@"private_key"];
+            modal.wgPresharedKey = wireGuard[@"preshared_key"];
+        } else if (modal.wgConfig.length > 0) {
+            NSString *saved = modal.wgConfig;
+            modal.wgConfig = nil;
+            if (![saved isEqualToString:[modal wgEffectiveConfig]]) modal.wgConfig = saved;
+        }
         return modal;
 
     }
     return nil;
+}
+
++(NSDictionary*)storedParametersForProfile:(NodeModel*)modal {
+    NSMutableDictionary *d = [[self checkConnectParmer:modal] mutableCopy];
+    BOOL wireGuard = d[@"wg_conf"] != nil;
+    // Never persist plaintext credentials — they live in the Keychain.
+    [d removeObjectsForKeys:@[@"password", @"ww_outer_secret", @"wg_conf", @"wg_private_key", @"wg_preshared_key"]];
+    NSMutableDictionary *keys = [NSMutableDictionary new];
+    if (wireGuard) {
+        // wg_conf above is the effective config; only an imported one is kept, so manual fields stay editable
+        if (modal.wgConfig.length > 0) keys[@"conf"] = modal.wgConfig;
+        if (modal.wgPrivateKey.length > 0) keys[@"private_key"] = modal.wgPrivateKey;
+        if (modal.wgPresharedKey.length > 0) keys[@"preshared_key"] = modal.wgPresharedKey;
+    }
+    if (keys.count > 0) {
+        if (modal.wgSecretRef.length == 0) modal.wgSecretRef = NSUUID.UUID.UUIDString;
+        NSData *json = [NSJSONSerialization dataWithJSONObject:keys options:0 error:nil];
+        [SRPKeychain setPassword:[[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] forKey:modal.wgSecretRef];
+        d[@"wg_secret_ref"] = modal.wgSecretRef;
+    } else if (modal.wgSecretRef.length > 0) {
+        [SRPKeychain deletePasswordForKey:modal.wgSecretRef];
+        modal.wgSecretRef = nil;
+    }
+    return d;
+}
+
++(void)deleteStoredSecretsOfProfile:(NodeModel*)modal {
+    for (NSString *key in @[modal.passwordKey ?: @"", modal.waterwallSecretRef ?: @"", modal.waterwallOuterSecretRef ?: @"",
+                            modal.proxyPasswordRef ?: @"", modal.wgSecretRef ?: @""]) {
+        if (key.length > 0) [SRPKeychain deletePasswordForKey:key];
+    }
 }
 
 @end

@@ -57,6 +57,8 @@
 }
 
 + (void)applyProtocol:(NSString *)type toModel:(NodeModel *)model {
+    // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
+    if (![type isEqualToString:model.protocolType]) [model clearWireGuardSettings];
     model.protocolType = type;
     model.nodeName = nil;   // the getter derives the name from the protocol
     // Protocol-specific defaults (same as the old action sheet)

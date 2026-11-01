@@ -60,8 +60,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,copy,nullable) NSString * ovpnStunnelCA;
 
 /// WireGuard: full text of the imported .conf (wg-quick format; holds the
-/// private key — stored like a credential)
+/// private key, so it is saved in the Keychain under wgSecretRef)
 @property (nonatomic,copy,nullable) NSString * wgConfig;
+/// Keychain entry with this profile's WireGuard private key, preshared key and imported .conf
+@property (nonatomic,copy,nullable) NSString * wgSecretRef;
 
 /// WireGuard manual entry (used when no .conf is imported). The effective
 /// config is generated from these + server/port — see wgEffectiveConfig.
@@ -84,6 +86,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// The imported .conf if present, otherwise a wg-quick config generated
 /// from the manual fields; nil when neither is complete.
 -(nullable NSString*)wgEffectiveConfig;
+
+/// Forgets the WireGuard keys and settings, so that another protocol does not use them.
+-(void)clearWireGuardSettings;
 
 /// Aether transport: "masque" (HTTP/3), "masque-h2" (HTTP/2),
 /// "masque-both" (HTTP/3 with HTTP/2 fallback), or "wg" (WireGuard)

@@ -487,6 +487,7 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
             completion(NO);
             return;
         }
+        [CheckConnectData deleteStoredSecretsOfProfile:self2.nodaArray[indexPath.row]];
         [self2.nodaArray removeObjectAtIndex:indexPath.row];
         [userNodeData shareInstance].nodeArray = self2.nodaArray;
         [self2 saveLatency];   // drops the deleted profile's result

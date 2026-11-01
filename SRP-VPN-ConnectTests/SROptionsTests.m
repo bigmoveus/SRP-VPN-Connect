@@ -31,6 +31,7 @@
 #import <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 #import "CreateVC.h"
+#import "SRPKeychain.h"
 #import "HomeProtocolView.h"
 #import "SRPProtocolViewController.h"
 #import "SRPGeoIPCountryViewController.h"
@@ -755,6 +756,26 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
                           @"kcp.kcp-initial-cwnd must be positive and no greater than kcp-send-window.");
     configuration[@"node-options"] = @{@"kcp": @{@"kcp-initial-cwnd": @200, @"kcp-send-window": @256}};
     XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+}
+
+- (void)testOlderSavedWireGuardProfilesKeepTheirManualFieldsEditable {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"wireguard";
+    model.server = @"wg.example.com";
+    model.port = @"51820";
+    model.wgPrivateKey = @"cHJpdmF0ZQ==";
+    model.wgPeerPublicKey = @"cGVlcg==";
+    model.wgAddress = @"10.88.0.2/24";
+    // Saves before the Keychain move kept every key, with the generated config under wg_conf.
+    NSMutableDictionary *saved = [[CheckConnectData checkConnectParmer:model] mutableCopy];
+    XCTAssertEqualObjects(saved[@"wg_conf"], [model wgEffectiveConfig]);
+    NodeModel *loaded = [CheckConnectData getModalForDic:saved];
+    XCTAssertNil(loaded.wgConfig, @"A generated config must not come back as an imported one");
+    XCTAssertEqualObjects(loaded.wgPrivateKey, @"cHJpdmF0ZQ==");
+    loaded.wgKeepalive = 25;
+    XCTAssertTrue([[loaded wgEffectiveConfig] containsString:@"PersistentKeepalive = 25"]);
+    saved[@"wg_conf"] = @"[Interface]\nPrivateKey = aW1wb3J0ZWQ=\n";
+    XCTAssertEqualObjects([CheckConnectData getModalForDic:saved].wgConfig, saved[@"wg_conf"]);
 }
 
 - (void)testWaterWallWireGuardModeDefaultsToTheWireGuardPort {
@@ -4493,6 +4514,78 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"outer"], @"reality");
     [picker tableView:picker.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
     XCTAssertEqualObjects(model.protocolType, @"sstp");
+}
+
+- (void)testEachProtocolKeepsItsOwnWireGuardKeys {
+    Class picker = NSClassFromString(@"SRPProtocolViewController");
+    NodeModel *model = [NodeModel new];
+    [picker applyProtocol:@"wireguard" toModel:model];
+    model.wgConfig = @"[Interface]\nPrivateKey = aW1wb3J0ZWQ=\n";
+    model.wgPrivateKey = @"cHJpdmF0ZQ==";
+    model.wgAddress = @"10.88.0.2/24";
+    model.wgKeepalive = 25;
+    model.wgJc = 4;
+    [picker applyProtocol:@"wireguard" toModel:model];
+    XCTAssertEqualObjects(model.wgAddress, @"10.88.0.2/24");
+    for (NSString *type in @[@"waterwall", @"amnezia", @"aether", @"wireguard"]) {
+        model.wgPrivateKey = @"cHJpdmF0ZQ==";
+        [picker applyProtocol:type toModel:model];
+        XCTAssertNil(model.wgPrivateKey, @"%@", type);
+    }
+    XCTAssertNil(model.wgConfig);
+    XCTAssertNil(model.wgAddress);
+    XCTAssertEqual(model.wgKeepalive, 0);
+    XCTAssertEqual(model.wgJc, 0);
+}
+
+- (void)testWireGuardKeysAreSavedInTheKeychain {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @"wg.example.com";
+    model.port = @"51820";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
+    model.wgPrivateKey = @"cHJpdmF0ZQ==";
+    model.wgPeerPublicKey = @"cGVlcg==";
+    model.wgPresharedKey = @"cHJlc2hhcmVk";
+    model.wgAddress = @"10.88.0.2/24";
+    NSDictionary *stored = [CheckConnectData storedParametersForProfile:model];
+    @try {
+        for (NSString *key in @[@"password", @"wg_conf", @"wg_private_key", @"wg_preshared_key"]) {
+            XCTAssertNil(stored[key], @"%@ must not be saved in the profile", key);
+        }
+        XCTAssertEqualObjects(stored[@"wg_peer_public_key"], @"cGVlcg==");
+        XCTAssertEqualObjects(stored[@"wg_secret_ref"], model.wgSecretRef);
+        NodeModel *loaded = [CheckConnectData getModalForDic:stored];
+        XCTAssertEqualObjects(loaded.wgPrivateKey, @"cHJpdmF0ZQ==");
+        XCTAssertEqualObjects(loaded.wgPresharedKey, @"cHJlc2hhcmVk");
+        XCTAssertNil(loaded.wgConfig, @"Only an imported config is saved");
+        XCTAssertEqualObjects([loaded wgEffectiveConfig], [model wgEffectiveConfig]);
+
+        loaded.wgConfig = @"[Interface]\nPrivateKey = aW1wb3J0ZWQ=\n";
+        [CheckConnectData storedParametersForProfile:loaded];
+        XCTAssertEqualObjects([CheckConnectData getModalForDic:stored].wgConfig, loaded.wgConfig);
+
+        NSString *ref = loaded.wgSecretRef;
+        [loaded clearWireGuardSettings];
+        XCTAssertNil([CheckConnectData storedParametersForProfile:loaded][@"wg_secret_ref"]);
+        XCTAssertNil([SRPKeychain passwordForKey:ref], @"A profile without keys leaves nothing in the Keychain");
+    } @finally {
+        if (model.wgSecretRef.length > 0) [SRPKeychain deletePasswordForKey:model.wgSecretRef];
+    }
+}
+
+- (void)testDeletingAProfileRemovesItsSecrets {
+    NodeModel *model = [NodeModel new];
+    model.passwordKey = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    model.waterwallOuterSecretRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    model.wgSecretRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    for (NSString *key in @[model.passwordKey, model.waterwallOuterSecretRef, model.wgSecretRef]) {
+        XCTAssertTrue([SRPKeychain setPassword:@"secret" forKey:key]);
+    }
+    [CheckConnectData deleteStoredSecretsOfProfile:model];
+    for (NSString *key in @[model.passwordKey, model.waterwallOuterSecretRef, model.wgSecretRef]) {
+        XCTAssertNil([SRPKeychain passwordForKey:key], @"%@", key);
+    }
 }
 
 - (void)testPickingTheCurrentWaterWallApplicationKeepsItsSecret {

@@ -17,11 +17,7 @@ static userNodeData * user = nil;
 -(void)setNodeArray:(NSMutableArray *)nodeArray{
     NSMutableArray *t = [NSMutableArray new];
     for(NodeModel * modal in nodeArray) {
-        NSMutableDictionary *d = [[CheckConnectData checkConnectParmer:modal] mutableCopy];
-        // Never persist plaintext credentials — they live in the Keychain.
-        [d removeObjectForKey:@"password"];
-        [d removeObjectForKey:@"ww_outer_secret"];
-        [t addObject:d];
+        [t addObject:[CheckConnectData storedParametersForProfile:modal]];
     }
     [[NSUserDefaults standardUserDefaults] setObject:t forKey:@"nodeArray"];
     [[NSUserDefaults standardUserDefaults] synchronize];
@@ -37,8 +33,9 @@ static userNodeData * user = nil;
             if (modal) {
                 [t addObject:modal];
             }
-            // Re-save profiles that still contain either plaintext credential.
-            if (dic[@"password"] != nil || dic[@"ww_outer_secret"] != nil) {
+            // Re-save profiles that still contain a plaintext credential or WireGuard key.
+            if (dic[@"password"] != nil || dic[@"ww_outer_secret"] != nil || dic[@"wg_conf"] != nil ||
+                dic[@"wg_private_key"] != nil || dic[@"wg_preshared_key"] != nil) {
                 migrated = YES;
             }
         }

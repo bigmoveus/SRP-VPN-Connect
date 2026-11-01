@@ -97,6 +97,12 @@ static NodeModel * modal = nil;
     return _udpgw_port;
 }
 
+-(void)clearWireGuardSettings {
+    _wgConfig = _wgPrivateKey = _wgPeerPublicKey = _wgPresharedKey = _wgAddress = _wgDNS = _wgAllowedIPs = nil;
+    _wgI1 = _wgI2 = _wgI3 = _wgI4 = _wgI5 = nil;
+    _wgKeepalive = _wgJc = _wgJmin = _wgJmax = _wgS1 = _wgS2 = _wgS3 = _wgS4 = _wgH1 = _wgH2 = _wgH3 = _wgH4 = 0;
+}
+
 -(NSString*)wgEffectiveConfig {
     if (_wgConfig.length > 0) {
         return _wgConfig;
