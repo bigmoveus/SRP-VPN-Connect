@@ -94,7 +94,7 @@ void tcpoverudpserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 
     assert(ls->k_handle != NULL);
 
-    ls->last_recv = wloopNowMS(getWorkerLoop(lineGetWID(l)));
+    ls->last_recv = wloopNowMonotonicMS(getWorkerLoop(lineGetWID(l)));
     ls->ping_sent = false;
 
     if (ls->fec_decoder != NULL)

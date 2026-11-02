@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Fixed
+- A KCP download could stop partway and time out after 120 seconds: WaterWall's loop clock could step back a millisecond, a server line then looked silent for ages and was destroyed with the rest of the response still queued.
+
 ## 1.2.0 (32) - 2026-11-02
 
 ### Fixed
