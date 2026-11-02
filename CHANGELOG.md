@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (32) - 2026-11-02
+
 ### Fixed
 - A WaterWall upload could crawl at about three TCP segments a second for up to a minute, on any chain, and sometimes hit the 180 second limit of a request. When the start of an upload overflowed the queue in front of the tunnel, iOS retransmitted the lost stretch, and WaterWall's TCP stack acknowledged each retransmission within a millisecond. Without TCP timestamps iOS took that for proof the retransmission was needless and repaired one segment per retransmission timeout. WaterWall's TCP stack now negotiates timestamps.
 - Repairing a lost stretch of a WaterWall upload could still move only four TCP segments a second, because WaterWall's TCP stack held the acknowledgement of a lone segment for its 250 ms timer. Packets from iOS now enter the stack in batches, and each batch's acknowledgements go out when it ends.
