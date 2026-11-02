@@ -123,6 +123,7 @@ struct muxserver_lstate_s
     bool                      paused : 1;           // child: local child write side is paused
     bool                      flow_paused_sent : 1; // child: FlowPause was sent to the peer for this cid
     bool                      peer_flow_paused : 1; // child: peer sent FlowPause for this cid
+    bool                      first_data_delivered : 1; // child: its first DATA frame has been delivered
     bool                      source_pause_notified : 1; // Effective producer permission already emitted.
     bool                      source_starting : 1;  // child: producer Init/Est callback is still on the stack
     bool parent_write_paused : 1; // child: local hold registry membership (writer or aggregate pressure)
