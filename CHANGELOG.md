@@ -8,6 +8,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - `WaterWall/UPSTREAM_VERSION` and the documentation site said the app's WaterWall was based on upstream 1.5.0, although its code has been based on 1.5.2 since 2026-10-27. Both now say 1.5.2, and the last six files of that release (PingClient and PingServer, which the app does not build) are in place. The WaterWall compiled into the app does not change.
 - WaterWall could stop all traffic for about half a minute until the health check closed the tunnel. A lock in its event loop could miss a wakeup on the phone's ARM processor, and the worker thread then slept until the tunnel was stopped.
 - After each WaterWall KCP connection the app kept the line for up to 30 seconds, retransmitting its close frame and waiting for an acknowledgement servers never send, and each retransmission opened a useless line on the server. It now waits only until its data is acknowledged, sends the close frame once and releases the line, and sends nothing more once it reads the server's close frame. Uploads of many small requests went about twice as fast in our tests.
+- A new WaterWall KCP connection could get a UDP port a recent connection had used and reach what the server still kept for that port. It then received nothing, and a TLS connection through it failed after hanging for a minute. A UDP port now stays out of use for 60 seconds after it is released.
 
 ## 1.2.0 (30) - 2026-11-02
 

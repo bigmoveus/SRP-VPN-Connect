@@ -8,6 +8,34 @@ bool g_udpconnector_pool_test_fail_socket_map_insert = false;
 bool g_udpconnector_pool_test_fail_line_map_insert   = false;
 #endif
 
+// A KCP server tells lines apart only by address and port, and it keeps or reopens a line for up to its
+// no-recv-timeout after this client released the port. A new line on such a port reaches that old state and can stall
+// until it times out, so a released port is not taken again until the server must have forgotten it.
+// shortcut: assumes a server no-recv-timeout under 60 s, raise the hold if servers need longer.
+enum
+{
+    kUdpConnectorPortHoldSeconds  = 60,
+    kUdpConnectorPortPickAttempts = 16
+};
+
+static atomic_uint g_udpconnector_port_released_at[UINT16_MAX + 1];
+
+static uint32_t udpconnectorPortClockNow(void)
+{
+    return (uint32_t) (wloopNowMS(getCurrentWorkerLoop()) / 1000) + 1U; // 0 means never released
+}
+
+static void udpconnectorNotePortReleased(uint16_t port)
+{
+    atomic_store_explicit(&g_udpconnector_port_released_at[port], udpconnectorPortClockNow(), memory_order_relaxed);
+}
+
+static bool udpconnectorPortIsHeld(uint16_t port)
+{
+    const uint32_t released = atomic_load_explicit(&g_udpconnector_port_released_at[port], memory_order_relaxed);
+    return released != 0 && udpconnectorPortClockNow() - released < kUdpConnectorPortHoldSeconds;
+}
+
 static const char *getSourceBindIp(const udpconnector_tstate_t *ts, char *interface_ip, size_t interface_ip_len)
 {
     if (ts->source_ip != NULL)
@@ -110,6 +138,26 @@ static int createAndBindSocket(int family, const udpconnector_tstate_t *ts)
     return sockfd;
 }
 
+static int createAndBindUnheldSocket(int family, const udpconnector_tstate_t *ts, uint16_t *local_port)
+{
+    for (int attempt = 1;; ++attempt)
+    {
+        const int sockfd = createAndBindSocket(family, ts);
+        if (sockfd < 0)
+        {
+            return sockfd;
+        }
+        sockaddr_u local_addr = {0};
+        socklen_t  addr_len   = sizeof(local_addr);
+        *local_port           = getsockname(sockfd, &local_addr.sa, &addr_len) == 0 ? sockaddrPort(&local_addr) : 0;
+        if (attempt == kUdpConnectorPortPickAttempts || ! udpconnectorPortIsHeld(*local_port))
+        {
+            return sockfd;
+        }
+        closesocket(sockfd);
+    }
+}
+
 udpconnector_worker_pool_t *udpconnectorGetLineWorkerPool(udpconnector_tstate_t *ts, line_t *l)
 {
     assert(ts != NULL);
@@ -199,7 +247,7 @@ udpconnector_pool_socket_t *udpconnectorPoolSocketCreate(tunnel_t *t, udpconnect
     sock->state       = kUdpConnectorPoolSocketAccepting;
     sock->peer_map    = udpconnector_peer_binding_map_init();
 
-    int sockfd = createAndBindSocket(family, ts);
+    int sockfd = createAndBindUnheldSocket(family, ts, &sock->local_port);
     if (sockfd < 0)
     {
         udpconnector_peer_binding_map_drop(&sock->peer_map);
@@ -255,6 +303,7 @@ void udpconnectorPoolSocketRetire(udpconnector_pool_socket_t *sock)
 
     udpconnectorPoolSocketUnlink(sock);
     sock->state = kUdpConnectorPoolSocketClosing;
+    udpconnectorNotePortReleased(sock->local_port);
 
     if (sock->io != NULL)
     {
@@ -657,6 +706,7 @@ void udpconnectorOnSocketClose(wio_t *io)
 
     sock->state = kUdpConnectorPoolSocketClosing;
     udpconnectorPoolSocketUnlink(sock);
+    udpconnectorNotePortReleased(sock->local_port);
 
     weventSetUserData(io, NULL);
     wioSetCallBackClose(io, NULL);

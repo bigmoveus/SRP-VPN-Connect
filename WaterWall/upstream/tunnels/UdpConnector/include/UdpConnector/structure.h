@@ -143,6 +143,7 @@ struct udpconnector_pool_socket_s
     int                              family;
     udpconnector_pool_socket_state_e state;
     wio_t                           *io;
+    uint16_t                         local_port;
     udpconnector_peer_binding_map_t  peer_map;
     uint32_t                         active_bindings_count;
     uint32_t                         read_paused_count;
