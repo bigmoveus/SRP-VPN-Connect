@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Fixed
+- WaterWall MUX downloads lost their connection while uploads filled the same parent: the client closed a child whose queue reached 4 MiB, because the pause request reached the server too late. Reads on the parent now stop until the queues drain, for at most 5 seconds at a time.
 - A KCP download could stop partway and time out after 120 seconds: WaterWall's loop clock could step back a millisecond, a server line then looked silent for ages and was destroyed with the rest of the response still queued.
 
 ## 1.2.0 (32) - 2026-11-02

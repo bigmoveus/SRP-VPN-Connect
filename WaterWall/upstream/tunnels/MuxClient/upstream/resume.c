@@ -32,13 +32,17 @@ void muxclientTunnelUpStreamResume(tunnel_t *t, line_t *child_l)
         return;
     }
 
-    muxclient_child_drain_result_t result = muxclientDrainAttachedChild(t, parent_ls->l, parent_ls, child_l, child_ls);
+    line_t *parent_l = parent_ls->l;
+    lineRef(parent_l);
+    muxclient_child_drain_result_t result = muxclientDrainAttachedChild(t, parent_l, parent_ls, child_l, child_ls);
     if (result == kMuxClientChildDrainReadyToFinish && child_ls->close_state == kMuxClientChildClosePeerDraining)
     {
-        discard muxclientFinalizeAttachedPeerClose(t, parent_ls->l, tunnelGetState(t), parent_ls, child_ls);
+        discard muxclientFinalizeAttachedPeerClose(t, parent_l, tunnelGetState(t), parent_ls, child_ls);
     }
     else if (result == kMuxClientChildDrainReadyToFinish)
     {
-        muxclientDeliverKeptChildData(t, parent_ls->l, child_ls);
+        muxclientDeliverKeptChildData(t, parent_l, child_ls);
     }
+    muxclientSyncParentInput(t, parent_l);
+    lineUnref(parent_l);
 }

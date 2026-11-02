@@ -1627,3 +1627,80 @@ void muxclientSendSpliceBatch(tunnel_t *t, line_t *parent_l, sbuf_t *input, muxc
     lineUnref(writer_l);
     lineUnref(parent_l);
 }
+
+static void muxclientParentInputWatch(tunnel_t *t, line_t *parent_l);
+
+static void muxclientArmParentInputWatch(tunnel_t *t, line_t *parent_l, muxclient_parent_state_t *state)
+{
+    if (state->input_watch_armed)
+        return;
+    state->input_watch_armed = true;
+    const line_task_submit_result_e result =
+        lineScheduleDelayedTask(parent_l, muxclientParentInputWatch, kMuxParentInputWatchMs, t, NULL);
+    discard result;
+}
+
+/*
+ * The peer keeps sending until a FlowPause reaches it, behind every upload queued on this parent, which can outrun
+ * child-buffer-limit on a device with little memory. Stopping parent reads costs the other children a short wait
+ * instead of costing this child its data.
+ */
+void muxclientSyncParentInput(tunnel_t *t, line_t *parent_l)
+{
+    muxclient_tstate_t *ts     = tunnelGetState(t);
+    muxclient_lstate_t *parent = muxclientOutputParent(t, parent_l);
+    if (parent == NULL || ts->worker_states[lineGetWID(parent_l)].quiescing || parent->parent_state->receive_depth != 0)
+        return;
+
+    muxclient_parent_state_t *state  = parent->parent_state;
+    const size_t              limit  = ts->parent_buffer_limit == kMuxParentBufferLimitUnlimited
+                                           ? ts->child_buffer_limit
+                                           : min(ts->child_buffer_limit, ts->parent_buffer_limit);
+    const size_t              high   = limit / 4 * 3;
+    const size_t              charge = bufferbudgetGetUsage(&state->child_queue_budget).charge;
+    if (! state->input_paused && charge >= high)
+    {
+        state->input_paused       = true;
+        state->input_paused_at_ms = wloopNowMonotonicMS(getWorkerLoop(lineGetWID(parent_l)));
+        muxclientArmParentInputWatch(t, parent_l, state);
+        discard lineCallWithRef(parent_l, tunnelNextUpStreamPause, t);
+    }
+    else if (state->input_paused && charge < high / 2)
+    {
+        state->input_paused = false;
+        discard lineCallWithRef(parent_l, tunnelNextUpStreamResume, t);
+    }
+}
+
+/* Closing a child frees its queue without a Resume, and a child that stays blocked must not hold its siblings for long. */
+static void muxclientParentInputWatch(tunnel_t *t, line_t *parent_l)
+{
+    muxclient_tstate_t *ts     = tunnelGetState(t);
+    muxclient_lstate_t *parent = muxclientOutputParent(t, parent_l);
+    if (parent == NULL)
+        return;
+    parent->parent_state->input_watch_armed = false;
+    if (ts->worker_states[lineGetWID(parent_l)].quiescing)
+        return;
+
+    muxclientSyncParentInput(t, parent_l);
+    parent = muxclientOutputParent(t, parent_l);
+    if (parent == NULL || ! parent->parent_state->input_paused)
+        return;
+
+    muxclient_parent_state_t *state = parent->parent_state;
+    const uint64_t            now   = wloopNowMonotonicMS(getWorkerLoop(lineGetWID(parent_l)));
+    if (now - state->input_paused_at_ms >= kMuxParentInputHoldMs && state->receive_depth == 0)
+    {
+        state->input_paused_at_ms  = now;
+        muxclient_lstate_t *victim = muxclientFindLargestQueuedChild(parent);
+        if (victim != NULL &&
+            ! muxclientCloseChildForQueueLimit(t, parent_l, ts, parent, victim, "parent reads stayed paused for it", 0))
+            return;
+        muxclientSyncParentInput(t, parent_l);
+        parent = muxclientOutputParent(t, parent_l);
+        if (parent == NULL || ! parent->parent_state->input_paused)
+            return;
+    }
+    muxclientArmParentInputWatch(t, parent_l, parent->parent_state);
+}

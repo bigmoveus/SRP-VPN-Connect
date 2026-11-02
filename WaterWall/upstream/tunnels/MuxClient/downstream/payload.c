@@ -206,6 +206,7 @@ static void receiveParentInput(tunnel_t *t, line_t *parent_l, sbuf_t *buf)
         --parent->parent_state->receive_depth;
         if (! ts->worker_states[lineGetWID(parent_l)].quiescing)
             discard muxclientEnforceParentReceiveLimit(t, parent_l);
+        muxclientSyncParentInput(t, parent_l);
     }
     lineUnref(parent_l);
 }

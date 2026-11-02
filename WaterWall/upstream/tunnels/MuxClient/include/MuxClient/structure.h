@@ -29,6 +29,9 @@ typedef struct muxclient_parent_state_s
     buffer_budget_t       child_queue_budget;
     unsigned              receive_depth;     // Nonzero defers enforcement and Resume's kept-byte reparse.
     bool                  receive_enforcing; // Close callbacks may re-enter parser/admission.
+    bool                  input_paused;      // Retained child data has stopped parent reads.
+    bool                  input_watch_armed;
+    uint64_t              input_paused_at_ms;
     mux_frame_t           read_frame;        // Header remains cached while its body is consumed incrementally.
     mux_length_t          read_remaining;
     bool                  reading_frame;
@@ -145,6 +148,8 @@ enum
     kMuxParentBufferLimitUnlimited        = 0,
     kMuxChildBufferQueueCap               = 8,
     kMuxMainLineStatsLogIntervalMs        = 5000,
+    kMuxParentInputWatchMs                = 100,
+    kMuxParentInputHoldMs                 = 5000,
 };
 
 WW_EXPORT void         muxclientTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
@@ -242,6 +247,7 @@ void muxclientDrainParentOutput(tunnel_t *t, line_t *parent_l);
 void muxclientSendSpliceBatch(tunnel_t *t, line_t *parent_l, sbuf_t *input, muxclient_lstate_t *child);
 
 bool muxclientEnforceParentReceiveLimit(tunnel_t *t, line_t *parent_l);
+void muxclientSyncParentInput(tunnel_t *t, line_t *parent_l);
 
 /* Complete deferred producer permission after Init/Est; caller holds the child. */
 void muxclientChildSourceStarted(tunnel_t *t, line_t *child_l);

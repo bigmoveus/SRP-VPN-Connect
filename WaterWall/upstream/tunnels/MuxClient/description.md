@@ -434,11 +434,13 @@ Queued data is flushed when the child resumes. `FlowResume` is sent
 once the child's queue drops below `child-buffer-resume-threshold`, allowing the peer to begin sending before the queue
 is completely empty.
 
-Queue pressure does not pause reads on the parent transport. A parent is shared by every child, so a parent read pause
-taken for one indefinitely blocked destination also prevents unrelated child frames from being demultiplexed. That is
-global head-of-line blocking even though the other streams and the parent transport are healthy.
+The peer keeps sending until a `FlowPause` reaches it, behind everything already queued on the parent, so queues can
+grow fast while uploads fill the same parent. When the children's retained charge reaches three quarters of the lower
+of `child-buffer-limit` and `parent-buffer-limit`, reads on the parent transport pause until it falls below half of
+that level. A parent read pause holds up every child, so it lasts at most 5 seconds: after that the largest queued
+child is closed and the wait starts again.
 
-Pressure is bounded by closing a child instead. If one child's retained queue charge reaches `child-buffer-limit`, that child is closed.
+Pressure is still bounded by closing a child. If one child's retained queue charge reaches `child-buffer-limit`, that child is closed.
 When incoming assembly plus attached child charge reaches `parent-buffer-limit`, beneficial incoming
 compaction runs first. Remaining pressure closes the largest queued child with the oldest tie-break,
 rechecking after each callback. Multiple closes may be needed; unrelieved pressure closes the parent.
