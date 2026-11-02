@@ -123,13 +123,15 @@ QUIC deadlines. Both nodes block splice and do not implement connection pooling,
 migration across carrier lines, NAT-rebinding reassociation, resumption or 0-RTT.
 
 Receiving `Finish` rejects new application input and starts a final wire drain.
-If accepted application bytes still need acknowledgement, the borrowed line and
-carrier remain available for up to five seconds while ACK processing and loss
-recovery continue. The line closes when accepted bytes are acknowledged and wire
-queues drain, or when that deadline expires; its close-drain reference is released
-on success and on every error path. There is no unbounded wait for final delivery.
+The borrowed line and carrier remain available while ACK processing and loss
+recovery continue, and the stream gets a FIN after the last queued byte. The line
+closes when the peer acknowledges the FIN or closes the connection, one second after
+all data is acknowledged, or after 30 seconds with data still unacknowledged, which
+is logged as a failure; its close-drain reference is released on success and on every
+error path. There is no unbounded wait for final delivery.
 QUIC stream FIN/reset closes the whole association after already-decoded bytes;
-application half-close is not provided.
+application half-close is not provided. The side that reads a FIN sends a
+CONNECTION_CLOSE; if that packet is lost, it resolves through the peer's finite timeout.
 
 ## Node Metadata
 
