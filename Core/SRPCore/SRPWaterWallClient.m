@@ -399,9 +399,9 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 - (void)sendSynProbe {
     if (_closed || _pendingProbePackets.count > 0 || (_probeStage != 1 && _probeStage != 4)) return;
     _probeAttempts++;
-    _probeHTTPStarted = NO;
-    _probeResponseHeader = nil;
-    [self submitProbePacket:SRPWWSynPacket(_tunnelAddress, _probeAddress, _probeTcpPort)];
+    // A request already out keeps waiting: the chain may still be connecting on a slow network, and lwIP answers a
+    // second SYN on this port without a SYN-ACK, which would leave no request to take the coming answer.
+    if (!_probeHTTPStarted) [self submitProbePacket:SRPWWSynPacket(_tunnelAddress, _probeAddress, _probeTcpPort)];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (_probeStage == 1 ? 1 : 5) * NSEC_PER_SEC), _worker, ^{
         if ((self->_probeStage != 1 && self->_probeStage != 4) || self->_closed || self->_pendingProbePackets.count > 0) return;
         if (self->_probeAttempts >= (self->_probeStage == 1 ? 15 : 3)) {
@@ -449,6 +449,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
         self->_probeStage = self->_probeTCP ? 4 : 5;
         self->_probeAttempts = 0;
         self->_probeTcpPort = arc4random_uniform(40000) + 20000;
+        self->_probeHTTPStarted = NO;
         if (self->_probeTCP) [self sendSynProbe];
         else [self sendDnsProbe];
     });
@@ -479,6 +480,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _probeAttempts = 0;
     _probeDnsId = arc4random_uniform(65535) + 1;
     _probeTcpPort = arc4random_uniform(40000) + 20000;
+    _probeHTTPStarted = NO;
     _probeTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
     dispatch_source_set_timer(_probeTimer, dispatch_time(DISPATCH_TIME_NOW, 20 * NSEC_PER_SEC), DISPATCH_TIME_FOREVER, 0);
     dispatch_source_set_event_handler(_probeTimer, ^{
@@ -584,6 +586,12 @@ static void SRPWWFailure(void *context, int code, const char *message) {
                                     ((uint32_t)tcp[6] << 8) | tcp[7];
         if (_probeHTTPStarted) {
             const NSUInteger payloadLength = packet.length - ihl - tcpHeaderLength;
+            if (payloadLength == 0 && (tcp[13] & 0x05) != 0) {
+                // The chain closed this flow unanswered, so the next attempt opens a new one.
+                _probeHTTPStarted = NO;
+                _probeTcpPort = arc4random_uniform(40000) + 20000;
+                return;
+            }
             if (payloadLength == 0 || peerSequence != _probeResponseSequence) return;
             _probeResponseSequence += (uint32_t)payloadLength;
             const uint8_t *payload = tcp + tcpHeaderLength;
