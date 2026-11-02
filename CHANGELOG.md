@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (33) - 2026-11-03
+
 ### Fixed
 - A WaterWall connection over MUX could now and then fail with a TLS error: when a carrier read boundary fell inside the first bytes of a new connection, VLESS and Trojan servers took it for a probe and rejected the connection.
 - A finished WaterWall QUIC line disappeared without telling the other side, which kept the line open until its idle timeout and kept sending packets that opened new associations on the server. The side that finishes now sends a stream FIN after its last byte, and the other side closes the connection once it has read everything.
