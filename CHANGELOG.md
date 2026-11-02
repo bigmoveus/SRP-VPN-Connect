@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Fixed
+- `WaterWall/UPSTREAM_VERSION` and the documentation site said the app's WaterWall was based on upstream 1.5.0, although its code has been based on 1.5.2 since 2026-10-27. Both now say 1.5.2, and the last six files of that release (PingClient and PingServer, which the app does not build) are in place. The WaterWall compiled into the app does not change.
+
 ## 1.2.0 (30) - 2026-11-02
 
 ### Added
