@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="WaterWall server configuration files, the server node that matches each app choice, the client chain the app builds, and every advanced node setting the app accepts.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">A WaterWall connection has two halves: the configuration file you write on the server, and the client chain the app builds from your choices. This page describes both, and what must match between them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The server file below was read from our test server on 1 November 2026. The app side was read from the app's source code at commit <code>dfce868f</code>. Which combinations actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
+</div>
+
+<h2>Server configuration files</h2>
+<p>Each configuration is one JSON file in <code>/etc/waterwall/configs/</code>, listed in the <code>configs</code> array of <code>/etc/waterwall/core.json</code> (see <a href="installation.html">Installation</a>). WaterWall loads every listed file when it starts, so after adding or changing a file, restart the service:</p>
+<pre data-label="Server"><code class="language-bash">systemctl restart waterwall.service
+systemctl status waterwall.service --no-pager</code></pre>
+
+<h3>What a file contains</h3>
+<p>A file has a <code>name</code> and a list of <code>nodes</code>. Each node has:</p>
+<table>
+  <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>Your own name for the node, used by <code>next</code>.</td></tr>
+    <tr><td><code>type</code></td><td>The kind of node, for example <code>TcpListener</code> or <code>VlessServer</code>.</td></tr>
+    <tr><td><code>settings</code></td><td>The node's options.</td></tr>
+    <tr><td><code>next</code></td><td>The name of the node that receives the traffic after this one. The last node has no <code>next</code>.</td></tr>
+  </tbody>
+</table>
+<p>Our files also carry <code>author</code>, <code>config-version</code> and <code>core-minimum-version</code>.</p>
+
+<h3>Example: VLESS + TLS from our server</h3>
+<p>This is <code>/etc/waterwall/configs/vless-tls.json</code> from our server. Only the server name and the UUID are replaced with placeholders.</p>
+<pre data-label="/etc/waterwall/configs/vless-tls.json"><code class="language-json">{
+  "name": "vless-tls",
+  "author": "SRP",
+  "config-version": 1,
+  "core-minimum-version": 0,
+  "nodes": [
+    {
+      "name": "public-in",
+      "type": "TcpListener",
+      "settings": {
+        "address": "0.0.0.0",
+        "port": 18443,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+      },
+      "next": "tls"
+    },
+    {
+      "name": "tls",
+      "type": "TlsServer",
+      "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "&lt;SERVER_HOST&gt;",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": ["http/1.1"],
+        "handshake-timeout-ms": 15000
+      },
+      "next": "vless"
+    },
+    {
+      "name": "vless",
+      "type": "VlessServer",
+      "settings": {
+        "uuid": "&lt;UUID&gt;",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+      },
+      "next": "outbound"
+    },
+    {
+      "name": "outbound",
+      "type": "TcpUdpConnector",
+      "settings": {
+        "address": "dest_context-&gt;address",
+        "port": "dest_context-&gt;port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+      }
+    }
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Node</th><th>What it does here</th></tr></thead>
+  <tbody>
+    <tr><td><code>TcpListener</code></td><td>Accepts TCP connections on port 18443 from any address. Idle connections close after 15 seconds before any data, or 5 minutes after.</td></tr>
+    <tr><td><code>TlsServer</code></td><td>Ends the TLS layer with the Let's Encrypt certificate. It accepts TLS 1.2 and 1.3 and offers the ALPN <code>http/1.1</code>, which is what the app sends for TLS.</td></tr>
+    <tr><td><code>VlessServer</code></td><td>Checks the client's UUID and reads where each connection should go. <code>connect</code> and <code>udp</code> allow TCP and UDP destinations.</td></tr>
+    <tr><td><code>TcpUdpConnector</code></td><td>Connects to the real destination. <code>dest_context-&gt;address</code> and <code>dest_context-&gt;port</code> mean "the destination the client asked for".</td></tr>
+  </tbody>
+</table>
+<p>The full list of options for every node is in the <a href="https://radkesvat.github.io/WaterWall-Docs/">official WaterWall documentation</a>.</p>
+
+<h2 id="matching">The server node for each app choice</h2>
+<p>For each layer you choose in the app, the server needs the matching node, in reverse order. Values in the last column must be the same on both sides; the app's own values are shown.</p>
+<table>
+  <thead><tr><th>App choice</th><th>Client node the app builds</th><th>Server node</th><th>Must match</th></tr></thead>
+  <tbody>
+    <tr><td>Application VLESS</td><td><code>VlessClient</code></td><td><code>VlessServer</code></td><td><code>uuid</code></td></tr>
+    <tr><td>Application VMess</td><td><code>VmessClient</code></td><td><code>VmessServer</code></td><td><code>uuid</code>; the app's security is <code>aes-128-gcm</code> unless you change it</td></tr>
+    <tr><td>Application Trojan</td><td><code>TrojanClient</code></td><td><code>TrojanServer</code></td><td><code>password</code></td></tr>
+    <tr><td>Application SOCKS5</td><td><code>Socks5Client</code></td><td><code>Socks5Server</code></td><td>username and password, if used</td></tr>
+    <tr><td>Application HTTP CONNECT</td><td><code>HttpProxyClient</code></td><td><code>HttpProxyServer</code></td><td>username and password, if used</td></tr>
+    <tr><td>MUX</td><td><code>MuxClient</code></td><td><code>MuxServer</code></td><td>—</td></tr>
+    <tr><td>Obfuscator</td><td><code>ObfuscatorClient</code></td><td><code>ObfuscatorServer</code></td><td><code>method</code> <code>xor</code>, <code>xor_key</code> <code>90</code></td></tr>
+    <tr><td>HTTP or WebSocket</td><td><code>HttpClient</code></td><td><code>HttpServer</code></td><td><code>path</code> (the app sends <code>/</code>), <code>http-version</code>, <code>websocket</code>, and <code>host</code> if the server sets one: the app sends the SNI, or the Server field when SNI is empty or not shown (<code>www.cloudflare.com</code> for Reality with SNI empty)</td></tr>
+    <tr><td>BGP4 (framing or outer)</td><td><code>Bgp4Client</code></td><td><code>Bgp4Server</code></td><td>—</td></tr>
+    <tr><td>Outer TLS</td><td><code>TlsClient</code></td><td><code>TlsServer</code></td><td>a certificate valid for the SNI (when verification is on); <code>select-alpns</code> must include the app's ALPN: <code>http/1.1</code>, or <code>h2</code> with HTTP version 2</td></tr>
+    <tr><td>Outer Reality</td><td><code>RealityClient</code></td><td><code>RealityServer</code></td><td><code>password</code>, <code>algorithm</code> <code>chacha20-poly1305</code>, <code>salt</code> <code>waterwall-reality</code>, <code>kdf-iterations</code> <code>12000</code></td></tr>
+    <tr><td>Outer AEAD</td><td><code>EncryptionClient</code></td><td><code>EncryptionServer</code></td><td><code>password</code>, <code>algorithm</code> <code>chacha20-poly1305</code>, <code>salt</code> <code>waterwall-aead</code>, <code>kdf-iterations</code> <code>12000</code>, <code>max-frame-size</code> <code>16356</code></td></tr>
+    <tr><td>Outer QUIC</td><td><code>QuicClient</code></td><td><code>QuicServer</code></td><td><code>protocol</code> <code>h3</code>, <code>carrier-mode</code> (<code>datagram</code> or <code>stream</code>)</td></tr>
+    <tr><td>Carrier KCP</td><td><code>TcpOverUdpClient</code></td><td><code>TcpOverUdpServer</code></td><td>—</td></tr>
+    <tr><td>Input Raw IPv4</td><td><code>PacketsToStream</code></td><td><code>StreamToPackets</code>, then <code>PacketsToConnection</code></td><td>—</td></tr>
+  </tbody>
+</table>
+<div class="callout warning">
+  <span class="callout-title">Two values that are easy to miss</span>
+  <ul>
+    <li><strong>AEAD salt.</strong> WaterWall's own default salt for <code>EncryptionServer</code> is <code>waterwall-encryption</code>, but the app uses <code>waterwall-aead</code>. Write <code>"salt": "waterwall-aead"</code> in the server file, as our server does.</li>
+    <li><strong>HTTP path.</strong> The app sends the path <code>/</code>. If your <code>HttpServer</code> uses another path (one of our server files uses <code>/tunnel</code>), set the same path in the app's <a href="#advanced">HTTP advanced settings</a>.</li>
+  </ul>
+</div>
+<p>The first node depends on how the chain reaches the server:</p>
+<ul>
+  <li><code>TcpListener</code> for the TCP carrier, including QUIC with the Stream carrier.</li>
+  <li><code>UdpListener</code> for the KCP carrier and for QUIC with the Datagram carrier.</li>
+</ul>
+<p>The server chain ends with a connector to the internet, normally <code>TcpUdpConnector</code> as above. For Raw IPv4, the server turns the stream back into packets with <code>StreamToPackets</code> and <code>PacketsToConnection</code> before the connector.</p>
+
+<h2 id="client-chain">The client chain the app builds</h2>
+<p>You never write the client file; the app builds it each time you connect. Knowing its shape helps when you write the server side.</p>
+<table>
+  <thead><tr><th>Mode and input</th><th>Client chain, in order</th></tr></thead>
+  <tbody>
+    <tr><td>Chain, Connections</td><td>packet device → <code>PacketsToConnection</code> → <code>Router</code> → application → MUX → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
+    <tr><td>Chain, Raw IPv4</td><td>packet device → <code>PacketsToStream</code> → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
+    <tr><td>Direct</td><td>packet device → <code>PacketsToConnection</code> → <code>TcpUdpConnector</code> to each destination</td></tr>
+    <tr><td>WireGuard</td><td>The app's WireGuard client; see <a href="ui-guide.html#wireguard-mode">WireGuard mode</a>.</td></tr>
+  </tbody>
+</table>
+<p>Layers you did not choose are left out. The last node, the connector, is <code>UdpConnector</code> for KCP and QUIC Datagram, <code>TcpUdpConnector</code> for SOCKS5 and for plain VLESS, VMess or Trojan over TLS, and <code>TcpConnector</code> otherwise.</p>
+
+<h3>Settings the app always uses</h3>
+<table>
+  <thead><tr><th>Item</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>WaterWall workers</td><td>1</td></tr>
+    <tr><td>MTU</td><td>1420</td></tr>
+    <tr><td>Log level</td><td><code>WARN</code>, <code>INFO</code> or <code>DEBUG</code> for the Normal, Expert and Debug log levels</td></tr>
+    <tr><td>Remote DNS (Fake IP) when on</td><td>DNS answers from 198.18.0.2 port 53, placeholder addresses from 100.64.0.0/10, a cache of 10000 names, TTL 60 seconds</td></tr>
+    <tr><td>Direct LAN Routing when on</td><td>10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 go to a direct connector</td></tr>
+    <tr><td>GeoIP routing</td><td>Selected countries go to a direct connector; the router then resolves names to match them</td></tr>
+  </tbody>
+</table>
+
+<h2 id="advanced">Advanced node settings</h2>
+<p>These are the keys each <a href="ui-guide.html#advanced-node-settings">ADVANCED NODE SETTINGS</a> editor accepts. Any other key is refused with <em>Unsupported &lt;layer&gt; setting: &lt;key&gt;</em>. A setting you enter replaces the app's default for that key, except the values in the next box.</p>
+<div class="callout tip">
+  <span class="callout-title">Values the app always sets itself</span>
+  Whatever you enter, the app sets the outer layer's <code>sni</code>, <code>verify</code> and <code>password</code>, the QUIC <code>carrier-mode</code>, the application's destination, UUID or password, and the HTTP <code>host</code>, <code>port</code>, <code>http-version</code> and <code>websocket</code> from the profile.
+</div>
+<p>Each layer below lists its keys, the app's defaults, and the limits the app enforces. Times are in milliseconds and sizes in bytes.</p>
+
+<h3>Packet</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>mtu</code></td><td>1420</td><td>68 to 65535</td></tr>
+    <tr><td><code>max-pending-bytes</code></td><td>65536</td><td>1024 to 67108864</td></tr>
+    <tr><td><code>max-total-pending-bytes</code></td><td>16777216</td><td>65536 to 67108864</td></tr>
+    <tr><td><code>udp-idle-timeout-ms</code></td><td>WaterWall's default</td><td>1 or more</td></tr>
+    <tr><td><code>fake-dns</code> (or <code>mapdns</code>, <code>fake_dns</code>)</td><td>set by Remote DNS</td><td><code>true</code>, <code>false</code> or an object with <code>enabled</code>, <code>address</code>, <code>network</code>, <code>netmask</code>, <code>port</code>, <code>cache-size</code> (1 to 262144) and <code>ttl</code>. Only one of the three names.</td></tr>
+  </tbody>
+</table>
+<p>With Raw IPv4 input the Packet keys are instead <code>packet-validation-level</code> (<code>none</code>, <code>loose</code> or <code>hard</code>; the app uses <code>hard</code>), <code>sensitive-mode</code>, <code>interval-ms</code> and <code>tolerance-ms</code>. In Direct mode, Packet is the only layer.</p>
+
+<h3>Application</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>protocol</code> (or <code>proto</code>)</td><td><code>dest_context-&gt;protocol</code> (follow each connection)</td><td><code>tcp</code>, <code>connect</code>, <code>udp</code>, <code>udp-associate</code>, <code>dest_context-&gt;protocol</code>, <code>line-&gt;dest_ctx-&gt;protocol</code></td></tr>
+    <tr><td><code>domain-strategy</code></td><td><code>do-not-resolve-domains</code></td><td><code>do-not-resolve-domains</code>, <code>resolve-domains-and-prefer-ipv4</code>, <code>resolve-domains-and-prefer-ipv6</code>, <code>resolve-domains-with-core-settings</code>, <code>resolve-domains-and-accept-dns-returned-order</code>, <code>resolve-domains-and-use-only-ipv4</code>, <code>resolve-domains-and-use-only-ipv6</code></td></tr>
+    <tr><td><code>first-payload-timeout-ms</code></td><td>WaterWall's default</td><td>0 or more</td></tr>
+    <tr><td><code>verbose</code></td><td>WaterWall's default</td><td><code>true</code> or <code>false</code></td></tr>
+  </tbody>
+</table>
+<p><strong>VMess</strong> also accepts:</p>
+<table>
+  <thead><tr><th>Key</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>security</code></td><td><code>aes-128-gcm</code> (app default), <code>chacha20-poly1305</code>, <code>auto</code>, <code>none</code>, <code>zero</code>. <code>zero</code> works with a fixed TCP <code>protocol</code> only.</td></tr>
+    <tr><td><code>chunk-masking</code>, <code>global-padding</code>, <code>authenticated-length</code>, <code>send-termination</code></td><td><code>true</code> or <code>false</code>. Padding needs masking; authenticated length needs encryption (not <code>none</code> or <code>zero</code>).</td></tr>
+    <tr><td><code>encrypted-counter-policy</code></td><td><code>wrap</code> or <code>strict</code></td></tr>
+    <tr><td><code>packet-encoding</code></td><td><code>none</code> or <code>packetaddr</code>. <code>packetaddr</code> needs a <code>domain-strategy</code> that resolves names.</td></tr>
+  </tbody>
+</table>
+<p><strong>SOCKS5</strong> accepts only <code>protocol</code>, <code>proto</code>, <code>verbose</code> and <code>domain-strategy</code>. <strong>HTTP CONNECT</strong> accepts <code>verbose</code>, <code>domain-strategy</code>, <code>headers</code> (extra request headers; <code>Host</code>, <code>Proxy-Authorization</code>, <code>Content-Length</code>, <code>Transfer-Encoding</code>, <code>Connection</code>, <code>Proxy-Connection</code>, <code>Keep-Alive</code>, <code>TE</code>, <code>Trailer</code>, <code>Upgrade</code> and <code>Expect</code> are reserved), <code>max-header-bytes</code> (1024 to 65536), <code>header-timeout-ms</code>, <code>connect-response-timeout-ms</code> and <code>idle-timeout-ms</code>.</p>
+
+<h3>MUX</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>mode</code></td><td><code>counter</code></td><td><code>counter</code> (takes <code>connection-capacity</code>), <code>timer</code> (needs <code>connection-duration-ms</code>, 61 or more), <code>fixed-connections-count</code> (needs <code>per-worker-connections-count</code>)</td></tr>
+    <tr><td><code>connection-capacity</code></td><td>128</td><td>1 or more; counter mode only</td></tr>
+    <tr><td><code>max-children</code></td><td>256</td><td>1 or more</td></tr>
+    <tr><td><code>parent-write-buffer-pause-threshold</code></td><td>8388608</td><td rowspan="3">Must keep resume &lt; pause &lt; limit</td></tr>
+    <tr><td><code>parent-write-buffer-resume-threshold</code></td><td>1048576</td></tr>
+    <tr><td><code>parent-write-buffer-limit</code></td><td>16777216</td></tr>
+    <tr><td><code>child-buffer-limit</code></td><td>4194304</td><td>1 or more</td></tr>
+    <tr><td><code>parent-buffer-limit</code></td><td>16777216</td><td>0 or more</td></tr>
+    <tr><td><code>detached-buffer-limit</code></td><td>4194304</td><td>0 or more</td></tr>
+    <tr><td><code>detached-child-limit</code></td><td>128</td><td>0 or more</td></tr>
+    <tr><td><code>keepalive</code>, <code>ping-interval</code>, <code>tolerance-ms</code>, <code>child-buffer-resume-threshold</code>, <code>log-main-line-stats</code></td><td>WaterWall's defaults</td><td>booleans or 1 or more</td></tr>
+  </tbody>
+</table>
+
+<h3>Obfuscator</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>method</code></td><td><code>xor</code></td><td><code>xor</code> only</td></tr>
+    <tr><td><code>xor_key</code></td><td>90</td><td>0 to 255. Change the server's key too.</td></tr>
+    <tr><td><code>skip</code></td><td><code>none</code></td><td>Must stay <code>none</code> with Connections input.</td></tr>
+    <tr><td><code>tls_record_header</code> (or <code>tls_header</code>)</td><td>off</td><td><code>true</code> or <code>false</code></td></tr>
+  </tbody>
+</table>
+
+<h3>HTTP</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>path</code></td><td><code>/</code></td><td>text; must match the server's <code>HttpServer</code> path</td></tr>
+    <tr><td><code>scheme</code></td><td><code>https</code> with TLS or Reality, otherwise <code>http</code></td><td><code>http</code> or <code>https</code></td></tr>
+    <tr><td><code>headers</code>, <code>upgrade-request-headers</code>, <code>upgrade-response-headers</code></td><td>none</td><td>objects with text values</td></tr>
+    <tr><td><code>http1-mode</code></td><td>WaterWall's default</td><td><code>single</code> or <code>split</code>; <code>split</code> needs HTTP version 1 without WebSocket</td></tr>
+    <tr><td><code>method</code>, <code>user-agent</code>, <code>content-type</code>, <code>upgrade</code>, <code>upgrade-protocol</code>, <code>websocket-origin</code>, <code>websocket-subprotocol</code>, <code>split</code>, <code>verbose</code></td><td>WaterWall's defaults</td><td>see the WaterWall documentation for <code>HttpClient</code></td></tr>
+  </tbody>
+</table>
+<p>With HTTP on and Outer TLS or Reality, the app sets the TLS ALPN itself (<code>http/1.1</code> or <code>h2</code>), so the Outer settings may not contain <code>alpns</code>. <code>websocket-extensions</code> is refused.</p>
+
+<h3>Outer</h3>
+<table>
+  <thead><tr><th>Outer</th><th>Keys</th><th>App defaults and limits</th></tr></thead>
+  <tbody>
+    <tr><td>TLS</td><td><code>alpns</code>, <code>x25519mlkem768</code>, <code>fragment</code>, <code>tls13-record-shaping</code>, <code>ech-config-list</code>, <code>ech-sni-trick</code>, <code>verbose</code></td><td><code>alpns</code> <code>["http/1.1"]</code>. <code>ech-config-list</code> and <code>ech-sni-trick</code> cannot be used together.</td></tr>
+    <tr><td>Reality</td><td>the TLS keys, plus <code>algorithm</code> (or <code>method</code>), <code>salt</code>, <code>kdf-iterations</code></td><td><code>chacha20-poly1305</code> (or <code>aes-gcm</code>), salt <code>waterwall-reality</code> (1 to 32 bytes), 12000 iterations (1 to 1000000). <code>verbose</code> is on only at the Debug log level.</td></tr>
+    <tr><td>AEAD</td><td><code>algorithm</code> (or <code>method</code>), <code>salt</code>, <code>kdf-iterations</code>, <code>max-frame-size</code></td><td><code>chacha20-poly1305</code> (or <code>aes-gcm</code>), salt <code>waterwall-aead</code>, 12000 iterations, frame size 16356 (1 to 16356)</td></tr>
+    <tr><td>QUIC</td><td><code>ca-file</code>, <code>protocol</code>, <code>handshake-timeout-ms</code>, <code>idle-timeout-ms</code>, <code>max-packet-size</code>, <code>max-buffered-bytes</code>, <code>max-buffered-buffers</code>, <code>receive-window-bytes</code>, <code>verbose</code></td><td>protocol <code>h3</code>; timeouts 1 to 86400000; packet size 1200 to 1452; buffered bytes 65536 to 67108864 (WaterWall default 2097152); receive window 16384 to 16777216 and no more than the buffered bytes</td></tr>
+    <tr><td>BGP4</td><td>none</td><td>—</td></tr>
+  </tbody>
+</table>
+<p>The <code>fragment</code> object replaces the app's TLS Fragmentation option. It takes <code>mode</code> (<code>counter</code> with <code>count</code>, or <code>timed</code> with <code>duration-ms</code>), <code>cuts</code> (at most 64 entries of <code>[offset, delay_ms, chance_percent]</code> with increasing offsets), and optionally <code>bypass_chance</code>, <code>wait-for-est</code>, <code>tls-hello-fragment</code> and <code>tls-hello-timeout-ms</code>. When the app builds it from the TLS Fragmentation option, it uses <code>counter</code> mode, count 1, <code>tls-hello-fragment</code> on, a 1000 ms hello timeout, and a cut at the first-chunk size and then every following-chunk size, below 16384 bytes: 32 and 256 bytes for Auto, your First Chunk and Following Chunks for Manual.</p>
+
+<h3>KCP</h3>
+<table>
+  <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
+  <tbody>
+    <tr><td><code>kcp-send-window</code>, <code>kcp-recv-window</code></td><td>128, 128</td><td>1 or more</td></tr>
+    <tr><td><code>kcp-initial-cwnd</code></td><td>16</td><td>1 or more, and no more than the send window (128 unless you set <code>kcp-send-window</code>)</td></tr>
+    <tr><td><code>kcp-send-buffer-limit</code></td><td>512</td><td>0 or more</td></tr>
+    <tr><td><code>fec</code>, <code>fec-data-shards</code>, <code>fec-parity-shards</code></td><td>off</td><td>shards 1 to 255 each, 255 at most together</td></tr>
+    <tr><td><code>mtu</code></td><td>WaterWall's default</td><td>78 to 65535 (86 with FEC)</td></tr>
+    <tr><td><code>ping-interval-ms</code>, <code>no-recv-timeout-ms</code></td><td>WaterWall's defaults (10000 and 30000)</td><td>the timeout must be longer than the ping interval</td></tr>
+    <tr><td><code>kcp-nodelay</code>, <code>kcp-interval-ms</code> (10 to 5000), <code>kcp-resend</code>, <code>kcp-no-congestion-control</code>, <code>kcp-rx-minrto-ms</code></td><td>WaterWall's defaults</td><td>—</td></tr>
+  </tbody>
+</table>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

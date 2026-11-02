@@ -1,0 +1,407 @@
+{
+  "device-matrix": {
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.2 test copy on the test server, port 4097",
+    "inventory_gaps": "TLS verification off with a self-signed certificate; local Reality cover; TCP only; one 90 s round",
+    "date_text": "on 1 November 2026",
+    "server_version": "1.5.2",
+    "setup": [
+      [
+        "Phone",
+        "iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi"
+      ],
+      [
+        "App",
+        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+      ],
+      [
+        "Server machine",
+        "Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM"
+      ],
+      [
+        "Server program",
+        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case"
+      ],
+      [
+        "Server port",
+        "4097, opened in the firewall only for our office address while the case ran"
+      ],
+      [
+        "Traffic",
+        "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload"
+      ],
+      [
+        "Network",
+        "Our office broadband line, over the public internet"
+      ]
+    ],
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall 1.5.2 test copy, port 4097     the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
+    "server_intro": "The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
+    "profile": [
+      [
+        "Server",
+        "<SERVER_IP>, the test server's address"
+      ],
+      [
+        "Port",
+        "4097"
+      ],
+      [
+        "SNI (optional)",
+        "localhost, for chains with TLS, Reality or QUIC"
+      ],
+      [
+        "TLS Server Verification",
+        "Off, because the test certificate is self-signed"
+      ],
+      [
+        "UUID or Password",
+        "<UUID>, a test value"
+      ],
+      [
+        "Reality or AEAD Password",
+        "<OUTER_PASSWORD>, a test value, when the chain uses one"
+      ],
+      [
+        "Auto Reconnect",
+        "Off, so that a reconnect cannot hide a failure"
+      ],
+      [
+        "On Sleep",
+        "Stay"
+      ],
+      [
+        "Log Level",
+        "Normal"
+      ],
+      [
+        "Remote DNS (Fake IP)",
+        "On"
+      ],
+      [
+        "Direct LAN Routing",
+        "On"
+      ]
+    ],
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, and both HTTPS checks succeeded.</p>",
+    "gaps": [
+      "TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.",
+      "For Reality, the cover site was a second TLS server on the test machine itself, not a public website.",
+      "The test measured TCP traffic. The UDP row in the result says whether UDP was tested; in this run it was not.",
+      "Each case ran once, for about 90 seconds, with one phone on one network.",
+      "The test copy of WaterWall used the harness's own small core.json with one worker, not our production core.json."
+    ]
+  },
+  "lifecycle": {
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Debug; official WaterWall 1.5.2 test copy on the test server, port 4097",
+    "inventory_gaps": "Sleep and WaterWall failures simulated with Debug-only tunnel commands; one run",
+    "date_text": "on 1 November 2026",
+    "server_version": "1.5.2",
+    "setup": [
+      [
+        "Phone",
+        "iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi"
+      ],
+      [
+        "App",
+        "SRP VPN Connect 1.2.0, a Debug build of commit {head}, installed by Xcode for the test"
+      ],
+      [
+        "Server program",
+        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a test copy on port 4097"
+      ],
+      [
+        "Traffic",
+        "An HTTPS test server on the same machine, port 28483"
+      ],
+      [
+        "Network",
+        "Our office broadband line, over the public internet"
+      ]
+    ],
+    "gaps": [
+      "The phone did not really sleep, and WaterWall inside the app did not really crash: a Debug build of the app accepts test commands that make the tunnel act as if it had. Stopping the server is real.",
+      "Each step ran once, on one phone and one network."
+    ],
+    "steps": {
+      "tcp-ping": {
+        "title": "Ping uses the phone's own network",
+        "purpose": "Checks that the TCP ping on the home screen measures the real network, both before connecting and while the VPN is up.",
+        "procedure": [
+          "Before connecting, the test pings 1.1.1.1 on port 443, which answers, and 192.0.2.1 on port 443, an address reserved for documentation that never answers.",
+          "It connects the VPN.",
+          "It opens a TCP connection to 192.0.2.1 port 443 through the tunnel, which the tunnel accepts at once by itself.",
+          "It pings both addresses again with the app's ping."
+        ],
+        "pass": "Passes when 1.1.1.1 answers and 192.0.2.1 does not, both before and while connected. If the ping went through the tunnel, 192.0.2.1 would seem to answer."
+      },
+      "sleep-modes": {
+        "title": "On Sleep: Stay, Pause and Off",
+        "purpose": "Checks what each On Sleep choice does when the phone sleeps and wakes, together with Auto Reconnect.",
+        "procedure": [
+          "The test runs four VPN sessions, one after another: Stay with Auto Reconnect on, Pause with Auto Reconnect off, Off with Auto Reconnect on, and Off with Auto Reconnect off.",
+          "In each session it connects, tells the tunnel the phone is going to sleep, and checks that Stay keeps the connection while Pause and Off close it.",
+          "It then tells the tunnel the phone woke up.",
+          "For the first three sessions the connection must come back within 30 seconds and pass the app's HTTPS check.",
+          "For Off without Auto Reconnect, the VPN must end within 15 seconds with the message \"The connection was closed while the device slept.\""
+        ],
+        "pass": "Passes when all four sessions behave as described."
+      },
+      "runtime-recovery": {
+        "title": "Recovery after sleep and after WaterWall stops",
+        "purpose": "Checks that the connection comes back after the phone wakes and after WaterWall inside the app stops, and that it then carries traffic.",
+        "procedure": [
+          "The profile uses On Sleep Pause, Auto Reconnect on and Retry Times 2.",
+          "The test connects, tells the tunnel the phone is going to sleep, and checks that the connection closes.",
+          "It tells the tunnel the phone woke up; the connection must be back within 25 seconds.",
+          "It runs downloads and a UDP echo exchange through the tunnel for 90 seconds.",
+          "It makes WaterWall inside the app stop; Auto Reconnect must bring the connection back within 30 seconds.",
+          "It runs the downloads and the UDP exchange for another 90 seconds and disconnects."
+        ],
+        "pass": "Passes when the connection comes back both times and the downloads and the UDP exchange succeed in both phases."
+      },
+      "retry-reset": {
+        "title": "Retry Times starts again after a good connection",
+        "purpose": "Checks that Retry Times counts failures in a row, so a profile that keeps reconnecting successfully does not run out of attempts.",
+        "procedure": [
+          "The profile uses Auto Reconnect on and Retry Times 1.",
+          "The test connects and makes WaterWall inside the app stop; the connection must come back within 30 seconds.",
+          "It makes WaterWall stop a second time; the connection must come back again."
+        ],
+        "pass": "Passes when the connection comes back both times. With a count that never started again, the second failure would end the VPN."
+      },
+      "reconnect-disabled": {
+        "title": "Auto Reconnect off ends the VPN on a failure",
+        "purpose": "Checks that with Auto Reconnect off, the VPN ends when the connection fails instead of trying again.",
+        "procedure": [
+          "The profile uses Auto Reconnect off.",
+          "The test connects and makes WaterWall inside the app stop."
+        ],
+        "pass": "Passes when the VPN ends within 15 seconds."
+      },
+      "peer-recovery": {
+        "title": "Reconnecting after the server stops and comes back",
+        "purpose": "Checks that the app notices a server that stopped, and reconnects by itself once the server is back.",
+        "procedure": [
+          "The profile uses Auto Reconnect on and Retry Times 2.",
+          "The test connects. The test harness then stops the WaterWall copy on the server.",
+          "The app must notice within 75 seconds that the connection no longer works.",
+          "The harness starts the server copy again; the connection must be back within 45 seconds.",
+          "The test runs the app's HTTPS check and 90 seconds of downloads and UDP echo exchange, then disconnects."
+        ],
+        "pass": "Passes when the app notices the failure, reconnects in time, and the checks after the reconnect succeed."
+      },
+      "retry-exhausted": {
+        "title": "Retry Times used up ends the VPN with a message",
+        "purpose": "Checks that when the server stays down, the VPN ends after the number of attempts in Retry Times and says why.",
+        "procedure": [
+          "The profile uses Auto Reconnect on and Retry Times 1.",
+          "The test connects. The test harness then stops the WaterWall copy on the server and does not start it again.",
+          "The app must notice within 75 seconds that the connection no longer works."
+        ],
+        "pass": "Passes when the VPN ends within 90 seconds with a message that contains \"after 1 attempts\"."
+      },
+      "auto-switch": {
+        "title": "Auto Switch to another profile of the same server",
+        "purpose": "Checks that Auto Switch moves to another profile of the same server when the chosen one cannot connect.",
+        "procedure": [
+          "The test makes two profiles for the same server: the chosen one points at port 9, where nothing answers, and a second one has the working port.",
+          "The chosen profile uses Auto Reconnect on and Retry Times 3.",
+          "The test connects with the chosen profile.",
+          "The connection must come up within 30 seconds on the second profile, and pass the app's HTTPS check twice."
+        ],
+        "pass": "Passes when the tunnel reports the second profile as active, both checks succeed, and the tunnel counted packets on its outer connection."
+      }
+    }
+  },
+  "production": {
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service 1.5.2 with Let's Encrypt, verification on",
+    "inventory_gaps": "TCP only; one 90 s round",
+    "date_text": "on 1 November 2026",
+    "server_version": "1.5.2",
+    "setup": [
+      [
+        "Phone",
+        "iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi"
+      ],
+      [
+        "App",
+        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+      ],
+      [
+        "Server machine",
+        "Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM"
+      ],
+      [
+        "Server program",
+        "Our permanent waterwall.service: the official WaterWall 1.5.2 release with /etc/waterwall/core.json, set up as in Installation"
+      ],
+      [
+        "Server port",
+        "The configuration's own port, open to the internet"
+      ],
+      [
+        "Certificate",
+        "Let's Encrypt ECDSA certificate for <SERVER_HOST>"
+      ],
+      [
+        "Traffic",
+        "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload"
+      ],
+      [
+        "Network",
+        "Our office broadband line, over the public internet"
+      ]
+    ],
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\n<SERVER_HOST>\n  waterwall.service (WaterWall 1.5.2), the configuration's port\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
+    "server_intro": "This is the configuration file from /etc/waterwall/configs/ on our server, loaded by waterwall.service, exactly as it ran. Only the server name, the UUID and the passwords are replaced with placeholders.",
+    "profile": [
+      [
+        "Server",
+        "<SERVER_HOST>, the server's domain name"
+      ],
+      [
+        "Port",
+        "The listener port in the server file"
+      ],
+      [
+        "SNI (optional)",
+        "—"
+      ],
+      [
+        "TLS Server Verification",
+        "On"
+      ],
+      [
+        "UUID or Password",
+        "The value from the server file"
+      ],
+      [
+        "Reality Password",
+        "The value from the server file, for Reality"
+      ],
+      [
+        "Auto Reconnect",
+        "Off, so that a reconnect cannot hide a failure"
+      ],
+      [
+        "On Sleep",
+        "Stay"
+      ],
+      [
+        "Log Level",
+        "Normal"
+      ],
+      [
+        "Remote DNS (Fake IP)",
+        "On"
+      ],
+      [
+        "Direct LAN Routing",
+        "On"
+      ]
+    ],
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, and both HTTPS checks succeeded.</p>",
+    "gaps": [
+      "Each case ran once, for about 90 seconds, with one phone on one network.",
+      "The test measured TCP traffic only; UDP was not tested."
+    ]
+  },
+  "download": {
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.2 test copy, port 4097; downloads, UDP echo, GeoIP routing from the reference server log",
+    "inventory_gaps": "TLS verification off with a self-signed certificate; UDP is an echo check, not a throughput test; one 90 s round",
+    "date_text": "on 1 November 2026",
+    "server_version": "1.5.2",
+    "setup": [
+      [
+        "Phone",
+        "iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi"
+      ],
+      [
+        "App",
+        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+      ],
+      [
+        "Server machine",
+        "Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM"
+      ],
+      [
+        "Server program",
+        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case"
+      ],
+      [
+        "Server port",
+        "4097, opened in the firewall only for our office address while the case ran"
+      ],
+      [
+        "Traffic",
+        "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload"
+      ],
+      [
+        "Network",
+        "Our office broadband line, over the public internet"
+      ],
+      [
+        "UDP echo",
+        "A UDP echo server on the same machine, port 28481"
+      ],
+      [
+        "GeoIP reference",
+        "An HTTPS server on the same machine, port 28480, that logs the address each download comes from"
+      ]
+    ],
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall 1.5.2 test copy, port 4097     the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file\n  UDP echo server, port 28481              UDP check\n  HTTPS reference server, port 28480       GeoIP cases\n\nWith GeoIP direct routing, downloads from the reference server go straight from the phone\nto port 28480, without WaterWall.",
+    "server_intro": "The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
+    "profile": [
+      [
+        "Server",
+        "<SERVER_IP>, the test server's address"
+      ],
+      [
+        "Port",
+        "4097"
+      ],
+      [
+        "SNI (optional)",
+        "localhost, for chains with TLS, Reality or QUIC"
+      ],
+      [
+        "TLS Server Verification",
+        "Off, because the test certificate is self-signed"
+      ],
+      [
+        "UUID or Password",
+        "<UUID>, a test value"
+      ],
+      [
+        "Reality or AEAD Password",
+        "<OUTER_PASSWORD>, a test value, when the chain uses one"
+      ],
+      [
+        "Auto Reconnect",
+        "Off, so that a reconnect cannot hide a failure"
+      ],
+      [
+        "On Sleep",
+        "Stay"
+      ],
+      [
+        "Log Level",
+        "Normal"
+      ],
+      [
+        "Remote DNS (Fake IP)",
+        "On"
+      ],
+      [
+        "Direct LAN Routing",
+        "On"
+      ]
+    ],
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads of 16 MiB at the same time, over and over. The GeoIP cases downloaded from the reference server on port 28480; the others from the HTTPS test server.</li><li>On chains that carry UDP, it then sent small UDP datagrams to the echo server for 90 seconds, at least 10 a second, and waited for each one to come back.</li><li>It ran the HTTPS check again and disconnected.</li><li>For the GeoIP cases, the harness then read the reference server's log, which records the address each download came from: our office address means the download went straight from the phone, the server's own address means it went through WaterWall.</li></ol><p>A case passes only if the VPN stayed connected, the downloads ran the full 90 seconds with no errors or timeouts, both HTTPS checks succeeded, every UDP datagram came back, and every GeoIP download went the expected way.</p>",
+    "gaps": [
+      "TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.",
+      "The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.",
+      "Each case ran once, with one phone on one network."
+    ]
+  }
+}

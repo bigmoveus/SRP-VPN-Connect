@@ -1,0 +1,31 @@
+<p class="lead">Every WaterWall combination we tested on 1 November 2026, on the current app build against WaterWall 1.5.2. Each page shows the server file, the app settings, how the test ran and what happened.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">How these tests ran</span>
+  <p>All tests used our iPhone 12 with iOS 27.2 and the official WaterWall 1.5.2 program on our Ubuntu test server, in four runs:</p>
+  <ul>
+    <li><strong>Production server.</strong> The app connected to every configuration our permanent <code>waterwall.service</code> loads, with its Let's Encrypt certificate and TLS Server Verification on: the setup the guides describe.</li>
+    <li><strong>Combinations.</strong> For each case, a test harness started a separate copy of WaterWall 1.5.2 on the server with the matching server chain on port 4097, and the app connected to it. These copies used a self-signed certificate, so TLS Server Verification was off.</li>
+    <li><strong>UDP and GeoIP routing.</strong> Chains that carry UDP were checked with a UDP echo server, and the GeoIP cases were checked for which way their downloads went.</li>
+    <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
+  </ul>
+  <p>Every scenario page describes its procedure in full.</p>
+</div>
+
+<h2>How to read the results</h2>
+<table>
+  <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>Every check passed.</td></tr>
+    <tr><td><span class="status partial">TESTED — PARTIALLY WORKING</span></td><td>Data moved, but at least one check failed, for example a lost connection or a timeout.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The test could not connect, or data did not move as the test needs.</td></tr>
+  </tbody>
+</table>
+<p>Speeds are averages over the whole test on our office line. They show that traffic moved, and are not a benchmark.</p>
+
+<h2>Not tested in this round</h2>
+<ul>
+  <li><strong>Real sleep and network changes.</strong> The sleep checks tell the tunnel the phone slept; the phone did not really sleep, and no test moved between Wi-Fi and cellular. Both need a person at the phone.</li>
+  <li><strong>Auto Switch on packet loss.</strong> Only the switch after a failed connection was tested; the loss rule needs a lossy network.</li>
+  <li><strong>Most combinations.</strong> The app accepts far more combinations than were run. The selection covers every outer layer, application and carrier, every chain our production server runs, BGP4 framing, and a set of advanced settings.</li>
+</ul>

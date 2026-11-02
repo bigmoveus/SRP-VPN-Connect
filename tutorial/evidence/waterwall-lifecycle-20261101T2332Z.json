@@ -1,0 +1,103 @@
+{
+ "run": {
+  "start_utc": "2026-11-01T23:32:49Z",
+  "end_utc": "2026-11-01T23:38:00Z",
+  "head": "e6ff896fb29c414e12d33767a7ae44b5283bfccd",
+  "peer_sha256": "73f71f91a7007aa3eb29e107e55088f694cc532bee6fc9114be1dc780ee36fa0",
+  "exit": "0"
+ },
+ "summary": {
+  "identified": 1,
+  "supported": 1,
+  "validator_excluded": 0,
+  "candidate_total": 1,
+  "range_start": 0,
+  "range_count": 1,
+  "executed": 1,
+  "passed": 1,
+  "failed": 0,
+  "supported_untested": 0,
+  "expected_rounds": 1,
+  "rounds_executed": 1,
+  "rounds_passed": 1,
+  "rounds_failed": 0,
+  "rounds_untested": 0
+ },
+ "environment": {
+  "profile": "lifecycle"
+ },
+ "cases": [
+  {
+   "id": "lifecycle-runtime-recovery-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "runtime-recovery",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 207.117,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-02 02:34:31",
+    "finished": "2026-11-02 02:37:45",
+    "sustained": "Sustained stress: 92.02 seconds, 3271557120 bytes, 195 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 92.02,
+     "downloaded": 3271557120,
+     "uploaded": 0,
+     "download_requests": 195,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 91.77,
+      "downloaded": 3254779904,
+      "uploaded": 0,
+      "download_requests": 194,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     },
+     {
+      "mode": "download",
+      "seconds": 92.02,
+      "downloaded": 3271557120,
+      "uploaded": 0,
+      "download_requests": 195,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 91.19 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.928, jitter_ms=14.260, max_rtt_ms=211.595, retries=0",
+     "Sustained UDP: 90.85 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.410, jitter_ms=14.396, max_rtt_ms=1131.402, retries=0"
+    ],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 90.85 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.410, jitter_ms=14.396, max_rtt_ms=1131.402, retries=0"
+   }
+  }
+ ]
+}

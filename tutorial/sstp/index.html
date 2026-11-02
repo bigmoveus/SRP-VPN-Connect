@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Status of the SSTP guides for SRP VPN Connect.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SSTP</h1>
+<p class="lead">SSTP (Secure Socket Tunneling Protocol) carries a VPN connection inside HTTPS on port 443.</p>
+
+<div class="callout prereq">
+  <span class="callout-title">Status: guides not written yet</span>
+  The SSTP section is phase 2 of this documentation and starts once the WaterWall section is complete.
+</div>
+
+<h2>What the SSTP section will cover</h2>
+<p>We have already built and tested real SSTP servers with three different server products:</p>
+<ul>
+  <li>MikroTik RouterOS</li>
+  <li>Windows Server 2019, 2022 and 2025 with Routing and Remote Access (RRAS) and Network Policy Server (NPS)</li>
+  <li>SoftEther VPN Server 4.44, with a FreeRADIUS server for RADIUS logins</li>
+</ul>
+<p>The section will explain how SSTP works, how each of these servers was set up from scratch, certificates and TLS, users and RADIUS, addresses, routing, DNS and firewall rules, the app's SSTP settings, and every scenario we tested, including the ones that failed. Until those pages exist, nothing on this site should be read as an SSTP guide.</p>
+
+<p><a href="../future.html">See how future protocols are added &rarr;</a></p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

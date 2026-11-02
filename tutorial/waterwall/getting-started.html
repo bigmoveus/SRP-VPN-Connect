@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="Your first WaterWall connection, step by step: a VLESS + TLS chain on the server and the matching profile in SRP VPN Connect.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Getting Started</h1>
+<p class="lead">This page sets up one working connection, VLESS inside TLS, from a server with WaterWall installed to a connected phone. It is the app's default chain and the one our server runs on port 18443.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The app settings are the ones used when we tested this exact file with the app on 1 November 2026, with the server's Let's Encrypt certificate and TLS Server Verification on. The result is at the end of this page.</p>
+</div>
+
+<div class="callout prereq">
+  <span class="callout-title">Before you start</span>
+  <ul>
+    <li>WaterWall is installed and running on your server, with a Let's Encrypt certificate in <code>/etc/waterwall/</code>, as described in <a href="installation.html">Installation</a>.</li>
+    <li>Your domain (<code>&lt;SERVER_HOST&gt;</code> below) points to the server.</li>
+    <li>SRP VPN Connect is installed on your iPhone or iPad.</li>
+  </ul>
+</div>
+
+<h2>On the server</h2>
+<p>Run these steps on the server, as root.</p>
+
+<h3>1. Make a UUID</h3>
+<p>VLESS identifies you with a UUID, a random ID that works like a password. Make one and keep it for step 2 and for the app:</p>
+<pre data-label="Server"><code class="language-bash">cat /proc/sys/kernel/random/uuid</code></pre>
+<p>It prints one line in the form <code>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>, made of the digits 0 to 9 and the letters a to f. Treat it as a secret: anyone with it can use your server.</p>
+
+<h3>2. Write the configuration file</h3>
+<p>Save this as <code>/etc/waterwall/configs/vless-tls.json</code>. Replace <code>&lt;SERVER_HOST&gt;</code> with your domain and <code>&lt;UUID&gt;</code> with the UUID from step 1.</p>
+<pre data-label="/etc/waterwall/configs/vless-tls.json"><code class="language-json">{
+  "name": "vless-tls",
+  "author": "SRP",
+  "config-version": 1,
+  "core-minimum-version": 0,
+  "nodes": [
+    {
+      "name": "public-in",
+      "type": "TcpListener",
+      "settings": {
+        "address": "0.0.0.0",
+        "port": 18443,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+      },
+      "next": "tls"
+    },
+    {
+      "name": "tls",
+      "type": "TlsServer",
+      "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "&lt;SERVER_HOST&gt;",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": ["http/1.1"],
+        "handshake-timeout-ms": 15000
+      },
+      "next": "vless"
+    },
+    {
+      "name": "vless",
+      "type": "VlessServer",
+      "settings": {
+        "uuid": "&lt;UUID&gt;",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+      },
+      "next": "outbound"
+    },
+    {
+      "name": "outbound",
+      "type": "TcpUdpConnector",
+      "settings": {
+        "address": "dest_context-&gt;address",
+        "port": "dest_context-&gt;port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+      }
+    }
+  ]
+}</code></pre>
+<p>What each part does is explained in the <a href="configuration.html#example-vless-tls-from-our-server">Configuration Reference</a>.</p>
+
+<h3>3. Load the file and open the port</h3>
+<p>Make sure <code>/etc/waterwall/core.json</code> lists the file in <code>configs</code>, as in <a href="installation.html">Installation</a>, step 5:</p>
+<pre data-label="Part of /etc/waterwall/core.json"><code class="language-json">"configs": [
+  "/etc/waterwall/configs/vless-tls.json"
+]</code></pre>
+<p>Open the port in the firewall, then restart WaterWall:</p>
+<pre data-label="Server"><code class="language-bash">ufw allow 18443/tcp comment 'WaterWall VLESS TLS'
+systemctl restart waterwall.service
+ss -ltnp | grep 18443</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  The last command prints a line with <code>:18443</code> and <code>memfd:waterwall</code>. If it prints nothing, see <a href="troubleshooting.html#first-checks">Troubleshooting</a>.
+</div>
+
+<h2>In the app</h2>
+
+<h3>4. Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>. A new profile starts as <strong>WaterWall VPN</strong> with the chain VLESS + TLS and port 443.</li>
+  <li><strong>Description</strong>: a name you like, for example <em>My server</em>.</li>
+  <li><strong>Server</strong>: your domain, <code>&lt;SERVER_HOST&gt;</code>. Use the domain, not the IP address, so that the certificate check matches.</li>
+  <li><strong>Port</strong>: <code>18443</code>.</li>
+  <li><strong>SNI (optional)</strong>: leave it empty. The app then sends the Server field, which is the name on your certificate.</li>
+  <li><strong>TLS Server Verification</strong>: leave it on.</li>
+  <li><strong>UUID</strong>, under AUTHENTICATION: the UUID from step 1.</li>
+  <li>Leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<p>You do not need to open <strong>Configuration</strong>: the default chain already matches the server file. Each screen is described in the <a href="ui-guide.html">UI &amp; Profile Guide</a>.</p>
+
+<h3>5. Connect</h3>
+<ol>
+  <li>Tap the profile to select it, then tap the power button.</li>
+  <li>The first time, iOS asks whether the app may add a VPN configuration. Allow it.</li>
+  <li>The status changes to <strong>Connecting…</strong> and then <strong>Connected</strong>, and the profile row shows <code>Ping:</code> followed by the delay through the tunnel in milliseconds.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  Open any website in Safari. If the status stays at Connecting… or returns to Disconnected, tap the status text to read the log and see <a href="troubleshooting.html">Troubleshooting</a>.
+</div>
+
+<h2>Our result</h2>
+<!-- result:begin -->
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></p>
+<p>On 1 November 2026 we connected the current app build to this server file on our production server, with its Let's Encrypt certificate and TLS Server Verification on. For 91 seconds the phone downloaded and uploaded at the same time: 2,131 MB down and 2,080 MB up (186 and 182 Mbit/s on average on our office line), with no errors and no timeouts. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result.</p>
+<!-- result:end -->
+
+<h2>Next steps</h2>
+<ul>
+  <li>Try other chains: every <a href="scenarios/index.html">tested scenario</a> shows its server file and app settings.</li>
+  <li>Learn what each option does in the <a href="ui-guide.html#options">OPTIONS</a> section of the UI guide.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

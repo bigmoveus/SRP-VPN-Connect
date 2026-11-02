@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retry Times starts again after a good connection — WaterWall Scenarios — SRP VPN Connect Documentation</title>
+<meta name="description" content="Checks that Retry Times counts failures in a row, so a profile that keeps reconnecting successfully does not run out of attempts.">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Retry Times starts again after a good connection</h1>
+<p class="lead">Checks that Retry Times counts failures in a row, so a profile that keeps reconnecting successfully does not run out of attempts.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 1 November 2026 on the current app build against WaterWall 1.5.2.</p>
+<h2>Result</h2>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>16 seconds, including connecting and disconnecting</td></tr></tbody></table>
+<h2>What the test does</h2>
+<ol><li>The profile uses Auto Reconnect on and Retry Times 1.</li><li>The test connects and makes WaterWall inside the app stop; the connection must come back within 30 seconds.</li><li>It makes WaterWall stop a second time; the connection must come back again.</li></ol>
+<p>Passes when the connection comes back both times. With a count that never started again, the second failure would end the VPN.</p>
+<h2>Test setup</h2>
+<p>The profile used the chain of the <a href="ww-00097-vless-tls.html">VLESS + TLS</a> scenario, with the same server copy and profile settings, except the options the steps above change.</p>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0, a Debug build of commit dfce868f, installed by Xcode for the test</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a test copy on port 4097</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<h2>Gaps and limits</h2>
+<ul><li>The phone did not really sleep, and WaterWall inside the app did not really crash: a Debug build of the app accepts test commands that make the tunnel act as if it had. Stopping the server is real.</li><li>Each step ran once, on one phone and one network.</li></ul>
+<h2>Evidence</h2>
+<table><tbody><tr><th>Test case</th><td>lifecycle-retry-reset-ww-00097-vless-tls</td></tr><tr><th>Run</th><td>2026-11-01T18:31:58Z to 2026-11-01T18:43:08Z (UTC)</td></tr><tr><th>Step log times</th><td>2026-11-01 21:37:38 to 2026-11-01 21:37:47 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit dfce868f, Debug build</td></tr><tr><th>Server program</th><td>official WaterWall release, SHA-256 73f71f91a7007aa3…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-lifecycle-20261101.json">waterwall-lifecycle-20261101.json</a></td></tr></tbody></table>
+</main>
+<script src="../../assets/js/nav.js"></script>
+<script src="../../assets/js/site.js"></script>
+</body>
+</html>

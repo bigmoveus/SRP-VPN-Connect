@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="Short answers to common questions about WaterWall in SRP VPN Connect.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>FAQ</h1>
+<p class="lead">Short answers, with links to the pages that explain more.</p>
+
+<h2>Setting up</h2>
+
+<h3>Do I need to install WaterWall on my phone?</h3>
+<p>No. SRP VPN Connect contains its own WaterWall client. You only install WaterWall on your server; see <a href="installation.html">Installation</a>.</p>
+
+<h3>Which WaterWall versions does this guide cover?</h3>
+<p>WaterWall 1.5.2 on the server, and the app's current build, which contains its own WaterWall based on 1.5.0. Results with other server versions are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
+
+<h3>Do I need a domain name and a certificate?</h3>
+<p>For chains with Outer <strong>TLS</strong> or <strong>QUIC</strong>, yes: the server needs a certificate, and with TLS Server Verification on (the default) it must be valid for the name the app sends. Our server uses a free Let's Encrypt certificate. Outer <strong>Reality</strong> and <strong>AEAD</strong> do not use a certificate of your own.</p>
+
+<h3>Which chain should I start with?</h3>
+<p><a href="getting-started.html">Getting Started</a> walks through VLESS + TLS, the app's default chain, step by step.</p>
+
+<h3>Can I import a <code>vless://</code> link or a QR code?</h3>
+<p>No. The tested build has no import or export for WaterWall profiles: you enter each profile by hand. The only imports are a WireGuard <code>.conf</code> file in WireGuard mode and a GeoIP country database.</p>
+
+<h3>Can I use the app with an Xray or V2Ray server?</h3>
+<p>We only tested the app with WaterWall servers, so that is not verified. Note that WaterWall's MUX is its own format and is not V2Ray's Mux.Cool or XUDP.</p>
+
+<h2>Using the app</h2>
+
+<h3>Why does the profile row say <em>Ping: —</em>?</h3>
+<p>No delay has been measured for that profile yet. Pull the list down to ping every profile, or swipe a row to the right and tap <strong>Ping</strong>. See <a href="ui-guide.html#how-ping-is-measured">How ping is measured</a>.</p>
+
+<h3>Why can't the app ping my KCP or QUIC profile?</h3>
+<p>The ping before connecting measures a TCP handshake, and KCP, QUIC Datagram, Direct and WireGuard profiles do not reach the server over TCP. The app says so instead of showing a result. Connect to the profile to see its delay.</p>
+
+<h3>Where can I see what went wrong?</h3>
+<p>Tap the status text under the power button to open the app's log. Set <strong>Log Level</strong> to Expert or Debug in the profile's OPTIONS for more detail, then connect again.</p>
+
+<h3>Does the tunnel carry IPv6?</h3>
+<p>No. The WaterWall tunnel carries IPv4 only.</p>
+
+<h3>Is the Obfuscator a kind of encryption?</h3>
+<p>No. It scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD, QUIC or VMess for encryption.</p>
+
+<h3>What does Remote DNS (Fake IP) do?</h3>
+<p>When an app on the phone looks up a name, the tunnel answers at once with a placeholder address from 100.64.0.0/10 and sends the name itself to the server, which looks up the real address. This keeps your DNS lookups inside the tunnel. When it is off, the phone asks 1.1.1.1 and 1.0.0.1.</p>
+
+<h3>What does Auto Switch do, and why does nothing happen?</h3>
+<p>Auto Switch uses your other WaterWall Chain profiles <em>with the same Server</em> as fallbacks. With only one profile for that server there is nothing to switch to. The option appears only in Chain mode. See <a href="ui-guide.html#options">OPTIONS</a>.</p>
+
+<h3>What happens when the phone sleeps?</h3>
+<p>That depends on <strong>On Sleep</strong>: <em>Stay</em> (the default) keeps the connection, <em>Pause</em> closes it and reconnects on wake, and <em>Off</em> closes it and reconnects on wake only when Auto Reconnect is on.</p>
+
+<h3>What sizes does TLS Fragmentation Auto use?</h3>
+<p>Auto cuts the ClientHello after 32 bytes and then every 256 bytes. Choose Manual to set your own sizes; the First Chunk must be smaller than 16384 bytes.</p>
+
+<h3>What should I type in SNI for Reality?</h3>
+<p>The name of the cover site your Reality server passes visitors to. Left empty, the app uses <code>www.cloudflare.com</code>, the cover our server uses.</p>
+
+<h2>Server side</h2>
+
+<h3>What must match between the app and the server?</h3>
+<p>The layers, in the same order, on the same port, and the values listed in <a href="configuration.html#matching">The server node for each app choice</a>: for example the UUID, the Reality password and salt, or the HTTP path.</p>
+
+<h3>Can one server run several chains?</h3>
+<p>Yes. Each chain is its own file on its own port, and all of them are listed in <code>core.json</code>. Our test server runs 44 of them. See <a href="configuration.html">Configuration Reference</a>.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

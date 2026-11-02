@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installation — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="Install a WaterWall 1.5.2 server on Ubuntu the way our test server is set up, and install SRP VPN Connect from TestFlight.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Installation</h1>
+<p class="lead">This page installs a WaterWall server on Ubuntu exactly the way our test server is set up, then installs the app on your phone.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every file, path, version and setting below was read from our test server on 1 November 2026: the binary, its release record and checksum, the service unit, <code>core.json</code>, the firewall rules and the certificate renewal hook.</p>
+  <p>The shell history of the original installation was not kept. The commands below produce that same recorded result, but they are not a transcript of what was typed back then.</p>
+</div>
+
+<h2>What you will end up with</h2>
+<table>
+  <thead><tr><th>Item</th><th>Location on the server</th></tr></thead>
+  <tbody>
+    <tr><td>WaterWall program</td><td><code>/opt/waterwall/Waterwall</code></td></tr>
+    <tr><td>Main settings file</td><td><code>/etc/waterwall/core.json</code></td></tr>
+    <tr><td>One file per configuration (chain)</td><td><code>/etc/waterwall/configs/*.json</code></td></tr>
+    <tr><td>TLS certificate copies used by WaterWall</td><td><code>/etc/waterwall/fullchain.pem</code>, <code>/etc/waterwall/privkey.pem</code></td></tr>
+    <tr><td>Service</td><td><code>waterwall.service</code> (systemd)</td></tr>
+    <tr><td>Logs</td><td><code>/var/log/waterwall/</code>, one file per log type and day, for example <code>core.20261030.log</code></td></tr>
+  </tbody>
+</table>
+
+<h2>Install the server</h2>
+<p>Run every command in this section on the server, as root, over SSH.</p>
+
+<h3>1. Download WaterWall</h3>
+<p>Download the official 1.5.2 release for 64-bit Linux, the same file our server uses:</p>
+<pre data-label="Server"><code class="language-bash">mkdir -p /opt/waterwall/staging-1.5.2
+cd /opt/waterwall/staging-1.5.2
+curl -fLO https://github.com/radkesvat/WaterWall/releases/download/v1.5.2/Waterwall-linux-gcc-x64.zip</code></pre>
+
+<h3>2. Check the download</h3>
+<p>This compares the file with the checksum stored on our server. It must print <code>OK</code>; if it does not, the file is not the one we tested, so do not use it.</p>
+<pre data-label="Server"><code class="language-bash">echo "1d9ba7da4a3ab42b5685e5ecf03cf3d93a97ede5fd9fce8a12dbfc23e04a829a  Waterwall-linux-gcc-x64.zip" | sha256sum -c -</code></pre>
+
+<h3>3. Unpack and install the program</h3>
+<pre data-label="Server"><code class="language-bash">apt-get install -y unzip
+unzip Waterwall-linux-gcc-x64.zip -d unpacked
+install -m 0755 unpacked/Waterwall /opt/waterwall/Waterwall
+/opt/waterwall/Waterwall --version</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  The last command prints <code>Waterwall version 1.5.2</code>, as it does on our server.
+</div>
+
+<h3>4. Get a TLS certificate</h3>
+<p>Skip this step if you will only use chains without TLS (for example Reality or the AEAD-only chains). Our server uses Let's Encrypt with certbot in <em>standalone</em> mode and an ECDSA key. Standalone mode briefly runs its own web server on port 80, so port 80 must be free and open.</p>
+<pre data-label="Server — replace &lt;SERVER_HOST&gt; with your domain"><code class="language-bash">apt-get install -y certbot
+certbot certonly --standalone --key-type ecdsa -d &lt;SERVER_HOST&gt;
+mkdir -p /etc/waterwall
+install -m 0644 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem /etc/waterwall/fullchain.pem
+install -m 0600 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem /etc/waterwall/privkey.pem</code></pre>
+<p>Let's Encrypt certificates expire after 90 days and certbot renews them by itself. This hook copies each renewed certificate to WaterWall and restarts it. It is the exact file from our server; save it as <code>/etc/letsencrypt/renewal-hooks/deploy/waterwall</code> and make it executable with <code>chmod +x</code>.</p>
+<pre data-label="/etc/letsencrypt/renewal-hooks/deploy/waterwall"><code class="language-bash">#!/bin/sh
+set -eu
+install -m 0644 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem /etc/waterwall/fullchain.pem
+install -m 0600 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem /etc/waterwall/privkey.pem
+systemctl reload-or-restart waterwall.service</code></pre>
+
+<h3>5. Write the main settings file</h3>
+<p><code>core.json</code> holds the settings for the whole server and lists the configuration files to load. This is the content of our file. The <code>configs</code> list is shortened: our server loads 44 files, and you list only the ones you use.</p>
+<pre data-label="/etc/waterwall/core.json"><code class="language-json">{
+  "log": {
+    "path": "/var/log/waterwall/",
+    "core": { "loglevel": "INFO", "file": "core.log", "console": true },
+    "network": { "loglevel": "INFO", "file": "network.log", "console": false },
+    "dns": { "loglevel": "INFO", "file": "dns.log", "console": false },
+    "internal": { "loglevel": "INFO", "file": "internal.log", "console": false }
+  },
+  "misc": {
+    "workers": 2,
+    "ram-profile": "server",
+    "mtu": 1420,
+    "try-enabling-bbr": true
+  },
+  "dns": {
+    "domain-strategy": "prefer-ipv4"
+  },
+  "configs": [
+    "/etc/waterwall/configs/vless-tls.json",
+    "/etc/waterwall/configs/vless-reality.json"
+  ]
+}</code></pre>
+<table>
+  <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><code>workers</code></td><td>The number of worker threads. Ours is 2, one per CPU.</td></tr>
+    <tr><td><code>ram-profile</code></td><td><code>server</code> lets WaterWall use larger buffers than on a phone.</td></tr>
+    <tr><td><code>mtu</code></td><td>The packet size for packet tunnels (raw IP, WireGuard). 1420 leaves room for the tunnel's own headers.</td></tr>
+    <tr><td><code>try-enabling-bbr</code></td><td>Asks Linux to use the BBR congestion control for faster TCP.</td></tr>
+    <tr><td><code>domain-strategy</code></td><td><code>prefer-ipv4</code>: when a site has both addresses, connect over IPv4.</td></tr>
+    <tr><td><code>configs</code></td><td>The configuration files to load; each one is a complete chain on its own port.</td></tr>
+  </tbody>
+</table>
+
+<h3>6. Add the configuration files</h3>
+<p>Each file in <code>/etc/waterwall/configs/</code> describes one chain. <a href="getting-started.html">Getting Started</a> writes the first one, VLESS + TLS. Each page under <a href="scenarios/index.html">Verified Test Scenarios</a> shows the server file for its chain, and the <a href="configuration.html">Configuration Reference</a> explains what goes in a file.</p>
+
+<h3>7. Packet tunnels only: the NAT scripts</h3>
+<p>Skip this step unless you run the raw IP or WireGuard configurations. Those give the phone an address in a private subnet on the server. These two scripts let traffic from that subnet reach the internet through the server's own address (NAT), and remove the rule again when WaterWall stops. They are our files, with our subnet replaced by <code>&lt;TUNNEL_SUBNET&gt;</code> (for example <code>10.66.0.0</code>):</p>
+<pre data-label="/opt/waterwall/nat-up"><code class="language-bash">#!/bin/sh
+set -eu
+iptables -t nat -C POSTROUTING -s &lt;TUNNEL_SUBNET&gt;/24 ! -o ww-wg0 -j MASQUERADE 2&gt;/dev/null || \
+    iptables -t nat -A POSTROUTING -s &lt;TUNNEL_SUBNET&gt;/24 ! -o ww-wg0 -j MASQUERADE</code></pre>
+<pre data-label="/opt/waterwall/nat-down"><code class="language-bash">#!/bin/sh
+iptables -t nat -D POSTROUTING -s &lt;TUNNEL_SUBNET&gt;/24 ! -o ww-wg0 -j MASQUERADE 2&gt;/dev/null || true</code></pre>
+<pre data-label="Server"><code class="language-bash">chmod 0700 /opt/waterwall/nat-up /opt/waterwall/nat-down</code></pre>
+
+<h3>8. Create the service</h3>
+<p>systemd starts WaterWall at boot and restarts it if it stops. This is our unit file, unchanged:</p>
+<pre data-label="/etc/systemd/system/waterwall.service"><code class="language-bash">[Unit]
+Description=WaterWall v1.5.2
+After=network-online.target ufw.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/etc/waterwall
+ExecStartPre=/opt/waterwall/nat-up
+ExecStart=/opt/waterwall/Waterwall --config:/etc/waterwall/core.json
+ExecStopPost=/opt/waterwall/nat-down
+Restart=on-failure
+RestartSec=3s
+LimitNOFILE=1048576
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<div class="callout tip">
+  <span class="callout-title">Not running packet tunnels?</span>
+  If you skipped step 7, delete the <code>ExecStartPre</code> and <code>ExecStopPost</code> lines. The service will not start when the scripts they name are missing.
+</div>
+
+<h3>9. Open the ports</h3>
+<p>Our server uses UFW, Ubuntu's firewall. Open SSH first so you do not lock yourself out, then port 80 for certificate renewals, then one rule per configuration port. These are three of our rules, with the comments we use:</p>
+<pre data-label="Server"><code class="language-bash">ufw allow 22/tcp comment 'SSH management'
+ufw allow 80/tcp comment 'ACME HTTP-01 renewal'
+ufw allow 18443/tcp comment 'WaterWall VLESS TLS'
+ufw enable
+ufw status</code></pre>
+<div class="callout warning">
+  <span class="callout-title">Allow SSH before you enable the firewall</span>
+  <code>ufw enable</code> blocks every port without a rule, including SSH if it has none.
+</div>
+
+<h3>10. Start WaterWall</h3>
+<pre data-label="Server"><code class="language-bash">systemctl daemon-reload
+systemctl enable --now waterwall.service
+systemctl status waterwall.service</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <code>systemctl status</code> shows <code>active (running)</code>, and each listening port appears in <code>ss -tulpn | grep -i waterwall</code>, where the program shows as <code>memfd:waterwall</code>. If the service fails, read the newest file in <code>/var/log/waterwall/</code> and see <a href="troubleshooting.html">Troubleshooting</a>.
+</div>
+
+<h2>Upgrading WaterWall</h2>
+<p>When our server moved to 1.5.2, the previous program, its service file and its release record were first copied to a backup folder (<code>/opt/waterwall/backup-1.5.1/</code>). To upgrade the same way:</p>
+<ol>
+  <li>Download and check the new release as in steps 1 and 2.</li>
+  <li>Copy the old program, service file and release record into a backup folder.</li>
+  <li>Install the new program as in step 3.</li>
+  <li>Run <code>systemctl restart waterwall.service</code>.</li>
+</ol>
+<p>To go back, copy the backup program over <code>/opt/waterwall/Waterwall</code> and restart.</p>
+
+<h2 id="install-the-app">Install the app</h2>
+<p>SRP VPN Connect is distributed as a public TestFlight beta. You do not need a developer account.</p>
+<ol>
+  <li>On your iPhone or iPad, install <strong>TestFlight</strong> from the App Store.</li>
+  <li>Open the public beta link: <a href="https://testflight.apple.com/join/A1tAaYW4">testflight.apple.com/join/A1tAaYW4</a>.</li>
+  <li>Tap <strong>Accept</strong>, then <strong>Install</strong>.</li>
+</ol>
+<p>Next: <a href="getting-started.html">connect to your server for the first time</a>.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complete UI &amp; Profile Guide — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every WaterWall screen, field, switch and button in SRP VPN Connect: what it does, when it appears and what it changes.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Complete UI &amp; Profile Guide</h1>
+<p class="lead">This page walks through every WaterWall screen in SRP VPN Connect, in the order you meet them: the home screen, the profile editor, the WaterWall configuration screen and the options.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every screen title, label, default value and message below was read from the app's source code at commit <code>dfce868f</code> (1 November 2026), the build used for our tests. Labels are quoted exactly as the app shows them.</p>
+  <p>The screenshots were taken from that build on our test iPhone 12 on 1 November 2026. The profiles in them hold example values (<code>server.example.com</code>, a dummy UUID) instead of real ones, and no ping results are shown because none were measured for these example profiles.</p>
+</div>
+
+<h2>Words used on this page</h2>
+<dl>
+  <dt><strong>Profile</strong></dt>
+  <dd>One saved connection in the app: a server, a port, a configuration and your secrets.</dd>
+  <dt><strong>Configuration</strong> (or <strong>chain</strong>)</dt>
+  <dd>The layers your traffic passes through on the way to the server, for example VLESS inside TLS. The server must run the matching chain on the same port.</dd>
+  <dt><strong>Layer</strong></dt>
+  <dd>One step of the chain, such as the application protocol (VLESS) or the outer transport (TLS). The app calls each layer a <em>node</em> in the advanced settings.</dd>
+</dl>
+
+<h2>Home screen</h2>
+<p>The home screen shows the title <strong>SRP VPN Connect</strong>, the connection status, a large power button and the list of your profiles.</p>
+<figure>
+  <img src="../assets/img/waterwall/home.png" alt="Home screen with the power button, the status Disconnected, the edit, help and add buttons, and four example WaterWall profiles" width="300" loading="lazy">
+  <figcaption>The home screen with four example profiles.</figcaption>
+</figure>
+<table>
+  <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Power button</td><td>Connects the selected profile. While connecting or connected, it disconnects. The status line reads <strong>Disconnected</strong>, <strong>Connecting…</strong> or <strong>Connected</strong>.</td></tr>
+    <tr><td>Status text</td><td>Tap it to open the app's log, the first place to look when a connection fails.</td></tr>
+    <tr><td><strong>+</strong> (plus)</td><td>Adds a new profile. New profiles start as WaterWall.</td></tr>
+    <tr><td>Pencil (edit)</td><td>Edits the selected profile. Disconnect first: while connected, the app shows <em>Disconnect the VPN before editing this profile</em>. With no profile selected it shows <em>Select a profile first (or add one with +)</em>.</td></tr>
+    <tr><td>Question mark</td><td>Opens the app's website.</td></tr>
+    <tr><td>Tap a profile</td><td>Selects it for the power button.</td></tr>
+    <tr><td>Swipe a profile to the right</td><td>Shows a blue <strong>Ping</strong> button that measures that profile.</td></tr>
+    <tr><td>Swipe a profile to the left</td><td>Shows <strong>Delete</strong>. This works only while disconnected.</td></tr>
+    <tr><td>Pull the list down</td><td>Pings every profile. The list header reads <em>Pull to ping every profile</em>, then <em>Pinged X of Y</em> while it runs.</td></tr>
+  </tbody>
+</table>
+
+<h3>What each profile row shows</h3>
+<ul>
+  <li><strong>Title:</strong> the profile's Description, or the server name when Description is empty.</li>
+  <li><strong>Subtitle:</strong> a summary of the WaterWall configuration, for example <code>VLESS + TLS</code>, <code>VLESS + REALITY</code>, <code>Raw IPv4</code>, <code>WireGuard</code> or <code>Direct (diagnostics)</code>.</li>
+  <li><strong>Badge:</strong> <code>WaterWall VPN</code>.</li>
+  <li><strong>Ping:</strong> the last measured delay, or <code>Ping: —</code> when there is none. The last results are kept when you close the app.</li>
+</ul>
+
+<h3>How ping is measured</h3>
+<table>
+  <thead><tr><th>Profile</th><th>Method</th><th>Possible results</th></tr></thead>
+  <tbody>
+    <tr><td>Not connected</td><td>The time of a TCP handshake to the server, without the DNS lookup time. Up to 16 profiles are tested at once, each with a 2.5 second limit. While another VPN is up, the test uses the Wi-Fi or cellular connection directly.</td><td><code>TCP: N ms</code>, <code>TCP: Timeout</code>, <code>TCP: Failed</code>, <code>Testing…</code></td></tr>
+    <tr><td>Connected</td><td>An HTTPS request through the VPN to <code>https://gstatic.com/generate_204</code>, then <code>https://connectivitycheck.gstatic.com/generate_204</code> if the first fails. Only the answer 204 counts. It runs by itself after connecting.</td><td><code>Ping: N ms</code>, <code>Timeout</code>, <code>Failed</code></td></tr>
+  </tbody>
+</table>
+<p>Results are green below 200 ms, orange below 500 ms and red at 500 ms or more, or on failure.</p>
+<div class="callout tip">
+  <span class="callout-title">Profiles without a TCP ping</span>
+  The TCP test only works for chains that reach the server over TCP. Direct, WireGuard, KCP and QUIC Datagram profiles are skipped, and the app says <em>This profile has no TCP server to ping; connect to it to measure its delay</em>. Connect to such a profile to see its delay.
+</div>
+
+<h2>Choosing WaterWall</h2>
+<p>The <strong>Protocol</strong> screen lists every protocol in the app. WaterWall is first: <strong>WaterWall VPN</strong>, with the subtitle <em>VLESS, VMess, Trojan, BGP4 and packet tunnels</em>.</p>
+<figure>
+  <img src="../assets/img/waterwall/protocol.png" alt="Protocol screen with WaterWall VPN ticked at the top of the list" width="300" loading="lazy">
+  <figcaption>The Protocol screen.</figcaption>
+</figure>
+<div class="callout warning">
+  <span class="callout-title">Changing the protocol resets the configuration</span>
+  Choosing another protocol gives the profile that protocol's defaults. If you then choose <strong>WaterWall VPN</strong> again, the configuration is back to the default (VLESS + TLS) and the port to 443. Tapping the protocol the profile already has changes nothing.
+</div>
+
+<h2>The profile editor</h2>
+<p>The editor is titled <strong>Add Profile</strong> or <strong>Edit Profile</strong>, with a <strong>✕</strong> (Cancel) button and <strong>Save</strong> at the top. For WaterWall it has a top section, <strong>SERVER</strong>, <strong>AUTHENTICATION</strong> and <strong>OPTIONS</strong>. The proxy section that other protocols have is hidden for WaterWall.</p>
+<figure>
+  <img src="../assets/img/waterwall/profile-editor.png" alt="Edit Profile screen with Protocol, Description, Configuration, Server, Port, SNI and TLS Server Verification rows" width="300" loading="lazy">
+  <figcaption>The profile editor for a VLESS + TLS profile.</figcaption>
+</figure>
+
+<h3>Top section</h3>
+<table>
+  <thead><tr><th>Row</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Protocol</strong></td><td>Shows <code>WaterWall VPN</code>. Tap to choose another protocol (see the warning above).</td></tr>
+    <tr><td><strong>Description</strong></td><td>Optional. A name for the profile in the home list.</td></tr>
+  </tbody>
+</table>
+
+<h3>SERVER</h3>
+<table>
+  <thead><tr><th>Row</th><th>What to enter</th><th>Shown when</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Configuration</strong></td><td>Shows <code>Custom Chain</code>, <code>WireGuard</code> or <code>Direct (diagnostics)</code>. Tap to open the <a href="#configuration-screen">WaterWall configuration screen</a>.</td><td>Always</td></tr>
+    <tr><td><strong>Server</strong></td><td>Required. Your server's domain name or IP address, for example <code>&lt;SERVER_HOST&gt;</code>.</td><td>Always</td></tr>
+    <tr><td><strong>Port</strong></td><td>The port the server's matching chain listens on. Empty means 443.</td><td>Always</td></tr>
+    <tr><td><strong>SNI (optional)</strong></td><td>The server name sent in the TLS handshake, and the Host of the HTTP layer. Empty means the Server field, except for Reality, where it means <code>www.cloudflare.com</code>. While the row is hidden, the app does not use it.</td><td>Outer is TLS, Reality or QUIC</td></tr>
+    <tr><td><strong>TLS Server Verification</strong></td><td>On by default. When on, the app checks the server's certificate and refuses a certificate that is not valid for the SNI.</td><td>Outer is TLS, Reality or QUIC</td></tr>
+  </tbody>
+</table>
+<p>In WireGuard mode this section instead has <strong>Import Config (.conf)</strong> and <strong>Manual Configuration</strong>; see <a href="#wireguard-mode">WireGuard mode</a>.</p>
+<div class="callout tip">
+  <span class="callout-title">Reality and the SNI field</span>
+  With Reality, the SNI must be the name of the cover site your server passes visitors to. Left empty, it is <code>www.cloudflare.com</code>, the cover our server uses. If your server's cover is another site, type that site's name.
+</div>
+
+<h3>AUTHENTICATION</h3>
+<p>This section shows only the secrets the chosen configuration needs. It disappears in WireGuard and Direct modes, and when the chain needs no secret.</p>
+<figure>
+  <img src="../assets/img/waterwall/profile-editor-reality-authentication.png" alt="AUTHENTICATION section with UUID and Reality Password rows, followed by the OPTIONS section" width="300" loading="lazy">
+  <figcaption>AUTHENTICATION for a VLESS + Reality profile. iOS leaves the contents of password fields out of screenshots, so the two fields look empty here.</figcaption>
+</figure>
+<table>
+  <thead><tr><th>Row</th><th>Shown for</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td><strong>UUID</strong></td><td>VLESS</td><td>Required. The client UUID from the server's VLESS settings, written with dashes or as 32 hexadecimal characters.</td></tr>
+    <tr><td><strong>UUID / ID</strong></td><td>VMess</td><td>Required. A UUID, or a short ID of 1 to 30 bytes.</td></tr>
+    <tr><td><strong>Password</strong></td><td>Trojan</td><td>Required. The Trojan password from the server.</td></tr>
+    <tr><td><strong>Username</strong> and <strong>Password</strong></td><td>SOCKS5, HTTP CONNECT</td><td>Optional, but both or neither.</td></tr>
+    <tr><td><strong>Reality Password</strong></td><td>Outer Reality</td><td>Required. 1 to 32 bytes, the same as the server's Reality password. It is separate from the UUID or password above.</td></tr>
+    <tr><td><strong>AEAD Password</strong></td><td>Outer AEAD</td><td>Required. The same as the server's password.</td></tr>
+  </tbody>
+</table>
+
+<h3>Saving</h3>
+<p>Tapping <strong>Save</strong> first removes spaces from the start and end of Server, Port, SNI and the VLESS or VMess UUID. Then it checks the profile and shows the first problem in an alert titled <strong>Invalid WaterWall Configuration</strong>:</p>
+<table>
+  <thead><tr><th>Message</th><th>What to fix</th></tr></thead>
+  <tbody>
+    <tr><td><em>Enter the WaterWall server.</em></td><td>Server is empty.</td></tr>
+    <tr><td><em>Enter a WaterWall port between 1 and 65535.</em></td><td>Port is not a valid number.</td></tr>
+    <tr><td><em>Enter a valid VLESS UUID as dashed RFC4122 or 32 hexadecimal characters.</em></td><td>The VLESS UUID is missing or malformed.</td></tr>
+    <tr><td><em>Enter a VMess UUID or a short string ID of 1 to 30 UTF-8 bytes.</em></td><td>The VMess ID is missing or too long.</td></tr>
+    <tr><td><em>Enter the Trojan password.</em></td><td>The Trojan password is empty.</td></tr>
+    <tr><td><em>Proxy username and password must be supplied together, or both left empty.</em></td><td>SOCKS5 or HTTP CONNECT has only one of the two.</td></tr>
+    <tr><td><em>Proxy username and password must each contain at most 255 UTF-8 bytes.</em></td><td>A proxy credential is too long.</td></tr>
+    <tr><td><em>HTTP proxy username cannot contain a colon.</em></td><td>Remove the colon from the HTTP CONNECT username.</td></tr>
+    <tr><td><em>HTTP proxy credentials cannot contain control characters.</em></td><td>Remove invisible characters, such as a pasted line break.</td></tr>
+    <tr><td><em>Reality password must contain 1 to 32 UTF-8 bytes.</em></td><td>The Reality password is empty or too long.</td></tr>
+    <tr><td><em>Enter the AEAD password.</em></td><td>The AEAD password is empty.</td></tr>
+    <tr><td><em>Import or enter a complete, valid WireGuard configuration.</em></td><td>WireGuard mode has no usable configuration.</td></tr>
+  </tbody>
+</table>
+<p>Direct mode needs no server, so it is saved without these checks.</p>
+
+<h2 id="configuration-screen">The WaterWall configuration screen</h2>
+<p>Tapping <strong>Configuration</strong> opens a screen titled <strong>WaterWall</strong>. It has up to three sections: <strong>CONFIGURATION</strong>, <strong>ADVANCED NODE SETTINGS</strong> and <strong>GEOIP ROUTING</strong>. Each change is checked at once; if a combination is not allowed, an alert explains why and the change is not made.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/waterwall.png" alt="WaterWall screen with Mode, Input, Application, MUX, Obfuscator, HTTP, BGP4 Framing, Outer and Carrier rows" width="260" loading="lazy">
+    <figcaption>The default chain: VLESS + TLS over TCP.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-outer.png" alt="Outer list with None, TLS, Reality, AEAD, QUIC and BGP4, TLS ticked" width="260" loading="lazy">
+    <figcaption>The list behind the Outer row.</figcaption>
+  </figure>
+</div>
+
+<h3>Mode</h3>
+<table>
+  <thead><tr><th>Mode</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Chain</strong> (default)</td><td>Builds a connection from the layers you choose below. This is the normal mode.</td></tr>
+    <tr><td><strong>WireGuard</strong></td><td>Connects to a WireGuard server; see <a href="#wireguard-mode">WireGuard mode</a>.</td></tr>
+    <tr><td><strong>Direct</strong></td><td>Sends traffic straight to the internet through WaterWall, with no server. It is meant for diagnostics: it shows whether the phone side of WaterWall works.</td></tr>
+  </tbody>
+</table>
+<p>Changing the mode clears the advanced node settings. Choosing Chain resets every layer to its default; the other modes remove the chain and GeoIP settings.</p>
+
+<h3>The layers of a chain</h3>
+<p>In Chain mode you pick each layer separately. Traffic passes through them in the order of this table, from the phone towards the server.</p>
+<table>
+  <thead><tr><th>Row</th><th>Choices (default first)</th><th>What it means</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Input</strong></td><td>Connections, Raw IPv4</td><td><em>Connections</em> splits the phone's traffic into separate TCP and UDP connections and sends each through the chain. <em>Raw IPv4</em> sends whole IP packets as one stream instead; it has no application protocol and needs a server chain built for raw packets.</td></tr>
+    <tr><td><strong>Application</strong></td><td>VLESS, VMess, Trojan, SOCKS5, HTTP CONNECT</td><td>The proxy protocol that tells the server where each connection goes. VLESS and VMess identify you with a UUID, Trojan with a password. VLESS and Trojan do not encrypt by themselves, so they normally run inside TLS or Reality; VMess encrypts its own data. SOCKS5 and HTTP CONNECT are standard proxy protocols. Shown for Connections input.</td></tr>
+    <tr><td><strong>MUX</strong></td><td>Off, on</td><td>Carries many connections inside one connection to the server, so new connections start faster. The server needs the matching MUX layer. WaterWall MUX is WaterWall's own format; it is not V2Ray's Mux.Cool or XUDP.</td></tr>
+    <tr><td><strong>Obfuscator</strong></td><td>Off, on</td><td>Scrambles the bytes with a simple XOR key so they do not show obvious patterns. This is not encryption.</td></tr>
+    <tr><td><strong>HTTP</strong></td><td>Off, HTTP, WebSocket</td><td>Wraps the connection in HTTP requests or in a WebSocket, so it looks like web traffic.</td></tr>
+    <tr><td><strong>HTTP Version</strong></td><td>1, 2</td><td>HTTP/1.1 or HTTP/2 for the HTTP layer. Shown when HTTP is on.</td></tr>
+    <tr><td><strong>BGP4 Framing</strong></td><td>Off, on</td><td>Wraps the stream in frames that look like BGP, a routing protocol. It is framing only, with no encryption and no login.</td></tr>
+    <tr><td><strong>Outer</strong></td><td>TLS, None, Reality, AEAD, QUIC, BGP4</td><td>The outermost layer, the one the network sees. <em>TLS</em> is the encryption HTTPS uses and needs a certificate on the server. <em>Reality</em> uses a TLS handshake that is passed to a real website, so the server needs no certificate of its own; it uses a separate password. <em>AEAD</em> encrypts with a shared password and has no TLS handshake. <em>QUIC</em> is encrypted transport over UDP. <em>BGP4</em> uses BGP framing as the outer layer. <em>None</em> adds no outer layer.</td></tr>
+    <tr><td><strong>QUIC Carrier</strong></td><td>Datagram, Stream</td><td>How QUIC carries your data. Shown when Outer is QUIC. MUX and BGP4 need Stream.</td></tr>
+    <tr><td><strong>Carrier</strong></td><td>TCP, KCP</td><td>How the chain reaches the server. <em>KCP</em> carries the connection over UDP with its own retransmission, which can help on networks that lose packets. Not shown with QUIC, which always uses UDP.</td></tr>
+  </tbody>
+</table>
+<p>Tapping <strong>Application</strong> or <strong>Outer</strong> opens a list with the current choice ticked; tap a row to choose it and go back.</p>
+
+<h3>What changes when you choose</h3>
+<p>Some choices change other rows for you:</p>
+<ul>
+  <li><strong>Another Application</strong> clears the username and password and the application's advanced settings. Enter your UUID or password again afterwards. Tapping the current one changes nothing.</li>
+  <li><strong>SOCKS5</strong> turns MUX, HTTP, Obfuscator and BGP4 off, sets Outer to None and Carrier to TCP, and hides every other row.</li>
+  <li><strong>HTTP CONNECT</strong> turns MUX and HTTP off and sets Carrier to TCP.</li>
+  <li><strong>Outer QUIC</strong> turns HTTP and MUX off and sets Carrier to TCP. QUIC Carrier becomes Stream for HTTP CONNECT and Datagram otherwise.</li>
+  <li><strong>QUIC Carrier Datagram</strong> turns MUX off.</li>
+  <li>Turning <strong>BGP4 Framing</strong> off while Outer is BGP4 sets Outer to None.</li>
+  <li><strong>Raw IPv4</strong> removes the application, MUX and GeoIP settings.</li>
+</ul>
+
+<h3>Combinations that are not allowed</h3>
+<p>These are refused with the message shown:</p>
+<table>
+  <thead><tr><th>Combination</th><th>Message</th></tr></thead>
+  <tbody>
+    <tr><td>Raw IPv4 with an application</td><td><em>Raw IPv4 cannot be combined with an application protocol.</em></td></tr>
+    <tr><td>MUX with Raw IPv4</td><td><em>MUX requires an application protocol, not Raw IPv4.</em></td></tr>
+    <tr><td>QUIC with KCP</td><td><em>QUIC cannot be combined with the KCP carrier.</em></td></tr>
+    <tr><td>HTTP with QUIC</td><td><em>HTTP cannot run over QUIC.</em></td></tr>
+    <tr><td>MUX with QUIC Datagram</td><td><em>MUX over QUIC requires the stream carrier.</em></td></tr>
+    <tr><td>BGP4 with QUIC Datagram</td><td><em>BGP4 over QUIC requires the stream carrier.</em></td></tr>
+    <tr><td>SOCKS5 with any other layer</td><td><em>SOCKS5 TCP and UDP require the TCP carrier with no MUX, outer transport, HTTP or obfuscation.</em></td></tr>
+    <tr><td>HTTP CONNECT with MUX, HTTP or KCP</td><td><em>HTTP CONNECT cannot be combined with MUX, another HTTP layer or KCP.</em></td></tr>
+    <tr><td>HTTP CONNECT with QUIC Datagram</td><td><em>HTTP CONNECT over QUIC requires the stream carrier.</em></td></tr>
+  </tbody>
+</table>
+
+<h3>Notes under the section</h3>
+<p>The text under CONFIGURATION changes with your choices. With BGP4 on, it says <em>BGP4 is framing, not encryption. Combine it with a separate outer transport when needed; QUIC requires stream mode.</em> With VMess it notes that VMess uses modern AEAD encryption and that WaterWall MUX is not VMess Mux.Cool or XUDP. With the Obfuscator on it notes that XOR is obfuscation, not encryption.</p>
+
+<h3 id="advanced-node-settings">ADVANCED NODE SETTINGS</h3>
+<p>Each layer in use has a row here: <strong>Packet</strong>, <strong>Application</strong>, <strong>MUX</strong>, <strong>Obfuscator</strong>, <strong>HTTP</strong>, <strong>Outer</strong> and <strong>KCP</strong>. The value shows <code>Default</code>, <code>1 setting</code> or <code>N settings</code>. These settings are optional; leave them empty to use the app's defaults. The section note says <em>Optional per-node JSON objects. Leave them empty to use WaterWall defaults.</em></p>
+<p>Tapping a row opens a JSON editor for that layer:</p>
+<ul>
+  <li>The text is the layer's settings as a JSON object. An empty layer starts as <code>{ }</code> with an empty line inside.</li>
+  <li>The line under the text says <em>No settings: WaterWall defaults</em>, <em>Valid JSON</em>, or, in red, where the error is, for example <em>Line 3, column 7: …</em>.</li>
+  <li><strong>Format</strong> lays out valid JSON neatly. It is available only while the JSON is valid.</li>
+  <li>Return keeps the indentation and indents one more step after <code>{</code> or <code>[</code>.</li>
+  <li>Automatic corrections, capitals and curly quotes are off, so what you type stays valid JSON.</li>
+  <li>The <strong>✓</strong> (Done) button saves the settings. If they are not valid, an alert titled <strong>Invalid Node Settings</strong> explains why. Going back without Done discards your edits.</li>
+</ul>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-advanced-geoip.png" alt="Lower part of the WaterWall screen with the Packet, Application and Outer rows under Advanced Node Settings and the GeoIP Routing switch" width="260" loading="lazy">
+    <figcaption>ADVANCED NODE SETTINGS for VLESS + TLS, and the GeoIP switch.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/node-editor.png" alt="Packet editor showing the JSON object with mtu 1400 and the status Valid JSON next to a Format button" width="260" loading="lazy">
+    <figcaption>The JSON editor for the Packet layer, with an example value.</figcaption>
+  </figure>
+</div>
+<p>Which keys each layer accepts, and their limits, is in the <a href="configuration.html">Configuration Reference</a>. A few values are always set by the app and override yours: the SNI, the certificate check, the passwords and the QUIC carrier mode.</p>
+
+<h3 id="geoip">GEOIP ROUTING</h3>
+<p>Shown in Chain mode with Connections input. GeoIP routing sends traffic to chosen countries directly, without the server, and everything else through the server.</p>
+<table>
+  <thead><tr><th>Row</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>GeoIP Routing</strong></td><td>Turns country routing on. The first time, it installs the country database that comes with the app. If no country is chosen yet, it selects Iran (IR).</td></tr>
+    <tr><td><strong>Countries</strong></td><td>Opens <strong>GeoIP Countries</strong>: a searchable list (<em>Country or ISO code</em>) where you tick the countries that go direct. Ticking a country also turns routing on and installs the database if needed.</td></tr>
+    <tr><td><strong>Country Database</strong></td><td>Shows the database type, where it came from (<code>Bundled</code> or <code>Updated</code>) and its size, or <code>No valid database</code>.</td></tr>
+    <tr><td><strong>Update URL</strong></td><td>An HTTPS link to a GeoIP2 or GeoLite2 Country database (<code>.mmdb</code>). It is checked and saved when you finish typing.</td></tr>
+    <tr><td><strong>Upload MMDB…</strong></td><td>Picks a database file from the Files app.</td></tr>
+    <tr><td><strong>Download &amp; Replace</strong></td><td>Downloads the database from the Update URL.</td></tr>
+  </tbody>
+</table>
+<figure>
+  <img src="../assets/img/waterwall/geoip-countries.png" alt="GeoIP Countries screen with the GeoIP Routing switch on and an alphabetical country list with a search field" width="300" loading="lazy">
+  <figcaption>The GeoIP Countries screen.</figcaption>
+</figure>
+<p>A new database is checked before it replaces the old one; if the check fails, the old one stays. Files must be MaxMind Country databases no larger than 128 MB. After a successful update the app says <em>Reconnect WaterWall to use the new file.</em> Country data is GeoLite2 by MaxMind.</p>
+
+<h2 id="wireguard-mode">WireGuard mode</h2>
+<p>In WireGuard mode the SERVER section has:</p>
+<ul>
+  <li><strong>Import Config (.conf)</strong>: picks a WireGuard file from the Files app. Server and Port are filled from its <code>Endpoint</code> line. A wrong file shows <strong>Import Failed</strong> with <em>The file could not be read as UTF-8 text.</em> or <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></li>
+  <li><strong>Manual Configuration</strong>: enter the keys yourself, as below.</li>
+  <li><strong>Server</strong> and <strong>Port</strong>.</li>
+</ul>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/profile-editor-wireguard.png" alt="Profile editor in WireGuard mode with Import Config, Manual Configuration, Server and Port rows" width="260" loading="lazy">
+    <figcaption>The SERVER section in WireGuard mode.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/wireguard-manual.png" alt="Manual Configuration screen with This Device and Server (Peer) sections" width="260" loading="lazy">
+    <figcaption>The Manual Configuration screen.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Manual Configuration row</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Private Key</strong></td><td>Required. <strong>Gen</strong> creates a new key pair.</td></tr>
+    <tr><td><strong>Public Key</strong></td><td>Shown for the private key. Tap to copy it, to add this phone to the server.</td></tr>
+    <tr><td><strong>Address</strong></td><td>The phone's address inside the tunnel, for example <code>10.88.0.2/24</code>.</td></tr>
+    <tr><td><strong>DNS</strong></td><td>Optional, for example <code>1.1.1.1</code>.</td></tr>
+    <tr><td><strong>Server Public Key</strong></td><td>Required. The server's WireGuard public key.</td></tr>
+    <tr><td><strong>Preshared Key</strong></td><td>Optional.</td></tr>
+    <tr><td><strong>AllowedIPs</strong></td><td>Which addresses go through the tunnel. Empty means <code>0.0.0.0/0</code>, everything.</td></tr>
+    <tr><td><strong>Keepalive</strong></td><td>Optional, in seconds.</td></tr>
+  </tbody>
+</table>
+<p>An empty <strong>Port</strong> means 51820, the usual WireGuard port. A profile that was in Chain mode before keeps the port it had, so check it when you switch to WireGuard.</p>
+<div class="callout tip">
+  <span class="callout-title">Where the keys are kept</span>
+  The private key, the preshared key and an imported <code>.conf</code> are stored in the iOS Keychain, separately for each profile, and are deleted with the profile. They belong to the profile's protocol: if you change the profile to another protocol, such as the WireGuard or AmneziaWG protocol, it starts without them.
+</div>
+
+<h2 id="options">OPTIONS</h2>
+<figure>
+  <img src="../assets/img/waterwall/profile-options-end.png" alt="OPTIONS section with Auto Switch, Switch to Wi-Fi When Available, On Sleep, Log Level, TLS Fragmentation, Remote DNS and Direct LAN Routing, and the explanation below" width="300" loading="lazy">
+  <figcaption>The OPTIONS section with its defaults, for a VLESS + TLS profile.</figcaption>
+</figure>
+<table>
+  <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Auto Reconnect</strong></td><td>On</td><td>Restarts WaterWall 2 seconds after the connection fails. When off, the first failure ends the VPN. A failure is: WaterWall stopping, the start-up check failing (the app tries the server for up to 30 seconds), or no traffic passing during a 15-second health check.</td></tr>
+    <tr><td><strong>Retry Times</strong></td><td>Empty (unlimited)</td><td>Shown with Auto Reconnect. How many reconnects in a row before giving up with <em>Could not reconnect after N attempts.</em> The count restarts after a good connection, a network change or waking up.</td></tr>
+    <tr><td><strong>Auto Switch</strong></td><td>On</td><td>Shown in Chain mode. Uses your other WaterWall Chain profiles <em>for the same server</em> (up to 8, matched by the Server field) as fallbacks. Each reconnect tries the next one. When the network loses many packets, it moves to a profile with the other carrier (TCP or UDP).</td></tr>
+    <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>On</td><td>Restarts the connection on Wi-Fi as soon as Wi-Fi appears, and on cellular when Wi-Fi is lost. This is also what returns Auto Switch to the profile you chose.</td></tr>
+    <tr><td><strong>On Sleep</strong></td><td>Stay</td><td><em>Stay</em> keeps the connection open while the phone sleeps. <em>Pause</em> closes it and always reconnects on wake. <em>Off</em> closes it; on wake it reconnects only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr><td><strong>Log Level</strong></td><td>Normal</td><td>How much the app and WaterWall write to their logs: Normal, Expert or Debug.</td></tr>
+    <tr><td><strong>TLS Fragmentation</strong></td><td>Off</td><td>Shown for Chain with Outer TLS or Reality. Splits the first TLS message (the ClientHello) into small pieces, which can get past some filters. Auto uses a 32-byte first piece and 256-byte pieces after it. Manual adds <strong>First Chunk (bytes)</strong> (hint 32) and <strong>Following Chunks (bytes)</strong> (hint 256) for your own sizes.</td></tr>
+    <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for Chain with Connections input. The phone gets placeholder addresses for names, and the server looks up the real names. When off, the phone asks 1.1.1.1 and 1.0.0.1 itself.</td></tr>
+    <tr><td><strong>Direct LAN Routing</strong></td><td>Off</td><td>Shown for Chain with Connections input. Sends private addresses (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) directly instead of through the server, so you can still reach devices on your local network.</td></tr>
+  </tbody>
+</table>
+<div class="callout tip">
+  <span class="callout-title">TLS Fragmentation sizes</span>
+  The ClientHello is cut only within its first 16384 bytes, so the app refuses a Manual First Chunk of 16384 or more when you save. A <code>fragment</code> setting in the Outer advanced settings replaces the app's own.
+</div>
+<div class="callout tip">
+  <span class="callout-title">Auto Switch needs sibling profiles</span>
+  Auto Switch only has something to switch to if you saved more than one profile with the same Server, for example the same server with a TCP chain and a KCP chain. Profiles with exactly the same configuration and port are not used.
+</div>
+
+<h2>What the app does not have</h2>
+<ul>
+  <li>No import or export of WaterWall profiles: there are no share links (such as <code>vless://</code>), no QR codes and no file export. You type each profile in. The only imports are the WireGuard <code>.conf</code> file and the GeoIP database.</li>
+  <li>No IPv6 inside the tunnel. The WaterWall tunnel carries IPv4 only.</li>
+</ul>
+
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

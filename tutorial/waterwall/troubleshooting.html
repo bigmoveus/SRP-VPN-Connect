@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="What WaterWall errors in SRP VPN Connect mean, how to check the server, and the problems we met in our tests.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">Start with the checks below, then look up the message you see. The last section lists the problems that showed up in our own tests.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The messages and what triggers them were read from the app's source code at commit <code>dfce868f</code>. The commands are the ones we use on our test server. The problems in the last section come from our test runs of 1 November 2026.</p>
+</div>
+
+<h2>First checks</h2>
+<h3>1. Open the app's log</h3>
+<p>Tap the status text under the power button. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile's OPTIONS and connect again.</p>
+
+<h3>2. Is WaterWall running on the server?</h3>
+<p>Run these on the server as root:</p>
+<pre data-label="Server"><code class="language-bash">systemctl status waterwall.service --no-pager
+ss -ltnup | grep -i waterwall</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  The service is <code>active (running)</code>, and your configuration's port is in the list: TCP for TLS, Reality, AEAD, no outer layer and QUIC Stream, UDP for KCP and QUIC Datagram. The program shows as <code>memfd:waterwall</code>, because WaterWall restarts itself from memory when it starts.
+</div>
+<p>If the service does not start, its own messages say why:</p>
+<pre data-label="Server"><code class="language-bash">journalctl -u waterwall.service -n 50 --no-pager
+tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
+
+<h3>3. Is the port open in the firewall?</h3>
+<pre data-label="Server"><code class="language-bash">ufw status numbered</code></pre>
+<p>The port and its protocol (<code>tcp</code> or <code>udp</code>) must be allowed. A KCP or QUIC Datagram chain needs a UDP rule; a TCP rule for the same number does not help.</p>
+
+<h3>4. Do the two halves match?</h3>
+<p>Compare the app's choices with the server file, layer by layer, using <a href="configuration.html#matching">The server node for each app choice</a>. The most common mistakes are a different port, a different UUID or password, a missing or extra layer (for example MUX on one side only), and an HTTP path that differs from <code>/</code>.</p>
+
+<h3>5. Can the server reach the internet?</h3>
+<p>When it connects, the app checks the tunnel by opening a test connection to <code>1.1.1.1</code> on TCP port 80, and for chains that carry UDP, a DNS query to <code>1.1.1.1</code>. These go through your server, so the server must be allowed to reach 1.1.1.1 on those ports.</p>
+<pre data-label="Server"><code class="language-bash">curl -sS -o /dev/null -w "%{http_code}\n" http://1.1.1.1/</code></pre>
+<p>Any HTTP status code means the server can reach it. On our server it prints <code>301</code>. An error such as <code>Connection timed out</code> means something blocks the server's outgoing traffic.</p>
+
+<h2>Messages and what they mean</h2>
+
+<h3>When saving a profile</h3>
+<p>An alert titled <strong>Invalid WaterWall Configuration</strong> names the field to fix. The full list is in the <a href="ui-guide.html#saving">UI guide</a>.</p>
+
+<h3>When connecting</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to check</th></tr></thead>
+  <tbody>
+    <tr><td><em>The WaterWall server address could not be resolved.</em></td><td>The phone could not look up the Server name.</td><td>The spelling of the name, and that its DNS record points to your server.</td></tr>
+    <tr><td><em>WaterWall TCP probe failed after fifteen attempts</em></td><td>The tunnel started, but the test connection to 1.1.1.1 through your chain got no answer.</td><td>First checks 2 to 5: the server is running, the port is open, the halves match, and the server can reach 1.1.1.1.</td></tr>
+    <tr><td><em>WaterWall UDP/DNS probe failed after five attempts</em></td><td>The test DNS query through the chain got no answer.</td><td>The server can send DNS queries to 1.1.1.1 on UDP port 53, and the chain allows UDP on the server (for example <code>"udp": true</code> in <code>VlessServer</code>).</td></tr>
+    <tr><td><em>WaterWall data-plane probe timed out</em> or <em>WaterWall data-plane validation timed out</em></td><td>The start-up check did not finish within its time limit (20 and 30 seconds).</td><td>The same as the TCP probe message.</td></tr>
+    <tr><td><em>WaterWall TCP health probe failed</em> or <em>WaterWall UDP/DNS health probe failed</em></td><td>A connection that was working stopped carrying data: the app checks again when nothing has passed for 15 seconds.</td><td>The network, and whether the server is still running. With Auto Reconnect on, the app reconnects after 2 seconds.</td></tr>
+    <tr><td><em>WaterWall runtime stopped</em></td><td>WaterWall inside the app stopped.</td><td>The app's log for the line before it.</td></tr>
+    <tr><td><em>WaterWall could not start (invalid configuration or another session is active)</em></td><td>The app could not start WaterWall with this profile.</td><td>Disconnect any other VPN and try again; check the profile's advanced node settings.</td></tr>
+    <tr><td><em>Could not reconnect after N attempts. (…)</em></td><td>Auto Reconnect used up the <strong>Retry Times</strong> you set. The reason is in the brackets.</td><td>The reason in the brackets; leave Retry Times empty for unlimited attempts.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off, so the VPN ended when the phone slept.</td><td>Choose On Sleep Stay or Pause, or turn Auto Reconnect on.</td></tr>
+    <tr><td><em>GeoIP is enabled but its database is unavailable: …</em></td><td>GeoIP routing is on but the country database is not installed.</td><td>Turn <strong>GeoIP Routing</strong> off and on again on the WaterWall screen; that installs the database.</td></tr>
+  </tbody>
+</table>
+
+<h3>Certificates</h3>
+<p>With <strong>TLS Server Verification</strong> on, the app refuses a server certificate that is not valid for the name it sends: the SNI, or the Server field when SNI is empty. If your server has a Let's Encrypt certificate for its domain, type that domain in Server and leave SNI empty. Turning verification off hides the problem but lets someone between you and the server pretend to be it, so fix the certificate instead.</p>
+
+<h2 id="problems-seen">Problems seen in our tests</h2>
+<p>These come from our test runs of 1 November 2026, with the official WaterWall 1.5.2 program on the server. Each result is on its <a href="scenarios/index.html">scenario page</a>.</p>
+
+<h3 id="downloads-stop">Downloads stop before the end with KCP, QUIC, MUX or HTTP/2</h3>
+<p>With these layers in the chain, downloads through the tunnel stopped before they finished, while uploads in the same test kept working and the app stayed connected. In Safari this looks like a page or a file that stops loading. With Input set to Connections:</p>
+<table>
+  <thead><tr><th>Layer in the chain</th><th>Production server</th><th>Combinations</th></tr></thead>
+  <tbody>
+    <tr><td>KCP</td><td>0 of 3 passed</td><td>0 of 7 passed without MUX; the 2 with MUX and HTTP or WebSocket passed</td></tr>
+    <tr><td>QUIC Datagram or QUIC Stream, without MUX</td><td>0 of 4 passed</td><td>0 of 9 passed</td></tr>
+    <tr><td>MUX</td><td>1 of 9 passed</td><td>5 of 17 passed</td></tr>
+    <tr><td>HTTP/2, without MUX</td><td>0 of 2 passed</td><td>0 of 3 passed</td></tr>
+  </tbody>
+</table>
+<p>With Input set to Raw IPv4, the same layers passed: Raw IPv4 + KCP and Raw IPv4 + QUIC Datagram on the production server, and all 4 Raw IPv4 combinations with KCP or QUIC. HTTP/1.1 and WebSocket passed in all 11 combinations without MUX.</p>
+<p><strong>Why, for KCP:</strong> when the destination closes its connection right after its last data, as the test server does after each download, WaterWall's KCP server (<code>TcpOverUdpServer</code>) sends what fits in one round and then discards the rest of that connection's queued data. The phone keeps waiting for the rest until the request times out. We found this in WaterWall 1.5.2 and in WaterWall's current source, and reproduced it without the app. With Raw IPv4 the phone's own TCP connections run inside one long KCP connection, so nothing is cut off. For QUIC, MUX and HTTP/2 we have not found the cause.</p>
+<p><strong>What to do:</strong> until a WaterWall release fixes this, use a chain without these layers, such as VLESS + TLS or VLESS + Reality, which passed in every run, or set Input to Raw IPv4 if you need KCP or QUIC.</p>
+
+<h3 id="udp-after-restart">A UDP exchange that is open while WaterWall restarts</h3>
+<p>If WaterWall stops inside the app, the app starts it again after 2 seconds; the log then shows <em>reconnecting in 2s</em>. In our <a href="scenarios/lifecycle-runtime-recovery-ww-00097-vless-tls.html">runtime recovery test</a>, downloads and a new UDP exchange worked after the restart. In one run of the same test, the UDP exchange had started just before the restart, and it got no more answers after it. That exchange used an address that WaterWall's built-in DNS had given out before the restart, and the restarted WaterWall starts with an empty list of those addresses. Downloads recovered because each request opened a new connection. If an app that uses UDP, such as a call or a game, stops working after this message, make it connect again, for example by closing and reopening it.</p>
+
+<h3 id="small-budget">Very small packet budgets</h3>
+<p>In our <a href="scenarios/adv-packet-budget.html">test with <code>max-pending-bytes</code> 8192 and <code>max-total-pending-bytes</code> 65536</a> on <code>PacketsToConnection</code>, set in the advanced node settings, 2 of the test's connections were reset during their TLS handshake right at the start. iOS reports this as <em>A TLS error caused the secure connection to fail</em>. The other transfers completed. We have not confirmed which limit reset them; keep the defaults unless you need to limit memory.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

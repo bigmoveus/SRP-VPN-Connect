@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Added
+- A documentation site in `tutorial/`: static HTML guides for WaterWall (installation, getting started, configuration, the app's screens, troubleshooting and FAQ) and one page for each of the 163 scenarios tested on the phone against WaterWall 1.5.2, with its server file, app settings, procedure and result. `tutorial/tools/waterwall_scenarios.py` turns a device test run into sanitized evidence files and renders the scenario pages from them; it refuses to write a file that still holds a public address or a local path. SSTP follows later.
 - SSTP profiles with Proxy set to Auto (PAC) take a username and password for the proxy the PAC script picks; before, a PAC proxy that asks for a password could not be used.
 - The WaterWall Advanced Node Settings editors (Packet, Application and the other layers) work as a JSON editor. A line under the text says whether the JSON is valid or names the line and column of the first error, as the save alert now does too; a new line keeps the indentation, one level deeper after `{` or `[`; and Format pretty-prints valid JSON.
 

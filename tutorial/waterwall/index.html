@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="What WaterWall is, how SRP VPN Connect uses it, and how this section is organized.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>WaterWall</h1>
+<p class="lead">WaterWall is an open-source tunneling program. SRP VPN Connect contains a WaterWall client, and you run a WaterWall server. This section shows how to set up both sides the way we tested them.</p>
+
+<h2>What WaterWall is</h2>
+<p><a href="https://github.com/radkesvat/WaterWall">WaterWall</a> is a networking core written by the radkesvat project. Instead of offering one fixed VPN protocol, it gives you small building blocks called <strong>nodes</strong>: one listens on a port, one adds TLS, one speaks VLESS, one connects to the internet, and so on. You join nodes into a <strong>chain</strong>, and the chain decides what your connection looks like on the network.</p>
+<p>The official WaterWall documentation, which explains every node in detail, is at <a href="https://radkesvat.github.io/WaterWall-Docs/">radkesvat.github.io/WaterWall-Docs</a>. This site does not repeat it; it explains how WaterWall works with SRP VPN Connect.</p>
+
+<h2>How SRP VPN Connect uses WaterWall</h2>
+<p>A connection has two halves that must match:</p>
+<ul>
+  <li><strong>On the phone</strong>, you choose the layers in the app, for example VLESS inside TLS. The app builds the client chain from your choices; you do not write client files by hand.</li>
+  <li><strong>On the server</strong>, you write a configuration file with the matching server chain, for example TLS then VLESS, listening on a port.</li>
+</ul>
+<pre data-label="Illustration — not a capture of a real network"><code>Apps on the phone
+      |
+      v
+iOS VPN (the app's packet tunnel)
+      |
+      v
+WaterWall client chain in the app      e.g. VLESS -> TLS -> TCP
+      |
+      |   internet: the network sees only the outer layer (here TLS)
+      v
+WaterWall server chain on your server  e.g. TCP -> TLS -> VLESS
+      |
+      v
+Websites and services</code></pre>
+<p>The phone sends its traffic into the iOS VPN. WaterWall in the app wraps it in the layers you chose and sends it to your server. The server unwraps the same layers in reverse order and connects to the real destination.</p>
+
+<div class="callout tip">
+  <span class="callout-title">The rule that matters most</span>
+  The layers in the app and on the server must match, in the same order, on the same port. If the app uses VLESS + TLS and the server port runs Trojan + TLS, the connection fails. Each scenario page shows both halves side by side.
+</div>
+
+<h2>What is in this section</h2>
+<div class="cards">
+  <a class="card" href="requirements.html"><strong>Requirements</strong><span>What you need, and the exact versions we tested.</span></a>
+  <a class="card" href="installation.html"><strong>Installation</strong><span>Install the WaterWall server and the app.</span></a>
+  <a class="card" href="getting-started.html"><strong>Getting Started</strong><span>Your first working connection, step by step.</span></a>
+  <a class="card" href="ui-guide.html"><strong>Complete UI &amp; Profile Guide</strong><span>Every screen, field and option in the app.</span></a>
+  <a class="card" href="configuration.html"><strong>Configuration Reference</strong><span>Server files, and what the app builds for each choice.</span></a>
+  <a class="card" href="scenarios/index.html"><strong>Verified Test Scenarios</strong><span>Each combination we tested, with its result.</span></a>
+  <a class="card" href="troubleshooting.html"><strong>Troubleshooting</strong><span>Errors we met and what fixed them.</span></a>
+  <a class="card" href="faq.html"><strong>FAQ</strong><span>Short answers to common questions.</span></a>
+</div>
+
+<h2>Versions covered</h2>
+<p>This section covers WaterWall 1.5.2 on the server and the app's current build, which contains its own WaterWall based on 1.5.0. Results from earlier server versions are not used. The full version list is on the <a href="requirements.html#versions-we-tested">Requirements</a> page.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

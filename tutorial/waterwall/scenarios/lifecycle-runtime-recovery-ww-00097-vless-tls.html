@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recovery after sleep and after WaterWall stops — WaterWall Scenarios — SRP VPN Connect Documentation</title>
+<meta name="description" content="Checks that the connection comes back after the phone wakes and after WaterWall inside the app stops, and that it then carries traffic.">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Recovery after sleep and after WaterWall stops</h1>
+<p class="lead">Checks that the connection comes back after the phone wakes and after WaterWall inside the app stops, and that it then carries traffic.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 1 November 2026 on the current app build against WaterWall 1.5.2.</p>
+<h2>Result</h2>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>207 seconds, including connecting and disconnecting</td></tr><tr><th>Download phase 1</th><td>3,255 MB in 92 seconds (284 Mbit/s); errors: none</td></tr><tr><th>Download phase 2</th><td>3,272 MB in 92 seconds (284 Mbit/s); errors: none</td></tr><tr><th>UDP phase 1</th><td>Sustained UDP: 91.19 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.928, jitter_ms=14.260, max_rtt_ms=211.595, retries=0</td></tr><tr><th>UDP phase 2</th><td>Sustained UDP: 90.85 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.410, jitter_ms=14.396, max_rtt_ms=1131.402, retries=0</td></tr></tbody></table>
+<h2>What the test does</h2>
+<ol><li>The profile uses On Sleep Pause, Auto Reconnect on and Retry Times 2.</li><li>The test connects, tells the tunnel the phone is going to sleep, and checks that the connection closes.</li><li>It tells the tunnel the phone woke up; the connection must be back within 25 seconds.</li><li>It runs downloads and a UDP echo exchange through the tunnel for 90 seconds.</li><li>It makes WaterWall inside the app stop; Auto Reconnect must bring the connection back within 30 seconds.</li><li>It runs the downloads and the UDP exchange for another 90 seconds and disconnects.</li></ol>
+<p>Passes when the connection comes back both times and the downloads and the UDP exchange succeed in both phases.</p>
+<h2>Test setup</h2>
+<p>The profile used the chain of the <a href="ww-00097-vless-tls.html">VLESS + TLS</a> scenario, with the same server copy and profile settings, except the options the steps above change.</p>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0, a Debug build of commit e6ff896f, installed by Xcode for the test</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a test copy on port 4097</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<h2>Gaps and limits</h2>
+<ul><li>The phone did not really sleep, and WaterWall inside the app did not really crash: a Debug build of the app accepts test commands that make the tunnel act as if it had. Stopping the server is real.</li><li>Each step ran once, on one phone and one network.</li></ul>
+<h2>Evidence</h2>
+<table><tbody><tr><th>Test case</th><td>lifecycle-runtime-recovery-ww-00097-vless-tls</td></tr><tr><th>Run</th><td>2026-11-01T23:32:49Z to 2026-11-01T23:38:00Z (UTC)</td></tr><tr><th>Step log times</th><td>2026-11-02 02:34:31 to 2026-11-02 02:37:45 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit e6ff896f, Debug build</td></tr><tr><th>Server program</th><td>official WaterWall release, SHA-256 73f71f91a7007aa3…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-lifecycle-20261101T2332Z.json">waterwall-lifecycle-20261101T2332Z.json</a></td></tr></tbody></table>
+</main>
+<script src="../../assets/js/nav.js"></script>
+<script src="../../assets/js/site.js"></script>
+</body>
+</html>

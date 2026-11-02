@@ -1,0 +1,6363 @@
+{
+ "run": {
+  "start_utc": "2026-11-01T17:08:27Z",
+  "end_utc": "2026-11-01T18:31:54Z",
+  "head": "dfce868fc7fe2518685a38fe5962b39d79cfc283",
+  "peer_sha256": "73f71f91a7007aa3eb29e107e55088f694cc532bee6fc9114be1dc780ee36fa0",
+  "exit": "0"
+ },
+ "summary": {
+  "executed": 44,
+  "passed": 27,
+  "skipped": [
+   {
+    "file": "direct.json",
+    "reason": "Not a chain the app can build (no listener and application or packet stream)"
+   }
+  ]
+ },
+ "environment": {
+  "profile": "production"
+ },
+ "cases": [
+  {
+   "id": "prod-vless-tls",
+   "kind": "production",
+   "why": "Production configuration vless-tls.json",
+   "sni": null,
+   "server_file": "vless-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18443,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.1
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:08:33",
+    "finished": "2026-11-01 20:10:11",
+    "sustained": "Sustained full-duplex: 91.45 seconds, downloaded=2130706432, uploaded=2080374784, download_requests=127, upload_requests=124, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.45,
+     "errors": [],
+     "downloaded": 2130706432,
+     "uploaded": 2080374784,
+     "download_requests": 127,
+     "upload_requests": 124,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.45,
+      "errors": [],
+      "downloaded": 2130706432,
+      "uploaded": 2080374784,
+      "download_requests": 127,
+      "upload_requests": 124,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 369 ms",
+     "Ping: 234 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:10:09 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-tls",
+   "kind": "production",
+   "why": "Production configuration trojan-tls.json",
+   "sni": null,
+   "server_file": "trojan-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18444,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 107.2
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:10:17",
+    "finished": "2026-11-01 20:11:58",
+    "sustained": "Sustained full-duplex: 96.26 seconds, downloaded=2248146944, uploaded=1862270976, download_requests=134, upload_requests=111, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 96.26,
+     "errors": [],
+     "downloaded": 2248146944,
+     "uploaded": 1862270976,
+     "download_requests": 134,
+     "upload_requests": 111,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 96.26,
+      "errors": [],
+      "downloaded": 2248146944,
+      "uploaded": 1862270976,
+      "download_requests": 134,
+      "upload_requests": 111,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 226 ms",
+     "Ping: 162 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:11:57 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-mux-tls",
+   "kind": "production",
+   "why": "Production configuration vless-mux-tls.json",
+   "sni": null,
+   "server_file": "vless-mux-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": true,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-mux-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18445,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 103.07
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:12:05",
+    "finished": "2026-11-01 20:13:41",
+    "sustained": "Sustained full-duplex: 92.07 seconds, downloaded=1275068416, uploaded=1778384896, download_requests=78, upload_requests=106, errors=( \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.07,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 1275068416,
+     "uploaded": 1778384896,
+     "download_requests": 78,
+     "upload_requests": 106,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.07,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 1275068416,
+      "uploaded": 1778384896,
+      "download_requests": 78,
+      "upload_requests": 106,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 175 ms",
+     "Ping: 161 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:13:39 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-mux-tls",
+   "kind": "production",
+   "why": "Production configuration trojan-mux-tls.json",
+   "sni": null,
+   "server_file": "trojan-mux-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": true,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-mux-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18446,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 107.31
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:13:47",
+    "finished": "2026-11-01 20:15:28",
+    "sustained": "Sustained full-duplex: 96.26 seconds, downloaded=973078528, uploaded=536870912, download_requests=61, upload_requests=32, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 96.26,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 973078528,
+     "uploaded": 536870912,
+     "download_requests": 61,
+     "upload_requests": 32,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 96.26,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 973078528,
+      "uploaded": 536870912,
+      "download_requests": 61,
+      "upload_requests": 32,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 213 ms",
+     "Ping: 103 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:15:27 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-reality",
+   "kind": "production",
+   "why": "Production configuration vless-reality.json",
+   "sni": null,
+   "server_file": "vless-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18447,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.94
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:15:35",
+    "finished": "2026-11-01 20:17:11",
+    "sustained": "Sustained full-duplex: 92.30 seconds, downloaded=2113929216, uploaded=1895825408, download_requests=126, upload_requests=113, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.3,
+     "errors": [],
+     "downloaded": 2113929216,
+     "uploaded": 1895825408,
+     "download_requests": 126,
+     "upload_requests": 113,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.3,
+      "errors": [],
+      "downloaded": 2113929216,
+      "uploaded": 1895825408,
+      "download_requests": 126,
+      "upload_requests": 113,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 194 ms",
+     "Ping: 167 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:17:10 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-reality-typed-sni",
+   "kind": "production",
+   "why": "Production configuration vless-reality.json with the cover site typed in SNI",
+   "sni": "www.cloudflare.com",
+   "server_file": "vless-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18447,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 146.62
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:17:18",
+    "finished": "2026-11-01 20:19:38",
+    "sustained": "Sustained full-duplex: 136.13 seconds, downloaded=2181038080, uploaded=1828716544, download_requests=130, upload_requests=109, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 136.13,
+     "errors": [],
+     "downloaded": 2181038080,
+     "uploaded": 1828716544,
+     "download_requests": 130,
+     "upload_requests": 109,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 136.13,
+      "errors": [],
+      "downloaded": 2181038080,
+      "uploaded": 1828716544,
+      "download_requests": 130,
+      "upload_requests": 109,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 318 ms",
+     "Ping: 196 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:19:37 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-reality",
+   "kind": "production",
+   "why": "Production configuration trojan-reality.json",
+   "sni": null,
+   "server_file": "trojan-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": false,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18448,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.74
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:19:45",
+    "finished": "2026-11-01 20:21:20",
+    "sustained": "Sustained full-duplex: 91.35 seconds, downloaded=2046820352, uploaded=1979711488, download_requests=122, upload_requests=118, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.35,
+     "errors": [],
+     "downloaded": 2046820352,
+     "uploaded": 1979711488,
+     "download_requests": 122,
+     "upload_requests": 118,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.35,
+      "errors": [],
+      "downloaded": 2046820352,
+      "uploaded": 1979711488,
+      "download_requests": 122,
+      "upload_requests": 118,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 219 ms",
+     "Ping: 161 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:21:19 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-mux-reality",
+   "kind": "production",
+   "why": "Production configuration vless-mux-reality.json",
+   "sni": null,
+   "server_file": "vless-mux-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": true,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-mux-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18449,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 110.03
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:21:27",
+    "finished": "2026-11-01 20:23:11",
+    "sustained": "Sustained full-duplex: 98.75 seconds, downloaded=167772160, uploaded=1929379840, download_requests=14, upload_requests=115, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 98.75,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 167772160,
+     "uploaded": 1929379840,
+     "download_requests": 14,
+     "upload_requests": 115,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 98.75,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 167772160,
+      "uploaded": 1929379840,
+      "download_requests": 14,
+      "upload_requests": 115,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 304 ms",
+     "Ping: 96 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:23:09 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-mux-reality",
+   "kind": "production",
+   "why": "Production configuration trojan-mux-reality.json",
+   "sni": null,
+   "server_file": "trojan-mux-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": true,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-mux-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18450,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 106.22
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:23:17",
+    "finished": "2026-11-01 20:24:57",
+    "sustained": "Sustained full-duplex: 94.62 seconds, downloaded=402653184, uploaded=620756992, download_requests=27, upload_requests=37, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 94.62,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 402653184,
+     "uploaded": 620756992,
+     "download_requests": 27,
+     "upload_requests": 37,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 94.62,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 402653184,
+      "uploaded": 620756992,
+      "download_requests": 27,
+      "upload_requests": 37,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 297 ms",
+     "Ping: 174 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:24:55 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-aead",
+   "kind": "production",
+   "why": "Production configuration vless-aead.json",
+   "sni": null,
+   "server_file": "vless-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18451,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "encryption"
+      },
+      {
+       "name": "encryption",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 146.71
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:25:03",
+    "finished": "2026-11-01 20:27:23",
+    "sustained": "Sustained full-duplex: 136.30 seconds, downloaded=2181038080, uploaded=1895825408, download_requests=130, upload_requests=113, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 136.3,
+     "errors": [],
+     "downloaded": 2181038080,
+     "uploaded": 1895825408,
+     "download_requests": 130,
+     "upload_requests": 113,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 136.3,
+      "errors": [],
+      "downloaded": 2181038080,
+      "uploaded": 1895825408,
+      "download_requests": 130,
+      "upload_requests": 113,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 184 ms",
+     "Ping: 131 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:27:22 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-mux-aead",
+   "kind": "production",
+   "why": "Production configuration vless-mux-aead.json",
+   "sni": null,
+   "server_file": "vless-mux-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": true,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-mux-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18458,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "encryption"
+      },
+      {
+       "name": "encryption",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 107.16
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:27:31",
+    "finished": "2026-11-01 20:29:11",
+    "sustained": "Sustained full-duplex: 95.66 seconds, downloaded=620756992, uploaded=1761607680, download_requests=40, upload_requests=105, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 95.66,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 620756992,
+     "uploaded": 1761607680,
+     "download_requests": 40,
+     "upload_requests": 105,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 95.66,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 620756992,
+      "uploaded": 1761607680,
+      "download_requests": 40,
+      "upload_requests": 105,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 167 ms",
+     "Ping: 101 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:29:09 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-aead",
+   "kind": "production",
+   "why": "Production configuration trojan-aead.json",
+   "sni": null,
+   "server_file": "trojan-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": false,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18459,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "encryption"
+      },
+      {
+       "name": "encryption",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 146.1
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:29:17",
+    "finished": "2026-11-01 20:31:37",
+    "sustained": "Sustained full-duplex: 135.76 seconds, downloaded=2281701376, uploaded=1728053248, download_requests=136, upload_requests=103, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 135.76,
+     "errors": [],
+     "downloaded": 2281701376,
+     "uploaded": 1728053248,
+     "download_requests": 136,
+     "upload_requests": 103,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 135.76,
+      "errors": [],
+      "downloaded": 2281701376,
+      "uploaded": 1728053248,
+      "download_requests": 136,
+      "upload_requests": 103,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 178 ms",
+     "Ping: 208 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:31:35 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-mux-aead",
+   "kind": "production",
+   "why": "Production configuration trojan-mux-aead.json",
+   "sni": null,
+   "server_file": "trojan-mux-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": true,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-mux-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18460,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "encryption"
+      },
+      {
+       "name": "encryption",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 105.0
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:31:44",
+    "finished": "2026-11-01 20:33:22",
+    "sustained": "Sustained full-duplex: 93.77 seconds, downloaded=603979776, uploaded=1711276032, download_requests=39, upload_requests=102, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.77,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 603979776,
+     "uploaded": 1711276032,
+     "download_requests": 39,
+     "upload_requests": 102,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.77,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 603979776,
+      "uploaded": 1711276032,
+      "download_requests": 39,
+      "upload_requests": 102,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 184 ms",
+     "Ping: 112 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:33:20 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-rawip-tls",
+   "kind": "production",
+   "why": "Production configuration rawip-tls.json",
+   "sni": null,
+   "server_file": "rawip-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "rawip-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18452,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.04
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:33:29",
+    "finished": "2026-11-01 20:35:06",
+    "sustained": "Sustained full-duplex: 92.00 seconds, downloaded=1962934272, uploaded=2516582400, download_requests=117, upload_requests=150, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.0,
+     "errors": [],
+     "downloaded": 1962934272,
+     "uploaded": 2516582400,
+     "download_requests": 117,
+     "upload_requests": 150,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.0,
+      "errors": [],
+      "downloaded": 1962934272,
+      "uploaded": 2516582400,
+      "download_requests": 117,
+      "upload_requests": 150,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 298 ms",
+     "Ping: 166 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:35:04 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-rawip-reality",
+   "kind": "production",
+   "why": "Production configuration rawip-reality.json",
+   "sni": null,
+   "server_file": "rawip-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "rawip-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18453,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.09
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:35:13",
+    "finished": "2026-11-01 20:36:50",
+    "sustained": "Sustained full-duplex: 92.16 seconds, downloaded=1962934272, uploaded=2533359616, download_requests=117, upload_requests=151, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.16,
+     "errors": [],
+     "downloaded": 1962934272,
+     "uploaded": 2533359616,
+     "download_requests": 117,
+     "upload_requests": 151,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.16,
+      "errors": [],
+      "downloaded": 1962934272,
+      "uploaded": 2533359616,
+      "download_requests": 117,
+      "upload_requests": 151,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 335 ms",
+     "Ping: 142 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:36:48 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-rawip-aead",
+   "kind": "production",
+   "why": "Production configuration rawip-aead.json",
+   "sni": null,
+   "server_file": "rawip-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "rawip-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18454,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "encryption"
+      },
+      {
+       "name": "encryption",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.44
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:36:57",
+    "finished": "2026-11-01 20:38:32",
+    "sustained": "Sustained full-duplex: 91.51 seconds, downloaded=1912602624, uploaded=2550136832, download_requests=114, upload_requests=152, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.51,
+     "errors": [],
+     "downloaded": 1912602624,
+     "uploaded": 2550136832,
+     "download_requests": 114,
+     "upload_requests": 152,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.51,
+      "errors": [],
+      "downloaded": 1912602624,
+      "uploaded": 2550136832,
+      "download_requests": 114,
+      "upload_requests": 152,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 297 ms",
+     "Ping: 164 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:38:31 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-vless-quic",
+   "kind": "production",
+   "why": "Production configuration vless-quic.json",
+   "sni": null,
+   "server_file": "vless-quic.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "vless-quic",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18455
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "datagram"
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 103.67
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:38:39",
+    "finished": "2026-11-01 20:40:16",
+    "sustained": "Sustained full-duplex: 92.40 seconds, downloaded=0, uploaded=1409286144, download_requests=4, upload_requests=84, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.4,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 1409286144,
+     "download_requests": 4,
+     "upload_requests": 84,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.4,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 1409286144,
+      "download_requests": 4,
+      "upload_requests": 84,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 338 ms",
+     "Ping: 168 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:40:15 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-trojan-quic",
+   "kind": "production",
+   "why": "Production configuration trojan-quic.json",
+   "sni": null,
+   "server_file": "trojan-quic.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": false,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-quic",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18456
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "datagram"
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 140.63
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:40:23",
+    "finished": "2026-11-01 20:42:37",
+    "sustained": "Sustained full-duplex: 129.38 seconds, downloaded=0, uploaded=1375731712, download_requests=4, upload_requests=82, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 129.38,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 1375731712,
+     "download_requests": 4,
+     "upload_requests": 82,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 129.38,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 1375731712,
+      "download_requests": 4,
+      "upload_requests": 82,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 280 ms",
+     "Ping: 187 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:42:35 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-rawip-quic",
+   "kind": "production",
+   "why": "Production configuration rawip-quic.json",
+   "sni": null,
+   "server_file": "rawip-quic.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "rawip-quic",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18457
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "datagram"
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.01
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:42:44",
+    "finished": "2026-11-01 20:44:20",
+    "sustained": "Sustained full-duplex: 91.68 seconds, downloaded=2164260864, uploaded=2248146944, download_requests=129, upload_requests=134, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.68,
+     "errors": [],
+     "downloaded": 2164260864,
+     "uploaded": 2248146944,
+     "download_requests": 129,
+     "upload_requests": 134,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.68,
+      "errors": [],
+      "downloaded": 2164260864,
+      "uploaded": 2248146944,
+      "download_requests": 129,
+      "upload_requests": 134,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 184 ms",
+     "Ping: 163 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:44:18 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-wireguard",
+   "kind": "production",
+   "why": "Production WireGuard with the iPhone test peer; the .conf names the server by its domain",
+   "sni": null,
+   "server_file": "wireguard.json",
+   "configuration": {
+    "version": 3,
+    "mode": "wireguard",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "wireguard",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "wg-udp",
+       "type": "UdpStatelessSocket",
+       "settings": {
+        "listen-address": "0.0.0.0",
+        "listen-port": 51820
+       },
+       "next": "wg"
+      },
+      {
+       "name": "wg",
+       "type": "WireGuardDevice",
+       "settings": {
+        "privatekey": "<PRIVATEKEY>",
+        "peers": [
+         {
+          "publickey": "<PUBLICKEY>",
+          "allowedips": "10.44.0.2/32",
+          "endpoint": "<ENDPOINT>",
+          "persistentkeepalive": 25
+         },
+         {
+          "publickey": "<PUBLICKEY>",
+          "allowedips": "10.44.0.3/32",
+          "endpoint": "<ENDPOINT>",
+          "persistentkeepalive": 25
+         }
+        ]
+       },
+       "next": "wg-tun"
+      },
+      {
+       "name": "wg-tun",
+       "type": "TunDevice",
+       "settings": {
+        "device-name": "ww-wg0",
+        "device-ip": "10.44.0.1/24",
+        "device-mtu": 1420,
+        "route-table": "off",
+        "fragment-policy": "reassemble"
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.21
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:44:26",
+    "finished": "2026-11-01 20:46:04",
+    "sustained": "Sustained full-duplex: 92.65 seconds, downloaded=1996488704, uploaded=2449473536, download_requests=119, upload_requests=146, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.65,
+     "errors": [],
+     "downloaded": 1996488704,
+     "uploaded": 2449473536,
+     "download_requests": 119,
+     "upload_requests": 146,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.65,
+      "errors": [],
+      "downloaded": 1996488704,
+      "uploaded": 2449473536,
+      "download_requests": 119,
+      "upload_requests": 146,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 178 ms",
+     "Ping: 159 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:46:02 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-none",
+   "kind": "production",
+   "why": "Production configuration additional-vless-none.json",
+   "sni": null,
+   "server_file": "additional-vless-none.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-none",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18461,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.78
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:46:11",
+    "finished": "2026-11-01 20:47:47",
+    "sustained": "Sustained full-duplex: 92.83 seconds, downloaded=2248146944, uploaded=1879048192, download_requests=134, upload_requests=112, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.83,
+     "errors": [],
+     "downloaded": 2248146944,
+     "uploaded": 1879048192,
+     "download_requests": 134,
+     "upload_requests": 112,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.83,
+      "errors": [],
+      "downloaded": 2248146944,
+      "uploaded": 1879048192,
+      "download_requests": 134,
+      "upload_requests": 112,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 255 ms",
+     "Ping: 140 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:47:46 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-http1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vless-http1-tls.json",
+   "sni": null,
+   "server_file": "additional-vless-http1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-http1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18462,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.47
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:47:54",
+    "finished": "2026-11-01 20:49:30",
+    "sustained": "Sustained full-duplex: 91.90 seconds, downloaded=2248146944, uploaded=1526726656, download_requests=134, upload_requests=91, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.9,
+     "errors": [],
+     "downloaded": 2248146944,
+     "uploaded": 1526726656,
+     "download_requests": 134,
+     "upload_requests": 91,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.9,
+      "errors": [],
+      "downloaded": 2248146944,
+      "uploaded": 1526726656,
+      "download_requests": 134,
+      "upload_requests": 91,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 192 ms",
+     "Ping: 172 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:49:29 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-ws1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vless-ws1-tls.json",
+   "sni": null,
+   "server_file": "additional-vless-ws1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "websocket",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-ws1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18463,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1,
+        "websocket": true
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.6
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:49:37",
+    "finished": "2026-11-01 20:51:15",
+    "sustained": "Sustained full-duplex: 93.34 seconds, downloaded=2197815296, uploaded=1275068416, download_requests=131, upload_requests=76, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.34,
+     "errors": [],
+     "downloaded": 2197815296,
+     "uploaded": 1275068416,
+     "download_requests": 131,
+     "upload_requests": 76,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.34,
+      "errors": [],
+      "downloaded": 2197815296,
+      "uploaded": 1275068416,
+      "download_requests": 131,
+      "upload_requests": 76,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 268 ms",
+     "Ping: 227 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:51:13 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-http2-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vless-http2-tls.json",
+   "sni": null,
+   "server_file": "additional-vless-http2-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 2,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-http2-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18464,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "h2"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 2
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 104.04
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:51:21",
+    "finished": "2026-11-01 20:52:59",
+    "sustained": "Sustained full-duplex: 93.33 seconds, downloaded=419430400, uploaded=1140850688, download_requests=29, upload_requests=68, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.33,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 419430400,
+     "uploaded": 1140850688,
+     "download_requests": 29,
+     "upload_requests": 68,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.33,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 419430400,
+      "uploaded": 1140850688,
+      "download_requests": 29,
+      "upload_requests": 68,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 186 ms",
+     "Ping: 140 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:52:57 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-ws1-none",
+   "kind": "production",
+   "why": "Production configuration additional-vless-ws1-none.json",
+   "sni": null,
+   "server_file": "additional-vless-ws1-none.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "none",
+    "http": "websocket",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-ws1-none",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18465,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1,
+        "websocket": true
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.06
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:53:05",
+    "finished": "2026-11-01 20:54:41",
+    "sustained": "Sustained full-duplex: 91.77 seconds, downloaded=2130706432, uploaded=1442840576, download_requests=127, upload_requests=86, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.77,
+     "errors": [],
+     "downloaded": 2130706432,
+     "uploaded": 1442840576,
+     "download_requests": 127,
+     "upload_requests": 86,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.77,
+      "errors": [],
+      "downloaded": 2130706432,
+      "uploaded": 1442840576,
+      "download_requests": 127,
+      "upload_requests": 86,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 176 ms",
+     "Ping: 146 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:54:40 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-obf-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vless-obf-tls.json",
+   "sni": null,
+   "server_file": "additional-vless-obf-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": true,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-obf-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18466,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "obfuscator"
+      },
+      {
+       "name": "obfuscator",
+       "type": "ObfuscatorServer",
+       "settings": {
+        "method": "xor",
+        "xor_key": 90
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 117.94
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:54:47",
+    "finished": "2026-11-01 20:56:39",
+    "sustained": "Sustained full-duplex: 107.43 seconds, downloaded=1946157056, uploaded=1442840576, download_requests=116, upload_requests=86, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 107.43,
+     "errors": [],
+     "downloaded": 1946157056,
+     "uploaded": 1442840576,
+     "download_requests": 116,
+     "upload_requests": 86,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 107.43,
+      "errors": [],
+      "downloaded": 1946157056,
+      "uploaded": 1442840576,
+      "download_requests": 116,
+      "upload_requests": 86,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 170 ms",
+     "Ping: 225 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:56:37 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-obf-http1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vless-obf-http1-tls.json",
+   "sni": null,
+   "server_file": "additional-vless-obf-http1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 1,
+    "obfuscator": true,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-obf-http1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18467,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1
+       },
+       "next": "obfuscator"
+      },
+      {
+       "name": "obfuscator",
+       "type": "ObfuscatorServer",
+       "settings": {
+        "method": "xor",
+        "xor_key": 90
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 102.54
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:56:45",
+    "finished": "2026-11-01 20:58:21",
+    "sustained": "Sustained full-duplex: 91.83 seconds, downloaded=2063597568, uploaded=1610612736, download_requests=123, upload_requests=96, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.83,
+     "errors": [],
+     "downloaded": 2063597568,
+     "uploaded": 1610612736,
+     "download_requests": 123,
+     "upload_requests": 96,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.83,
+      "errors": [],
+      "downloaded": 2063597568,
+      "uploaded": 1610612736,
+      "download_requests": 123,
+      "upload_requests": 96,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 235 ms",
+     "Ping: 176 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 17:58:20 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-kcp",
+   "kind": "production",
+   "why": "Production configuration additional-vless-kcp.json",
+   "sni": null,
+   "server_file": "additional-vless-kcp.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "kcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-kcp",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18468
+       },
+       "next": "kcp"
+      },
+      {
+       "name": "kcp",
+       "type": "TcpOverUdpServer",
+       "settings": {
+        "fec": false
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 137.27
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 20:58:28",
+    "finished": "2026-11-01 21:00:39",
+    "sustained": "Sustained full-duplex: 125.96 seconds, downloaded=0, uploaded=1476395008, download_requests=4, upload_requests=88, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 125.96,
+     "errors": [
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out."
+     ],
+     "downloaded": 0,
+     "uploaded": 1476395008,
+     "download_requests": 4,
+     "upload_requests": 88,
+     "finished": "8/8",
+     "timeouts": 4,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 125.96,
+      "errors": [
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out."
+      ],
+      "downloaded": 0,
+      "uploaded": 1476395008,
+      "download_requests": 4,
+      "upload_requests": 88,
+      "finished": "8/8",
+      "timeouts": 4,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 372 ms",
+     "Ping: 346 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:00:37 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-obf-kcp",
+   "kind": "production",
+   "why": "Production configuration additional-vless-obf-kcp.json",
+   "sni": null,
+   "server_file": "additional-vless-obf-kcp.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": true,
+    "carrier": "kcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-obf-kcp",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18469
+       },
+       "next": "kcp"
+      },
+      {
+       "name": "kcp",
+       "type": "TcpOverUdpServer",
+       "settings": {
+        "fec": false
+       },
+       "next": "obfuscator"
+      },
+      {
+       "name": "obfuscator",
+       "type": "ObfuscatorServer",
+       "settings": {
+        "method": "xor",
+        "xor_key": 90
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 137.86
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:00:46",
+    "finished": "2026-11-01 21:02:56",
+    "sustained": "Sustained full-duplex: 124.97 seconds, downloaded=0, uploaded=1107296256, download_requests=4, upload_requests=66, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 124.97,
+     "errors": [
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out."
+     ],
+     "downloaded": 0,
+     "uploaded": 1107296256,
+     "download_requests": 4,
+     "upload_requests": 66,
+     "finished": "8/8",
+     "timeouts": 4,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 124.97,
+      "errors": [
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out."
+      ],
+      "downloaded": 0,
+      "uploaded": 1107296256,
+      "download_requests": 4,
+      "upload_requests": 66,
+      "finished": "8/8",
+      "timeouts": 4,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 361 ms",
+     "Ping: 333 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:02:55 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-quic-stream",
+   "kind": "production",
+   "why": "Production configuration additional-vless-quic-stream.json",
+   "sni": null,
+   "server_file": "additional-vless-quic-stream.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "stream",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-quic-stream",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18470,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "stream"
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 107.4
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:03:04",
+    "finished": "2026-11-01 21:04:44",
+    "sustained": "Sustained full-duplex: 95.70 seconds, downloaded=0, uploaded=1879048192, download_requests=4, upload_requests=112, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 95.7,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 1879048192,
+     "download_requests": 4,
+     "upload_requests": 112,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 95.7,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 1879048192,
+      "download_requests": 4,
+      "upload_requests": 112,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 190 ms",
+     "Ping: 138 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:04:42 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vless-mux-quic-stream",
+   "kind": "production",
+   "why": "Production configuration additional-vless-mux-quic-stream.json",
+   "sni": null,
+   "server_file": "additional-vless-mux-quic-stream.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vless",
+    "mux": true,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "stream",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vless-mux-quic-stream",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18471,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "stream"
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.83
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:04:50",
+    "finished": "2026-11-01 21:06:28",
+    "sustained": "Sustained full-duplex: 93.53 seconds, downloaded=1543503872, uploaded=637534208, download_requests=92, upload_requests=38, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.53,
+     "errors": [],
+     "downloaded": 1543503872,
+     "uploaded": 637534208,
+     "download_requests": 92,
+     "upload_requests": 38,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.53,
+      "errors": [],
+      "downloaded": 1543503872,
+      "uploaded": 637534208,
+      "download_requests": 92,
+      "upload_requests": 38,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 169 ms",
+     "Ping: 131 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:06:26 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-rawip-http1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-rawip-http1-tls.json",
+   "sni": null,
+   "server_file": "additional-rawip-http1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-rawip-http1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18472,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.68
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:06:34",
+    "finished": "2026-11-01 21:08:11",
+    "sustained": "Sustained full-duplex: 92.15 seconds, downloaded=1979711488, uploaded=2483027968, download_requests=118, upload_requests=148, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.15,
+     "errors": [],
+     "downloaded": 1979711488,
+     "uploaded": 2483027968,
+     "download_requests": 118,
+     "upload_requests": 148,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.15,
+      "errors": [],
+      "downloaded": 1979711488,
+      "uploaded": 2483027968,
+      "download_requests": 118,
+      "upload_requests": 148,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 202 ms",
+     "Ping: 207 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:08:10 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-rawip-none",
+   "kind": "production",
+   "why": "Production configuration additional-rawip-none.json",
+   "sni": null,
+   "server_file": "additional-rawip-none.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-rawip-none",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18473,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.74
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:08:18",
+    "finished": "2026-11-01 21:09:55",
+    "sustained": "Sustained full-duplex: 91.55 seconds, downloaded=1996488704, uploaded=2466250752, download_requests=119, upload_requests=147, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.55,
+     "errors": [],
+     "downloaded": 1996488704,
+     "uploaded": 2466250752,
+     "download_requests": 119,
+     "upload_requests": 147,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.55,
+      "errors": [],
+      "downloaded": 1996488704,
+      "uploaded": 2466250752,
+      "download_requests": 119,
+      "upload_requests": 147,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 1424 ms",
+     "Ping: 144 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:09:54 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-rawip-kcp",
+   "kind": "production",
+   "why": "Production configuration additional-rawip-kcp.json",
+   "sni": null,
+   "server_file": "additional-rawip-kcp.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "kcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-rawip-kcp",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18474
+       },
+       "next": "kcp"
+      },
+      {
+       "name": "kcp",
+       "type": "TcpOverUdpServer",
+       "settings": {
+        "fec": false
+       },
+       "next": "stream-in"
+      },
+      {
+       "name": "stream-in",
+       "type": "StreamToPackets",
+       "settings": {
+        "packet-validation-level": "hard"
+       },
+       "next": "packet-out"
+      },
+      {
+       "name": "packet-out",
+       "type": "PacketsToConnection",
+       "settings": {
+        "mtu": 1420,
+        "max-pending-bytes": 1048576
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.32
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:10:02",
+    "finished": "2026-11-01 21:11:39",
+    "sustained": "Sustained full-duplex: 92.13 seconds, downloaded=2164260864, uploaded=2281701376, download_requests=129, upload_requests=136, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.13,
+     "errors": [],
+     "downloaded": 2164260864,
+     "uploaded": 2281701376,
+     "download_requests": 129,
+     "upload_requests": 136,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.13,
+      "errors": [],
+      "downloaded": 2164260864,
+      "uploaded": 2281701376,
+      "download_requests": 129,
+      "upload_requests": 136,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 633 ms",
+     "Ping: 287 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:11:37 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-tls.json",
+   "sni": null,
+   "server_file": "additional-vmess-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18475,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 167.59
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:11:45",
+    "finished": "2026-11-01 21:14:26",
+    "sustained": "Sustained full-duplex: 156.93 seconds, downloaded=1493172224, uploaded=1157627904, download_requests=89, upload_requests=69, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 156.93,
+     "errors": [],
+     "downloaded": 1493172224,
+     "uploaded": 1157627904,
+     "download_requests": 89,
+     "upload_requests": 69,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 156.93,
+      "errors": [],
+      "downloaded": 1493172224,
+      "uploaded": 1157627904,
+      "download_requests": 89,
+      "upload_requests": 69,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 245 ms",
+     "Ping: 167 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:14:25 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-mux-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-mux-tls.json",
+   "sni": null,
+   "server_file": "additional-vmess-mux-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": true,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-mux-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18476,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 106.0
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:14:34",
+    "finished": "2026-11-01 21:16:12",
+    "sustained": "Sustained full-duplex: 93.99 seconds, downloaded=0, uploaded=738197504, download_requests=4, upload_requests=44, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.99,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 738197504,
+     "download_requests": 4,
+     "upload_requests": 44,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.99,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 738197504,
+      "download_requests": 4,
+      "upload_requests": 44,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 179 ms",
+     "Ping: 96 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:16:10 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-ws1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-ws1-tls.json",
+   "sni": null,
+   "server_file": "additional-vmess-ws1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "tls",
+    "http": "websocket",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-ws1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18477,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1,
+        "websocket": true
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 104.43
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:16:19",
+    "finished": "2026-11-01 21:17:56",
+    "sustained": "Sustained full-duplex: 93.48 seconds, downloaded=1644167168, uploaded=939524096, download_requests=98, upload_requests=56, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.48,
+     "errors": [],
+     "downloaded": 1644167168,
+     "uploaded": 939524096,
+     "download_requests": 98,
+     "upload_requests": 56,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.48,
+      "errors": [],
+      "downloaded": 1644167168,
+      "uploaded": 939524096,
+      "download_requests": 98,
+      "upload_requests": 56,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 248 ms",
+     "Ping: 226 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:17:55 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-http2-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-http2-tls.json",
+   "sni": null,
+   "server_file": "additional-vmess-http2-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 2,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-http2-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18478,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "h2"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 2
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 118.47
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:18:03",
+    "finished": "2026-11-01 21:19:55",
+    "sustained": "Sustained full-duplex: 107.47 seconds, downloaded=0, uploaded=1090519040, download_requests=4, upload_requests=65, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 107.47,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 1090519040,
+     "download_requests": 4,
+     "upload_requests": 65,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 107.47,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 1090519040,
+      "download_requests": 4,
+      "upload_requests": 65,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 291 ms",
+     "Ping: 150 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:19:53 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-kcp",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-kcp.json",
+   "sni": null,
+   "server_file": "additional-vmess-kcp.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "kcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-kcp",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "UdpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18479
+       },
+       "next": "kcp"
+      },
+      {
+       "name": "kcp",
+       "type": "TcpOverUdpServer",
+       "settings": {
+        "fec": false
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 137.04
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:20:02",
+    "finished": "2026-11-01 21:22:12",
+    "sustained": "Sustained full-duplex: 125.95 seconds, downloaded=0, uploaded=738197504, download_requests=4, upload_requests=44, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 125.95,
+     "errors": [
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out.",
+      "The request timed out."
+     ],
+     "downloaded": 0,
+     "uploaded": 738197504,
+     "download_requests": 4,
+     "upload_requests": 44,
+     "finished": "8/8",
+     "timeouts": 4,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 125.95,
+      "errors": [
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out.",
+       "The request timed out."
+      ],
+      "downloaded": 0,
+      "uploaded": 738197504,
+      "download_requests": 4,
+      "upload_requests": 44,
+      "finished": "8/8",
+      "timeouts": 4,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 193 ms",
+     "Ping: 125 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:22:10 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-quic-stream",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-quic-stream.json",
+   "sni": null,
+   "server_file": "additional-vmess-quic-stream.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "stream",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-quic-stream",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18480,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "stream"
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 115.12
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:22:19",
+    "finished": "2026-11-01 21:24:07",
+    "sustained": "Sustained full-duplex: 103.58 seconds, downloaded=0, uploaded=1090519040, download_requests=4, upload_requests=65, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 103.58,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 0,
+     "uploaded": 1090519040,
+     "download_requests": 4,
+     "upload_requests": 65,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 103.58,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 0,
+      "uploaded": 1090519040,
+      "download_requests": 4,
+      "upload_requests": 65,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 219 ms",
+     "Ping: 296 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:24:06 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-mux-quic-stream",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-mux-quic-stream.json",
+   "sni": null,
+   "server_file": "additional-vmess-mux-quic-stream.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": true,
+    "outer": "quic",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "stream",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-mux-quic-stream",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18481,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "quic"
+      },
+      {
+       "name": "quic",
+       "type": "QuicServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "protocol": "h3",
+        "carrier-mode": "stream"
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "failed",
+    "tcp": {
+     "status": "failed",
+     "duration_s": 103.03
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:24:14",
+    "finished": "2026-11-01 21:25:50",
+    "sustained": "Sustained full-duplex: 91.97 seconds, downloaded=285212672, uploaded=1023410176, download_requests=21, upload_requests=61, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 91.97,
+     "errors": [
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost.",
+      "The network connection was lost."
+     ],
+     "downloaded": 285212672,
+     "uploaded": 1023410176,
+     "download_requests": 21,
+     "upload_requests": 61,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 91.97,
+      "errors": [
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost.",
+       "The network connection was lost."
+      ],
+      "downloaded": 285212672,
+      "uploaded": 1023410176,
+      "download_requests": 21,
+      "upload_requests": 61,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 239 ms",
+     "Ping: 171 ms"
+    ],
+    "failures": [
+     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
+    ],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:25:49 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-obf-http1-tls",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-obf-http1-tls.json",
+   "sni": null,
+   "server_file": "additional-vmess-obf-http1-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "tls",
+    "http": "http",
+    "http-version": 1,
+    "obfuscator": true,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {
+     "http": {
+      "path": "/tunnel"
+     }
+    }
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-obf-http1-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18482,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "http"
+      },
+      {
+       "name": "http",
+       "type": "HttpServer",
+       "settings": {
+        "host": "<SERVER_HOST>",
+        "path": "/tunnel",
+        "http-version": 1
+       },
+       "next": "obfuscator"
+      },
+      {
+       "name": "obfuscator",
+       "type": "ObfuscatorServer",
+       "settings": {
+        "method": "xor",
+        "xor_key": 90
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 154.08
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:25:57",
+    "finished": "2026-11-01 21:28:24",
+    "sustained": "Sustained full-duplex: 143.15 seconds, downloaded=1560281088, uploaded=1040187392, download_requests=93, upload_requests=62, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 143.15,
+     "errors": [],
+     "downloaded": 1560281088,
+     "uploaded": 1040187392,
+     "download_requests": 93,
+     "upload_requests": 62,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 143.15,
+      "errors": [],
+      "downloaded": 1560281088,
+      "uploaded": 1040187392,
+      "download_requests": 93,
+      "upload_requests": 62,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 391 ms",
+     "Ping: 237 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:28:23 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-reality",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-reality.json",
+   "sni": null,
+   "server_file": "additional-vmess-reality.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "reality",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-reality",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18483,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "reality"
+      },
+      {
+       "name": "reality",
+       "type": "RealityServer",
+       "settings": {
+        "destination": "visitor",
+        "password": "<PASSWORD>",
+        "algorithm": "chacha20-poly1305",
+        "salt": "waterwall-reality",
+        "kdf-iterations": 12000,
+        "sniffing-attempts": 8
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      },
+      {
+       "name": "visitor",
+       "type": "TcpConnector",
+       "settings": {
+        "address": "www.cloudflare.com",
+        "port": 443,
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 105.68
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:28:32",
+    "finished": "2026-11-01 21:30:10",
+    "sustained": "Sustained full-duplex: 93.82 seconds, downloaded=1275068416, uploaded=922746880, download_requests=76, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 93.82,
+     "errors": [],
+     "downloaded": 1275068416,
+     "uploaded": 922746880,
+     "download_requests": 76,
+     "upload_requests": 55,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 93.82,
+      "errors": [],
+      "downloaded": 1275068416,
+      "uploaded": 922746880,
+      "download_requests": 76,
+      "upload_requests": 55,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 351 ms",
+     "Ping: 295 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:30:09 +0000\"; reason = 1; }"
+   }
+  },
+  {
+   "id": "prod-additional-vmess-aead",
+   "kind": "production",
+   "why": "Production configuration additional-vmess-aead.json",
+   "sni": null,
+   "server_file": "additional-vmess-aead.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "vmess",
+    "mux": false,
+    "outer": "aead",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "additional-vmess-aead",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18484,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "aead"
+      },
+      {
+       "name": "aead",
+       "type": "EncryptionServer",
+       "settings": {
+        "algorithm": "chacha20-poly1305",
+        "password": "<PASSWORD>",
+        "salt": "waterwall-aead",
+        "kdf-iterations": 12000,
+        "max-frame-size": 16356
+       },
+       "next": "vmess"
+      },
+      {
+       "name": "vmess",
+       "type": "VmessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 103.49
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-01 21:30:16",
+    "finished": "2026-11-01 21:31:53",
+    "sustained": "Sustained full-duplex: 92.96 seconds, downloaded=1275068416, uploaded=922746880, download_requests=76, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 92.96,
+     "errors": [],
+     "downloaded": 1275068416,
+     "uploaded": 922746880,
+     "download_requests": 76,
+     "upload_requests": 55,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 92.96,
+      "errors": [],
+      "downloaded": 1275068416,
+      "uploaded": 922746880,
+      "download_requests": 76,
+      "upload_requests": 55,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "https_checks": [
+     "Ping: 188 ms",
+     "Ping: 134 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-01 18:31:52 +0000\"; reason = 1; }"
+   }
+  }
+ ]
+}

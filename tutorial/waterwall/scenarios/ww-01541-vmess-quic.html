@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VMess + QUIC Stream — WaterWall Scenarios — SRP VPN Connect Documentation</title>
+<meta name="description" content="QUIC carries the connection in encrypted QUIC.">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>VMess + QUIC Stream</h1>
+<p class="lead">QUIC carries the connection in encrypted QUIC.</p>
+<p><span class="status failed">TESTED — FAILED</span> &nbsp;Tested on 1 November 2026 on the current app build against WaterWall 1.5.2.</p>
+<h2>Result</h2>
+<table><tbody><tr><th>Outcome</th><td>Failed.</td></tr><tr><th>Test length</th><td>91 seconds</td></tr><tr><th>Downloaded</th><td>0 MB (0 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>772 MB (68 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>4 downloads and 47 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>The network connection was lost.; The network connection was lost.; The network connection was lost.; The network connection was lost.; The network connection was lost.</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 194 ms; Ping: 215 ms</td></tr><tr><th>UDP</th><td>not-applicable: The generated connector does not support application UDP</td></tr></tbody></table>
+<h3>What the test reported</h3>
+<pre data-label="Lines from the test log"><code class="language-bash">Sustained full-duplex: 91.14 seconds, downloaded=0, uploaded=771751936, download_requests=4, upload_requests=47, errors=( &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot; ), finished=8/8, timeouts=0, VPN status=2
+-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed
+(null); stop reason: { date = &quot;2026-11-01 20:34:25 +0000&quot;; reason = 1; }</code></pre>
+<h2>Test setup</h2>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0, a Release build of commit dfce868f, installed by Xcode for the test</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
+      |
+      |  Wi-Fi, office broadband, internet
+      v
+Test server &lt;SERVER_IP&gt;
+  WaterWall 1.5.2 test copy, port 4097     the chain under test
+      |
+      |  inside the same machine
+      v
+  HTTPS test server, port 28483            download file and upload checker</code></pre>
+<h2>Server configuration</h2>
+<p>The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.</p>
+<pre data-label="Server chain (peer.json)"><code class="language-json">{
+  &quot;name&quot;: &quot;ww-01541-vmess-quic-peer&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;name&quot;: &quot;listener&quot;,
+      &quot;type&quot;: &quot;TcpListener&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;&lt;SERVER_IP&gt;&quot;,
+        &quot;port&quot;: 4097
+      },
+      &quot;next&quot;: &quot;quic&quot;
+    },
+    {
+      &quot;name&quot;: &quot;quic&quot;,
+      &quot;type&quot;: &quot;QuicServer&quot;,
+      &quot;settings&quot;: {
+        &quot;protocol&quot;: &quot;h3&quot;,
+        &quot;carrier-mode&quot;: &quot;stream&quot;,
+        &quot;cert-file&quot;: &quot;/tmp/srp-device-matrix/cert.pem&quot;,
+        &quot;key-file&quot;: &quot;/tmp/srp-device-matrix/key.pem&quot;
+      },
+      &quot;next&quot;: &quot;vmess&quot;
+    },
+    {
+      &quot;name&quot;: &quot;vmess&quot;,
+      &quot;type&quot;: &quot;VmessServer&quot;,
+      &quot;settings&quot;: {
+        &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;,
+        &quot;udp&quot;: true
+      },
+      &quot;next&quot;: &quot;out&quot;
+    },
+    {
+      &quot;name&quot;: &quot;out&quot;,
+      &quot;type&quot;: &quot;TcpUdpConnector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;domain-strategy&quot;: &quot;prefer-ipv4&quot;,
+        &quot;nodelay&quot;: true
+      }
+    }
+  ]
+}</code></pre>
+<details><summary>The test copy's core.json</summary><pre data-label="core.json"><code class="language-json">{
+  &quot;misc&quot;: {
+    &quot;workers&quot;: 1,
+    &quot;ram-profile&quot;: &quot;minimal&quot;,
+    &quot;splice&quot;: false,
+    &quot;try-enabling-bbr&quot;: false,
+    &quot;tcp-tune&quot;: false
+  },
+  &quot;configs&quot;: [
+    &quot;/tmp/srp-device-matrix/peer.json&quot;
+  ]
+}</code></pre></details>
+<h2>App settings</h2>
+<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
+<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Connections</td></tr><tr><td><strong>Application</strong></td><td>VMess</td></tr><tr><td><strong>MUX</strong></td><td>Off</td></tr><tr><td><strong>Obfuscator</strong></td><td>Off</td></tr><tr><td><strong>HTTP</strong></td><td>Off</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>QUIC</td></tr><tr><td><strong>QUIC Carrier</strong></td><td>Stream</td></tr></tbody></table>
+<p>In the profile editor:</p>
+<table><tbody><tr><th>Server</th><td>&lt;SERVER_IP&gt;, the test server&#x27;s address</td></tr><tr><th>Port</th><td>4097</td></tr><tr><th>SNI (optional)</th><td>localhost, for chains with TLS, Reality or QUIC</td></tr><tr><th>TLS Server Verification</th><td>Off, because the test certificate is self-signed</td></tr><tr><th>UUID or Password</th><td>&lt;UUID&gt;, a test value</td></tr><tr><th>Reality or AEAD Password</th><td>&lt;OUTER_PASSWORD&gt;, a test value, when the chain uses one</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
+<details><summary>The client chain the app built (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
+  &quot;name&quot;: &quot;VMess + QUIC Stream&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;settings&quot;: {},
+      &quot;name&quot;: &quot;ne&quot;,
+      &quot;type&quot;: &quot;NEPacketDevice&quot;,
+      &quot;next&quot;: &quot;ptc&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;max-total-pending-bytes&quot;: 16777216,
+        &quot;mtu&quot;: 1420,
+        &quot;fake-dns&quot;: {
+          &quot;address&quot;: &quot;198.18.0.2&quot;,
+          &quot;netmask&quot;: &quot;255.192.0.0&quot;,
+          &quot;enabled&quot;: true,
+          &quot;port&quot;: 53,
+          &quot;ttl&quot;: 60,
+          &quot;cache-size&quot;: 10000,
+          &quot;network&quot;: &quot;100.64.0.0&quot;
+        },
+        &quot;max-pending-bytes&quot;: 65536
+      },
+      &quot;name&quot;: &quot;ptc&quot;,
+      &quot;type&quot;: &quot;PacketsToConnection&quot;,
+      &quot;next&quot;: &quot;router&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;domain-strategy&quot;: &quot;do-not-resolve-domains&quot;,
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;security&quot;: &quot;aes-128-gcm&quot;,
+        &quot;protocol&quot;: &quot;dest_context-&gt;protocol&quot;,
+        &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;
+      },
+      &quot;name&quot;: &quot;vmess&quot;,
+      &quot;type&quot;: &quot;VmessClient&quot;,
+      &quot;next&quot;: &quot;quic&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;resolve-domains&quot;: false
+      },
+      &quot;name&quot;: &quot;router&quot;,
+      &quot;type&quot;: &quot;Router&quot;,
+      &quot;next&quot;: &quot;vmess&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;verify&quot;: false,
+        &quot;protocol&quot;: &quot;h3&quot;,
+        &quot;carrier-mode&quot;: &quot;stream&quot;,
+        &quot;sni&quot;: &quot;localhost&quot;
+      },
+      &quot;name&quot;: &quot;quic&quot;,
+      &quot;type&quot;: &quot;QuicClient&quot;,
+      &quot;next&quot;: &quot;connector&quot;
+    },
+    {
+      &quot;name&quot;: &quot;connector&quot;,
+      &quot;type&quot;: &quot;TcpConnector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;127.0.0.1&quot;,
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: 4097
+      }
+    }
+  ]
+}</code></pre></details>
+<h2>How it was tested</h2>
+<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, and both HTTPS checks succeeded.</p>
+<h2>Gaps and limits</h2>
+<ul><li>TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.</li><li>For Reality, the cover site was a second TLS server on the test machine itself, not a public website.</li><li>The test measured TCP traffic. The UDP row in the result says whether UDP was tested; in this run it was not.</li><li>Each case ran once, for about 90 seconds, with one phone on one network.</li><li>The test copy of WaterWall used the harness&#x27;s own small core.json with one worker, not our production core.json.</li></ul>
+<h2>Evidence</h2>
+<table><tbody><tr><th>Test case</th><td>ww-01541-vmess-quic</td></tr><tr><th>Why it was selected</th><td>production vmess-quic-stream</td></tr><tr><th>Run</th><td>2026-11-01T19:10:29Z to 2026-11-01T23:02:13Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-01 23:32:51 to 2026-11-01 23:34:27 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit dfce868f</td></tr><tr><th>Server program</th><td>official WaterWall release, SHA-256 73f71f91a7007aa3…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-matrix-20261101.json">waterwall-matrix-20261101.json</a></td></tr></tbody></table>
+</main>
+<script src="../../assets/js/nav.js"></script>
+<script src="../../assets/js/site.js"></script>
+</body>
+</html>
