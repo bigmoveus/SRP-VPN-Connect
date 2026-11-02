@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Fixed
+- WaterWall's speed test server could crash at the end of a test over KCP: it kept reading its own state after finishing, because KCP keeps the line alive while it delivers queued data.
+
 ## 1.2.0 (33) - 2026-11-03
 
 ### Fixed
