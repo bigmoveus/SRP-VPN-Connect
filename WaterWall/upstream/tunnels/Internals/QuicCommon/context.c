@@ -270,7 +270,7 @@ quic_finish_scope_t quicBeginFinish(tunnel_t *t, line_t *l, quic_finish_side_t s
                     bufferqueueGetBufCount(&context->application) > 0)
                 {
                     context->final_flush       = true;
-                    context->final_deadline_us = ww_quic_now_us() + 5000000;
+                    context->final_deadline_us = ww_quic_now_us() + 30000000;
                     context->close_drain_held  = true;
                     lineBeginCloseDrain(context->line);
                     quicArm(context, true);

@@ -225,7 +225,7 @@ void quicPump(quic_context_t *context)
     }
     if (quicSurvived(context))
     {
-        quicArm(context, context->final_flush || work == kQuicPumpWork || generation != context->input_generation);
+        quicArm(context, work == kQuicPumpWork || generation != context->input_generation);
     }
 }
 
