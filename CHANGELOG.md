@@ -6,6 +6,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Fixed
 - `WaterWall/UPSTREAM_VERSION` and the documentation site said the app's WaterWall was based on upstream 1.5.0, although its code has been based on 1.5.2 since 2026-10-27. Both now say 1.5.2, and the last six files of that release (PingClient and PingServer, which the app does not build) are in place. The WaterWall compiled into the app does not change.
+- WaterWall could stop all traffic for about half a minute until the health check closed the tunnel. A lock in its event loop could miss a wakeup on the phone's ARM processor, and the worker thread then slept until the tunnel was stopped.
 
 ## 1.2.0 (30) - 2026-11-02
 
