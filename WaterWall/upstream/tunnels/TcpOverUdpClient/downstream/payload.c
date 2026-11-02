@@ -8,7 +8,8 @@ void tcpoverudpclientDeliverReceived(tunnel_t *t, line_t *l)
     tcpoverudpclient_lstate_t *ls = lineGetState(l, t);
 
     lineRef(l);
-    while (ls->k_handle != NULL && ! ls->downstream_paused && ! ls->close_initiated)
+    // While closing, the application side is gone: input is read only to notice the server's close frame.
+    while (ls->k_handle != NULL && (ls->close_initiated || ! ls->downstream_paused))
     {
         buffer_pool_t *pool = lineGetBufferPool(l);
         const int pending = ikcp_peeksize(ls->k_handle);
@@ -43,7 +44,7 @@ void tcpoverudpclientDeliverReceived(tunnel_t *t, line_t *l)
 
         if (frame_flag == kFrameFlagData)
         {
-            if (UNLIKELY(sbufGetLength(large_buf) == 0))
+            if (UNLIKELY(sbufGetLength(large_buf) == 0) || ls->close_initiated)
             {
                 lineReuseBuffer(l, large_buf);
                 continue;
@@ -53,12 +54,16 @@ void tcpoverudpclientDeliverReceived(tunnel_t *t, line_t *l)
         else if (frame_flag == kFrameFlagClose)
         {
             lineReuseBuffer(l, large_buf);
-            if (! ls->close_notified)
+            // The server has released this line, so nothing more is sent: any packet would open a new one.
+            if (ls->close_initiated)
             {
-                ls->close_notified = true;
-                ls->can_downstream = false;
-                tcpoverudpclientBeginClose(ls);
-                if (tcpoverudpclientUpdateKcp(ls, true) && lineIsAlive(l))
+                tcpoverudpclientReleaseClosing(t, l, ls);
+            }
+            else
+            {
+                tcpoverudpclientLinestateDestroy(ls);
+                tunnelNextUpStreamFinish(t, l);
+                if (lineIsAlive(l))
                 {
                     tunnelPrevDownStreamFinish(t, l);
                 }
@@ -115,8 +120,13 @@ void tcpoverudpclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf
     }
     lineReuseBuffer(l, buf);
 
-    if (tcpoverudpclientUpdateKcp(ls, false) && ! ls->downstream_paused && ! ls->close_initiated)
+    // Read before anything is sent: if this input holds the server's close frame, nothing may follow it.
+    if (ls->close_initiated || ! ls->downstream_paused)
     {
         tcpoverudpclientDeliverReceived(t, l);
+    }
+    else
+    {
+        discard tcpoverudpclientUpdateKcp(ls, false);
     }
 }

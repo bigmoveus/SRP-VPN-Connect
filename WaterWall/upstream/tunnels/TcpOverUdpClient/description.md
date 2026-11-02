@@ -219,9 +219,9 @@ On the receive side, it feeds incoming packet payloads into KCP, drains complete
 
 ### Close and timeout behavior
 
-A local Finish admits one close frame and stops further application output, while already received input can still drain. The node retains its KCP state and transport through the final delivery window, then finishes the next side after the send queue is acknowledged or `no-recv-timeout-ms` expires. A local Finish does not suppress downstream Pause/Resume needed by that delivery.
+A local Finish stops further application output. The node retains its KCP state and transport until the send queue is acknowledged or `no-recv-timeout-ms` expires, then sends one close frame and finishes the next side at once. It does not wait for that frame to be acknowledged: a server releases its line when it reads the frame and does not acknowledge it, so a retransmission would open a new server line on this UDP port. While it waits, input is read only to notice the server's close frame, which ends the wait. A local Finish does not suppress downstream Pause/Resume needed by that delivery.
 
-A remote close flushes its KCP acknowledgement and is propagated to the application side. No further application input is accepted afterward; protocol close processing and retransmission continue until the bounded teardown completes.
+A remote close means the server has released the line. The node releases its state at once, sends nothing more, and propagates the close to the application side.
 
 If no data is received for too long:
 

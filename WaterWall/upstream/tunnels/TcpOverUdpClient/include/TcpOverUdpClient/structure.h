@@ -42,9 +42,8 @@ typedef struct tcpoverudpclient_lstate_s
     bool                      source_paused;     // our KCP send-queue pressure
     bool                      downstream_paused; // downstream consumer hold; KCP control continues
     bool                      can_downstream;    // can downstream data
-    bool                      close_initiated;   // close frame admitted; application output is closed
+    bool                      close_initiated;   // local close begun; application output is closed
     bool                      close_drain_held;  // line reference held until final transport Finish
-    bool                      close_notified;    // remote close was propagated to the application side
     bool                      ping_sent;         // ping sent state
 
 } tcpoverudpclient_lstate_t;
@@ -137,6 +136,7 @@ bool tcpoverudpclientInputKcpPacket(void *ctx, const uint8_t *packet, size_t pac
 void tcpoverudpclientKcpLoopIntervalCallback(wtimer_t *timer);
 void tcpoverudpclientDeliverReceived(tunnel_t *t, line_t *l);
 void tcpoverudpclientBeginClose(tcpoverudpclient_lstate_t *ls);
+void tcpoverudpclientReleaseClosing(tunnel_t *t, line_t *l, tcpoverudpclient_lstate_t *ls);
 void tcpoverudpclientCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held);
 bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush);
 void tcpoverudpclientRecordLinkQuality(tcpoverudpclient_lstate_t *ls, uint64_t now_ms, bool final);

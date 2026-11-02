@@ -61,16 +61,9 @@ void tcpoverudpclientBeginClose(tcpoverudpclient_lstate_t *ls)
     }
     ls->close_initiated = true;
     lineBeginCloseDrain(ls->line);
-    ls->close_drain_held                        = true;
-    const tcpoverudpclient_tstate_t *ts         = tunnelGetState(ls->tunnel);
-    const uint64_t                   now        = wloopNowMS(getWorkerLoop(lineGetWID(ls->line)));
-    ls->close_deadline                          = now + ts->no_recv_timeout_ms;
-    const uint8_t close_buf[kFrameHeaderLength] = {kFrameFlagClose};
-    if (ikcp_send(ls->k_handle, (const char *) close_buf, (int) sizeof(close_buf)) != sizeof(close_buf))
-    {
-        LOGW("TcpOverUdpClient: failed to queue the KCP close frame");
-        ls->close_deadline = now;
-    }
+    ls->close_drain_held                = true;
+    const tcpoverudpclient_tstate_t *ts = tunnelGetState(ls->tunnel);
+    ls->close_deadline                  = wloopNowMS(getWorkerLoop(lineGetWID(ls->line))) + ts->no_recv_timeout_ms;
 }
 
 void tcpoverudpclientCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held)
@@ -85,6 +78,24 @@ void tcpoverudpclientCompleteCloseDrain(tunnel_t *t, line_t *l, bool drain_held)
         {
             lineDestroy(l);
         }
+    }
+}
+
+void tcpoverudpclientReleaseClosing(tunnel_t *t, line_t *l, tcpoverudpclient_lstate_t *ls)
+{
+    const bool drain_held = ls->close_drain_held;
+    tcpoverudpclientLinestateDestroy(ls);
+    tunnelNextUpStreamFinish(t, l);
+    tcpoverudpclientCompleteCloseDrain(t, l, drain_held);
+}
+
+static void tcpoverudpclientSendQueuedPackets(tunnel_t *t, line_t *l, tcpoverudpclient_lstate_t *ls)
+{
+    while (lineIsAlive(l) && ls->k_handle != NULL && contextqueueLen(&ls->cq_u) > 0)
+    {
+        context_t *c = contextqueuePop(&ls->cq_u);
+        contextApplyOnNextTunnelU(c, t);
+        contextDestroy(c);
     }
 }
 
@@ -103,10 +114,23 @@ static void tcpoverudpclientFinishCloseIfSettled(tunnel_t *t, line_t *l, tcpover
              ls->k_handle->snd_una, ls->k_handle->snd_nxt, ls->k_handle->rcv_nxt,
              ls->source_paused, ls->downstream_paused, ls->can_downstream);
     }
-    const bool drain_held = ls->close_drain_held;
-    tcpoverudpclientLinestateDestroy(ls);
-    tunnelNextUpStreamFinish(t, l);
-    tcpoverudpclientCompleteCloseDrain(t, l, drain_held);
+    // A server releases its line when it reads this frame, without acknowledging it. The frame goes out once and
+    // nothing follows it: a retransmission would open a new server line on this UDP port, and a later client line
+    // that reuses the port would wait forever for a sequence number that line already sent.
+    const uint8_t close_buf[kFrameHeaderLength] = {kFrameFlagClose};
+    if (ikcp_send(ls->k_handle, (const char *) close_buf, (int) sizeof(close_buf)) == sizeof(close_buf))
+    {
+        ikcp_flush(ls->k_handle);
+        tcpoverudpclientSendQueuedPackets(t, l, ls);
+    }
+    else
+    {
+        LOGW("TcpOverUdpClient: failed to queue the KCP close frame");
+    }
+    if (lineIsAlive(l) && ls->k_handle != NULL)
+    {
+        tcpoverudpclientReleaseClosing(t, l, ls);
+    }
 }
 
 void tcpoverudpclientRecordLinkQuality(tcpoverudpclient_lstate_t *ls, uint64_t now_ms, bool final)
@@ -133,12 +157,7 @@ bool tcpoverudpclientUpdateKcp(tcpoverudpclient_lstate_t *ls, bool flush)
     ikcp_update(ls->k_handle, (IUINT32) current_time);
     tcpoverudpclientRecordLinkQuality(ls, current_time, false);
 
-    while (lineIsAlive(l) && ls->k_handle != NULL && contextqueueLen(&ls->cq_u) > 0)
-    {
-        context_t *c = contextqueuePop(&ls->cq_u);
-        contextApplyOnNextTunnelU(c, t);
-        contextDestroy(c);
-    }
+    tcpoverudpclientSendQueuedPackets(t, l, ls);
 
     // Reconcile our own pressure only after KCP and packet output have settled.
     // ACK-only input can release the hold without producing another packet.
