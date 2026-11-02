@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Fixed
+- A finished WaterWall QUIC line disappeared without telling the other side, which kept the line open until its idle timeout and kept sending packets that opened new associations on the server. The side that finishes now sends a stream FIN after its last byte, and the other side closes the connection once it has read everything.
 - A QUIC line closing with data still queued gave up after 5 seconds and checked every millisecond while it waited; it now waits up to 30 seconds and wakes only when something can have changed.
 - WaterWall's HTTP server let queued HTTP/2 response data grow without limit, and releasing it overflowed the TCP write queue and reset the connection. It now pauses the service above 1 MiB of queued data, as the HTTP client already does.
 - A WaterWall profile failed to start with "TCP probe failed after fifteen attempts" whenever the first answer took over a second: the next probe attempt reset the wait for it and could never succeed on the same port.

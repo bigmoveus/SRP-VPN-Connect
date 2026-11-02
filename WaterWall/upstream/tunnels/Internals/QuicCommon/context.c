@@ -114,7 +114,14 @@ void quicFail(quic_context_t *context, const char *reason)
 {
     assert(context->attached && context->driving);
     quic_tstate_t *state = tunnelGetState(context->tunnel);
-    LOGW("%s: closing association: %s", state->client ? "QuicClient" : "QuicServer", reason);
+    if (strcmp(reason, WW_QUIC_CLOSE_FINISHED) == 0)
+    {
+        LOGD("%s: the peer closed the association", state->client ? "QuicClient" : "QuicServer");
+    }
+    else
+    {
+        LOGW("%s: closing association: %s", state->client ? "QuicClient" : "QuicServer", reason);
+    }
     quicRetire(context);
 }
 
@@ -262,20 +269,14 @@ quic_finish_scope_t quicBeginFinish(tunnel_t *t, line_t *l, quic_finish_side_t s
         }
         if (quicSurvived(context))
         {
-            if (mode == kQuicFinishFlushApplication)
+            if (mode == kQuicFinishFlushApplication && ww_quic_engine_ready(context->engine))
             {
-                ww_quic_storage_t storage;
-                ww_quic_engine_storage(context->engine, &storage);
-                if (storage.send_bytes > 0 || storage.plaintext_bytes > 0 || context->active_application != NULL ||
-                    bufferqueueGetBufCount(&context->application) > 0)
-                {
-                    context->final_flush       = true;
-                    context->final_deadline_us = ww_quic_now_us() + 30000000;
-                    context->close_drain_held  = true;
-                    lineBeginCloseDrain(context->line);
-                    quicArm(context, true);
-                    return scope;
-                }
+                context->final_flush       = true;
+                context->final_deadline_us = ww_quic_now_us() + kQuicFinalFlushTimeoutUs;
+                context->close_drain_held  = true;
+                lineBeginCloseDrain(context->line);
+                quicArm(context, true);
+                return scope;
             }
             scope.forward = sender == kQuicFinishFromNext || context->next_init_sent;
             quicDetach(context);

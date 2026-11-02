@@ -5,7 +5,9 @@
 
 enum
 {
-    kQuicPumpWork = 256
+    kQuicPumpWork             = 256,
+    kQuicFinalFlushTimeoutUs  = 30 * 1000 * 1000,
+    kQuicFinAcknowledgeWaitUs = 1000 * 1000
 };
 
 /* A detached context may outlive its lstate only until the synchronous driver
@@ -33,6 +35,7 @@ struct quic_context
     uint64_t                    final_deadline_us;
     link_quality_carrier_state_t quality; // client counters folded into the link totals
     bool                        final_flush : 1;
+    bool                        fin_sent : 1;
     bool                        carrier_drain : 1;
     bool                        close_drain_held : 1;
     bool                        attached : 1;

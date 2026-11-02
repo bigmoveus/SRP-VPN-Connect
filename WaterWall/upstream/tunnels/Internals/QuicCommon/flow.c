@@ -295,19 +295,40 @@ void quicReconcileFinal(quic_context_t *context)
     {
         return;
     }
+    if (! context->fin_sent && context->active_application == NULL && bufferqueueGetBufCount(&context->application) == 0)
+    {
+        /* A peer on a datagram carrier otherwise learns of the end only from its idle timeout,
+         * and the packets it sends until then open new associations. */
+        context->fin_sent = ww_quic_engine_finish(context->engine);
+        if (context->fin_sent)
+        {
+            quicFinalWire(context);
+            if (! quicSurvived(context))
+            {
+                return;
+            }
+        }
+    }
     ww_quic_storage_t storage;
     ww_quic_engine_storage(context->engine, &storage);
-    if (storage.send_bytes == 0 && storage.wire_bytes == 0 && storage.plaintext_bytes == 0 &&
-        context->active_application == NULL && bufferqueueGetBufCount(&context->application) == 0)
+    const uint64_t now          = ww_quic_now_us();
+    const bool     acknowledged = context->fin_sent && storage.send_bytes == 0;
+    /* A peer that closes on the FIN may never acknowledge it. */
+    if (acknowledged && now + kQuicFinAcknowledgeWaitUs < context->final_deadline_us)
     {
-        context->final_flush = false;
-        quicRetire(context);
-        return;
+        context->final_deadline_us = now + kQuicFinAcknowledgeWaitUs;
     }
-    if (ww_quic_now_us() < context->final_deadline_us)
+    if (now < context->final_deadline_us)
     {
         return;
     }
     context->final_flush = false;
-    quicFail(context, "graceful close acknowledgement deadline exceeded");
+    if (acknowledged)
+    {
+        quicRetire(context);
+    }
+    else
+    {
+        quicFail(context, "final data was not acknowledged in time");
+    }
 }
