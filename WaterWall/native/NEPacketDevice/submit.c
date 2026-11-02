@@ -1,6 +1,7 @@
 #include "NEPacketDevice/structure.h"
 
 #include "loggers/network_logger.h"
+#include "packet_batch.h"
 
 static void nepacketdeviceIngressCancelled(void *arg1, void *arg2, void *arg3, worker_message_cancel_reason_e reason)
 {
@@ -29,6 +30,10 @@ static void nepacketdeviceDeliverIngress(void *worker, void *arg1, void *arg2, v
     nepacketdevice_tstate_t *state = tunnelGetState(t);
     line_t                  *line  = tunnelchainGetWorkerPacketLine(tunnelGetChain(t), destination->wid);
 
+    // Without a batch lwIP holds the ACK of a lone segment for its 250 ms timer, and a sender repairing a
+    // lost stretch, which moves one segment per ACK, then crawls at four segments a second.
+    packet_batch_t batch;
+    packetBatchBegin(&batch);
     for (uint32_t i = 0; i < kNEPacketIngressDrainQuantum; ++i)
     {
         mutexLock(&state->ingress_mutex);
@@ -40,6 +45,7 @@ static void nepacketdeviceDeliverIngress(void *worker, void *arg1, void *arg2, v
         }
         packettunnelLifecycleAnchorPublish(t, line, buf);
     }
+    packetBatchEnd(&batch);
 
     mutexLock(&state->ingress_mutex);
     const bool more = state->ingress.count != 0 && state->ingress_open;
