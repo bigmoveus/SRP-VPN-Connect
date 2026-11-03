@@ -2,13 +2,13 @@
 
 Internal record of where each part of the documentation comes from. It is not linked from the site. Hosts, addresses and secrets are written as placeholders here too.
 
-Only the current state is documented: on the server, WaterWall 1.5.2 plus the repository's changes (code at `671f3fbb`, SHA-256 `86ea2ed5…`); the app at build 33 (TestFlight commit `7e1b6c42`), tested at `a03a8bc2` with the server at 2 DNS tries, and three cases at `be53fe6b`, which changes only test tools, with 5 DNS tries (3 November 2026). Results from earlier server versions or earlier app builds are not used.
+Only the current state is documented: on the server, WaterWall 1.5.2 plus the repository's changes (code at `8e7f7d76`, SHA-256 `446d098d…`, behind the Android chain results; the iPhone results ran at `671f3fbb`, SHA-256 `86ea2ed5…`); the app at build 33 (TestFlight commit `7e1b6c42`), tested at `a03a8bc2` with the server at 2 DNS tries, and three cases at `be53fe6b`, which changes only test tools, with 5 DNS tries (3 November 2026). Results from earlier server versions or earlier app builds are not used.
 
 ## Pages
 
 | Page | What it states | Source evidence | Date | Status |
 |---|---|---|---|---|
-| `waterwall/requirements.html` | Server OS, kernel, machine, WaterWall version, certbot | SSH to the test server: `/etc/os-release`, `uname -r`, `systemd-detect-virt`, `Waterwall --version` (1.5.2), SHA-256 of `/opt/waterwall/Waterwall` = `86ea2ed5…`, build record `/opt/waterwall/release-provenance`, `certbot --version` | 2026-11-03 | Read from the server |
+| `waterwall/requirements.html` | Server OS, kernel, machine, WaterWall version, certbot | SSH to the test server: `/etc/os-release`, `uname -r`, `systemd-detect-virt`, `Waterwall --version` (1.5.2), SHA-256 of `/opt/waterwall/Waterwall` = `446d098d…`, build record `/opt/waterwall/release-provenance`, `certbot --version` | 2026-11-03 | Read from the server |
 | `waterwall/requirements.html` | WaterWall inside the app | `WaterWall/UPSTREAM_VERSION` (tag v1.5.2) and the later commits touching `WaterWall/upstream` | 2026-11-03 | Read from the repository |
 | `waterwall/requirements.html` | Test phone | `xcrun devicectl device info details`: iPhone 12, iOS 27.2 build 24B119 | 2026-11-03 | Read from the phone |
 | `waterwall/installation.html` | Install paths, `core.json` with `"tries": 5`, systemd unit, renewal hook, NAT scripts, firewall rules, official release checksum | Files read over SSH from the test server; the original shell history was not kept, so these commands reproduce the recorded result | 2026-11-03 | Read from the server; commands not replayed |
@@ -26,7 +26,7 @@ Only the current state is documented: on the server, WaterWall 1.5.2 plus the re
 | `waterwall/faq.html` | Answers | The pages above | 2026-11-03 | — |
 | `waterwall/android.html`, `waterwall/ui-guide.html`, `waterwall/requirements.html`, `waterwall/installation.html`, `waterwall/troubleshooting.html`, `waterwall/getting-started.html`, `waterwall/faq.html` | Android: what differs, versions, install steps | Android app source at `0fc837e3`: `WaterWallClient.kt`, `WaterWallVpnService.kt`, `waterwall_jni.c`, `Profile.kt`, `ProfileEditor.kt`, `WaterWallConfigScreen.kt`, `AndroidManifest.xml`; `getprop` on the phone and the emulator; the install steps run from a fresh clone of the public repository | 2026-11-03 | Read from the source and observed |
 | `waterwall/android.html` | The two chain builders give the same answers | `ChainConfigParityTest` against the answers `Android/tools/chain_parity` records from the real `SRPWaterWallChainConfig.m`: 37,977 cases, which fails when a builder is changed on purpose | 2026-11-03 | Unit-tested |
-| `waterwall/android.html` | Android results of every production chain and of the checks around a connection | `evidence/android-waterwall-20261103.json`, from `run_production.py` and `run_lifecycle.py` in our private test tools, on the Samsung Galaxy A55 and the Android emulator | 2026-11-03 | Observed |
+| `waterwall/android.html` | Android results of every production chain and of the checks around a connection | `evidence/android-waterwall-20261103.json`, from `run_production.py` at `8e7f7d76` and `run_lifecycle.py` at `0fc837e3` in our private test tools, on the Samsung Galaxy A55 and the Android emulator | 2026-11-03 | Observed |
 | `waterwall/ui-guide.html` | Android screenshots | `docs_screenshots.py` in the same tools, on the emulator, example values only | 2026-11-03 | Real captures of the app |
 
 ## Scenarios
