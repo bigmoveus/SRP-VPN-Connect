@@ -2789,7 +2789,8 @@ static bool initializeSocketManagerPools(socket_manager_state_t *state)
  */
 static void detectSystemCapabilities(socket_manager_state_t *state)
 {
-#ifdef OS_UNIX
+    // An Android app may not run iptables, and trying holds up the start for 5 seconds per tool.
+#if defined(OS_UNIX) && ! defined(OS_ANDROID)
     state->iptables_installed = checkCommandAvailable("iptables");
     state->lsof_installed     = checkCommandAvailable("lsof");
 #if SUPPORT_V6

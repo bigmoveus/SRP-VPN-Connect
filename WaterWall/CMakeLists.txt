@@ -15,8 +15,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set(OPENSSL_TARGET_PLATFORM "darwin64-x86_64-cc" CACHE STRING "" FORCE)
     endif()
 endif()
-if(APPLE AND CMAKE_OSX_SYSROOT MATCHES "iphone")
-    # Static lwIP pools must fit within the Network Extension memory budget.
+if(ANDROID OR (APPLE AND CMAKE_OSX_SYSROOT MATCHES "iphone"))
+    # Static lwIP pools must fit within the Network Extension memory budget;
+    # Android keeps the limits that were tested on iOS.
     if("${WW_LWIP_MAX_TCP_FLOWS}" STREQUAL "")
         set(WW_LWIP_MAX_TCP_FLOWS 256)
     endif()
@@ -34,6 +35,10 @@ set(ALLOCATOR_BYPASS ON CACHE BOOL "" FORCE)
 # The iOS toolchain seeds a normal OPENSSL_CONFIGURE_OPTIONS during project(), which
 # shadows a cache entry on a fresh configure; extend the variable in scope instead.
 list(APPEND OPENSSL_CONFIGURE_OPTIONS no-asm)
+if(ANDROID)
+    # Without this OpenSSL takes the NDK's newest API level instead of the app's minSdk.
+    list(APPEND OPENSSL_CONFIGURE_OPTIONS "-D__ANDROID_API__=${ANDROID_PLATFORM_LEVEL}")
+endif()
 add_subdirectory(upstream)
 set(BUILD_TESTING ON CACHE BOOL "" FORCE)
 add_dependencies(ww srp_openssl_full_prefix)
@@ -117,6 +122,11 @@ target_link_libraries(SRPWaterWallBridge PUBLIC
     waterwall_quiche
     ww
 )
+
+# Android links a shared library from the bridge target; the rest packs Apple's static archive.
+if(ANDROID)
+    return()
+endif()
 
 set(SRP_QUIC_ARCHIVE_FILES)
 set(SRP_QUIC_ARCHIVE_TARGETS)

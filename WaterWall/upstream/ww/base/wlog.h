@@ -303,75 +303,6 @@ WW_EXPORT void      loggerDestroyDefaultLogger(void);
 
 #define checkWLogWriteLevel(level)        loggerCheckWriteLevel(wlog, level)
 
-// below for android
-#if defined(ANDROID) || defined(__ANDROID__)
-#include <android/log.h>
-#define LOG_TAG "JNI"
-/**
- * @brief Log a debug message through the default logger backend.
- *
- * @param fmt Format string.
- */
-static inline void wlogd(const char *fmt, ...)
-{
-    va_list myargs;
-    va_start(myargs, fmt);
-    __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, fmt, myargs);
-    va_end(myargs);
-}
-
-/**
- * @brief Log an info message through the default logger backend.
- *
- * @param fmt Format string.
- */
-static inline void wlogi(const char *fmt, ...)
-{
-    va_list myargs;
-    va_start(myargs, fmt);
-    __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, fmt, myargs);
-    va_end(myargs);
-}
-
-/**
- * @brief Log a warning message through the default logger backend.
- *
- * @param fmt Format string.
- */
-static inline void wlogw(const char *fmt, ...)
-{
-    va_list myargs;
-    va_start(myargs, fmt);
-    __android_log_vprint(ANDROID_LOG_WARN, LOG_TAG, fmt, myargs);
-    va_end(myargs);
-}
-
-/**
- * @brief Log an error message through the default logger backend.
- *
- * @param fmt Format string.
- */
-static inline void wloge(const char *fmt, ...)
-{
-    va_list myargs;
-    va_start(myargs, fmt);
-    __android_log_vprint(ANDROID_LOG_ERROR, LOG_TAG, fmt, myargs);
-    va_end(myargs);
-}
-/**
- * @brief Log a fatal message through the default logger backend.
- *
- * @param fmt Format string.
- */
-static inline void wlogf(const char *fmt, ...)
-{
-    va_list myargs;
-    va_start(myargs, fmt);
-    __android_log_vprint(ANDROID_LOG_FATAL, LOG_TAG, fmt, myargs);
-    va_end(myargs);
-}
-#else
-
 /**
  * @brief Log a debug message through the default logger backend.
  *
@@ -435,8 +366,6 @@ static void wlogf(const char *fmt, ...)
     loggerPrintVA(wlog, LOG_LEVEL_FATAL, fmt, myargs);
     va_end(myargs);
 }
-#endif
-
 // macro alias
 #if ! defined(LOGD) && ! defined(LOGI) && ! defined(LOGW) && ! defined(LOGE) && ! defined(LOGF)
 #define LOGD wlogd

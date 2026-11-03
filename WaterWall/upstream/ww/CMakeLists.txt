@@ -1113,6 +1113,13 @@ if(PROJECT_REQUIRES_OPENSSL)
         message(FATAL_ERROR "OpenSSL backend is enabled, but OpenSSL::SSL/OpenSSL::Crypto were not created")
     endif()
 
+    # OpenSSL's Makefile names the NDK compiler without a path, so every make
+    # needs the PATH that openssl-cmake built for its own build step.
+    set(SRP_OPENSSL_MAKE_ENV)
+    if(ANDROID)
+        set(SRP_OPENSSL_MAKE_ENV "${CMAKE_COMMAND}" -E env "PATH=$ENV{PATH}" --)
+    endif()
+
     # openssl-cmake's Makefile parser can fail to expose one of the imported
     # archive paths when it is embedded as a subproject. Keep fresh
     # backend-matrix build trees usable by declaring the missing crypto archive
@@ -1138,7 +1145,7 @@ if(PROJECT_REQUIRES_OPENSSL)
         find_program(WW_OPENSSL_MAKE_EXECUTABLE NAMES gmake make REQUIRED)
         add_custom_command(
             OUTPUT "${OPENSSL_CRYPTO_LIBRARY}"
-            COMMAND "${WW_OPENSSL_MAKE_EXECUTABLE}" -j4 build_libs
+            COMMAND ${SRP_OPENSSL_MAKE_ENV} "${WW_OPENSSL_MAKE_EXECUTABLE}" -j4 build_libs
             WORKING_DIRECTORY "${WW_OPENSSL_BUILD_DIR}"
             VERBATIM
         )
@@ -1158,8 +1165,8 @@ if(PROJECT_REQUIRES_OPENSSL)
                     "${openssl-source_SOURCE_DIR}" "${SRP_OPENSSL_PREFIX_HEADER}" "${WW_OPENSSL_BUILD_DIR}"
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${SRP_OPENSSL_PREFIX_HEADER}"
                     "${WW_OPENSSL_BUILD_DIR}/srp_openssl_prefix.h"
-            COMMAND "${WW_OPENSSL_MAKE_EXECUTABLE}" clean
-            COMMAND "${WW_OPENSSL_MAKE_EXECUTABLE}" -j4 build_libs
+            COMMAND ${SRP_OPENSSL_MAKE_ENV} "${WW_OPENSSL_MAKE_EXECUTABLE}" clean
+            COMMAND ${SRP_OPENSSL_MAKE_ENV} "${WW_OPENSSL_MAKE_EXECUTABLE}" -j4 build_libs
             WORKING_DIRECTORY "${WW_OPENSSL_BUILD_DIR}"
             VERBATIM)
         if(TARGET ww-openssl-build-workaround)
