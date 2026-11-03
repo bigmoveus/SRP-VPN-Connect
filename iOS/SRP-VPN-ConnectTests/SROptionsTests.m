@@ -7,6 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
+#import <objc/runtime.h>
 #import "NodeModel.h"
 #import "CheckConnectData.h"
 #import "SRPEapConfig.h"
@@ -54,6 +55,7 @@
 
 @interface UIViewController (SRPHomeScreenTesting)
 - (void)pingAllProfiles;
+- (void)editNode;
 @end
 
 @interface UIViewController (SRPWaterWallConfigTesting)
@@ -278,6 +280,68 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     m.logLevel = 1;
     d = [CheckConnectData checkConnectParmer:m];
     XCTAssertEqualObjects(d[@"log_level"], @"expert");
+}
+
+#pragma mark - copy of a profile
+
+/// Gives every property a value a new object does not start with, so a field a copy misses shows.
+static void SRPFillEveryField(id object) {
+    unsigned int count = 0;
+    objc_property_t *properties = class_copyPropertyList([object class], &count);
+    for (unsigned int i = 0; i < count; i++) {
+        NSString *name = @(property_getName(properties[i]));
+        NSString *attributes = @(property_getAttributes(properties[i]));
+        if ([attributes hasPrefix:@"T@\"NSString\""]) {
+            [object setValue:[@"value of " stringByAppendingString:name] forKey:name];
+        } else if ([attributes hasPrefix:@"T@"]) {
+            SRPFillEveryField([object valueForKey:name]);
+        } else if ([attributes hasPrefix:@"Tq"]) {
+            [object setValue:@(100 + i) forKey:name];
+        } else {
+            [object setValue:@(![[object valueForKey:name] boolValue]) forKey:name];
+        }
+    }
+    free(properties);
+}
+
+/// What a profile holds, to compare two of them field by field.
+static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
+    NSMutableDictionary *fields = [NSMutableDictionary new];
+    unsigned int count = 0;
+    objc_property_t *properties = class_copyPropertyList(NodeModel.class, &count);
+    for (unsigned int i = 0; i < count; i++) {
+        NSString *name = @(property_getName(properties[i]));
+        fields[name] = [profile valueForKey:name] ?: NSNull.null;
+    }
+    free(properties);
+    fields[@"eapConfig"] = [profile.eapConfig toDictionary];
+    return fields;
+}
+
+- (void)testProfileCopyCarriesEveryField {
+    NodeModel *model = [NodeModel new];
+    SRPFillEveryField(model);
+    model.selectNode = [NodeModel new];
+    NSDictionary *fields = SRPFieldsOfProfile(model);
+    NSDictionary *fresh = SRPFieldsOfProfile([NodeModel new]);
+    for (NSString *name in fields) {
+        XCTAssertNotEqualObjects(fields[name], fresh[name], @"%@ must be set for this test to see it", name);
+    }
+    NodeModel *copy = [model copy];
+    XCTAssertFalse(copy == model);
+    XCTAssertEqualObjects(SRPFieldsOfProfile(copy), fields);
+    // EAP settings are edited inside their own object
+    copy.eapConfig.peapEnabled = !copy.eapConfig.peapEnabled;
+    XCTAssertEqualObjects(SRPFieldsOfProfile(model), fields);
+}
+
+// An empty field keeps following the protocol instead of storing the fallback its getter shows
+- (void)testProfileCopyKeepsEmptyFieldsEmpty {
+    NodeModel *copy = [[NodeModel new] copy];
+    copy.protocolType = @"waterwall";
+    copy.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
+    XCTAssertEqualObjects(copy.nodeName, @"WaterWall VPN");
+    XCTAssertEqualObjects(copy.port, @"51820");
 }
 
 #pragma mark - decision helpers
@@ -4509,6 +4573,243 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(edited.protocolType, @"sstp");
     XCTAssertEqualObjects(edited.port, @"8443");
     XCTAssertNil(edited.waterwallConfigJSON);
+}
+
+- (NSArray<NSString *> *)profileTypes {
+    return [[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:[NodeModel new]] valueForKey:@"types"];
+}
+
+/// Every stored field is set, and the editor accepts the result for every protocol.
+- (NodeModel *)editableProfileOfType:(NSString *)type {
+    NodeModel *model = [NodeModel new];
+    SRPFillEveryField(model);
+    model.protocolType = type;
+    model.port = @"8443";
+    model.ovpnStunnelPort = @"9443";
+    model.customSni = @"sni.example";
+    model.seConnections = 7;
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    // Positions of the editor's segmented controls
+    model.proxyMode = model.tlsFragMode = model.onSleep = model.logLevel = 1;
+    return model;
+}
+
+/// Types into, flips and moves every control in the rows of a table screen, as a user can.
+- (void)changeEveryControlOfScreen:(UITableViewController *)screen {
+    UITableView *table = screen.tableView;
+    for (NSInteger section = 0; section < [screen numberOfSectionsInTableView:table]; section++) {
+        // A control can add or remove rows, so their number is read again each time
+        for (NSInteger row = 0; row < [screen tableView:table numberOfRowsInSection:section]; row++) {
+            UIView *control = [screen tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:section]].accessoryView;
+            if (![control isKindOfClass:UIControl.class]) control = control.subviews.firstObject;   // a field beside a button
+            if ([control isKindOfClass:UITextField.class]) {
+                ((UITextField *)control).text = @"12";
+                [(UIControl *)control sendActionsForControlEvents:UIControlEventEditingChanged];
+            } else if ([control isKindOfClass:UISwitch.class]) {
+                ((UISwitch *)control).on = !((UISwitch *)control).on;
+                [(UIControl *)control sendActionsForControlEvents:UIControlEventValueChanged];
+            } else if ([control isKindOfClass:UISegmentedControl.class]) {
+                UISegmentedControl *segments = (UISegmentedControl *)control;
+                segments.selectedSegmentIndex = (segments.selectedSegmentIndex + 1) % segments.numberOfSegments;
+                [segments sendActionsForControlEvents:UIControlEventValueChanged];
+            }
+        }
+    }
+}
+
+- (void)tapCancelOnProfileEditor:(UIViewController *)editor {
+    UIBarButtonItem *cancel = editor.navigationItem.leftBarButtonItem;
+    [UIApplication.sharedApplication sendAction:cancel.action to:cancel.target from:cancel forEvent:nil];
+}
+
+- (void)testProfileEditorCancelLeavesEveryProtocolAsItWas {
+    for (NSString *type in [self profileTypes]) {
+        NodeModel *model = [self editableProfileOfType:type];
+        NSDictionary *before = SRPFieldsOfProfile(model);
+        NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+        CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+        [self changeEveryControlOfScreen:editor];
+        XCTAssertNotEqualObjects(SRPFieldsOfProfile([editor valueForKey:@"modal"]), before, @"%@", type);
+        [self tapCancelOnProfileEditor:editor];
+        XCTAssertEqual(saved.count, 0U, @"%@", type);
+        XCTAssertEqualObjects(SRPFieldsOfProfile(model), before, @"%@", type);
+    }
+}
+
+// Rows that open a screen, in every protocol: a row that imports a file stays on the editor.
+- (void)testProfileEditorGivesItsScreensTheCopy {
+    for (NSString *type in [self profileTypes]) {
+        NodeModel *model = [self editableProfileOfType:type];
+        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+        UINavigationController *navigation = editor.navigationController;
+        NodeModel *edited = [editor valueForKey:@"modal"];
+        XCTAssertFalse(edited == model, @"%@", type);
+        NSUInteger opened = 0;
+        for (NSInteger section = 0; section < [editor numberOfSectionsInTableView:editor.tableView]; section++) {
+            for (NSInteger row = 0; row < [editor tableView:editor.tableView numberOfRowsInSection:section]; row++) {
+                NSIndexPath *path = [NSIndexPath indexPathForRow:row inSection:section];
+                UITableViewCell *cell = [editor tableView:editor.tableView cellForRowAtIndexPath:path];
+                if (cell.accessoryType != UITableViewCellAccessoryDisclosureIndicator) continue;
+                [editor tableView:editor.tableView didSelectRowAtIndexPath:path];
+                if (navigation.topViewController == editor) continue;
+                XCTAssertTrue([navigation.topViewController valueForKey:@"model"] == edited, @"%@: %@", type, cell.textLabel.text);
+                [navigation popToRootViewControllerAnimated:NO];
+                opened++;
+            }
+        }
+        XCTAssertGreaterThan(opened, 0U, @"%@", type);   // at least the protocol picker
+    }
+}
+
+- (void)testProfileEditorCancelDropsWhatItsScreensChanged {
+    NodeModel *model = [self editableProfileOfType:@"waterwall"];
+    NSDictionary *before = SRPFieldsOfProfile(model);
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    UINavigationController *navigation = editor.navigationController;
+    NodeModel *edited = [editor valueForKey:@"modal"];
+
+    [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    [(UIViewController *)navigation.topViewController applicationChanged:@"trojan"];
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:edited.waterwallConfigJSON][@"application"], @"trojan");
+    XCTAssertNil(edited.password);
+    [navigation popToRootViewControllerAnimated:NO];
+
+    [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    UITableViewController *picker = (UITableViewController *)navigation.topViewController;
+    [picker tableView:picker.tableView didSelectRowAtIndexPath:
+        [NSIndexPath indexPathForRow:[[self profileTypes] indexOfObject:@"wireguard"] inSection:0]];
+    XCTAssertEqualObjects(edited.protocolType, @"wireguard");
+    XCTAssertEqualObjects(edited.port, @"51820");
+    XCTAssertNil(edited.wgConfig);
+    [navigation popToRootViewControllerAnimated:NO];
+
+    [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:1]];
+    [self changeEveryControlOfScreen:(UITableViewController *)navigation.topViewController];
+    XCTAssertEqualObjects(edited.wgAddress, @"12");
+    [navigation popToRootViewControllerAnimated:NO];
+
+    edited.protocolType = @"sstp";
+    edited.authMethod = @"password";
+    [editor.tableView reloadData];
+    [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:2]];
+    XCTAssertEqual(navigation.viewControllers.count, 2U);
+    [self changeEveryControlOfScreen:(UITableViewController *)navigation.topViewController];
+    XCTAssertNotEqualObjects([edited.eapConfig toDictionary], before[@"eapConfig"]);
+
+    [self tapCancelOnProfileEditor:editor];
+    XCTAssertEqualObjects(SRPFieldsOfProfile(model), before);
+}
+
+- (void)testProfileEditorSaveChangesOnlyWhatWasEditedForEveryProtocol {
+    for (NSString *type in [self profileTypes]) {
+        NodeModel *model = [self editableProfileOfType:type];
+        NSMutableDictionary *expected = [SRPFieldsOfProfile(model) mutableCopy];
+        expected[@"desc"] = @"edited";
+        NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
+        CreateVC *create = [self profileEditorHostForModel:model saved:saved];
+        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+        UITextField *description = (UITextField *)[editor tableView:editor.tableView
+                                              cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]].accessoryView;
+        description.text = @"edited";
+        [description sendActionsForControlEvents:UIControlEventEditingChanged];
+        XCTAssertNil([editor validationMessage], @"%@", type);
+        [self tapSaveOnProfileEditor:editor];
+        XCTAssertEqual(saved.count, 1U, @"%@", type);
+        XCTAssertEqualObjects(SRPFieldsOfProfile(saved.firstObject), expected, @"%@", type);
+    }
+}
+
+- (void)waitForCondition:(BOOL (^)(void))condition {
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5];
+    while (!condition() && deadline.timeIntervalSinceNow > 0) {
+        [NSRunLoop.currentRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+    }
+}
+
+// Through the home screen, as the user does it: X leaves the list, Connect, the saved profiles and the Keychain alone,
+// and Save reaches all of them.
+- (void)testHomeScreenKeepsTheProfileOnCancelAndTakesTheEditsOnSave {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id profilesBefore = [defaults objectForKey:@"nodeArray"];
+    // This bundle compiles NodeModel too, with a singleton of its own; the home screen and Connect use the app's.
+    NodeModel *shared = [NSClassFromString(@"NodeModel") shareInstance];
+    NodeModel *selectedBefore = shared.selectNode;
+    NodeModel *model = [self editableProfileOfType:@"waterwall"];
+    model.passwordKey = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    model.waterwallSecretRef = model.passwordKey;
+    model.waterwallOuterSecretRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    model.proxyPasswordRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    model.wgSecretRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    NSString *passwordBefore = model.password;
+    XCTAssertTrue([SRPKeychain setPassword:passwordBefore forKey:model.passwordKey]);
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithObject:model] forKey:@"nodaArray"];
+    [(id<UITableViewDelegate>)home tableView:[home valueForKey:@"homeTableview"]
+                     didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertTrue(shared.selectNode == model);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.rootViewController = home;
+    [window makeKeyAndVisible];
+    UIViewController *(^openEditor)(void) = ^UIViewController *{
+        [home editNode];
+        CreateVC *create = (CreateVC *)home.presentedViewController;
+        [create loadViewIfNeeded];
+        [self waitForCondition:^BOOL{ return !create.isBeingPresented; }];
+        return [self profileEditorOfHost:create];
+    };
+    NSArray<NodeModel *> *(^profiles)(void) = ^NSArray<NodeModel *> *{ return [home valueForKey:@"nodaArray"]; };
+    void (^edit)(UIViewController *) = ^(UIViewController *editor) {
+        NodeModel *edited = [editor valueForKey:@"modal"];
+        edited.desc = @"edited";
+        edited.password = @"edited secret";
+    };
+    @try {
+        UIViewController *editor = openEditor();
+        edit(editor);
+        [self tapCancelOnProfileEditor:editor];
+        [self waitForCondition:^BOOL{ return home.presentedViewController == nil; }];
+        XCTAssertNil(home.presentedViewController);
+        XCTAssertEqualObjects(profiles().firstObject.desc, @"value of desc");
+        NSDictionary *connect = [CheckConnectData connectParametersForProfile:shared.selectNode amongProfiles:profiles()];
+        XCTAssertEqualObjects(connect[@"desc"], @"value of desc");
+        XCTAssertEqualObjects(connect[@"password"], passwordBefore);
+        [CheckConnectData storedParametersForProfile:profiles().firstObject];
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:model.passwordKey], passwordBefore);
+
+        editor = openEditor();
+        edit(editor);
+        [self tapSaveOnProfileEditor:editor];
+        [self waitForCondition:^BOOL{
+            return home.presentedViewController == nil && [profiles().firstObject.desc isEqualToString:@"edited"];
+        }];
+        XCTAssertEqualObjects(profiles().firstObject.desc, @"edited");
+        XCTAssertTrue(shared.selectNode == profiles().firstObject, @"Connect uses the saved profile");
+        connect = [CheckConnectData connectParametersForProfile:shared.selectNode amongProfiles:profiles()];
+        XCTAssertEqualObjects(connect[@"desc"], @"edited");
+        XCTAssertEqualObjects(connect[@"password"], @"edited secret");
+        NSDictionary *stored = [defaults arrayForKey:@"nodeArray"].firstObject;
+        XCTAssertEqualObjects(stored[@"desc"], @"edited");
+        XCTAssertEqualObjects(stored[@"node_id"], model.nodeId);
+        XCTAssertEqualObjects(stored[@"password_key"], model.passwordKey, @"The profile keeps its Keychain entries");
+        XCTAssertEqualObjects(stored[@"ww_outer_secret_ref"], model.waterwallOuterSecretRef);
+        XCTAssertEqualObjects(stored[@"proxy_pass_ref"], model.proxyPasswordRef);
+        XCTAssertEqualObjects(stored[@"wg_secret_ref"], model.wgSecretRef);
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:model.passwordKey], @"edited secret");
+    } @finally {
+        [home dismissViewControllerAnimated:NO completion:nil];
+        window.hidden = YES;
+        [previous makeKeyWindow];
+        [defaults setObject:profilesBefore forKey:@"nodeArray"];
+        shared.selectNode = selectedBefore;
+        [CheckConnectData deleteStoredSecretsOfProfile:model];
+    }
 }
 
 - (void)testPickingTheCurrentProtocolKeepsTheProfile {

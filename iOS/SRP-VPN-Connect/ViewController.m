@@ -381,6 +381,7 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
     [create createNodeBackResult:^(NodeModel * _Nonnull modal) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [weakSelf.nodaArray replaceObjectAtIndex:self.selectIndex withObject:modal];
+            [NodeModel shareInstance].selectNode = modal;   // Connect reads the profile from here
             [userNodeData shareInstance].nodeArray = weakSelf.nodaArray;
             [weakSelf.homeTableview reloadData];
         });

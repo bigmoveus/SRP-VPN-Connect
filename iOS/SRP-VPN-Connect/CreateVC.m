@@ -1915,7 +1915,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     [super viewDidLoad];
 
     if(_t_modal) {
-        self.modal = _t_modal;
+        self.modal = [_t_modal copy];   // Cancel drops the copy; Save hands it back to replace the profile
     }else{
         self.modal = [NodeModel new];
         self.modal.MSCHAP2 = TRUE;   // SSTP defaults, kept for a switch to SSTP

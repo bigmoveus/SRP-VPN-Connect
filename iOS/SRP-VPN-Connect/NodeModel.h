@@ -5,7 +5,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface NodeModel : NSObject
+@interface NodeModel : NSObject <NSCopying>
 
 @property (nonatomic,copy) NSString * nodeName;
 @property (nonatomic,copy) NSString * server;

@@ -24,6 +24,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - Uploads through a raw IPv4 chain lost packets each time the outer connection paused: WaterWall's packet device kept delivering what it had queued, and `PacketsToStream` drops what arrives while it is paused. The packets now wait in the queue until it resumes. On the Android test phone two uploads of 16 MiB at once went from 30 to 40 seconds to 7.5, with almost nothing sent twice.
 - The iOS unit tests on a device stopped building when WaterWall's bridge header moved to `WaterWall/native`; their target now searches that folder.
 - The Android build steps now name the SDK folder: a fresh clone has no `local.properties`, so Gradle could not find it.
+- The ✕ in the iOS profile editor now discards what was changed. The editor changed the saved profile directly, so the changes stayed after ✕: the list showed them, Connect used them, and the next save of any profile stored them. It now works on a copy, for every protocol and all of its screens, and Save puts that copy in place of the profile with the same Keychain entries.
 
 ## 1.2.0 (33) - 2026-11-03
 

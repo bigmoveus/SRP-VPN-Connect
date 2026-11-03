@@ -3,6 +3,7 @@
 #import "CheckConnectData.h"
 #import "SRPEapConfig.h"
 #import "../Core/SRPCore/SRPWaterWallChainConfig.h"
+#import <objc/runtime.h>
 
 @implementation NodeModel
 static NodeModel * modal = nil;
@@ -46,6 +47,21 @@ static NodeModel * modal = nil;
         return NO;
     }
     return YES;
+}
+
+// The ivars, because getters such as nodeName and port give a fallback that a copy must not store.
+-(id)copyWithZone:(NSZone*)zone {
+    NodeModel *copy = [[NodeModel allocWithZone:zone] init];
+    unsigned int count = 0;
+    Ivar *ivars = class_copyIvarList(NodeModel.class, &count);
+    for (unsigned int i = 0; i < count; i++) {
+        NSString *name = @(ivar_getName(ivars[i]));
+        [copy setValue:[self valueForKey:name] forKey:name];
+    }
+    free(ivars);
+    // The one field edited inside its own object
+    copy->_eapConfig = [SRPEapConfig fromDictionary:[self.eapConfig toDictionary]];
+    return copy;
 }
 
 -(SRPEapConfig*)eapConfig {
