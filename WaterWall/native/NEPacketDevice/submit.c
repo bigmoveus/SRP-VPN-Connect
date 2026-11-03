@@ -37,7 +37,8 @@ static void nepacketdeviceDeliverIngress(void *worker, void *arg1, void *arg2, v
     for (uint32_t i = 0; i < kNEPacketIngressDrainQuantum; ++i)
     {
         mutexLock(&state->ingress_mutex);
-        sbuf_t *buf = state->ingress_open ? nepacketdeviceQueuePop(&state->ingress) : NULL;
+        // A paused PacketsToStream drops what still arrives, so packets wait here until it resumes.
+        sbuf_t *buf = state->ingress_open && ! state->ingress_paused ? nepacketdeviceQueuePop(&state->ingress) : NULL;
         mutexUnlock(&state->ingress_mutex);
         if (buf == NULL)
         {
@@ -48,7 +49,7 @@ static void nepacketdeviceDeliverIngress(void *worker, void *arg1, void *arg2, v
     packetBatchEnd(&batch);
 
     mutexLock(&state->ingress_mutex);
-    const bool more = state->ingress.count != 0 && state->ingress_open;
+    const bool more = state->ingress.count != 0 && state->ingress_open && ! state->ingress_paused;
     if (! more)
     {
         state->ingress_delivery_pending = false;
@@ -57,6 +58,25 @@ static void nepacketdeviceDeliverIngress(void *worker, void *arg1, void *arg2, v
     if (more && sendWorkerMessageForceQueueWithCleanup(
                     destination->wid, nepacketdeviceDeliverIngress, nepacketdeviceIngressCancelled, t, NULL, NULL) !=
                     kWorkerMessageSubmitAccepted)
+    {
+        LOGW("NEPacketDevice: ingress continuation was cancelled");
+    }
+}
+
+void nepacketdeviceResumeIngress(tunnel_t *t)
+{
+    nepacketdevice_tstate_t *state = tunnelGetState(t);
+    mutexLock(&state->ingress_mutex);
+    state->ingress_paused = false;
+    const bool schedule = state->ingress_open && state->ingress.count != 0 && ! state->ingress_delivery_pending;
+    if (schedule)
+    {
+        state->ingress_delivery_pending = true;
+    }
+    mutexUnlock(&state->ingress_mutex);
+    if (schedule && sendWorkerMessageForceQueueWithCleanup(
+                        0, nepacketdeviceDeliverIngress, nepacketdeviceIngressCancelled, t, NULL, NULL) !=
+                        kWorkerMessageSubmitAccepted)
     {
         LOGW("NEPacketDevice: ingress continuation was cancelled");
     }

@@ -46,8 +46,5 @@ void nepacketdeviceTunnelDownstreamPause(tunnel_t *t, line_t *line) {
 
 void nepacketdeviceTunnelDownstreamResume(tunnel_t *t, line_t *line) {
   discard line;
-  nepacketdevice_tstate_t *state = tunnelGetState(t);
-  mutexLock(&state->ingress_mutex);
-  state->ingress_paused = false;
-  mutexUnlock(&state->ingress_mutex);
+  nepacketdeviceResumeIngress(t);
 }

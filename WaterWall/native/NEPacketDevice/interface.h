@@ -13,3 +13,4 @@ void nepacketdeviceTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *cont
 void nepacketdeviceTunnelWritePayload(tunnel_t *t, line_t *line, sbuf_t *buf);
 void nepacketdeviceTunnelDownstreamPause(tunnel_t *t, line_t *line);
 void nepacketdeviceTunnelDownstreamResume(tunnel_t *t, line_t *line);
+void nepacketdeviceResumeIngress(tunnel_t *t);
