@@ -207,14 +207,15 @@ systemctl status waterwall.service</code></pre>
 <h3 id="install-the-app-android">Android</h3>
 <p>The Android app is not in a store yet. You build a test APK from the source on a computer with <a href="https://developer.android.com/studio">Android Studio</a>, which brings Java and the Android SDK. Gradle downloads the NDK and CMake versions it needs. The APK is signed with your computer's debug key and is meant for testing.</p>
 <ol>
-  <li>Build it. On macOS, Android Studio's Java is the path below; on another system, use the one in your Android Studio folder.
+  <li>Build it. On macOS, Android Studio's Java and its SDK are at the paths below; on another system, use the ones on your computer.
 <pre data-label="Your computer"><code class="language-bash">git clone https://github.com/bigmoveus/SRP-VPN-Connect
 cd SRP-VPN-Connect/Android
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
 ./gradlew :app:assembleDebug</code></pre>
   </li>
-  <li>Connect the phone with <strong>USB debugging</strong> on (in <strong>Developer options</strong>), or start an arm64 emulator in Android Studio, and install the APK with <code>adb</code> from the Android SDK:
-<pre data-label="Your computer"><code class="language-bash">adb install app/build/outputs/apk/debug/app-debug.apk</code></pre>
+  <li>Connect the phone with <strong>USB debugging</strong> on (in <strong>Developer options</strong>), or start an arm64 emulator in Android Studio, and install the APK:
+<pre data-label="Your computer"><code class="language-bash">"$ANDROID_HOME/platform-tools/adb" install -r app/build/outputs/apk/debug/app-debug.apk</code></pre>
   </li>
 </ol>
 <div class="callout verify">

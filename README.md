@@ -159,11 +159,12 @@ The public beta and the source repository may not always be on the same revision
 
 `Android/` holds the Android app. It has WaterWall with the same screens, options, messages and connection rules as the iOS app, and the same [documentation](tutorial/waterwall/android.html). The other protocols, the profile editor and reconnecting come later.
 
-Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java:
+Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java and SDK:
 
 ```bash
 cd Android
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
 ./gradlew :app:assembleDebug
 ```
 
