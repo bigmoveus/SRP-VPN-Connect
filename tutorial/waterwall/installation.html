@@ -37,10 +37,10 @@
 
 <h3 id="server-program">1. Build the WaterWall program</h3>
 <p>Our server runs WaterWall 1.5.2 plus the changes in the <a href="https://github.com/bigmoveus/SRP-VPN-Connect">SRP VPN Connect repository</a>, built from source. <strong>Every test result on this site was measured against this program, not against an official WaterWall release</strong>, so an official release may not give the same results.</p>
-<p>First install the build tools as <a href="https://github.com/radkesvat/WaterWall#quick-build-fresh-ubuntu--generic-linux-vps">WaterWall's readme</a> describes. Then build the source we built, which is commit <code>c00db223</code> in the public repository (<code>671f3fbb</code> in our own history):</p>
+<p>First install the build tools as <a href="https://github.com/radkesvat/WaterWall#quick-build-fresh-ubuntu--generic-linux-vps">WaterWall's readme</a> describes. Then build the source we built, which is commit <code>6e5134d4</code> in the public repository (<code>671f3fbb</code> in our own history):</p>
 <pre data-label="Server"><code class="language-bash">git clone https://github.com/bigmoveus/SRP-VPN-Connect
 cd SRP-VPN-Connect
-git checkout c00db223
+git checkout 6e5134d4
 cd WaterWall/upstream
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DWW_ENABLE_IPO=OFF \
   -DOPENSSL_CONFIGURE_OPTIONS=no-asm -Drouter_enable_quic_sniffing=OFF -Drouter_enable_http2_sniffing=OFF
