@@ -115,9 +115,15 @@ enum
     kPtcDefaultMaxPendingBytes      = TCP_SND_BUF,
     kPtcMinMaxPendingBytes          = 1024U,
     kPtcMaxMaxPendingBytes          = 67108864U,
-    kPtcDefaultMaxTotalPendingBytes = 16777216U,
+    /*
+     * Every TCP flow reserves `max-pending-bytes` of this total for its whole life, idle or
+     * not, so the total decides how many flows may exist. One browser page opens dozens and a
+     * vanished client's flows stay about 11 minutes. This default is for server chains; the
+     * apps set their own smaller total. A reservation allocates nothing.
+     */
+    kPtcDefaultMaxTotalPendingBytes = 1073741824U,
     kPtcMinMaxTotalPendingBytes     = 65536U,
-    kPtcMaxMaxTotalPendingBytes     = 67108864U,
+    kPtcMaxMaxTotalPendingBytes     = 1073741824U,
     /* Fixed headroom for already-delivered input; not a pool allocation size. */
     kPtcPendingDeliveryHeadroom = 1024U * 1024U,
 
