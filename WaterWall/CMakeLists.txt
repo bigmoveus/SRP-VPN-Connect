@@ -42,7 +42,7 @@ add_dependencies(VmessClient srp_openssl_full_prefix)
 target_include_directories(tcp_over_udp_fec PRIVATE upstream/ww/libc)
 
 add_library(SRPWaterWallBridge STATIC
-    ../Core/SRPCore/SRPWaterWallBridge.c
+    native/SRPWaterWallBridge.c
     native/hosted_runtime.c
     upstream/core/core_settings.c
     upstream/core/imported_tunnels.c
@@ -78,7 +78,6 @@ target_compile_definitions(SRPWaterWallBridge PRIVATE
     INCLUDE_TCP_OVER_UDP_CLIENT=1
 )
 target_include_directories(SRPWaterWallBridge PUBLIC
-    ../Core/SRPCore
     native
     upstream
     upstream/core

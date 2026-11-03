@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Changed
+- The repository now keeps each platform in its own folder: the iOS app moved from the top level into `iOS/`, leaving room for `Android/` beside it. `WaterWall/` stays at the top because both apps build it, the C bridge over it moved from `Core/SRPCore` into `WaterWall/native`, and the WaterWall examples moved into `WaterWall/examples`. The iOS app itself is unchanged: the same files in the bundle, the same symbols and segment sizes, and all unit tests pass.
 - The WaterWall documentation now describes only the current state: TestFlight build 33 against our own server program, WaterWall 1.5.2 plus the repository's changes, from new test runs of all 163 scenarios. Troubleshooting explains what the server's DNS timeout and the packet budget's refusal mean, and the installation page builds the server program from source and sets `"tries": 5` in `core.json`.
 
 ### Fixed

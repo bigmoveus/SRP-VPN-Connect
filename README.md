@@ -10,9 +10,9 @@ SRP VPN Connect is an iPhone and iPad application for learning how VPN clients a
 
 <table>
   <tr>
-    <td><img src="docs/screenshots/home.png" width="260" alt="Profile list with connection status and automatic latency"></td>
-    <td><img src="docs/screenshots/add-profile.png" width="260" alt="Empty profile editor"></td>
-    <td><img src="docs/screenshots/protocols.png" width="260" alt="Protocol selection"></td>
+    <td><img src="iOS/Docs/screenshots/home.png" width="260" alt="Profile list with connection status and automatic latency"></td>
+    <td><img src="iOS/Docs/screenshots/add-profile.png" width="260" alt="Empty profile editor"></td>
+    <td><img src="iOS/Docs/screenshots/protocols.png" width="260" alt="Protocol selection"></td>
   </tr>
   <tr>
     <td align="center">Profiles and automatic latency</td>
@@ -78,7 +78,7 @@ For connection input, the app places Router after PacketsToConnection. Smart Rou
 
 The **BGP4 Framing** switch inserts BGP4 between the application and the outer protocol. For example, VLESS, BGP4, TLS and KCP can be combined without treating BGP4 as a replacement for TLS. Profiles saved by older versions that use BGP4 as the outer protocol remain supported.
 
-The [client example](Examples/WaterWall/client.example.json) and [matching server example](Examples/WaterWall/server.example.json) demonstrate that combination with placeholder hostnames, credentials and certificate paths. Replace those placeholders with your own values. The client example is the node configuration consumed by the app; it is not a standalone desktop launcher or a ready-to-use VPN account. For a standalone server, reference `server.example.json` from the `configs` array in a WaterWall core configuration and build with the server nodes enabled. Both peers must use the same protocol order. UDP port 443 must be reachable for the KCP example; TLS runs inside KCP, not as a substitute for it.
+The [client example](WaterWall/examples/client.example.json) and [matching server example](WaterWall/examples/server.example.json) demonstrate that combination with placeholder hostnames, credentials and certificate paths. Replace those placeholders with your own values. The client example is the node configuration consumed by the app; it is not a standalone desktop launcher or a ready-to-use VPN account. For a standalone server, reference `server.example.json` from the `configs` array in a WaterWall core configuration and build with the server nodes enabled. Both peers must use the same protocol order. UDP port 443 must be reachable for the KCP example; TLS runs inside KCP, not as a substitute for it.
 
 The WaterWall configuration screen includes a bundled GeoLite2 Country database. You can replace it by uploading a MaxMind country MMDB file or entering an HTTPS download link. Updates are validated and installed atomically, so a rejected file does not replace the working database. The bundled data is provided by MaxMind; see the attribution in `THIRD_PARTY_NOTICES.md`.
 
@@ -104,7 +104,7 @@ cd SRP-VPN-Connect
 ### 2. Build the native runtimes
 
 ```bash
-./Scripts/prepare.sh
+./iOS/Scripts/prepare.sh
 ```
 
 This builds the Aether Rust runtime, the shared Go runtime for WireGuard, AmneziaWG and Psiphon, and the WaterWall runtime. The smaller required native archives are already included. Individual engine build scripts remain in their respective directories when a full rebuild is needed.
@@ -112,6 +112,7 @@ This builds the Aether Rust runtime, the shared Go runtime for WireGuard, Amnezi
 ### 3. Install the Xcode dependencies
 
 ```bash
+cd iOS
 pod install
 open SRP-VPN-Connect.xcworkspace
 ```
@@ -132,7 +133,7 @@ Select your iPhone or iPad and choose **Product > Run**. On the first connection
 
 ```bash
 xcodebuild test \
-  -workspace SRP-VPN-Connect.xcworkspace \
+  -workspace iOS/SRP-VPN-Connect.xcworkspace \
   -scheme SRP-VPN-ConnectTestsMac \
   -destination 'platform=macOS'
 ```
@@ -158,19 +159,22 @@ The public beta and the source repository may not always be on the same revision
 
 | Path | Purpose |
 | --- | --- |
-| `SRP-VPN-Connect/` | Application, profile editor, assets, and connection UI |
-| `SRPTunnel/` | Packet-tunnel Network Extension |
-| `Core/SRPCore/` | Shared protocol clients and SSTP/EAP code |
-| `Parser/` | Profile parsing and VPN manager |
-| `Aether/` | Aether build script and integration patches |
-| `WireGuard/` | Shared Go bridge and build scripts |
-| `SoftEther/` | SoftEther source subset and client bridge |
-| `OpenConnect/` | OpenConnect source and build script |
-| `OpenVPN/` | OpenVPN 3 source and build script |
-| `SSH/` | SSH engine, libssh2, and build scripts |
-| `WaterWall/` | WaterWall runtime integration and vendored source |
-| `SRP-VPN-ConnectTests/` | Unit tests |
-| `Scripts/` | Native dependency preparation |
+| `iOS/` | The iOS app: Xcode workspace, CocoaPods, and all the folders listed below |
+| `iOS/SRP-VPN-Connect/` | Application, profile editor, assets, and connection UI |
+| `iOS/SRPTunnel/` | Packet-tunnel Network Extension |
+| `iOS/Core/SRPCore/` | Shared protocol clients and SSTP/EAP code |
+| `iOS/Parser/` | Profile parsing and VPN manager |
+| `iOS/Aether/` | Aether build script and integration patches |
+| `iOS/WireGuard/` | Shared Go bridge and build scripts |
+| `iOS/SoftEther/` | SoftEther source subset and client bridge |
+| `iOS/OpenConnect/` | OpenConnect source and build script |
+| `iOS/OpenVPN/` | OpenVPN 3 source and build script |
+| `iOS/SSH/` | SSH engine, libssh2, and build scripts |
+| `iOS/SRP-VPN-ConnectTests/` | Unit tests |
+| `iOS/Scripts/` | Native dependency preparation |
+| `iOS/Docs/` | Technical notes and screenshots |
+| `WaterWall/` | WaterWall runtime and vendored source, shared by both apps |
+| `tutorial/` | WaterWall documentation site |
 | `Licenses/` | Additional third-party license texts |
 
 ## Contributing

@@ -13,6 +13,6 @@ done
 
 "$ROOT/Aether/build_aether.sh"
 "$ROOT/WireGuard/build_wg.sh"
-"$ROOT/WaterWall/build.sh" ios
+"$ROOT/../WaterWall/build.sh" ios
 
-echo "Native runtimes are ready. Run pod install and open SRP-VPN-Connect.xcworkspace."
+echo "Native runtimes are ready. Run pod install in iOS/ and open SRP-VPN-Connect.xcworkspace."

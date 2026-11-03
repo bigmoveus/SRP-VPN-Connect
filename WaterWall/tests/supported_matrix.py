@@ -145,7 +145,7 @@ class SupportedMatrix(Matrix):
         env.update({"TEST_RUNNER_SRP_MATRIX_INPUT": str(inputs),
                     "TEST_RUNNER_SRP_MATRIX_OUTPUT": str(output),
                     "TEST_RUNNER_SRP_MATRIX_VALIDATE": "1"})
-        command = ["xcodebuild", "test", "-workspace", str(self.root / "SRP-VPN-Connect.xcworkspace"),
+        command = ["xcodebuild", "test", "-workspace", str(self.root / "iOS/SRP-VPN-Connect.xcworkspace"),
                    "-scheme", "SRP-VPN-ConnectTestsMac", "-destination", "platform=macOS",
                    "-only-testing:SRP-VPN-ConnectTestsMac/SROptionsTests/testWaterWallMatrixGenerationForLocalTesting"]
         if run_logged(command, self.work / "builder.log", env=env, timeout=300) != 0:
@@ -502,7 +502,7 @@ class SupportedMatrix(Matrix):
         env.update({"TEST_RUNNER_SRP_MATRIX_INPUT": str(inputs),
                     "TEST_RUNNER_SRP_MATRIX_OUTPUT": str(self.work / "builder-output.json"),
                     "TEST_RUNNER_SRP_MATRIX_VALIDATE": "1"})
-        command = ["xcodebuild", "test", "-workspace", str(self.root / "SRP-VPN-Connect.xcworkspace"),
+        command = ["xcodebuild", "test", "-workspace", str(self.root / "iOS/SRP-VPN-Connect.xcworkspace"),
                    "-scheme", "SRP-VPN-ConnectTestsMac", "-destination", "platform=macOS",
                    "-only-testing:SRP-VPN-ConnectTestsMac/SROptionsTests/testWaterWallMatrixGenerationForLocalTesting"]
         if run_logged(command, self.work / "builder.log", env=env, timeout=300) != 0:

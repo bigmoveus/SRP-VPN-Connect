@@ -528,7 +528,7 @@ class DeviceMatrix(SupportedMatrix):
         run_logged(command, self.work / "cleanup-device.log", env=env, timeout=90)
 
     def xcode_command(self, env, test):
-        command = ["xcodebuild", "test", "-workspace", str(self.root / "SRP-VPN-Connect.xcworkspace"),
+        command = ["xcodebuild", "test", "-workspace", str(self.root / "iOS/SRP-VPN-Connect.xcworkspace"),
                    "-scheme", self.scheme, "-configuration", self.configuration, "-destination", f"id={self.device}",
                    "-derivedDataPath", str(self.derived_data),
                    f"-only-testing:SRP-VPN-ConnectTests/SROptionsTests/{test}"]

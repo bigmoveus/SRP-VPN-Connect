@@ -4,9 +4,9 @@ DerivedData/
 xcuserdata/
 build/
 .build/
-Aether/lib/
-WireGuard/lib/
-WireGuard/bridge/psiphon-tunnel-core/
+iOS/Aether/lib/
+iOS/WireGuard/lib/
+iOS/WireGuard/bridge/psiphon-tunnel-core/
 *.dSYM
 *.log
 *.crash

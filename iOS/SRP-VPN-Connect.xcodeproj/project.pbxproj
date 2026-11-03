@@ -941,7 +941,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2.0;
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -979,7 +979,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.2.0;
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = "$(inherited) -lmaxminddb";
 				PRODUCT_BUNDLE_IDENTIFIER = tr.com.srp.vpn;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1018,11 +1018,11 @@
 					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
 					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
 					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
-					"$(SRCROOT)/WaterWall/build/ios",
+					"$(SRCROOT)/../WaterWall/build/ios",
 				);
 				MARKETING_VERSION = 1.2.0;
-				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lmaxminddb",
@@ -1074,11 +1074,11 @@
 					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
 					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
 					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
-					"$(SRCROOT)/WaterWall/build/ios",
+					"$(SRCROOT)/../WaterWall/build/ios",
 				);
 				MARKETING_VERSION = 1.2.0;
-				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-lmaxminddb",
@@ -1116,9 +1116,9 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
-				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
@@ -1157,9 +1157,9 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
-				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
@@ -1197,8 +1197,8 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
-				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/generated";
-				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
@@ -1207,8 +1207,8 @@
 					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
 				);
-				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1240,8 +1240,8 @@
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
-				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/generated";
-				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/generated";
+				"HEADER_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-src/include $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/generated";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/Core/SRPCore/ssl.xcframework/macos-arm64_x86_64",
@@ -1250,8 +1250,8 @@
 					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/OpenConnect/build/$(PLATFORM_NAME)",
 				);
-				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/WaterWall/build/host/_deps/maxminddb-build/Release";
-				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
+				"LIBRARY_SEARCH_PATHS[sdk=macosx*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/host/_deps/maxminddb-build/Release";
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = "$(inherited) $(SRCROOT)/../WaterWall/build/ios/_deps/maxminddb-build/Release-iphoneos";
 				MARKETING_VERSION = 1.2.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",

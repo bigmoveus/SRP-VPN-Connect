@@ -17,7 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 UUID = "00112233-4455-6677-8899-aabbccddeeff"
 OUTER_SECRET = "matrix-only-placeholder"
-GEO_DATABASE = ROOT / "SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"
+GEO_DATABASE = ROOT / "iOS/SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"
 
 CASES = [
     ("vless-none", "vless", "none", False, "off", False, "tcp", "datagram", "connections"),
@@ -335,7 +335,7 @@ class Matrix:
         env = os.environ.copy()
         env["TEST_RUNNER_SRP_MATRIX_INPUT"] = str(inputs)
         env["TEST_RUNNER_SRP_MATRIX_OUTPUT"] = str(output)
-        command = ["xcodebuild", "test", "-workspace", str(ROOT / "SRP-VPN-Connect.xcworkspace"),
+        command = ["xcodebuild", "test", "-workspace", str(ROOT / "iOS/SRP-VPN-Connect.xcworkspace"),
                    "-scheme", "SRP-VPN-ConnectTestsMac", "-destination", "platform=macOS",
                    "-only-testing:SRP-VPN-ConnectTestsMac/SROptionsTests/testWaterWallMatrixGenerationForLocalTesting"]
         if run_logged(command, self.work / "builder.log", env=env, timeout=240) != 0:
