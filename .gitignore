@@ -26,3 +26,11 @@ __pycache__/
 *.mobileconfig
 *.mobileprovision
 *.provisionprofile
+.gradle/
+.kotlin/
+.cxx/
+.idea/
+local.properties
+*.jks
+*.keystore
+keystore.properties

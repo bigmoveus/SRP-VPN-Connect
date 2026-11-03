@@ -155,11 +155,26 @@ You do not need Xcode or an App Store Connect account to install the public beta
 
 The public beta and the source repository may not always be on the same revision while another build is being prepared or reviewed. The beta does not include a VPN server or account.
 
+## Android
+
+`Android/` holds an early Android version: WaterWall only, on one screen where you paste a client node graph such as the [client example](WaterWall/examples/client.example.json), connect and read the log. The other protocols, the profile editor and reconnecting come later.
+
+Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java:
+
+```bash
+cd Android
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+./gradlew :app:assembleDebug
+```
+
+Gradle installs NDK 28.2.13676358 and CMake 4.1.2 if they are missing. The APK is `app/build/outputs/apk/debug/app-debug.apk`, for arm64 phones and emulators. No signing key is stored in this repository.
+
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| `iOS/` | The iOS app: Xcode workspace, CocoaPods, and all the folders listed below |
+| `Android/` | The Android app: Gradle project, Kotlin and Jetpack Compose |
+| `iOS/` | The iOS app: Xcode workspace, CocoaPods, and all the `iOS/` folders listed below |
 | `iOS/SRP-VPN-Connect/` | Application, profile editor, assets, and connection UI |
 | `iOS/SRPTunnel/` | Packet-tunnel Network Extension |
 | `iOS/Core/SRPCore/` | Shared protocol clients and SSTP/EAP code |

@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- An early Android app in `Android/`, WaterWall only: Kotlin and Jetpack Compose, minSdk 26, targetSdk 36, arm64. One screen takes a client node graph, connects through a `VpnService` that keeps the app's own sockets outside the tunnel, and shows the log. Tested on an Android 16 emulator with the production `vless-tls` chain and its TLS check on: downloads and uploads finish through the tunnel with matching SHA-256, and a server with a self-signed certificate is refused.
+
 ### Changed
 - WaterWall's shared build now works for Android: OpenSSL uses the app's minimum API level and finds the NDK compiler in its prefix step, Android links a shared library instead of Apple's packed archive, and it keeps the lwIP limits tested on iOS. On Android its log lines now go through the logger like on other platforms, instead of straight to logcat at every level, and it no longer runs `iptables` at start, which held up the tunnel for 10 seconds. The iOS runtime archive is unchanged apart from OpenSSL's build date.
 - The repository now keeps each platform in its own folder: the iOS app moved from the top level into `iOS/`, leaving room for `Android/` beside it. `WaterWall/` stays at the top because both apps build it, the C bridge over it moved from `Core/SRPCore` into `WaterWall/native`, and the WaterWall examples moved into `WaterWall/examples`. The iOS app itself is unchanged: the same files in the bundle, the same symbols and segment sizes, and all unit tests pass.
