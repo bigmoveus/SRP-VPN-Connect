@@ -313,6 +313,12 @@ a lot of data that needs to be copied, this should be set high. */
    order. Define to 0 if your device is low on memory. */
 #define TCP_QUEUE_OOSEQ      1
 
+    /* Report retained receive gaps to peers that negotiate SACK. These fixed
+       metadata ranges do not increase the out-of-order payload budget below.
+       Without them a sender repairs one segment per round trip. */
+#define LWIP_TCP_SACK_OUT     1
+#define LWIP_TCP_MAX_SACK_NUM 4
+
     /* Out-of-order retention is per-pcb but the pools behind it are process-global,
        and lwIP's defaults for both of these are 0, meaning unlimited. On the
        PacketsToConnection receive path every retained segment also pins one custom
