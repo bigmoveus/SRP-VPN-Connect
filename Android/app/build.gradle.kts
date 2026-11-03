@@ -13,7 +13,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.2.0"
         ndk {
             abiFilters += "arm64-v8a"
         }
@@ -35,6 +35,13 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    sourceSets {
+        getByName("main") {
+            // The bundled country database, which both apps ship.
+            assets.srcDir("../../WaterWall/GeoIP")
+        }
     }
 }
 
