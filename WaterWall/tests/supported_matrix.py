@@ -415,7 +415,9 @@ class SupportedMatrix(Matrix):
 
     def geo_case(self, item, client_path, direct):
         name = item[0]
-        ip = (getattr(self, "host", None) or os.environ.get("SRP_MATRIX_DIRECT_IP", "203.0.113.10")) if direct else "192.0.2.1"
+        ip = (getattr(self, "host", None) or os.environ.get("SRP_MATRIX_DIRECT_IP")) if direct else "192.0.2.1"
+        if not ip:
+            raise RuntimeError("SRP_MATRIX_DIRECT_IP is required: an address in Turkey serving HTTP on port 80")
         country = "TR" if direct else None
         lookup = os.environ.get("SRP_GEOIP_LOOKUP", "/tmp/srp-geoip-lookup")
         lookup_result = subprocess.run([lookup, "--file", str(GEO_DATABASE), "--ip", ip], capture_output=True, text=True)

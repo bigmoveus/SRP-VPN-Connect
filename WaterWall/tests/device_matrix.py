@@ -357,10 +357,9 @@ class DeviceMatrix(SupportedMatrix):
             "TEST_RUNNER_SRP_NETWORK_TRANSITION_TEST": os.environ.get("SRP_TEST_WW_NETWORK_TRANSITION", "0"),
         })
         if name.startswith("geoip-"):
-            destination = "waterwall.example.com"
             parts = urlsplit(self.url)
             port = 28480
-            env["TEST_RUNNER_SRP_WW_STRESS_URL"] = urlunsplit((parts.scheme, f"{destination}:{port}", parts.path, parts.query, parts.fragment))
+            env["TEST_RUNNER_SRP_WW_STRESS_URL"] = urlunsplit((parts.scheme, f"{parts.hostname}:{port}", parts.path, parts.query, parts.fragment))
         if mode == "wireguard":
             env["TEST_RUNNER_SRP_WW_WG_CONFIG"] = self.wireguard_peer(name)["client"].replace(
                 "127.0.0.1", self.host)
