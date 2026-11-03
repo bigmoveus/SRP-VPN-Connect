@@ -359,12 +359,14 @@ a lot of data that needs to be copied, this should be set high. */
        lwIP's 16-bit readiness limit even when the send buffer is larger. */
 #define TCP_SNDLOWAT         LWIP_MIN((TCP_SND_BUF / 2), (0xFFFF - (4 * TCP_MSS) - 1))
 
-    /* Receive capacity, 4 MiB unless WW_LWIP_TCP_WND overrides it. The window
+    /* Receive capacity, 2 MiB unless WW_LWIP_TCP_WND overrides it. The window
        also bounds what a local sender may still deliver after the next tunnel
-       pauses the flow. Scale 7 covers up to 8 MiB in the 16-bit wire field;
-       peers without scaling retain lwIP's unscaled limit. */
+       pauses the flow, and what a phone's TCP queues in front of a raw IP chain:
+       at 4 MiB four long uploads overflow Android's read-ahead, and all of them
+       then send about a third of their data twice. Scale 7 covers up to 8 MiB in
+       the 16-bit wire field; peers without scaling retain lwIP's unscaled limit. */
 #ifndef WW_LWIP_TCP_WND
-#define WW_LWIP_TCP_WND      (4 * 1024 * 1024)
+#define WW_LWIP_TCP_WND      (2 * 1024 * 1024)
 #endif
 #define TCP_WND              (WW_LWIP_TCP_WND)
 #define LWIP_WND_SCALE       1

@@ -310,9 +310,9 @@ static void *readTun(void *unused) {
       dropHeldPackets();
     }
     const bool fed = !open || feedHeldPackets();
-    // Android's TUN queue drops what passes its 500 packets. Inside a raw IP chain that is a lost stretch for the sender to repair
-    // through the server's lwIP, which takes a second for every four segments, so read ahead of a busy runtime instead.
-    // shortcut: 8 MiB holds two full TCP windows and more uploads at once still lose packets; a server that acknowledges batches would end that.
+    // Android's TUN queue drops what passes its 500 packets. Inside a raw IP chain the sender then repairs that stretch through the server's
+    // lwIP, one segment per round trip when it has no SACK, so read ahead of a busy runtime: 8 MiB holds four windows of our server, two of an official one.
+    // shortcut: more long uploads at once overflow it and send part of their data twice, raise it only if that matters more than everything behind a held packet waiting longer.
     struct pollfd ready = {.fd = fd, .events = open && held_bytes < kReadAheadBytes ? POLLIN : 0};
     const int count = poll(&ready, 1, !open ? 50 : fed ? 200 : 1);
     if (count <= 0) {
