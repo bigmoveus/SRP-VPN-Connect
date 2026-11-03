@@ -5,6 +5,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Fixed
+- WaterWall's device tests failed now and then when the test server's DNS answered slowly: with WaterWall's default of two tries, a lookup through a fast local resolver gives up within 0.75 seconds and closes the line. The test server now uses five tries, about six seconds.
+- WaterWall's packet budget test allowed 8 TCP connections at once while the test opens about 10, so two were refused every run. It now allows 32.
 - The description of WaterWall's QUIC server still said its final drain lasts five seconds; it now describes the 30 second limit and the stream FIN.
 - WaterWall's speed test server could crash at the end of a test over KCP: it kept reading its own state after finishing, because KCP keeps the line alive while it delivers queued data.
 

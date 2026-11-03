@@ -41,7 +41,8 @@ def advanced_specs():
     add("adv-vmess-packetaddr", "application", {
         "packet-encoding": "packetaddr", "domain-strategy": "resolve-domains-and-use-only-ipv4"})
     add("adv-vmess-udp", "application", {"protocol": "udp"})
-    add("adv-packet-budget", "packet", {"max-pending-bytes": 8192, "max-total-pending-bytes": 65536})
+    # Each TCP connection reserves max-pending-bytes of the total: 32 here, the test opens about 10 at once.
+    add("adv-packet-budget", "packet", {"max-pending-bytes": 8192, "max-total-pending-bytes": 262144})
     add("adv-packet-fake-dns", "packet", {"fake-dns": {
         "enabled": True, "address": "198.18.0.2", "network": "100.64.0.0",
         "netmask": "255.192.0.0", "cache-size": 256, "ttl": 1}})
