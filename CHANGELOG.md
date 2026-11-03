@@ -21,6 +21,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The WaterWall documentation now covers Android: the guides apply to both systems, each screenshot of the UI guide stands next to its Android twin, and a new Android page lists what differs and what we tested on a Samsung Galaxy A55 and the Android emulator.
 - The WaterWall server's TCP receive window is now 2 MiB instead of 4 MiB, so four long uploads on a raw IPv4 chain fit in the Android app's read-ahead and none of their packets are lost: four uploads of 16 MiB at once take about 15 seconds, against 14 on a Connections chain, and less waits in front of the tunnel. One raw IPv4 upload can now have at most 2 MiB on its way per round trip. The apps keep their own 256 KiB.
 - The WaterWall documentation names the server program that now runs, builds it from that commit, gives the Android chain results measured on it, and no longer lists many long uploads as a limit of Raw IPv4 chains on Android.
+- The evidence inventory records the build steps as run from a fresh clone at the commit the guide now names.
 
 ### Fixed
 - WaterWall's device tests failed now and then when the test server's DNS answered slowly: with WaterWall's default of two tries, a lookup through a fast local resolver gives up within 0.75 seconds and closes the line. The test server now uses five tries, about six seconds.
