@@ -1,0 +1,171 @@
+{
+ "run": {
+  "start_utc": "2026-11-03T06:35:14Z",
+  "end_utc": "2026-11-03T06:37:02Z",
+  "head": "be53fe6b72a5b2f69bc24924d996e323a0bd3cdb",
+  "peer_sha256": "86ea2ed5db95f5d83b90defd73e1da840d1696865ca39dab373d3d3db225d6e0"
+ },
+ "summary": {
+  "executed": 1,
+  "passed": 1,
+  "skipped": [
+   {
+    "file": "direct.json",
+    "reason": "Not a chain the app can build (no listener and application or packet stream)"
+   }
+  ]
+ },
+ "environment": {
+  "profile": "production-5-tries"
+ },
+ "cases": [
+  {
+   "id": "prod-trojan-mux-tls",
+   "kind": "production",
+   "why": "Production configuration trojan-mux-tls.json",
+   "sni": null,
+   "server_file": "trojan-mux-tls.json",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "connections",
+    "application": "trojan",
+    "mux": true,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {}
+   },
+   "client": null,
+   "server": {
+    "peer": {
+     "name": "trojan-mux-tls",
+     "author": "SRP",
+     "config-version": 1,
+     "core-minimum-version": 0,
+     "nodes": [
+      {
+       "name": "public-in",
+       "type": "TcpListener",
+       "settings": {
+        "address": "0.0.0.0",
+        "port": 18446,
+        "nodelay": true,
+        "initial-idle-timeout-ms": 15000,
+        "active-idle-timeout-ms": 300000
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/etc/waterwall/fullchain.pem",
+        "key-file": "/etc/waterwall/privkey.pem",
+        "sni": "<SERVER_HOST>",
+        "min-version": "TLSv1.2",
+        "max-version": "TLSv1.3",
+        "select-alpns": [
+         "http/1.1"
+        ],
+        "handshake-timeout-ms": 15000
+       },
+       "next": "mux"
+      },
+      {
+       "name": "mux",
+       "type": "MuxServer",
+       "settings": {
+        "max-children": 256,
+        "initial-child-idle-timeout-ms": 15000,
+        "active-child-idle-timeout-ms": 300000
+       },
+       "next": "trojan"
+      },
+      {
+       "name": "trojan",
+       "type": "TrojanServer",
+       "settings": {
+        "password": "<PASSWORD>",
+        "connect": true,
+        "udp": true,
+        "verbose": true
+       },
+       "next": "outbound"
+      },
+      {
+       "name": "outbound",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 107.77
+    },
+    "udp": {
+     "status": "not-run",
+     "reason": "This run measured TCP only"
+    },
+    "ping": null,
+    "routing": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-03 09:35:21",
+    "finished": "2026-11-03 09:37:01",
+    "sustained": "Sustained full-duplex: 96.33 seconds, downloaded=805306368, uploaded=754974720, download_requests=48, upload_requests=45, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "measured": {
+     "mode": "full-duplex",
+     "seconds": 96.33,
+     "errors": [],
+     "downloaded": 805306368,
+     "uploaded": 754974720,
+     "download_requests": 48,
+     "upload_requests": 45,
+     "finished": "8/8",
+     "timeouts": 0,
+     "status": 2
+    },
+    "phases": [
+     {
+      "mode": "full-duplex",
+      "seconds": 96.33,
+      "errors": [],
+      "downloaded": 805306368,
+      "uploaded": 754974720,
+      "download_requests": 48,
+      "upload_requests": 45,
+      "finished": "8/8",
+      "timeouts": 0,
+      "status": 2
+     }
+    ],
+    "udp_phases": [],
+    "https_checks": [
+     "Ping: 208 ms",
+     "Ping: 195 ms"
+    ],
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 06:37:00 +0000\"; reason = 1; }"
+   }
+  }
+ ]
+}

@@ -1,9 +1,8 @@
 {
   "device-matrix": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.2 test copy on the test server, port 4097",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; WaterWall 1.5.2 plus the repository's changes, test copy on the test server, port 4097",
     "inventory_gaps": "TLS verification off with a self-signed certificate; local Reality cover; TCP only; one 90 s round",
-    "date_text": "on 1 November 2026",
-    "server_version": "1.5.2",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb)",
     "setup": [
       [
         "Phone",
@@ -11,7 +10,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+        "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall's speed test server, which the app does not build, and a description file"
       ],
       [
         "Server machine",
@@ -19,7 +18,11 @@
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case"
+        "WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation: the same program as our permanent service, run as a separate test copy for each case"
+      ],
+      [
+        "Server DNS lookups",
+        "2 tries, WaterWall's default; the test copy's core.json does not set it"
       ],
       [
         "Server port",
@@ -34,8 +37,8 @@
         "Our office broadband line, over the public internet"
       ]
     ],
-    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall 1.5.2 test copy, port 4097     the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
-    "server_intro": "The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall test copy, port 4097           the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
+    "server_intro": "The test harness wrote this file for the case and started our WaterWall program with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
     "profile": [
       [
         "Server",
@@ -92,10 +95,9 @@
     ]
   },
   "lifecycle": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Debug; official WaterWall 1.5.2 test copy on the test server, port 4097",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Debug; WaterWall 1.5.2 plus the repository's changes, test copy on the test server, port 4097",
     "inventory_gaps": "Sleep and WaterWall failures simulated with Debug-only tunnel commands; one run",
-    "date_text": "on 1 November 2026",
-    "server_version": "1.5.2",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb)",
     "setup": [
       [
         "Phone",
@@ -103,11 +105,15 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0, a Debug build of commit {head}, installed by Xcode for the test"
+        "SRP VPN Connect 1.2.0 (build 33), a Debug build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall's speed test server, which the app does not build, and a description file"
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a test copy on port 4097"
+        "WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation: the same program as our permanent service, run as a test copy on port 4097"
+      ],
+      [
+        "Server DNS lookups",
+        "2 tries, WaterWall's default; the test copy's core.json does not set it"
       ],
       [
         "Traffic",
@@ -214,10 +220,9 @@
     }
   },
   "production": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service 1.5.2 with Let's Encrypt, verification on",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service 1.5.2 plus the repository's changes, Let's Encrypt, verification on",
     "inventory_gaps": "TCP only; one 90 s round",
-    "date_text": "on 1 November 2026",
-    "server_version": "1.5.2",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb)",
     "setup": [
       [
         "Phone",
@@ -225,7 +230,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+        "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall's speed test server, which the app does not build, and a description file"
       ],
       [
         "Server machine",
@@ -233,7 +238,11 @@
       ],
       [
         "Server program",
-        "Our permanent waterwall.service: the official WaterWall 1.5.2 release with /etc/waterwall/core.json, set up as in Installation"
+        "Our permanent waterwall.service: WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation, with /etc/waterwall/core.json"
+      ],
+      [
+        "Server DNS lookups",
+        "2 tries, WaterWall's default; /etc/waterwall/core.json did not set it for this run"
       ],
       [
         "Server port",
@@ -252,7 +261,7 @@
         "Our office broadband line, over the public internet"
       ]
     ],
-    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\n<SERVER_HOST>\n  waterwall.service (WaterWall 1.5.2), the configuration's port\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\n<SERVER_HOST>\n  waterwall.service, the configuration's port\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file and upload checker",
     "server_intro": "This is the configuration file from /etc/waterwall/configs/ on our server, loaded by waterwall.service, exactly as it ran. Only the server name, the UUID and the passwords are replaced with placeholders.",
     "profile": [
       [
@@ -307,10 +316,9 @@
     ]
   },
   "download": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.2 test copy, port 4097; downloads, UDP echo, GeoIP routing from the reference server log",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; WaterWall 1.5.2 plus the repository's changes, test copy, port 4097; downloads, UDP echo, GeoIP routing from the reference server log",
     "inventory_gaps": "TLS verification off with a self-signed certificate; UDP is an echo check, not a throughput test; one 90 s round",
-    "date_text": "on 1 November 2026",
-    "server_version": "1.5.2",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb)",
     "setup": [
       [
         "Phone",
@@ -318,7 +326,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test"
+        "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall's speed test server, which the app does not build, and a description file"
       ],
       [
         "Server machine",
@@ -326,7 +334,11 @@
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case"
+        "WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation: the same program as our permanent service, run as a separate test copy for each case"
+      ],
+      [
+        "Server DNS lookups",
+        "2 tries, WaterWall's default; the test copy's core.json does not set it"
       ],
       [
         "Server port",
@@ -349,8 +361,8 @@
         "An HTTPS server on the same machine, port 28480, that logs the address each download comes from"
       ]
     ],
-    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall 1.5.2 test copy, port 4097     the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file\n  UDP echo server, port 28481              UDP check\n  HTTPS reference server, port 28480       GeoIP cases\n\nWith GeoIP direct routing, downloads from the reference server go straight from the phone\nto port 28480, without WaterWall.",
-    "server_intro": "The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall test copy, port 4097           the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file\n  UDP echo server, port 28481              UDP check\n  HTTPS reference server, port 28480       GeoIP cases\n\nWith GeoIP direct routing, downloads from the reference server go straight from the phone\nto port 28480, without WaterWall.",
+    "server_intro": "The test harness wrote this file for the case and started our WaterWall program with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
     "profile": [
       [
         "Server",
@@ -403,5 +415,30 @@
       "The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.",
       "Each case ran once, with one phone on one network."
     ]
+  },
+  "device-matrix-5-tries": {
+    "base": "device-matrix",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), with 5 DNS tries",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; WaterWall 1.5.2 plus the repository's changes, test copy with 5 DNS tries on the test server, port 4097",
+    "inventory_gaps": "TLS verification off with a self-signed certificate; TCP only; 90 s rounds",
+    "setup_changes": {
+      "App": "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the commits after it change only WaterWall's speed test server, which the app does not build, a description file and test tools",
+      "Server DNS lookups": "5 tries, set in the test copy's core.json"
+    },
+    "gaps": [
+      "TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.",
+      "The test measured TCP traffic. The UDP row in the result says whether UDP was tested; in this run it was not.",
+      "Each run lasted about 90 seconds, with one phone on one network.",
+      "The test copy of WaterWall used the harness's own small core.json with one worker, not our production core.json."
+    ]
+  },
+  "production-5-tries": {
+    "base": "production",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), with 5 DNS tries",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service 1.5.2 plus the repository's changes with 5 DNS tries, Let's Encrypt, verification on",
+    "setup_changes": {
+      "App": "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the commits after it change only WaterWall's speed test server, which the app does not build, a description file and test tools",
+      "Server DNS lookups": "5 tries, set in /etc/waterwall/core.json"
+    }
   }
 }

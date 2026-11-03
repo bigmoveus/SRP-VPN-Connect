@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WaterWall documentation now describes only the current state: TestFlight build 33 against our own server program, WaterWall 1.5.2 plus the repository's changes, from new test runs of all 163 scenarios. Troubleshooting explains what the server's DNS timeout and the packet budget's refusal mean, and the installation page builds the server program from source and sets `"tries": 5` in `core.json`.
+
 ### Fixed
 - WaterWall's device tests failed now and then when the test server's DNS answered slowly: with WaterWall's default of two tries, a lookup through a fast local resolver gives up within 0.75 seconds and closes the line. The test server now uses five tries, about six seconds.
 - WaterWall's packet budget test allowed 8 TCP connections at once while the test opens about 10, so two were refused every run. It now allows 32.

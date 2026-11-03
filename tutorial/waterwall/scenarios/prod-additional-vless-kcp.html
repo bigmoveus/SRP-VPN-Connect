@@ -12,21 +12,17 @@
 <main>
 <h1>VLESS + KCP (additional-vless-kcp.json)</h1>
 <p class="lead">There is no outer layer: the application protocol goes over the network as it is. In this case KCP carries it over UDP.</p>
-<p><span class="status failed">TESTED — FAILED</span> &nbsp;Tested on 1 November 2026 on the current app build against WaterWall 1.5.2.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 3 November 2026 on the current app build against WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb).</p>
 <h2>Result</h2>
-<table><tbody><tr><th>Outcome</th><td>Failed.</td></tr><tr><th>Test length</th><td>126 seconds</td></tr><tr><th>Downloaded</th><td>0 MB (0 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>1,476 MB (94 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>4 downloads and 88 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>The request timed out.; The request timed out.; The request timed out.; The request timed out.</td></tr><tr><th>Timeouts</th><td>4</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 372 ms; Ping: 346 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
-<h3>What the test reported</h3>
-<pre data-label="Lines from the test log"><code class="language-bash">Sustained full-duplex: 125.96 seconds, downloaded=0, uploaded=1476395008, download_requests=4, upload_requests=88, errors=( &quot;The request timed out.&quot;, &quot;The request timed out.&quot;, &quot;The request timed out.&quot;, &quot;The request timed out.&quot; ), finished=8/8, timeouts=4, VPN status=2
--[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed
-(null); stop reason: { date = &quot;2026-11-01 18:00:37 +0000&quot;; reason = 1; }</code></pre>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>107 seconds</td></tr><tr><th>Downloaded</th><td>470 MB (35 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>470 MB (35 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>28 downloads and 28 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 386 ms; Ping: 379 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
 <h2>Test setup</h2>
-<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0, a Release build of commit dfce868f, installed by Xcode for the test</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>Our permanent waterwall.service: the official WaterWall 1.5.2 release with /etc/waterwall/core.json, set up as in Installation</td></tr><tr><th>Server port</th><td>The configuration&#x27;s own port, open to the internet</td></tr><tr><th>Certificate</th><td>Let&#x27;s Encrypt ECDSA certificate for &lt;SERVER_HOST&gt;</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 33), a Release build of commit a03a8bc2, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall&#x27;s speed test server, which the app does not build, and a description file</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>Our permanent waterwall.service: WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation, with /etc/waterwall/core.json</td></tr><tr><th>Server DNS lookups</th><td>2 tries, WaterWall&#x27;s default; /etc/waterwall/core.json did not set it for this run</td></tr><tr><th>Server port</th><td>The configuration&#x27;s own port, open to the internet</td></tr><tr><th>Certificate</th><td>Let&#x27;s Encrypt ECDSA certificate for &lt;SERVER_HOST&gt;</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
 <pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
       |
       |  Wi-Fi, office broadband, internet
       v
 &lt;SERVER_HOST&gt;
-  waterwall.service (WaterWall 1.5.2), the configuration&#x27;s port
+  waterwall.service, the configuration&#x27;s port
       |
       |  inside the same machine
       v
@@ -89,7 +85,7 @@
 <h2>Gaps and limits</h2>
 <ul><li>Each case ran once, for about 90 seconds, with one phone on one network.</li><li>The test measured TCP traffic only; UDP was not tested.</li></ul>
 <h2>Evidence</h2>
-<table><tbody><tr><th>Test case</th><td>prod-additional-vless-kcp</td></tr><tr><th>Why it was selected</th><td>Production configuration additional-vless-kcp.json</td></tr><tr><th>Run</th><td>2026-11-01T17:08:27Z to 2026-11-01T18:31:54Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-01 20:58:28 to 2026-11-01 21:00:39 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit dfce868f</td></tr><tr><th>Server program</th><td>official WaterWall release, SHA-256 73f71f91a7007aa3…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-production-20261101.json">waterwall-production-20261101.json</a></td></tr></tbody></table>
+<table><tbody><tr><th>Test case</th><td>prod-additional-vless-kcp</td></tr><tr><th>Why it was selected</th><td>Production configuration additional-vless-kcp.json</td></tr><tr><th>Run</th><td>2026-11-03T00:02:10Z to 2026-11-03T01:19:54Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-03 03:49:40 to 2026-11-03 03:51:32 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit a03a8bc2</td></tr><tr><th>Server program</th><td>WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), SHA-256 86ea2ed5db95f5d8…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-production-20261103.json">waterwall-production-20261103.json</a></td></tr></tbody></table>
 </main>
 <script src="../../assets/js/nav.js"></script>
 <script src="../../assets/js/site.js"></script>

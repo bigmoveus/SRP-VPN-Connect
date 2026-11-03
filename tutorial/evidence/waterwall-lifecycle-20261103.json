@@ -1,0 +1,400 @@
+{
+ "run": {
+  "start_utc": "2026-11-03T01:19:57Z",
+  "end_utc": "2026-11-03T01:30:20Z",
+  "head": "a03a8bc2b8ad49de955743d39fbeb8e814da7c56",
+  "peer_sha256": "86ea2ed5db95f5d83b90defd73e1da840d1696865ca39dab373d3d3db225d6e0"
+ },
+ "summary": {
+  "identified": 1,
+  "supported": 1,
+  "validator_excluded": 0,
+  "candidate_total": 1,
+  "range_start": 0,
+  "range_count": 1,
+  "executed": 1,
+  "passed": 1,
+  "failed": 0,
+  "supported_untested": 0,
+  "expected_rounds": 1,
+  "rounds_executed": 1,
+  "rounds_passed": 1,
+  "rounds_failed": 0,
+  "rounds_untested": 0
+ },
+ "environment": {
+  "profile": "lifecycle"
+ },
+ "cases": [
+  {
+   "id": "lifecycle-tcp-ping-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "tcp-ping",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 19.118,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:21:36",
+    "finished": "2026-11-03 04:21:44",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null
+   }
+  },
+  {
+   "id": "lifecycle-sleep-modes-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "sleep-modes",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 23.081,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:21:51",
+    "finished": "2026-11-03 04:22:08",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [
+     "Ping: 187 ms",
+     "Ping: 153 ms",
+     "Ping: 153 ms"
+    ],
+    "failures": [],
+    "last_error": null
+   }
+  },
+  {
+   "id": "lifecycle-runtime-recovery-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "runtime-recovery",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 199.511,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:22:15",
+    "finished": "2026-11-03 04:25:28",
+    "sustained": "Sustained stress: 91.64 seconds, 2902458368 bytes, 173 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 91.64,
+     "downloaded": 2902458368,
+     "uploaded": 0,
+     "download_requests": 173,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 91.8,
+      "downloaded": 2818572288,
+      "uploaded": 0,
+      "download_requests": 168,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     },
+     {
+      "mode": "download",
+      "seconds": 91.64,
+      "downloaded": 2902458368,
+      "uploaded": 0,
+      "download_requests": 173,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 90.51 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=35.564, jitter_ms=12.335, max_rtt_ms=107.112, retries=0",
+     "Sustained UDP: 90.80 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=34.915, jitter_ms=11.518, max_rtt_ms=142.142, retries=0"
+    ],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 90.80 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=34.915, jitter_ms=11.518, max_rtt_ms=142.142, retries=0"
+   }
+  },
+  {
+   "id": "lifecycle-retry-reset-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "retry-reset",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 15.965,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:25:36",
+    "finished": "2026-11-03 04:25:45",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null
+   }
+  },
+  {
+   "id": "lifecycle-reconnect-disabled-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "reconnect-disabled",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 14.235,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:25:52",
+    "finished": "2026-11-03 04:25:59",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null
+   }
+  },
+  {
+   "id": "lifecycle-peer-recovery-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "peer-recovery",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 147.308,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:26:06",
+    "finished": "2026-11-03 04:28:27",
+    "sustained": "Sustained stress: 91.67 seconds, 2885681152 bytes, 172 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 91.67,
+     "downloaded": 2885681152,
+     "uploaded": 0,
+     "download_requests": 172,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 91.67,
+      "downloaded": 2885681152,
+      "uploaded": 0,
+      "download_requests": 172,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 90.64 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=34.812, jitter_ms=12.472, max_rtt_ms=112.089, retries=0"
+    ],
+    "https_checks": [
+     "Ping: 266 ms"
+    ],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 90.64 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=34.812, jitter_ms=12.472, max_rtt_ms=112.089, retries=0"
+   }
+  },
+  {
+   "id": "lifecycle-retry-exhausted-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "retry-exhausted",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 63.336,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:28:36",
+    "finished": "2026-11-03 04:29:32",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [],
+    "failures": [],
+    "last_error": null
+   }
+  },
+  {
+   "id": "lifecycle-auto-switch-ww-00097-vless-tls",
+   "kind": "lifecycle",
+   "step": "auto-switch",
+   "chain_case": "ww-00097-vless-tls",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram"
+   },
+   "client": null,
+   "server": {},
+   "result": {
+    "status": "passed",
+    "duration_s": 27.532,
+    "error": ""
+   },
+   "device": {
+    "started": "2026-11-03 04:29:46",
+    "finished": "2026-11-03 04:30:07",
+    "sustained": null,
+    "measured": null,
+    "phases": [],
+    "udp_phases": [],
+    "https_checks": [
+     "Ping: 184 ms",
+     "Ping: 153 ms"
+    ],
+    "failures": [],
+    "last_error": null
+   }
+  }
+ ]
+}

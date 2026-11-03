@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The app settings are the ones used when we tested this exact file with the app on 1 November 2026, with the server's Let's Encrypt certificate and TLS Server Verification on. The result is at the end of this page.</p>
+  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The app settings are the ones used when we tested this exact file with the app on 3 November 2026, with the server's Let's Encrypt certificate and TLS Server Verification on. The result is at the end of this page.</p>
 </div>
 
 <div class="callout prereq">
@@ -105,7 +105,7 @@ systemctl restart waterwall.service
 ss -ltnp | grep 18443</code></pre>
 <div class="callout verify">
   <span class="callout-title">Check</span>
-  The last command prints a line with <code>:18443</code> and <code>memfd:waterwall</code>. If it prints nothing, see <a href="troubleshooting.html#first-checks">Troubleshooting</a>.
+  The last command prints a line with <code>:18443</code> and <code>Waterwall</code>. If it prints nothing, see <a href="troubleshooting.html#first-checks">Troubleshooting</a>.
 </div>
 
 <h2>In the app</h2>
@@ -137,7 +137,7 @@ ss -ltnp | grep 18443</code></pre>
 <h2>Our result</h2>
 <!-- result:begin -->
 <p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></p>
-<p>On 1 November 2026 we connected the current app build to this server file on our production server, with its Let's Encrypt certificate and TLS Server Verification on. For 91 seconds the phone downloaded and uploaded at the same time: 2,131 MB down and 2,080 MB up (186 and 182 Mbit/s on average on our office line), with no errors and no timeouts. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result.</p>
+<p>On 3 November 2026 we connected the current app build to this server file on our production server, with its Let's Encrypt certificate and TLS Server Verification on. For 93 seconds the phone downloaded and uploaded at the same time: 1,309 MB down and 2,131 MB up (113 and 183 Mbit/s on average on our office line), with no errors and no timeouts. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result.</p>
 <!-- result:end -->
 
 <h2>Next steps</h2>

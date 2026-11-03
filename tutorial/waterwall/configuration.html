@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file below was read from our test server on 1 November 2026. The app side was read from the app's source code at commit <code>dfce868f</code>. Which combinations actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
+  <p>The server file below was read from our test server on 3 November 2026. The app side was read from the app's source code at commit <code>a03a8bc2</code>. Which combinations actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
 </div>
 
 <h2>Server configuration files</h2>
@@ -179,12 +179,16 @@ systemctl status waterwall.service --no-pager</code></pre>
   <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
   <tbody>
     <tr><td><code>mtu</code></td><td>1420</td><td>68 to 65535</td></tr>
-    <tr><td><code>max-pending-bytes</code></td><td>65536</td><td>1024 to 67108864</td></tr>
-    <tr><td><code>max-total-pending-bytes</code></td><td>16777216</td><td>65536 to 67108864</td></tr>
+    <tr><td><code>max-pending-bytes</code></td><td>65536</td><td>1024 to 67108864; see the note below</td></tr>
+    <tr><td><code>max-total-pending-bytes</code></td><td>16777216</td><td>65536 to 67108864; see the note below</td></tr>
     <tr><td><code>udp-idle-timeout-ms</code></td><td>WaterWall's default</td><td>1 or more</td></tr>
     <tr><td><code>fake-dns</code> (or <code>mapdns</code>, <code>fake_dns</code>)</td><td>set by Remote DNS</td><td><code>true</code>, <code>false</code> or an object with <code>enabled</code>, <code>address</code>, <code>network</code>, <code>netmask</code>, <code>port</code>, <code>cache-size</code> (1 to 262144) and <code>ttl</code>. Only one of the three names.</td></tr>
   </tbody>
 </table>
+<div class="callout warning" id="packet-budget">
+  <span class="callout-title">The two pending-bytes keys also limit TCP connections</span>
+  Each TCP connection reserves <code>max-pending-bytes</code> of <code>max-total-pending-bytes</code> for as long as it lives, so the total divided by the per-connection value is how many can be open at once: 256 with the app's defaults. A new connection over that is refused, and iOS reports <em>A TLS error caused the secure connection to fail</em>. From the code only, not run: a <code>max-pending-bytes</code> above the total refuses every TCP connection, and the app's editor does not stop that. See <a href="troubleshooting.html#in-the-logs">Troubleshooting</a>.
+</div>
 <p>With Raw IPv4 input the Packet keys are instead <code>packet-validation-level</code> (<code>none</code>, <code>loose</code> or <code>hard</code>; the app uses <code>hard</code>), <code>sensitive-mode</code>, <code>interval-ms</code> and <code>tolerance-ms</code>. In Direct mode, Packet is the only layer.</p>
 
 <h3>Application</h3>

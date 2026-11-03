@@ -12,27 +12,23 @@
 <main>
 <h1>VMess + HTTP/2 + TLS</h1>
 <p class="lead">TLS wraps the connection in the same encryption HTTPS uses, so it looks like ordinary web traffic. In this case an HTTP layer makes it look like web requests.</p>
-<p><span class="status failed">TESTED — FAILED</span> &nbsp;Tested on 1 November 2026 on the current app build against WaterWall 1.5.2.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 3 November 2026 on the current app build against WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb).</p>
 <h2>Result</h2>
-<table><tbody><tr><th>Outcome</th><td>Failed.</td></tr><tr><th>Test length</th><td>93 seconds</td></tr><tr><th>Downloaded</th><td>0 MB (0 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>1,443 MB (125 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>4 downloads and 86 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>The network connection was lost.; The network connection was lost.; The network connection was lost.; The network connection was lost.</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 209 ms; Ping: 133 ms</td></tr><tr><th>UDP</th><td>not-applicable: The generated connector does not support application UDP</td></tr></tbody></table>
-<h3>What the test reported</h3>
-<pre data-label="Lines from the test log"><code class="language-bash">Sustained full-duplex: 92.69 seconds, downloaded=0, uploaded=1442840576, download_requests=4, upload_requests=86, errors=( &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot;, &quot;The network connection was lost.&quot; ), finished=8/8, timeouts=0, VPN status=2
--[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed
-(null); stop reason: { date = &quot;2026-11-01 20:20:39 +0000&quot;; reason = 1; }</code></pre>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>95 seconds</td></tr><tr><th>Downloaded</th><td>1,913 MB (161 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>537 MB (45 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>114 downloads and 32 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 261 ms; Ping: 154 ms</td></tr><tr><th>UDP</th><td>not-applicable: The generated connector does not support application UDP</td></tr></tbody></table>
 <h2>Test setup</h2>
-<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0, a Release build of commit dfce868f, installed by Xcode for the test</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.2 release (Waterwall-linux-gcc-x64), run as a separate test copy for each case</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 33), a Release build of commit a03a8bc2, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the two commits after it change only WaterWall&#x27;s speed test server, which the app does not build, and a description file</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), built from source as described in Installation: the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>2 tries, WaterWall&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
 <pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
       |
       |  Wi-Fi, office broadband, internet
       v
 Test server &lt;SERVER_IP&gt;
-  WaterWall 1.5.2 test copy, port 4097     the chain under test
+  WaterWall test copy, port 4097           the chain under test
       |
       |  inside the same machine
       v
   HTTPS test server, port 28483            download file and upload checker</code></pre>
 <h2>Server configuration</h2>
-<p>The test harness wrote this file for the case and started WaterWall 1.5.2 with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.</p>
+<p>The test harness wrote this file for the case and started our WaterWall program with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.</p>
 <pre data-label="Server chain (peer.json)"><code class="language-json">{
   &quot;name&quot;: &quot;ww-01282-vmess-tls-peer&quot;,
   &quot;nodes&quot;: [
@@ -196,7 +192,7 @@ Test server &lt;SERVER_IP&gt;
 <h2>Gaps and limits</h2>
 <ul><li>TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.</li><li>For Reality, the cover site was a second TLS server on the test machine itself, not a public website.</li><li>The test measured TCP traffic. The UDP row in the result says whether UDP was tested; in this run it was not.</li><li>Each case ran once, for about 90 seconds, with one phone on one network.</li><li>The test copy of WaterWall used the harness&#x27;s own small core.json with one worker, not our production core.json.</li></ul>
 <h2>Evidence</h2>
-<table><tbody><tr><th>Test case</th><td>ww-01282-vmess-tls</td></tr><tr><th>Why it was selected</th><td>production vmess-http2-tls</td></tr><tr><th>Run</th><td>2026-11-01T19:10:29Z to 2026-11-01T23:02:13Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-01 23:19:04 to 2026-11-01 23:20:41 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit dfce868f</td></tr><tr><th>Server program</th><td>official WaterWall release, SHA-256 73f71f91a7007aa3…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-matrix-20261101.json">waterwall-matrix-20261101.json</a></td></tr></tbody></table>
+<table><tbody><tr><th>Test case</th><td>ww-01282-vmess-tls</td></tr><tr><th>Why it was selected</th><td>production vmess-http2-tls</td></tr><tr><th>Run</th><td>2026-11-03T01:55:54Z to 2026-11-03T05:23:04Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-03 06:00:19 to 2026-11-03 06:02:01 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit a03a8bc2</td></tr><tr><th>Server program</th><td>WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 671f3fbb), SHA-256 86ea2ed5db95f5d8…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-matrix-20261103.json">waterwall-matrix-20261103.json</a></td></tr></tbody></table>
 </main>
 <script src="../../assets/js/nav.js"></script>
 <script src="../../assets/js/site.js"></script>

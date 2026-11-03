@@ -11,12 +11,12 @@
 <body>
 <main>
 <h1>Installation</h1>
-<p class="lead">This page installs a WaterWall server on Ubuntu exactly the way our test server is set up, then installs the app on your phone.</p>
+<p class="lead">This page installs a WaterWall server on Ubuntu the way our test server is set up, then installs the app on your phone.</p>
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>Every file, path, version and setting below was read from our test server on 1 November 2026: the binary, its release record and checksum, the service unit, <code>core.json</code>, the firewall rules and the certificate renewal hook.</p>
-  <p>The shell history of the original installation was not kept. The commands below produce that same recorded result, but they are not a transcript of what was typed back then.</p>
+  <p>Every file, path, version and setting below was read from our test server on 3 November 2026: the program and its build record, the official release's record and checksum, the service unit, <code>core.json</code>, the firewall rules and the certificate renewal hook.</p>
+  <p>The shell history of the original installation was not kept. The commands below produce that same recorded result, but they are not a transcript of what was typed back then. We ran the build commands of steps 1 and 2 from a fresh clone on our test server on 3 November 2026; the other commands were not run again.</p>
 </div>
 
 <h2>What you will end up with</h2>
@@ -35,25 +35,42 @@
 <h2>Install the server</h2>
 <p>Run every command in this section on the server, as root, over SSH.</p>
 
-<h3>1. Download WaterWall</h3>
-<p>Download the official 1.5.2 release for 64-bit Linux, the same file our server uses:</p>
+<h3 id="server-program">1. Build the WaterWall program</h3>
+<p>Our server runs WaterWall 1.5.2 plus the changes in the <a href="https://github.com/bigmoveus/SRP-VPN-Connect">SRP VPN Connect repository</a>, built from source. <strong>Every test result on this site was measured against this program, not against an official WaterWall release</strong>, so an official release may not give the same results.</p>
+<p>First install the build tools as <a href="https://github.com/radkesvat/WaterWall#quick-build-fresh-ubuntu--generic-linux-vps">WaterWall's readme</a> describes. Then build the source we built, which is commit <code>c00db223</code> in the public repository (<code>671f3fbb</code> in our own history):</p>
+<pre data-label="Server"><code class="language-bash">git clone https://github.com/bigmoveus/SRP-VPN-Connect
+cd SRP-VPN-Connect
+git checkout c00db223
+cd WaterWall/upstream
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DWW_ENABLE_IPO=OFF \
+  -DOPENSSL_CONFIGURE_OPTIONS=no-asm -Drouter_enable_quic_sniffing=OFF -Drouter_enable_http2_sniffing=OFF
+cmake --build build --target Waterwall -j2</code></pre>
+<p>These are the options our server's program was built with. On our server, with 2 vCPUs and 2 GB RAM, the build takes about 45 minutes.</p>
+
+<h3>2. Check the program</h3>
+<pre data-label="Server"><code class="language-bash">build/Waterwall --version</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  It prints <code>Waterwall version 1.5.2</code>, as it does on our server. The version number is the same with or without our changes, so it does not tell the two programs apart. A build in another folder also gets a different SHA-256 from ours, because the program contains the path of the folder it was built in.
+</div>
+
+<h3>3. Install the program</h3>
+<pre data-label="Server"><code class="language-bash">mkdir -p /opt/waterwall
+strip -o /opt/waterwall/Waterwall.new build/Waterwall
+chmod 755 /opt/waterwall/Waterwall.new
+mv -f /opt/waterwall/Waterwall.new /opt/waterwall/Waterwall
+/opt/waterwall/Waterwall --version</code></pre>
+
+<h3 id="official-release">If you use the official release instead</h3>
+<p>You can use the official 1.5.2 release for 64-bit Linux in place of steps 1 to 3. We did not test it: no result on this site was measured against it, so do not expect it to behave the same. The checksum below is the official release's, stored on our server. The second command must print <code>OK</code>; if it does not, the file is not the official release, so do not use it.</p>
 <pre data-label="Server"><code class="language-bash">mkdir -p /opt/waterwall/staging-1.5.2
 cd /opt/waterwall/staging-1.5.2
-curl -fLO https://github.com/radkesvat/WaterWall/releases/download/v1.5.2/Waterwall-linux-gcc-x64.zip</code></pre>
-
-<h3>2. Check the download</h3>
-<p>This compares the file with the checksum stored on our server. It must print <code>OK</code>; if it does not, the file is not the one we tested, so do not use it.</p>
-<pre data-label="Server"><code class="language-bash">echo "1d9ba7da4a3ab42b5685e5ecf03cf3d93a97ede5fd9fce8a12dbfc23e04a829a  Waterwall-linux-gcc-x64.zip" | sha256sum -c -</code></pre>
-
-<h3>3. Unpack and install the program</h3>
-<pre data-label="Server"><code class="language-bash">apt-get install -y unzip
+curl -fLO https://github.com/radkesvat/WaterWall/releases/download/v1.5.2/Waterwall-linux-gcc-x64.zip
+echo "1d9ba7da4a3ab42b5685e5ecf03cf3d93a97ede5fd9fce8a12dbfc23e04a829a  Waterwall-linux-gcc-x64.zip" | sha256sum -c -
+apt-get install -y unzip
 unzip Waterwall-linux-gcc-x64.zip -d unpacked
 install -m 0755 unpacked/Waterwall /opt/waterwall/Waterwall
 /opt/waterwall/Waterwall --version</code></pre>
-<div class="callout verify">
-  <span class="callout-title">Check</span>
-  The last command prints <code>Waterwall version 1.5.2</code>, as it does on our server.
-</div>
 
 <h3>4. Get a TLS certificate</h3>
 <p>Skip this step if you will only use chains without TLS (for example Reality or the AEAD-only chains). Our server uses Let's Encrypt with certbot in <em>standalone</em> mode and an ECDSA key. Standalone mode briefly runs its own web server on port 80, so port 80 must be free and open.</p>
@@ -69,7 +86,7 @@ install -m 0644 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem /etc/wat
 install -m 0600 /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem /etc/waterwall/privkey.pem
 systemctl reload-or-restart waterwall.service</code></pre>
 
-<h3>5. Write the main settings file</h3>
+<h3 id="core-json">5. Write the main settings file</h3>
 <p><code>core.json</code> holds the settings for the whole server and lists the configuration files to load. This is the content of our file. The <code>configs</code> list is shortened: our server loads 44 files, and you list only the ones you use.</p>
 <pre data-label="/etc/waterwall/core.json"><code class="language-json">{
   "log": {
@@ -86,7 +103,8 @@ systemctl reload-or-restart waterwall.service</code></pre>
     "try-enabling-bbr": true
   },
   "dns": {
-    "domain-strategy": "prefer-ipv4"
+    "domain-strategy": "prefer-ipv4",
+    "tries": 5
   },
   "configs": [
     "/etc/waterwall/configs/vless-tls.json",
@@ -101,6 +119,7 @@ systemctl reload-or-restart waterwall.service</code></pre>
     <tr><td><code>mtu</code></td><td>The packet size for packet tunnels (raw IP, WireGuard). 1420 leaves room for the tunnel's own headers.</td></tr>
     <tr><td><code>try-enabling-bbr</code></td><td>Asks Linux to use the BBR congestion control for faster TCP.</td></tr>
     <tr><td><code>domain-strategy</code></td><td><code>prefer-ipv4</code>: when a site has both addresses, connect over IPv4.</td></tr>
+    <tr><td><code>tries</code></td><td>How many times a DNS lookup is tried: 5 gives a slow DNS answer about 5 to 7 seconds instead of under one before the connection closes.</td></tr>
     <tr><td><code>configs</code></td><td>The configuration files to load; each one is a complete chain on its own port.</td></tr>
   </tbody>
 </table>
@@ -164,14 +183,14 @@ systemctl enable --now waterwall.service
 systemctl status waterwall.service</code></pre>
 <div class="callout verify">
   <span class="callout-title">Check</span>
-  <code>systemctl status</code> shows <code>active (running)</code>, and each listening port appears in <code>ss -tulpn | grep -i waterwall</code>, where the program shows as <code>memfd:waterwall</code>. If the service fails, read the newest file in <code>/var/log/waterwall/</code> and see <a href="troubleshooting.html">Troubleshooting</a>.
+  <code>systemctl status</code> shows <code>active (running)</code>, and each listening port appears in <code>ss -tulpn | grep -i waterwall</code>, where the program shows as <code>Waterwall</code>. If the service fails, read the newest file in <code>/var/log/waterwall/</code> and see <a href="troubleshooting.html">Troubleshooting</a>.
 </div>
 
 <h2>Upgrading WaterWall</h2>
-<p>When our server moved to 1.5.2, the previous program, its service file and its release record were first copied to a backup folder (<code>/opt/waterwall/backup-1.5.1/</code>). To upgrade the same way:</p>
+<p>Each time our server changed its program, the previous program and its release record were first copied to a backup folder (<code>/opt/waterwall/backup-1.5.1/</code>, <code>/opt/waterwall/backup-1.5.2-official-20261102/</code>, <code>/opt/waterwall/backup-before-vendored-20261102/</code>). To upgrade the same way:</p>
 <ol>
-  <li>Download and check the new release as in steps 1 and 2.</li>
-  <li>Copy the old program, service file and release record into a backup folder.</li>
+  <li>Build and check the new program as in steps 1 and 2.</li>
+  <li>Copy the old program and release record into a backup folder.</li>
   <li>Install the new program as in step 3.</li>
   <li>Run <code>systemctl restart waterwall.service</code>.</li>
 </ol>

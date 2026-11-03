@@ -7,6 +7,7 @@
 Only the evidence files are kept in the repository; the work folders live in macOS temp.
 """
 import argparse
+from datetime import datetime
 import html
 import json
 import re
@@ -157,14 +158,21 @@ def extract(args):
                 "configuration": case.get("configuration"),
                 "client": sanitize.data(json.loads(client.read_text())) if client.is_file() else None,
                 "server": {"peer": load("peer"), "core": load("core"), "cover": load("cover")},
-                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "teardown", "lifecycle")}),
+                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "routing", "teardown", "lifecycle")}),
                 "device": device_details(folder / f"{case['id']}-device.log", sanitize),
             }
             if entry["result"].get("tcp", {}) and entry["result"]["tcp"].get("error"):
                 entry["result"]["tcp"]["error"] = entry["result"]["tcp"]["error"][-1500:]
+            # A case run several times is documented by its first run; the others keep their result and numbers.
+            later = case["rounds"][1:]
+            if later:
+                entry["later_rounds"] = [
+                    {"round": r["round"], "status": r["status"],
+                     "measured": device_details(work / case["id"] / f"round-{r['round']}" / f"{case['id']}-device.log",
+                                                sanitize).get("measured")} for r in later]
             cases.append(entry)
     evidence = {
-        "run": {k: provenance.get(k) for k in ("start_utc", "end_utc", "head", "peer_sha256", "exit")},
+        "run": {k: provenance.get(k) for k in ("start_utc", "end_utc", "head", "peer_sha256")},
         "summary": results.get("summary"),
         "environment": json.loads(args.environment) if args.environment else {},
         "cases": cases,
@@ -266,7 +274,7 @@ def traffic_of(case):
 
 
 def status_of(case):
-    if case["result"].get("status") == "passed":
+    if case["result"].get("status") == "passed" and all(r["status"] == "passed" for r in case.get("later_rounds", [])):
         return "verified"
     _, down, up = traffic_of(case)
     moved = down > 0 if case["kind"] == "download" else down > 0 and up > 0
@@ -367,6 +375,10 @@ def render_case(case, env, run):
     out.append("<h2>Result</h2>")
     rows = [("Outcome", "Passed: every check succeeded." if status == "verified" else
              "Failed: traffic moved, but not every check succeeded." if status == "partial" else "Failed.")]
+    later = case.get("later_rounds", [])
+    if later:
+        passed = (result.get("status") == "passed") + sum(r["status"] == "passed" for r in later)
+        rows.append(("Runs", f"{passed} of {len(later) + 1} passed; the numbers on this page are from the first run"))
     if seconds:
         rows += [("Test length", f"{seconds:.0f} seconds"),
                  ("Downloaded", f"{megabytes(down)} ({rate(down, seconds)} on average)")]
@@ -445,7 +457,7 @@ def render_case(case, env, run):
     evidence = [("Test case", e(case["id"])), ("Run", e(f"{run.get('start_utc', '')} to {run.get('end_utc', '')} (UTC)")),
                 ("Case log times", e(f"{device.get('started') or '—'} to {device.get('finished') or '—'} (phone time, UTC+3)")),
                 ("App source", e(f"commit {(run.get('head') or '')[:8]}")),
-                ("Server program", e(f"official WaterWall release, SHA-256 {(run.get('peer_sha256') or '')[:16]}…")),
+                ("Server program", e(f"WaterWall {env.get('server_version', '')}, SHA-256 {(run.get('peer_sha256') or '')[:16]}…")),
                 ("Evidence file", f'<a href="../../evidence/{e(env["evidence_file"])}">{e(env["evidence_file"])}</a>')]
     if case.get("why"):
         evidence.insert(1, ("Why it was selected", e(case["why"])))
@@ -490,7 +502,7 @@ def render_lifecycle(case, env, run):
     evidence = [("Test case", e(case["id"])), ("Run", e(f"{run.get('start_utc', '')} to {run.get('end_utc', '')} (UTC)")),
                 ("Step log times", e(f"{device.get('started') or '—'} to {device.get('finished') or '—'} (phone time, UTC+3)")),
                 ("App source", e(f"commit {(run.get('head') or '')[:8]}, Debug build")),
-                ("Server program", e(f"official WaterWall release, SHA-256 {(run.get('peer_sha256') or '')[:16]}…")),
+                ("Server program", e(f"WaterWall {env.get('server_version', '')}, SHA-256 {(run.get('peer_sha256') or '')[:16]}…")),
                 ("Evidence file", f'<a href="../../evidence/{e(env["evidence_file"])}">{e(env["evidence_file"])}</a>')]
     out.append("<table><tbody>" + "".join(f"<tr><th>{e(k)}</th><td>{v}</td></tr>" for k, v in evidence) + "</tbody></table>")
     return "\n".join(out)
@@ -525,10 +537,16 @@ def render(args):
     groups = {key: [] for key, _ in GROUPS}
     for evidence_path in args.evidence:
         evidence = json.loads(Path(evidence_path).read_text())
-        env = json.loads(Path(args.environment).read_text())[evidence["environment"]["profile"]]
+        profiles = json.loads(Path(args.environment).read_text())
+        env = profiles[evidence["environment"]["profile"]]
+        if "base" in env:
+            # A profile that names a base has that profile's text, except what it names itself.
+            env = {**profiles[env["base"]], **env}
+            env["setup"] = [(k, env["setup_changes"].get(k, v)) for k, v in env["setup"]]
         env["evidence_file"] = Path(evidence_path).name
         env["head"] = (evidence["run"].get("head") or "")[:8]
         env["date"] = (evidence["run"].get("start_utc") or "")[:10]
+        env["date_text"] = "on " + datetime.strptime(env["date"], "%Y-%m-%d").strftime("%-d %B %Y")
         for case in evidence["cases"]:
             if case["kind"] == "lifecycle":
                 step = env["steps"][case["step"]]
@@ -555,8 +573,8 @@ def render(args):
                         f'<td><span class="status {status}">{LABELS[status]}</span></td><td>{e(speed)}</td></tr>')
         rows.append("</tbody></table>")
     intro = Path(args.intro).read_text() if args.intro else ""
-    summary = (f"<p><strong>{sum(totals.values())}</strong> scenarios: {totals['verified']} verified, "
-               f"{totals['partial']} partially working, {totals['failed']} failed.</p>")
+    counts = [f"{totals[key]} {name}" for key, name in (("verified", "verified"), ("partial", "partially working"), ("failed", "failed")) if totals[key]]
+    summary = f"<p><strong>{sum(totals.values())}</strong> scenarios: {', '.join(counts)}.</p>"
     (out_dir / "index.html").write_text(page("Verified Test Scenarios", "Every WaterWall scenario we tested, with its result.",
                                              "<h1>Verified Test Scenarios</h1>\n" + intro + summary + "\n".join(rows), 2))
     # Scenario part of the navigation

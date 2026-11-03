@@ -6,6 +6,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall guide
 
 - English only.
 - Only what we tested ourselves, on the current app build and the current server versions. Older results are not used.
+- Pages describe the current state: what to do, how it is set up, what a message means, what was tested. They do not say what went wrong and got fixed, and they keep no failure history.
 - Each scenario carries one status: VERIFIED — TESTED SUCCESSFULLY, TESTED — FAILED, TESTED — PARTIALLY WORKING, NOT VERIFIED, or PLANNED — NOT TESTED.
 - Secrets and our infrastructure are replaced with placeholders such as `<SERVER_HOST>`, `<SERVER_IP>`, `<UUID>` and `<PASSWORD>`.
 - `EVIDENCE-INVENTORY.md` records where each claim comes from. It is for us and is not linked from the pages.
@@ -49,7 +50,7 @@ python3 tutorial/tools/waterwall_scenarios.py render --environment tutorial/tool
 
 `extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac that ran the tests. `render` rewrites `waterwall/scenarios/` and the block between `scenarios:begin` and `scenarios:end` in `nav.js`.
 
-A case that runs again goes into a new evidence file named after the run's start time in UTC, such as `waterwall-download-20261101T2315Z.json`. Remove that case from the older file and list it under `replaced` there, so each page shows only the latest result.
+A case that runs again goes into a new evidence file named after the run's start time in UTC, such as `waterwall-matrix-20261103T0623Z.json`. Remove that case from the older file, so each page shows only the latest result, and count only the cases that stay in that file's `summary`. A case run in several rounds keeps the first round's details and lists the others under `later_rounds`. A run under different conditions gets its own profile in `scenario-environments.json`, which names a `base` profile and only what differs.
 
 The screenshots come from the unit test `testDocumentationScreenshotsWhenRequested`, run on the test iPhone with `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1`. It writes PNG files to `tmp/srp-docs-screenshots` in the app's data container.
 

@@ -1,14 +1,13 @@
 {
  "run": {
-  "start_utc": "2026-11-01T17:08:27Z",
-  "end_utc": "2026-11-01T18:31:54Z",
-  "head": "dfce868fc7fe2518685a38fe5962b39d79cfc283",
-  "peer_sha256": "73f71f91a7007aa3eb29e107e55088f694cc532bee6fc9114be1dc780ee36fa0",
-  "exit": "0"
+  "start_utc": "2026-11-03T00:02:10Z",
+  "end_utc": "2026-11-03T01:19:54Z",
+  "head": "a03a8bc2b8ad49de955743d39fbeb8e814da7c56",
+  "peer_sha256": "86ea2ed5db95f5d83b90defd73e1da840d1696865ca39dab373d3d3db225d6e0"
  },
  "summary": {
-  "executed": 44,
-  "passed": 27,
+  "executed": 43,
+  "passed": 43,
   "skipped": [
    {
     "file": "direct.json",
@@ -106,30 +105,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.1
+     "duration_s": 105.47
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:08:33",
-    "finished": "2026-11-01 20:10:11",
-    "sustained": "Sustained full-duplex: 91.45 seconds, downloaded=2130706432, uploaded=2080374784, download_requests=127, upload_requests=124, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:02:16",
+    "finished": "2026-11-03 03:03:55",
+    "sustained": "Sustained full-duplex: 92.92 seconds, downloaded=1308622848, uploaded=2130706432, download_requests=78, upload_requests=127, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.45,
+     "seconds": 92.92,
      "errors": [],
-     "downloaded": 2130706432,
-     "uploaded": 2080374784,
-     "download_requests": 127,
-     "upload_requests": 124,
+     "downloaded": 1308622848,
+     "uploaded": 2130706432,
+     "download_requests": 78,
+     "upload_requests": 127,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -137,23 +137,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.45,
+      "seconds": 92.92,
       "errors": [],
-      "downloaded": 2130706432,
-      "uploaded": 2080374784,
-      "download_requests": 127,
-      "upload_requests": 124,
+      "downloaded": 1308622848,
+      "uploaded": 2130706432,
+      "download_requests": 78,
+      "upload_requests": 127,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 369 ms",
-     "Ping: 234 ms"
+     "Ping: 275 ms",
+     "Ping: 162 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:10:09 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:03:54 +0000\"; reason = 1; }"
    }
   },
   {
@@ -242,30 +243,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 107.2
+     "duration_s": 104.08
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:10:17",
-    "finished": "2026-11-01 20:11:58",
-    "sustained": "Sustained full-duplex: 96.26 seconds, downloaded=2248146944, uploaded=1862270976, download_requests=134, upload_requests=111, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:04:02",
+    "finished": "2026-11-03 03:05:39",
+    "sustained": "Sustained full-duplex: 93.05 seconds, downloaded=1258291200, uploaded=2097152000, download_requests=75, upload_requests=125, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 96.26,
+     "seconds": 93.05,
      "errors": [],
-     "downloaded": 2248146944,
-     "uploaded": 1862270976,
-     "download_requests": 134,
-     "upload_requests": 111,
+     "downloaded": 1258291200,
+     "uploaded": 2097152000,
+     "download_requests": 75,
+     "upload_requests": 125,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -273,23 +275,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 96.26,
+      "seconds": 93.05,
       "errors": [],
-      "downloaded": 2248146944,
-      "uploaded": 1862270976,
-      "download_requests": 134,
-      "upload_requests": 111,
+      "downloaded": 1258291200,
+      "uploaded": 2097152000,
+      "download_requests": 75,
+      "upload_requests": 125,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 226 ms",
-     "Ping: 162 ms"
+     "Ping: 317 ms",
+     "Ping: 168 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:11:57 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:05:38 +0000\"; reason = 1; }"
    }
   },
   {
@@ -385,36 +388,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 103.07
+     "status": "passed",
+     "duration_s": 106.97
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:12:05",
-    "finished": "2026-11-01 20:13:41",
-    "sustained": "Sustained full-duplex: 92.07 seconds, downloaded=1275068416, uploaded=1778384896, download_requests=78, upload_requests=106, errors=( \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:05:46",
+    "finished": "2026-11-03 03:07:26",
+    "sustained": "Sustained full-duplex: 96.22 seconds, downloaded=1275068416, uploaded=452984832, download_requests=76, upload_requests=27, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.07,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
+     "seconds": 96.22,
+     "errors": [],
      "downloaded": 1275068416,
-     "uploaded": 1778384896,
-     "download_requests": 78,
-     "upload_requests": 106,
+     "uploaded": 452984832,
+     "download_requests": 76,
+     "upload_requests": 27,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -422,184 +423,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.07,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
+      "seconds": 96.22,
+      "errors": [],
       "downloaded": 1275068416,
-      "uploaded": 1778384896,
-      "download_requests": 78,
-      "upload_requests": 106,
+      "uploaded": 452984832,
+      "download_requests": 76,
+      "upload_requests": 27,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 175 ms",
-     "Ping: 161 ms"
+     "Ping: 179 ms",
+     "Ping: 205 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:13:39 +0000\"; reason = 1; }"
-   }
-  },
-  {
-   "id": "prod-trojan-mux-tls",
-   "kind": "production",
-   "why": "Production configuration trojan-mux-tls.json",
-   "sni": null,
-   "server_file": "trojan-mux-tls.json",
-   "configuration": {
-    "version": 3,
-    "mode": "chain",
-    "input": "connections",
-    "application": "trojan",
-    "mux": true,
-    "outer": "tls",
-    "http": "off",
-    "http-version": 1,
-    "obfuscator": false,
-    "carrier": "tcp",
-    "quic-carrier": "datagram",
-    "node-options": {}
-   },
-   "client": null,
-   "server": {
-    "peer": {
-     "name": "trojan-mux-tls",
-     "author": "SRP",
-     "config-version": 1,
-     "core-minimum-version": 0,
-     "nodes": [
-      {
-       "name": "public-in",
-       "type": "TcpListener",
-       "settings": {
-        "address": "0.0.0.0",
-        "port": 18446,
-        "nodelay": true,
-        "initial-idle-timeout-ms": 15000,
-        "active-idle-timeout-ms": 300000
-       },
-       "next": "tls"
-      },
-      {
-       "name": "tls",
-       "type": "TlsServer",
-       "settings": {
-        "cert-file": "/etc/waterwall/fullchain.pem",
-        "key-file": "/etc/waterwall/privkey.pem",
-        "sni": "<SERVER_HOST>",
-        "min-version": "TLSv1.2",
-        "max-version": "TLSv1.3",
-        "select-alpns": [
-         "http/1.1"
-        ],
-        "handshake-timeout-ms": 15000
-       },
-       "next": "mux"
-      },
-      {
-       "name": "mux",
-       "type": "MuxServer",
-       "settings": {
-        "max-children": 256,
-        "initial-child-idle-timeout-ms": 15000,
-        "active-child-idle-timeout-ms": 300000
-       },
-       "next": "trojan"
-      },
-      {
-       "name": "trojan",
-       "type": "TrojanServer",
-       "settings": {
-        "password": "<PASSWORD>",
-        "connect": true,
-        "udp": true,
-        "verbose": true
-       },
-       "next": "outbound"
-      },
-      {
-       "name": "outbound",
-       "type": "TcpUdpConnector",
-       "settings": {
-        "address": "dest_context->address",
-        "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
-        "nodelay": true
-       }
-      }
-     ]
-    },
-    "core": null,
-    "cover": null
-   },
-   "result": {
-    "status": "failed",
-    "tcp": {
-     "status": "failed",
-     "duration_s": 107.31
-    },
-    "udp": {
-     "status": "not-run",
-     "reason": "This run measured TCP only"
-    },
-    "ping": null,
-    "teardown": {
-     "passed": true
-    },
-    "lifecycle": null
-   },
-   "device": {
-    "started": "2026-11-01 20:13:47",
-    "finished": "2026-11-01 20:15:28",
-    "sustained": "Sustained full-duplex: 96.26 seconds, downloaded=973078528, uploaded=536870912, download_requests=61, upload_requests=32, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
-    "measured": {
-     "mode": "full-duplex",
-     "seconds": 96.26,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 973078528,
-     "uploaded": 536870912,
-     "download_requests": 61,
-     "upload_requests": 32,
-     "finished": "8/8",
-     "timeouts": 0,
-     "status": 2
-    },
-    "phases": [
-     {
-      "mode": "full-duplex",
-      "seconds": 96.26,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 973078528,
-      "uploaded": 536870912,
-      "download_requests": 61,
-      "upload_requests": 32,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     }
-    ],
-    "https_checks": [
-     "Ping: 213 ms",
-     "Ping: 103 ms"
-    ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:15:27 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:07:25 +0000\"; reason = 1; }"
    }
   },
   {
@@ -694,30 +535,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.94
+     "duration_s": 103.26
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:15:35",
-    "finished": "2026-11-01 20:17:11",
-    "sustained": "Sustained full-duplex: 92.30 seconds, downloaded=2113929216, uploaded=1895825408, download_requests=126, upload_requests=113, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:09:15",
+    "finished": "2026-11-03 03:10:52",
+    "sustained": "Sustained full-duplex: 92.40 seconds, downloaded=1157627904, uploaded=2013265920, download_requests=69, upload_requests=120, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.3,
+     "seconds": 92.4,
      "errors": [],
-     "downloaded": 2113929216,
-     "uploaded": 1895825408,
-     "download_requests": 126,
-     "upload_requests": 113,
+     "downloaded": 1157627904,
+     "uploaded": 2013265920,
+     "download_requests": 69,
+     "upload_requests": 120,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -725,23 +567,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.3,
+      "seconds": 92.4,
       "errors": [],
-      "downloaded": 2113929216,
-      "uploaded": 1895825408,
-      "download_requests": 126,
-      "upload_requests": 113,
+      "downloaded": 1157627904,
+      "uploaded": 2013265920,
+      "download_requests": 69,
+      "upload_requests": 120,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 194 ms",
-     "Ping: 167 ms"
+     "Ping: 221 ms",
+     "Ping: 163 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:17:10 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:10:51 +0000\"; reason = 1; }"
    }
   },
   {
@@ -836,30 +679,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 146.62
+     "duration_s": 103.2
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:17:18",
-    "finished": "2026-11-01 20:19:38",
-    "sustained": "Sustained full-duplex: 136.13 seconds, downloaded=2181038080, uploaded=1828716544, download_requests=130, upload_requests=109, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:10:59",
+    "finished": "2026-11-03 03:12:36",
+    "sustained": "Sustained full-duplex: 92.24 seconds, downloaded=1191182336, uploaded=1979711488, download_requests=71, upload_requests=118, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 136.13,
+     "seconds": 92.24,
      "errors": [],
-     "downloaded": 2181038080,
-     "uploaded": 1828716544,
-     "download_requests": 130,
-     "upload_requests": 109,
+     "downloaded": 1191182336,
+     "uploaded": 1979711488,
+     "download_requests": 71,
+     "upload_requests": 118,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -867,23 +711,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 136.13,
+      "seconds": 92.24,
       "errors": [],
-      "downloaded": 2181038080,
-      "uploaded": 1828716544,
-      "download_requests": 130,
-      "upload_requests": 109,
+      "downloaded": 1191182336,
+      "uploaded": 1979711488,
+      "download_requests": 71,
+      "upload_requests": 118,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 318 ms",
-     "Ping: 196 ms"
+     "Ping: 272 ms",
+     "Ping: 218 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:19:37 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:12:34 +0000\"; reason = 1; }"
    }
   },
   {
@@ -978,30 +823,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.74
+     "duration_s": 103.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:19:45",
-    "finished": "2026-11-01 20:21:20",
-    "sustained": "Sustained full-duplex: 91.35 seconds, downloaded=2046820352, uploaded=1979711488, download_requests=122, upload_requests=118, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:12:42",
+    "finished": "2026-11-03 03:14:19",
+    "sustained": "Sustained full-duplex: 92.77 seconds, downloaded=1241513984, uploaded=1912602624, download_requests=74, upload_requests=114, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.35,
+     "seconds": 92.77,
      "errors": [],
-     "downloaded": 2046820352,
-     "uploaded": 1979711488,
-     "download_requests": 122,
-     "upload_requests": 118,
+     "downloaded": 1241513984,
+     "uploaded": 1912602624,
+     "download_requests": 74,
+     "upload_requests": 114,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1009,23 +855,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.35,
+      "seconds": 92.77,
       "errors": [],
-      "downloaded": 2046820352,
-      "uploaded": 1979711488,
-      "download_requests": 122,
-      "upload_requests": 118,
+      "downloaded": 1241513984,
+      "uploaded": 1912602624,
+      "download_requests": 74,
+      "upload_requests": 114,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 219 ms",
-     "Ping: 161 ms"
+     "Ping: 200 ms",
+     "Ping: 170 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:21:19 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:14:18 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1127,38 +974,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 110.03
+     "status": "passed",
+     "duration_s": 107.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:21:27",
-    "finished": "2026-11-01 20:23:11",
-    "sustained": "Sustained full-duplex: 98.75 seconds, downloaded=167772160, uploaded=1929379840, download_requests=14, upload_requests=115, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:14:25",
+    "finished": "2026-11-03 03:16:06",
+    "sustained": "Sustained full-duplex: 96.82 seconds, downloaded=1241513984, uploaded=1241513984, download_requests=74, upload_requests=74, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 98.75,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 167772160,
-     "uploaded": 1929379840,
-     "download_requests": 14,
-     "upload_requests": 115,
+     "seconds": 96.82,
+     "errors": [],
+     "downloaded": 1241513984,
+     "uploaded": 1241513984,
+     "download_requests": 74,
+     "upload_requests": 74,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1166,30 +1009,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 98.75,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 167772160,
-      "uploaded": 1929379840,
-      "download_requests": 14,
-      "upload_requests": 115,
+      "seconds": 96.82,
+      "errors": [],
+      "downloaded": 1241513984,
+      "uploaded": 1241513984,
+      "download_requests": 74,
+      "upload_requests": 74,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 304 ms",
-     "Ping: 96 ms"
+     "Ping: 169 ms",
+     "Ping: 136 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:23:09 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:16:05 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1291,37 +1128,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 106.22
+     "status": "passed",
+     "duration_s": 112.72
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:23:17",
-    "finished": "2026-11-01 20:24:57",
-    "sustained": "Sustained full-duplex: 94.62 seconds, downloaded=402653184, uploaded=620756992, download_requests=27, upload_requests=37, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:16:13",
+    "finished": "2026-11-03 03:17:59",
+    "sustained": "Sustained full-duplex: 100.29 seconds, downloaded=1342177280, uploaded=486539264, download_requests=80, upload_requests=29, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.62,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 402653184,
-     "uploaded": 620756992,
-     "download_requests": 27,
-     "upload_requests": 37,
+     "seconds": 100.29,
+     "errors": [],
+     "downloaded": 1342177280,
+     "uploaded": 486539264,
+     "download_requests": 80,
+     "upload_requests": 29,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1329,29 +1163,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.62,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 402653184,
-      "uploaded": 620756992,
-      "download_requests": 27,
-      "upload_requests": 37,
+      "seconds": 100.29,
+      "errors": [],
+      "downloaded": 1342177280,
+      "uploaded": 486539264,
+      "download_requests": 80,
+      "upload_requests": 29,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 297 ms",
-     "Ping: 174 ms"
+     "Ping: 1783 ms",
+     "Ping: 201 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:24:55 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:17:58 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1436,30 +1265,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 146.71
+     "duration_s": 102.65
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:25:03",
-    "finished": "2026-11-01 20:27:23",
-    "sustained": "Sustained full-duplex: 136.30 seconds, downloaded=2181038080, uploaded=1895825408, download_requests=130, upload_requests=113, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:18:05",
+    "finished": "2026-11-03 03:19:42",
+    "sustained": "Sustained full-duplex: 92.16 seconds, downloaded=1224736768, uploaded=1979711488, download_requests=73, upload_requests=118, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 136.3,
+     "seconds": 92.16,
      "errors": [],
-     "downloaded": 2181038080,
-     "uploaded": 1895825408,
-     "download_requests": 130,
-     "upload_requests": 113,
+     "downloaded": 1224736768,
+     "uploaded": 1979711488,
+     "download_requests": 73,
+     "upload_requests": 118,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1467,23 +1297,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 136.3,
+      "seconds": 92.16,
       "errors": [],
-      "downloaded": 2181038080,
-      "uploaded": 1895825408,
-      "download_requests": 130,
-      "upload_requests": 113,
+      "downloaded": 1224736768,
+      "uploaded": 1979711488,
+      "download_requests": 73,
+      "upload_requests": 118,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 184 ms",
-     "Ping: 131 ms"
+     "Ping: 275 ms",
+     "Ping: 124 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:27:22 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:19:40 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1575,37 +1406,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 107.16
+     "status": "passed",
+     "duration_s": 108.24
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:27:31",
-    "finished": "2026-11-01 20:29:11",
-    "sustained": "Sustained full-duplex: 95.66 seconds, downloaded=620756992, uploaded=1761607680, download_requests=40, upload_requests=105, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:19:48",
+    "finished": "2026-11-03 03:21:30",
+    "sustained": "Sustained full-duplex: 97.87 seconds, downloaded=1325400064, uploaded=1174405120, download_requests=79, upload_requests=70, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.66,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 620756992,
-     "uploaded": 1761607680,
-     "download_requests": 40,
-     "upload_requests": 105,
+     "seconds": 97.87,
+     "errors": [],
+     "downloaded": 1325400064,
+     "uploaded": 1174405120,
+     "download_requests": 79,
+     "upload_requests": 70,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1613,29 +1441,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.66,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 620756992,
-      "uploaded": 1761607680,
-      "download_requests": 40,
-      "upload_requests": 105,
+      "seconds": 97.87,
+      "errors": [],
+      "downloaded": 1325400064,
+      "uploaded": 1174405120,
+      "download_requests": 79,
+      "upload_requests": 70,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 167 ms",
-     "Ping: 101 ms"
+     "Ping: 213 ms",
+     "Ping: 127 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:29:09 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:21:29 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1720,30 +1543,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 146.1
+     "duration_s": 102.58
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:29:17",
-    "finished": "2026-11-01 20:31:37",
-    "sustained": "Sustained full-duplex: 135.76 seconds, downloaded=2281701376, uploaded=1728053248, download_requests=136, upload_requests=103, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:21:36",
+    "finished": "2026-11-03 03:23:13",
+    "sustained": "Sustained full-duplex: 92.05 seconds, downloaded=1392508928, uploaded=1660944384, download_requests=83, upload_requests=99, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 135.76,
+     "seconds": 92.05,
      "errors": [],
-     "downloaded": 2281701376,
-     "uploaded": 1728053248,
-     "download_requests": 136,
-     "upload_requests": 103,
+     "downloaded": 1392508928,
+     "uploaded": 1660944384,
+     "download_requests": 83,
+     "upload_requests": 99,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1751,23 +1575,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 135.76,
+      "seconds": 92.05,
       "errors": [],
-      "downloaded": 2281701376,
-      "uploaded": 1728053248,
-      "download_requests": 136,
-      "upload_requests": 103,
+      "downloaded": 1392508928,
+      "uploaded": 1660944384,
+      "download_requests": 83,
+      "upload_requests": 99,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 178 ms",
-     "Ping: 208 ms"
+     "Ping: 175 ms",
+     "Ping: 180 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:31:35 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:23:11 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1859,37 +1684,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 105.0
+     "status": "passed",
+     "duration_s": 109.68
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:31:44",
-    "finished": "2026-11-01 20:33:22",
-    "sustained": "Sustained full-duplex: 93.77 seconds, downloaded=603979776, uploaded=1711276032, download_requests=39, upload_requests=102, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:23:19",
+    "finished": "2026-11-03 03:25:02",
+    "sustained": "Sustained full-duplex: 98.92 seconds, downloaded=1275068416, uploaded=1140850688, download_requests=76, upload_requests=68, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.77,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 603979776,
-     "uploaded": 1711276032,
-     "download_requests": 39,
-     "upload_requests": 102,
+     "seconds": 98.92,
+     "errors": [],
+     "downloaded": 1275068416,
+     "uploaded": 1140850688,
+     "download_requests": 76,
+     "upload_requests": 68,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1897,29 +1719,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.77,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 603979776,
-      "uploaded": 1711276032,
-      "download_requests": 39,
-      "upload_requests": 102,
+      "seconds": 98.92,
+      "errors": [],
+      "downloaded": 1275068416,
+      "uploaded": 1140850688,
+      "download_requests": 76,
+      "upload_requests": 68,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 184 ms",
-     "Ping: 112 ms"
+     "Ping: 173 ms",
+     "Ping: 131 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:33:20 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:25:01 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2014,30 +1831,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.04
+     "duration_s": 102.36
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:33:29",
-    "finished": "2026-11-01 20:35:06",
-    "sustained": "Sustained full-duplex: 92.00 seconds, downloaded=1962934272, uploaded=2516582400, download_requests=117, upload_requests=150, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:25:09",
+    "finished": "2026-11-03 03:26:45",
+    "sustained": "Sustained full-duplex: 91.78 seconds, downloaded=1845493760, uploaded=1275068416, download_requests=110, upload_requests=76, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.0,
+     "seconds": 91.78,
      "errors": [],
-     "downloaded": 1962934272,
-     "uploaded": 2516582400,
-     "download_requests": 117,
-     "upload_requests": 150,
+     "downloaded": 1845493760,
+     "uploaded": 1275068416,
+     "download_requests": 110,
+     "upload_requests": 76,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2045,23 +1863,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.0,
+      "seconds": 91.78,
       "errors": [],
-      "downloaded": 1962934272,
-      "uploaded": 2516582400,
-      "download_requests": 117,
-      "upload_requests": 150,
+      "downloaded": 1845493760,
+      "uploaded": 1275068416,
+      "download_requests": 110,
+      "upload_requests": 76,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 298 ms",
-     "Ping: 166 ms"
+     "Ping: 193 ms",
+     "Ping: 168 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:35:04 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:26:43 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2162,30 +1981,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.09
+     "duration_s": 106.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:35:13",
-    "finished": "2026-11-01 20:36:50",
-    "sustained": "Sustained full-duplex: 92.16 seconds, downloaded=1962934272, uploaded=2533359616, download_requests=117, upload_requests=151, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:26:51",
+    "finished": "2026-11-03 03:28:31",
+    "sustained": "Sustained full-duplex: 94.49 seconds, downloaded=1811939328, uploaded=1308622848, download_requests=108, upload_requests=78, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.16,
+     "seconds": 94.49,
      "errors": [],
-     "downloaded": 1962934272,
-     "uploaded": 2533359616,
-     "download_requests": 117,
-     "upload_requests": 151,
+     "downloaded": 1811939328,
+     "uploaded": 1308622848,
+     "download_requests": 108,
+     "upload_requests": 78,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2193,23 +2013,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.16,
+      "seconds": 94.49,
       "errors": [],
-      "downloaded": 1962934272,
-      "uploaded": 2533359616,
-      "download_requests": 117,
-      "upload_requests": 151,
+      "downloaded": 1811939328,
+      "uploaded": 1308622848,
+      "download_requests": 108,
+      "upload_requests": 78,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 335 ms",
-     "Ping: 142 ms"
+     "Ping: 345 ms",
+     "Ping: 138 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:36:48 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:28:30 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2300,30 +2121,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.44
+     "duration_s": 102.58
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:36:57",
-    "finished": "2026-11-01 20:38:32",
-    "sustained": "Sustained full-duplex: 91.51 seconds, downloaded=1912602624, uploaded=2550136832, download_requests=114, upload_requests=152, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:28:37",
+    "finished": "2026-11-03 03:30:14",
+    "sustained": "Sustained full-duplex: 91.77 seconds, downloaded=1795162112, uploaded=1275068416, download_requests=107, upload_requests=76, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.51,
+     "seconds": 91.77,
      "errors": [],
-     "downloaded": 1912602624,
-     "uploaded": 2550136832,
-     "download_requests": 114,
-     "upload_requests": 152,
+     "downloaded": 1795162112,
+     "uploaded": 1275068416,
+     "download_requests": 107,
+     "upload_requests": 76,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2331,23 +2153,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.51,
+      "seconds": 91.77,
       "errors": [],
-      "downloaded": 1912602624,
-      "uploaded": 2550136832,
-      "download_requests": 114,
-      "upload_requests": 152,
+      "downloaded": 1795162112,
+      "uploaded": 1275068416,
+      "download_requests": 107,
+      "upload_requests": 76,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 297 ms",
-     "Ping: 164 ms"
+     "Ping: 386 ms",
+     "Ping: 254 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:38:31 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:30:12 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2425,38 +2248,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 103.67
+     "status": "passed",
+     "duration_s": 103.85
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:38:39",
-    "finished": "2026-11-01 20:40:16",
-    "sustained": "Sustained full-duplex: 92.40 seconds, downloaded=0, uploaded=1409286144, download_requests=4, upload_requests=84, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:30:20",
+    "finished": "2026-11-03 03:31:57",
+    "sustained": "Sustained full-duplex: 93.21 seconds, downloaded=738197504, uploaded=1224736768, download_requests=44, upload_requests=73, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.4,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 1409286144,
-     "download_requests": 4,
-     "upload_requests": 84,
+     "seconds": 93.21,
+     "errors": [],
+     "downloaded": 738197504,
+     "uploaded": 1224736768,
+     "download_requests": 44,
+     "upload_requests": 73,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2464,30 +2283,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.4,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 1409286144,
-      "download_requests": 4,
-      "upload_requests": 84,
+      "seconds": 93.21,
+      "errors": [],
+      "downloaded": 738197504,
+      "uploaded": 1224736768,
+      "download_requests": 44,
+      "upload_requests": 73,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 338 ms",
-     "Ping: 168 ms"
+     "Ping: 255 ms",
+     "Ping: 150 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:40:15 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:31:56 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2565,38 +2378,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 140.63
+     "status": "passed",
+     "duration_s": 107.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:40:23",
-    "finished": "2026-11-01 20:42:37",
-    "sustained": "Sustained full-duplex: 129.38 seconds, downloaded=0, uploaded=1375731712, download_requests=4, upload_requests=82, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:32:04",
+    "finished": "2026-11-03 03:33:45",
+    "sustained": "Sustained full-duplex: 96.41 seconds, downloaded=201326592, uploaded=520093696, download_requests=12, upload_requests=31, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 129.38,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 1375731712,
-     "download_requests": 4,
-     "upload_requests": 82,
+     "seconds": 96.41,
+     "errors": [],
+     "downloaded": 201326592,
+     "uploaded": 520093696,
+     "download_requests": 12,
+     "upload_requests": 31,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2604,30 +2413,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 129.38,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 1375731712,
-      "download_requests": 4,
-      "upload_requests": 82,
+      "seconds": 96.41,
+      "errors": [],
+      "downloaded": 201326592,
+      "uploaded": 520093696,
+      "download_requests": 12,
+      "upload_requests": 31,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 280 ms",
-     "Ping: 187 ms"
+     "Ping: 412 ms",
+     "Ping: 158 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:42:35 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:33:43 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2714,30 +2517,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.01
+     "duration_s": 108.73
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:42:44",
-    "finished": "2026-11-01 20:44:20",
-    "sustained": "Sustained full-duplex: 91.68 seconds, downloaded=2164260864, uploaded=2248146944, download_requests=129, upload_requests=134, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:33:52",
+    "finished": "2026-11-03 03:35:34",
+    "sustained": "Sustained full-duplex: 92.61 seconds, downloaded=1862270976, uploaded=1090519040, download_requests=111, upload_requests=65, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.68,
+     "seconds": 92.61,
      "errors": [],
-     "downloaded": 2164260864,
-     "uploaded": 2248146944,
-     "download_requests": 129,
-     "upload_requests": 134,
+     "downloaded": 1862270976,
+     "uploaded": 1090519040,
+     "download_requests": 111,
+     "upload_requests": 65,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2745,23 +2549,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.68,
+      "seconds": 92.61,
       "errors": [],
-      "downloaded": 2164260864,
-      "uploaded": 2248146944,
-      "download_requests": 129,
-      "upload_requests": 134,
+      "downloaded": 1862270976,
+      "uploaded": 1090519040,
+      "download_requests": 111,
+      "upload_requests": 65,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 184 ms",
-     "Ping: 163 ms"
+     "Ping: 1017 ms",
+     "Ping: 136 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:44:18 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:35:32 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2834,30 +2639,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.21
+     "duration_s": 105.52
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:44:26",
-    "finished": "2026-11-01 20:46:04",
-    "sustained": "Sustained full-duplex: 92.65 seconds, downloaded=1996488704, uploaded=2449473536, download_requests=119, upload_requests=146, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:35:40",
+    "finished": "2026-11-03 03:37:19",
+    "sustained": "Sustained full-duplex: 93.44 seconds, downloaded=1778384896, uploaded=1174405120, download_requests=106, upload_requests=70, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.65,
+     "seconds": 93.44,
      "errors": [],
-     "downloaded": 1996488704,
-     "uploaded": 2449473536,
-     "download_requests": 119,
-     "upload_requests": 146,
+     "downloaded": 1778384896,
+     "uploaded": 1174405120,
+     "download_requests": 106,
+     "upload_requests": 70,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2865,23 +2671,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.65,
+      "seconds": 93.44,
       "errors": [],
-      "downloaded": 1996488704,
-      "uploaded": 2449473536,
-      "download_requests": 119,
-      "upload_requests": 146,
+      "downloaded": 1778384896,
+      "uploaded": 1174405120,
+      "download_requests": 106,
+      "upload_requests": 70,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 178 ms",
-     "Ping: 159 ms"
+     "Ping: 195 ms",
+     "Ping: 124 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:46:02 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:37:18 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2954,30 +2761,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.78
+     "duration_s": 103.31
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:46:11",
-    "finished": "2026-11-01 20:47:47",
-    "sustained": "Sustained full-duplex: 92.83 seconds, downloaded=2248146944, uploaded=1879048192, download_requests=134, upload_requests=112, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:37:26",
+    "finished": "2026-11-03 03:39:02",
+    "sustained": "Sustained full-duplex: 92.61 seconds, downloaded=1644167168, uploaded=1224736768, download_requests=98, upload_requests=73, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.83,
+     "seconds": 92.61,
      "errors": [],
-     "downloaded": 2248146944,
-     "uploaded": 1879048192,
-     "download_requests": 134,
-     "upload_requests": 112,
+     "downloaded": 1644167168,
+     "uploaded": 1224736768,
+     "download_requests": 98,
+     "upload_requests": 73,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2985,23 +2793,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.83,
+      "seconds": 92.61,
       "errors": [],
-      "downloaded": 2248146944,
-      "uploaded": 1879048192,
-      "download_requests": 134,
-      "upload_requests": 112,
+      "downloaded": 1644167168,
+      "uploaded": 1224736768,
+      "download_requests": 98,
+      "upload_requests": 73,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 255 ms",
-     "Ping: 140 ms"
+     "Ping: 253 ms",
+     "Ping: 128 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:47:46 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:39:01 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3104,30 +2913,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.47
+     "duration_s": 106.34
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:47:54",
-    "finished": "2026-11-01 20:49:30",
-    "sustained": "Sustained full-duplex: 91.90 seconds, downloaded=2248146944, uploaded=1526726656, download_requests=134, upload_requests=91, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:39:09",
+    "finished": "2026-11-03 03:40:49",
+    "sustained": "Sustained full-duplex: 95.89 seconds, downloaded=1509949440, uploaded=956301312, download_requests=90, upload_requests=57, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.9,
+     "seconds": 95.89,
      "errors": [],
-     "downloaded": 2248146944,
-     "uploaded": 1526726656,
-     "download_requests": 134,
-     "upload_requests": 91,
+     "downloaded": 1509949440,
+     "uploaded": 956301312,
+     "download_requests": 90,
+     "upload_requests": 57,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3135,23 +2945,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.9,
+      "seconds": 95.89,
       "errors": [],
-      "downloaded": 2248146944,
-      "uploaded": 1526726656,
-      "download_requests": 134,
-      "upload_requests": 91,
+      "downloaded": 1509949440,
+      "uploaded": 956301312,
+      "download_requests": 90,
+      "upload_requests": 57,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 192 ms",
-     "Ping: 172 ms"
+     "Ping: 272 ms",
+     "Ping: 146 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:49:29 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:40:47 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3255,30 +3066,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.6
+     "duration_s": 103.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:49:37",
-    "finished": "2026-11-01 20:51:15",
-    "sustained": "Sustained full-duplex: 93.34 seconds, downloaded=2197815296, uploaded=1275068416, download_requests=131, upload_requests=76, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:40:55",
+    "finished": "2026-11-03 03:42:32",
+    "sustained": "Sustained full-duplex: 92.75 seconds, downloaded=671088640, uploaded=805306368, download_requests=40, upload_requests=48, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.34,
+     "seconds": 92.75,
      "errors": [],
-     "downloaded": 2197815296,
-     "uploaded": 1275068416,
-     "download_requests": 131,
-     "upload_requests": 76,
+     "downloaded": 671088640,
+     "uploaded": 805306368,
+     "download_requests": 40,
+     "upload_requests": 48,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3286,23 +3098,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.34,
+      "seconds": 92.75,
       "errors": [],
-      "downloaded": 2197815296,
-      "uploaded": 1275068416,
-      "download_requests": 131,
-      "upload_requests": 76,
+      "downloaded": 671088640,
+      "uploaded": 805306368,
+      "download_requests": 40,
+      "upload_requests": 48,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 268 ms",
-     "Ping: 227 ms"
+     "Ping: 203 ms",
+     "Ping: 200 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:51:13 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:42:31 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3402,38 +3215,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 104.04
+     "status": "passed",
+     "duration_s": 109.18
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:51:21",
-    "finished": "2026-11-01 20:52:59",
-    "sustained": "Sustained full-duplex: 93.33 seconds, downloaded=419430400, uploaded=1140850688, download_requests=29, upload_requests=68, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:42:40",
+    "finished": "2026-11-03 03:44:21",
+    "sustained": "Sustained full-duplex: 93.42 seconds, downloaded=2281701376, uploaded=486539264, download_requests=136, upload_requests=29, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.33,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 419430400,
-     "uploaded": 1140850688,
-     "download_requests": 29,
-     "upload_requests": 68,
+     "seconds": 93.42,
+     "errors": [],
+     "downloaded": 2281701376,
+     "uploaded": 486539264,
+     "download_requests": 136,
+     "upload_requests": 29,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3441,30 +3250,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.33,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 419430400,
-      "uploaded": 1140850688,
-      "download_requests": 29,
-      "upload_requests": 68,
+      "seconds": 93.42,
+      "errors": [],
+      "downloaded": 2281701376,
+      "uploaded": 486539264,
+      "download_requests": 136,
+      "upload_requests": 29,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 186 ms",
-     "Ping: 140 ms"
+     "Ping: 1055 ms",
+     "Ping: 139 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:52:57 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:44:20 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3552,30 +3355,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.06
+     "duration_s": 104.07
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:53:05",
-    "finished": "2026-11-01 20:54:41",
-    "sustained": "Sustained full-duplex: 91.77 seconds, downloaded=2130706432, uploaded=1442840576, download_requests=127, upload_requests=86, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:44:28",
+    "finished": "2026-11-03 03:46:06",
+    "sustained": "Sustained full-duplex: 93.29 seconds, downloaded=1644167168, uploaded=1207959552, download_requests=98, upload_requests=72, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.77,
+     "seconds": 93.29,
      "errors": [],
-     "downloaded": 2130706432,
-     "uploaded": 1442840576,
-     "download_requests": 127,
-     "upload_requests": 86,
+     "downloaded": 1644167168,
+     "uploaded": 1207959552,
+     "download_requests": 98,
+     "upload_requests": 72,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3583,23 +3387,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.77,
+      "seconds": 93.29,
       "errors": [],
-      "downloaded": 2130706432,
-      "uploaded": 1442840576,
-      "download_requests": 127,
-      "upload_requests": 86,
+      "downloaded": 1644167168,
+      "uploaded": 1207959552,
+      "download_requests": 98,
+      "upload_requests": 72,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 176 ms",
-     "Ping: 146 ms"
+     "Ping: 257 ms",
+     "Ping: 148 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:54:40 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:46:04 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3697,30 +3502,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 117.94
+     "duration_s": 103.31
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:54:47",
-    "finished": "2026-11-01 20:56:39",
-    "sustained": "Sustained full-duplex: 107.43 seconds, downloaded=1946157056, uploaded=1442840576, download_requests=116, upload_requests=86, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:46:12",
+    "finished": "2026-11-03 03:47:49",
+    "sustained": "Sustained full-duplex: 92.90 seconds, downloaded=1509949440, uploaded=1191182336, download_requests=90, upload_requests=71, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 107.43,
+     "seconds": 92.9,
      "errors": [],
-     "downloaded": 1946157056,
-     "uploaded": 1442840576,
-     "download_requests": 116,
-     "upload_requests": 86,
+     "downloaded": 1509949440,
+     "uploaded": 1191182336,
+     "download_requests": 90,
+     "upload_requests": 71,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3728,23 +3534,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 107.43,
+      "seconds": 92.9,
       "errors": [],
-      "downloaded": 1946157056,
-      "uploaded": 1442840576,
-      "download_requests": 116,
-      "upload_requests": 86,
+      "downloaded": 1509949440,
+      "uploaded": 1191182336,
+      "download_requests": 90,
+      "upload_requests": 71,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 170 ms",
-     "Ping: 225 ms"
+     "Ping: 201 ms",
+     "Ping: 226 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:56:37 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:47:47 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3856,30 +3663,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.54
+     "duration_s": 104.81
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:56:45",
-    "finished": "2026-11-01 20:58:21",
-    "sustained": "Sustained full-duplex: 91.83 seconds, downloaded=2063597568, uploaded=1610612736, download_requests=123, upload_requests=96, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:47:55",
+    "finished": "2026-11-03 03:49:34",
+    "sustained": "Sustained full-duplex: 94.36 seconds, downloaded=1476395008, uploaded=1258291200, download_requests=88, upload_requests=75, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.83,
+     "seconds": 94.36,
      "errors": [],
-     "downloaded": 2063597568,
-     "uploaded": 1610612736,
-     "download_requests": 123,
-     "upload_requests": 96,
+     "downloaded": 1476395008,
+     "uploaded": 1258291200,
+     "download_requests": 88,
+     "upload_requests": 75,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3887,23 +3695,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.83,
+      "seconds": 94.36,
       "errors": [],
-      "downloaded": 2063597568,
-      "uploaded": 1610612736,
-      "download_requests": 123,
-      "upload_requests": 96,
+      "downloaded": 1476395008,
+      "uploaded": 1258291200,
+      "download_requests": 88,
+      "upload_requests": 75,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 235 ms",
-     "Ping: 176 ms"
+     "Ping: 208 ms",
+     "Ping: 171 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 17:58:20 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:49:32 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3978,69 +3787,59 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 137.27
+     "status": "passed",
+     "duration_s": 119.07
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 20:58:28",
-    "finished": "2026-11-01 21:00:39",
-    "sustained": "Sustained full-duplex: 125.96 seconds, downloaded=0, uploaded=1476395008, download_requests=4, upload_requests=88, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "started": "2026-11-03 03:49:40",
+    "finished": "2026-11-03 03:51:32",
+    "sustained": "Sustained full-duplex: 106.98 seconds, downloaded=469762048, uploaded=469762048, download_requests=28, upload_requests=28, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 125.96,
-     "errors": [
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out."
-     ],
-     "downloaded": 0,
-     "uploaded": 1476395008,
-     "download_requests": 4,
-     "upload_requests": 88,
+     "seconds": 106.98,
+     "errors": [],
+     "downloaded": 469762048,
+     "uploaded": 469762048,
+     "download_requests": 28,
+     "upload_requests": 28,
      "finished": "8/8",
-     "timeouts": 4,
+     "timeouts": 0,
      "status": 2
     },
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 125.96,
-      "errors": [
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out."
-      ],
-      "downloaded": 0,
-      "uploaded": 1476395008,
-      "download_requests": 4,
-      "upload_requests": 88,
+      "seconds": 106.98,
+      "errors": [],
+      "downloaded": 469762048,
+      "uploaded": 469762048,
+      "download_requests": 28,
+      "upload_requests": 28,
       "finished": "8/8",
-      "timeouts": 4,
+      "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 372 ms",
-     "Ping: 346 ms"
+     "Ping: 386 ms",
+     "Ping: 379 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:00:37 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:51:31 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4124,69 +3923,59 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 137.86
+     "status": "passed",
+     "duration_s": 117.82
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:00:46",
-    "finished": "2026-11-01 21:02:56",
-    "sustained": "Sustained full-duplex: 124.97 seconds, downloaded=0, uploaded=1107296256, download_requests=4, upload_requests=66, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "started": "2026-11-03 03:51:45",
+    "finished": "2026-11-03 03:53:30",
+    "sustained": "Sustained full-duplex: 94.12 seconds, downloaded=536870912, uploaded=587202560, download_requests=32, upload_requests=35, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 124.97,
-     "errors": [
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out."
-     ],
-     "downloaded": 0,
-     "uploaded": 1107296256,
-     "download_requests": 4,
-     "upload_requests": 66,
+     "seconds": 94.12,
+     "errors": [],
+     "downloaded": 536870912,
+     "uploaded": 587202560,
+     "download_requests": 32,
+     "upload_requests": 35,
      "finished": "8/8",
-     "timeouts": 4,
+     "timeouts": 0,
      "status": 2
     },
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 124.97,
-      "errors": [
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out."
-      ],
-      "downloaded": 0,
-      "uploaded": 1107296256,
-      "download_requests": 4,
-      "upload_requests": 66,
+      "seconds": 94.12,
+      "errors": [],
+      "downloaded": 536870912,
+      "uploaded": 587202560,
+      "download_requests": 32,
+      "upload_requests": 35,
       "finished": "8/8",
-      "timeouts": 4,
+      "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 361 ms",
-     "Ping: 333 ms"
+     "Ping: 911 ms",
+     "Ping: 342 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:02:55 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:53:29 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4267,38 +4056,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 107.4
+     "status": "passed",
+     "duration_s": 104.08
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:03:04",
-    "finished": "2026-11-01 21:04:44",
-    "sustained": "Sustained full-duplex: 95.70 seconds, downloaded=0, uploaded=1879048192, download_requests=4, upload_requests=112, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:53:37",
+    "finished": "2026-11-03 03:55:14",
+    "sustained": "Sustained full-duplex: 93.34 seconds, downloaded=1023410176, uploaded=1174405120, download_requests=61, upload_requests=70, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.7,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 1879048192,
-     "download_requests": 4,
-     "upload_requests": 112,
+     "seconds": 93.34,
+     "errors": [],
+     "downloaded": 1023410176,
+     "uploaded": 1174405120,
+     "download_requests": 61,
+     "upload_requests": 70,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4306,30 +4091,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.7,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 1879048192,
-      "download_requests": 4,
-      "upload_requests": 112,
+      "seconds": 93.34,
+      "errors": [],
+      "downloaded": 1023410176,
+      "uploaded": 1174405120,
+      "download_requests": 61,
+      "upload_requests": 70,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 190 ms",
-     "Ping: 138 ms"
+     "Ping: 232 ms",
+     "Ping: 143 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:04:42 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:55:13 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4423,30 +4202,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.83
+     "duration_s": 103.47
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:04:50",
-    "finished": "2026-11-01 21:06:28",
-    "sustained": "Sustained full-duplex: 93.53 seconds, downloaded=1543503872, uploaded=637534208, download_requests=92, upload_requests=38, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:55:21",
+    "finished": "2026-11-03 03:56:58",
+    "sustained": "Sustained full-duplex: 93.24 seconds, downloaded=754974720, uploaded=1124073472, download_requests=45, upload_requests=67, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.53,
+     "seconds": 93.24,
      "errors": [],
-     "downloaded": 1543503872,
-     "uploaded": 637534208,
-     "download_requests": 92,
-     "upload_requests": 38,
+     "downloaded": 754974720,
+     "uploaded": 1124073472,
+     "download_requests": 45,
+     "upload_requests": 67,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4454,23 +4234,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.53,
+      "seconds": 93.24,
       "errors": [],
-      "downloaded": 1543503872,
-      "uploaded": 637534208,
-      "download_requests": 92,
-      "upload_requests": 38,
+      "downloaded": 754974720,
+      "uploaded": 1124073472,
+      "download_requests": 45,
+      "upload_requests": 67,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 169 ms",
-     "Ping: 131 ms"
+     "Ping: 173 ms",
+     "Ping: 132 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:06:26 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:56:57 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4579,30 +4360,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.68
+     "duration_s": 112.31
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:06:34",
-    "finished": "2026-11-01 21:08:11",
-    "sustained": "Sustained full-duplex: 92.15 seconds, downloaded=1979711488, uploaded=2483027968, download_requests=118, upload_requests=148, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:57:05",
+    "finished": "2026-11-03 03:58:50",
+    "sustained": "Sustained full-duplex: 92.66 seconds, downloaded=1912602624, uploaded=1124073472, download_requests=114, upload_requests=67, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.15,
+     "seconds": 92.66,
      "errors": [],
-     "downloaded": 1979711488,
-     "uploaded": 2483027968,
-     "download_requests": 118,
-     "upload_requests": 148,
+     "downloaded": 1912602624,
+     "uploaded": 1124073472,
+     "download_requests": 114,
+     "upload_requests": 67,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4610,23 +4392,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.15,
+      "seconds": 92.66,
       "errors": [],
-      "downloaded": 1979711488,
-      "uploaded": 2483027968,
-      "download_requests": 118,
-      "upload_requests": 148,
+      "downloaded": 1912602624,
+      "uploaded": 1124073472,
+      "download_requests": 114,
+      "upload_requests": 67,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 202 ms",
-     "Ping: 207 ms"
+     "Ping: 1369 ms",
+     "Ping: 132 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:08:10 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 00:58:49 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4705,30 +4488,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.74
+     "duration_s": 104.06
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:08:18",
-    "finished": "2026-11-01 21:09:55",
-    "sustained": "Sustained full-duplex: 91.55 seconds, downloaded=1996488704, uploaded=2466250752, download_requests=119, upload_requests=147, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 03:58:57",
+    "finished": "2026-11-03 04:00:34",
+    "sustained": "Sustained full-duplex: 93.32 seconds, downloaded=1845493760, uploaded=1258291200, download_requests=110, upload_requests=75, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.55,
+     "seconds": 93.32,
      "errors": [],
-     "downloaded": 1996488704,
-     "uploaded": 2466250752,
-     "download_requests": 119,
-     "upload_requests": 147,
+     "downloaded": 1845493760,
+     "uploaded": 1258291200,
+     "download_requests": 110,
+     "upload_requests": 75,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4736,23 +4520,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.55,
+      "seconds": 93.32,
       "errors": [],
-      "downloaded": 1996488704,
-      "uploaded": 2466250752,
-      "download_requests": 119,
-      "upload_requests": 147,
+      "downloaded": 1845493760,
+      "uploaded": 1258291200,
+      "download_requests": 110,
+      "upload_requests": 75,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 1424 ms",
-     "Ping: 144 ms"
+     "Ping: 203 ms",
+     "Ping: 164 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:09:54 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:00:33 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4836,30 +4621,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.32
+     "duration_s": 102.41
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:10:02",
-    "finished": "2026-11-01 21:11:39",
-    "sustained": "Sustained full-duplex: 92.13 seconds, downloaded=2164260864, uploaded=2281701376, download_requests=129, upload_requests=136, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:00:41",
+    "finished": "2026-11-03 04:02:17",
+    "sustained": "Sustained full-duplex: 91.93 seconds, downloaded=1795162112, uploaded=1325400064, download_requests=107, upload_requests=79, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.13,
+     "seconds": 91.93,
      "errors": [],
-     "downloaded": 2164260864,
-     "uploaded": 2281701376,
-     "download_requests": 129,
-     "upload_requests": 136,
+     "downloaded": 1795162112,
+     "uploaded": 1325400064,
+     "download_requests": 107,
+     "upload_requests": 79,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4867,23 +4653,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.13,
+      "seconds": 91.93,
       "errors": [],
-      "downloaded": 2164260864,
-      "uploaded": 2281701376,
-      "download_requests": 129,
-      "upload_requests": 136,
+      "downloaded": 1795162112,
+      "uploaded": 1325400064,
+      "download_requests": 107,
+      "upload_requests": 79,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 633 ms",
-     "Ping: 287 ms"
+     "Ping: 211 ms",
+     "Ping: 201 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:11:37 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:02:15 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4972,30 +4759,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 167.59
+     "duration_s": 103.48
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:11:45",
-    "finished": "2026-11-01 21:14:26",
-    "sustained": "Sustained full-duplex: 156.93 seconds, downloaded=1493172224, uploaded=1157627904, download_requests=89, upload_requests=69, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:02:23",
+    "finished": "2026-11-03 04:04:00",
+    "sustained": "Sustained full-duplex: 93.05 seconds, downloaded=1358954496, uploaded=1358954496, download_requests=81, upload_requests=81, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 156.93,
+     "seconds": 93.05,
      "errors": [],
-     "downloaded": 1493172224,
-     "uploaded": 1157627904,
-     "download_requests": 89,
-     "upload_requests": 69,
+     "downloaded": 1358954496,
+     "uploaded": 1358954496,
+     "download_requests": 81,
+     "upload_requests": 81,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5003,23 +4791,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 156.93,
+      "seconds": 93.05,
       "errors": [],
-      "downloaded": 1493172224,
-      "uploaded": 1157627904,
-      "download_requests": 89,
-      "upload_requests": 69,
+      "downloaded": 1358954496,
+      "uploaded": 1358954496,
+      "download_requests": 81,
+      "upload_requests": 81,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 245 ms",
-     "Ping: 167 ms"
+     "Ping: 283 ms",
+     "Ping: 155 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:14:25 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:03:59 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5115,38 +4904,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 106.0
+     "status": "passed",
+     "duration_s": 110.73
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:14:34",
-    "finished": "2026-11-01 21:16:12",
-    "sustained": "Sustained full-duplex: 93.99 seconds, downloaded=0, uploaded=738197504, download_requests=4, upload_requests=44, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:04:07",
+    "finished": "2026-11-03 04:05:51",
+    "sustained": "Sustained full-duplex: 99.91 seconds, downloaded=1275068416, uploaded=503316480, download_requests=76, upload_requests=30, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.99,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 738197504,
-     "download_requests": 4,
-     "upload_requests": 44,
+     "seconds": 99.91,
+     "errors": [],
+     "downloaded": 1275068416,
+     "uploaded": 503316480,
+     "download_requests": 76,
+     "upload_requests": 30,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5154,30 +4939,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.99,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 738197504,
-      "download_requests": 4,
-      "upload_requests": 44,
+      "seconds": 99.91,
+      "errors": [],
+      "downloaded": 1275068416,
+      "uploaded": 503316480,
+      "download_requests": 76,
+      "upload_requests": 30,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 179 ms",
-     "Ping: 96 ms"
+     "Ping: 189 ms",
+     "Ping: 134 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:16:10 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:05:49 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5281,30 +5060,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.43
+     "duration_s": 103.92
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:16:19",
-    "finished": "2026-11-01 21:17:56",
-    "sustained": "Sustained full-duplex: 93.48 seconds, downloaded=1644167168, uploaded=939524096, download_requests=98, upload_requests=56, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:05:57",
+    "finished": "2026-11-03 04:07:35",
+    "sustained": "Sustained full-duplex: 93.00 seconds, downloaded=1442840576, uploaded=1107296256, download_requests=86, upload_requests=66, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.48,
+     "seconds": 93.0,
      "errors": [],
-     "downloaded": 1644167168,
-     "uploaded": 939524096,
-     "download_requests": 98,
-     "upload_requests": 56,
+     "downloaded": 1442840576,
+     "uploaded": 1107296256,
+     "download_requests": 86,
+     "upload_requests": 66,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5312,23 +5092,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.48,
+      "seconds": 93.0,
       "errors": [],
-      "downloaded": 1644167168,
-      "uploaded": 939524096,
-      "download_requests": 98,
-      "upload_requests": 56,
+      "downloaded": 1442840576,
+      "uploaded": 1107296256,
+      "download_requests": 86,
+      "upload_requests": 66,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 248 ms",
-     "Ping: 226 ms"
+     "Ping: 289 ms",
+     "Ping: 206 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:17:55 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:07:33 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5428,38 +5209,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 118.47
+     "status": "passed",
+     "duration_s": 103.68
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:18:03",
-    "finished": "2026-11-01 21:19:55",
-    "sustained": "Sustained full-duplex: 107.47 seconds, downloaded=0, uploaded=1090519040, download_requests=4, upload_requests=65, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:07:41",
+    "finished": "2026-11-03 04:09:19",
+    "sustained": "Sustained full-duplex: 93.22 seconds, downloaded=1996488704, uploaded=536870912, download_requests=119, upload_requests=32, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 107.47,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 1090519040,
-     "download_requests": 4,
-     "upload_requests": 65,
+     "seconds": 93.22,
+     "errors": [],
+     "downloaded": 1996488704,
+     "uploaded": 536870912,
+     "download_requests": 119,
+     "upload_requests": 32,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5467,30 +5244,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 107.47,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 1090519040,
-      "download_requests": 4,
-      "upload_requests": 65,
+      "seconds": 93.22,
+      "errors": [],
+      "downloaded": 1996488704,
+      "uploaded": 536870912,
+      "download_requests": 119,
+      "upload_requests": 32,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 291 ms",
-     "Ping: 150 ms"
+     "Ping: 225 ms",
+     "Ping: 170 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:19:53 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:09:17 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5565,69 +5336,59 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 137.04
+     "status": "passed",
+     "duration_s": 109.08
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:20:02",
-    "finished": "2026-11-01 21:22:12",
-    "sustained": "Sustained full-duplex: 125.95 seconds, downloaded=0, uploaded=738197504, download_requests=4, upload_requests=44, errors=( \"The request timed out.\", \"The request timed out.\", \"The request timed out.\", \"The request timed out.\" ), finished=8/8, timeouts=4, VPN status=2",
+    "started": "2026-11-03 04:09:25",
+    "finished": "2026-11-03 04:11:08",
+    "sustained": "Sustained full-duplex: 98.70 seconds, downloaded=671088640, uploaded=671088640, download_requests=40, upload_requests=40, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 125.95,
-     "errors": [
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out.",
-      "The request timed out."
-     ],
-     "downloaded": 0,
-     "uploaded": 738197504,
-     "download_requests": 4,
-     "upload_requests": 44,
+     "seconds": 98.7,
+     "errors": [],
+     "downloaded": 671088640,
+     "uploaded": 671088640,
+     "download_requests": 40,
+     "upload_requests": 40,
      "finished": "8/8",
-     "timeouts": 4,
+     "timeouts": 0,
      "status": 2
     },
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 125.95,
-      "errors": [
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out.",
-       "The request timed out."
-      ],
-      "downloaded": 0,
-      "uploaded": 738197504,
-      "download_requests": 4,
-      "upload_requests": 44,
+      "seconds": 98.7,
+      "errors": [],
+      "downloaded": 671088640,
+      "uploaded": 671088640,
+      "download_requests": 40,
+      "upload_requests": 40,
       "finished": "8/8",
-      "timeouts": 4,
+      "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 193 ms",
-     "Ping: 125 ms"
+     "Ping: 303 ms",
+     "Ping: 147 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:22:10 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:11:06 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5708,38 +5469,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 115.12
+     "status": "passed",
+     "duration_s": 104.97
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:22:19",
-    "finished": "2026-11-01 21:24:07",
-    "sustained": "Sustained full-duplex: 103.58 seconds, downloaded=0, uploaded=1090519040, download_requests=4, upload_requests=65, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:11:14",
+    "finished": "2026-11-03 04:12:53",
+    "sustained": "Sustained full-duplex: 94.29 seconds, downloaded=1107296256, uploaded=805306368, download_requests=66, upload_requests=48, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 103.58,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 0,
-     "uploaded": 1090519040,
-     "download_requests": 4,
-     "upload_requests": 65,
+     "seconds": 94.29,
+     "errors": [],
+     "downloaded": 1107296256,
+     "uploaded": 805306368,
+     "download_requests": 66,
+     "upload_requests": 48,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5747,30 +5504,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 103.58,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 0,
-      "uploaded": 1090519040,
-      "download_requests": 4,
-      "upload_requests": 65,
+      "seconds": 94.29,
+      "errors": [],
+      "downloaded": 1107296256,
+      "uploaded": 805306368,
+      "download_requests": 66,
+      "upload_requests": 48,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 219 ms",
-     "Ping: 296 ms"
+     "Ping: 185 ms",
+     "Ping: 456 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:24:06 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:12:51 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5861,38 +5612,34 @@
     "cover": null
    },
    "result": {
-    "status": "failed",
+    "status": "passed",
     "tcp": {
-     "status": "failed",
-     "duration_s": 103.03
+     "status": "passed",
+     "duration_s": 103.89
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:24:14",
-    "finished": "2026-11-01 21:25:50",
-    "sustained": "Sustained full-duplex: 91.97 seconds, downloaded=285212672, uploaded=1023410176, download_requests=21, upload_requests=61, errors=( \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\", \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:12:59",
+    "finished": "2026-11-03 04:14:37",
+    "sustained": "Sustained full-duplex: 93.30 seconds, downloaded=738197504, uploaded=1006632960, download_requests=44, upload_requests=60, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.97,
-     "errors": [
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost.",
-      "The network connection was lost."
-     ],
-     "downloaded": 285212672,
-     "uploaded": 1023410176,
-     "download_requests": 21,
-     "upload_requests": 61,
+     "seconds": 93.3,
+     "errors": [],
+     "downloaded": 738197504,
+     "uploaded": 1006632960,
+     "download_requests": 44,
+     "upload_requests": 60,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5900,30 +5647,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.97,
-      "errors": [
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost.",
-       "The network connection was lost."
-      ],
-      "downloaded": 285212672,
-      "uploaded": 1023410176,
-      "download_requests": 21,
-      "upload_requests": 61,
+      "seconds": 93.3,
+      "errors": [],
+      "downloaded": 738197504,
+      "uploaded": 1006632960,
+      "download_requests": 44,
+      "upload_requests": 60,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 239 ms",
-     "Ping: 171 ms"
+     "Ping: 195 ms",
+     "Ping: 122 ms"
     ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:25:49 +0000\"; reason = 1; }"
+    "failures": [],
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:14:35 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6035,30 +5776,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 154.08
+     "duration_s": 104.55
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:25:57",
-    "finished": "2026-11-01 21:28:24",
-    "sustained": "Sustained full-duplex: 143.15 seconds, downloaded=1560281088, uploaded=1040187392, download_requests=93, upload_requests=62, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:14:43",
+    "finished": "2026-11-03 04:16:21",
+    "sustained": "Sustained full-duplex: 93.91 seconds, downloaded=1375731712, uploaded=1224736768, download_requests=82, upload_requests=73, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 143.15,
+     "seconds": 93.91,
      "errors": [],
-     "downloaded": 1560281088,
-     "uploaded": 1040187392,
-     "download_requests": 93,
-     "upload_requests": 62,
+     "downloaded": 1375731712,
+     "uploaded": 1224736768,
+     "download_requests": 82,
+     "upload_requests": 73,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6066,23 +5808,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 143.15,
+      "seconds": 93.91,
       "errors": [],
-      "downloaded": 1560281088,
-      "uploaded": 1040187392,
-      "download_requests": 93,
-      "upload_requests": 62,
+      "downloaded": 1375731712,
+      "uploaded": 1224736768,
+      "download_requests": 82,
+      "upload_requests": 73,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 391 ms",
-     "Ping: 237 ms"
+     "Ping: 231 ms",
+     "Ping: 158 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:28:23 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:16:20 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6177,30 +5920,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.68
+     "duration_s": 103.32
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:28:32",
-    "finished": "2026-11-01 21:30:10",
-    "sustained": "Sustained full-duplex: 93.82 seconds, downloaded=1275068416, uploaded=922746880, download_requests=76, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:16:28",
+    "finished": "2026-11-03 04:18:04",
+    "sustained": "Sustained full-duplex: 92.73 seconds, downloaded=1258291200, uploaded=872415232, download_requests=75, upload_requests=52, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.82,
+     "seconds": 92.73,
      "errors": [],
-     "downloaded": 1275068416,
-     "uploaded": 922746880,
-     "download_requests": 76,
-     "upload_requests": 55,
+     "downloaded": 1258291200,
+     "uploaded": 872415232,
+     "download_requests": 75,
+     "upload_requests": 52,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6208,23 +5952,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.82,
+      "seconds": 92.73,
       "errors": [],
-      "downloaded": 1275068416,
-      "uploaded": 922746880,
-      "download_requests": 76,
-      "upload_requests": 55,
+      "downloaded": 1258291200,
+      "uploaded": 872415232,
+      "download_requests": 75,
+      "upload_requests": 52,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 351 ms",
-     "Ping: 295 ms"
+     "Ping: 209 ms",
+     "Ping: 221 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:30:09 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:18:03 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6309,30 +6054,31 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.49
+     "duration_s": 108.68
     },
     "udp": {
      "status": "not-run",
      "reason": "This run measured TCP only"
     },
     "ping": null,
+    "routing": null,
     "teardown": {
      "passed": true
     },
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-01 21:30:16",
-    "finished": "2026-11-01 21:31:53",
-    "sustained": "Sustained full-duplex: 92.96 seconds, downloaded=1275068416, uploaded=922746880, download_requests=76, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-03 04:18:11",
+    "finished": "2026-11-03 04:19:53",
+    "sustained": "Sustained full-duplex: 97.95 seconds, downloaded=754974720, uploaded=738197504, download_requests=45, upload_requests=44, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.96,
+     "seconds": 97.95,
      "errors": [],
-     "downloaded": 1275068416,
-     "uploaded": 922746880,
-     "download_requests": 76,
-     "upload_requests": 55,
+     "downloaded": 754974720,
+     "uploaded": 738197504,
+     "download_requests": 45,
+     "upload_requests": 44,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6340,23 +6086,24 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.96,
+      "seconds": 97.95,
       "errors": [],
-      "downloaded": 1275068416,
-      "uploaded": 922746880,
-      "download_requests": 76,
-      "upload_requests": 55,
+      "downloaded": 754974720,
+      "uploaded": 738197504,
+      "download_requests": 45,
+      "upload_requests": 44,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
      }
     ],
+    "udp_phases": [],
     "https_checks": [
-     "Ping: 188 ms",
-     "Ping: 134 ms"
+     "Ping: 226 ms",
+     "Ping: 149 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-01 18:31:52 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-03 01:19:52 +0000\"; reason = 1; }"
    }
   }
  ]
