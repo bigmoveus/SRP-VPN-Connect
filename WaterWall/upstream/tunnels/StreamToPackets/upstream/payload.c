@@ -9,12 +9,6 @@ void streamtopacketsTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 
     bufferstreamPush(&(line_ls->read_stream), buf);
 
-    if (streamtopacketsReadStreamIsOverflowed(&(line_ls->read_stream)))
-    {
-        bufferstreamEmpty(&(line_ls->read_stream));
-        return;
-    }
-
     lineRef(l);
 
     while (true)
@@ -40,6 +34,8 @@ void streamtopacketsTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
             if (streamtopacketsAuthorizeLine(t, l) == 0)
             {
                 LOGD("StreamToPackets: dropping a sensitive-mode ping from an unauthorized stream line");
+                // Nothing parses this carrier's input from here on, so nothing would bound it either.
+                bufferstreamEmpty(&(line_ls->read_stream));
                 lineUnref(l);
                 return;
             }

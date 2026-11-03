@@ -28,6 +28,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The iOS unit tests on a device stopped building when WaterWall's bridge header moved to `WaterWall/native`; their target now searches that folder.
 - The Android build steps now name the SDK folder: a fresh clone has no `local.properties`, so Gradle could not find it.
 - The ✕ in the iOS profile editor now discards what was changed. The editor changed the saved profile directly, so the changes stayed after ✕: the list showed them, Connect used them, and the next save of any profile stored them. It now works on a copy, for every protocol and all of its screens, and Save puts that copy in place of the profile with the same Keychain entries.
+- WaterWall's `StreamToPackets` threw away whole reads of good packets on a raw IPv4 chain: it compared what it had buffered with a 128 KiB limit before taking any packet out, so a read of that size was lost with everything in it, and a chain with no outer layer reads that much whenever the line is busy. It now takes every complete packet out of each read, which leaves at most one incomplete packet buffered, so the limit is gone.
 
 ## 1.2.0 (33) - 2026-11-03
 

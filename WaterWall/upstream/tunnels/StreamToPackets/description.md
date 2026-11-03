@@ -263,13 +263,8 @@ When `sensitive-mode` is enabled:
 
 ### Buffering limits
 
-The frame parser uses a fixed-size read stream.
-
-Current limit:
-
-- `65536 * 2` bytes
-
-If buffered data exceeds that size, the read stream is emptied.
+Each read is parsed in full before the callback returns, so only the start of one incomplete packet stays buffered,
+never more than `kMaxAllowedPacketLength` bytes. A read of any size is therefore delivered whole.
 
 ## Notes And Caveats
 

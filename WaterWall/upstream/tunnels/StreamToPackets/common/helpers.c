@@ -30,19 +30,6 @@ bool streamtopacketsFrameMatchesFillByte(const sbuf_t *packet, uint8_t fill_byte
     return true;
 }
 
-bool streamtopacketsReadStreamIsOverflowed(buffer_stream_t *read_stream)
-{
-    if (bufferstreamGetBufLen(read_stream) > kMaxBufferSize)
-    {
-        LOGW("StreamToPackets: read stream overflow, size: %zu, limit: %zu",
-             bufferstreamGetBufLen(read_stream),
-             (size_t) kMaxBufferSize);
-        return true;
-    }
-
-    return false;
-}
-
 static const char *streamtopacketsValidationLevelName(streamtopackets_packet_validation_level_t level)
 {
     switch (level)
