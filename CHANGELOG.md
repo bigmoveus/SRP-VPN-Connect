@@ -21,6 +21,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The description of WaterWall's QUIC server still said its final drain lasts five seconds; it now describes the 30 second limit and the stream FIN.
 - WaterWall's speed test server could crash at the end of a test over KCP: it kept reading its own state after finishing, because KCP keeps the line alive while it delivers queued data.
 - Uploads through a raw IPv4 chain lost packets each time the outer connection paused: WaterWall's packet device kept delivering what it had queued, and `PacketsToStream` drops what arrives while it is paused. The packets now wait in the queue until it resumes. On the Android test phone two uploads of 16 MiB at once went from 30 to 40 seconds to 7.5, with almost nothing sent twice.
+- The iOS unit tests on a device stopped building when WaterWall's bridge header moved to `WaterWall/native`; their target now searches that folder.
 
 ## 1.2.0 (33) - 2026-11-03
 

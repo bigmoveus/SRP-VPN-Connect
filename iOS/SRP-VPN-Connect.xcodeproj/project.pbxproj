@@ -1113,6 +1113,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/SRP-VPN-Connect",
 					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/../WaterWall/native",
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
@@ -1154,6 +1155,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/SRP-VPN-Connect",
 					"$(SRCROOT)/Core/SRPCore",
+					"$(SRCROOT)/../WaterWall/native",
 					"$(SRCROOT)/LwIP/lwip/include",
 					"$(SRCROOT)/LwIP/lwip/custom",
 				);
