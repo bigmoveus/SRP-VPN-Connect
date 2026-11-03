@@ -387,7 +387,7 @@ static bool readMemoryLoad(double *load)
     return false;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) && ! defined(OS_ANDROID) /* SELinux denies Android apps /proc/stat and the cgroup files */
 static system_load_read_result_t readCpuTimes(uint64_t *total, uint64_t *idle)
 {
     FILE *fp = fopen("/proc/stat", "r");
@@ -598,7 +598,7 @@ static bool readMemoryLoad(double *load)
 
 #endif
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) && ! defined(OS_ANDROID)
 
 #include "wsysinfo_linux_provider.inc"
 
@@ -832,7 +832,9 @@ bool systemLoadSamplerUpdate(system_load_state_t *state)
     {
         if (! state->unsupported_logged)
         {
+#if ! defined(OS_ANDROID) /* the expected state there, not worth a line in the app's log at every connect */
             printError("System CPU load sampling is unsupported on this platform\n");
+#endif
             state->unsupported_logged = true;
         }
         state->supported         = false;

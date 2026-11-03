@@ -39,10 +39,25 @@ static uint32_t takeMaximum(atomic_ullong *maximum)
     return value > UINT32_MAX ? UINT32_MAX : (uint32_t) value;
 }
 
-#if defined(TCP_CONNECTION_INFO)
+#if defined(TCP_CONNECTION_INFO) || defined(OS_ANDROID)
 
 static void sampleTcpNow(link_quality_tcp_state_t *state, wio_t *io, uint64_t now_ms)
 {
+#if defined(OS_ANDROID)
+    // A kernel older than these fields leaves them zero, which reads as no traffic.
+    struct tcp_info info   = {0};
+    socklen_t       length = sizeof(info);
+    if (getsockopt(wioGetFD(io), IPPROTO_TCP, TCP_INFO, &info, &length) != 0)
+    {
+        return;
+    }
+    state->sampled_at_ms = now_ms;
+    addGrowth(&tx_packets_total, info.tcpi_segs_out, &state->tx_packets);
+    addGrowth(&retransmitted_packets_total, info.tcpi_total_retrans, &state->retransmitted_packets);
+    addGrowth(&rx_bytes_total, info.tcpi_bytes_received, &state->rx_bytes);
+    raiseMaximum(&max_srtt_ms_seen, info.tcpi_rtt / 1000);
+    raiseMaximum(&max_rto_ms_seen, info.tcpi_rto / 1000);
+#else
     struct tcp_connection_info info;
     socklen_t                  length = sizeof(info);
     if (getsockopt(wioGetFD(io), IPPROTO_TCP, TCP_CONNECTION_INFO, &info, &length) != 0)
@@ -56,6 +71,7 @@ static void sampleTcpNow(link_quality_tcp_state_t *state, wio_t *io, uint64_t no
     addGrowth(&rx_out_of_order_bytes_total, info.tcpi_rxoutoforderbytes, &state->rx_out_of_order_bytes);
     raiseMaximum(&max_srtt_ms_seen, info.tcpi_srtt);
     raiseMaximum(&max_rto_ms_seen, info.tcpi_rto);
+#endif
 }
 
 void linkqualitySampleTcp(link_quality_tcp_state_t *state, wio_t *io)

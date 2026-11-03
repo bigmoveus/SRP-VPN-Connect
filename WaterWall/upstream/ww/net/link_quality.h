@@ -6,8 +6,8 @@
 
 /*
  * Quality of the connections that carry traffic to the server. TcpConnector
- * samples the kernel counters of each socket (Apple's TCP_CONNECTION_INFO; other
- * platforms report no TCP traffic), while the UDP carriers KCP and QUIC report
+ * samples the kernel counters of each socket (Apple's TCP_CONNECTION_INFO, Android's
+ * TCP_INFO; other platforms report no TCP traffic), while the UDP carriers KCP and QUIC report
  * the counters of their own sessions. Both fold their growth into process-wide
  * totals that an embedding application polls.
  */

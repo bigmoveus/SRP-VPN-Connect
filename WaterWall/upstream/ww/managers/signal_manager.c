@@ -1005,6 +1005,11 @@ signal_manager_t *signalmanagerCreate(void)
                                  .handle_sigpipe   = true,
                                  .handle_sigalrm   = true};
 
+#if defined(OS_ANDROID)
+    // An app's process is Android's: it asks for stack dumps with SIGQUIT and ends apps by itself. A signal must not stop the tunnel.
+    state->handle_sigint = state->handle_sigquit = state->handle_sigfpe = state->handle_sigterm = state->handle_sigalrm = false;
+#endif
+
 #if defined(OS_WIN)
     state->shutdown_complete_event = NULL;
     atomicStoreExplicit(&windows_ctrl_handler_gate, 0, memory_order_release);
