@@ -871,7 +871,7 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
     NSURL *fixture = [NSBundle.mainBundle URLForResource:@"GeoLite2-Country" withExtension:@"mmdb" subdirectory:@"GeoIP"];
     if (fixture == nil) {
         fixture = [NSURL fileURLWithPath:[[NSString stringWithUTF8String:__FILE__].stringByDeletingLastPathComponent
-            stringByAppendingPathComponent:@"../SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"]];
+            stringByAppendingPathComponent:@"../../WaterWall/GeoIP/GeoLite2-Country.mmdb"]];
     }
     NSString *directory = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
     XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:nil error:nil]);

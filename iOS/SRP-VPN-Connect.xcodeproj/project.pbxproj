@@ -244,7 +244,7 @@
 		A10000000000000000000073 /* SRPWaterWallConfigViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallConfigViewController.h; sourceTree = "<group>"; };
 		A20000000000000000000001 /* SRPProfileLatencyTester.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPProfileLatencyTester.m; sourceTree = "<group>"; };
 		A20000000000000000000002 /* SRPProfileLatencyTester.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPProfileLatencyTester.h; sourceTree = "<group>"; };
-		A40000000000000000000001 /* GeoIP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "SRP-VPN-Connect/GeoIP"; sourceTree = SOURCE_ROOT; };
+		A40000000000000000000001 /* GeoIP */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../WaterWall/GeoIP; sourceTree = SOURCE_ROOT; };
 		A40000000000000000000003 /* SRPGeoIPDatabase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Core/SRPCore/SRPGeoIPDatabase.m; sourceTree = "<group>"; };
 		A40000000000000000000006 /* SRPGeoIPCountryViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPGeoIPCountryViewController.h; sourceTree = "<group>"; };
 		A40000000000000000000007 /* SRPGeoIPCountryViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPGeoIPCountryViewController.m; sourceTree = "<group>"; };

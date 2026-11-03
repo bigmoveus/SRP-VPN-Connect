@@ -17,7 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[2]
 UUID = "00112233-4455-6677-8899-aabbccddeeff"
 OUTER_SECRET = "matrix-only-placeholder"
-GEO_DATABASE = ROOT / "iOS/SRP-VPN-Connect/GeoIP/GeoLite2-Country.mmdb"
+GEO_DATABASE = ROOT / "WaterWall/GeoIP/GeoLite2-Country.mmdb"
 
 CASES = [
     ("vless-none", "vless", "none", False, "off", False, "tcp", "datagram", "connections"),
