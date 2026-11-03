@@ -24,6 +24,10 @@ Only the current state is documented: on the server, WaterWall 1.5.2 plus the re
 | `waterwall/troubleshooting.html` | What the DNS timeout line means | `tunnels/Internals/DomainResolver/common/helpers.c`; c-ares 1.34.8 `ares_metrics.c` and `ares_process.c` | 2026-11-03 | Read from the code |
 | `waterwall/installation.html` | `"tries": 5` gives a slow DNS answer about 5 to 7 seconds instead of under one | `dns_budget_test.py`, kept with our private test tools, with the server's own program and a stub resolver that answers late: 0.52 to 0.74 s at 2 tries, 5.36 to 6.68 s at 5 tries | 2026-11-03 | Measured |
 | `waterwall/faq.html` | Answers | The pages above | 2026-11-03 | — |
+| `waterwall/android.html`, `waterwall/ui-guide.html`, `waterwall/requirements.html`, `waterwall/installation.html`, `waterwall/troubleshooting.html`, `waterwall/getting-started.html`, `waterwall/faq.html` | Android: what differs, versions, install steps | Android app source at `0fc837e3`: `WaterWallClient.kt`, `WaterWallVpnService.kt`, `waterwall_jni.c`, `Profile.kt`, `ProfileEditor.kt`, `WaterWallConfigScreen.kt`, `AndroidManifest.xml`; `getprop` on the phone and the emulator; the install steps run from a fresh clone of the public repository | 2026-11-03 | Read from the source and observed |
+| `waterwall/android.html` | The two chain builders give the same answers | `ChainConfigParityTest` against the answers `Android/tools/chain_parity` records from the real `SRPWaterWallChainConfig.m`: 37,977 cases, which fails when a builder is changed on purpose | 2026-11-03 | Unit-tested |
+| `waterwall/android.html` | Android results of every production chain and of the checks around a connection | `evidence/android-waterwall-20261103.json`, from `run_production.py` and `run_lifecycle.py` in our private test tools, on the Samsung Galaxy A55 and the Android emulator | 2026-11-03 | Observed |
+| `waterwall/ui-guide.html` | Android screenshots | `docs_screenshots.py` in the same tools, on the emulator, example values only | 2026-11-03 | Real captures of the app |
 
 ## Scenarios
 

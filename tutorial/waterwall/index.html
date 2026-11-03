@@ -26,7 +26,7 @@
 <pre data-label="Illustration — not a capture of a real network"><code>Apps on the phone
       |
       v
-iOS VPN (the app's packet tunnel)
+The system's VPN (a packet tunnel on iOS, a VpnService on Android)
       |
       v
 WaterWall client chain in the app      e.g. VLESS -> TLS -> TCP
@@ -37,7 +37,7 @@ WaterWall server chain on your server  e.g. TCP -> TLS -> VLESS
       |
       v
 Websites and services</code></pre>
-<p>The phone sends its traffic into the iOS VPN. WaterWall in the app wraps it in the layers you chose and sends it to your server. The server unwraps the same layers in reverse order and connects to the real destination.</p>
+<p>The phone sends its traffic into the system's VPN. WaterWall in the app wraps it in the layers you chose and sends it to your server. The server unwraps the same layers in reverse order and connects to the real destination.</p>
 
 <div class="callout tip">
   <span class="callout-title">The rule that matters most</span>
@@ -52,12 +52,13 @@ Websites and services</code></pre>
   <a class="card" href="ui-guide.html"><strong>Complete UI &amp; Profile Guide</strong><span>Every screen, field and option in the app.</span></a>
   <a class="card" href="configuration.html"><strong>Configuration Reference</strong><span>Server files, and what the app builds for each choice.</span></a>
   <a class="card" href="scenarios/index.html"><strong>Verified Test Scenarios</strong><span>Each combination we tested, with its result.</span></a>
+  <a class="card" href="android.html"><strong>Android</strong><span>What differs from iPhone, and what we tested on Android.</span></a>
   <a class="card" href="troubleshooting.html"><strong>Troubleshooting</strong><span>What each message means and how to check the server.</span></a>
   <a class="card" href="faq.html"><strong>FAQ</strong><span>Short answers to common questions.</span></a>
 </div>
 
 <h2>Versions covered</h2>
-<p>This section covers WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository on the server and the app's build 33, which contains its own WaterWall based on 1.5.2. Results from other server programs are not used. The full version list is on the <a href="requirements.html#versions-we-tested">Requirements</a> page.</p>
+<p>This section covers WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository on the server and the app's build 33, which contains its own WaterWall based on 1.5.2, and the Android app, which builds the same WaterWall. Results from other server programs are not used. The full version list is on the <a href="requirements.html#versions-we-tested">Requirements</a> page.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

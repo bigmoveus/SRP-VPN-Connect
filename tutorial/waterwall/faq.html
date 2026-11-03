@@ -15,6 +15,9 @@
 
 <h2>Setting up</h2>
 
+<h3>Is there an Android version?</h3>
+<p>Yes, with the same WaterWall screens and options as on iPhone. It has WaterWall only so far and it is not in a store yet, so you build the APK yourself. We tested it on a Samsung Galaxy A55 and on the Android emulator. See <a href="android.html">Android</a>.</p>
+
 <h3>Do I need to install WaterWall on my phone?</h3>
 <p>No. SRP VPN Connect contains its own WaterWall client. You only install WaterWall on your server; see <a href="installation.html">Installation</a>.</p>
 
@@ -45,7 +48,7 @@
 <p>Tap the status text under the power button to open the app's log. Set <strong>Log Level</strong> to Expert or Debug in the profile's OPTIONS for more detail, then connect again.</p>
 
 <h3>Does the tunnel carry IPv6?</h3>
-<p>No. The WaterWall tunnel carries IPv4 only.</p>
+<p>No. The WaterWall tunnel carries IPv4 only. On Android, apps also get no IPv6 route while the VPN is up, so IPv6 traffic does not leave outside the tunnel.</p>
 
 <h3>Is the Obfuscator a kind of encryption?</h3>
 <p>No. It scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD, QUIC or VMess for encryption.</p>
@@ -57,7 +60,7 @@
 <p>Auto Switch uses your other WaterWall Chain profiles <em>with the same Server</em> as fallbacks. With only one profile for that server there is nothing to switch to. The option appears only in Chain mode. See <a href="ui-guide.html#options">OPTIONS</a>.</p>
 
 <h3>What happens when the phone sleeps?</h3>
-<p>That depends on <strong>On Sleep</strong>: <em>Stay</em> (the default) keeps the connection, <em>Pause</em> closes it and reconnects on wake, and <em>Off</em> closes it and reconnects on wake only when Auto Reconnect is on.</p>
+<p>That depends on <strong>On Sleep</strong>: <em>Stay</em> (the default) keeps the connection, <em>Pause</em> closes it and reconnects on wake, and <em>Off</em> closes it and reconnects on wake only when Auto Reconnect is on. On Android, sleeping means the screen going off.</p>
 
 <h3>What sizes does TLS Fragmentation Auto use?</h3>
 <p>Auto cuts the ClientHello after 32 bytes and then every 256 bytes. Choose Manual to set your own sizes; the First Chunk must be smaller than 16384 bytes.</p>

@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The messages and what triggers them were read from the source code of the app at commit <code>a03a8bc2</code> and of WaterWall. The commands are the ones we use on our test server.</p>
+  <p>The messages and what triggers them were read from the source code of the app at commit <code>a03a8bc2</code> and of WaterWall, and on Android at commit <code>0fc837e3</code>. The commands are the ones we use on our test server.</p>
 </div>
 
 <h2 id="first-checks">First checks</h2>
@@ -65,6 +65,7 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
     <tr><td><em>Could not reconnect after N attempts. (…)</em></td><td>Auto Reconnect used up the <strong>Retry Times</strong> you set. The reason is in the brackets.</td><td>The reason in the brackets; leave Retry Times empty for unlimited attempts.</td></tr>
     <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off, so the VPN ended when the phone slept.</td><td>Choose On Sleep Stay or Pause, or turn Auto Reconnect on.</td></tr>
     <tr><td><em>GeoIP is enabled but its database is unavailable: …</em></td><td>GeoIP routing is on but the country database is not installed.</td><td>Turn <strong>GeoIP Routing</strong> off and on again on the WaterWall screen; that installs the database.</td></tr>
+    <tr><td><em>WaterWall network settings failed: VPN permission was withdrawn</em></td><td>Android only: another VPN app took the permission away while connecting.</td><td>Connect again and tap <strong>OK</strong> in the Connection request.</td></tr>
   </tbody>
 </table>
 
@@ -74,7 +75,7 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
   <thead><tr><th>Message</th><th>What happened</th><th>What to check</th></tr></thead>
   <tbody>
     <tr><td><code>DomainResolver: async dns resolve failed for &lt;name&gt;: Timeout while contacting DNS servers</code>, in <code>/var/log/waterwall/dns.YYYYMMDD.log</code> on the server</td><td>The server could not get a DNS answer for that name in time and closed that connection.</td><td>The server's DNS, and that <code>core.json</code> has <code>"dns": {"tries": 5}</code>, as in <a href="installation.html#core-json">Installation</a>.</td></tr>
-    <tr><td><code>PacketsToConnection: TCP aggregate pending-byte budget is full; refusing a new flow</code>, in WaterWall's log inside the app, which the app keeps only in test runs</td><td>More TCP connections were open than the packet budget allows, so the new one was refused. iOS shows it as the TLS error.</td><td><code>max-total-pending-bytes</code> divided by <code>max-pending-bytes</code> is the limit, and the app's defaults allow 256. Keep the defaults, or do the division first; see the <a href="configuration.html#packet-budget">Configuration Reference</a>.</td></tr>
+    <tr><td><code>PacketsToConnection: TCP aggregate pending-byte budget is full; refusing a new flow</code>, in WaterWall's log inside the app, which on iOS the app keeps only in test runs; on Android it is in the app's log at Expert or Debug</td><td>More TCP connections were open than the packet budget allows, so the new one was refused. iOS shows it as the TLS error.</td><td><code>max-total-pending-bytes</code> divided by <code>max-pending-bytes</code> is the limit, and the app's defaults allow 256. Keep the defaults, or do the division first; see the <a href="configuration.html#packet-budget">Configuration Reference</a>.</td></tr>
   </tbody>
 </table>
 

@@ -157,7 +157,7 @@ The public beta and the source repository may not always be on the same revision
 
 ## Android
 
-`Android/` holds an early Android version: WaterWall only, on one screen where you paste a client node graph such as the [client example](WaterWall/examples/client.example.json), connect and read the log. The other protocols, the profile editor and reconnecting come later.
+`Android/` holds the Android app. It has WaterWall with the same screens, options, messages and connection rules as the iOS app, and the same [documentation](tutorial/waterwall/android.html). The other protocols, the profile editor and reconnecting come later.
 
 Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java:
 
@@ -168,6 +168,8 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ```
 
 Gradle installs NDK 28.2.13676358 and CMake 4.1.2 if they are missing. The APK is `app/build/outputs/apk/debug/app-debug.apk`, for arm64 phones and emulators. No signing key is stored in this repository.
+
+`./gradlew :app:testDebugUnitTest` checks the Kotlin chain builder against the iOS one, on answers that `tools/chain_parity/generate.py` records from the real `SRPWaterWallChainConfig.m`. Run that script again after changing either builder.
 
 ## Repository layout
 

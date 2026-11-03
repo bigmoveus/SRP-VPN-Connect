@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Android — WaterWall — SRP VPN Connect Documentation</title>
+<meta name="description" content="WaterWall in SRP VPN Connect for Android: what is the same as on iPhone, what differs, and what we tested.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Android</h1>
+<p class="lead">The Android app has the same WaterWall as the iPhone app: the same screens, options, messages and server files. The other guides on this site apply to both. This page lists only what differs on Android, and what we tested there.</p>
+
+<div class="callout warning">
+  <span class="callout-title">Where the Android app stands</span>
+  The app is not in a store yet, and you build the test APK yourself. It has WaterWall only; the other protocols are on iPhone and iPad.
+</div>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The differences were read from the app's source code at commit <code>0fc837e3</code>. The results are from our tests of that commit on 3 November 2026, against the same production server as the <a href="scenarios/index.html">iPhone scenarios</a>.</p>
+</div>
+
+<h2>What is the same</h2>
+<ul>
+  <li><strong>The WaterWall program.</strong> Both apps build the same source folder, the same version as in <a href="requirements.html#versions-we-tested">Versions we tested</a>.</li>
+  <li><strong>The chains.</strong> The Android app builds the same client chain as the iPhone app for the same choices, so the server files in the guides fit both. To keep it that way, a test feeds both builders the same 37,977 configurations and compares every answer, including which ones are refused and with which message.</li>
+  <li><strong>The screens and rules.</strong> The <a href="ui-guide.html">UI &amp; Profile Guide</a> describes both: every row, default, message and limit.</li>
+  <li><strong>The connection logic.</strong> The start-up check, the health check, Auto Reconnect, Retry Times, Auto Switch, Switch to Wi-Fi and On Sleep follow the same rules with the same times, and the <a href="troubleshooting.html">messages</a> are the same.</li>
+</ul>
+
+<h2>What differs</h2>
+<table>
+  <thead><tr><th>Topic</th><th>iPhone and iPad</th><th>Android</th></tr></thead>
+  <tbody>
+    <tr><td>Installing</td><td>TestFlight</td><td>A test APK that you build; see <a href="installation.html#install-the-app-android">Installation</a></td></tr>
+    <tr><td>System</td><td>iOS or iPadOS 15.0 or later</td><td>Android 8.0 or later, 64-bit ARM only</td></tr>
+    <tr><td>Protocols</td><td>All the app's protocols</td><td>WaterWall only so far, so the <strong>Protocol</strong> screen has one row</td></tr>
+    <tr><td>Permission</td><td>iOS asks to add a VPN configuration</td><td>Android shows a <strong>Connection request</strong> once, until the app is removed or another VPN app takes over</td></tr>
+    <tr><td>While connected</td><td>The VPN icon in the status bar</td><td>The key icon in the status bar. The app does not ask for permission to show notifications, so from Android 13 on it shows none</td></tr>
+    <tr><td>Ping while connected</td><td>An HTTPS request to <code>gstatic.com</code>, the answer 204</td><td>An HTTP request through the tunnel to <code>1.1.1.1</code> on port 80, any HTTP answer; see <a href="ui-guide.html#how-ping-is-measured">How ping is measured</a></td></tr>
+    <tr><td>Secrets</td><td>iOS Keychain</td><td>Encrypted with a key held by the Android Keystore. The profile file holds no secret, and profiles stay out of device backups</td></tr>
+    <tr><td>Choosing a file</td><td>The Files app</td><td>The system's file picker</td></tr>
+    <tr><td>On Sleep</td><td>The phone sleeping and waking</td><td>The screen going off and coming on</td></tr>
+    <tr><td>IPv6</td><td>The tunnel carries IPv4 only</td><td>The same. While the VPN is up, Android gives apps no IPv6 route, so IPv6 traffic does not leave outside the tunnel; a connection to an IPv6 address fails with <em>No route to host</em></td></tr>
+    <tr><td>The app's log</td><td>The app's own lines</td><td>The app's own lines and WaterWall's: errors at Normal, more at Expert and Debug. It keeps the last 512 KB when it passes 2 MB</td></tr>
+    <tr><td>Always-on VPN</td><td>Not used</td><td>Turn it on for the app in Android's VPN settings. Android then starts the app's VPN at once and after every boot, and it connects the profile you used last</td></tr>
+    <tr><td>Many long uploads on a Raw IPv4 chain</td><td>—</td><td>One or two run at full speed. With more at once, Android's queue in front of the tunnel overflows and they have to send again: in our test one upload of 16 MiB took 4 seconds, and four at once took 46 seconds together. Chains with Connections input do not have this limit</td></tr>
+    <tr><td>After a reconnect</td><td>iOS applies the VPN settings again</td><td>Android gets a new VPN network, so its DNS cache starts empty and apps see the change, as with any change of network</td></tr>
+  </tbody>
+</table>
+
+<h3 id="permission">The Connection request</h3>
+<figure>
+  <img src="../assets/img/waterwall/android/connection-request.png" alt="Android's Connection request dialog for SRP VPN Connect with Cancel and OK buttons" width="260" loading="lazy">
+  <figcaption>Android asks once. Tap <strong>OK</strong>.</figcaption>
+</figure>
+
+<h2 id="android-tested">What we tested</h2>
+<table>
+  <thead><tr><th>Part</th><th>Version</th></tr></thead>
+  <tbody>
+    <tr><td>App</td><td>SRP VPN Connect 1.2.0, debug APK of commit <code>0fc837e3</code></td></tr>
+    <tr><td>Phone</td><td>Samsung Galaxy A55 (SM-A556E) with Android 17 (API level 37), on our office Wi-Fi and its own cellular connection</td></tr>
+    <tr><td>Emulator</td><td>Android Emulator 37.1, Pixel 8 profile, Android 16 (API level 36), arm64, on a Mac. Everything around the connection also ran here, and the screenshots come from here</td></tr>
+    <tr><td>Server</td><td>Our production <code>waterwall.service</code>, the same program and files as in the <a href="scenarios/index.html#production">iPhone production scenarios</a>, with its Let's Encrypt certificate and TLS Server Verification on</td></tr>
+    <tr><td>Traffic</td><td>A small test app on the phone, inside the VPN, made two downloads and two uploads at once to a speed test server on the server. Each upload's SHA-256 was compared with what the server received, and the server's log showed the requests arriving through the tunnel</td></tr>
+  </tbody>
+</table>
+<!-- android:begin -->
+<p><strong>44 of 44</strong> chains and <strong>42 of 42</strong> checks passed.</p>
+<h3 id="android-chains">Every chain of the production server</h3>
+<p>Each link opens the chain's scenario page, with its server file and the app settings, which are the same on both systems. The times show that traffic moved, and are not a benchmark.</p>
+<table><thead><tr><th>Chain</th><th>Result</th><th>To Connected</th><th>Two downloads and two uploads at once, 16 MiB each</th></tr></thead><tbody>
+<tr><td><a href="scenarios/prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>10.6 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>13.8 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>10.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-http1-tls.html">VLESS + HTTP/1.1 + TLS (additional-vless-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.4 s</td><td>24.2 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-http2-tls.html">VLESS + HTTP/2 + TLS (additional-vless-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-kcp.html">VLESS + KCP (additional-vless-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>11.8 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-mux-quic-stream.html">VLESS + MUX + QUIC Stream (additional-vless-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>10.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-none.html">VLESS (no outer layer) (additional-vless-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>25.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-http1-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS (additional-vless-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-kcp.html">VLESS + Obfuscator + KCP (additional-vless-obf-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>11.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-tls.html">VLESS + Obfuscator + TLS (additional-vless-obf-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.2 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-quic-stream.html">VLESS + QUIC Stream (additional-vless-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.2 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-ws1-none.html">VLESS + WebSocket (additional-vless-ws1-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-ws1-tls.html">VLESS + WebSocket + TLS (additional-vless-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>21.9 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-aead.html">VMess + AEAD (additional-vmess-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-http2-tls.html">VMess + HTTP/2 + TLS (additional-vmess-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-kcp.html">VMess + KCP (additional-vmess-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-mux-quic-stream.html">VMess + MUX + QUIC Stream (additional-vmess-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-mux-tls.html">VMess + MUX + TLS (additional-vmess-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-obf-http1-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS (additional-vmess-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-quic-stream.html">VMess + QUIC Stream (additional-vmess-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-reality.html">VMess + Reality (additional-vmess-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.1 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>11.6 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>16.0 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>12.7 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>34.7 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>20.6 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>21.8 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>10.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-tls.html">Trojan + MUX + TLS (trojan-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-quic.html">Trojan + QUIC Datagram (trojan-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>24.1 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-reality.html">Trojan + Reality (trojan-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.3 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-tls.html">Trojan + TLS (trojan-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.2 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-aead.html">VLESS + AEAD (vless-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-aead.html">VLESS + MUX + AEAD (vless-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-reality.html">VLESS + MUX + Reality (vless-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-tls.html">VLESS + MUX + TLS (vless-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-quic.html">VLESS + QUIC Datagram (vless-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>15.0 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-reality.html">VLESS + Reality (vless-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-reality-typed-sni.html">VLESS + Reality (vless-reality.json, SNI typed)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-tls.html">VLESS + TLS (vless-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>9.2 s</td></tr>
+<tr><td><a href="scenarios/prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>10.5 s</td></tr>
+</tbody></table>
+<h3 id="android-checks">Everything around the connection</h3>
+<p>Each of these ran on the phone and on the emulator, except the always-on check, which ran on the emulator because the test drives Android's own settings screen. On the phone, the network check moved between its real Wi-Fi and cellular connections and the sleep checks turned its screen off.</p>
+<table><thead><tr><th>What we checked</th><th>Result</th></tr></thead><tbody>
+<tr><td>Nothing listens at the server&#x27;s port: the start-up check fails and the app says why, with Auto Reconnect off. <em>WaterWall TCP probe failed after fifteen attempts</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Retry Times 2 with no server: three tries, then the app gives up with the count in its message. <em>Could not reconnect after 2 attempts. (WaterWall TCP probe failed after fifteen attempts)</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The power button while connecting stops it, and the next connect still works.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>With Auto Reconnect off, losing the server ends the VPN after the health check. <em>WaterWall TCP health probe failed</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>With Auto Reconnect on, the app keeps trying while the server is gone and comes back without any tap.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Retry Times counts failures in a row: a good connection in between starts the count again.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The selected profile&#x27;s port is dead, a sibling with the same Server works: the next attempt uses it.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Wi-Fi off moves the connection to cellular, Wi-Fi on moves it back, and traffic works on both.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>With Switch to Wi-Fi off, the app does not act on the change itself.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>On Sleep Stay: the screen goes off, the connection stays.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>On Sleep Pause: closes at screen off and always reconnects at wake, even with Auto Reconnect off.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>On Sleep Off with Auto Reconnect: closes at screen off, reconnects at wake.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>On Sleep Off without Auto Reconnect: the VPN ends at wake and says why in the log.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>A self-signed certificate for the right name: the check refuses it. With the check off the same handshake finishes.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>GeoIP in the profile with no database installed: the app refuses to connect and says what to do. <em>GeoIP is enabled but its database is unavailable: A valid GeoIP country database is required.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The GeoIP Routing switch installs the bundled database and selects Iran, as on iOS.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The test server is in Turkey. With TR selected its downloads go direct: it sees this network&#x27;s own address.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>With another country selected the same download goes through the server.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Upload MMDB: a good database replaces the old one; a file that is not one is refused and the old one stays.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Download &amp; Replace: plain http is refused; an HTTPS link is downloaded, checked and installed.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Import Config (.conf) through the file picker fills Server and Port, stores the keys and connects.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Manual Configuration: the keys typed in the fields build the same connection, and Gen makes a pair with its public key.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Direct needs no server: traffic leaves through WaterWall straight to the internet.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>After a reconnect the new runtime never gave out the placeholders the system cached, so the cache must not outlive it.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>AllowedIPs with host bits set and a search domain on the DNS line, both valid in wg-quick files, connect instead of being refused by Android.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Android asks a process for a stack dump with SIGQUIT, as when an app does not respond; the tunnel must not notice.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The VPN counts as metered only when the network under it does, so apps do not hold back on Wi-Fi.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The loss rule&#x27;s counters work on a TCP carrier: the app writes a summary of the last minute.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Auto and Manual: connection and transfers work, with the settings in the chain.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>On: a name gets a placeholder from 100.64.0.0/10. Off: the real address, and the probe uses the real DNS.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>A private address: reached straight from the phone with the option on, through the server with it off.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Pull to ping, swipe to ping, the KCP message, the result kept after closing the app.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>A second swipe ping leaves the first row with no result, and so does disconnecting during the test through the tunnel.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>A long swipe runs the action at once; an open row closes with the next touch, which does nothing else.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The editor keeps what was typed through rotation and dark mode, keeps its scroll position across a sub-screen, and a touch outside closes the keyboard.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>After connecting, the row shows the delay through the tunnel; swiping that row measures it again.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The status text opens the log; levels change what it holds; Share opens the sheet; Clear empties it.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>A profile made through the screens: its checks, where its secrets go, and that Delete removes them.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>While connected the system shows the VPN key and the app&#x27;s notification.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The tunnel carries IPv4 only. Android keeps IPv6 from leaving outside it while the VPN is up.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>Turned on in Android&#x27;s VPN settings, Android starts the app&#x27;s VPN by itself and it connects the profile used last.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+<tr><td>The same process connects again: the runtime starts a second and a third time.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
+</tbody></table>
+<!-- android:end -->
+
+<h2>Not tested on Android yet</h2>
+<ul>
+  <li><strong>Other phones.</strong> Only one phone model ran these tests, for an afternoon. How long it holds up over days, its battery use and how other manufacturers' power saving treats the VPN were not measured.</li>
+  <li><strong>Auto Switch on packet loss.</strong> Only the switch after a failed connection was tested; the loss rule needs a lossy network.</li>
+  <li><strong>Android versions other than 16 and 17.</strong> The app is built for Android 8.0 and later.</li>
+  <li><strong>Most combinations.</strong> The tests cover every chain our production server runs, not the wider set of the <a href="scenarios/index.html">iPhone scenarios</a>. Advanced node settings other than what those chains use were not run, and neither were SOCKS5 and HTTP CONNECT, which the production server does not offer.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

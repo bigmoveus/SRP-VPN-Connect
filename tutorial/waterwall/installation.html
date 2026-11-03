@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Installation — WaterWall — SRP VPN Connect Documentation</title>
-<meta name="description" content="Install a WaterWall 1.5.2 server on Ubuntu the way our test server is set up, and install SRP VPN Connect from TestFlight.">
+<meta name="description" content="Install a WaterWall 1.5.2 server on Ubuntu the way our test server is set up, and install SRP VPN Connect from TestFlight or build it for Android.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
@@ -197,12 +197,30 @@ systemctl status waterwall.service</code></pre>
 <p>To go back, copy the backup program over <code>/opt/waterwall/Waterwall</code> and restart.</p>
 
 <h2 id="install-the-app">Install the app</h2>
+<h3>iPhone or iPad</h3>
 <p>SRP VPN Connect is distributed as a public TestFlight beta. You do not need a developer account.</p>
 <ol>
   <li>On your iPhone or iPad, install <strong>TestFlight</strong> from the App Store.</li>
   <li>Open the public beta link: <a href="https://testflight.apple.com/join/A1tAaYW4">testflight.apple.com/join/A1tAaYW4</a>.</li>
   <li>Tap <strong>Accept</strong>, then <strong>Install</strong>.</li>
 </ol>
+<h3 id="install-the-app-android">Android</h3>
+<p>The Android app is not in a store yet. You build a test APK from the source on a computer with <a href="https://developer.android.com/studio">Android Studio</a>, which brings Java and the Android SDK. Gradle downloads the NDK and CMake versions it needs. The APK is signed with your computer's debug key and is meant for testing.</p>
+<ol>
+  <li>Build it. On macOS, Android Studio's Java is the path below; on another system, use the one in your Android Studio folder.
+<pre data-label="Your computer"><code class="language-bash">git clone https://github.com/bigmoveus/SRP-VPN-Connect
+cd SRP-VPN-Connect/Android
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+./gradlew :app:assembleDebug</code></pre>
+  </li>
+  <li>Connect the phone with <strong>USB debugging</strong> on (in <strong>Developer options</strong>), or start an arm64 emulator in Android Studio, and install the APK with <code>adb</code> from the Android SDK:
+<pre data-label="Your computer"><code class="language-bash">adb install app/build/outputs/apk/debug/app-debug.apk</code></pre>
+  </li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <strong>SRP VPN Connect</strong> is in the app list and opens on its home screen. We ran these steps from a fresh clone, and installed on our test phone and the emulator.
+</div>
 <p>Next: <a href="getting-started.html">connect to your server for the first time</a>.</p>
 </main>
 <script src="../assets/js/nav.js"></script>

@@ -18,6 +18,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall guide
 | `index.html`, `future.html` | Home and the future-protocols page |
 | `waterwall/` | WaterWall guides |
 | `waterwall/scenarios/` | One page per tested scenario, generated |
+| `waterwall/android.html` | What differs on Android, and the Android results, generated into its `android:begin` block |
 | `sstp/` | SSTP section (phase 2) |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
@@ -53,6 +54,18 @@ python3 tutorial/tools/waterwall_scenarios.py render --environment tutorial/tool
 A case that runs again goes into a new evidence file named after the run's start time in UTC, such as `waterwall-matrix-20261103T0623Z.json`. Remove that case from the older file, so each page shows only the latest result, and count only the cases that stay in that file's `summary`. A case run in several rounds keeps the first round's details and lists the others under `later_rounds`. A run under different conditions gets its own profile in `scenario-environments.json`, which names a `base` profile and only what differs.
 
 The screenshots come from the unit test `testDocumentationScreenshotsWhenRequested`, run on the test iPhone with `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1`. It writes PNG files to `tmp/srp-docs-screenshots` in the app's data container.
+
+## Android results and screenshots
+
+The Android runs come from the private test tools, `run_production.py` and `run_lifecycle.py`, on the test phone and the Android emulator:
+
+```bash
+python3 tutorial/tools/android_results.py extract --production <results.json files> --lifecycle <results.json files> \
+  --server-host <server name> --date <YYYY-MM-DD> --head <commit> --output tutorial/evidence/android-waterwall-<date>.json
+python3 tutorial/tools/android_results.py render --evidence tutorial/evidence/android-waterwall-<date>.json
+```
+
+`extract` refuses to write a file that still contains a public IPv4 address, and of a case run more than once it keeps the last file's run. The Android screenshots in `assets/img/waterwall/android/` come from `docs_screenshots.py` in the same tools, with the same example profiles as the iPhone ones.
 
 ## Checking locally
 

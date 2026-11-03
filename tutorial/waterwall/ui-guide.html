@@ -11,12 +11,12 @@
 <body>
 <main>
 <h1>Complete UI &amp; Profile Guide</h1>
-<p class="lead">This page walks through every WaterWall screen in SRP VPN Connect, in the order you meet them: the home screen, the profile editor, the WaterWall configuration screen and the options.</p>
+<p class="lead">This page walks through every WaterWall screen in SRP VPN Connect, in the order you meet them: the home screen, the profile editor, the WaterWall configuration screen and the options. The screens are the same on iPhone, iPad and Android; where Android does something else, the text says so.</p>
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
   <p>Every screen title, label, default value and message below was read from the app's source code at commit <code>a03a8bc2</code> (3 November 2026), the code used for our tests. Labels are quoted exactly as the app shows them.</p>
-  <p>The screenshots were taken from that code on our test iPhone 12 on 3 November 2026. The profiles in them hold example values (<code>server.example.com</code>, a dummy UUID) instead of real ones, and no ping results are shown because none were measured for these example profiles.</p>
+  <p>The screenshots were taken from that code on our test iPhone 12 on 3 November 2026, each next to the same screen of the Android app at commit <code>0fc837e3</code> on the Android emulator. The profiles in them hold example values (<code>server.example.com</code>, a dummy UUID) instead of real ones, and no ping results are shown because none were measured for these example profiles.</p>
 </div>
 
 <h2>Words used on this page</h2>
@@ -31,10 +31,16 @@
 
 <h2>Home screen</h2>
 <p>The home screen shows the title <strong>SRP VPN Connect</strong>, the connection status, a large power button and the list of your profiles.</p>
-<figure>
-  <img src="../assets/img/waterwall/home.png" alt="Home screen with the power button, the status Disconnected, the edit, help and add buttons, and four example WaterWall profiles" width="300" loading="lazy">
-  <figcaption>The home screen with four example profiles.</figcaption>
-</figure>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/home.png" alt="Home screen on iPhone with the power button, the status Disconnected, the edit, help and add buttons, and four example WaterWall profiles" width="260" loading="lazy">
+    <figcaption>The home screen with four example profiles, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
 <table>
   <thead><tr><th>Control</th><th>What it does</th></tr></thead>
   <tbody>
@@ -62,8 +68,9 @@
 <table>
   <thead><tr><th>Profile</th><th>Method</th><th>Possible results</th></tr></thead>
   <tbody>
-    <tr><td>Not connected</td><td>The time of a TCP handshake to the server, without the DNS lookup time. Up to 16 profiles are tested at once, each with a 2.5 second limit. While another VPN is up, the test uses the Wi-Fi or cellular connection directly.</td><td><code>TCP: N ms</code>, <code>TCP: Timeout</code>, <code>TCP: Failed</code>, <code>Testing…</code></td></tr>
-    <tr><td>Connected</td><td>An HTTPS request through the VPN to <code>https://gstatic.com/generate_204</code>, then <code>https://connectivitycheck.gstatic.com/generate_204</code> if the first fails. Only the answer 204 counts. It runs by itself after connecting.</td><td><code>Ping: N ms</code>, <code>Timeout</code>, <code>Failed</code></td></tr>
+    <tr><td>Not connected</td><td>The time of a TCP handshake to the server, without the DNS lookup time. Up to 16 profiles are tested at once, each with a 2.5 second limit. While another VPN is up, the test uses the Wi-Fi or cellular connection directly. On Android this holds for the app's own VPN, which the app stays outside of.</td><td><code>TCP: N ms</code>, <code>TCP: Timeout</code>, <code>TCP: Failed</code>, <code>Testing…</code></td></tr>
+    <tr><td>Connected, iPhone and iPad</td><td>An HTTPS request through the VPN to <code>https://gstatic.com/generate_204</code>, then <code>https://connectivitycheck.gstatic.com/generate_204</code> if the first fails. Only the answer 204 counts. It runs by itself after connecting.</td><td><code>Ping: N ms</code>, <code>Timeout</code>, <code>Failed</code></td></tr>
+    <tr><td>Connected, Android</td><td>An HTTP request through the tunnel to port 80 of the address the start-up check uses, <code>1.1.1.1</code>, because the app stays outside its own tunnel. Any HTTP answer counts, and the limit is 15 seconds. It runs by itself after connecting. Without a TCP path through the chain, such as a chain that carries only UDP, it reads <code>Failed</code>.</td><td><code>Ping: N ms</code>, <code>Timeout</code>, <code>Failed</code></td></tr>
   </tbody>
 </table>
 <p>Results are green below 200 ms, orange below 500 ms and red at 500 ms or more, or on failure.</p>
@@ -73,22 +80,34 @@
 </div>
 
 <h2>Choosing WaterWall</h2>
-<p>The <strong>Protocol</strong> screen lists every protocol in the app. WaterWall is first: <strong>WaterWall VPN</strong>, with the subtitle <em>VLESS, VMess, Trojan, BGP4 and packet tunnels</em>.</p>
-<figure>
-  <img src="../assets/img/waterwall/protocol.png" alt="Protocol screen with WaterWall VPN ticked at the top of the list" width="300" loading="lazy">
-  <figcaption>The Protocol screen.</figcaption>
-</figure>
+<p>The <strong>Protocol</strong> screen lists every protocol in the app. WaterWall is first: <strong>WaterWall VPN</strong>, with the subtitle <em>VLESS, VMess, Trojan, BGP4 and packet tunnels</em>. On Android it is the only one so far.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/protocol.png" alt="Protocol screen on iPhone with WaterWall VPN ticked at the top of the list" width="260" loading="lazy">
+    <figcaption>The Protocol screen on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/protocol.png" alt="Protocol screen on Android with WaterWall VPN ticked as the only entry" width="260" loading="lazy">
+    <figcaption>On Android.</figcaption>
+  </figure>
+</div>
 <div class="callout warning">
   <span class="callout-title">Changing the protocol resets the configuration</span>
-  Choosing another protocol gives the profile that protocol's defaults. If you then choose <strong>WaterWall VPN</strong> again, the configuration is back to the default (VLESS + TLS) and the port to 443. Tapping the protocol the profile already has changes nothing.
+  On iPhone and iPad, choosing another protocol gives the profile that protocol's defaults. If you then choose <strong>WaterWall VPN</strong> again, the configuration is back to the default (VLESS + TLS) and the port to 443. Tapping the protocol the profile already has changes nothing.
 </div>
 
 <h2>The profile editor</h2>
 <p>The editor is titled <strong>Add Profile</strong> or <strong>Edit Profile</strong>, with a <strong>✕</strong> (Cancel) button and <strong>Save</strong> at the top. For WaterWall it has a top section, <strong>SERVER</strong>, <strong>AUTHENTICATION</strong> and <strong>OPTIONS</strong>. The proxy section that other protocols have is hidden for WaterWall.</p>
-<figure>
-  <img src="../assets/img/waterwall/profile-editor.png" alt="Edit Profile screen with Protocol, Description, Configuration, Server, Port, SNI and TLS Server Verification rows" width="300" loading="lazy">
-  <figcaption>The profile editor for a VLESS + TLS profile.</figcaption>
-</figure>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/profile-editor.png" alt="Edit Profile screen on iPhone with Protocol, Description, Configuration, Server, Port, SNI and TLS Server Verification rows" width="260" loading="lazy">
+    <figcaption>The profile editor for a VLESS + TLS profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/profile-editor.png" alt="The same Edit Profile screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
 
 <h3>Top section</h3>
 <table>
@@ -118,10 +137,16 @@
 
 <h3>AUTHENTICATION</h3>
 <p>This section shows only the secrets the chosen configuration needs. It disappears in WireGuard and Direct modes, and when the chain needs no secret.</p>
-<figure>
-  <img src="../assets/img/waterwall/profile-editor-reality-authentication.png" alt="AUTHENTICATION section with UUID and Reality Password rows, followed by the OPTIONS section" width="300" loading="lazy">
-  <figcaption>AUTHENTICATION for a VLESS + Reality profile. iOS leaves the contents of password fields out of screenshots, so the two fields look empty here.</figcaption>
-</figure>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/profile-editor-reality-authentication.png" alt="AUTHENTICATION section on iPhone with UUID and Reality Password rows, followed by the OPTIONS section" width="260" loading="lazy">
+    <figcaption>AUTHENTICATION for a VLESS + Reality profile, on iPhone. iOS leaves the contents of password fields out of screenshots, so the two fields look empty here.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/profile-editor-reality-authentication.png" alt="The same AUTHENTICATION section on Android, with the secrets shown as dots" width="260" loading="lazy">
+    <figcaption>The same section on Android, with the secrets shown as dots.</figcaption>
+  </figure>
+</div>
 <table>
   <thead><tr><th>Row</th><th>Shown for</th><th>What to enter</th></tr></thead>
   <tbody>
@@ -159,12 +184,20 @@
 <p>Tapping <strong>Configuration</strong> opens a screen titled <strong>WaterWall</strong>. It has up to three sections: <strong>CONFIGURATION</strong>, <strong>ADVANCED NODE SETTINGS</strong> and <strong>GEOIP ROUTING</strong>. Each change is checked at once; if a combination is not allowed, an alert explains why and the change is not made.</p>
 <div class="shots">
   <figure>
-    <img src="../assets/img/waterwall/waterwall.png" alt="WaterWall screen with Mode, Input, Application, MUX, Obfuscator, HTTP, BGP4 Framing, Outer and Carrier rows" width="260" loading="lazy">
-    <figcaption>The default chain: VLESS + TLS over TCP.</figcaption>
+    <img src="../assets/img/waterwall/waterwall.png" alt="WaterWall screen on iPhone with Mode, Input, Application, MUX, Obfuscator, HTTP, BGP4 Framing, Outer and Carrier rows" width="260" loading="lazy">
+    <figcaption>The default chain: VLESS + TLS over TCP, on iPhone.</figcaption>
   </figure>
   <figure>
-    <img src="../assets/img/waterwall/waterwall-outer.png" alt="Outer list with None, TLS, Reality, AEAD, QUIC and BGP4, TLS ticked" width="260" loading="lazy">
-    <figcaption>The list behind the Outer row.</figcaption>
+    <img src="../assets/img/waterwall/android/waterwall.png" alt="The same WaterWall screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-outer.png" alt="Outer list on iPhone with None, TLS, Reality, AEAD, QUIC and BGP4, TLS ticked" width="260" loading="lazy">
+    <figcaption>The list behind the Outer row, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/waterwall-outer.png" alt="The same Outer list on Android" width="260" loading="lazy">
+    <figcaption>The same list on Android.</figcaption>
   </figure>
 </div>
 
@@ -243,12 +276,20 @@
 </ul>
 <div class="shots">
   <figure>
-    <img src="../assets/img/waterwall/waterwall-advanced-geoip.png" alt="Lower part of the WaterWall screen with the Packet, Application and Outer rows under Advanced Node Settings and the GeoIP Routing switch" width="260" loading="lazy">
-    <figcaption>ADVANCED NODE SETTINGS for VLESS + TLS, and the GeoIP switch.</figcaption>
+    <img src="../assets/img/waterwall/waterwall-advanced-geoip.png" alt="Lower part of the WaterWall screen on iPhone with the Packet, Application and Outer rows under Advanced Node Settings and the GeoIP Routing switch" width="260" loading="lazy">
+    <figcaption>ADVANCED NODE SETTINGS for VLESS + TLS, and the GeoIP switch, on iPhone.</figcaption>
   </figure>
   <figure>
-    <img src="../assets/img/waterwall/node-editor.png" alt="Packet editor showing the JSON object with mtu 1400 and the status Valid JSON next to a Format button" width="260" loading="lazy">
-    <figcaption>The JSON editor for the Packet layer, with an example value.</figcaption>
+    <img src="../assets/img/waterwall/android/waterwall-advanced-geoip.png" alt="The same part of the WaterWall screen on Android" width="260" loading="lazy">
+    <figcaption>The same part on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/node-editor.png" alt="Packet editor on iPhone showing the JSON object with mtu 1400 and the status Valid JSON next to a Format button" width="260" loading="lazy">
+    <figcaption>The JSON editor for the Packet layer, with an example value, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/node-editor.png" alt="The same JSON editor on Android" width="260" loading="lazy">
+    <figcaption>The same editor on Android.</figcaption>
   </figure>
 </div>
 <p>Which keys each layer accepts, and their limits, is in the <a href="configuration.html">Configuration Reference</a>. A few values are always set by the app and override yours: the SNI, the certificate check, the passwords and the QUIC carrier mode.</p>
@@ -262,31 +303,45 @@
     <tr><td><strong>Countries</strong></td><td>Opens <strong>GeoIP Countries</strong>: a searchable list (<em>Country or ISO code</em>) where you tick the countries that go direct. Ticking a country also turns routing on and installs the database if needed.</td></tr>
     <tr><td><strong>Country Database</strong></td><td>Shows the database type, where it came from (<code>Bundled</code> or <code>Updated</code>) and its size, or <code>No valid database</code>.</td></tr>
     <tr><td><strong>Update URL</strong></td><td>An HTTPS link to a GeoIP2 or GeoLite2 Country database (<code>.mmdb</code>). It is checked and saved when you finish typing.</td></tr>
-    <tr><td><strong>Upload MMDB…</strong></td><td>Picks a database file from the Files app.</td></tr>
+    <tr><td><strong>Upload MMDB…</strong></td><td>Picks a database file from the Files app, or on Android from the system's file picker.</td></tr>
     <tr><td><strong>Download &amp; Replace</strong></td><td>Downloads the database from the Update URL.</td></tr>
   </tbody>
 </table>
-<figure>
-  <img src="../assets/img/waterwall/geoip-countries.png" alt="GeoIP Countries screen with the GeoIP Routing switch on and an alphabetical country list with a search field" width="300" loading="lazy">
-  <figcaption>The GeoIP Countries screen.</figcaption>
-</figure>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/geoip-countries.png" alt="GeoIP Countries screen on iPhone with the GeoIP Routing switch on and an alphabetical country list with a search field" width="260" loading="lazy">
+    <figcaption>The GeoIP Countries screen on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/geoip-countries.png" alt="The same GeoIP Countries screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
 <p>A new database is checked before it replaces the old one; if the check fails, the old one stays. Files must be MaxMind Country databases no larger than 128 MB. After a successful update the app says <em>Reconnect WaterWall to use the new file.</em> Country data is GeoLite2 by MaxMind.</p>
 
 <h2 id="wireguard-mode">WireGuard mode</h2>
 <p>In WireGuard mode the SERVER section has:</p>
 <ul>
-  <li><strong>Import Config (.conf)</strong>: picks a WireGuard file from the Files app. Server and Port are filled from its <code>Endpoint</code> line. A wrong file shows <strong>Import Failed</strong> with <em>The file could not be read as UTF-8 text.</em> or <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></li>
+  <li><strong>Import Config (.conf)</strong>: picks a WireGuard file from the Files app, or on Android from the system's file picker. Server and Port are filled from its <code>Endpoint</code> line. A wrong file shows <strong>Import Failed</strong> with <em>The file could not be read as UTF-8 text.</em> or <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></li>
   <li><strong>Manual Configuration</strong>: enter the keys yourself, as below.</li>
   <li><strong>Server</strong> and <strong>Port</strong>.</li>
 </ul>
 <div class="shots">
   <figure>
-    <img src="../assets/img/waterwall/profile-editor-wireguard.png" alt="Profile editor in WireGuard mode with Import Config, Manual Configuration, Server and Port rows" width="260" loading="lazy">
-    <figcaption>The SERVER section in WireGuard mode.</figcaption>
+    <img src="../assets/img/waterwall/profile-editor-wireguard.png" alt="Profile editor on iPhone in WireGuard mode with Import Config, Manual Configuration, Server and Port rows" width="260" loading="lazy">
+    <figcaption>The SERVER section in WireGuard mode, on iPhone.</figcaption>
   </figure>
   <figure>
-    <img src="../assets/img/waterwall/wireguard-manual.png" alt="Manual Configuration screen with This Device and Server (Peer) sections" width="260" loading="lazy">
-    <figcaption>The Manual Configuration screen.</figcaption>
+    <img src="../assets/img/waterwall/android/profile-editor-wireguard.png" alt="The same section on Android" width="260" loading="lazy">
+    <figcaption>The same section on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/wireguard-manual.png" alt="Manual Configuration screen on iPhone with This Device and Server (Peer) sections" width="260" loading="lazy">
+    <figcaption>The Manual Configuration screen on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/wireguard-manual.png" alt="The same Manual Configuration screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
   </figure>
 </div>
 <table>
@@ -305,14 +360,20 @@
 <p>An empty <strong>Port</strong> means 51820, the usual WireGuard port. A profile that was in Chain mode before keeps the port it had, so check it when you switch to WireGuard.</p>
 <div class="callout tip">
   <span class="callout-title">Where the keys are kept</span>
-  The private key, the preshared key and an imported <code>.conf</code> are stored in the iOS Keychain, separately for each profile, and are deleted with the profile. They belong to the profile's protocol: if you change the profile to another protocol, such as the WireGuard or AmneziaWG protocol, it starts without them.
+  The private key, the preshared key and an imported <code>.conf</code> are stored separately for each profile and are deleted with the profile: in the iOS Keychain, or on Android encrypted with a key that the Android Keystore holds. They belong to the profile's protocol: if you change the profile to another protocol, such as the WireGuard or AmneziaWG protocol on iPhone and iPad, it starts without them.
 </div>
 
 <h2 id="options">OPTIONS</h2>
-<figure>
-  <img src="../assets/img/waterwall/profile-options-end.png" alt="OPTIONS section with Auto Switch, Switch to Wi-Fi When Available, On Sleep, Log Level, TLS Fragmentation, Remote DNS and Direct LAN Routing, and the explanation below" width="300" loading="lazy">
-  <figcaption>The OPTIONS section with its defaults, for a VLESS + TLS profile.</figcaption>
-</figure>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/profile-options-end.png" alt="OPTIONS section on iPhone with Auto Switch, Switch to Wi-Fi When Available, On Sleep, Log Level, TLS Fragmentation, Remote DNS and Direct LAN Routing, and the explanation below" width="260" loading="lazy">
+    <figcaption>The OPTIONS section with its defaults, for a VLESS + TLS profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/profile-options-end.png" alt="The same OPTIONS section on Android" width="260" loading="lazy">
+    <figcaption>The same section on Android.</figcaption>
+  </figure>
+</div>
 <table>
   <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
   <tbody>
@@ -320,7 +381,7 @@
     <tr><td><strong>Retry Times</strong></td><td>Empty (unlimited)</td><td>Shown with Auto Reconnect. How many reconnects in a row before giving up with <em>Could not reconnect after N attempts.</em> The count restarts after a good connection, a network change or waking up.</td></tr>
     <tr><td><strong>Auto Switch</strong></td><td>On</td><td>Shown in Chain mode. Uses your other WaterWall Chain profiles <em>for the same server</em> (up to 8, matched by the Server field) as fallbacks. Each reconnect tries the next one. When the network loses many packets, it moves to a profile with the other carrier (TCP or UDP).</td></tr>
     <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>On</td><td>Restarts the connection on Wi-Fi as soon as Wi-Fi appears, and on cellular when Wi-Fi is lost. This is also what returns Auto Switch to the profile you chose.</td></tr>
-    <tr><td><strong>On Sleep</strong></td><td>Stay</td><td><em>Stay</em> keeps the connection open while the phone sleeps. <em>Pause</em> closes it and always reconnects on wake. <em>Off</em> closes it; on wake it reconnects only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr><td><strong>On Sleep</strong></td><td>Stay</td><td><em>Stay</em> keeps the connection open while the phone sleeps. <em>Pause</em> closes it and always reconnects on wake. <em>Off</em> closes it; on wake it reconnects only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em> On Android, the phone sleeping means the screen going off, and waking means the screen coming on.</td></tr>
     <tr><td><strong>Log Level</strong></td><td>Normal</td><td>How much the app and WaterWall write to their logs: Normal, Expert or Debug.</td></tr>
     <tr><td><strong>TLS Fragmentation</strong></td><td>Off</td><td>Shown for Chain with Outer TLS or Reality. Splits the first TLS message (the ClientHello) into small pieces, which can get past some filters. Auto uses a 32-byte first piece and 256-byte pieces after it. Manual adds <strong>First Chunk (bytes)</strong> (hint 32) and <strong>Following Chunks (bytes)</strong> (hint 256) for your own sizes.</td></tr>
     <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for Chain with Connections input. The phone gets placeholder addresses for names, and the server looks up the real names. When off, the phone asks 1.1.1.1 and 1.0.0.1 itself.</td></tr>
@@ -335,6 +396,9 @@
   <span class="callout-title">Auto Switch needs sibling profiles</span>
   Auto Switch only has something to switch to if you saved more than one profile with the same Server, for example the same server with a TCP chain and a KCP chain. Profiles with exactly the same configuration and port are not used.
 </div>
+
+<h2 id="on-android">On Android</h2>
+<p>Everything above applies to Android too. The few things Android does differently, such as the Connection request and the always-on setting, are on the <a href="android.html">Android</a> page.</p>
 
 <h2>What the app does not have</h2>
 <ul>

@@ -23,7 +23,7 @@
   <ul>
     <li>WaterWall is installed and running on your server, with a Let's Encrypt certificate in <code>/etc/waterwall/</code>, as described in <a href="installation.html">Installation</a>.</li>
     <li>Your domain (<code>&lt;SERVER_HOST&gt;</code> below) points to the server.</li>
-    <li>SRP VPN Connect is installed on your iPhone or iPad.</li>
+    <li>SRP VPN Connect is installed on your iPhone, iPad or Android phone.</li>
   </ul>
 </div>
 
@@ -126,12 +126,12 @@ ss -ltnp | grep 18443</code></pre>
 <h3>5. Connect</h3>
 <ol>
   <li>Tap the profile to select it, then tap the power button.</li>
-  <li>The first time, iOS asks whether the app may add a VPN configuration. Allow it.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
   <li>The status changes to <strong>Connecting…</strong> and then <strong>Connected</strong>, and the profile row shows <code>Ping:</code> followed by the delay through the tunnel in milliseconds.</li>
 </ol>
 <div class="callout verify">
   <span class="callout-title">Check</span>
-  Open any website in Safari. If the status stays at Connecting… or returns to Disconnected, tap the status text to read the log and see <a href="troubleshooting.html">Troubleshooting</a>.
+  Open any website in a browser. If the status stays at Connecting… or returns to Disconnected, tap the status text to read the log and see <a href="troubleshooting.html">Troubleshooting</a>.
 </div>
 
 <h2>Our result</h2>
@@ -139,6 +139,7 @@ ss -ltnp | grep 18443</code></pre>
 <p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></p>
 <p>On 3 November 2026 we connected the current app build to this server file on our production server, with its Let's Encrypt certificate and TLS Server Verification on. For 93 seconds the phone downloaded and uploaded at the same time: 1,309 MB down and 2,131 MB up (113 and 183 Mbit/s on average on our office line), with no errors and no timeouts. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result.</p>
 <!-- result:end -->
+<p>The Android app connected to the same server file in the same way, on our test phone, and passed two downloads and two uploads at once; see <a href="android.html#android-tested">Android</a>.</p>
 
 <h2>Next steps</h2>
 <ul>
