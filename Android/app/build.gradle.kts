@@ -43,6 +43,17 @@ android {
             assets.srcDir("../../WaterWall/GeoIP")
         }
     }
+
+    // A release is signed only where these are set: the key and its password stay out of this repository.
+    System.getenv("SRP_ANDROID_KEYSTORE")?.let { keystore ->
+        signingConfigs.create("release") {
+            storeFile = file(keystore)
+            storePassword = System.getenv("SRP_ANDROID_KEYSTORE_PASSWORD")
+            keyAlias = "srp-vpn-connect"
+            keyPassword = storePassword
+        }
+        buildTypes.getByName("release").signingConfig = signingConfigs.getByName("release")
+    }
 }
 
 dependencies {

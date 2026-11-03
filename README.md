@@ -157,7 +157,7 @@ The public beta and the source repository may not always be on the same revision
 
 ## Android
 
-`Android/` holds the Android app. It has WaterWall with the same screens, options, messages and connection rules as the iOS app, and the same [documentation](tutorial/waterwall/android.html). The other protocols, the profile editor and reconnecting come later.
+`Android/` holds the Android app. It has WaterWall with the same screens, options, messages and connection rules as the iOS app, and the same [documentation](tutorial/waterwall/android.html). The other protocols come later.
 
 Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java and SDK:
 
@@ -168,7 +168,7 @@ export ANDROID_HOME="$HOME/Library/Android/sdk"
 ./gradlew :app:assembleDebug
 ```
 
-Gradle installs NDK 28.2.13676358 and CMake 4.1.2 if they are missing. The APK is `app/build/outputs/apk/debug/app-debug.apk`, for arm64 phones and emulators. No signing key is stored in this repository.
+Gradle installs NDK 28.2.13676358 and CMake 4.1.2 if they are missing. The APK is `app/build/outputs/apk/debug/app-debug.apk`, for arm64 phones and emulators. No signing key is stored in this repository: `./gradlew :app:assembleRelease` signs its APK only when `SRP_ANDROID_KEYSTORE` names a key whose alias is `srp-vpn-connect` and `SRP_ANDROID_KEYSTORE_PASSWORD` holds its password.
 
 `./gradlew :app:testDebugUnitTest` checks the Kotlin chain builder against the iOS one, on answers that `tools/chain_parity/generate.py` records from the real `SRPWaterWallChainConfig.m`. Run that script again after changing either builder.
 

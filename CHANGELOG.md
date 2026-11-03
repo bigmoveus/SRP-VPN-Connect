@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Added
+- The Android app's release build can now be signed: Gradle signs `assembleRelease` when `SRP_ANDROID_KEYSTORE` and `SRP_ANDROID_KEYSTORE_PASSWORD` are set. The key and its password stay outside the repository, and a build without them needs neither.
 - An early Android app in `Android/`, WaterWall only: Kotlin and Jetpack Compose, minSdk 26, targetSdk 36, arm64. One screen takes a client node graph, connects through a `VpnService` that keeps the app's own sockets outside the tunnel, and shows the log. Tested on an Android 16 emulator with the production `vless-tls` chain and its TLS check on: downloads and uploads finish through the tunnel with matching SHA-256, and a server with a self-signed certificate is refused.
 - The Android app now has everything the iOS app has for WaterWall: the same home screen, profile editor, WaterWall configuration screen, GeoIP routing, WireGuard and Direct modes, options, messages and log, in light and dark, and the same connection logic (start-up and health checks, Auto Reconnect, Retry Times, Auto Switch, Switch to Wi-Fi, On Sleep). A unit test checks the Kotlin chain builder against answers recorded from the iOS one on 37,977 configurations.
 
