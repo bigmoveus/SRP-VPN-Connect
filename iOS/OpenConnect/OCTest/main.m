@@ -1,5 +1,5 @@
 // OCTest main.m — macOS E2E harness for libopenconnect (AnyConnect/ocserv).
-// Connects to openconnect.example.com, applies IP settings, and verifies
+// Connects to the server in OC_URL, applies IP settings, and verifies
 // data plane via DNS query through the tunnel (+ ICMP ping).
 #import <Foundation/Foundation.h>
 #import <Security/Security.h>
@@ -205,10 +205,11 @@ int main(int argc, const char *argv[]) {
     @autoreleasepool {
         g_user = argc > 1 ? @(argv[1]) : @"sstp-test1";
         g_pass = argc > 2 ? @(argv[2]) : @"srp-test-password";
-        const char *url = argc > 3 ? argv[3] : "https://openconnect.example.com";
+        const char *url = argc > 3 ? argv[3] : getenv("OC_URL");
+        if (!url) { NSLog(@"usage: octest [user] [pass] [url], or set OC_URL"); return 2; }
         {
             NSURL *u = [NSURL URLWithString:@(url)];
-            snprintf(g_verifyHost, sizeof(g_verifyHost), "%s", (u.host ?: @"openconnect.example.com").UTF8String);
+            snprintf(g_verifyHost, sizeof(g_verifyHost), "%s", (u.host ?: @(url)).UTF8String);
         }
 
         g_vpn = openconnect_vpninfo_new("SRP VPN Connect", NULL, NULL, NULL, NULL, NULL);

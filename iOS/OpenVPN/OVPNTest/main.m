@@ -142,10 +142,12 @@ int main(int argc, const char *argv[]) {
         c.profileText = profile;
         c.logLevel = 2;
         if (argc > 2 && strcmp(argv[2], "stunnel") == 0) {
+            const char *stunnelHost = getenv("OVPN_STUNNEL_HOST");
+            if (!stunnelHost) { NSLog(@"stunnel mode needs OVPN_STUNNEL_HOST"); return 2; }
             c.stunnelEnabled = YES;
-            c.stunnelHost = @"openvpn.example.com";
+            c.stunnelHost = @(stunnelHost);
             c.stunnelPort = 9443;
-            c.stunnelSNI = @"openvpn.example.com";
+            c.stunnelSNI = @(stunnelHost);
             c.outerCAPEM = [NSString stringWithContentsOfFile:@"/tmp/outer-ca.crt"
                                                      encoding:NSUTF8StringEncoding error:nil];
         }

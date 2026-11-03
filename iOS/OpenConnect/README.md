@@ -13,7 +13,7 @@ vendored **openconnect 9.21** sources (`upstream/`, LGPL-2.1 — see
 - `OCTest/` — macOS E2E harness (`build.sh` + run `./octest [user] [pass] [url]`).
   Verifies auth, CSTP, DTLS, IP settings, ping and DNS through the tunnel, plus
   negative cases (bad hostname cert reject, wrong password).
-- Server: ocserv on `openconnect.example.com:443` (users sstp-test1/2,
+- Server: ocserv on port 443 of the server in `OC_URL` (users sstp-test1/2,
   plain auth, SecureNAT-style NAT, range 10.82.0.0/24).
 
 The extension-side Objective-C adapter is `Core/SRPCore/SRPOpenConnectClient.*`.

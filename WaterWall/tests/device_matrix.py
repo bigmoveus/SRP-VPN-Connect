@@ -41,8 +41,8 @@ class DeviceMatrix(SupportedMatrix):
         self.host = os.environ.get("SRP_TEST_SSH_HOST")
         self.binary = os.environ.get("SRP_TEST_PEER_BINARY")
         self.url = os.environ.get("SRP_TEST_HTTP_URL")
-        self.device = os.environ.get("SRP_DEVICE_ID", "00000000-0000000000000000")
-        self.team = os.environ.get("DEVELOPMENT_TEAM", "ABCDE12345")
+        self.device = os.environ.get("SRP_DEVICE_ID")
+        self.team = os.environ.get("DEVELOPMENT_TEAM")
         self.configuration = os.environ.get("SRP_TEST_CONFIGURATION", "Debug")
         if self.configuration not in ("Debug", "Release"):
             raise ValueError("SRP_TEST_CONFIGURATION must be Debug or Release")
@@ -733,8 +733,8 @@ class DeviceMatrix(SupportedMatrix):
         return result
 
     def run(self):
-        if not self.host or not self.binary or not self.url:
-            raise RuntimeError("SRP_TEST_SSH_HOST, SRP_TEST_PEER_BINARY and SRP_TEST_HTTP_URL are required")
+        if not all((self.host, self.binary, self.url, self.device, self.team)):
+            raise RuntimeError("SRP_TEST_SSH_HOST, SRP_TEST_PEER_BINARY, SRP_TEST_HTTP_URL, SRP_DEVICE_ID and DEVELOPMENT_TEAM are required")
         selected = list(candidate_specs())
         if self.args.only:
             allowed = set(self.args.only.split(","))

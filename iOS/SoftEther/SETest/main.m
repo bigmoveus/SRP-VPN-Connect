@@ -1,5 +1,5 @@
 // SETest main.m — macOS E2E harness for the SoftEther client core.
-// Connects to softether.example.com:443 (hub DEFAULT), waits for DHCP,
+// Connects to the server in SE_HOST on port 443 (hub DEFAULT), waits for DHCP,
 // pings the gateway, and optionally does a UDP DNS query through the tunnel.
 #import <Foundation/Foundation.h>
 #import <Security/Security.h>
@@ -244,7 +244,9 @@ int main(int argc, const char *argv[]) {
                 snprintf(cfg.proxyPassword, sizeof(cfg.proxyPassword), "%s", getenv("SE_PROXY_PASS") ?: "");
             }
         }
-        snprintf(cfg.hostname, sizeof(cfg.hostname), "%s", (argc > 7 && strlen(argv[7]) > 0) ? argv[7] : "softether.example.com");
+        const char *server = (argc > 7 && strlen(argv[7]) > 0) ? argv[7] : getenv("SE_HOST");
+        if (!server) { NSLog(@"set SE_HOST or pass the server as argument 7"); return 2; }
+        snprintf(cfg.hostname, sizeof(cfg.hostname), "%s", server);
         cfg.port = 443;
         snprintf(cfg.hub, sizeof(cfg.hub), "%s", getenv("SE_HUB") ? getenv("SE_HUB") : "DEFAULT");
         snprintf(cfg.username, sizeof(cfg.username), "%s", user);
