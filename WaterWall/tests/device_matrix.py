@@ -41,6 +41,9 @@ class DeviceMatrix(SupportedMatrix):
         self.host = os.environ.get("SRP_TEST_SSH_HOST")
         self.binary = os.environ.get("SRP_TEST_PEER_BINARY")
         self.url = os.environ.get("SRP_TEST_HTTP_URL")
+        # The same HTTPS test server at an address on the server other than its public one: iOS keeps the
+        # server's own address out of the tunnel, so where the phone sees real addresses a test needs this one.
+        self.tunnel_url = os.environ.get("SRP_TEST_TUNNEL_URL")
         self.device = os.environ.get("SRP_DEVICE_ID")
         self.team = os.environ.get("DEVELOPMENT_TEAM")
         self.configuration = os.environ.get("SRP_TEST_CONFIGURATION", "Debug")
@@ -363,6 +366,12 @@ class DeviceMatrix(SupportedMatrix):
         if mode == "wireguard":
             env["TEST_RUNNER_SRP_WW_WG_CONFIG"] = self.wireguard_peer(name)["client"].replace(
                 "127.0.0.1", self.host)
+        if input_mode == "raw-ipv4" or mode == "wireguard":
+            if not self.tunnel_url:
+                raise RuntimeError("SRP_TEST_TUNNEL_URL is required for raw IPv4 and WireGuard cases")
+            env["TEST_RUNNER_SRP_WW_STRESS_URL"] = self.tunnel_url
+            env["TEST_RUNNER_SRP_WW_STRESS_TRUSTED_CERT"] = self.ssh(
+                "openssl s_client -connect 127.0.0.1:28483 </dev/null 2>/dev/null | openssl x509 -outform der | base64 -w0").strip()
         client_root = json.loads(client_path.read_text())
         connector = "TcpUdpConnector" if mode in ("direct", "wireguard") else client_root["nodes"][-1]["type"]
         application_node = next((node for node in client_root["nodes"] if node["type"] in ("VmessClient", "VlessClient")), None)
@@ -624,8 +633,12 @@ class DeviceMatrix(SupportedMatrix):
             result["udp"] = {"status": "not-applicable", "reason": "The full-duplex test exercises TCP only"}
         started = time.monotonic()
         reference_log = "/tmp/srp-https-throughput-server.log"
+        stress_log = self.remote_dir + "/https-health.log"
+        # Direct mode and the GeoIP cases are meant to leave outside WaterWall; the routing check covers GeoIP.
+        check_path = item[10] != "direct" and not name.startswith("geoip-") and env["TEST_RUNNER_SRP_WW_TCP_STRESS"] == "1"
         try:
             self.start_remote_peer(item, client_path)
+            stress_lines = int(self.ssh(f"wc -l < {stress_log}").strip() or 0) if check_path else 0
             if name.startswith("geoip-"):
                 reference_lines = int(self.ssh(f"wc -l < {reference_log}").strip() or 0)
             log = self.work / f"{name}-device.log"
@@ -695,6 +708,12 @@ class DeviceMatrix(SupportedMatrix):
                                   "average_jitter_ms": float(timing[2]) if timing else None,
                                   "max_rtt_ms": float(timing[3]) if timing else None,
                                   "error": "" if udp_passed else "UDP transfer failed; see device log"}
+            if check_path:
+                # Through the tunnel the test server sees the server itself or a tunnel address, never the phone's network.
+                lines = self.ssh(f"tail -n +{stress_lines + 1} {stress_log} | grep 'srp-live=' || true")
+                addresses = sorted(set(re.findall(r"^(\S+) - - ", lines, re.M)))
+                inside = bool(addresses) and all(address in (self.host, "127.0.0.1") or address.startswith("10.") for address in addresses)
+                result["path"] = {"status": "passed" if inside else "failed", "addresses": addresses}
             if name.startswith("geoip-"):
                 # The reference server logs each download with its client address: the office address means the
                 # router sent it direct, the server's own address means it went through WaterWall.
@@ -724,7 +743,7 @@ class DeviceMatrix(SupportedMatrix):
                 result["teardown"] = {"passed": False, "error": str(error)}
         result["status"] = "failed" if (result.get("error") or result["tcp"].get("status") == "failed" or
             result["udp"].get("status") == "failed" or result.get("ping", {}).get("status") == "failed" or
-            result.get("routing", {}).get("status") == "failed" or
+            result.get("routing", {}).get("status") == "failed" or result.get("path", {}).get("status") == "failed" or
             not result["teardown"].get("passed", False)) else "passed"
         self.results.append(result)
         write_json(self.work / "results.json", {"summary": self.summary, "cases": self.results})
