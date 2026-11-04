@@ -45,6 +45,7 @@
     <tr><td>Choosing a file</td><td>The Files app</td><td>The system's file picker</td></tr>
     <tr><td>On Sleep</td><td>The phone sleeping and waking</td><td>The screen going off and coming on</td></tr>
     <tr><td>IPv6</td><td>The tunnel carries IPv4 only</td><td>The same. While the VPN is up, Android gives apps no IPv6 route, so IPv6 traffic does not leave outside the tunnel; a connection to an IPv6 address fails with <em>No route to host</em></td></tr>
+    <tr><td>Traffic to the server's own address</td><td>With Raw IPv4 input or WireGuard it goes outside the tunnel</td><td>It goes through the tunnel</td></tr>
     <tr><td>The app's log</td><td>The app's own lines</td><td>The app's own lines and WaterWall's: errors at Normal, more at Expert and Debug. It keeps the last 512 KB when it passes 2 MB</td></tr>
     <tr><td>Always-on VPN</td><td>Not used</td><td>Turn it on for the app in Android's VPN settings. Android then starts the app's VPN at once and after every boot, and it connects the profile you used last</td></tr>
     <tr><td>After a reconnect</td><td>iOS applies the VPN settings again</td><td>Android gets a new VPN network, so its DNS cache starts empty and apps see the change, as with any change of network</td></tr>

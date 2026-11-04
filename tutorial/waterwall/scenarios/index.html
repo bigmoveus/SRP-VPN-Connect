@@ -23,6 +23,7 @@
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
   <p>The tests ran on app commit <code>a03a8bc2</code> with the server at WaterWall's default of 2 DNS tries, except three cases that ran on commit <code>be53fe6b</code>, which changes only test tools, with the server at 5 tries: <a href="adv-packet-budget.html">the packet budget case</a>, <a href="adv-mux-counter.html">the MUX counter case</a> and <a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS</a>. Each page's test setup says which setting it ran with.</p>
+  <p>The Raw IPv4 and native WireGuard cases ran later, on app commit <code>02bf942c</code> with the server at commit <code>1af4b70e</code> and 5 tries. On these two inputs iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server, and the test checked that it arrived through the tunnel.</p>
   <p>Every scenario page describes its procedure in full.</p>
   <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>
@@ -43,13 +44,13 @@
   <li><strong>Most combinations.</strong> The app accepts far more combinations than were run. The selection covers every outer layer, application and carrier, every chain our production server runs, BGP4 framing, and a set of advanced settings.</li>
 </ul>
 <p><strong>163</strong> scenarios: 163 verified.</p><h2 id="production">Production server</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>158 Mbit/s / 108 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>156 Mbit/s / 111 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>165 Mbit/s / 97 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>156 Mbit/s / 115 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 94 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>153 Mbit/s / 111 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 111 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>77 Mbit/s / 72 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 39 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>80 Mbit/s / 53 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>34 Mbit/s / 11 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>31 Mbit/s / 64 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>120 Mbit/s / 41 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>99 Mbit/s / 49 Mbit/s</td></tr>
 <tr><td><a href="prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>121 Mbit/s / 144 Mbit/s</td></tr>
 <tr><td><a href="prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>103 Mbit/s / 92 Mbit/s</td></tr>
 <tr><td><a href="prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>107 Mbit/s / 39 Mbit/s</td></tr>
@@ -86,7 +87,7 @@
 <tr><td><a href="prod-additional-vmess-reality.html">VMess + Reality (additional-vmess-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 75 Mbit/s</td></tr>
 <tr><td><a href="prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>117 Mbit/s / 117 Mbit/s</td></tr>
 <tr><td><a href="prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 95 Mbit/s</td></tr>
-<tr><td><a href="prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>152 Mbit/s / 101 Mbit/s</td></tr>
+<tr><td><a href="prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>9 Mbit/s / 42 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="tls">TLS</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
 <tr><td><a href="ww-04705-http-proxy-tls.html">HTTP CONNECT + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>132 Mbit/s / 119 Mbit/s</td></tr>
@@ -161,24 +162,24 @@
 <tr><td><a href="ww-01633-vmess-bgp4.html">VMess + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 102 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="raw">Raw IPv4</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-12673-raw-none.html">Raw IPv4 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>135 Mbit/s / 90 Mbit/s</td></tr>
-<tr><td><a href="ww-12961-raw-aead.html">Raw IPv4 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>162 Mbit/s / 121 Mbit/s</td></tr>
-<tr><td><a href="ww-12771-raw-tls.html">Raw IPv4 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>154 Mbit/s / 119 Mbit/s</td></tr>
-<tr><td><a href="ww-13185-raw-bgp4.html">Raw IPv4 + HTTP/1.1 + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>117 Mbit/s / 174 Mbit/s</td></tr>
-<tr><td><a href="ww-12801-raw-tls.html">Raw IPv4 + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 153 Mbit/s</td></tr>
-<tr><td><a href="ww-12681-raw-none.html">Raw IPv4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>168 Mbit/s / 108 Mbit/s</td></tr>
-<tr><td><a href="ww-13050-raw-aead.html">Raw IPv4 + Obfuscator + WebSocket (HTTP/2) + AEAD + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>139 Mbit/s / 158 Mbit/s</td></tr>
-<tr><td><a href="ww-13057-raw-quic.html">Raw IPv4 + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>140 Mbit/s / 169 Mbit/s</td></tr>
-<tr><td><a href="ww-13061-raw-quic.html">Raw IPv4 + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>181 Mbit/s / 121 Mbit/s</td></tr>
-<tr><td><a href="ww-12865-raw-reality.html">Raw IPv4 + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>118 Mbit/s / 176 Mbit/s</td></tr>
-<tr><td><a href="ww-12769-raw-tls.html">Raw IPv4 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>178 Mbit/s / 113 Mbit/s</td></tr>
+<tr><td><a href="ww-12673-raw-none.html">Raw IPv4 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>36 Mbit/s / 109 Mbit/s</td></tr>
+<tr><td><a href="ww-12961-raw-aead.html">Raw IPv4 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 72 Mbit/s</td></tr>
+<tr><td><a href="ww-12771-raw-tls.html">Raw IPv4 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>35 Mbit/s / 77 Mbit/s</td></tr>
+<tr><td><a href="ww-13185-raw-bgp4.html">Raw IPv4 + HTTP/1.1 + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>36 Mbit/s / 84 Mbit/s</td></tr>
+<tr><td><a href="ww-12801-raw-tls.html">Raw IPv4 + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>39 Mbit/s / 78 Mbit/s</td></tr>
+<tr><td><a href="ww-12681-raw-none.html">Raw IPv4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>34 Mbit/s / 34 Mbit/s</td></tr>
+<tr><td><a href="ww-13050-raw-aead.html">Raw IPv4 + Obfuscator + WebSocket (HTTP/2) + AEAD + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>11 Mbit/s / 23 Mbit/s</td></tr>
+<tr><td><a href="ww-13057-raw-quic.html">Raw IPv4 + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>17 Mbit/s / 44 Mbit/s</td></tr>
+<tr><td><a href="ww-13061-raw-quic.html">Raw IPv4 + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>48 Mbit/s / 48 Mbit/s</td></tr>
+<tr><td><a href="ww-12865-raw-reality.html">Raw IPv4 + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 74 Mbit/s</td></tr>
+<tr><td><a href="ww-12769-raw-tls.html">Raw IPv4 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>26 Mbit/s / 62 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="modes">Direct and WireGuard</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
 <tr><td><a href="direct-diagnostics.html">Direct mode (diagnostics)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>141 Mbit/s / 151 Mbit/s</td></tr>
-<tr><td><a href="wireguard-native.html">WireGuard mode</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>170 Mbit/s / 116 Mbit/s</td></tr>
+<tr><td><a href="wireguard-native.html">WireGuard mode</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>14 Mbit/s / 52 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="advanced">Advanced settings</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="adv-raw-validation.html">Raw IPv4 + AEAD with packet packet-validation-level = &quot;hard&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 80 Mbit/s</td></tr>
+<tr><td><a href="adv-raw-validation.html">Raw IPv4 + AEAD with packet packet-validation-level = &quot;hard&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>61 Mbit/s / 71 Mbit/s</td></tr>
 <tr><td><a href="adv-vmess-counter-strict.html">VMess (no outer layer) with application encrypted-counter-policy = &quot;strict&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 104 Mbit/s</td></tr>
 <tr><td><a href="adv-vmess-packetaddr.html">VMess (no outer layer) with application packet-encoding = &quot;packetaddr&quot;, application domain-strategy = &quot;resolve-domains-and-use-only-ipv4&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>130 Mbit/s / 68 Mbit/s</td></tr>
 <tr><td><a href="adv-vmess-security-aes-128-gcm.html">VMess (no outer layer) with application security = &quot;aes-128-gcm&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 123 Mbit/s</td></tr>
@@ -217,7 +218,7 @@
 <tr><td><a href="adv-vmess-udp-download.html">VMess (no outer layer) with application protocol = &quot;udp&quot; (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>0 Mbit/s / 0 Mbit/s</td></tr>
 <tr><td><a href="ww-01249-vmess-tls-download.html">VMess + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>206 Mbit/s / 0 Mbit/s</td></tr>
 <tr><td><a href="adv-tls-alpn-download.html">VMess + TLS with outer alpns = [&quot;http/1.1&quot;] (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>209 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="wireguard-native-download.html">WireGuard mode (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>241 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="wireguard-native-download.html">WireGuard mode (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 0 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="lifecycle">Connection lifecycle</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
 <tr><td><a href="lifecycle-reconnect-disabled-ww-00097-vless-tls.html">Auto Reconnect off ends the VPN on a failure</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>

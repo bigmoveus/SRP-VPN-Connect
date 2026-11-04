@@ -158,7 +158,7 @@ def extract(args):
                 "configuration": case.get("configuration"),
                 "client": sanitize.data(json.loads(client.read_text())) if client.is_file() else None,
                 "server": {"peer": load("peer"), "core": load("core"), "cover": load("cover")},
-                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "routing", "teardown", "lifecycle")}),
+                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "routing", "path", "teardown", "lifecycle")}),
                 "device": device_details(folder / f"{case['id']}-device.log", sanitize),
             }
             if entry["result"].get("tcp", {}) and entry["result"]["tcp"].get("error"):
@@ -396,6 +396,10 @@ def render_case(case, env, run):
         rows.append(("GeoIP routing", f"{routing.get('status', '—')}: expected {expected}; the reference server saw "
                                       f"{routing.get('direct_requests', 0)} downloads from the phone's own address and "
                                       f"{routing.get('proxied_requests', 0)} through WaterWall"))
+    path = result.get("path") or {}
+    if path:
+        rows.append(("Through the tunnel", ("Yes" if path.get("status") == "passed" else "No") + ": the HTTPS test server saw these transfers come from " +
+                     (", ".join(path.get("addresses") or []) or "no address") + ", and it would have seen the phone's own network if they had left outside the tunnel"))
     if device.get("https_checks"):
         rows.append(("HTTPS check through the tunnel", "; ".join(device["https_checks"])))
     udp = result.get("udp") or {}

@@ -50,6 +50,9 @@
 <h3>Does the tunnel carry IPv6?</h3>
 <p>No. The WaterWall tunnel carries IPv4 only. On Android, apps also get no IPv6 route while the VPN is up, so IPv6 traffic does not leave outside the tunnel.</p>
 
+<h3>Does traffic to the server itself go through the tunnel?</h3>
+<p>On iPhone, with Raw IPv4 input or WireGuard, no. The app keeps the server's own address out of the tunnel, so a speed test or a site on that same address goes straight there over your normal network, and shows that network's speed. With Connections input and Remote DNS (Fake IP) on, it goes through the tunnel. On Android it always goes through the tunnel.</p>
+
 <h3>Is the Obfuscator a kind of encryption?</h3>
 <p>No. It scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD, QUIC or VMess for encryption.</p>
 

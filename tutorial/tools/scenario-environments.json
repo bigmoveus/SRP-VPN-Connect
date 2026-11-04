@@ -440,5 +440,42 @@
       "App": "SRP VPN Connect 1.2.0 (build 33), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 33 is commit 7e1b6c42; the commits after it change only WaterWall's speed test server, which the app does not build, a description file and test tools",
       "Server DNS lookups": "5 tries, set in /etc/waterwall/core.json"
     }
+  },
+  "production-tunnel": {
+    "base": "production",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e)",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service at 1af4b70e with 5 DNS tries, Let's Encrypt, verification on; HTTPS test server reached through the tunnel at a private address of the server",
+    "setup_changes": {
+      "App": "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test. It is newer than TestFlight build 33 (commit 7e1b6c42): it also keeps packets in WaterWall's packet device while the next node is paused, and sends selective acknowledgements from WaterWall's TCP stack",
+      "Server program": "Our permanent waterwall.service: WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e), built from source as described in Installation, with /etc/waterwall/core.json",
+      "Server DNS lookups": "5 tries, set in /etc/waterwall/core.json",
+      "Traffic": "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. The phone reaches it at the server's private address 10.44.0.1, because iOS sends traffic for the server's own public address outside the tunnel. The test trusts its certificate by comparing it with a copy, since the name in it is not that address"
+    },
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, both HTTPS checks succeeded, and the HTTPS test server saw the transfers come through the tunnel.</p>"
+  },
+  "device-matrix-tunnel": {
+    "base": "device-matrix",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e)",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; WaterWall at 1af4b70e, test copy with 5 DNS tries on the test server, port 4097; HTTPS test server reached through the tunnel at a private address of the server",
+    "setup_changes": {
+      "App": "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test. It is newer than TestFlight build 33 (commit 7e1b6c42): it also keeps packets in WaterWall's packet device while the next node is paused, and sends selective acknowledgements from WaterWall's TCP stack",
+      "Server program": "WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e), built from source as described in Installation: the same program as our permanent service, run as a separate test copy for each case",
+      "Server DNS lookups": "5 tries, set in the test copy's core.json",
+      "Traffic": "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. The phone reaches it at the server's private address 10.44.0.1, because iOS sends traffic for the server's own public address outside the tunnel. The test trusts its certificate by comparing it with a copy, since the name in it is not that address"
+    },
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, both HTTPS checks succeeded, and the HTTPS test server saw the transfers come through the tunnel.</p>"
+  },
+  "download-tunnel": {
+    "base": "download",
+    "server_version": "1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e)",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; WaterWall at 1af4b70e, test copy with 5 DNS tries, port 4097; downloads and UDP echo reached through the tunnel at a private address of the server",
+    "setup_changes": {
+      "App": "SRP VPN Connect 1.2.0, a Release build of commit {head}, installed by Xcode for the test. It is newer than TestFlight build 33 (commit 7e1b6c42): it also keeps packets in WaterWall's packet device while the next node is paused, and sends selective acknowledgements from WaterWall's TCP stack",
+      "Server program": "WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository (code at commit 1af4b70e), built from source as described in Installation: the same program as our permanent service, run as a separate test copy for each case",
+      "Server DNS lookups": "5 tries, set in the test copy's core.json",
+      "Traffic": "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. The phone reaches it at the server's private address 10.44.0.1, because iOS sends traffic for the server's own public address outside the tunnel. The test trusts its certificate by comparing it with a copy, since the name in it is not that address",
+      "UDP echo": "A UDP echo server on the same machine, port 28482, bound to the same private address so that its answers come from that address"
+    },
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads of 16 MiB at the same time, over and over. The GeoIP cases downloaded from the reference server on port 28480; the others from the HTTPS test server.</li><li>On chains that carry UDP, it then sent small UDP datagrams to the echo server for 90 seconds, at least 10 a second, and waited for each one to come back.</li><li>It ran the HTTPS check again and disconnected.</li><li>For the GeoIP cases, the harness then read the reference server's log, which records the address each download came from: our office address means the download went straight from the phone, the server's own address means it went through WaterWall.</li></ol><p>A case passes only if the VPN stayed connected, the downloads ran the full 90 seconds with no errors or timeouts, both HTTPS checks succeeded, every UDP datagram came back, and the HTTPS test server saw the downloads come through the tunnel.</p>"
   }
 }

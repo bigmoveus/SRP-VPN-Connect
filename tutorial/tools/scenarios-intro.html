@@ -10,6 +10,7 @@
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
   <p>The tests ran on app commit <code>a03a8bc2</code> with the server at WaterWall's default of 2 DNS tries, except three cases that ran on commit <code>be53fe6b</code>, which changes only test tools, with the server at 5 tries: <a href="adv-packet-budget.html">the packet budget case</a>, <a href="adv-mux-counter.html">the MUX counter case</a> and <a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS</a>. Each page's test setup says which setting it ran with.</p>
+  <p>The Raw IPv4 and native WireGuard cases ran later, on app commit <code>02bf942c</code> with the server at commit <code>1af4b70e</code> and 5 tries. On these two inputs iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server, and the test checked that it arrived through the tunnel.</p>
   <p>Every scenario page describes its procedure in full.</p>
   <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>

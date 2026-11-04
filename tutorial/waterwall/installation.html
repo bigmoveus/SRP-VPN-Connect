@@ -36,7 +36,7 @@
 <p>Run every command in this section on the server, as root, over SSH.</p>
 
 <h3 id="server-program">1. Build the WaterWall program</h3>
-<p>Our server runs WaterWall 1.5.2 plus the changes in the <a href="https://github.com/bigmoveus/SRP-VPN-Connect">SRP VPN Connect repository</a>, built from source. <strong>Every test result on this site was measured against a build of this source, not against an official WaterWall release</strong>, so an official release may not give the same results. The iPhone results ran on the commit before its latest changes to raw IPv4 chains (<code>671f3fbb</code> in our own history).</p>
+<p>Our server runs WaterWall 1.5.2 plus the changes in the <a href="https://github.com/bigmoveus/SRP-VPN-Connect">SRP VPN Connect repository</a>, built from source. <strong>Every test result on this site was measured against a build of this source, not against an official WaterWall release</strong>, so an official release may not give the same results. Most iPhone results ran on the commit before its latest changes to raw IPv4 chains (<code>671f3fbb</code> in our own history); the iPhone's Raw IPv4 and WireGuard results ran on the commit below.</p>
 <p>First install the build tools as <a href="https://github.com/radkesvat/WaterWall#quick-build-fresh-ubuntu--generic-linux-vps">WaterWall's readme</a> describes. Then build the source our server runs, which is commit <code>38acfd3c</code> in the public repository (<code>1af4b70e</code> in our own history):</p>
 <pre data-label="Server"><code class="language-bash">git clone https://github.com/bigmoveus/SRP-VPN-Connect
 cd SRP-VPN-Connect
