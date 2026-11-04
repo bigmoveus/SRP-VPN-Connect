@@ -1,7 +1,7 @@
 {
  "run": {
-  "date": "2026-11-03",
-  "head": "8e7f7d76",
+  "date": "2026-11-04",
+  "head": "1af4b70e",
   "device": "SM-A556E",
   "android": "17",
   "checks_head": "0fc837e3"
@@ -34,8 +34,8 @@
    },
    "server_file": "vless-tls.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 8.2
+   "connect_s": 7.6,
+   "transfer_s": 8.3
   },
   {
    "id": "prod-trojan-tls",
@@ -56,7 +56,7 @@
    "server_file": "trojan-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.1
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-mux-tls",
@@ -77,7 +77,7 @@
    "server_file": "vless-mux-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.3
+   "transfer_s": 9.4
   },
   {
    "id": "prod-trojan-mux-tls",
@@ -97,8 +97,8 @@
    },
    "server_file": "trojan-mux-tls.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 9.3
+   "connect_s": 7.5,
+   "transfer_s": 8.3
   },
   {
    "id": "prod-vless-reality",
@@ -118,8 +118,8 @@
    },
    "server_file": "vless-reality.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 8.3
   },
   {
    "id": "prod-vless-reality-typed-sni",
@@ -139,8 +139,8 @@
    },
    "server_file": "vless-reality.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-trojan-reality",
@@ -161,7 +161,7 @@
    "server_file": "trojan-reality.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.2
+   "transfer_s": 8.3
   },
   {
    "id": "prod-vless-mux-reality",
@@ -181,8 +181,8 @@
    },
    "server_file": "vless-mux-reality.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 9.3
+   "connect_s": 7.7,
+   "transfer_s": 9.6
   },
   {
    "id": "prod-trojan-mux-reality",
@@ -202,8 +202,8 @@
    },
    "server_file": "trojan-mux-reality.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 9.6
   },
   {
    "id": "prod-vless-aead",
@@ -224,7 +224,7 @@
    "server_file": "vless-aead.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-mux-aead",
@@ -244,8 +244,8 @@
    },
    "server_file": "vless-mux-aead.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 9.5
   },
   {
    "id": "prod-trojan-aead",
@@ -266,7 +266,7 @@
    "server_file": "trojan-aead.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.2
+   "transfer_s": 8.4
   },
   {
    "id": "prod-trojan-mux-aead",
@@ -287,7 +287,7 @@
    "server_file": "trojan-mux-aead.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.4
+   "transfer_s": 8.5
   },
   {
    "id": "prod-rawip-tls",
@@ -307,8 +307,8 @@
    },
    "server_file": "rawip-tls.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 11.5
+   "connect_s": 7.6,
+   "transfer_s": 12.8
   },
   {
    "id": "prod-rawip-reality",
@@ -328,8 +328,8 @@
    },
    "server_file": "rawip-reality.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 10.3
+   "connect_s": 7.7,
+   "transfer_s": 11.7
   },
   {
    "id": "prod-rawip-aead",
@@ -349,8 +349,8 @@
    },
    "server_file": "rawip-aead.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 10.5
+   "connect_s": 7.7,
+   "transfer_s": 11.6
   },
   {
    "id": "prod-vless-quic",
@@ -370,8 +370,8 @@
    },
    "server_file": "vless-quic.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 9.3
+   "connect_s": 7.7,
+   "transfer_s": 9.6
   },
   {
    "id": "prod-trojan-quic",
@@ -391,8 +391,8 @@
    },
    "server_file": "trojan-quic.json",
    "passed": true,
-   "connect_s": 7.4,
-   "transfer_s": 9.3
+   "connect_s": 7.6,
+   "transfer_s": 9.5
   },
   {
    "id": "prod-rawip-quic",
@@ -413,7 +413,7 @@
    "server_file": "rawip-quic.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 16.0
+   "transfer_s": 13.9
   },
   {
    "id": "prod-wireguard",
@@ -425,7 +425,7 @@
    "server_file": "wireguard.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 10.3
+   "transfer_s": 9.5
   },
   {
    "id": "prod-additional-vless-none",
@@ -445,7 +445,7 @@
    },
    "server_file": "additional-vless-none.json",
    "passed": true,
-   "connect_s": 7.5,
+   "connect_s": 7.6,
    "transfer_s": 8.4
   },
   {
@@ -471,7 +471,7 @@
    "server_file": "additional-vless-http1-tls.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 8.3
+   "transfer_s": 8.5
   },
   {
    "id": "prod-additional-vless-ws1-tls",
@@ -495,8 +495,8 @@
    },
    "server_file": "additional-vless-ws1-tls.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.2
+   "connect_s": 7.6,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-http2-tls",
@@ -521,7 +521,7 @@
    "server_file": "additional-vless-http2-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-ws1-none",
@@ -545,8 +545,8 @@
    },
    "server_file": "additional-vless-ws1-none.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.3
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-obf-tls",
@@ -567,7 +567,7 @@
    "server_file": "additional-vless-obf-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-obf-http1-tls",
@@ -592,7 +592,7 @@
    "server_file": "additional-vless-obf-http1-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-kcp",
@@ -612,8 +612,8 @@
    },
    "server_file": "additional-vless-kcp.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 10.3
+   "connect_s": 7.6,
+   "transfer_s": 10.6
   },
   {
    "id": "prod-additional-vless-obf-kcp",
@@ -634,7 +634,7 @@
    "server_file": "additional-vless-obf-kcp.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 9.4
+   "transfer_s": 10.5
   },
   {
    "id": "prod-additional-vless-quic-stream",
@@ -655,7 +655,7 @@
    "server_file": "additional-vless-quic-stream.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.5
   },
   {
    "id": "prod-additional-vless-mux-quic-stream",
@@ -676,7 +676,7 @@
    "server_file": "additional-vless-mux-quic-stream.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.4
+   "transfer_s": 9.5
   },
   {
    "id": "prod-additional-rawip-http1-tls",
@@ -701,7 +701,7 @@
    "server_file": "additional-rawip-http1-tls.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 10.5
+   "transfer_s": 10.6
   },
   {
    "id": "prod-additional-rawip-none",
@@ -721,8 +721,8 @@
    },
    "server_file": "additional-rawip-none.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 10.4
+   "connect_s": 7.7,
+   "transfer_s": 10.6
   },
   {
    "id": "prod-additional-rawip-kcp",
@@ -742,8 +742,8 @@
    },
    "server_file": "additional-rawip-kcp.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 13.6
+   "connect_s": 7.7,
+   "transfer_s": 15.1
   },
   {
    "id": "prod-additional-vmess-tls",
@@ -764,7 +764,7 @@
    "server_file": "additional-vmess-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.2
+   "transfer_s": 8.5
   },
   {
    "id": "prod-additional-vmess-mux-tls",
@@ -784,8 +784,8 @@
    },
    "server_file": "additional-vmess-mux-tls.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.3
+   "connect_s": 7.7,
+   "transfer_s": 9.5
   },
   {
    "id": "prod-additional-vmess-ws1-tls",
@@ -809,8 +809,8 @@
    },
    "server_file": "additional-vmess-ws1-tls.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.3
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vmess-http2-tls",
@@ -834,8 +834,8 @@
    },
    "server_file": "additional-vmess-http2-tls.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 9.7
   },
   {
    "id": "prod-additional-vmess-kcp",
@@ -856,7 +856,7 @@
    "server_file": "additional-vmess-kcp.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.4
+   "transfer_s": 9.5
   },
   {
    "id": "prod-additional-vmess-quic-stream",
@@ -876,7 +876,7 @@
    },
    "server_file": "additional-vmess-quic-stream.json",
    "passed": true,
-   "connect_s": 7.5,
+   "connect_s": 7.7,
    "transfer_s": 8.3
   },
   {
@@ -897,8 +897,8 @@
    },
    "server_file": "additional-vmess-mux-quic-stream.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 9.4
+   "connect_s": 7.8,
+   "transfer_s": 9.6
   },
   {
    "id": "prod-additional-vmess-obf-http1-tls",
@@ -922,8 +922,8 @@
    },
    "server_file": "additional-vmess-obf-http1-tls.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vmess-reality",
@@ -943,8 +943,8 @@
    },
    "server_file": "additional-vmess-reality.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.2
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vmess-aead",
@@ -965,7 +965,7 @@
    "server_file": "additional-vmess-aead.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.2
+   "transfer_s": 8.3
   }
  ],
  "checks": [
