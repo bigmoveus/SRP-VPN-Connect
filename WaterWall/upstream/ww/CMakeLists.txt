@@ -99,12 +99,13 @@ add_library(ww STATIC
     bufio/context_queue.c
     bufio/buffer_budget.c
     bufio/buffer_queue.c
-    bufio/buffer_queue_range.c
+    bufio/buffer_reader.c
     bufio/generic_pool.c
     bufio/threadsafe_generic_pool.c
     bufio/master_pool.c
     bufio/shiftbuffer.c
     bufio/splice_buffer.c
+    bufio/splice_frame_reader.c
     bufio/splice_stream.c
     
     # Utilities
@@ -1312,8 +1313,14 @@ include("${WW_LWIP_CHECKSUM_RECIPE}")
 set(WW_LWIP_ACK_BATCH_RECIPE "${CMAKE_CURRENT_SOURCE_DIR}/lwip/ack_batch_patch.cmake")
 file(SHA256 "${WW_LWIP_ACK_BATCH_RECIPE}" WW_LWIP_ACK_BATCH_RECIPE_SHA256)
 include("${WW_LWIP_ACK_BATCH_RECIPE}")
+set(WW_LWIP_RECEIVE_BUDGET_RECIPE "${CMAKE_CURRENT_SOURCE_DIR}/lwip/receive_budget_patch.cmake")
+file(SHA256 "${WW_LWIP_RECEIVE_BUDGET_RECIPE}" WW_LWIP_RECEIVE_BUDGET_RECIPE_SHA256)
+include("${WW_LWIP_RECEIVE_BUDGET_RECIPE}")
+set(WW_LWIP_TCP_OUTPUT_TAIL_RECIPE "${CMAKE_CURRENT_SOURCE_DIR}/lwip/tcp_output_tail_patch.cmake")
+file(SHA256 "${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE}" WW_LWIP_TCP_OUTPUT_TAIL_RECIPE_SHA256)
+include("${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE}")
 set(WW_LWIP_EXPECTED_PATCH_STAMP
-    "revision=${WW_LWIP_REVISION}\nrecipe-sha256=${WW_LWIP_PATCH_RECIPE_SHA256}\nengine-sha256=${WW_LWIP_ENGINE_RECIPE_SHA256}\npools-sha256=${WW_LWIP_POOLS_RECIPE_SHA256}\nports-sha256=${WW_LWIP_PORTS_RECIPE_SHA256}\ntimer-sha256=${WW_LWIP_TIMER_RECIPE_SHA256}\nlifecycle-sha256=${WW_LWIP_LIFECYCLE_RECIPE_SHA256}\nchecksum-sha256=${WW_LWIP_CHECKSUM_RECIPE_SHA256}\nack-batch-sha256=${WW_LWIP_ACK_BATCH_RECIPE_SHA256}\n")
+    "revision=${WW_LWIP_REVISION}\nrecipe-sha256=${WW_LWIP_PATCH_RECIPE_SHA256}\nengine-sha256=${WW_LWIP_ENGINE_RECIPE_SHA256}\npools-sha256=${WW_LWIP_POOLS_RECIPE_SHA256}\nports-sha256=${WW_LWIP_PORTS_RECIPE_SHA256}\ntimer-sha256=${WW_LWIP_TIMER_RECIPE_SHA256}\nlifecycle-sha256=${WW_LWIP_LIFECYCLE_RECIPE_SHA256}\nchecksum-sha256=${WW_LWIP_CHECKSUM_RECIPE_SHA256}\nack-batch-sha256=${WW_LWIP_ACK_BATCH_RECIPE_SHA256}\nreceive-budget-sha256=${WW_LWIP_RECEIVE_BUDGET_RECIPE_SHA256}\ntcp-output-tail-sha256=${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE_SHA256}\n")
 
 set(WW_LWIP_REBUILD TRUE)
 if(EXISTS "${WW_LWIP_PATCH_STAMP}")
@@ -1338,6 +1345,8 @@ if(WW_LWIP_REBUILD)
     ww_apply_lwip_lifecycle_patch("${LWIP_DIR}")
     ww_apply_lwip_checksum_patch("${LWIP_DIR}")
     ww_apply_lwip_ack_batch_patch("${LWIP_DIR}")
+    ww_apply_lwip_receive_budget_patch("${LWIP_DIR}")
+    ww_apply_lwip_tcp_output_tail_patch("${LWIP_DIR}")
     file(WRITE "${WW_LWIP_PATCH_STAMP}" "${WW_LWIP_EXPECTED_PATCH_STAMP}")
 endif()
 
@@ -1849,7 +1858,7 @@ if(BUILD_TESTING)
         bufio/buffer_pool.c
         bufio/buffer_budget.c
         bufio/buffer_queue.c
-        bufio/buffer_queue_range.c
+        bufio/buffer_reader.c
         bufio/buffer_stream.c
         libc/wfrand.c
         instance/global_state.c

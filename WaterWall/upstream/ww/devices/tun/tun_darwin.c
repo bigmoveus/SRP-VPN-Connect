@@ -446,12 +446,13 @@ static bool tunWriteBatch(void *context, worker_t *worker, sbuf_t **buffers, siz
             continue;
         }
 
-        if (UNLIKELY(tunDeviceMtu(tdev) < sbufGetLength(buf)))
+        /* Injection is OS receive; the interface MTU governs OS transmit. */
+        if (UNLIKELY(sbufGetLength(buf) > UINT16_MAX))
         {
             if (atomicLogRateLimiterShouldLog(&tun_oversized_output_log, kTunPacketWarningIntervalMs))
-                LOGW("TunDevice: discarded a packet -> size %d exceeds device MTU %u",
+                LOGW("TunDevice: discarded a packet -> size %u exceeds maximum IP packet size %u",
                      sbufGetLength(buf),
-                     tunDeviceMtu(tdev));
+                     (unsigned) UINT16_MAX);
             bufferpoolReuseBuffer(worker->buffer_pool, buf);
             continue;
         }
@@ -502,12 +503,6 @@ static bool tunWriteBatch(void *context, worker_t *worker, sbuf_t **buffers, siz
                          write_errno,
                          strerror(write_errno));
                 continue;
-            }
-
-            if (write_errno == EMSGSIZE)
-            {
-                LOGF("TunDevice: This is related to the MTU size, please set a correct value for TunDevice "
-                     "'device-mtu'");
             }
 
             LOGE("TunDevice: unrecoverable write error on device %s, errno %d (%s)",
@@ -1175,8 +1170,11 @@ static int tunDarwinOpen(const char *name, char actual_name[IFNAMSIZ])
 }
 
 tun_device_t *tundeviceCreate(const char *name, bool offload, bool multi_queue_requested, uint16_t mtu, void *userdata,
-                              TunReadEventHandle cb, device_fragment_policy_t fragment_policy)
+                              TunReadEventHandle cb, device_fragment_policy_t fragment_policy,
+                              device_opaque_flow_mode_t opaque_flow_mode)
 {
+    assert(opaque_flow_mode == kDeviceOpaqueFlowPrefix || opaque_flow_mode == kDeviceOpaqueFlowPeer ||
+           opaque_flow_mode == kDeviceOpaqueFlowSpread);
     discard offload;
     discard multi_queue_requested;
     if (mtu <= 16)
@@ -1238,6 +1236,11 @@ tun_device_t *tundeviceCreate(const char *name, bool offload, bool multi_queue_r
         memoryFree(tdev);
         return NULL;
     }
+
+    deviceReaderSessionSetOpaqueFlowMode(tdev->reader_session, opaque_flow_mode);
+    LOGI("TunDevice: %s uses 1 receive queue (effective opaque mode %s)",
+         tdev->name,
+         deviceOpaqueFlowModeName(opaque_flow_mode));
 
     if (! deviceReaderSessionConfigureOutputBudget(
             tdev->reader_session, kTunReaderQueueBytes, kTunReaderQueuePackets) ||

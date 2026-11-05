@@ -25,10 +25,23 @@ typedef struct splice_stream_s
 splice_stream_t *splicestreamCreate(buffer_pool_t *pool, uint32_t header_size);
 void             splicestreamDestroy(splice_stream_t *stream);
 
+/* Borrowed owner-worker pool, also used to recycle input refused before Push. */
+static inline buffer_pool_t *splicestreamGetPool(const splice_stream_t *stream)
+{
+    return stream->pool;
+}
+
 /* Takes input on every result. False recycles only this input and leaves existing
  * bytes/costs intact. Reserve precedes header consumption. Empty inputs recycle.
  * No callback or representation conversion occurs. */
 bool splicestreamPush(splice_stream_t *stream, sbuf_t *input);
+
+/* Conservative admission check against the current logical bytes and source
+ * charge, before Push can merge entries or consume header bytes. Empty input
+ * adds no charge. Equality is permitted; zero limits are literal zero bounds.
+ * Borrows both arguments without mutation, I/O, allocation or reservation.
+ * True does not guarantee Push succeeds; the caller still owns input. */
+bool splicestreamCanAdmit(const splice_stream_t *stream, const sbuf_t *input, size_t max_bytes, size_t max_charge);
 
 /* Non-consuming, no I/O/allocation. NULL until complete; borrowed until mutation. */
 const uint8_t *splicestreamPeekHeader(const splice_stream_t *stream);
@@ -40,6 +53,12 @@ size_t         splicestreamCharge(const splice_stream_t *stream);
  * only if predicted charge is strictly smaller. Preserve cached header and total;
  * no callback or lifetime propagation. False leaves bytes and ownership intact. */
 bool splicestreamCompact(splice_stream_t *stream);
+
+/* Return whether source charge fits, attempting Compact once only when over
+ * max_charge. Owner-worker mutation may allocate and materialize pipe bytes;
+ * there are no callbacks. False may still have compacted the stream, preserving
+ * its cached header and complete byte order. Zero is a literal zero bound. */
+bool splicestreamSettleCharge(splice_stream_t *stream, size_t max_charge);
 
 /* Consume the cached header AND exactly bytes body bytes (bytes excludes header).
  * Caller guarantees a complete header/body and an empty destination (Debug asserts).

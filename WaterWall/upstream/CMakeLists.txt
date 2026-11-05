@@ -15,7 +15,7 @@ endif()
 set(CMAKE_UNITY_BUILD_BATCH_SIZE 500)
 
 project(Waterwall
-  VERSION 1.5.2
+  VERSION 1.5.3
   DESCRIPTION "A fast and secure VPN tunnel"
   HOMEPAGE_URL "https://github.com/radkesvat/waterwall"
   LANGUAGES C CXX
@@ -221,6 +221,8 @@ option(INCLUDE_PACKET_SPLIT_STREAM      "link PacketSplitStream staticly to the 
 option(INCLUDE_LAYER3_IP_ROUTING_TABLE  "link Layer3IpRoutingTable staticly to the core"                            FALSE)
 option(INCLUDE_IP_OVERRIDER             "link IpOverrider staticly to the core"                                     TRUE)
 option(INCLUDE_IP_MANIPULATOR           "link IPManipulator staticly to the core"                                   TRUE)
+option(INCLUDE_FAKE_TCP_HEADER_CLIENT   "link FakeTcpHeaderClient statically to the core"                           TRUE)
+option(INCLUDE_FAKE_TCP_HEADER_SERVER   "link FakeTcpHeaderServer statically to the core"                           TRUE)
 option(INCLUDE_PING_CLIENT              "link PingClient staticly to the core"                                      TRUE)
 option(INCLUDE_PING_SERVER              "link PingServer staticly to the core"                                      TRUE)
 option(INCLUDE_KEEPALIVE_CLIENT         "link KeepAliveClient staticly to the core"                                 TRUE)
@@ -281,8 +283,8 @@ option(INCLUDE_BGP4_CLIENT              "link Bgp4Client staticly to the core"  
 option(INCLUDE_MUX_SERVER               "link MuxServer staticly to the core"                                       TRUE)
 option(INCLUDE_MUX_CLIENT               "link MuxClient staticly to the core"                                       TRUE)
 option(INCLUDE_TUN_DEVICE               "link TunDevice staticly to the core"                                       ${TUNDEVICE_SUPPORTED})
-option(INCLUDE_PACKET_SENDER            "link PacketSender staticly to the core"                                    TRUE)
-option(INCLUDE_PACKET_RECEIVER          "link PacketReceiver staticly to the core"                                  TRUE)
+option(INCLUDE_PACKET_GENERATOR        "link PacketGenerator staticly to the core"                                 TRUE)
+option(INCLUDE_PACKET_COUNTER          "link PacketCounter staticly to the core"                                   TRUE)
 option(INCLUDE_RAWSOCKET                "link RawSocket staticly to the core"                                       ${RAWSOCKET_SUPPORTED})
 option(INCLUDE_DISTURBER                "link Disturber staticly to the core"                                       TRUE)
 option(INCLUDE_JUNK_DATAGRAM_SENDER     "link JunkDatagramSender staticly to the core"                              TRUE)
@@ -731,20 +733,20 @@ if(INCLUDE_NE_PACKET_DEVICE)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} NEPacketDevice)
 endif()
 
-#packet sender
-if(INCLUDE_PACKET_SENDER)
-  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_SENDER=1)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSender)
-  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketSender)
-  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketSender)
+#packet generator
+if(INCLUDE_PACKET_GENERATOR)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_GENERATOR=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketGenerator)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketGenerator)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketGenerator)
 endif()
 
-#packet receiver
-if(INCLUDE_PACKET_RECEIVER)
-  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_RECEIVER=1)
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketReceiver)
-  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketReceiver)
-  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketReceiver)
+#packet counter
+if(INCLUDE_PACKET_COUNTER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_PACKET_COUNTER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketCounter)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/PacketCounter)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} PacketCounter)
 endif()
 
 #packet to connection
@@ -764,6 +766,10 @@ if(INCLUDE_CONNECTION_TO_PACKETS)
 endif()
 
 #data as packet
+if(INCLUDE_STREAM_TO_PACKETS OR INCLUDE_PACKETS_TO_STREAM)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/Ipv4StreamCodec)
+endif()
+
 if(INCLUDE_STREAM_TO_PACKETS)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_STREAM_TO_PACKETS=1)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/StreamToPackets)
@@ -830,6 +836,27 @@ if(INCLUDE_IP_MANIPULATOR)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} IpManipulator)
 endif()
 
+# FakeTcpHeaderCommon wire codec is shared by FakeTcpHeaderClient and FakeTcpHeaderServer.
+if(INCLUDE_FAKE_TCP_HEADER_CLIENT OR INCLUDE_FAKE_TCP_HEADER_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/FakeTcpHeaderCommon)
+endif()
+
+#fake tcp header client
+if(INCLUDE_FAKE_TCP_HEADER_CLIENT)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_FAKE_TCP_HEADER_CLIENT=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/FakeTcpHeaderClient)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/FakeTcpHeaderClient)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} FakeTcpHeaderClient)
+endif()
+
+#fake tcp header server
+if(INCLUDE_FAKE_TCP_HEADER_SERVER)
+  target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_FAKE_TCP_HEADER_SERVER=1)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/FakeTcpHeaderServer)
+  target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/FakeTcpHeaderServer)
+  target_link_libraries(${WATERWALL_APPLICATION_TARGET} FakeTcpHeaderServer)
+endif()
+
 # Ping wire v2 codec is shared by either endpoint.  Keep it independent of
 # whether a build includes one node or both for plugin/minimal builds.
 if(INCLUDE_PING_CLIENT OR INCLUDE_PING_SERVER)
@@ -884,6 +911,10 @@ if(INCLUDE_CONNECTION_FISHER_SERVER)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} ConnectionFisherServer)
 endif()
 
+
+if(INCLUDE_TCP_LISTENER OR INCLUDE_TCPCONNECTOR OR INCLUDE_TCP_UDP_LISTENER OR INCLUDE_TCP_UDP_CONNECTOR OR INCLUDE_SOCKS_5_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/TcpAdapterCommon)
+endif()
 
 #tcp listener
 if(INCLUDE_TCP_LISTENER)
@@ -970,6 +1001,10 @@ if(INCLUDE_UDP_OVER_TCP_SERVER)
 endif()
 
 #tcp over udp client
+if(INCLUDE_TCP_OVER_UDP_CLIENT OR INCLUDE_TCP_OVER_UDP_SERVER)
+  add_subdirectory(tunnels/Internals/TcpOverUdpCommon)
+endif()
+
 if(INCLUDE_TCP_OVER_UDP_CLIENT)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TCP_OVER_UDP_CLIENT=1)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TcpOverUdpClient)
@@ -1059,6 +1094,10 @@ if(INCLUDE_HTTP_CLIENT)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} HttpClient)
 endif()
 
+if(INCLUDE_SOCKS5_CLIENT OR INCLUDE_TROJAN_CLIENT OR INCLUDE_VLESS_CLIENT OR INCLUDE_VMESS_CLIENT)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/ProxyClientCommon)
+endif()
+
 #socks5 client
 if(INCLUDE_SOCKS5_CLIENT)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_SOCKS5_CLIENT=1)
@@ -1098,11 +1137,27 @@ if(INCLUDE_TLS_CLIENT)
 endif()
 
 #tls server
+if(INCLUDE_TLS_SERVER OR INCLUDE_TROJAN_SERVER OR INCLUDE_VLESS_SERVER OR INCLUDE_VMESS_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/FallbackReplay)
+endif()
+
 if(INCLUDE_TLS_SERVER)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_TLS_SERVER=1)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsServer)
   target_link_directories(${WATERWALL_APPLICATION_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/tunnels/TlsServer)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} TlsServer)
+endif()
+
+if(INCLUDE_TROJAN_CLIENT OR INCLUDE_TROJAN_SERVER OR INCLUDE_SOCKS_5_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/SocksAddress)
+endif()
+
+if(INCLUDE_TROJAN_CLIENT OR INCLUDE_TROJAN_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/TrojanCommon)
+endif()
+
+if(INCLUDE_VLESS_CLIENT OR INCLUDE_VLESS_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/VlessCommon)
 endif()
 
 #trojan client
@@ -1215,6 +1270,10 @@ if(INCLUDE_REVERSE_SERVER)
   target_link_libraries(${WATERWALL_APPLICATION_TARGET} ReverseServer)
 endif()
 
+if(INCLUDE_HEADER_SERVER OR INCLUDE_SOFT_IP_LIMITER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/NextInitGate)
+endif()
+
 #header server
 if(INCLUDE_HEADER_SERVER)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_HEADER_SERVER=1)
@@ -1232,6 +1291,10 @@ if(INCLUDE_HEADER_CLIENT)
 endif()
 
 #obfuscator client
+if(INCLUDE_OBFUSCATOR_CLIENT OR INCLUDE_OBFUSCATOR_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/ObfuscatorCommon)
+endif()
+
 if(INCLUDE_OBFUSCATOR_CLIENT)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_OBFUSCATOR_CLIENT=1)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/ObfuscatorClient)
@@ -1248,6 +1311,10 @@ if(INCLUDE_OBFUSCATOR_SERVER)
 endif()
 
 #encryption client
+if(INCLUDE_ENCRYPTION_CLIENT OR INCLUDE_ENCRYPTION_SERVER)
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/Internals/EncryptionCommon)
+endif()
+
 if(INCLUDE_ENCRYPTION_CLIENT)
   target_compile_definitions(${WATERWALL_APPLICATION_TARGET} PUBLIC INCLUDE_ENCRYPTION_CLIENT=1)
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tunnels/EncryptionClient)

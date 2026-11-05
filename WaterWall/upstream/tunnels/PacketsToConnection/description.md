@@ -266,10 +266,6 @@ This is intentional and should be treated as a current limitation of the UDP pat
 - `max-pending-bytes` `(int, default: 2097152)`
   Budget for TCP payload retained while lwIP has not yet taken or fully acknowledged it. Valid range
   `1024` .. `67108864`. Admission includes a fixed 1 MiB of delivery headroom; exceeding the combined bound sheds that flow.
-- `max-total-pending-bytes` `(int, default: 1073741824)`
-  Every TCP flow reserves `max-pending-bytes` of this total until it ends, so the total divided by `max-pending-bytes` is
-  how many TCP flows this node can hold, shared by all of its clients. A flow over that is refused with a reset. Valid
-  range `65536` .. `1073741824`. It allocates nothing; lower it to bound what all flows together may retain.
 - `fake-dns` `(bool or object, default: false)`
   Enables an in-tunnel fake DNS responder for IPv4 A queries. Mapped fake-IP destinations are converted back into domain destinations on generated TCP/UDP Waterwall lines.
 

@@ -11,6 +11,11 @@ The option-off path is stateless. TLS-like stream framing keeps normal-line rece
 
 In practice, this node is used together with `ObfuscatorServer` configured with the same method and key.
 
+Choose the role by the encoded side of the node: `ObfuscatorClient` faces its
+transport at `next`; `ObfuscatorServer` faces its transport at the previous node.
+A `Bridge` reverses callback direction, so two legs whose `next` sides face a
+paired Bridge both use `ObfuscatorClient`.
+
 ## What It Does
 
 - Reads payload from the previous node.
@@ -105,7 +110,7 @@ For each payload buffer:
 
 Because XOR is reversible, both ends must use the same key.
 
-The `skip` modes apply only to exact worker packet lines. Ordinary stream lines always XOR the whole payload, even when `ipv4` or `transport` is selected; arbitrary stream bytes are never guessed to be IPv4 packets. On a packet line without a valid IPv4 header, the whole payload is XORed.
+When `skip` is enabled and the payload does not parse as a valid IPv4 packet, the tunnel falls back to XORing the whole payload buffer.
 
 ### Optional TLS-like record header
 

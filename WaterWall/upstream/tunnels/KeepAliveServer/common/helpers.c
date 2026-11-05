@@ -26,7 +26,7 @@ static bool keepaliveserverSendControlFrame(tunnel_t *t, line_t *l, uint8_t kind
 void keepaliveserverSendNormalFrameDownstream(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     keepaliveserver_lstate_t *ls = lineGetState(l, t);
-    assert(ls->read_stream != NULL);
+    assert(spliceframereaderIsAttached(&ls->reader));
     const uint32_t length = sbufGetLength(buf);
     if (length == 0)
     {
@@ -37,9 +37,12 @@ void keepaliveserverSendNormalFrameDownstream(tunnel_t *t, line_t *l, sbuf_t *bu
     {
         const size_t pending =
             bufferqueueGetBufLen(&ls->write_reentry) + (ls->write_active != NULL ? sbufGetLength(ls->write_active) : 0);
+        const size_t active_charge = ls->write_active != NULL ? sbufGetQueueCharge(ls->write_active) : 0;
+        const size_t queued_charge = bufferqueueGetCharge(&ls->write_reentry);
         if (pending > kKeepAliveServerMaxReentryBytes || length > kKeepAliveServerMaxReentryBytes - pending ||
-            bufferqueueGetBufCount(&ls->write_reentry) + (ls->write_active != NULL) >=
-                kKeepAliveServerMaxReentryBuffers ||
+            active_charge > kKeepAliveServerMaxReentryCharge ||
+            queued_charge > kKeepAliveServerMaxReentryCharge - active_charge ||
+            sbufGetQueueCharge(buf) > kKeepAliveServerMaxReentryCharge - active_charge - queued_charge ||
             ! bufferqueueTryPushBack(&ls->write_reentry, &buf))
         {
             lineReuseBuffer(l, buf);
@@ -69,7 +72,8 @@ void keepaliveserverSendNormalFrameDownstream(tunnel_t *t, line_t *l, sbuf_t *bu
             frame = sbufMoveRangeTo(pool, source, destination, bytes, bytes, bufferpoolGetLargeBufferPadding(pool));
         }
         /* The untransferred suffix is published before any reentrant callback. */
-        if (! keepaliveserverSendFrame(t, l, frame, kKeepAliveServerFrameKindNormal) || ls->read_stream == NULL)
+        if (! keepaliveserverSendFrame(t, l, frame, kKeepAliveServerFrameKindNormal) ||
+            ! spliceframereaderIsAttached(&ls->reader))
         {
             lineUnref(l);
             return;
@@ -84,58 +88,60 @@ void keepaliveserverSendNormalFrameDownstream(tunnel_t *t, line_t *l, sbuf_t *bu
 void keepaliveserverConsumeUpstreamFrames(tunnel_t *t, line_t *l)
 {
     keepaliveserver_lstate_t *ls = lineGetState(l, t);
-    assert(! ls->read_draining);
-    ls->read_draining = true;
     lineRef(l);
     for (;;)
     {
-        const uint8_t *header = splicestreamPeekHeader(ls->read_stream);
+        const uint8_t *header = spliceframereaderPeekHeader(&ls->reader);
         if (header == NULL)
             break;
         uint32_t network_length;
         sbufByteCopy(&network_length, header, sizeof(network_length));
         const uint32_t body_length = ntohl(network_length);
         const uint8_t  kind        = header[kKeepAliveServerFrameLengthSize];
-        if (body_length < kKeepAliveServerFrameTypeSize || body_length > kKeepAliveServerMaxFrameBodyLength)
+        if (! spliceframereaderFrameActive(&ls->reader))
         {
-            LOGW("KeepAliveServer: invalid keepalive frame length");
-            keepaliveserverCloseLineFromProtocolError(t, l);
-            lineUnref(l);
-            return;
+            if (body_length < kKeepAliveServerFrameTypeSize || body_length > kKeepAliveServerMaxFrameBodyLength)
+            {
+                LOGW("KeepAliveServer: invalid keepalive frame length");
+                keepaliveserverCloseLineFromProtocolError(t, l);
+                lineUnref(l);
+                return;
+            }
+            spliceframereaderBeginFrame(&ls->reader, body_length - kKeepAliveServerFrameTypeSize);
         }
-        const uint32_t bytes = body_length - kKeepAliveServerFrameTypeSize;
-        if (splicestreamBodyBytes(ls->read_stream) < bytes)
+        const uint32_t bytes    = spliceframereaderFrameAvailable(&ls->reader);
+        const bool     finished = bytes == spliceframereaderFrameRemaining(&ls->reader);
+        if (bytes == 0 && ! finished)
             break;
-        buffer_pool_t *pool = lineGetBufferPool(l);
-        sbuf_t *destination = bytes != 0 && tunnelGetChain(t)->supports_splice ? bufferpoolGetSpliceBuffer(pool) : NULL;
-        sbuf_t *body        = splicestreamMoveFrame(ls->read_stream, destination, bytes);
-        bool    alive       = true;
+        bool alive = true;
         if (kind == kKeepAliveServerFrameKindNormal && bytes != 0)
+        {
+            /* Commit frame progress before forwarding: nested input joins this drain. */
+            sbuf_t *body = spliceframereaderTakeChunk(&ls->reader, bytes);
             alive = lineCallWithRefWithBuf(l, tunnelNextUpStreamPayload, t, body);
+        }
         else
         {
-            lineReuseBuffer(l, body);
-            if (kind == kKeepAliveServerFrameKindPing)
+            spliceframereaderDiscardChunk(&ls->reader, bytes);
+            if (finished && kind == kKeepAliveServerFrameKindPing)
                 alive = keepaliveserverSendControlFrame(t, l, kKeepAliveServerFrameKindPong);
         }
-        if (! alive || ls->read_stream == NULL)
+        if (! alive || ! spliceframereaderIsAttached(&ls->reader))
         {
             lineUnref(l);
             return;
         }
     }
     /* Draining leaves an incomplete validated frame; retained capacity still needs a bound. */
-    assert(splicestreamLength(ls->read_stream) < kKeepAliveServerMaxPayloadChunkSize + kKeepAliveServerFramePrefixSize);
-    if (splicestreamCharge(ls->read_stream) > kKeepAliveServerReadChargeLimit)
-        discard splicestreamCompact(ls->read_stream);
-    if (splicestreamCharge(ls->read_stream) > kKeepAliveServerReadChargeLimit)
+    assert(spliceframereaderLength(&ls->reader) <
+           kKeepAliveServerMaxPayloadChunkSize + kKeepAliveServerFramePrefixSize);
+    if (! spliceframereaderEndDrain(&ls->reader))
     {
         LOGW("KeepAliveServer: incomplete frame storage limit exceeded");
         keepaliveserverCloseLineFromProtocolError(t, l);
         lineUnref(l);
         return;
     }
-    ls->read_draining = false;
     lineUnref(l);
 }
 

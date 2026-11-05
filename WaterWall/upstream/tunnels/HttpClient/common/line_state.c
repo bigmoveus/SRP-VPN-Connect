@@ -12,7 +12,6 @@ void httpclientLinestateInitialize(httpclient_lstate_t *ls, tunnel_t *t, line_t 
                                  .events_down                    = contextqueueCreate(),
                                  .runtime_proto                  = kHttpClientRuntimeUnknown,
                                  .h2_stream_id                   = 0,
-                                 .h1_chunk_expected              = -1,
                                  .h1_body_remaining              = 0,
                                  .h1_headers_parsed              = false,
                                  .h1_trailing_bytes_logged       = false,
@@ -38,11 +37,19 @@ void httpclientLinestateInitialize(httpclient_lstate_t *ls, tunnel_t *t, line_t 
                                  .split_download_line            = NULL,
                                  .h1_write_in_progress           = false,
                                  .h2_request_headers_sent        = false};
+    bufferbudgetInit(&ls->pending_up_budget,
+                     (buffer_budget_cost_t) {kHttpClientPendingMaxBytes, kHttpClientPendingMaxCharge});
+    bool attached = bufferqueueTryAttachBudget(&ls->pending_up, &ls->pending_up_budget);
+    assert(attached);
+    discard attached;
+    httpReceiveInit(&ls->receive);
     h2DataInit(&ls->h2_data, lineGetBufferPool(l), kHttpClientHttp2DataBytes);
 }
 
 void httpclientLinestateDestroy(httpclient_lstate_t *ls)
 {
+    httpclientCancelCloseDrain(ls);
+    httpclientCarrierUnlink(ls);
     if (ls->session != NULL)
     {
         nghttp2_session_del(ls->session);
@@ -50,9 +57,20 @@ void httpclientLinestateDestroy(httpclient_lstate_t *ls)
     }
 
     h2DataDestroyAfterSession(&ls->h2_data);
+    httpReceiveDestroy(&ls->receive, ls->in_stream.pool);
     bufferstreamDestroy(&ls->in_stream);
     bufferqueueDestroy(&ls->pending_up);
+    bufferbudgetAssertEmpty(&ls->pending_up_budget);
     contextqueueDestroy(&ls->events_down);
 
     memoryZeroAligned32(ls, tunnelGetCorrectAlignedLineStateSize(sizeof(*ls)));
+}
+
+bool httpclientQueuePendingUp(line_t *l, httpclient_lstate_t *ls, sbuf_t *buf)
+{
+    if (bufferqueueTryPushBack(&ls->pending_up, &buf))
+        return true;
+    lineReuseBuffer(l, buf);
+    LOGW("HttpClient: pending application payload limit exceeded");
+    return false;
 }

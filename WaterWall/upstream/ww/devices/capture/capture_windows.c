@@ -62,7 +62,7 @@ static bool capturedeviceAppendFilter(char *filter, size_t filter_len, size_t *o
 static char *capturedeviceBuildWinDivertFilter(const ipmask_t *ranges, uint32_t range_count,
                                                const capture_protocol_filter_t *protocol_filter)
 {
-    size_t ranges_size;
+    size_t       ranges_size;
     const size_t protocol_extra = captureProtocolFilterIsEmpty(protocol_filter) ? 0 : kCaptureIpProtocolCount * 32U;
     if (! memoryTryComputeArraySize(range_count, 80U, &ranges_size) || ranges_size > SIZE_MAX - 10U - protocol_extra)
     {
@@ -172,11 +172,13 @@ static void distributePacketPayload(capture_device_t *cdev, sbuf_t *buf)
 }
 static WTHREAD_ROUTINE(routineReadFromCapture) // NOLINT
 {
-    capture_device_t *cdev = userdata;
-    sbuf_t           *buf;
-    UINT              read_packet_len = 0;
-    WINDIVERT_ADDRESS address         = {0};
-    HANDLE            handle          = cdev->handle;
+    capture_device_t         *cdev = userdata;
+    sbuf_t                   *buf;
+    UINT                      read_packet_len = 0;
+    WINDIVERT_ADDRESS         address         = {0};
+    HANDLE                    handle          = cdev->handle;
+    atomic_log_rate_limiter_t truncated_read_log;
+    atomicLogRateLimiterInitialize(&truncated_read_log);
 
     assert(handle != NULL && handle != INVALID_HANDLE_VALUE);
 
@@ -201,6 +203,19 @@ static WTHREAD_ROUTINE(routineReadFromCapture) // NOLINT
             if (! captureLifecycleIsActive(captureLifecycleLoad(&cdev->lifecycle)))
             {
                 break;
+            }
+
+            if (recv_error == ERROR_INSUFFICIENT_BUFFER)
+            {
+                /* WinDivert consumed this packet and copied only its prefix.
+                 * Truncated bytes must never be published or retried. */
+                if (atomicLogRateLimiterShouldLog(&truncated_read_log, 1000))
+                {
+                    LOGW("CaptureDevice: discarded a truncated packet exceeding capture limit %u on %s",
+                         (unsigned) kMaxAllowedPacketLength,
+                         cdev->name);
+                }
+                continue;
             }
 
             LOGE("CaptureDevice: terminal packet read failure on device %s: error %lu", cdev->name, recv_error);
@@ -528,7 +543,9 @@ bool caputredeviceBringUp(capture_device_t *cdev)
         return false;
     }
 
-    LOGI("CaptureDevice: device %s is now up", cdev->name);
+    LOGI("CaptureDevice: device %s is now up with 1 receive queue, opaque-flow-mode=%s",
+         cdev->name,
+         deviceOpaqueFlowModeName(cdev->opaque_flow_mode));
     return true;
 }
 
@@ -656,6 +673,15 @@ void capturedeviceSetMultiQueue(capture_device_t *cdev, bool enabled)
 {
     discard cdev;
     discard enabled;
+}
+
+void capturedeviceSetOpaqueFlowMode(capture_device_t *cdev, device_opaque_flow_mode_t mode)
+{
+    assert(cdev != NULL);
+    assert(captureLifecycleLoad(&cdev->lifecycle) == kCaptureLifecycleDown && cdev->read_thread == NULL);
+    assert(mode >= kDeviceOpaqueFlowPrefix && mode <= kDeviceOpaqueFlowSpread);
+    cdev->opaque_flow_mode = mode;
+    deviceReaderSessionSetOpaqueFlowMode(cdev->reader_session, mode);
 }
 
 void capturedeviceConfigureKernelQueue(capture_device_t *cdev, bool enabled, uint32_t packet_total,

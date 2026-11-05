@@ -1,5 +1,8 @@
 #pragma once
 
+#include "HttpCommon/chunk_decoder.h"
+#include "HttpCommon/receive.h"
+#include "HttpCommon/websocket_decoder.h"
 #include "wwapi.h"
 
 #include <HttpCommon/h2_data.h>
@@ -64,9 +67,12 @@ typedef struct httpserver_lstate_s
     line_t   *line;
 
     nghttp2_session *session;
+    wtimer_t        *close_drain_timer;
+    uint64_t         close_drain_deadline_ms;
 
     buffer_stream_t            in_stream;
     buffer_queue_t             pending_down;
+    buffer_budget_t            pending_down_budget;
     context_queue_t            events_up;
     h2_data_queue_t            h2_data;
 
@@ -74,36 +80,13 @@ typedef struct httpserver_lstate_s
 
     int32_t h2_stream_id;
 
-    int64_t h1_chunk_expected;
+    http_chunk_decoder_t     chunk_decoder;
+    http_websocket_decoder_t websocket_decoder;
+    http_receive_t           receive;
     int64_t h1_body_remaining;
 
-    bool                      h1_headers_parsed;
-    bool                      h1_request_finished;
-    bool                      h1_trailing_bytes_logged;
-    bool                      h1_response_headers_sent;
     httpserver_h1_body_mode_t h1_body_mode;
 
-    bool h2_response_headers_sent;
-    bool h2_request_finished;
-    bool h2_request_rejected;
-
-    bool fin_sent;
-    bool h2_end_stream_emitted;
-    bool h2_source_paused; // our DATA backlog paused next
-    bool prev_paused;      // prev paused next through us
-    bool prev_finished;
-    bool next_finished;
-
-    bool websocket_active;
-    bool websocket_close_sent;
-    bool websocket_close_received;
-    bool websocket_h2_method_seen;
-    bool websocket_h2_protocol_seen;
-    bool websocket_h2_path_seen;
-    bool websocket_h2_authority_seen;
-    bool websocket_h2_version_seen;
-    bool websocket_h2_subprotocol_seen;
-    bool websocket_h2_origin_seen;
     char websocket_h2_method[16];
     char websocket_h2_protocol[32];
     char websocket_h2_path[2048];
@@ -118,6 +101,33 @@ typedef struct httpserver_lstate_s
     line_t                 *split_download_line;
     buffer_queue_t          split_pending_up;
     hash_t                  split_hash;
+
+    bool h1_headers_parsed : 1;
+    bool h1_request_finished : 1;
+    bool h1_trailing_bytes_logged : 1;
+    bool h1_response_headers_sent : 1;
+    bool pending_down_draining : 1;
+    bool h2_response_headers_sent : 1;
+    bool h2_request_finished : 1;
+    bool h2_request_rejected : 1;
+    bool h2_stream_closed : 1;
+    bool fin_sent : 1;
+    bool h2_end_stream_emitted : 1;
+    bool h2_source_paused : 1; // our DATA backlog paused next
+    bool prev_paused : 1;      // prev paused next through us
+    bool prev_finished : 1;
+    bool next_finished : 1;
+    bool finish_dispatching : 1; // synchronous final output owns cleanup until it returns
+    bool websocket_active : 1;
+    bool websocket_close_sent : 1;
+    bool websocket_close_received : 1;
+    bool websocket_h2_method_seen : 1;
+    bool websocket_h2_protocol_seen : 1;
+    bool websocket_h2_path_seen : 1;
+    bool websocket_h2_authority_seen : 1;
+    bool websocket_h2_version_seen : 1;
+    bool websocket_h2_subprotocol_seen : 1;
+    bool websocket_h2_origin_seen : 1;
 } httpserver_lstate_t;
 
 typedef struct httpserver_tstate_s
@@ -154,6 +164,7 @@ typedef struct httpserver_tstate_s
     enum http_method       split_download_method_enum;
     enum http_content_type content_type;
     int                    status_code;
+    uint32_t               close_drain_timeout_ms;
 
     wmutex_t                split_upload_map_mutex;
     wmutex_t                split_download_map_mutex;
@@ -181,12 +192,15 @@ enum
     kHttpServerRequiredPaddingLeft = 16,
 
     kHttpServerBufferQueueCap    = 8,
+    kHttpServerPendingBytes            = 2 * 1024 * 1024,
+    kHttpServerPendingCharge           = 8 * 1024 * 1024,
     kHttpServerMaxHeaderBytes    = 64 * 1024,
     kHttpServerHttp2FrameBytes   = 32 * 1024,
-    kHttpServerHttp2PauseDataBytes  = 1024 * 1024,
-    kHttpServerHttp2ResumeDataBytes = 256 * 1024,
+    kHttpServerHttp2PauseDataBytes     = 1024 * 1024,
+    kHttpServerHttp2ResumeDataBytes    = 256 * 1024,
+    kHttpServerDefaultCloseDrainTimeoutMs = 30000,
+    kHttpServerMaxCloseDrainTimeoutMs     = 86400000,
     kHttpServerUpgradeQueueChargeLimit = 2 * 1024 * 1024,
-    kHttpServerUpgradeQueueCountLimit  = 1024,
     kHttpServerSplitMaxBuffering = 65535 * 2,
     kHttpServerDefaultHttp1Port  = 80,
     kHttpServerDefaultHttpsPort  = 443
@@ -229,6 +243,8 @@ bool httpserverTransportSubmitHttp2ResponseHeaders(tunnel_t *t, line_t *l, https
 bool httpserverTransportSendHttp2DataFrame(tunnel_t *t, line_t *l, httpserver_lstate_t *ls, sbuf_t *payload,
                                            bool end_stream);
 
+/* Takes ownership on both success and refusal; the caller closes on refusal. */
+bool httpserverTransportQueuePendingDown(line_t *l, httpserver_lstate_t *ls, sbuf_t *payload);
 bool httpserverTransportFlushPendingDown(tunnel_t *t, line_t *l, httpserver_lstate_t *ls);
 void httpserverTransportQueueUpgradePayload(tunnel_t *t, line_t *l, sbuf_t *buf, bool upstream);
 bool httpserverTransportFeedHttp2Input(tunnel_t *t, line_t *l, httpserver_lstate_t *ls, sbuf_t *buf);
@@ -239,6 +255,12 @@ bool httpserverTransportDrainHttp1RequestBody(tunnel_t *t, line_t *l, httpserver
 void httpserverTransportCloseBothDirections(tunnel_t *t, line_t *l, httpserver_lstate_t *ls);
 void httpserverTransportCloseNextDirection(tunnel_t *t, line_t *l, httpserver_lstate_t *ls);
 void httpserverTransportClosePrevDirection(tunnel_t *t, line_t *l, httpserver_lstate_t *ls);
+
+/* Owner-worker HTTP/2 completion deadline; failure means cancel this response. */
+void httpserverStartCloseDrain(httpserver_lstate_t *ls);
+bool httpserverCloseDrainAllowed(httpserver_lstate_t *ls);
+bool httpserverArmCloseDrain(httpserver_lstate_t *ls);
+void httpserverCancelCloseDrain(httpserver_lstate_t *ls);
 
 bool httpserverSplitIsEnabled(tunnel_t *t);
 void httpserverSplitUpStreamInit(tunnel_t *t, line_t *l);
@@ -252,3 +274,11 @@ static inline uint64_t httpserverSplitWaitingLimit(line_t *line)
     const uint64_t basis = bufferpoolGetWaitingBudgetBasis(lineGetBufferPool(line));
     return (uint64_t) kHttpServerSplitMaxBuffering * max(UINT64_C(1), (basis + 32767) / 32768);
 }
+
+/* Internal receive dispatch; public split input uses the serialized Payload entry. */
+void httpserverSplitProcessUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+bool httpserverTransportFinishCustomUpgrade(tunnel_t *t, line_t *l, httpserver_lstate_t *ls);
+
+void httpserverSplitRejectInput(tunnel_t *t, line_t *l);
+
+bool httpserverDrainSplitInput(tunnel_t *t, line_t *l);

@@ -2,8 +2,5 @@
 
 void quicclientTunnelDownStreamResume(tunnel_t *t, line_t *l)
 {
-    if (quicCanRelay(t, l))
-    {
-        quicSetCarrierPaused(t, l, false);
-    }
+    quicSetCarrierPaused(t, l, false);
 }

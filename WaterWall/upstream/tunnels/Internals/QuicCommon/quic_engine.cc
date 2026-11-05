@@ -434,6 +434,14 @@ class Session final : public quic::QuicGenericSessionBase, public RepositoryObje
     quic::QuicCryptoStream       *GetMutableCryptoStream() override { return crypto_.get(); }
     const quic::QuicCryptoStream *GetCryptoStream() const override { return crypto_.get(); }
     void Connect() { static_cast<quic::QuicCryptoClientStream *>(crypto_.get())->CryptoConnect(); }
+    void OnConnectionClosed(const quic::QuicConnectionCloseFrame &frame, quic::ConnectionCloseSource source) override
+    {
+        close_error  = frame.quic_error_code;
+        close_source = source;
+        QuicGenericSessionBase::OnConnectionClosed(frame, source);
+    }
+    quic::QuicErrorCode         close_error  = quic::QUIC_NO_ERROR;
+    quic::ConnectionCloseSource close_source = quic::ConnectionCloseSource::FROM_SELF;
     void OnConfigNegotiated() override
     {
         // Google-specific tuning options can alter receive-window geometry.
@@ -460,17 +468,10 @@ class Session final : public quic::QuicGenericSessionBase, public RepositoryObje
         incoming_created_ = true;
         return QuicGenericSessionBase::CreateIncomingStream(id);
     }
-    void OnConnectionClosed(const quic::QuicConnectionCloseFrame &frame, quic::ConnectionCloseSource source) override
-    {
-        close_error_ = frame.quic_error_code;
-        QuicGenericSessionBase::OnConnectionClosed(frame, source);
-    }
-    quic::QuicErrorCode close_error() const { return close_error_; }
 
   private:
     bool                                    is_client_;
     bool                                    incoming_created_ = false;
-    quic::QuicErrorCode                     close_error_      = quic::QUIC_NO_ERROR;
     ProofHandler                            proof_handler_;
     ServerCryptoHelper                      server_helper_;
     std::unique_ptr<quic::QuicCryptoStream> crypto_;
@@ -551,7 +552,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         {
             owner_->Fail("Application stream stopped");
         }
-        void OnWriteSideInDataRecvdState() override { owner_->Fail(WW_QUIC_CLOSE_FINISHED); }
+        void OnWriteSideInDataRecvdState() override { owner_->fin_acked = true; }
 
       private:
         ww_quic_engine *owner_;
@@ -559,7 +560,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
 
     explicit ww_quic_engine(const ww_quic_config *configuration)
         : config(configuration), alarms(configuration->settings), writer(this), generator(kConnectionIdLength),
-          cache(16), events(size_t(configuration->settings.max_buffered_buffers) * 2 + 2, configuration->settings),
+          cache(16), events(size_t(configuration->settings.max_buffered_buffers) * 2 + 3, configuration->settings),
           plaintext(size_t(configuration->settings.max_buffered_buffers) + 1, configuration->settings),
           ledger(configuration->settings.max_buffered_buffers, configuration->settings), created_us(ww_quic_now_us())
     {
@@ -570,8 +571,8 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         self                    = config->settings.is_client ? client : server;
         peer                    = config->settings.is_client ? server : client;
         storage.send_allocation = ledger.capacity() * WW_QUIC_SEND_DESCRIPTOR_CHARGE;
-        wire_allocation         = plaintext_allocation =
-            (size_t(config->settings.max_buffered_buffers) + 1) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
+        wire_allocation         = (size_t(config->settings.max_buffered_buffers) + 1) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
+        plaintext_allocation    = (size_t(config->settings.max_buffered_buffers) + 2) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
     }
     ~ww_quic_engine() override { Retire(); }
 
@@ -618,10 +619,23 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     void OnSessionReady() override { handshake_ready = true; }
     void OnSessionClosed(webtransport::SessionErrorCode, const std::string &message) override
     {
-        const quic::QuicErrorCode reason = session ? session->close_error() : quic::QUIC_NO_ERROR;
+        const quic::QuicErrorCode reason = session ? session->close_error : quic::QUIC_NO_ERROR;
         network_timeout = reason == quic::QUIC_NETWORK_IDLE_TIMEOUT || reason == quic::QUIC_HANDSHAKE_TIMEOUT ||
                           reason == quic::QUIC_TOO_MANY_RTOS;
-        Fail(message.empty() ? "QUIC connection closed" : message);
+        if (closed || closing)
+            return;
+        if (session->close_source != quic::ConnectionCloseSource::FROM_PEER)
+        {
+            Fail(message.empty() ? "QUIC connection closed" : message);
+            return;
+        }
+        StartClosing(false);
+        if (session->close_error != quic::QUIC_NO_ERROR)
+            SetError(error, sizeof(error), message.empty() ? "QUIC peer closed with an error" : message.c_str());
+        else if (! peer_fin || ! fin_acked)
+            SetError(error, sizeof(error), "QUIC peer closed before both stream directions were acknowledged");
+        else
+            SetError(error, sizeof(error), WW_QUIC_CLOSE_FINISHED);
     }
     void OnIncomingBidirectionalStreamAvailable() override
     {
@@ -661,7 +675,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     void Read()
     {
         auto *stream = Stream();
-        if (stream == nullptr || closed)
+        if (stream == nullptr || closed || peer_fin || closing)
             return;
         // Never release application bytes before the authenticated handshake.
         if (! handshake_ready)
@@ -692,9 +706,10 @@ struct ww_quic_engine final : webtransport::SessionVisitor
                 return;
             if (result.fin)
             {
-                // Everything is read, so the peer can stop waiting for the acknowledgement of its FIN.
-                session->connection()->CloseConnection(quic::QUIC_NO_ERROR, WW_QUIC_CLOSE_FINISHED,
-                                                       quic::ConnectionCloseBehavior::SEND_CONNECTION_CLOSE_PACKET);
+                // The ordered receive end does not discard accepted bytes in the
+                // opposite direction. The runtime settles its application first.
+                peer_fin = true;
+                plaintext.push_back({WW_QUIC_EVENT_PEER_FIN, nullptr, 0});
                 return;
             }
             if (result.bytes_read == 0)
@@ -838,12 +853,85 @@ struct ww_quic_engine final : webtransport::SessionVisitor
                 return true;
         return false;
     }
+    void StartClosing(bool send_response)
+    {
+        assert(session && ! closing && ! closed);
+        auto          *connection = session->connection();
+        const uint64_t pto        = static_cast<uint64_t>(
+            std::max<int64_t>(1000, connection->sent_packet_manager().GetPtoDelay().ToMicroseconds()));
+        const uint64_t cap         = uint64_t(config->settings.close_drain_timeout_ms) * 1000;
+        const uint64_t duration    = pto > cap / 3 ? cap : 3 * pto;
+        closing                    = true;
+        closing_respond            = send_response;
+        closing_deadline_us        = ww_quic_now_us() + duration;
+        close_response_interval_us = pto;
+        close_response_after_us    = ww_quic_now_us() + pto;
+        if (send_response)
+        {
+            if (config->settings.is_client)
+                closing_destination_ids.push_back(connection->client_connection_id());
+            else
+            {
+                closing_destination_ids = connection->GetActiveServerConnectionIds();
+                closing_destination_ids.push_back(connection->connection_id());
+            }
+        }
+    }
+    bool MatchesClosingDestination(const uint8_t *bytes, size_t length) const
+    {
+        quic::QuicEncryptedPacket packet(reinterpret_cast<const char *>(bytes), length);
+        for (const auto &id : closing_destination_ids)
+        {
+            quic::PacketHeaderFormat         format;
+            quic::QuicLongHeaderType         type;
+            bool                             version_present, length_prefix;
+            quic::QuicVersionLabel           label;
+            quic::ParsedQuicVersion          version = quic::ParsedQuicVersion::Unsupported();
+            absl::string_view                destination, source;
+            std::optional<absl::string_view> token;
+            std::string                      diagnostic;
+            if (quic::QuicFramer::ParsePublicHeaderDispatcher(packet,
+                                                              id.length(),
+                                                              &format,
+                                                              &type,
+                                                              &version_present,
+                                                              &length_prefix,
+                                                              &label,
+                                                              &version,
+                                                              &destination,
+                                                              &source,
+                                                              &token,
+                                                              &diagnostic) == quic::QUIC_NO_ERROR &&
+                destination == absl::string_view(id.data(), id.length()))
+                return true;
+        }
+        return false;
+    }
+    void ClosingInput(const uint8_t *bytes, size_t length)
+    {
+        const uint64_t now = ww_quic_now_us();
+        if (! closing_respond || now >= closing_deadline_us || ! MatchesClosingDestination(bytes, length))
+            return;
+        // CID matching attributes traffic but does not authenticate it after
+        // connection retirement. Bound unauthenticated replies to three times
+        // received bytes, with credit capped at one retained closing flight.
+        close_response_credit = std::min(close_response_bytes, close_response_credit + 3 * length);
+        if (now < close_response_after_us || close_response_credit < close_response_bytes)
+            return;
+        close_response_credit -= close_response_bytes;
+        // Replay the original protected close packets. QUICHE has retired its
+        // connection, so its ordinary loss alarms cannot do this for us.
+        close_response_after_us = now + close_response_interval_us;
+        for (const auto &packet : termination_packets)
+            if (! Stage(WW_QUIC_EVENT_DATAGRAM, packet->data(), packet->length()))
+                return;
+    }
     void Reap()
     {
-        if (ledger.empty() || closed || ! session)
+        if (ledger.empty() || closed || closing || ! session)
             return;
         auto *stream = session->GetActiveStream(0);
-        if (stream == nullptr)
+        if (stream == nullptr && ! fin_acked)
         {
             Fail("Application stream disappeared with retained send data");
             return;
@@ -851,7 +939,7 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         while (! ledger.empty())
         {
             const auto &entry = ledger.front();
-            if (stream->IsStreamFrameOutstanding(entry.offset, entry.length, false))
+            if (! fin_acked && stream->IsStreamFrameOutstanding(entry.offset, entry.length, false))
                 break;
             storage.send_bytes -= entry.length;
             storage.send_allocation -= entry.length;
@@ -897,6 +985,15 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     }
     bool AfterDrive()
     {
+        if (closing)
+        {
+            if (! closed && ww_quic_now_us() >= closing_deadline_us)
+            {
+                closed = true;
+                events.push_back({WW_QUIC_EVENT_CLOSED, nullptr, 0});
+            }
+            return ! closed;
+        }
         if (! closed && handshake_ready && config->settings.is_client)
         {
             if (! stream_open && session->CanOpenNextOutgoingBidirectionalStream())
@@ -935,6 +1032,8 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     {
         // session destruction cancels all its alarms before their registry dies.
         session.reset();
+        decltype(termination_packets){}.swap(termination_packets);
+        decltype(closing_destination_ids){}.swap(closing_destination_ids);
         client_crypto.reset();
         server_crypto.reset();
         for (Ring<Event> *queue : {&events, &plaintext})
@@ -963,6 +1062,8 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     std::unique_ptr<quic::QuicCryptoClientConfig> client_crypto;
     std::unique_ptr<quic::QuicCryptoServerConfig> server_crypto;
     std::unique_ptr<Session>                      session;
+    std::vector<std::unique_ptr<quic::QuicEncryptedPacket>> termination_packets;
+    std::vector<quic::QuicConnectionId>                     closing_destination_ids;
     Ring<Event>                                   events;
     Ring<Event>                                   plaintext;
     Ring<Ledger>                                  ledger;
@@ -970,6 +1071,11 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     size_t                                        wire_allocation = 0, plaintext_allocation = 0;
     uint64_t                                      created_us;
     uint64_t                                      send_offset = 0;
+    uint64_t                                                closing_deadline_us        = 0;
+    uint64_t                                                close_response_interval_us = 0;
+    uint64_t                                                close_response_after_us    = 0;
+    size_t                                                  close_response_bytes       = 0;
+    size_t                                                  close_response_credit      = 0;
     char                                          error[512]{};
     bool                                          started         = false;
     bool                                          handshake_ready = false;
@@ -978,9 +1084,14 @@ struct ww_quic_engine final : webtransport::SessionVisitor
     bool                                          marker_sent     = false;
     bool                                          ready           = false;
     bool                                          closed          = false;
-    bool                                          network_timeout = false;
-    bool                                          held            = false;
-    bool                                          read_deferred   = false;
+    bool                                                    network_timeout = false;
+    bool                                                    held            = false;
+    bool                                                    read_deferred   = false;
+    bool                                                    peer_fin        = false;
+    bool                                                    fin_sent        = false;
+    bool                                                    fin_acked       = false;
+    bool                                                    closing         = false;
+    bool                                                    closing_respond = false;
 };
 
 extern "C" uint64_t ww_quic_now_us(void)
@@ -1008,7 +1119,8 @@ try
         return nullptr;
     }
     if (s.handshake_timeout_ms == 0 || s.handshake_timeout_ms > WW_QUIC_MAX_TIMEOUT_MS || s.idle_timeout_ms == 0 ||
-        s.idle_timeout_ms > WW_QUIC_MAX_TIMEOUT_MS || s.max_packet_size < 1200 || s.max_packet_size > 1452 ||
+        s.idle_timeout_ms > WW_QUIC_MAX_TIMEOUT_MS || s.close_drain_timeout_ms == 0 ||
+        s.close_drain_timeout_ms > WW_QUIC_MAX_TIMEOUT_MS || s.max_packet_size < 1200 || s.max_packet_size > 1452 ||
         s.max_buffered_bytes < s.max_packet_size || s.max_buffered_bytes > WW_QUIC_MAX_BUFFERED_BYTES ||
         s.max_buffered_buffers == 0 || s.max_buffered_buffers > WW_QUIC_MAX_BUFFERED_BUFFERS ||
         s.receive_window_bytes < 16384 || s.receive_window_bytes > s.max_buffered_bytes ||
@@ -1198,6 +1310,11 @@ try
         return false;
     if (length == 0 || length > WW_QUIC_MAX_DATAGRAM)
         return engine->AfterDrive(); // invalid UDP traffic is dropped, without unchecked allocation
+    if (engine->closing)
+    {
+        engine->ClosingInput(datagram, length);
+        return engine->AfterDrive();
+    }
     if (! engine->session && ! engine->config->settings.is_client && ! engine->Bootstrap(datagram, length))
         return engine->AfterDrive();
     if (! engine->session)
@@ -1216,7 +1333,7 @@ extern "C" bool ww_quic_engine_write(ww_quic_engine_t *engine, const uint8_t *da
 try
 {
     assert(engine && (data || length == 0) && length <= WW_QUIC_WRITE_CHUNK);
-    if (! engine->ready || engine->closed)
+    if (! engine->ready || engine->closed || engine->closing || engine->fin_sent)
         return false;
     if (length == 0)
         return true;
@@ -1234,6 +1351,8 @@ try
     assert(engine);
     if (engine->closed)
         return false;
+    if (engine->closing)
+        return engine->AfterDrive();
     for (size_t work = 0; work < kAlarmWork; ++work)
     {
         Alarm *alarm = engine->alarms.Next();
@@ -1255,7 +1374,7 @@ try
     assert(engine);
     if (engine->closed)
         return false;
-    if (engine->session)
+    if (engine->session && ! engine->closing)
         engine->session->connection()->OnCanWrite();
     return engine->AfterDrive();
 }
@@ -1268,6 +1387,8 @@ extern "C" uint64_t ww_quic_engine_deadline(const ww_quic_engine_t *engine)
     assert(engine);
     if (engine->closed)
         return UINT64_MAX;
+    if (engine->closing)
+        return engine->closing_deadline_us;
     uint64_t deadline = engine->ready
                             ? UINT64_MAX
                             : engine->created_us + uint64_t(engine->config->settings.handshake_timeout_ms) * 1000;
@@ -1310,16 +1431,6 @@ extern "C" bool ww_quic_engine_holding(const ww_quic_engine_t *engine)
     assert(engine);
     return engine->held && ! engine->plaintext.empty();
 }
-extern "C" bool ww_quic_engine_application_pending(const ww_quic_engine_t *engine)
-{
-    assert(engine);
-    if (! engine->plaintext.empty())
-        return true;
-    if (engine->closed || ! engine->handshake_ready)
-        return false;
-    const auto *stream = engine->Stream();
-    return stream != nullptr && stream->ReadableBytes() > 0;
-}
 extern "C" bool ww_quic_engine_resume_read(ww_quic_engine_t *engine)
 try
 {
@@ -1356,7 +1467,7 @@ extern "C" void ww_quic_engine_link_stats(ww_quic_engine_t *engine, ww_quic_link
 }
 extern "C" bool ww_quic_engine_ready(const ww_quic_engine_t *engine)
 {
-    return engine->ready && ! engine->closed;
+    return engine->ready && ! engine->closed && ! engine->closing;
 }
 extern "C" bool ww_quic_engine_closed(const ww_quic_engine_t *engine)
 {
@@ -1370,15 +1481,55 @@ extern "C" bool ww_quic_engine_finish(ww_quic_engine_t *engine)
 try
 {
     assert(engine);
-    auto *stream = engine->Stream();
-    if (engine->closed || stream == nullptr)
+    if (engine->fin_sent)
         return true;
+    auto *stream = engine->Stream();
+    if (! engine->ready || engine->closed || engine->closing || stream == nullptr)
+        return false;
     webtransport::StreamWriteOptions options;
     options.set_send_fin(true);
     if (! stream->CanWrite() || ! stream->Writev({}, options).ok())
         return false;
+    engine->fin_sent = true;
     engine->AfterDrive();
     return true;
+}
+catch (...)
+{
+    Fatal(engine->config->settings);
+}
+extern "C" bool ww_quic_engine_peer_finished(const ww_quic_engine_t *engine)
+{
+    return engine->peer_fin;
+}
+extern "C" bool ww_quic_engine_finish_acked(const ww_quic_engine_t *engine)
+{
+    return engine->fin_acked;
+}
+extern "C" bool ww_quic_engine_closing(const ww_quic_engine_t *engine)
+{
+    return engine->closing && ! engine->closed;
+}
+extern "C" void ww_quic_engine_begin_close(ww_quic_engine_t *engine)
+try
+{
+    assert(engine);
+    if (engine->closed || engine->closing)
+        return;
+    assert(engine->peer_fin && engine->fin_acked && engine->session);
+    engine->StartClosing(true);
+    SetError(engine->error, sizeof(engine->error), WW_QUIC_CLOSE_FINISHED);
+    engine->session->connection()->CloseConnection(
+        quic::QUIC_NO_ERROR, WW_QUIC_CLOSE_FINISHED, quic::ConnectionCloseBehavior::SEND_CONNECTION_CLOSE_PACKET);
+    engine->termination_packets = engine->session->connection()->ConsumeTerminationPackets();
+    // At most one close packet per encryption level; these small library-owned
+    // copies live only for the fixed closing interval, independently of events.
+    assert(engine->termination_packets.size() <= quic::NUM_ENCRYPTION_LEVELS);
+    for (const auto &packet : engine->termination_packets)
+    {
+        assert(packet->length() <= engine->config->settings.max_packet_size);
+        engine->close_response_bytes += packet->length();
+    }
 }
 catch (...)
 {

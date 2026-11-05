@@ -30,135 +30,6 @@ local_idle_table_t *tcplistenerGetLineIdleTable(tcplistener_tstate_t *ts, line_t
     return tcplistenerGetWorkerIdleTable(ts);
 }
 
-#ifdef OS_LINUX
-typedef struct tcplistener_linger_s
-{
-    wio_t              *io;
-    local_idle_table_t *table;
-    local_idle_item_t  *idle;
-    uint64_t            deadline_ms;
-} tcplistener_linger_t;
-
-enum
-{
-    kFallbackLingerIdleMs  = 5000,
-    kFallbackLingerTotalMs = 30000
-};
-
-static void onLingerClose(wio_t *io)
-{
-    tcplistener_linger_t *linger = weventGetUserdata(io);
-    weventSetUserData(io, NULL);
-    wioSetCallBackRead(io, NULL);
-    wioSetCallBackWrite(io, NULL);
-    wioSetCallBackClose(io, NULL);
-    local_idle_item_t *idle = linger->idle;
-    linger->idle            = NULL;
-    if (idle != NULL)
-    {
-        bool removed = localidletableRemoveIdleItem(linger->table, idle);
-        if (! removed)
-        {
-            LOGF("TcpListener: failed to remove closing socket idle item");
-            abortProgramNow(1);
-        }
-    }
-    memoryFree(linger);
-}
-
-static void onLingerExpire(local_idle_item_t *item)
-{
-    tcplistener_linger_t *linger = item->userdata;
-    item->userdata               = NULL;
-    linger->idle                 = NULL;
-    // A pending response must not extend the terminal drain deadline.
-    wioFree(linger->io);
-}
-
-static void onLingerRead(wio_t *io, sbuf_t *buf)
-{
-    tcplistener_linger_t *linger = weventGetUserdata(io);
-    bufferpoolReuseBuffer(wloopGetBufferPool(weventGetLoop(io)), buf);
-    if (linger->deadline_ms == 0)
-        return;
-
-    const uint64_t now = wloopNowMonotonicMS(weventGetLoop(io));
-    if (now >= linger->deadline_ms)
-    {
-        wioFree(io);
-        return;
-    }
-    localidletableKeepIdleItemForAtleast(
-        linger->table, linger->idle, min((uint64_t) kFallbackLingerIdleMs, linger->deadline_ms - now));
-}
-
-static void onLingerWriteComplete(wio_t *io)
-{
-    if (! wioCheckWriteComplete(io))
-        return;
-
-    wioSetCallBackWrite(io, NULL);
-    if (shutdown(wioGetFD(io), SHUT_WR) != 0)
-    {
-        wioClose(io);
-        return;
-    }
-
-    tcplistener_linger_t *linger = weventGetUserdata(io);
-    local_idle_item_t    *idle   = linger->idle;
-    linger->idle                 = NULL;
-    bool removed                 = localidletableRemoveIdleItem(linger->table, idle);
-    if (! removed)
-    {
-        LOGF("TcpListener: failed to replace draining socket idle item");
-        abortProgramNow(1);
-    }
-    const uint64_t now  = wloopNowMonotonicMS(weventGetLoop(io));
-    linger->deadline_ms = now + kFallbackLingerTotalMs;
-    linger->idle =
-        localidletableCreateItem(linger->table, tcplistenerIdleKey(io), linger, onLingerExpire, kFallbackLingerIdleMs);
-    if (linger->idle == NULL)
-    {
-        LOGF("TcpListener: duplicate half-closed socket idle item");
-        abortProgramNow(1);
-    }
-}
-#endif
-
-bool tcplistenerBeginFallbackLinger(tunnel_t *t, wio_t *io)
-{
-#ifdef OS_LINUX
-    tcplistener_tstate_t *ts = tunnelGetState(t);
-    if (atomicLoadRelaxed(&ts->stopping) || ! wloopNormalDispatchAllowed(weventGetLoop(io)) || wioIsClosed(io) ||
-        wioGetError(io) != 0)
-        return false;
-
-    // This socket context owns no line state or line reference.
-    tcplistener_linger_t *linger = memoryAllocateZero(sizeof(*linger));
-    linger->io                   = io;
-    linger->table                = tcplistenerGetWorkerIdleTable(ts);
-    linger->idle                 = localidletableCreateItem(
-        linger->table, tcplistenerIdleKey(io), linger, onLingerExpire, WIO_DEFAULT_CLOSE_TIMEOUT);
-    if (linger->idle == NULL)
-    {
-        LOGF("TcpListener: duplicate draining socket idle item");
-        abortProgramNow(1);
-    }
-    weventSetUserData(io, linger);
-    wioSetCallBackRead(io, onLingerRead);
-    wioSetCallBackClose(io, onLingerClose);
-    wioSetCallBackWrite(io, onLingerWriteComplete);
-    wioDisableSplice(io);
-    if (wioRead(io) == 0)
-        onLingerWriteComplete(io);
-    return true;
-#else
-    discard t;
-    discard io;
-    return false;
-#endif
-}
-
 static void onRecv(wio_t *io, sbuf_t *buf)
 {
     tcplistener_lstate_t *ls = weventGetUserdata(io);
@@ -307,15 +178,10 @@ void tcplistenerFlushWriteQueue(tcplistener_lstate_t *lstate)
 {
     assert(lstate->io != NULL && ! wioIsClosed(lstate->io));
 
-    while (bufferqueueGetBufCount(&lstate->pause_queue) > 0)
+    sbuf_t *buf;
+    while ((buf = awqPopForFinish(&lstate->write_queue, lineGetBufferPool(lstate->line))) != NULL)
     {
-        sbuf_t *buf = bufferqueuePopFront(&lstate->pause_queue);
-        if (UNLIKELY(sbufGetLength(buf) == 0))
-        {
-            lineReuseBuffer(lstate->line, buf);
-            continue;
-        }
-        wioWriteWithHint(lstate->io, buf, bufferqueueGetBufLen(&lstate->pause_queue) != 0);
+        wioWriteWithHint(lstate->io, buf, awqGetQueuedBytes(&lstate->write_queue) != 0);
     }
 }
 
@@ -326,29 +192,22 @@ static bool resumeWriteQueue(tcplistener_lstate_t *lstate)
     wio_t  *io   = lstate->io;
     // Suppress synchronous WIO completion reentry until this FIFO drain yields.
     wioSetCallBackWrite(io, NULL);
-    bufferbudgetReservationRelease(&lstate->active_write);
-    while (bufferqueueGetBufCount(&lstate->pause_queue) > 0)
+    awqReleaseCompleted(&lstate->write_queue);
+    sbuf_t *buf;
+    while ((buf = awqNextToWrite(&lstate->write_queue, lineGetBufferPool(line))) != NULL)
     {
-        sbuf_t   *buf         = bufferqueuePopFrontReserved(&lstate->pause_queue, &lstate->active_write);
-        const int bytes       = (int) sbufGetLength(buf);
-        if (UNLIKELY(bytes == 0))
-        {
-            lineReuseBuffer(line, buf);
-            bufferbudgetReservationRelease(&lstate->active_write);
-            continue;
-        }
-        const int nwrite = wioWriteWithHint(io, buf, bufferqueueGetBufLen(&lstate->pause_queue) != 0);
+        const uint32_t bytes  = sbufGetLength(buf);
+        const int      nwrite = wioWriteWithHint(io, buf, awqGetQueuedBytes(&lstate->write_queue) != 0);
         if (UNLIKELY(! lineIsAlive(line)))
             return false;
-        tcplistenerRefreshWriteBudget(lstate);
-        if (UNLIKELY(nwrite < 0))
+        const awq_write_result_t result = awqAfterWrite(&lstate->write_queue, nwrite, bytes, wioGetWriteBufSize(io));
+        if (UNLIKELY(result == kAwqWriteFailed))
             return false;
-        if (nwrite < bytes)
+        if (result == kAwqWriteBlocked)
         {
             wioSetCallBackWrite(io, tcplistenerOnWriteComplete);
             return false;
         }
-        bufferbudgetReservationRelease(&lstate->active_write);
     }
     return true;
 }
@@ -359,7 +218,7 @@ void tcplistenerOnWriteComplete(wio_t *io)
     if (ls == NULL)
         return;
     tcplistenerApplyReadPreference(ls);
-    tcplistenerRefreshWriteBudget(ls);
+    awqRefreshPending(&ls->write_queue, wioGetWriteBufSize(io));
     if (! wioCheckWriteComplete(io))
         return;
     line_t   *line = ls->line;
@@ -367,10 +226,7 @@ void tcplistenerOnWriteComplete(wio_t *io)
     lineRef(line);
     if (resumeWriteQueue(ls))
     {
-        ls->write_paused     = false;
-        const bool notify    = ls->queue_pause_sent;
-        ls->queue_pause_sent = false;
-        if (notify)
+        if (awqTakeResume(&ls->write_queue))
             tunnelNextUpStreamResume(t, line);
     }
     lineUnref(line);
@@ -390,18 +246,10 @@ void tcplistenerOnIdleConnectionExpire(local_idle_item_t *idle_tcp)
 
     LOGW("TcpListener: expired 1 tcp connection on FD:%x ", wioGetFD(ls->io));
     weventSetUserData(ls->io, NULL);
+    wioSetCallBackWrite(ls->io, NULL);
     tcplistenerFlushWriteQueue(ls);
     wioClose(ls->io);
     tcplistenerLinestateDestroy(ls);
     tunnelNextUpStreamFinish(t, l);
     lineDestroy(l);
-}
-
-void tcplistenerRefreshWriteBudget(tcplistener_lstate_t *ls)
-{
-    if (ls->active_write.budget != NULL)
-    {
-        // WIO owns the buffer, possibly already freed; only inspect its byte counter.
-        bufferbudgetReservationSetBytes(&ls->active_write, wioGetWriteBufSize(ls->io));
-    }
 }

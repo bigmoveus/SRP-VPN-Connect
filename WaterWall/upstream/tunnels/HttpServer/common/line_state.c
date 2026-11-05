@@ -13,7 +13,6 @@ void httpserverLinestateInitialize(httpserver_lstate_t *ls, tunnel_t *t, line_t 
                                  .events_up                     = contextqueueCreate(),
                                  .runtime_proto                 = kHttpServerRuntimeUnknown,
                                  .h2_stream_id                  = 0,
-                                 .h1_chunk_expected             = -1,
                                  .h1_body_remaining             = 0,
                                  .h1_headers_parsed             = false,
                                  .h1_request_finished           = false,
@@ -41,11 +40,18 @@ void httpserverLinestateInitialize(httpserver_lstate_t *ls, tunnel_t *t, line_t 
                                  .split_upload_line             = NULL,
                                  .split_download_line           = NULL,
                                  .split_hash                    = 0};
+    bufferbudgetInit(&ls->pending_down_budget,
+                     (buffer_budget_cost_t) {kHttpServerPendingBytes, kHttpServerPendingCharge});
+    const bool attached = bufferqueueTryAttachBudget(&ls->pending_down, &ls->pending_down_budget);
+    assert(attached);
+    discard attached;
+    httpReceiveInit(&ls->receive);
     h2DataInit(&ls->h2_data, lineGetBufferPool(l), UINT32_MAX);
 }
 
 void httpserverLinestateDestroy(httpserver_lstate_t *ls)
 {
+    httpserverCancelCloseDrain(ls);
     if (ls->session != NULL)
     {
         nghttp2_session_del(ls->session);
@@ -53,8 +59,10 @@ void httpserverLinestateDestroy(httpserver_lstate_t *ls)
     }
 
     h2DataDestroyAfterSession(&ls->h2_data);
+    httpReceiveDestroy(&ls->receive, ls->in_stream.pool);
     bufferstreamDestroy(&ls->in_stream);
     bufferqueueDestroy(&ls->pending_down);
+    bufferbudgetAssertEmpty(&ls->pending_down_budget);
     bufferqueueDestroy(&ls->split_pending_up);
     contextqueueDestroy(&ls->events_up);
 

@@ -1,28 +1,22 @@
 #include "structure.h"
 
-#include "loggers/network_logger.h"
-
 void tcpoverudpserverTunnelDownStreamFinish(tunnel_t *t, line_t *l)
 {
     tcpoverudpserver_lstate_t *ls = lineGetState(l, t);
-
-    assert(ls->k_handle != NULL);
-
-    lineRef(l);
-
-    tcpoverudpserver_tstate_t *state = tunnelGetState(t);
-    if (UNLIKELY(atomicLoadRelaxed(&state->stopping)))
+    assert(ls->kind == kTcpOverUdpServerService && ls->session != NULL);
+    tcpoverudpserver_session_t *session = ls->session;
+    tou_session_t              *engine  = session->engine;
+    touSessionRetain(engine);
+    /* We created this exact normal service line. It must be logically dead before this handler returns. */
+    tcpoverudpserverRetireService(session, false);
+    tcpoverudpserver_tstate_t *ts = tunnelGetState(t);
+    if (! session->carrier->active || atomicLoadRelaxed(&ts->stopping))
     {
-        const bool drain_held = ls->close_drain_held;
-        tcpoverudpserverLinestateDestroy(ls);
-        tunnelPrevDownStreamFinish(t, l);
-        tcpoverudpserverCompleteCloseDrain(t, l, drain_held);
-        lineUnref(l);
-        return;
+        touSessionAbort(engine, kTouAborted);
     }
-
-    tcpoverudpserverBeginClose(ls);
-    discard tcpoverudpserverUpdateKcp(ls, true);
-
-    lineUnref(l);
+    else
+    {
+        touSessionAppFinish(engine);
+    }
+    touSessionRelease(engine);
 }

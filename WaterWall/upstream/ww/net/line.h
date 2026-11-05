@@ -33,18 +33,18 @@ static inline line_t *lineCreateForWorker(wid_t current, generic_pool_t **pools,
 {
     line_t *l = genericpoolGetItem(pools[current]);
 
-    *l = (line_t) {.refc                       = 1,
-                   .user_auths                 = {0},
-                   .user_count                 = 0,
-                   .wid                        = wid,
-                   .alive                      = true,
-                   .active_tunnels_mask        = UINT64_MAX,
-                   .pools                      = pools,
-                   .established                = false,
-                   .prefer_ordinary_read_u     = false,
-                   .prefer_ordinary_read_d     = false,
-                   .fallback_mode              = false,
-                   .fallback_peer_write_closed = false,
+    *l = (line_t) {.refc                   = 1,
+                   .user_auths             = {0},
+                   .user_count             = 0,
+                   .wid                    = wid,
+                   .alive                  = true,
+                   .active_tunnels_mask    = UINT64_MAX,
+                   .pools                  = pools,
+                   .established            = false,
+                   .prefer_ordinary_read_u = false,
+                   .prefer_ordinary_read_d = false,
+                   .fallback_mode          = false,
+                   .close_linger_reasons   = 0,
                    // to set a port we need to know the AF family, default v4
                    .routing_context =
                        (routing_context_t) {.dest_ctx = (address_context_t) {.ip_address.type = IPADDR_TYPE_V4},
@@ -136,7 +136,7 @@ static inline void lineUnref(line_t *const line)
 /**
  * @brief Mark the line logically dead and release its creator reference.
  *
- * During a close drain, the first request is deferred until lineEndCloseDrain().
+ * @param l Pointer to the line.
  */
 static inline void lineDestroy(line_t *const l)
 {
@@ -146,49 +146,8 @@ static inline void lineDestroy(line_t *const l)
         printError("lineDestroy: duplicate line destruction or line is not alive");
         abortProgramNow(1);
     }
-    if (l->close_drain_count > 0)
-    {
-        l->close_deferred = true;
-        return;
-    }
     l->alive = false;
     lineUnref(l);
-}
-
-/**
- * @brief Retain a line through a bounded protocol close drain.
- *
- * The owner worker holds one physical reference for each drain. Destruction is
- * deferred while that drain is active; transport resources stay available.
- */
-static inline void lineBeginCloseDrain(line_t *const line)
-{
-    if (UNLIKELY(line->close_drain_count == UINT32_MAX))
-    {
-        printError("lineBeginCloseDrain: drain reference count overflow");
-        abortProgramNow(1);
-    }
-    lineRef(line);
-    ++line->close_drain_count;
-}
-
-/**
- * @brief Release a close drain and report deferred teardown work.
- *
- * The caller must complete the returned deferred Finish before destroying the
- * line. This preserves transport resources through the last protocol callback.
- */
-static inline bool lineEndCloseDrain(line_t *const line)
-{
-    assert(line->close_drain_count > 0);
-    --line->close_drain_count;
-    const bool deferred = line->close_drain_count == 0 && line->close_deferred;
-    if (line->close_drain_count == 0)
-    {
-        line->close_deferred = false;
-    }
-    lineUnref(line);
-    return deferred;
 }
 
 /**
@@ -423,15 +382,39 @@ static inline bool lineIsFallback(const line_t *line)
     return line->fallback_mode;
 }
 
-static inline void lineMarkFallbackPeerWriteClosed(line_t *line)
+typedef enum line_close_linger_reason_e
 {
-    assert(lineIsAlive(line) && lineIsOnCurrentWorker(line) && lineIsFallback(line));
-    line->fallback_peer_write_closed = true;
+    kLineCloseLingerProtocolDrain     = 1U << 0,
+    kLineCloseLingerPeerWriteShutdown = 1U << 1
+} line_close_linger_reason_t;
+
+/* Request bounded socket-only cleanup after normal line destruction. A protocol
+ * can finish output while its peer still sends control data; a transport can
+ * independently observe a peer that shut down only its sending direction.
+ * Each reason is idempotent. Retiring a branch clears only its own reason. */
+static inline void lineRequestCloseLinger(line_t *line, line_close_linger_reason_t reason)
+{
+    assert(lineIsAlive(line) && lineIsOnCurrentWorker(line));
+    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    line->close_linger_reasons |= (uint8_t) reason;
 }
 
-static inline bool lineFallbackShouldLinger(const line_t *line)
+static inline void lineClearCloseLinger(line_t *line, line_close_linger_reason_t reason)
 {
-    return line->fallback_mode && line->fallback_peer_write_closed;
+    assert(lineIsAlive(line) && lineIsOnCurrentWorker(line));
+    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    line->close_linger_reasons &= (uint8_t) ~reason;
+}
+
+static inline bool lineHasCloseLingerReason(const line_t *line, line_close_linger_reason_t reason)
+{
+    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    return (line->close_linger_reasons & (uint8_t) reason) != 0;
+}
+
+static inline bool lineShouldLingerOnClose(const line_t *line)
+{
+    return line->close_linger_reasons != 0;
 }
 
 /**

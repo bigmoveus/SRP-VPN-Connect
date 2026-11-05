@@ -4,7 +4,7 @@
 
 void quicPressure(quic_context_t *context)
 {
-    if (quicApplicationFinished(context))
+    if (context->application_line == NULL)
     {
         return;
     }
@@ -13,7 +13,7 @@ void quicPressure(quic_context_t *context)
     ww_quic_engine_storage(context->engine, &storage);
     buffer_budget_cost_t queued       = bufferbudgetGetUsage(&context->application_budget);
     size_t               bytes        = queued.bytes + storage.send_bytes;
-    size_t               entries      = queued.entries + storage.send_entries;
+    size_t               entries      = quicApplicationEntries(context) + storage.send_entries;
     size_t               charge       = queued.charge + storage.send_allocation;
     size_t               charge_limit = (size_t) state->max_bytes * 2;
     /* A small socket read can retain a large pool allocation. Apply pressure
@@ -35,11 +35,17 @@ void quicPressure(quic_context_t *context)
     }
     if (pause)
     {
-        state->output->application_pause(context->tunnel, context->line);
+        line_t *line = context->application_line;
+        lineRef(line);
+        state->output->application_pause(context->tunnel, line);
+        lineUnref(line);
     }
     else
     {
-        state->output->application_resume(context->tunnel, context->line);
+        line_t *line = context->application_line;
+        lineRef(line);
+        state->output->application_resume(context->tunnel, line);
+        lineUnref(line);
     }
 }
 
@@ -55,6 +61,12 @@ static bool quicDeliverEvent(quic_context_t *context)
         quicFail(context, ww_quic_engine_error(context->engine));
         return true;
     }
+    if (event.type == WW_QUIC_EVENT_PEER_FIN)
+    {
+        ww_quic_engine_consume(context->engine);
+        quicPeerFinish(context);
+        return true;
+    }
     if (event.type == WW_QUIC_EVENT_READY)
     {
         ww_quic_engine_consume(context->engine);
@@ -68,7 +80,8 @@ static bool quicDeliverEvent(quic_context_t *context)
     }
     quic_tstate_t *state = tunnelGetState(context->tunnel);
     bool           wire  = event.type == WW_QUIC_EVENT_DATAGRAM;
-    if (wire ? quicCarrierFinished(context) : quicApplicationFinished(context))
+    line_t        *line  = wire ? context->carrier_line : context->application_line;
+    if (line == NULL)
     {
         /* Output toward a side that already finished has no reader. */
         ww_quic_engine_consume(context->engine);
@@ -83,10 +96,10 @@ static bool quicDeliverEvent(quic_context_t *context)
     ww_quic_engine_consume(context->engine);
     ww_quic_storage_t storage;
     ww_quic_engine_storage(context->engine, &storage);
-    size_t            retained = (wire ? storage.wire_bytes : storage.plaintext_bytes) +
-                                 ((size_t) state->max_buffers + 1) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
-    uint32_t          length   = (uint32_t) event.length + prefix;
-    uint16_t          padding  = bufferpoolGetLargeBufferPadding(context->pool);
+    size_t retained = (wire ? storage.wire_bytes : storage.plaintext_bytes) +
+                      ((size_t) state->max_buffers + (wire ? 1 : 2)) * WW_QUIC_EVENT_DESCRIPTOR_CHARGE;
+    uint32_t          length  = (uint32_t) event.length + prefix;
+    uint16_t          padding = bufferpoolGetLargeBufferPadding(context->pool);
     buffer_pool_fit_t fit;
     if (! bufferpoolQueryBestFit(context->pool, length, padding, &fit) ||
         fit.allocation_charge + retained > (size_t) state->max_bytes * 2)
@@ -108,18 +121,20 @@ static bool quicDeliverEvent(quic_context_t *context)
     }
     memoryCopy(data + prefix, staged, event.length);
     sbufSetLength(buffer, length);
+    lineRef(line);
     if (wire)
     {
-        state->output->wire_payload(context->tunnel, context->line, buffer);
+        state->output->wire_payload(context->tunnel, line, buffer);
     }
     else
     {
-        state->output->application_payload(context->tunnel, context->line, buffer);
+        state->output->application_payload(context->tunnel, line, buffer);
     }
+    lineUnref(line);
     return true;
 }
 
-static bool quicWriteApplication(quic_context_t *context, bool finishing)
+static bool quicWriteApplication(quic_context_t *context)
 {
     if (! ww_quic_engine_ready(context->engine))
     {
@@ -147,10 +162,10 @@ static bool quicWriteApplication(quic_context_t *context, bool finishing)
     ww_quic_engine_storage(context->engine, &storage);
     buffer_budget_cost_t pending = bufferbudgetGetUsage(&context->application_budget);
     /* The original allocation remains charged until its suffix is consumed. */
-    if (storage.send_entries + pending.entries + (length > chunk ? 1 : 0) > state->max_buffers ||
+    if (storage.send_entries + quicApplicationEntries(context) + (length > chunk ? 1 : 0) > state->max_buffers ||
         storage.send_allocation + pending.charge + chunk > (size_t) state->max_bytes * 2)
     {
-        if (storage.send_entries == 0 && ! finishing)
+        if (storage.send_entries == 0)
         {
             quicFail(context, "send ledger storage budget exceeded");
             return true;
@@ -159,7 +174,7 @@ static bool quicWriteApplication(quic_context_t *context, bool finishing)
     }
     if (! ww_quic_engine_write(context->engine, sbufGetRawPtr(buffer), chunk))
     {
-        return ! finishing && ww_quic_engine_closed(context->engine);
+        return ww_quic_engine_closed(context->engine);
     }
     sbufShiftRight(buffer, chunk);
     bufferbudgetReservationSetBytes(&context->application_reservation, sbufGetLength(buffer));
@@ -170,9 +185,22 @@ static bool quicWriteApplication(quic_context_t *context, bool finishing)
     return true;
 }
 
+static bool quicDrainExpired(quic_context_t *context)
+{
+    if (context->final_flush && ! ww_quic_engine_closing(context->engine) &&
+        ww_quic_now_us() >= context->final_deadline_us)
+    {
+        quicFail(context, "data/FIN delivery unconfirmed at close-drain deadline");
+        return true;
+    }
+    return false;
+}
+
 void quicPump(quic_context_t *context)
 {
     assert(context->driving && context->attached);
+    if (quicDrainExpired(context))
+        return;
     if (! context->started)
     {
         context->started = true;
@@ -183,6 +211,8 @@ void quicPump(quic_context_t *context)
     unsigned work = 0;
     for (; work < kQuicPumpWork && quicSurvived(context); ++work)
     {
+        if (quicDrainExpired(context))
+            break;
         if (quicDeliverEvent(context))
         {
             continue;
@@ -200,7 +230,7 @@ void quicPump(quic_context_t *context)
         {
             continue;
         }
-        if (quicWriteApplication(context, false))
+        if (quicWriteApplication(context))
         {
             continue;
         }
@@ -221,114 +251,40 @@ void quicPump(quic_context_t *context)
     }
     if (quicSurvived(context))
     {
-        quicReconcileCarrierDrain(context);
-    }
-    if (quicSurvived(context))
-    {
         quicArm(context, work == kQuicPumpWork || generation != context->input_generation);
     }
 }
 
-/* The final write pump does not itself wait for peer acknowledgements. */
-void quicFinalWire(quic_context_t *context)
-{
-    bool flushed = false;
-    for (unsigned work = 0; work < kQuicPumpWork && quicSurvived(context); ++work)
-    {
-        ww_quic_event_t event;
-        if (ww_quic_engine_peek(context->engine, &event))
-        {
-            quicDeliverEvent(context);
-            continue;
-        }
-        if (ww_quic_engine_closed(context->engine))
-        {
-            break;
-        }
-        if (quicWriteApplication(context, true))
-        {
-            continue;
-        }
-        if (! flushed)
-        {
-            flushed = true;
-            ww_quic_engine_flush(context->engine);
-            continue;
-        }
-        break;
-    }
-}
-
-bool quicApplicationPending(quic_context_t *context)
-{
-    return ww_quic_engine_application_pending(context->engine) || context->active_input != NULL ||
-           bufferqueueGetBufCount(&context->input) > 0;
-}
-
-/* After the carrier finished, the application receives what had arrived and
- * then its Finish; an engine failure ends the drain through quicFail. */
-void quicReconcileCarrierDrain(quic_context_t *context)
-{
-    if (! context->carrier_drain || quicApplicationPending(context))
-    {
-        return;
-    }
-    context->carrier_drain = false;
-    quicRetire(context);
-}
-
-/* True when the line owner's destroy waited for this drain; the caller must
- * finish the still-open side before completing that destroy. */
-bool quicEndFinalDrain(quic_context_t *context)
-{
-    if (! context->close_drain_held)
-    {
-        return false;
-    }
-    context->close_drain_held = false;
-    return lineEndCloseDrain(context->line);
-}
-
 void quicReconcileFinal(quic_context_t *context)
 {
-    if (! context->final_flush)
+    ww_quic_event_t pending;
+    if (ww_quic_engine_closing(context->engine))
     {
+        /* A connection-close packet can follow plaintext staged in the same
+         * engine call. A fairness yield must not retire that reader early. */
+        if (context->application_line != NULL && ! ww_quic_engine_peek(context->engine, &pending) &&
+            ! ww_quic_engine_holding(context->engine))
+            quicPeerFinish(context);
+        /* Protocol closing/draining has its own fixed, bounded deadline. */
+        context->final_flush = false;
         return;
     }
-    if (! context->fin_sent && context->active_application == NULL && bufferqueueGetBufCount(&context->application) == 0)
+    if (! context->final_flush)
+        return;
+    if (quicDrainExpired(context))
+        return;
+    if (! context->fin_sent && context->active_application == NULL &&
+        bufferqueueGetBufCount(&context->application) == 0 && ww_quic_engine_ready(context->engine))
     {
-        /* A peer on a datagram carrier otherwise learns of the end only from its idle timeout,
-         * and the packets it sends until then open new associations. */
         context->fin_sent = ww_quic_engine_finish(context->engine);
         if (context->fin_sent)
-        {
-            quicFinalWire(context);
-            if (! quicSurvived(context))
-            {
-                return;
-            }
-        }
+            ++context->input_generation; // Deliver newly staged FIN without waiting for an unrelated alarm.
     }
-    ww_quic_storage_t storage;
-    ww_quic_engine_storage(context->engine, &storage);
-    const uint64_t now          = ww_quic_now_us();
-    const bool     acknowledged = context->fin_sent && storage.send_bytes == 0;
-    /* A peer that closes on the FIN may never acknowledge it. */
-    if (acknowledged && now + kQuicFinAcknowledgeWaitUs < context->final_deadline_us)
+    if (context->fin_sent && ww_quic_engine_finish_acked(context->engine) &&
+        ww_quic_engine_peer_finished(context->engine) && ! ww_quic_engine_peek(context->engine, &pending))
     {
-        context->final_deadline_us = now + kQuicFinAcknowledgeWaitUs;
-    }
-    if (now < context->final_deadline_us)
-    {
-        return;
-    }
-    context->final_flush = false;
-    if (acknowledged)
-    {
-        quicRetire(context);
-    }
-    else
-    {
-        quicFail(context, "final data was not acknowledged in time");
+        context->final_flush = false;
+        ww_quic_engine_begin_close(context->engine);
+        ++context->input_generation;
     }
 }

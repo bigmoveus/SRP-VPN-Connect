@@ -1,6 +1,7 @@
 #pragma once
 #include "DomainResolver/interface.h"
-#include "VmessCommon/crypto.h"
+#include "ProxyClientCommon/first_payload_window.h"
+#include "VmessCommon/record_reader.h"
 #include "wwapi.h"
 
 typedef enum vmessclient_protocol_e
@@ -30,7 +31,6 @@ typedef enum vmessclient_close_origin_e
 enum
 {
     kVmessClientMaxOrderBytes     = 4 * 1024 * 1024,
-    kVmessClientMaxOrderEntries   = 1024,
     kVmessClientMaxOrderCharge    = 8 * 1024 * 1024,
     kVmessClientUuidLen           = 16,
     kVmessClientTcpRecordSize     = 16384,
@@ -88,9 +88,8 @@ typedef struct vmessclient_lstate_s
     vmessclient_line_kind_t kind;
     vmessclient_phase_t     phase;
     address_context_t       target_addr;
-    wtimer_t               *first_payload_timer;
-    uint64_t                first_payload_deadline_us;
-    bool                    request_sent, est_notifying, carrier_paused, next_paused, first_payload_due;
+    first_payload_window_t  first_payload;
+    bool                    request_sent, est_notifying, carrier_paused, next_paused;
     bool response_complete, transmitting, receiving, closing, upstream_pause_sent, downstream_pause_sent;
     /* Storage belongs to the outer synchronous close frame. */
     struct vmessclient_close_context_s *close_context;
@@ -100,9 +99,9 @@ typedef struct vmessclient_lstate_s
     uint8_t                             response_key[16], response_iv[16], response_marker;
     buffer_queue_t                      pending_up, pending_down;
     buffer_budget_t                     upstream_budget, downstream_budget;
-    buffer_budget_reservation_t         transmit_reservation, input_reservation, body_reservation;
-    sbuf_t                             *transmit_head, *receive_head, *body_buffer;
-    uint32_t                            body_length, body_filled;
+    buffer_budget_reservation_t         transmit_reservation, input_reservation;
+    sbuf_t                             *transmit_head, *receive_head;
+    vmess_record_reader_t               record_reader;
     uint8_t                             header[293];
     uint16_t                            header_filled, response_length;
 } vmessclient_lstate_t;

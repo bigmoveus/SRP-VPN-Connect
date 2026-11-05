@@ -88,7 +88,7 @@ static bool handleOpenFrame(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *p
     muxserverJoinConnection(parent_ls, new_child_ls);
 
     lineRef(parent_l);
-    new_child_ls->source_starting = true;
+    new_child_ls->child_flow.source_starting = true;
     lineRef(child_l);
     tunnelNextUpStreamInit(t, child_l);
     if (lineIsAlive(child_l) && ((muxserver_lstate_t *) lineGetState(child_l, t))->is_child)
@@ -107,9 +107,9 @@ static bool childRetainsData(muxserver_lstate_t *child_ls)
 
 /* The protocol above judges a client's first bytes as one payload, and a carrier read boundary
  * inside them would look like a segmented handshake, so the first DATA frame arrives whole. */
-static bool childWaitsForWholeFrame(const muxserver_lstate_t *child_ls)
+static bool childWaitsForWholeFrame(muxserver_lstate_t *child_ls)
 {
-    return ! child_ls->first_data_delivered || childRetainsData((muxserver_lstate_t *) child_ls);
+    return ! child_ls->first_data_delivered || childRetainsData(child_ls);
 }
 
 static bool processFrameForChild(tunnel_t *t, line_t *parent_l, mux_frame_t *frame, sbuf_t *frame_buffer,

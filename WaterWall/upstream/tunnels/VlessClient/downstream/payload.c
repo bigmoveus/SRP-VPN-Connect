@@ -22,22 +22,24 @@ void vlessclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     size_t limit = ls->kind == kVlessClientLineKindDirect
                        ? (ls->response_complete ? kVlessClientMaxOrderBytes : kVlessClientMaxTcpWireBytes)
                        : kVlessClientMaxUdpBufferedBytes;
-    /* A completed TCP response leaves body-ordering storage, not UDP parser
-     * fragments. Count every still-local head once; handoff removes it before
-     * callbacks can admit more input. Ready synchronous forwarding stays above. */
-    bool entries_full =
-        ls->kind == kVlessClientLineKindDirect && ls->response_complete &&
-        bufferqueueGetBufCount(&ls->pending_down) + (ls->receive_head != NULL) >= kVlessClientMaxOrderEntries;
-    if (UNLIKELY(entries_full || length > limit - ls->receive_bytes ||
-                 ! bufferqueueTryPushBack(&ls->pending_down, &buf)))
+    /* Nested TCP output retains allocation capacity until its ordered handoff. */
+    const size_t retained_charge = bufferreaderCharge(&ls->reader);
+    const bool   charge_full     = ls->kind == kVlessClientLineKindDirect && ls->response_complete &&
+                             (retained_charge > kVlessClientMaxOrderCharge ||
+                              sbufGetQueueCharge(buf) > kVlessClientMaxOrderCharge - retained_charge);
+    if (UNLIKELY(charge_full || ! bufferreaderTryPush(&ls->reader, &buf, limit)))
     {
         lineReuseBuffer(l, buf);
         vlessclientCloseLine(t, l, kVlessClientCloseInternal);
         return;
     }
-    ls->receive_bytes += length;
     if (ls->receiving)
+    {
+        /* UDP input must settle while the outer callback owns the parser. */
+        if (ls->kind == kVlessClientLineKindUdpCarrier && ! bufferreaderSettle(&ls->reader, kVlessClientMaxInputCharge))
+            vlessclientCloseLine(t, l, kVlessClientCloseInternal);
         return;
+    }
     line_t *application = ls->kind == kVlessClientLineKindUdpCarrier ? ls->application_line : l;
     lineRef(l);
     if (application != l)
@@ -67,7 +69,7 @@ void vlessclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
             tunnelPrevDownStreamPayload(t, application, body);
             continue;
         }
-        if (! vlessclientReadUdpHeader(ls) || ls->receive_bytes - ls->header_filled < ls->body_length)
+        if (! vlessclientReadUdpHeader(ls) || ! bufferreaderBodyReady(&ls->reader, ls->body_length))
             break;
         sbuf_t *body = vlessclientExtractUdpBody(ls);
         /* Parser cursor and accounting are committed before any reentrant callback. */
@@ -75,8 +77,14 @@ void vlessclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     }
     if (vlessclientAssociationAlive(t, l, application))
     {
-        ls->receiving = false;
-        vlessclientTryBypass(t, l, ls);
+        /* Complete frames drain first, including after response metadata. */
+        if (ls->kind == kVlessClientLineKindUdpCarrier && ! bufferreaderSettle(&ls->reader, kVlessClientMaxInputCharge))
+            vlessclientCloseLine(t, l, kVlessClientCloseInternal);
+        else
+        {
+            ls->receiving = false;
+            vlessclientTryBypass(t, l, ls);
+        }
     }
     if (application != l)
         lineUnref(application);

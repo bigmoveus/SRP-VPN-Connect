@@ -25,41 +25,36 @@ its own MTU; other node overrides do not change it. An invalid inherited core
 Because it is a packet adapter, this node does not create per-connection lines. It uses worker packet lines provided by the chain.
 
 Linux uses worker-owned receive queues. With the default `multi-queue: true`, a
-newly created interface attempts one queue per event worker with fixed kernel
-steering. Unavailable multiqueue or steering falls back to one queue owned by
-worker 0. Existing single-queue interfaces remain supported. Unfragmented IPv4
-TCP/UDP retains the same symmetric address/port/protocol hash as processing-worker
-affinity, allowing connections between the same hosts to use different queues.
-Complete, structurally valid IPv4 packets of other protocols use approximate
-round-robin receive queues and continue processing on their receiving worker.
-Each interface's eBPF map keeps a separate bounded 32-bit cursor for each kernel
-CPU. Ordinary increments advance the cursor without atomic operations, and a
-CPU-ID offset avoids starting every CPU at queue zero. Overlapping updates can
-lose a step; this policy does not promise exact global order or equal queue counts.
-Unsupported per-CPU map or steering setup falls back to one reader.
-With multiple receive queues, complete packets continue on their reader worker.
-With one queue, complete native TCP/UDP packets with visible ports use the
-symmetric flow hash, keeping ordered packets of one flow on one worker FIFO.
-Opaque or unclassifiable packets use a session-local round-robin sequence across
-configured workers. Stateful consumers still establish ownership from the tuple
-they actually consume; no downstream-chain inspection is needed.
+new interface attempts one queue per event worker with fixed kernel steering.
+Unavailable multiqueue or steering falls back to one queue owned by worker 0;
+existing single-queue interfaces remain supported. Native IPv4 TCP/UDP uses the
+shared symmetric 32-bit worker hash, matching consumer affinity for an unchanged
+tuple. Opaque IPv4 follows `opaque-flow-mode` below, defaulting to stable-prefix
+hashing. All complete packets continue on their receiving worker with multiple
+queues. A single reader uses the same effective policy before entering worker
+FIFOs; native TCP/UDP flow locality is retained even when workers are delayed.
 
-All IPv4 fragments and TCP/UDP packets too short to contain both ports retain the
-address-pair/protocol fallback. Every fragment of one datagram keeps one reader;
-fragmented and ordinary packets of one connection can still have different
-readers and reorder. The shared fragment table retains its staging and preserved
-fragment affinity; a reassembled datagram follows ordinary complete-packet
-distribution. Parallel receive can reorder packets across readers.
-Malformed packets and unsupported IP versions retain queue-zero selection for
-downstream validation. Startup logs the active queue count. Queue selection is
-independent of `gso`. Set `multi-queue: false` to use one receive queue owned by
-worker 0 while retaining all configured processing workers.
+Only `spread` uses approximate round-robin opaque TUN steering. Its per-interface
+eBPF map has a bounded 32-bit cursor per kernel CPU, ordinary increments and a
+CPU-ID offset. Overlapping updates can lose a step, so exact global order or equal
+queue counts are not guaranteed. Deterministic modes need no spreading map.
+
+All IPv4 fragments, including fragment zero, use the address/protocol kernel
+fallback. The shared fragment table retains staging, preserved bytes and existing
+fragment-zero field classification, including SCTP; worker placement uses the
+shared 32-bit hash separately from the unchanged 64-bit consistency fingerprint.
+Fragmented and ordinary packets of one flow can select different workers.
+Reassembled packets stay on the reader worker with multiple queues and use the
+effective complete-packet policy with one reader. Malformed packets and unsupported
+kernel IP versions retain queue zero and downstream validation. Queue count and
+mode are fixed during activation and independent of `gso`.
 
 Windows receives on worker 0 using Wintun event notifications. Linux and Windows
-have no dedicated application TUN reader thread. Reads use bounded batches.
-Windows and Darwin/BSD use the same single-reader policy: visible native TCP/UDP
-flows stay on a consistent worker, while opaque packets rotate across workers.
-Consumers establish required flow ownership after transformations.
+have no dedicated application TUN reader thread. Windows and Darwin/BSD apply the
+same single-reader policy, including the selected opaque mode. Plain IPv6 TCP/UDP
+keeps its existing software address folding and parsing limits while using the
+shared worker hash; IPv6 kernel steering and opaque-prefix classification are not
+added. Stateful consumers choose their own owner after transformations.
 Darwin/BSD use external reader threads with their own buffer pools.
 
 Windows, macOS and BSD limit queued receive packets to 8 MiB of retained buffer
@@ -160,8 +155,14 @@ Full-route example with local ranges excluded:
 
 ## Optional `settings` Fields
 
+- `opaque-flow-mode` `(string)`
+  Opaque IPv4 receive policy: `prefix` (default), `peer`, `spread`, or `auto`.
+  See the detailed `opaque-flow-mode` section below for selection and limitations.
+
 - `device-mtu` `(integer)`
   MTU to configure on the TUN device, in the inclusive range `68..65535`.
+  It controls packets the OS transmits through the interface into WaterWall;
+  it is not a size limit for packets WaterWall writes back into the OS.
   Fractional numbers, strings, booleans, and `null` are rejected.
 
   Default: global MTU size used by WaterWall.
@@ -401,6 +402,11 @@ When payload reaches `TunDevice` from upstream or downstream:
   packets that cannot be recalculated are dropped with a rate-limited warning
 
 Both upstream and downstream payload handlers write to the same TUN device.
+Writing to TUN delivers an incoming packet to the OS. Valid IPv4 packets up to
+65,535 bytes can take this path even when they exceed `device-mtu`; structure,
+checksum and output-queue checks still apply. The native backend may refuse a
+packet. On Unix, `EMSGSIZE` drops the refused packet or GSO record and allows
+later packets to proceed, without marking the device failed.
 
 Payload callbacks validate and append to the current event worker's output FIFO
 without waiting for capacity or performing native I/O. One deferred flush per
@@ -417,9 +423,10 @@ compatible adjacent TCP data packets into bounded scatter/gather GSO records. It
 takes only packets already available, never waits to fill a batch, and retains
 packet order. A flush processes at most 64 packets and 256 KiB of allocation
 charge; a larger single allocation progresses alone. Remaining packets schedule
-another deferred flush. Each GSO record stays within 65,535 IPv4 bytes. Original packets must still fit
-MTU. UDP, fragments, controls, incompatible TCP packets, interposed nodes and
-`gso:false` keep individual packet writes. Checksum-only writes still include the
+another deferred flush. Each GSO record stays within 65,535 IPv4 bytes. Packets
+selected for GSO coalescing must fit `device-mtu`; larger valid packets use
+individual writes. UDP, fragments, controls, incompatible TCP packets, interposed
+nodes and `gso:false` keep individual packet writes. Checksum-only writes still include the
 virtio header: ordinary untrusted packets use zero metadata and complete bytes;
 trusted TCP/UDP packets may carry a partial seed and `NEEDS_CSUM` with `GSO_NONE`.
 Checksum-only input rejects every non-`GSO_NONE` record. Payload bytes are not
@@ -557,6 +564,61 @@ This is the node's logical advertised left-padding requirement. Linux advertises
 it even when `"gso": false`. Allocation alignment is separate, so it does not
 mean every allocation grows by exactly ten bytes.
 
+### `opaque-flow-mode` (optional, default: `prefix`)
+
+Accepts only the exact strings `prefix`, `peer`, `spread` and `auto`. Empty or
+unknown strings, `null` and other JSON types fail construction on every platform,
+including write-only RawSocket. Omission always selects `prefix`, even beside Ping.
+The setting is independent of `multi-queue`, `gso` and `fragment-policy`; a single
+receive queue still dispatches over the configured processing workers.
+
+For structurally valid, unfragmented IPv4 with Protocol other than TCP (6) or
+UDP (17):
+
+| Value | Receive worker selection |
+| --- | --- |
+| `prefix` | Symmetric hash of addresses, protocol and the first four IP-payload bytes as two big-endian 16-bit endpoint fields. |
+| `peer` | Hash addresses and protocol only; ignore every payload byte. |
+| `spread` | Spread packets using the backend's existing mechanism. |
+| `auto` | Resolve once at startup using the exact direct Ping decoding neighbour below; otherwise use `prefix`. |
+
+The prefix begins after the actual IPv4 header, including options, and must fit
+inside the declared total length. Fewer than four payload bytes use the same
+address/protocol fallback as `peer`. Native TCP/UDP always uses the shared 32-bit
+address/port/protocol worker hash when four transport bytes are present, and the
+address/protocol fallback otherwise; opaque mode never validates transport flags,
+length fields or checksums. IPv6 parsing boundaries and fragment policy are unchanged.
+
+`prefix` keeps a visible flow together only while those four bytes stay stable.
+A fixed XOR can preserve that property; arbitrary encryption or changing masks
+need not. `peer` deliberately groups every opaque packet with the same address
+pair and protocol, concentrating unrelated hidden flows on one worker. `spread`
+can process those flows in parallel but can reorder packets before a consumer
+sees them. A downstream stateful consumer still chooses its owner from the tuple
+it actually consumes after decoding or rewriting.
+
+Only requested `auto` inspects finalized topology before device construction or
+capture activation. Upstream receive publication toward `next` selects `peer`
+only for the immediate physical node of exact type `PingServer`; downstream
+publication toward `prev` selects `peer` only for exact type `PingClient`.
+Encoding directions, intervening nodes, wrappers and all other layouts select
+`prefix`. Instance names do not participate. Explicit modes always take precedence;
+an opposite RawSocket never implies `spread`. With both devices using `auto`:
+
+```text
+TunDevice -> PingClient -> RawSocket
+  prefix                     peer
+
+RawSocket -> PingServer -> TunDevice
+   peer                     prefix
+```
+
+The resolved mode is fixed per device generation, including single-queue fallback
+and restart; readers do not inspect traffic or reevaluate topology per packet.
+Ping passes unrelated packets through, so automatic `peer` groups unrelated
+opaque traffic as well; mixed traffic may require an explicit setting. Startup
+logs requested mode, effective mode, selection reason and effective queue count.
+
 ### `fragment-policy` (optional, default: `reassemble`)
 
 Omitting this setting selects `reassemble`: IPv4 fragments are assembled before
@@ -572,5 +634,7 @@ consumers, regardless of the device policy or intervening nodes. DF alone is not
 a fragment; MF or a nonzero fragment offset is.
 
 Reassembly emits complete IPv4 datagrams up to 65,535 bytes. It does not raise
-packet-output limits or device MTU, and does not automatically fragment output
-again. See Developer Guide Part 4 for assembly bounds and packet ownership.
+other nodes' packet-output limits or the interface MTU, and does not automatically
+fragment output again. TUN writes can inject these datagrams into the OS even
+when they exceed `device-mtu`. See Developer Guide Part 4 for assembly bounds
+and packet ownership.

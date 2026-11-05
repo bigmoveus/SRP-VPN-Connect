@@ -1,7 +1,8 @@
 #pragma once
 
 #include "AuthenticationClient/interface.h"
-#include "VmessCommon/crypto.h"
+#include "FallbackReplay/fallback_replay.h"
+#include "VmessCommon/record_reader.h"
 #include "replay.h"
 #include "wwapi.h"
 
@@ -104,18 +105,17 @@ typedef struct vmessserver_tstate_s
     node_t   *fallback_node;
     tunnel_t *fallback_tunnel;
 
-    vmessserver_user_t    *users;
-    uint32_t               user_count;
-    uint32_t               fallback_intentional_delay_ms;
-    uint32_t               fallback_intentional_delay_jitter_ms;
-    bool                   allow_connect;
-    bool                   allow_udp;
-    bool                   verbose;
-    bool                   send_termination, packetaddr;
-    uint8_t                allowed_security;
-    uint16_t               packetaddr_max_destinations;
-    vmess_counter_policy_t counter_policy;
-    vmessserver_stats_t    stats;
+    vmessserver_user_t      *users;
+    uint32_t                 user_count;
+    fallback_replay_config_t fallback_replay_config;
+    bool                     allow_connect;
+    bool                     allow_udp;
+    bool                     verbose;
+    bool                     send_termination, packetaddr;
+    uint8_t                  allowed_security;
+    uint16_t                 packetaddr_max_destinations;
+    vmess_counter_policy_t   counter_policy;
+    vmessserver_stats_t      stats;
     /* Owner-worker inventories drain internally created backends independently
      * of borrowed carrier/source shutdown order. */
     vmessserver_lstate_t **owned_backends;
@@ -137,13 +137,10 @@ struct vmessserver_lstate_s
     bool                                  next_finished, prev_finished;
     bool                                  finish_pending;
     size_t                                unauth_bytes;
-    uint32_t                              body_length;
     uint16_t                              request_length;
-    sbuf_t                               *body_buffer;
-    uint32_t                              body_filled;
+    vmess_record_reader_t                 record_reader;
     buffer_budget_reservation_t           input_reservation;
     buffer_budget_reservation_t           response_reservation;
-    buffer_budget_reservation_t           body_reservation;
     tunnel_t                             *tunnel;
     line_t                               *line;
     line_t                               *client_line;
@@ -159,14 +156,15 @@ struct vmessserver_lstate_s
     bool                  permission_dispatching, permission_pending;
     buffer_queue_t        pending_up;
     sbuf_t               *input_head;
-    size_t                input_bytes;
-    uint8_t               header[kVmessServerInitialMaxReqLen];
-    uint16_t              header_filled;
-    buffer_budget_t       upstream_budget;
-    buffer_budget_t       response_budget;
+    /* Source wire bytes, including handshake metadata but excluding reader-owned records. */
+    size_t          input_bytes;
+    uint8_t         header[kVmessServerInitialMaxReqLen];
+    uint16_t        header_filled;
+    buffer_budget_t upstream_budget;
+    buffer_budget_t response_budget;
     /* Response-header/reentry ordering only; direct ready replies are forwarded. */
     buffer_queue_t          pending_down;
-    buffer_queue_t         *fallback_pending_up;
+    fallback_replay_t       fallback;
     user_handle_t           user_handle;
     char                   *auth_username; // resolved account name, owned (NULL if none)
     char                   *auth_password; // resolved raw password / UUID, owned (NULL if none)
@@ -185,9 +183,6 @@ struct vmessserver_lstate_s
     /* Client-side upstream permission: current backend contribution and emitted hold. */
     bool udp_backend_paused : 1;
     bool udp_source_pause_sent : 1;
-    bool fallback_close_draining : 1;
-    bool fallback_branch_finished_during_drain : 1;
-    bool fallback_delay_scheduled : 1;
 };
 
 enum
@@ -203,5 +198,4 @@ enum
     kVmessServerBufferQueueCap         = 8,
     kVmessServerMaxBufferedBytes       = 2 * 1024 * 1024 + 65537,
     kVmessServerMaxPendingBytes        = 2 * 1024 * 1024,
-    kVmessServerMaxPendingBuffers      = 1024
 };

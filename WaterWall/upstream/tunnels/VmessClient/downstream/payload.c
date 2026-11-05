@@ -18,12 +18,11 @@ void vmessclientTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     if (! ls->request_sent || ! bufferqueueTryPushBack(&ls->pending_down, &buf))
     {
         const buffer_budget_cost_t usage = bufferbudgetGetUsage(&ls->downstream_budget);
-        LOGE("VmessClient: downstream input rejected: request_sent=%u bytes=%zu charge=%zu entries=%zu input_bytes=%zu "
+        LOGE("VmessClient: downstream input rejected: request_sent=%u bytes=%zu charge=%zu input_bytes=%zu "
              "input_charge=%zu paused=%u",
              ls->request_sent ? 1U : 0U,
              usage.bytes,
              usage.charge,
-             usage.entries,
              sbufGetLength(buf),
              sbufGetAllocationCharge(buf),
              ls->downstream_pause_sent ? 1U : 0U);

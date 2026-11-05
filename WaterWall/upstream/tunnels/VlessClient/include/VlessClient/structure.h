@@ -1,6 +1,8 @@
 #pragma once
 
 #include "DomainResolver/interface.h"
+#include "ProxyClientCommon/first_payload_window.h"
+#include "VlessCommon/input.h"
 #include "wwapi.h"
 
 typedef enum vlessclient_protocol_e
@@ -34,16 +36,17 @@ typedef enum vlessclient_close_origin_e
 enum
 {
     kVlessClientMaxOrderBytes       = 2 * 1024 * 1024,
-    kVlessClientMaxOrderEntries     = 1024,
+    kVlessClientMaxOrderCharge      = 8U * 1024U * 1024U,
     kVlessClientUuidLen             = 16,
     kVlessClientResponseLen         = 2,
-    kVlessClientUdpHeaderLen        = 2,
+    kVlessClientUdpHeaderLen        = kVlessUdpHeaderLen,
     /* Maximum domain request plus the first datagram's length prefix. */
     kVlessClientInitialPadding      = 23 + UINT8_MAX + kVlessClientUdpHeaderLen,
     kVlessClientUdpMaxPacket        = UINT16_MAX,
     kVlessClientResponseMaxLen      = 257,
     kVlessClientMaxTcpWireBytes     = 2097409,
     kVlessClientMaxUdpBufferedBytes = 2162689,
+    kVlessClientMaxInputCharge      = 8 * 1024 * 1024,
 };
 
 typedef struct vlessclient_tstate_s
@@ -77,29 +80,24 @@ typedef struct vlessclient_lstate_s
     bool request_sent : 1;
     bool est_notifying : 1;
     bool carrier_paused : 1; // UDP carrier-head permission for the independent idle-header producer.
-    bool first_payload_due : 1;
     bool response_complete : 1;
     bool receiving : 1;
 
     address_context_t target_addr;
 
     /* Transport context and the independent first-payload deadline. */
-    tunnel_t *tunnel;
-    wtimer_t *first_payload_timer;
-    uint64_t  first_payload_deadline_us;
+    tunnel_t              *tunnel;
+    first_payload_window_t first_payload;
 
-    /* Each FIFO entry is one admitted nested input batch. The outer parser
-     * completes these in order and retains only an incomplete wire suffix.
-     * No ready output or application payload is queued for Pause or Est. */
-    buffer_queue_t pending_down;
+    /* Admitted input follows the active head in FIFO order; pressure compaction
+     * may coalesce entries. The outer parser completes these batches in order
+     * and retains only an incomplete wire suffix. No ready output or application
+     * payload is queued for Pause or Est. */
+    buffer_reader_t reader;
 
-    /* Response decoder on direct/carrier lines, then UDP decoder on the carrier. The popped head is still owned here;
-     * receive_bytes includes queued bytes, this head and the cached header. */
-    sbuf_t  *receive_head;
-    size_t   receive_bytes;
+    /* Response metadata on direct/carrier lines, then UDP metadata on carriers.
+     * The reader includes this cache in its retained logical-byte accounting. */
     uint8_t  header[kVlessClientResponseMaxLen];
-    uint16_t header_filled;
-    uint16_t header_needed;
     uint16_t body_length;
 } vlessclient_lstate_t;
 

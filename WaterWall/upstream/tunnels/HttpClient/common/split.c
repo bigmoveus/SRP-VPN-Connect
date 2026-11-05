@@ -431,7 +431,7 @@ void httpclientSplitUpStreamFinish(tunnel_t *t, line_t *l)
     lineUnref(l);
 }
 
-void httpclientSplitDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+void httpclientSplitProcessDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     httpclient_lstate_t *ls = lineGetState(l, t);
 
@@ -503,12 +503,27 @@ void httpclientSplitDownStreamFinish(tunnel_t *t, line_t *l)
         if (main_line != NULL && lineIsAlive(main_line))
         {
             lineRef(main_line);
-            httpclientSplitDestroyCreatedLine(t, l, false);
+            httpclient_lstate_t *main_ls = lineGetState(main_line, t);
+            if (main_ls->prev_finished)
+            {
+                httpclientSplitDestroyCreatedLine(t, l, false);
+                lineUnref(main_line);
+                return;
+            }
             lineUnref(main_line);
-            return;
         }
     }
 
     // Entered because this transport's next finished us, so do not re-finish that next side.
     httpclientSplitCloseFromTransport(t, l, true, false);
+}
+
+void httpclientSplitDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
+{
+    httpclientTunnelDownStreamPayload(t, l, buf);
+}
+
+void httpclientSplitRejectInput(tunnel_t *t, line_t *l)
+{
+    httpclientSplitCloseFromTransport(t, l, true, true);
 }

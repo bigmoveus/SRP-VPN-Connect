@@ -48,11 +48,10 @@ void vmessclientTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     if (! bufferqueueTryPushBack(&next_ls->pending_up, &buf))
     {
         const buffer_budget_cost_t usage = bufferbudgetGetUsage(&next_ls->upstream_budget);
-        LOGE("VmessClient: upstream input rejected: bytes=%zu charge=%zu entries=%zu input_bytes=%zu input_charge=%zu "
+        LOGE("VmessClient: upstream input rejected: bytes=%zu charge=%zu input_bytes=%zu input_charge=%zu "
              "paused=%u",
              usage.bytes,
              usage.charge,
-             usage.entries,
              sbufGetLength(buf),
              sbufGetAllocationCharge(buf),
              next_ls->upstream_pause_sent ? 1U : 0U);

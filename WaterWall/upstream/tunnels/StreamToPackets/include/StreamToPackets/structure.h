@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Ipv4StreamCodec/input.h"
 #include "wwapi.h"
 
 typedef enum streamtopackets_packet_validation_level_e
@@ -78,6 +79,7 @@ typedef struct streamtopackets_tstate_s
 typedef struct streamtopackets_lstate_s
 {
     buffer_stream_t read_stream;       // On stream lines: per-line framed-packet parser state
+    ipv4stream_input_t read_input;        // Serializes and bounds nested deliveries
     uint64_t        line_id;           // Registry identity of this line, unique per tunnel instance
     uint64_t        source_generation; // Source epoch this line was activated in; zero while a candidate
     bool            tracked;           // Whether a registry entry was published for this line

@@ -3,7 +3,11 @@
 void softiplimiterTunnelUpStreamPause(tunnel_t *t, line_t *l)
 {
     softiplimiter_lstate_t *ls = lineGetState(l, t);
-    if (softiplimiterPhaseForwards(ls->phase))
+    if (ls->closing || ls->phase == kSoftIpLimiterPhaseClosing)
+    {
+        return;
+    }
+    if (nextinitgateSignal(&ls->gate, true))
     {
         tunnelNextUpStreamPause(t, l);
     }

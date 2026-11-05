@@ -12,9 +12,10 @@ void vmessserverLinestateInitialize(vmessserver_lstate_t *ls, tunnel_t *t, line_
     };
     bufferqueueInitEmpty(&ls->pending_up);
     bufferqueueInitEmpty(&ls->pending_down);
-    buffer_budget_cost_t limits = {kVmessServerMaxPendingBytes, 8U * 1024U * 1024U, kVmessServerMaxPendingBuffers};
+    buffer_budget_cost_t limits = {kVmessServerMaxPendingBytes, 8U * 1024U * 1024U};
     bufferbudgetInit(&ls->upstream_budget, limits);
     bufferbudgetInit(&ls->response_budget, limits);
+    vmessRecordReaderInit(&ls->record_reader, lineGetBufferPool(l), &ls->upstream_budget);
     bool attached = bufferqueueTryAttachBudget(&ls->pending_up, &ls->upstream_budget) &&
                     bufferqueueTryAttachBudget(&ls->pending_down, &ls->response_budget);
     assert(attached);
@@ -35,20 +36,14 @@ void vmessserverLinestateDestroy(vmessserver_lstate_t *ls)
     vmessBodyDestroy(&ls->input_crypto);
     vmessBodyDestroy(&ls->output_crypto);
     bufferbudgetReservationRelease(&ls->input_reservation);
-    bufferbudgetReservationRelease(&ls->body_reservation);
+    vmessRecordReaderDestroy(&ls->record_reader);
     bufferbudgetReservationRelease(&ls->response_reservation);
-    if (ls->body_buffer)
-        lineReuseBuffer(ls->line, ls->body_buffer);
     addresscontextReset(&ls->udp_target);
     if (ls->input_head != NULL)
         lineReuseBuffer(ls->line, ls->input_head);
     bufferqueueDestroy(&ls->pending_up);
     bufferqueueDestroy(&ls->pending_down);
-    if (ls->fallback_pending_up != NULL)
-    {
-        bufferqueueDestroy(ls->fallback_pending_up);
-        memoryFree(ls->fallback_pending_up);
-    }
+    fallbackReplayDestroy(&ls->fallback, lineGetBufferPool(ls->line));
     bufferbudgetAssertEmpty(&ls->upstream_budget);
     bufferbudgetAssertEmpty(&ls->response_budget);
     if (ls->auth_username != NULL)

@@ -68,7 +68,7 @@ def advanced_specs():
     add("adv-http-headers", "http", {"path": "/matrix", "user-agent": "SRP-Matrix",
         "headers": {"X-Test": "WaterWall"}}, outer="tls")
     result[-1] = result[-1][:4] + ("http",) + result[-1][5:]
-    add("adv-kcp-fec", "kcp", {"mtu": 1350, "fec": True, "fec-data-shards": 10,
+    add("adv-kcp-fec", "kcp", {"send-mtu": 1350, "fec": True, "fec-data-shards": 10,
         "fec-parity-shards": 3, "kcp-nodelay": True, "kcp-interval-ms": 20}, carrier="kcp")
     add("adv-kcp-windows", "kcp", {"kcp-send-window": 128, "kcp-recv-window": 128,
         "kcp-initial-cwnd": 16, "kcp-send-buffer-limit": 256}, carrier="kcp")

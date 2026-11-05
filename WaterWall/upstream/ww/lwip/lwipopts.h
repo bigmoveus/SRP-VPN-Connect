@@ -309,13 +309,12 @@ a lot of data that needs to be copied, this should be set high. */
 #define LWIP_ALTCP_TLS_MBEDTLS (LWIP_TCP)
 #endif
 
-/* Controls if TCP should queue segments that arrive out of
-   order. Define to 0 if your device is low on memory. */
-#define TCP_QUEUE_OOSEQ      1
+    /* Controls if TCP should queue segments that arrive out of
+       order. Define to 0 if your device is low on memory. */
+#define TCP_QUEUE_OOSEQ       1
 
     /* Report retained receive gaps to peers that negotiate SACK. These fixed
-       metadata ranges do not increase the out-of-order payload budget below.
-       Without them a sender repairs one segment per round trip. */
+       metadata ranges do not increase the out-of-order payload budget below. */
 #define LWIP_TCP_SACK_OUT     1
 #define LWIP_TCP_MAX_SACK_NUM 4
 
@@ -340,11 +339,6 @@ a lot of data that needs to be copied, this should be set high. */
 /* TCP Maximum segment size. */
 #define TCP_MSS              1460        // 1024
 
-/* iOS's TCP takes the prompt ACK of a retransmission for proof it was needless unless the
-   echoed timestamp says otherwise, and then repairs a lost stretch at one segment per
-   retransmission timeout, about 300 ms each. */
-#define LWIP_TCP_TIMESTAMPS  1
-
     /* Per-connection send capacity; payload storage still comes from the bounded
        process-wide pools in lwippools.h and can apply backpressure earlier. */
 #define TCP_SND_BUF          (2 * 1024 * 1024)
@@ -359,14 +353,11 @@ a lot of data that needs to be copied, this should be set high. */
        lwIP's 16-bit readiness limit even when the send buffer is larger. */
 #define TCP_SNDLOWAT         LWIP_MIN((TCP_SND_BUF / 2), (0xFFFF - (4 * TCP_MSS) - 1))
 
-    /* Receive capacity, 2 MiB unless WW_LWIP_TCP_WND overrides it. The window
-       also bounds what a local sender may still deliver after the next tunnel
-       pauses the flow, and what a phone's TCP queues in front of a raw IP chain:
-       at 4 MiB four long uploads overflow Android's read-ahead, and all of them
-       then send about a third of their data twice. Scale 7 covers up to 8 MiB in
-       the 16-bit wire field; peers without scaling retain lwIP's unscaled limit. */
+    /* Fixed receive capacity, smaller where WW_LWIP_TCP_WND overrides it. Scale 7
+       represents the full default 4 MiB window in the 16-bit wire field; peers
+       without scaling retain lwIP's unscaled limit. */
 #ifndef WW_LWIP_TCP_WND
-#define WW_LWIP_TCP_WND      (2 * 1024 * 1024)
+#define WW_LWIP_TCP_WND      (4 * 1024 * 1024)
 #endif
 #define TCP_WND              (WW_LWIP_TCP_WND)
 #define LWIP_WND_SCALE       1

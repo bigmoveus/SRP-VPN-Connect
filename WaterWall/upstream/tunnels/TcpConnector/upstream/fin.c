@@ -1,5 +1,7 @@
 #include "structure.h"
 
+#include "TcpAdapterCommon/close_linger.h"
+
 #include "loggers/network_logger.h"
 
 void tcpconnectorTunnelUpStreamFinish(tunnel_t *t, line_t *l)
@@ -24,12 +26,14 @@ void tcpconnectorTunnelUpStreamFinish(tunnel_t *t, line_t *l)
         abortProgramNow(1);
     }
     weventSetUserData(ls->io, NULL);
+    wioSetCallBackWrite(ls->io, NULL);
 
     // Sample while the socket is surely open; a failed flush may close it.
     linkqualityRecordTcpClose(&ls->quality, ls->io, 0);
     tcpconnectorFlushWriteQueue(ls);
 
-    wioClose(ls->io);
+    if (! lineShouldLingerOnClose(l) || ! tcpAdapterBeginCloseLinger(ls->io, tcpconnectorGetLineIdleTable(ts, l)))
+        wioClose(ls->io);
 
     tcpconnectorLinestateDestroy(ls);
 }

@@ -172,10 +172,8 @@ class DeviceMatrix(SupportedMatrix):
                 {"name": "blackhole", "type": "BlackHole", "settings": {"mode": "passive"}}]})
             self.scp(self.work / f"{name}-cover.json", cover)
         write_json(local_peer, {"name": name + "-peer", "nodes": nodes})
-        # With the default 2 tries, a lookup through the server's fast local resolver gives up within 0.75 s and closes the line.
         core_config = {"misc": {"workers": 1, "ram-profile": "minimal", "splice": False,
                                  "try-enabling-bbr": False, "tcp-tune": False},
-                       "dns": {"tries": 5},
                        "configs": configs}
         if os.environ.get("SRP_TEST_PEER_DEBUG") == "1":
             core_config["log"] = {channel: {"loglevel": "DEBUG", "console": True}

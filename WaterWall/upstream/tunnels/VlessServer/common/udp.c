@@ -1,7 +1,5 @@
 #include "internal.h"
 
-#include "loggers/network_logger.h"
-
 void vlessserverSetUdpBackendPaused(tunnel_t *t, line_t *remote_l, bool paused)
 {
     vlessserver_lstate_t *remote   = lineGetState(remote_l, t);
@@ -96,16 +94,19 @@ bool vlessserverStartUdpBranch(tunnel_t *t, line_t *l, vlessserver_lstate_t *ls,
 
 bool vlessserverDrainUdpPackets(tunnel_t *t, line_t *l, vlessserver_lstate_t *ls)
 {
-    while (ls->input_bytes != 0)
+    while (bufferreaderLength(&ls->reader) != 0)
     {
-        if (! vlessserverGatherHeader(ls, 2))
+        uint16_t packet_size;
+        if (! vlessReadUdpHeader(&ls->reader, &packet_size))
             return true;
-        uint16_t packet_size = ((uint16_t) ls->header[0] << 8U) | ls->header[1];
-        if (ls->input_bytes - 2U < packet_size)
-            return true;
-        if (((vlessserver_tstate_t *) tunnelGetState(t))->verbose)
+        if (! bufferreaderBodyReady(&ls->reader, packet_size))
         {
-            LOGD("VlessServer: UDP datagram length=%u", (unsigned int) packet_size);
+            if (! bufferreaderSettle(&ls->reader, kVlessServerMaxInputCharge))
+            {
+                vlessserverCloseLineBidirectional(t, l);
+                return false;
+            }
+            return true;
         }
         buffer_pool_t *pool   = lineGetBufferPool(l);
         sbuf_t        *packet = vlessserverExtractUdpBody(ls, packet_size);
@@ -152,20 +153,7 @@ bool vlessserverWrapUdpPayload(line_t *l, sbuf_t **buf_io)
         return false;
     }
 
-    if (UNLIKELY(sbufGetLeftCapacity(buf) < kVlessServerUdpHeaderLen))
-    {
-        buffer_pool_t *pool    = lineGetBufferPool(l);
-        uint16_t       padding = max(bufferpoolGetLargeBufferPadding(pool), kVlessServerUdpHeaderLen);
-        sbuf_t        *wrapped = sbufIsSplice(buf) ? bufferpoolGetSpliceBuffer(pool) : NULL;
-        if (wrapped != NULL && sbufGetLeftCapacity(wrapped) < padding)
-        {
-            bufferpoolReuseBuffer(pool, wrapped);
-            wrapped = NULL;
-        }
-        wrapped = sbufMoveRangeTo(pool, buf, wrapped, payload, payload, padding);
-        lineReuseBuffer(l, buf);
-        buf = wrapped;
-    }
+    buf = sbufEnsureLeftCapacity(lineGetBufferPool(l), buf, kVlessServerUdpHeaderLen);
     sbufShiftLeft(buf, kVlessServerUdpHeaderLen);
 
     *buf_io = buf;

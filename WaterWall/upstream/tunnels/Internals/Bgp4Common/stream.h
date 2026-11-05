@@ -3,36 +3,38 @@
 #include "loggers/network_logger.h"
 #include "wwapi.h"
 
-/* The BGP-like wire and logical retention policy do not depend on pool geometry. */
+/* The BGP-like wire and retention limits do not depend on pool geometry. */
 enum
 {
-    kBgpFramePrefix    = 19,
-    kBgpMaxApplication = 65534,
-    kBgpMaxWireFrame   = 65553,
-    kBgpPendingBytes   = 2 * 1024 * 1024 + kBgpMaxWireFrame,
-    kBgpOutputEntries  = 1024
+    kBgpFramePrefix     = 19,
+    kBgpMaxApplication  = 65534,
+    kBgpMaxWireFrame    = 65553,
+    kBgpPendingBytes    = 2 * 1024 * 1024 + kBgpMaxWireFrame,
+    kBgpReadChargeLimit = 2 * kBgpPendingBytes,
+    kBgpOutputChargeLimit = 8U * 1024U * 1024U
 };
 
 typedef struct bgp_stream_s
 {
-    splice_stream_t *read_stream;
-    buffer_queue_t   output;
-    bool             encode_pumping;
-    bool             decode_pumping;
-    bool             client;
-    bool             open; // Client OPEN admitted, or server OPEN validated.
+    splice_frame_reader_t reader;
+    buffer_queue_t        output;
+    uint8_t               open_optional_remaining;
+    bool                  encode_pumping : 1;
+    bool                  client : 1;
+    bool                  open : 1; // Client OPEN admitted, or server OPEN validated.
 } bgp_stream_t;
 
-static inline void bgpStreamInitialize(bgp_stream_t *s, line_t *l, bool client)
+static inline void bgpStreamInitialize(bgp_stream_t *s, line_t *l, bool client, bool splice_output)
 {
     *s = (bgp_stream_t) {.client = client};
     bufferqueueInitEmpty(&s->output);
-    s->read_stream = splicestreamCreate(lineGetBufferPool(l), kBgpFramePrefix);
+    spliceframereaderInit(
+        &s->reader, lineGetBufferPool(l), kBgpFramePrefix, kBgpPendingBytes, kBgpReadChargeLimit, splice_output);
 }
 
 static inline void bgpStreamDestroy(bgp_stream_t *s)
 {
-    splicestreamDestroy(s->read_stream);
+    spliceframereaderDestroy(&s->reader);
     bufferqueueDestroy(&s->output);
     memoryZeroAligned32(s, tunnelGetCorrectAlignedLineStateSize(sizeof(*s)));
 }
@@ -51,7 +53,11 @@ static inline void bgpClose(tunnel_t *t, line_t *l, bgp_stream_t *s, const char 
 /* The header cache is borrowed only until extraction mutates the stream. */
 static inline bool bgpHeaderValid(const bgp_stream_t *s)
 {
-    const uint8_t *h = splicestreamPeekHeader(s->read_stream);
+    /* The active header was validated before BeginFrame. In particular, the
+     * initial OPEN stays cached while its application bytes stream onward. */
+    if (spliceframereaderFrameActive(&s->reader))
+        return true;
+    const uint8_t *h = spliceframereaderPeekHeader(&s->reader);
     if (h == NULL)
         return true;
     for (unsigned i = 0; i < 16; ++i)
@@ -67,44 +73,63 @@ static inline bool bgpHeaderValid(const bgp_stream_t *s)
 
 /* A valid incomplete frame is necessarily smaller than kBgpMaxWireFrame;
  * input retained during reentry shares the independent receive budget. */
-static inline sbuf_t *bgpReadFrame(tunnel_t *t, line_t *l, bgp_stream_t *s, bool *valid)
+static inline sbuf_t *bgpReadChunk(line_t *l, bgp_stream_t *s, bool *valid)
 {
-    *valid           = bgpHeaderValid(s);
-    const uint8_t *h = splicestreamPeekHeader(s->read_stream);
-    if (! *valid || h == NULL)
+    *valid = bgpHeaderValid(s);
+    if (! *valid)
         return NULL;
-    const uint32_t bytes = (((uint32_t) h[16] << 8) | h[17]) - 1;
-    if (splicestreamBodyBytes(s->read_stream) < bytes)
-        return NULL;
-    buffer_pool_t *pool = lineGetBufferPool(l);
-    sbuf_t        *dest = tunnelGetChain(t)->supports_splice ? bufferpoolGetSpliceBuffer(pool) : NULL;
-    sbuf_t        *body = splicestreamMoveFrame(s->read_stream, dest, bytes);
+    if (! spliceframereaderFrameActive(&s->reader))
+    {
+        const uint8_t *h = spliceframereaderPeekHeader(&s->reader);
+        if (h == NULL)
+            return NULL;
+        const uint32_t bytes      = (((uint32_t) h[16] << 8) | h[17]) - 1;
+        const bool     first_open = ! s->client && ! s->open;
+        if (first_open && ! spliceframereaderBodyReady(&s->reader, 10))
+            return NULL;
+        spliceframereaderBeginFrame(&s->reader, bytes);
+        if (first_open)
+        {
+            uint8_t open[10];
+            sbuf_t *prefix = spliceframereaderTakeChunk(&s->reader, sizeof(open));
+            sbufReadRangeToMemory(prefix, open, sizeof(open));
+            lineReuseBuffer(l, prefix);
+            if (open[0] != 4 || spliceframereaderFrameRemaining(&s->reader) <= open[9])
+            {
+                *valid = false;
+                return NULL;
+            }
+            s->open_optional_remaining = open[9];
+        }
+    }
     if (! s->client && ! s->open)
     {
-        uint8_t open[10];
-        sbufReadRangeToMemory(body, open, sizeof(open));
-        if (open[0] != 4 || sbufGetLength(body) <= open[9])
+        const uint32_t skip = min((uint32_t) s->open_optional_remaining, spliceframereaderFrameAvailable(&s->reader));
+        if (skip != 0)
         {
-            bufferpoolReuseBuffer(pool, body);
-            *valid = false;
-            return NULL;
+            spliceframereaderDiscardChunk(&s->reader, skip);
+            s->open_optional_remaining -= skip;
         }
-        uint8_t optional[255];
-        sbufReadRangeToMemory(body, optional, open[9]);
+        if (s->open_optional_remaining != 0)
+            return NULL;
         s->open = true;
     }
-    return body;
+    const uint32_t bytes = spliceframereaderFrameAvailable(&s->reader);
+    return bytes == 0 ? NULL : spliceframereaderTakeChunk(&s->reader, bytes);
 }
 
-/* Complete ready frames through advisory Pause. Nested input joins the FIFO;
- * the active pump owns delivery until no complete frame remains. A reference
- * protects storage, while read_stream detects Finish on a still-live borrowed line. */
+/* Deliver available application chunks through advisory Pause. Nested input joins
+ * the FIFO; the active pump owns delivery until more wire bytes are needed. A reference
+ * protects storage, while the attached reader detects retired borrowed-line state.
+ * Decode entry belongs to the caller that received kSpliceFrameDrain. */
 static inline void bgpPump(tunnel_t *t, line_t *l, bgp_stream_t *s, bool encode)
 {
-    bool *pumping = encode ? &s->encode_pumping : &s->decode_pumping;
-    if (*pumping)
-        return;
-    *pumping            = true;
+    if (encode)
+    {
+        if (s->encode_pumping)
+            return;
+        s->encode_pumping = true;
+    }
     const bool upstream = encode == s->client;
     lineRef(l);
     for (;;)
@@ -115,7 +140,7 @@ static inline void bgpPump(tunnel_t *t, line_t *l, bgp_stream_t *s, bool encode)
         else
         {
             bool valid;
-            buf = bgpReadFrame(t, l, s, &valid);
+            buf = bgpReadChunk(l, s, &valid);
             if (! valid)
             {
                 bgpClose(t, l, s, "invalid marker, length, type or OPEN fields");
@@ -129,33 +154,49 @@ static inline void bgpPump(tunnel_t *t, line_t *l, bgp_stream_t *s, bool encode)
             tunnelNextUpStreamPayload(t, l, buf);
         else
             tunnelPrevDownStreamPayload(t, l, buf);
-        if (! lineIsAlive(l) || s->read_stream == NULL)
+        if (! lineIsAlive(l) || ! spliceframereaderIsAttached(&s->reader))
             goto done;
     }
-    *pumping = false;
+    if (encode)
+        s->encode_pumping = false;
+    else
+    {
+        assert(spliceframereaderLength(&s->reader) < kBgpMaxWireFrame);
+        if (! spliceframereaderEndDrain(&s->reader))
+            bgpClose(t, l, s, "incomplete frame storage limit exceeded");
+    }
 done:
     lineUnref(l);
 }
 
 static inline void bgpDecode(tunnel_t *t, line_t *l, bgp_stream_t *s, sbuf_t *buf)
 {
-    if (sbufGetLength(buf) > kBgpPendingBytes - splicestreamLength(s->read_stream))
+    const splice_frame_admit_t result = spliceframereaderAdmit(&s->reader, buf);
+    switch (result)
     {
-        lineReuseBuffer(l, buf);
+    case kSpliceFrameByteLimit:
         bgpClose(t, l, s, "receive byte limit exceeded");
         return;
-    }
-    if (! splicestreamPush(s->read_stream, buf))
-    {
+    case kSpliceFrameChargeLimit:
+        bgpClose(t, l, s, "receive storage limit exceeded");
+        return;
+    case kSpliceFramePushFailed:
         bgpClose(t, l, s, "receive queue capacity exceeded");
         return;
+    case kSpliceFrameDrain:
+    case kSpliceFrameQueued:
+    case kSpliceFrameEmpty:
+        break;
     }
+    /* Even nested or empty input must reject an already-cached malformed head
+     * before returning to the callback that submitted it. */
     if (! bgpHeaderValid(s))
     {
         bgpClose(t, l, s, "invalid marker, length or message type");
         return;
     }
-    bgpPump(t, l, s, false);
+    if (result == kSpliceFrameDrain)
+        bgpPump(t, l, s, false);
 }
 
 static inline void bgpPrepend(sbuf_t *buf, const uint8_t *open, uint32_t open_length)
@@ -206,11 +247,10 @@ static inline void bgpEncode(tunnel_t *t, line_t *l, bgp_stream_t *s, sbuf_t *in
     const uint64_t wire_bytes = (uint64_t) length + frames * kBgpFramePrefix + open_length;
     const size_t   queued     = bufferqueueGetBufCount(&s->output);
     const bool     direct     = frames == 1 && queued == 0 && ! s->encode_pumping;
-    if (wire_bytes > kBgpPendingBytes - bufferqueueGetBufLen(&s->output) ||
-        (! direct && frames > kBgpOutputEntries - queued))
+    if (wire_bytes > kBgpPendingBytes - bufferqueueGetBufLen(&s->output))
     {
         bufferpoolReuseBuffer(pool, input);
-        bgpClose(t, l, s, "encoded byte/entry limit exceeded");
+        bgpClose(t, l, s, "encoded byte limit exceeded");
         return;
     }
     if (direct)
@@ -224,7 +264,7 @@ static inline void bgpEncode(tunnel_t *t, line_t *l, bgp_stream_t *s, sbuf_t *in
             tunnelNextUpStreamPayload(t, l, input);
         else
             tunnelPrevDownStreamPayload(t, l, input);
-        if (lineIsAlive(l) && s->read_stream != NULL)
+        if (lineIsAlive(l) && spliceframereaderIsAttached(&s->reader))
         {
             s->encode_pumping = false;
             bgpPump(t, l, s, true);
@@ -232,12 +272,12 @@ static inline void bgpEncode(tunnel_t *t, line_t *l, bgp_stream_t *s, sbuf_t *in
         lineUnref(l);
         return;
     }
-    // The admitted output count is at most 1,024, so deque geometry is representable.
+    // The finite output charge bounds existing storage; wire bytes bound this batch.
     const bool reserved = bufferqueueReserveExtra(&s->output, (size_t) frames);
     assert(reserved);
     discard reserved;
 
-    /* Reservation and byte/entry admission precede consumption. No callbacks
+    /* Reservation and logical-byte admission precede consumption. No callbacks
      * observe this batch until all its independently owned frames are queued. */
     for (uint64_t i = 0; i < frames; ++i)
     {
@@ -254,7 +294,16 @@ static inline void bgpEncode(tunnel_t *t, line_t *l, bgp_stream_t *s, sbuf_t *in
             frame = sbufMoveRangeTo(pool, input, frame, count, count, bufferpoolGetLargeBufferPadding(pool));
         }
         bgpPrepend(frame, open, open_length);
-        discard bufferqueuePushBack(&s->output, frame);
+        const size_t charge = bufferqueueGetCharge(&s->output);
+        if (charge > kBgpOutputChargeLimit || sbufGetQueueCharge(frame) > kBgpOutputChargeLimit - charge ||
+            ! bufferqueueTryPushBack(&s->output, &frame))
+        {
+            bufferpoolReuseBuffer(pool, frame);
+            if (input != NULL)
+                bufferpoolReuseBuffer(pool, input);
+            bgpClose(t, l, s, "encoded charge limit exceeded");
+            return;
+        }
         open_length = 0;
     }
     if (input != NULL)

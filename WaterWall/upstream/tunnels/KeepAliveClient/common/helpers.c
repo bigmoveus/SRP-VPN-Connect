@@ -70,7 +70,7 @@ static bool keepaliveclientCheckPongDeadline(tunnel_t *t, line_t *l, uint64_t no
 void keepaliveclientSendNormalFrameUpstream(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
     keepaliveclient_lstate_t *ls = lineGetState(l, t);
-    assert(ls->read_stream != NULL);
+    assert(spliceframereaderIsAttached(&ls->reader));
     const uint32_t length = sbufGetLength(buf);
     if (length == 0)
     {
@@ -81,8 +81,11 @@ void keepaliveclientSendNormalFrameUpstream(tunnel_t *t, line_t *l, sbuf_t *buf)
     {
         const size_t pending =
             bufferqueueGetBufLen(&ls->write_reentry) + (ls->write_active != NULL ? sbufGetLength(ls->write_active) : 0);
+        const size_t active_charge = ls->write_active != NULL ? sbufGetQueueCharge(ls->write_active) : 0;
+        const size_t queued_charge = bufferqueueGetCharge(&ls->write_reentry);
         if (pending > kKeepAliveMaxReentryBytes || length > kKeepAliveMaxReentryBytes - pending ||
-            bufferqueueGetBufCount(&ls->write_reentry) + (ls->write_active != NULL) >= kKeepAliveMaxReentryBuffers ||
+            active_charge > kKeepAliveMaxReentryCharge || queued_charge > kKeepAliveMaxReentryCharge - active_charge ||
+            sbufGetQueueCharge(buf) > kKeepAliveMaxReentryCharge - active_charge - queued_charge ||
             ! bufferqueueTryPushBack(&ls->write_reentry, &buf))
         {
             lineReuseBuffer(l, buf);
@@ -112,7 +115,8 @@ void keepaliveclientSendNormalFrameUpstream(tunnel_t *t, line_t *l, sbuf_t *buf)
             frame = sbufMoveRangeTo(pool, source, destination, bytes, bytes, bufferpoolGetLargeBufferPadding(pool));
         }
         /* The untransferred suffix is published before any reentrant callback. */
-        if (! keepaliveclientSendFrame(t, l, frame, kKeepAliveFrameKindNormal) || ls->read_stream == NULL)
+        if (! keepaliveclientSendFrame(t, l, frame, kKeepAliveFrameKindNormal) ||
+            ! spliceframereaderIsAttached(&ls->reader))
         {
             lineUnref(l);
             return;
@@ -128,40 +132,47 @@ void keepaliveclientConsumeDownstreamFrames(tunnel_t *t, line_t *l)
 {
     keepaliveclient_tstate_t *ts = tunnelGetState(t);
     keepaliveclient_lstate_t *ls = lineGetState(l, t);
-    assert(! ls->read_draining);
-    ls->read_draining = true;
     lineRef(l);
     for (;;)
     {
-        const uint8_t *header = splicestreamPeekHeader(ls->read_stream);
+        const uint8_t *header = spliceframereaderPeekHeader(&ls->reader);
         if (header == NULL)
             break;
         uint32_t network_length;
         sbufByteCopy(&network_length, header, sizeof(network_length));
         const uint32_t body_length = ntohl(network_length);
         const uint8_t  kind        = header[kKeepAliveFrameLengthSize];
-        if (body_length < kKeepAliveFrameTypeSize || body_length > kKeepAliveMaxFrameBodyLength)
+        if (! spliceframereaderFrameActive(&ls->reader))
         {
-            LOGW("KeepAliveClient: invalid keepalive frame length");
-            keepaliveclientCloseLineFromProtocolError(t, l);
-            lineUnref(l);
-            return;
+            if (body_length < kKeepAliveFrameTypeSize || body_length > kKeepAliveMaxFrameBodyLength)
+            {
+                LOGW("KeepAliveClient: invalid keepalive frame length");
+                keepaliveclientCloseLineFromProtocolError(t, l);
+                lineUnref(l);
+                return;
+            }
+            spliceframereaderBeginFrame(&ls->reader, body_length - kKeepAliveFrameTypeSize);
         }
-        const uint32_t bytes = body_length - kKeepAliveFrameTypeSize;
-        if (splicestreamBodyBytes(ls->read_stream) < bytes)
+        const uint32_t bytes    = spliceframereaderFrameAvailable(&ls->reader);
+        const bool     finished = bytes == spliceframereaderFrameRemaining(&ls->reader);
+        if (bytes == 0 && ! finished)
             break;
-        buffer_pool_t *pool = lineGetBufferPool(l);
-        sbuf_t *destination = bytes != 0 && tunnelGetChain(t)->supports_splice ? bufferpoolGetSpliceBuffer(pool) : NULL;
-        sbuf_t *body        = splicestreamMoveFrame(ls->read_stream, destination, bytes);
-        bool    alive       = true;
+        bool alive = true;
         if (kind == kKeepAliveFrameKindNormal && bytes != 0)
+        {
+            /* Commit frame progress before forwarding: nested input joins this drain. */
+            sbuf_t *body = spliceframereaderTakeChunk(&ls->reader, bytes);
             alive = lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, body);
+        }
         else
         {
-            lineReuseBuffer(l, body);
+            spliceframereaderDiscardChunk(&ls->reader, bytes);
+            if (! finished)
+                continue;
             if (kind == kKeepAliveFrameKindPing)
                 alive = keepaliveclientSendControlFrame(t, l, kKeepAliveFrameKindPong);
-            else if (kind == kKeepAliveFrameKindPong && bytes == 0 && ts->sensitive_mode && ls->awaiting_pong)
+            else if (kind == kKeepAliveFrameKindPong && body_length == kKeepAliveFrameTypeSize && ts->sensitive_mode &&
+                     ls->awaiting_pong)
             {
                 const uint64_t now = wloopNowMonotonicMS(getWorkerLoop(lineGetWID(l)));
                 alive              = keepaliveclientCheckPongDeadline(t, l, now);
@@ -173,24 +184,21 @@ void keepaliveclientConsumeDownstreamFrames(tunnel_t *t, line_t *l)
                 }
             }
         }
-        if (! alive || ls->read_stream == NULL)
+        if (! alive || ! spliceframereaderIsAttached(&ls->reader))
         {
             lineUnref(l);
             return;
         }
     }
     /* Draining leaves an incomplete validated frame; retained capacity still needs a bound. */
-    assert(splicestreamLength(ls->read_stream) < kKeepAliveMaxPayloadChunkSize + kKeepAliveFramePrefixSize);
-    if (splicestreamCharge(ls->read_stream) > kKeepAliveReadChargeLimit)
-        discard splicestreamCompact(ls->read_stream);
-    if (splicestreamCharge(ls->read_stream) > kKeepAliveReadChargeLimit)
+    assert(spliceframereaderLength(&ls->reader) < kKeepAliveMaxPayloadChunkSize + kKeepAliveFramePrefixSize);
+    if (! spliceframereaderEndDrain(&ls->reader))
     {
         LOGW("KeepAliveClient: incomplete frame storage limit exceeded");
         keepaliveclientCloseLineFromProtocolError(t, l);
         lineUnref(l);
         return;
     }
-    ls->read_draining = false;
     lineUnref(l);
 }
 
@@ -266,7 +274,7 @@ static void keepaliveclientPingExpired(local_idle_item_t *item)
         lineUnref(l);
         return;
     }
-    if (ls->read_stream != NULL)
+    if (spliceframereaderIsAttached(&ls->reader))
     {
         const uint64_t now = wloopNowMonotonicMS(getWorkerLoop(lineGetWID(l)));
         const uint64_t age = ls->next_ping_at_ms > now ? ls->next_ping_at_ms - now : kKeepAlivePingRetryMs;

@@ -1,6 +1,9 @@
 #pragma once
 
+#include "HttpCommon/chunk_decoder.h"
 #include "HttpCommon/h2_data.h"
+#include "HttpCommon/receive.h"
+#include "HttpCommon/websocket_decoder.h"
 #include "wwapi.h"
 
 #include "http2_def.h"
@@ -54,8 +57,21 @@ typedef enum httpclient_split_placement_e
     kHttpClientSplitPlacementPath   = 3
 } httpclient_split_placement_t;
 
+typedef enum httpclient_line_role_e
+{
+    kHttpClientLineDirect = 0,
+    kHttpClientLineApplication,
+    kHttpClientLineCarrier
+} httpclient_line_role_t;
+
+struct httpclient_lstate_s;
+
 typedef struct httpclient_tstate_s
 {
+    struct httpclient_lstate_s **carrier_heads;
+    uint32_t                     close_drain_timeout_ms;
+    wid_t                        worker_count;
+    atomic_bool                  stopping;
     nghttp2_session_callbacks *cbs;
     nghttp2_option            *ngoptions;
 
@@ -113,10 +129,18 @@ typedef struct httpclient_lstate_s
     tunnel_t *tunnel;
     line_t   *line;
 
+    httpclient_line_role_t      line_role;
+    line_t                     *application_line;
+    line_t                     *carrier_line;
+    struct httpclient_lstate_s *inventory_prev, *inventory_next;
+    wtimer_t                   *close_drain_timer;
+    uint64_t                    close_drain_deadline_ms;
+
     nghttp2_session *session;
 
     buffer_stream_t            in_stream;
     buffer_queue_t             pending_up;
+    buffer_budget_t            pending_up_budget;
     context_queue_t            events_down;
     h2_data_queue_t            h2_data;
 
@@ -124,31 +148,13 @@ typedef struct httpclient_lstate_s
 
     int32_t h2_stream_id;
 
-    int64_t h1_chunk_expected;
+    http_chunk_decoder_t     chunk_decoder;
+    http_websocket_decoder_t websocket_decoder;
+    http_receive_t           receive;
     int64_t h1_body_remaining;
 
-    bool                      h1_headers_parsed;
-    bool                      h1_trailing_bytes_logged;
     httpclient_h1_body_mode_t h1_body_mode;
 
-    bool h2_headers_received;
-    bool h2_source_paused; // our DATA backlog paused prev
-    bool next_paused;      // next paused prev through us
-    bool response_complete;
-    bool prev_finished;
-    bool next_finished;
-
-    bool fin_sent;
-
-    bool websocket_active;
-    bool websocket_waiting_handshake;
-    bool websocket_close_sent;
-    bool websocket_close_received;
-    bool websocket_h2_waiting_connect;
-    bool websocket_h2_request_submitted;
-    bool websocket_h2_status_seen;
-    bool websocket_h2_protocol_seen;
-    bool websocket_h2_extensions_seen;
     int  websocket_h2_status_code;
     char websocket_key[32];
     char websocket_h2_protocol[128];
@@ -159,8 +165,34 @@ typedef struct httpclient_lstate_s
     line_t                 *split_upload_line;
     line_t                 *split_download_line;
     char                    split_id[48];
-    bool                    h1_write_in_progress;
-    bool                    h2_request_headers_sent;
+
+    bool startup_in_progress : 1;
+    bool h2_sending : 1;
+    bool close_driving : 1;
+    bool h2_end_stream_emitted : 1;
+    bool h2_stream_closed : 1;
+    bool h2_source_paused : 1;
+    bool next_paused : 1;
+    bool application_read_paused : 1;
+    bool h1_headers_parsed : 1;
+    bool h1_trailing_bytes_logged : 1;
+    bool h2_headers_received : 1;
+    bool response_complete : 1;
+    bool prev_finished : 1;
+    bool next_finished : 1;
+    bool fin_sent : 1;
+    bool websocket_active : 1;
+    bool websocket_waiting_handshake : 1;
+    bool websocket_close_sent : 1;
+    bool websocket_close_received : 1;
+    bool websocket_h2_waiting_connect : 1;
+    bool websocket_h2_request_submitted : 1;
+    bool websocket_h2_status_seen : 1;
+    bool websocket_h2_protocol_seen : 1;
+    bool websocket_h2_extensions_seen : 1;
+    bool h1_write_in_progress : 1;
+    bool h2_request_headers_sent : 1;
+    bool pending_up_draining : 1;
 } httpclient_lstate_t;
 
 enum
@@ -171,14 +203,20 @@ enum
     kHttpClientRequiredPaddingLeft = 16,
 
     kHttpClientBufferQueueCap   = 8,
+    kHttpClientPendingMaxBytes       = 2 * 1024 * 1024,
+    kHttpClientPendingMaxCharge      = 8 * 1024 * 1024,
+    kHttpClientDefaultCloseDrainTimeoutMs = 30000,
+    kHttpClientMaxCloseDrainTimeoutMs     = 86400000,
+    kHttpClientHttp2PauseDataBytes        = 1024 * 1024,
+    kHttpClientHttp2ResumeDataBytes       = 256 * 1024,
+    kHttpClientHttp2MaxDataBytes          = 16 * 1024 * 1024,
+    kHttpClientHttp2MaxDataCharge         = 16 * 1024 * 1024,
     kHttpClientMaxHeaderBytes   = 64 * 1024,
     kHttpClientHttp1ChunkBodyBytes   = 16 * 1024 - 12,
-    kHttpClientHttp1NestedMaxBuffers = 8,
+
     kHttpClientHttp1NestedMaxBytes   = 1024 * 1024,
     kHttpClientHttp1NestedMaxCharge  = 2 * 1024 * 1024,
     kHttpClientHttp2DataBytes        = 16 * 1024 - 9,
-    kHttpClientHttp2PauseDataBytes   = 1024 * 1024,
-    kHttpClientHttp2ResumeDataBytes  = 256 * 1024,
     kHttpClientHttp2SettingsMaxCount = 5,
     kHttpClientHttp2StreamWindow     = 6 * 1024 * 1024,
     kHttpClientHttp2ConnectionWindow = 15 * 1024 * 1024,
@@ -207,6 +245,20 @@ void httpclientTunnelDownStreamResume(tunnel_t *t, line_t *l);
 
 void httpclientLinestateInitialize(httpclient_lstate_t *ls, tunnel_t *t, line_t *l);
 void httpclientLinestateDestroy(httpclient_lstate_t *ls);
+bool httpclientUsesOwnedCarrier(const httpclient_tstate_t *ts);
+void httpclientCarrierStart(tunnel_t *t, line_t *application);
+void httpclientStartTransport(tunnel_t *t, line_t *l);
+void httpclientCarrierClose(tunnel_t *t, line_t *carrier, bool notify_application);
+void httpclientApplicationFinish(tunnel_t *t, line_t *application);
+void httpclientCarrierUnlink(httpclient_lstate_t *ls);
+void httpclientTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_context_t *context);
+void httpclientTunnelOnWorkerStop(tunnel_t *t, wid_t wid, const ww_lifecycle_context_t *context);
+bool httpclientCloseDrainAllowed(httpclient_lstate_t *ls);
+void httpclientCancelCloseDrain(httpclient_lstate_t *ls);
+void httpclientProgressClose(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+bool httpclientRefreshHttp2SourcePressure(tunnel_t *t, line_t *l, httpclient_lstate_t *ls);
+/* Consumes buf on every result; false asks the caller to close its exact line/association. */
+bool httpclientQueuePendingUp(line_t *l, httpclient_lstate_t *ls, sbuf_t *buf);
 
 sbuf_t *allocBufferForLength(line_t *l, uint32_t len);
 size_t  httpclientBuildHttp2Settings(const httpclient_tstate_t *ts,
@@ -243,3 +295,8 @@ void httpclientSplitUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
 void httpclientSplitUpStreamFinish(tunnel_t *t, line_t *l);
 void httpclientSplitDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
 void httpclientSplitDownStreamFinish(tunnel_t *t, line_t *l);
+
+/* Internal receive dispatch; public split input uses the serialized Payload entry. */
+void httpclientSplitProcessDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+
+void httpclientSplitRejectInput(tunnel_t *t, line_t *l);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NextInitGate/next_init_gate.h"
 #include "wwapi.h"
 
 enum
@@ -115,16 +116,14 @@ typedef struct softiplimiter_lstate_s
     bool                   admitted;
     bool                   next_init_sent;
     bool                   ip_key_valid;
-    /* Nested input received while next Init/initial replay is on the stack. */
-    buffer_queue_t initial_reentry;
-    bool           initial_forwarding;
+    next_init_gate_t       gate;
     bool           transport_est_sent;
 } softiplimiter_lstate_t;
 
 enum
 {
     kSoftIpLimiterMaxReentryBytes   = 2U * 1024U * 1024U,
-    kSoftIpLimiterMaxReentryBuffers = 1024U,
+    kSoftIpLimiterMaxReentryCharge  = 8U * 1024U * 1024U,
     kTunnelStateSize                = sizeof(softiplimiter_tstate_t),
     kLineStateSize                  = sizeof(softiplimiter_lstate_t)
 };

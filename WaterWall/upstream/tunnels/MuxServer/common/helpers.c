@@ -280,42 +280,23 @@ void muxserverRefreshChildIdle(tunnel_t *t, muxserver_lstate_t *child_ls)
 /* Owner-worker registry. The local reason is membership, not an emitted Pause. */
 static void muxserverAddLocalHold(muxserver_lstate_t *child)
 {
-    if (child->parent_write_paused)
+    if (child->child_flow.parent_write_paused)
         return;
     assert(child->parent != NULL && child->close_state == kMuxServerChildCloseOpen);
-    muxserver_parent_state_t *state = child->parent->parent_state;
-    child->local_hold_prev          = state->local_hold_tail;
-    child->local_hold_next          = NULL;
-    if (state->local_hold_tail)
-        state->local_hold_tail->local_hold_next = child;
-    else
-        state->local_hold_head = child;
-    state->local_hold_tail = child;
-    state->local_hold_count++;
-    child->parent_write_paused = true;
+    muxHoldAdd(&child->parent->parent_state->local_holds, &child->child_flow);
 }
 
 static void muxserverRemoveLocalHold(muxserver_lstate_t *child)
 {
-    if (! child->parent_write_paused)
+    if (! child->child_flow.parent_write_paused)
         return;
-    muxserver_parent_state_t *state = child->parent->parent_state;
-    if (UNLIKELY(state->local_hold_count == 0))
-    {
-        LOGF("MuxServer: local hold count underflow");
-        abortProgramNow(1);
-    }
-    if (child->local_hold_prev)
-        child->local_hold_prev->local_hold_next = child->local_hold_next;
-    else
-        state->local_hold_head = child->local_hold_next;
-    if (child->local_hold_next)
-        child->local_hold_next->local_hold_prev = child->local_hold_prev;
-    else
-        state->local_hold_tail = child->local_hold_prev;
-    state->local_hold_count--;
-    child->local_hold_prev = child->local_hold_next = NULL;
-    child->parent_write_paused                      = false;
+    assert(child->parent != NULL);
+    muxHoldRemove(&child->parent->parent_state->local_holds, &child->child_flow);
+}
+
+static muxserver_lstate_t *muxserverChildFromFlow(mux_child_flow_t *flow)
+{
+    return flow ? (muxserver_lstate_t *) ((uint8_t *) flow - offsetof(muxserver_lstate_t, child_flow)) : NULL;
 }
 
 /* Each caller owns a physical parent reference across callbacks. */
@@ -448,15 +429,15 @@ static void muxserverCollectParentStats(muxserver_lstate_t *parent_ls, muxserver
 
     for (muxserver_lstate_t *child_ls = parent_ls->child_next; child_ls != NULL; child_ls = child_ls->child_next)
     {
-        if (child_ls->peer_flow_paused || child_ls->parent_write_paused)
+        if (child_ls->child_flow.peer_flow_paused || child_ls->child_flow.parent_write_paused)
         {
             stats->child_read_paused++;
         }
-        if (child_ls->parent_write_paused)
+        if (child_ls->child_flow.parent_write_paused)
         {
             stats->parent_write_paused++;
         }
-        if (child_ls->peer_flow_paused)
+        if (child_ls->child_flow.peer_flow_paused)
             stats->peer_flow_paused++;
         if (child_ls->paused)
         {
@@ -652,37 +633,22 @@ void muxserverReleaseParentInputForChildClose(muxserver_lstate_t *parent_ls, mux
     bufferqueueDestroy(&child_ls->pending_child_data);
 }
 
-static bool muxserverChildSourcePaused(muxserver_lstate_t *child_ls)
-{
-    return child_ls->peer_flow_paused || child_ls->parent_write_paused ||
-           child_ls->close_state != kMuxServerChildCloseOpen;
-}
-
-/* Publish permission before dispatch; nested reason changes remain authoritative.
- * No child state is accessed after the callback, only the owned reference. */
 static void muxserverSyncChildSource(tunnel_t *t, muxserver_lstate_t *child)
 {
     muxserver_tstate_t *ts = tunnelGetState(t);
-    if (child->source_starting || ts->worker_states[lineGetWID(child->l)].quiescing)
-        return;
-    const bool paused = muxserverChildSourcePaused(child);
-    if (child->source_pause_notified == paused)
-        return;
-    child->source_pause_notified = paused;
-    line_t *child_l              = child->l;
-    lineRef(child_l);
-    if (paused)
-        tunnelNextUpStreamPause(t, child_l);
-    else
-        tunnelNextUpStreamResume(t, child_l);
-    lineUnref(child_l);
+    muxChildFlowSync(t,
+                     child->l,
+                     &child->child_flow,
+                     child->close_state == kMuxServerChildCloseOpen,
+                     ts->worker_states[lineGetWID(child->l)].quiescing,
+                     kMuxChildrenTowardNext);
 }
 
 bool muxserverPauseChildSource(tunnel_t *t, line_t *parent_l, muxserver_lstate_t *child, bool peer_flow,
                                bool parent_write)
 {
     if (peer_flow)
-        child->peer_flow_paused = true;
+        child->child_flow.peer_flow_paused = true;
     if (parent_write && child->parent != NULL && child->close_state == kMuxServerChildCloseOpen)
         muxserverAddLocalHold(child);
     lineRef(parent_l);
@@ -696,7 +662,7 @@ bool muxserverResumeChildSource(tunnel_t *t, line_t *parent_l, muxserver_lstate_
                                 bool parent_write)
 {
     if (peer_flow)
-        child->peer_flow_paused = false;
+        child->child_flow.peer_flow_paused = false;
     if (parent_write)
         muxserverRemoveLocalHold(child);
     /* Peer Resume may arrive before aggregate fanout reaches this child. */
@@ -727,7 +693,7 @@ void muxserverChildSourceStarted(tunnel_t *t, line_t *child_l)
         child = lineGetState(child_l, t);
         if (child->is_child)
         {
-            child->source_starting = false;
+            child->child_flow.source_starting = false;
             const bool attached =
                 parent_l && muxserverParentActive(t, parent_l) && child->parent == lineGetState(parent_l, t);
             if (child->close_state == kMuxServerChildCloseOpen && attached)
@@ -1066,7 +1032,7 @@ static void muxserverRemoveDetachedChild(tunnel_t *t, line_t *child_l, muxserver
     /* A paused detached child may validly have an empty queue. */
     const buffer_budget_cost_t retained = bufferbudgetGetUsage(&registry->queue_budget);
     if (UNLIKELY((registry->count == 0) != (registry->head == NULL) ||
-                 (registry->count == 0 && (retained.bytes != 0 || retained.charge != 0 || retained.entries != 0))))
+                 (registry->count == 0 && (retained.bytes != 0 || retained.charge != 0))))
     {
         LOGF("MuxServer: detached registry count/head/charge invariant failed");
         abortProgramNow(1);
@@ -1296,7 +1262,7 @@ void muxserverHandleParentLoss(tunnel_t *t, line_t *parent_l, bool notify_parent
 
     const buffer_budget_cost_t retained = bufferbudgetGetUsage(&parent_ls->parent_state->child_queue_budget);
     if (UNLIKELY(parent_ls->children_count != 0 || parent_ls->child_next != NULL || retained.bytes != 0 ||
-                 retained.charge != 0 || retained.entries != 0))
+                 retained.charge != 0))
     {
         LOGF("MuxServer: parent-loss transfer left attached child state behind");
         abortProgramNow(1);
@@ -1318,7 +1284,7 @@ void muxserverHandleParentLoss(tunnel_t *t, line_t *parent_l, bool notify_parent
 static line_t **muxserverSnapshotChildren(tunnel_t *t, line_t *parent_l, bool local, size_t *count)
 {
     muxserver_lstate_t *parent = lineGetState(parent_l, t);
-    *count                     = local ? parent->parent_state->local_hold_count : parent->children_count;
+    *count                     = local ? parent->parent_state->local_holds.count : parent->children_count;
     size_t     bytes           = 0;
     if (! memoryTryComputeArraySize(*count, sizeof(line_t *), &bytes))
     {
@@ -1327,13 +1293,14 @@ static line_t **muxserverSnapshotChildren(tunnel_t *t, line_t *parent_l, bool lo
         return NULL;
     }
     line_t            **lines = *count ? memoryAllocate(bytes) : NULL;
-    muxserver_lstate_t *child = local ? parent->parent_state->local_hold_head : parent->child_next;
+    muxserver_lstate_t *child =
+        local ? muxserverChildFromFlow(parent->parent_state->local_holds.head) : parent->child_next;
     for (size_t i = 0; i < *count; ++i)
     {
         assert(child != NULL);
         lines[i] = child->l;
         lineRef(lines[i]);
-        child = local ? child->local_hold_next : child->child_next;
+        child = local ? muxserverChildFromFlow(child->child_flow.hold_next) : child->child_next;
     }
     assert(child == NULL);
     return lines;
@@ -1385,7 +1352,7 @@ static void muxserverReleaseLocalHolds(tunnel_t *t, line_t *parent_l)
         {
             muxserver_lstate_t *child = lineGetState(lines[i], t);
             if (child->is_child && child->parent == parent && child->close_state == kMuxServerChildCloseOpen &&
-                child->parent_write_paused && ! child->source_starting)
+                child->child_flow.parent_write_paused && ! child->child_flow.source_starting)
                 discard muxserverResumeChildSource(t, parent_l, child, false, true);
         }
         lineUnref(lines[i]);
@@ -1418,7 +1385,7 @@ void muxserverDrainParentOutput(tunnel_t *t, line_t *parent_l)
         {
             if (output->sources_throttled)
                 muxParentOutputSetThrottled(output, false, wloopNowLoopRunTime(getWorkerLoop(lineGetWID(parent_l))));
-            if (parent->parent_state->local_hold_count)
+            if (parent->parent_state->local_holds.count)
                 muxserverReleaseLocalHolds(t, parent_l);
         }
         if (! muxserverParentActive(t, parent_l))

@@ -1,19 +1,17 @@
 #pragma once
 
-#include "wwapi.h"
-
-enum encryptionclient_algorithm_e
-{
-    kEncryptionAlgorithmChaCha20Poly1305 = kDvsFirstOption,
-    kEncryptionAlgorithmAes256Gcm        = kDvsSecondOption,
-};
+#include "EncryptionCommon/packet.h"
+#include "EncryptionCommon/record.h"
 
 typedef struct encryptionclient_tstate_s
 {
-    uint32_t algorithm;
-    uint32_t kdf_iterations;
-    uint32_t max_frame_payload;
-    uint8_t  key[32];
+    uint32_t                  algorithm;
+    uint32_t                  kdf_iterations;
+    uint32_t                  max_frame_payload;
+    uint8_t                   key[32];
+    uint8_t                   packet_download_key[32];
+    atomic_log_rate_limiter_t packet_drop_log_limiter;
+    bool                      packet_mode;
 } encryptionclient_tstate_t;
 
 typedef struct encryptionclient_lstate_s
@@ -23,20 +21,8 @@ typedef struct encryptionclient_lstate_s
 
 enum
 {
-    kTunnelStateSize                  = sizeof(encryptionclient_tstate_t),
-    kLineStateSize                    = sizeof(encryptionclient_lstate_t),
-    kEncryptionTlsHeaderSize          = 5,
-    kEncryptionTlsApplicationData     = 0x17,
-    kEncryptionTlsVersionMajor        = 0x03,
-    kEncryptionTlsVersionMinor        = 0x03,
-    kEncryptionNonceSize              = 12, // RFC 8439 and AES-GCM IETF nonce size
-    kEncryptionTagSize                = 16,
-    kEncryptionFramePrefixSize        = kEncryptionTlsHeaderSize + kEncryptionNonceSize,
-    kEncryptionMaxTlsRecordBody       = 16384,
-    kEncryptionMaxFramePayload        = kEncryptionMaxTlsRecordBody - kEncryptionNonceSize - kEncryptionTagSize,
-    kEncryptionDefaultKdfIterations   = 12000,
-    kEncryptionDefaultMaxFramePayload = kEncryptionMaxFramePayload,
-    kEncryptionHardMaxFramePayload    = kEncryptionMaxFramePayload,
+    kTunnelStateSize = sizeof(encryptionclient_tstate_t),
+    kLineStateSize   = sizeof(encryptionclient_lstate_t),
 };
 
 WW_EXPORT void         encryptionclientTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
@@ -55,13 +41,7 @@ void encryptionclientLinestateDestroy(encryptionclient_lstate_t *ls);
 
 void encryptionclientTunnelstateDestroy(encryptionclient_tstate_t *ts);
 
-WCRYPTO_MUST_USE wcrypto_status_t encryptionclientEncryptAead(uint32_t algorithm, unsigned char *dst,
-                                                              size_t dst_capacity, const unsigned char *src,
-                                                              size_t src_len, const unsigned char *ad, size_t ad_len,
-                                                              const unsigned char *nonce, const unsigned char *key);
-WCRYPTO_MUST_USE wcrypto_status_t encryptionclientDecryptAead(uint32_t algorithm, unsigned char *dst,
-                                                              size_t dst_capacity, const unsigned char *src,
-                                                              size_t src_len, const unsigned char *ad, size_t ad_len,
-                                                              const unsigned char *nonce, const unsigned char *key);
-
 void encryptionclientCloseLineBidirectional(tunnel_t *t, line_t *l);
+
+void encryptionclientPacketUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);
+void encryptionclientPacketDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf);

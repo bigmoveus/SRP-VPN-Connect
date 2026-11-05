@@ -1,23 +1,23 @@
 #pragma once
 
+#include "SocksAddress/address_codec.h"
 #include "TcpUdpListener/interface.h"
 #include "UdpListener/interface.h"
-#include "address_codec.h"
 #include "wwapi.h"
 
 /* The remote owns this immutable value. The client map borrows its pointer;
  * detach removes the entry before remote destruction frees the key. */
 typedef struct socks5server_remote_key_s
 {
-    socks5_address_t address;
+    socks_address_t  address;
     hash_t           hash;
 } socks5server_remote_key_t;
 
 static inline bool socks5serverRemoteKeyEqual(socks5server_remote_key_t *const *left,
                                               socks5server_remote_key_t *const *right)
 {
-    const socks5_address_t *a = &(*left)->address;
-    const socks5_address_t *b = &(*right)->address;
+    const socks_address_t *a = &(*left)->address;
+    const socks_address_t *b = &(*right)->address;
     return a->kind == b->kind && a->port == b->port && a->length == b->length &&
            memoryEqual(a->bytes, b->bytes, a->length);
 }
@@ -131,7 +131,7 @@ enum
     kLineStateSize                     = sizeof(socks5server_lstate_t),
     kSocks5ServerMaxControlPrefixBytes = 3 + 2 * UINT8_MAX, // RFC 1929 username/password request.
     kSocks5ServerMaxPendingBytes       = 1024 * 1024,
-    kSocks5ServerMaxPendingBuffers     = 1024,
+    kSocks5ServerMaxPendingCharge      = 8U * 1024U * 1024U,
     kSocks5ServerUdpHeaderMaxLen       = 4 + 1 + UINT8_MAX + 2
 };
 

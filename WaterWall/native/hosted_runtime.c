@@ -2,6 +2,7 @@
 
 #include "SRPNEPacketDevice.h"
 #include "core_settings.h"
+#include "lwip/engine.h"
 #include "imported_tunnels.h"
 #include "loggers/core_logger.h"
 #include "node_builder/config_policy.h"
@@ -58,6 +59,7 @@ int srpWaterWallHostedRun(const char *core_json, const char *nodes_json,
   getCoreSettings()->workers_count = 1;
   getCoreSettings()->ram_profile = kRamProfileS1Memory;
   getCoreSettings()->splice_enabled = false;
+  wwLwipEngineSetDefaultReceiveBudget(getCoreSettings()->tcp_stack_receive_budget);
 
   ww_construction_data_t runtime_data = {
       .workers_count = 1,

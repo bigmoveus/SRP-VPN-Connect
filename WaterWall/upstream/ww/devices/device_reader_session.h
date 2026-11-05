@@ -6,6 +6,7 @@
 
 #include "buffer_pool.h"
 #include "devices/device_frag_affinity.h"
+#include "devices/device_opaque_flow_mode.h"
 #include "master_pool.h"
 #include "quiescence_gate.h"
 #include "worker.h"
@@ -36,6 +37,13 @@ typedef enum device_reader_post_result_e
     kDeviceReaderPostCapacity,
     kDeviceReaderPostClosed
 } device_reader_post_result_e;
+
+/* Raw producers use the same limits to keep collection within one delivery quantum. */
+enum
+{
+    kDeviceReaderWorkerPacketQuantum = 256,
+    kDeviceReaderWorkerByteQuantum   = 256 * 1024
+};
 
 /* Remaining delivery work for this FIFO callback, shared across aggregates. */
 typedef struct device_reader_work_budget_s
@@ -70,6 +78,7 @@ struct device_reader_session_s
     atomic_bool           producer_admission;
     /* Per-device receive distribution; independent of consumer flow ownership. */
     atomic_uint           distribution_next;
+    device_opaque_flow_mode_t opaque_flow_mode;
     quiescence_gate_t     delivery_gate;
     master_pool_t        *message_pool;
     uint16_t              batch_capacity;
@@ -106,6 +115,10 @@ device_reader_session_t *deviceReaderSessionCreate(uint32_t pool_capacity, uint1
                                                    device_fragment_policy_t policy);
 void                     deviceReaderSessionRef(device_reader_session_t *session);
 void                     deviceReaderSessionUnref(device_reader_session_t *session);
+
+/* Set the resolved receive policy while the session is inactive and quiesced.
+ * It remains fixed throughout each admitted generation. New sessions use prefix. */
+void deviceReaderSessionSetOpaqueFlowMode(device_reader_session_t *session, device_opaque_flow_mode_t mode);
 
 /*
  * Opens a new delivery generation after the previous reader producer was

@@ -17,6 +17,7 @@ typedef struct reverseserver_lstate_s
     uint32_t                       handshake_read;
     bool                           paired;
     bool                           handshaked;
+    bool                           handshake_mismatch;
     bool                           replaying;
     bool                           output_paused;
     bool                           source_paused;
@@ -44,7 +45,7 @@ enum
     kTunnelStateSize = sizeof(reverseserver_tstate_t),
     kLineStateSize   = sizeof(reverseserver_lstate_t),
     kReverseServerPendingBytes   = 2 * 1024 * 1024,
-    kReverseServerPendingBuffers = 1024
+    kReverseServerReplayDeliveries = 1024
 };
 
 WW_EXPORT void         reverseserverTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);

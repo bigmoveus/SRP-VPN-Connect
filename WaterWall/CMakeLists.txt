@@ -198,9 +198,18 @@ add_custom_command(
         $<TARGET_FILE:HttpCommon>
         $<TARGET_FILE:ObfuscatorClient>
         $<TARGET_FILE:TcpOverUdpClient>
+        $<TARGET_FILE:ProxyClientCommon>
+        $<TARGET_FILE:VlessCommon>
+        $<TARGET_FILE:TrojanCommon>
+        $<TARGET_FILE:SocksAddress>
+        $<TARGET_FILE:TcpAdapterCommon>
+        $<TARGET_FILE:Ipv4StreamCodec>
+        $<TARGET_FILE:ObfuscatorCommon>
+        $<TARGET_FILE:EncryptionCommon>
+        $<TARGET_FILE:TcpOverUdpCommon>
         $<TARGET_OBJECTS:http_client_def>
         $<TARGET_OBJECTS:tcp_over_udp_fec>
-        $<TARGET_OBJECTS:tcp_over_udp_client_kcp>
+        $<TARGET_OBJECTS:tcp_over_udp_kcp>
         $<TARGET_FILE:nghttp2_static>
         $<TARGET_FILE:ssl>
         $<TARGET_FILE:crypto>
@@ -256,9 +265,18 @@ add_custom_command(
         HttpCommon
         ObfuscatorClient
         TcpOverUdpClient
+        ProxyClientCommon
+        VlessCommon
+        TrojanCommon
+        SocksAddress
+        TcpAdapterCommon
+        Ipv4StreamCodec
+        ObfuscatorCommon
+        EncryptionCommon
+        TcpOverUdpCommon
         http_client_def
         tcp_over_udp_fec
-        tcp_over_udp_client_kcp
+        tcp_over_udp_kcp
         nghttp2_static
         ssl
         crypto

@@ -9,18 +9,15 @@ void socks5clientLinestateInitialize(socks5client_lstate_t *ls, tunnel_t *t, lin
         linePreferOrdinaryReadBoth(l);
     }
     *ls = (socks5client_lstate_t) {
-        .tunnel    = t,
-        .line      = l,
-        .in_stream = (kind == kSocks5ClientLineKindDirect || kind == kSocks5ClientLineKindUdpControl)
-                         ? bufferstreamCreate(lineGetBufferPool(l), 0)
-                         : (buffer_stream_t) {.pool = lineGetBufferPool(l), .q = bs_doublequeue_t_init()},
-        .protocol  = kSocks5ClientProtocolTcp,
-        .phase     = kSocks5ClientPhaseIdle,
-        .kind      = kind};
+        .tunnel = t, .line = l, .protocol = kSocks5ClientProtocolTcp, .phase = kSocks5ClientPhaseIdle, .kind = kind};
+    if (kind == kSocks5ClientLineKindDirect || kind == kSocks5ClientLineKindUdpControl)
+        ls->in_stream = bufferstreamCreate(lineGetBufferPool(l), 0);
+    else
+        bufferstreamInitEmpty(&ls->in_stream, lineGetBufferPool(l), 0);
     bufferqueueInitEmpty(&ls->pending_up);
     bufferqueueInitEmpty(&ls->pending_down);
     bufferbudgetInit(&ls->pending_budget,
-                     (buffer_budget_cost_t) {kSocks5ClientMaxPendingUpBytes, SIZE_MAX, kSocks5ClientMaxPendingBuffers});
+                     (buffer_budget_cost_t) {kSocks5ClientMaxPendingUpBytes, kSocks5ClientMaxPendingCharge});
     const bool attached = bufferqueueTryAttachBudget(&ls->pending_up, &ls->pending_budget);
     assert(attached);
     discard attached;
