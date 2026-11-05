@@ -33,6 +33,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The iPhone's Raw IPv4 and WireGuard scenario pages give results measured through the tunnel. Their earlier transfer figures had left outside it, because iOS keeps the server's own address out of the tunnel on these inputs; the FAQ and the Android page now say so.
 
 ### Fixed
+- WaterWall chains with HTTP/1.1 split mode no longer lose the end of a response. The upload connection's close reached the client before the last bytes on the download connection, and the client dropped them; it now waits for the download connection to end.
 - WaterWall's device tests failed now and then when the test server's DNS answered slowly: with WaterWall's default of two tries, a lookup through a fast local resolver gives up within 0.75 seconds and closes the line. The test server now uses five tries, about six seconds.
 - WaterWall's packet budget test allowed 8 TCP connections at once while the test opens about 10, so two were refused every run. It now allows 32.
 - The description of WaterWall's QUIC server still said its final drain lasts five seconds; it now describes the 30 second limit and the stream FIN.
