@@ -457,6 +457,14 @@ class DeviceMatrix(SupportedMatrix):
         if command != "python3 /tmp/srp-https-throughput-server.py":
             raise RuntimeError("The reference listener is not the isolated throughput server")
 
+    def open_stress_port(self):
+        rules = self.ssh("nft list chain ip filter ufw-user-input")
+        # Another source's rule on this port, such as the WireGuard subnet's, does not open it for this one.
+        if f"{self.firewall_match()}tcp dport 28483" not in rules:
+            self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}tcp dport 28483 "
+                     "counter accept comment SRP_Isolated_Tests")
+            self.stress_https_firewall = True
+
     def ensure_stress_https_server(self):
         parts = urlsplit(self.url)
         try:
@@ -486,11 +494,7 @@ class DeviceMatrix(SupportedMatrix):
         pidfile = self.remote_dir + "/https-health.pid"
         self.ssh(f"nohup {expected} > {self.remote_dir}/https-health.log 2>&1 < /dev/null & echo $! > {pidfile}")
         self.stress_https_started = True
-        rules = self.ssh("nft list chain ip filter ufw-user-input")
-        if "tcp dport 28483" not in rules:
-            self.ssh(f"nft add rule ip filter ufw-user-input {self.firewall_match()}tcp dport 28483 "
-                     "counter accept comment SRP_Isolated_Tests")
-            self.stress_https_firewall = True
+        self.open_stress_port()
         deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
             try:
@@ -636,6 +640,9 @@ class DeviceMatrix(SupportedMatrix):
         check_path = item[10] != "direct" and not name.startswith("geoip-") and env["TEST_RUNNER_SRP_WW_TCP_STRESS"] == "1"
         try:
             self.start_remote_peer(item, client_path)
+            # A running stress server skips the setup that opens its port, and Direct mode reaches it from outside.
+            if item[10] == "direct":
+                self.open_stress_port()
             stress_lines = int(self.ssh(f"wc -l < {stress_log}").strip() or 0) if check_path else 0
             if name.startswith("geoip-"):
                 reference_lines = int(self.ssh(f"wc -l < {reference_log}").strip() or 0)
