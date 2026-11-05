@@ -191,8 +191,8 @@ static NSString *SRPWWObfuscatorError(NSDictionary *settings) {
 
 static NSString *SRPWWKCPError(NSDictionary *settings) {
     if (!SRPWWBooleans(settings, [NSSet setWithArray:@[@"fec", @"kcp-nodelay", @"kcp-no-congestion-control"]])) return @"A KCP boolean setting has the wrong type.";
-    long long minimumMTU = [settings[@"fec"] boolValue] ? 86 : 78;
-    if (settings[@"mtu"] != nil && !SRPWWRange(settings, @"mtu", minimumMTU, 65535)) return @"kcp.mtu has an invalid value or range.";
+    long long minimumMTU = [settings[@"fec"] boolValue] ? 126 : 118;
+    if (settings[@"send-mtu"] != nil && !SRPWWRange(settings, @"send-mtu", minimumMTU, 65535)) return @"kcp.send-mtu has an invalid value or range.";
     NSArray *ranges = @[
         @[@"fec-data-shards", @1, @255], @[@"fec-parity-shards", @1, @255], @[@"kcp-interval-ms", @10, @5000],
         @[@"kcp-resend", @0, @2147483647], @[@"kcp-send-window", @1, @4294967295LL], @[@"kcp-recv-window", @1, @4294967295LL],
@@ -306,6 +306,19 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         }
         migrated = versioned;
     }
+    id nodeOptions = migrated[@"node-options"];
+    id kcpOptions = [nodeOptions isKindOfClass:NSDictionary.class] ? nodeOptions[@"kcp"] : nil;
+    if ([kcpOptions isKindOfClass:NSDictionary.class] && kcpOptions[@"mtu"] != nil) {
+        // WaterWall 1.5.3 renamed this setting.
+        NSMutableDictionary *renamed = [kcpOptions mutableCopy];
+        if (renamed[@"send-mtu"] == nil) renamed[@"send-mtu"] = renamed[@"mtu"];
+        [renamed removeObjectForKey:@"mtu"];
+        NSMutableDictionary *options = [nodeOptions mutableCopy];
+        options[@"kcp"] = renamed;
+        NSMutableDictionary *result = [migrated mutableCopy];
+        result[@"node-options"] = options;
+        migrated = result;
+    }
     if (![migrated[@"geoip"] isKindOfClass:NSDictionary.class]) return migrated;
     NSMutableDictionary *result = [migrated mutableCopy];
     NSMutableDictionary *geoIP = [migrated[@"geoip"] mutableCopy];
@@ -373,7 +386,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
 
 + (BOOL)configurationNeedsOuterSecret:(NSDictionary *)configuration {
     NSString *outer = configuration[@"outer"];
-    return [configuration[@"mode"] isEqualToString:@"chain"] && ([outer isEqualToString:@"reality"] || [outer isEqualToString:@"aead"]);
+    return [configuration[@"mode"] isEqualToString:@"chain"] &&
+           ([outer isEqualToString:@"reality"] || [outer isEqualToString:@"aead"] || [configuration[@"packet-encryption"] boolValue]);
 }
 
 + (BOOL)configurationUsesTLS:(NSDictionary *)configuration {
@@ -403,8 +417,10 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if ([self isWireGuardConfiguration:configuration]) return @"WireGuard";
     if ([self isDirectConfiguration:configuration]) return @"Direct (diagnostics)";
     NSMutableArray *parts = [NSMutableArray new];
-    if ([configuration[@"input"] isEqualToString:@"raw-ipv4"]) [parts addObject:@"Raw IPv4"];
-    else {
+    if ([configuration[@"input"] isEqualToString:@"raw-ipv4"]) {
+        [parts addObject:@"Raw IPv4"];
+        if ([configuration[@"packet-encryption"] boolValue]) [parts addObject:@"Packet encryption"];
+    } else {
         NSDictionary *names = @{@"vless": @"VLESS", @"vmess": @"VMess", @"trojan": @"Trojan",
                                 @"socks5": @"SOCKS5", @"http-proxy": @"HTTP CONNECT"};
         [parts addObject:names[configuration[@"application"]] ?: @"VLESS"];
@@ -425,7 +441,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (![configuration isKindOfClass:NSDictionary.class]) return @"WaterWall configuration must be a JSON object.";
     configuration = SRPWWMigrateConfiguration(configuration);
     NSSet *topKeys = [NSSet setWithArray:@[@"version", @"mode", @"input", @"application", @"mux", @"outer", @"http",
-                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options", @"geoip", @"bgp4"]];
+                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options", @"geoip", @"bgp4", @"packet-encryption"]];
     for (NSString *key in configuration) if (![topKeys containsObject:key]) return [NSString stringWithFormat:@"Unknown configuration key: %@", key];
     if (![configuration[@"version"] isEqual:@3]) return @"Unsupported WaterWall configuration version.";
     for (NSString *key in @[@"mode", @"input", @"application", @"outer", @"http", @"carrier", @"quic-carrier"]) {
@@ -471,6 +487,13 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     }
     if (configuration[@"bgp4"] != nil && !SRPWWBoolean(configuration[@"bgp4"])) return @"BGP4 must be a boolean.";
     if ((direct || wireGuard) && [configuration[@"bgp4"] boolValue]) return @"BGP4 framing requires Chain mode.";
+    if (configuration[@"packet-encryption"] != nil && !SRPWWBoolean(configuration[@"packet-encryption"])) return @"Packet encryption must be a boolean.";
+    if ([configuration[@"packet-encryption"] boolValue]) {
+        if (direct || wireGuard || ![configuration[@"input"] isEqualToString:@"raw-ipv4"]) return @"Packet encryption requires Raw IPv4.";
+        if ([configuration[@"outer"] isEqualToString:@"reality"] || [configuration[@"outer"] isEqualToString:@"aead"]) {
+            return @"Packet encryption cannot be combined with Reality or AEAD.";
+        }
+    }
     if (!direct && !wireGuard) {
         NSString *input = configuration[@"input"];
         if (![input isKindOfClass:NSString.class]) return @"WaterWall input must be a string.";
@@ -556,7 +579,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                    @"upgrade-request-headers", @"upgrade-response-headers", @"headers", @"content-type",
                    @"websocket-origin", @"websocket-subprotocol", @"websocket-extensions", @"http1-mode", @"split", @"verbose"],
         @"obfuscator": @[@"method", @"xor_key", @"skip", @"tls_record_header", @"tls_header"],
-        @"kcp": @[@"mtu", @"fec", @"fec-data-shards", @"fec-parity-shards", @"kcp-nodelay", @"kcp-interval-ms", @"kcp-resend",
+        @"kcp": @[@"send-mtu", @"fec", @"fec-data-shards", @"fec-parity-shards", @"kcp-nodelay", @"kcp-interval-ms", @"kcp-resend",
                   @"kcp-no-congestion-control", @"kcp-send-window", @"kcp-recv-window", @"kcp-initial-cwnd", @"kcp-rx-minrto-ms",
                   @"kcp-send-buffer-limit", @"ping-interval-ms", @"no-recv-timeout-ms"],
         @"outer": [outer isEqualToString:@"tls"] ? @[@"alpns", @"x25519mlkem768", @"fragment", @"tls13-record-shaping", @"ech-config-list", @"ech-sni-trick", @"verbose"] :
@@ -795,11 +818,12 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
 + (NSString *)validationErrorForOuterSecret:(NSString *)secret forConfiguration:(NSDictionary *)configuration {
     if (![self configurationNeedsOuterSecret:configuration]) return nil;
     BOOL reality = [configuration[@"outer"] isEqualToString:@"reality"];
-    NSString *name = reality ? @"Reality password" : @"AEAD password";
+    BOOL packet = [configuration[@"packet-encryption"] boolValue];
+    NSString *name = reality ? @"Reality password" : packet ? @"Packet encryption password" : @"AEAD password";
     if (![secret isKindOfClass:NSString.class]) return [NSString stringWithFormat:@"%@ must be a string.", name];
     NSUInteger bytes = [secret lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
     if (reality && (bytes < 1 || bytes > 32)) return @"Reality password must contain 1 to 32 UTF-8 bytes.";
-    if (!reality && secret.length == 0) return @"Enter the AEAD password.";
+    if (!reality && secret.length == 0) return packet ? @"Enter the packet encryption password." : @"Enter the AEAD password.";
     return nil;
 }
 
@@ -814,7 +838,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                   @"network": @{@"loglevel": name, @"file": @"ww-network.log", @"console": @YES},
                   @"dns": @{@"loglevel": name, @"file": @"ww-dns.log", @"console": @YES},
                   @"internal": @{@"loglevel": name, @"file": @"ww-internal.log", @"console": @YES}},
-        @"misc": @{@"workers": @1, @"ram-profile": @"minimal", @"mtu": @1420, @"splice": @NO, @"try-enabling-bbr": @NO, @"tcp-tune": @NO},
+        @"misc": @{@"workers": @1, @"ram-profile": @"minimal", @"mtu": @1420, @"splice": @NO, @"try-enabling-bbr": @NO, @"tcp-tune": @NO,
+                   // lwIP's receive windows may hold this much in total; the extension's memory limit is 50 MB.
+                   @"tcp-stack-receive-budget": @16777216},
         @"dns": @{@"domain-strategy": @"prefer-ipv4"}, @"configs": @[@"hosted-nodes.json"]};
     NSData *data = [NSJSONSerialization dataWithJSONObject:core options:0 error:nil];
     return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -860,7 +886,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     NSString *afterObfuscator = hasHTTP ? @"http" : afterHTTP;
     NSString *afterApplication = obfuscator ? @"obfuscator" : afterObfuscator;
     NSString *afterInput = raw ? afterApplication : application;
-    NSMutableArray *nodes = [NSMutableArray arrayWithObject:@{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}, @"next": direct || !raw ? @"ptc" : @"pts"}];
+    BOOL packetEncryption = [configuration[@"packet-encryption"] boolValue];
+    NSMutableArray *nodes = [NSMutableArray arrayWithObject:@{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{},
+                                                              @"next": direct || !raw ? @"ptc" : packetEncryption ? @"packet-encryption" : @"pts"}];
     if (direct || !raw) {
         NSMutableDictionary *required = [NSMutableDictionary new];
         if ((options[@"ww_fake_dns"] == nil || [options[@"ww_fake_dns"] boolValue]) && !direct) {
@@ -921,6 +949,11 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 [nodes addObject:@{@"name": @"direct-local", @"type": @"TcpUdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port", @"domain-strategy": @"prefer-ipv4", @"nodelay": @YES}}];
             }
         } else {
+            if (packetEncryption) {
+                [nodes addObject:@{@"name": @"packet-encryption", @"type": @"EncryptionClient",
+                                   @"settings": @{@"packet-mode": @YES, @"algorithm": @"xchacha20-poly1305", @"password": outerSecret,
+                                                  @"salt": @"waterwall-packet", @"kdf-iterations": @12000}, @"next": @"pts"}];
+            }
             [nodes addObject:@{@"name": @"pts", @"type": @"PacketsToStream",
                                @"settings": [self settings:@{@"packet-validation-level": @"hard"} overrides:advanced[@"packet"] required:@{}], @"next": afterApplication}];
         }

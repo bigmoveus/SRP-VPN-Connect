@@ -176,8 +176,8 @@ private fun obfuscatorError(settings: Obj): String? {
 
 private fun kcpError(settings: Obj): String? {
     if (!booleans(settings, setOf("fec", "kcp-nodelay", "kcp-no-congestion-control"))) return "A KCP boolean setting has the wrong type."
-    val minimumMtu = if (boolOf(settings["fec"])) 86L else 78L
-    if (settings["mtu"] != null && !inRange(settings, "mtu", minimumMtu, 65535)) return "kcp.mtu has an invalid value or range."
+    val minimumMtu = if (boolOf(settings["fec"])) 126L else 118L
+    if (settings["send-mtu"] != null && !inRange(settings, "send-mtu", minimumMtu, 65535)) return "kcp.send-mtu has an invalid value or range."
     val ranges = listOf(
         Triple("fec-data-shards", 1L, 255L), Triple("fec-parity-shards", 1L, 255L), Triple("kcp-interval-ms", 10L, 5000L),
         Triple("kcp-resend", 0L, 2147483647L), Triple("kcp-send-window", 1L, 4294967295L), Triple("kcp-recv-window", 1L, 4294967295L),
@@ -271,6 +271,19 @@ private fun migrate(configuration: Obj): Obj {
         }
         migrated = versioned
     }
+    val nodeOptions = migrated["node-options"].asObj()
+    val kcpOptions = nodeOptions?.get("kcp").asObj()
+    if (nodeOptions != null && kcpOptions != null && kcpOptions["mtu"] != null) {
+        // WaterWall 1.5.3 renamed this setting.
+        val renamed = LinkedHashMap(kcpOptions)
+        if (renamed["send-mtu"] == null) renamed["send-mtu"] = renamed["mtu"]
+        renamed.remove("mtu")
+        val options = LinkedHashMap(nodeOptions)
+        options["kcp"] = renamed
+        val result = LinkedHashMap(migrated)
+        result["node-options"] = options
+        migrated = result
+    }
     val stored = migrated["geoip"].asObj() ?: return migrated
     val result = LinkedHashMap(migrated)
     val geoIp = LinkedHashMap(stored)
@@ -317,13 +330,15 @@ object ChainConfig {
     fun coreJson(logLevel: Int, logFolder: String, dnsServers: List<String>): String {
         val name = if (logLevel >= 2) "DEBUG" else if (logLevel == 1) "INFO" else "WARN"
         val logger = { file: String -> linkedMapOf("loglevel" to name, "file" to file, "console" to true) }
-        // c-ares finds no DNS servers on Android by itself, and a slow answer needs more than its 2 default tries.
-        val dns = linkedMapOf<String, Any?>("domain-strategy" to "prefer-ipv4", "tries" to 5L)
+        // c-ares finds no DNS servers on Android by itself.
+        val dns = linkedMapOf<String, Any?>("domain-strategy" to "prefer-ipv4")
         if (dnsServers.isNotEmpty()) dns["servers"] = dnsServers
         return Json.write(linkedMapOf(
             "log" to linkedMapOf("path" to "$logFolder/", "core" to logger("ww-core.log"), "network" to logger("ww-network.log"),
                 "dns" to logger("ww-dns.log"), "internal" to logger("ww-internal.log")),
-            "misc" to linkedMapOf("workers" to 1L, "ram-profile" to "minimal", "mtu" to 1420L, "splice" to false, "try-enabling-bbr" to false, "tcp-tune" to false),
+            "misc" to linkedMapOf("workers" to 1L, "ram-profile" to "minimal", "mtu" to 1420L, "splice" to false, "try-enabling-bbr" to false, "tcp-tune" to false,
+                // lwIP's receive windows may hold this much in total, the same as iOS.
+                "tcp-stack-receive-budget" to 16777216L),
             "dns" to dns,
             "configs" to listOf("hosted-nodes.json"),
         ))
@@ -336,7 +351,8 @@ object ChainConfig {
     fun needsApplicationSecret(configuration: Map<String, Any?>) = configuration["mode"] == "chain" && configuration["input"] == "connections"
 
     fun needsOuterSecret(configuration: Map<String, Any?>) =
-        configuration["mode"] == "chain" && (configuration["outer"] == "reality" || configuration["outer"] == "aead")
+        configuration["mode"] == "chain" &&
+            (configuration["outer"] == "reality" || configuration["outer"] == "aead" || boolOf(configuration["packet-encryption"]))
 
     fun usesTls(configuration: Map<String, Any?>) =
         configuration["mode"] == "chain" && configuration["outer"] in listOf("tls", "reality", "quic")
@@ -358,8 +374,10 @@ object ChainConfig {
         if (isWireGuard(configuration)) return "WireGuard"
         if (isDirect(configuration)) return "Direct (diagnostics)"
         val parts = ArrayList<String>()
-        if (configuration["input"] == "raw-ipv4") parts.add("Raw IPv4")
-        else parts.add(applicationNames[configuration["application"]] ?: "VLESS")
+        if (configuration["input"] == "raw-ipv4") {
+            parts.add("Raw IPv4")
+            if (boolOf(configuration["packet-encryption"])) parts.add("Packet encryption")
+        } else parts.add(applicationNames[configuration["application"]] ?: "VLESS")
         if (boolOf(configuration["mux"])) parts.add("MUX")
         if (boolOf(configuration["obfuscator"])) parts.add("XOR")
         if (configuration["http"] == "websocket") parts.add("WebSocket")
@@ -376,7 +394,7 @@ object ChainConfig {
 
     fun validationError(input: Map<String, Any?>): String? {
         val configuration = migrate(input)
-        val topKeys = setOf("version", "mode", "input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "node-options", "geoip", "bgp4")
+        val topKeys = setOf("version", "mode", "input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "node-options", "geoip", "bgp4", "packet-encryption")
         for (key in configuration.keys) if (key !in topKeys) return "Unknown configuration key: $key"
         if (configuration["version"].let { !isInteger(it) || longOf(it) != 3L }) return "Unsupported WaterWall configuration version."
         for (key in listOf("mode", "input", "application", "outer", "http", "carrier", "quic-carrier")) {
@@ -411,6 +429,12 @@ object ChainConfig {
         }
         if (bgp4 != null && bgp4 !is Boolean) return "BGP4 must be a boolean."
         if ((direct || wireGuard) && boolOf(bgp4)) return "BGP4 framing requires Chain mode."
+        val packetEncryption = configuration["packet-encryption"]
+        if (packetEncryption != null && packetEncryption !is Boolean) return "Packet encryption must be a boolean."
+        if (boolOf(packetEncryption)) {
+            if (direct || wireGuard || configuration["input"] != "raw-ipv4") return "Packet encryption requires Raw IPv4."
+            if (configuration["outer"] == "reality" || configuration["outer"] == "aead") return "Packet encryption cannot be combined with Reality or AEAD."
+        }
         if (!direct && !wireGuard) {
             val input = configuration["input"] as? String ?: return "WaterWall input must be a string."
             raw = input == "raw-ipv4"
@@ -485,7 +509,7 @@ object ChainConfig {
                 "upgrade-request-headers", "upgrade-response-headers", "headers", "content-type",
                 "websocket-origin", "websocket-subprotocol", "websocket-extensions", "http1-mode", "split", "verbose"),
             "obfuscator" to listOf("method", "xor_key", "skip", "tls_record_header", "tls_header"),
-            "kcp" to listOf("mtu", "fec", "fec-data-shards", "fec-parity-shards", "kcp-nodelay", "kcp-interval-ms", "kcp-resend",
+            "kcp" to listOf("send-mtu", "fec", "fec-data-shards", "fec-parity-shards", "kcp-nodelay", "kcp-interval-ms", "kcp-resend",
                 "kcp-no-congestion-control", "kcp-send-window", "kcp-recv-window", "kcp-initial-cwnd", "kcp-rx-minrto-ms",
                 "kcp-send-buffer-limit", "ping-interval-ms", "no-recv-timeout-ms"),
             "outer" to when (outer) {
@@ -694,10 +718,11 @@ object ChainConfig {
     fun outerSecretError(secret: Any?, configuration: Map<String, Any?>): String? {
         if (!needsOuterSecret(configuration)) return null
         val reality = configuration["outer"] == "reality"
-        val name = if (reality) "Reality password" else "AEAD password"
+        val packet = boolOf(configuration["packet-encryption"])
+        val name = if (reality) "Reality password" else if (packet) "Packet encryption password" else "AEAD password"
         if (secret !is String) return "$name must be a string."
         if (reality && secret.utf8Size() !in 1..32) return "Reality password must contain 1 to 32 UTF-8 bytes."
-        if (!reality && secret.isEmpty()) return "Enter the AEAD password."
+        if (!reality && secret.isEmpty()) return if (packet) "Enter the packet encryption password." else "Enter the AEAD password."
         return null
     }
 
@@ -747,7 +772,8 @@ object ChainConfig {
         fun node(name: String?, type: String, settings: Map<String, Any?>, next: String? = null): Map<String, Any?> =
             linkedMapOf<String, Any?>("name" to name, "type" to type, "settings" to settings).apply { if (next != null) put("next", next) }
 
-        val nodes = arrayListOf(node("ne", "NEPacketDevice", emptyMap(), if (direct || !raw) "ptc" else "pts"))
+        val packetEncryption = boolOf(configuration["packet-encryption"])
+        val nodes = arrayListOf(node("ne", "NEPacketDevice", emptyMap(), if (direct || !raw) "ptc" else if (packetEncryption) "packet-encryption" else "pts"))
         if (direct || !raw) {
             val required = LinkedHashMap<String, Any?>()
             val fakeDnsOption = options?.get("ww_fake_dns")
@@ -813,6 +839,10 @@ object ChainConfig {
                         "domain-strategy" to "prefer-ipv4", "nodelay" to true)))
                 }
             } else {
+                if (packetEncryption) {
+                    nodes.add(node("packet-encryption", "EncryptionClient", linkedMapOf("packet-mode" to true, "algorithm" to "xchacha20-poly1305",
+                        "password" to outerSecret, "salt" to "waterwall-packet", "kdf-iterations" to 12000L), "pts"))
+                }
                 nodes.add(node("pts", "PacketsToStream", merged(mapOf("packet-validation-level" to "hard"), advancedOf("packet"), emptyMap()), afterApplication))
             }
             if (mux) {

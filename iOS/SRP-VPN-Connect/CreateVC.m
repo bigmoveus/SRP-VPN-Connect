@@ -1260,7 +1260,8 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         NSInteger applicationRows = needsApplicationSecret ? (proxy ? 2 : 1) : 0;
         BOOL isOuterSecretRow = [self waterWallNeedsOuterSecret] && indexPath.row == applicationRows;
         if (isOuterSecretRow) {
-            NSString *title = [configuration[@"outer"] isEqualToString:@"aead"] ? @"AEAD Password" : @"Reality Password";
+            NSString *title = [configuration[@"packet-encryption"] boolValue] ? @"Packet Password" :
+                              [configuration[@"outer"] isEqualToString:@"aead"] ? @"AEAD Password" : @"Reality Password";
             return [self textCellWithTitle:title text:self.modal.waterwallOuterSecret placeholder:@"Required"
                                        tag:kFieldWWOuterSecret keyboardType:UIKeyboardTypeASCIICapable secure:YES];
         }

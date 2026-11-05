@@ -388,9 +388,10 @@
         configuration[@"carrier"] = @"tcp";
         configuration[@"quic-carrier"] = @"datagram";
         configuration[@"bgp4"] = @NO;
+        [configuration removeObjectForKey:@"packet-encryption"];
     } else {
         [configuration removeObjectsForKeys:@[@"input", @"application", @"mux", @"outer", @"http",
-                                               @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"geoip", @"bgp4"]];
+                                               @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"geoip", @"bgp4", @"packet-encryption"]];
     }
     [self applyConfiguration:configuration];
     [self.tableView reloadData];
@@ -404,6 +405,7 @@
     configuration[@"node-options"] = options;
     configuration[@"input"] = raw ? @"raw-ipv4" : @"connections";
     if (raw) [configuration removeObjectForKey:@"geoip"];
+    else [configuration removeObjectForKey:@"packet-encryption"];
     configuration[@"application"] = raw ? @"" :
         ([configuration[@"application"] length] > 0 ? configuration[@"application"] : @"vless");
     configuration[@"mux"] = raw ? @NO : configuration[@"mux"] ?: @NO;
@@ -444,6 +446,8 @@
     NSMutableDictionary *options = [self mutableNodeOptions];
     [options removeObjectForKey:@"outer"];
     configuration[@"outer"] = outer;
+    // Reality and AEAD already encrypt everything and use the same password field.
+    if ([outer isEqualToString:@"reality"] || [outer isEqualToString:@"aead"]) [configuration removeObjectForKey:@"packet-encryption"];
     if ([outer isEqualToString:@"quic"]) {
         configuration[@"http"] = @"off";
         configuration[@"carrier"] = @"tcp";
@@ -508,6 +512,14 @@
         [options removeObjectForKey:@"obfuscator"];
         configuration[@"node-options"] = options;
     }
+    [self applyConfiguration:configuration];
+    [self.tableView reloadData];
+}
+
+- (void)packetEncryptionChanged:(UISwitch *)sender {
+    NSMutableDictionary *configuration = [self.configuration mutableCopy];
+    if (sender.isOn) configuration[@"packet-encryption"] = @YES;
+    else [configuration removeObjectForKey:@"packet-encryption"];
     [self applyConfiguration:configuration];
     [self.tableView reloadData];
 }
@@ -774,6 +786,8 @@
     if ([self usesConnections]) {
         [rows addObject:@"application"];
         if ([self showsMux]) [rows addObject:@"mux"];
+    } else if (![self.configuration[@"outer"] isEqualToString:@"reality"] && ![self.configuration[@"outer"] isEqualToString:@"aead"]) {
+        [rows addObject:@"packet-encryption"];
     }
     [rows addObject:@"obfuscator"];
     if (![self usesQUIC] && !httpProxy) {
@@ -899,6 +913,12 @@
                                      on:[self.configuration[@"mux"] boolValue]
                                  action:@selector(muxChanged:)
                    accessibilityIdentifier:@"WWMux"];
+    }
+    if ([row isEqualToString:@"packet-encryption"]) {
+        return [self switchCellWithTitle:@"Packet Encryption"
+                                     on:[self.configuration[@"packet-encryption"] boolValue]
+                                 action:@selector(packetEncryptionChanged:)
+                   accessibilityIdentifier:@"WWPacketEncryption"];
     }
     if ([row isEqualToString:@"obfuscator"]) {
         return [self switchCellWithTitle:@"Obfuscator"

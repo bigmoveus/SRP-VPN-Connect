@@ -1333,7 +1333,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     configuration[@"http-version"] = @2;
     configuration[@"obfuscator"] = @YES;
     configuration[@"carrier"] = @"kcp";
-    configuration[@"node-options"] = @{@"obfuscator": @{@"tls_record_header": @YES}, @"kcp": @{@"mtu": @1400}};
+    configuration[@"node-options"] = @{@"obfuscator": @{@"tls_record_header": @YES}, @"kcp": @{@"send-mtu": @1400}};
     NSDictionary *root = [self waterWallRootForConfiguration:configuration options:nil];
     NSArray *nodes = root[@"nodes"];
     NSArray *names = @[@"ne", @"ptc", @"vless", @"router", @"mux", @"obfuscator", @"http", @"reality", @"kcp", @"connector"];
@@ -1369,7 +1369,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(nodes[5][@"settings"][@"xor_key"], @90);
     XCTAssertEqualObjects(nodes[5][@"settings"][@"skip"], @"none");
     XCTAssertEqualObjects(nodes[5][@"settings"][@"tls_record_header"], @YES);
-    XCTAssertEqualObjects(nodes[8][@"settings"][@"mtu"], @1400);
+    XCTAssertEqualObjects(nodes[8][@"settings"][@"send-mtu"], @1400);
     XCTAssertNil(nodes.lastObject[@"settings"][@"protocol"]);
 
     configuration[@"http-version"] = @1;
@@ -1456,7 +1456,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
         XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
     }
 
-    NSDictionary *validKCP = @{@"mtu": @86, @"fec": @YES, @"fec-data-shards": @10, @"fec-parity-shards": @3,
+    NSDictionary *validKCP = @{@"send-mtu": @126, @"fec": @YES, @"fec-data-shards": @10, @"fec-parity-shards": @3,
         @"kcp-nodelay": @YES, @"kcp-interval-ms": @10, @"kcp-resend": @0, @"kcp-no-congestion-control": @YES,
         @"kcp-send-window": @100, @"kcp-recv-window": @100, @"kcp-initial-cwnd": @50, @"kcp-rx-minrto-ms": @1,
         @"kcp-send-buffer-limit": @0, @"ping-interval-ms": @1000, @"no-recv-timeout-ms": @2000};
@@ -1474,7 +1474,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-initial-cwnd"], @16);
     XCTAssertEqualObjects(kcpByName[@"kcp"][@"settings"][@"kcp-send-buffer-limit"], @512);
     kcp[@"node-options"] = @{@"kcp": validKCP};
-    NSArray *invalidKCP = @[@{@"mtu": @77}, @{@"mtu": @85, @"fec": @YES}, @{@"fec-data-shards": @0},
+    NSArray *invalidKCP = @[@{@"send-mtu": @117}, @{@"send-mtu": @125, @"fec": @YES}, @{@"fec-data-shards": @0},
         @{@"fec-data-shards": @255, @"fec-parity-shards": @1}, @{@"kcp-interval-ms": @9}, @{@"kcp-resend": @-1},
         @{@"kcp-send-window": @0}, @{@"kcp-initial-cwnd": @9000}, @{@"kcp-rx-minrto-ms": @0},
         @{@"kcp-send-buffer-limit": @-1}, @{@"ping-interval-ms": @0},
@@ -1914,6 +1914,42 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:85 timedOut:NO], @"TCP: 85 ms");
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:YES], @"TCP: Timeout");
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:NO], @"TCP: Failed");
+}
+
+- (void)testWaterWallPacketEncryptionSitsBetweenThePacketDeviceAndTheStream {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithInput:@"raw-ipv4" application:@"" mux:NO outer:@"none" nodeOptions:@{}] mutableCopy];
+    configuration[@"packet-encryption"] = @YES;
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    XCTAssertTrue([SRPWaterWallChainConfig configurationNeedsOuterSecret:configuration]);
+    XCTAssertEqualObjects([SRPWaterWallChainConfig summaryForConfiguration:configuration], @"Raw IPv4 + Packet encryption + none");
+    XCTAssertEqualObjects([SRPWaterWallChainConfig validationErrorForOuterSecret:@"" forConfiguration:configuration], @"Enter the packet encryption password.");
+
+    NSDictionary *byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:@{}][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"ne"][@"next"], @"packet-encryption");
+    NSDictionary *encryption = byName[@"packet-encryption"];
+    XCTAssertEqualObjects(encryption[@"type"], @"EncryptionClient");
+    XCTAssertEqualObjects(encryption[@"next"], @"pts");
+    XCTAssertEqualObjects(encryption[@"settings"][@"packet-mode"], @YES);
+    XCTAssertEqualObjects(encryption[@"settings"][@"algorithm"], @"xchacha20-poly1305");
+    XCTAssertEqualObjects(encryption[@"settings"][@"password"], @"outer-secret");
+
+    for (NSString *outer in @[@"reality", @"aead"]) {
+        configuration[@"outer"] = outer;
+        XCTAssertEqualObjects([SRPWaterWallChainConfig validationErrorForConfiguration:configuration], @"Packet encryption cannot be combined with Reality or AEAD.");
+    }
+    NSMutableDictionary *connections = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"none"] mutableCopy];
+    connections[@"packet-encryption"] = @YES;
+    XCTAssertEqualObjects([SRPWaterWallChainConfig validationErrorForConfiguration:connections], @"Packet encryption requires Raw IPv4.");
+}
+
+- (void)testWaterWallMovesTheOldKCPMTUSettingToItsNewName {
+    NSMutableDictionary *configuration = [[self waterWallConfigurationWithApplication:@"vless" mux:NO outer:@"none"] mutableCopy];
+    configuration[@"carrier"] = @"kcp";
+    configuration[@"node-options"] = @{@"kcp": @{@"mtu": @1350}};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    NSDictionary *kcp = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:@{}][@"nodes"]][@"kcp"];
+    XCTAssertEqualObjects(kcp[@"settings"][@"send-mtu"], @1350);
+    XCTAssertNil(kcp[@"settings"][@"mtu"]);
 }
 
 - (void)testWaterWallBGP4UsesTheRegisteredOuterChain {

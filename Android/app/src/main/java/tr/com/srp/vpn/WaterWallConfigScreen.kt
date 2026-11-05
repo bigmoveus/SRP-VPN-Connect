@@ -113,6 +113,8 @@ private fun changedOuter(configuration: Map<String, Any?>, outer: String): Map<S
     val options = configuration.optionsOf()
     options.remove("outer")
     changed["outer"] = outer
+    // Reality and AEAD already encrypt everything and use the same password field.
+    if (outer == "reality" || outer == "aead") changed.remove("packet-encryption")
     if (outer == "quic") {
         changed["http"] = "off"
         changed["carrier"] = "tcp"
@@ -200,8 +202,9 @@ fun WaterWallConfigPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edit
                         if (mode == "chain") {
                             changed.putAll(mapOf("input" to "connections", "application" to "vless", "mux" to false, "outer" to "tls", "http" to "off", "http-version" to 1L,
                                 "obfuscator" to false, "carrier" to "tcp", "quic-carrier" to "datagram", "bgp4" to false))
+                            changed.remove("packet-encryption")
                         } else {
-                            listOf("input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "geoip", "bgp4").forEach { changed.remove(it) }
+                            listOf("input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "geoip", "bgp4", "packet-encryption").forEach { changed.remove(it) }
                         }
                         apply(changed)
                     }
@@ -218,6 +221,15 @@ fun WaterWallConfigPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edit
                                     if (!on) changed["node-options"] = configuration.optionsOf().apply { remove("mux") }
                                     apply(changed)
                                 }
+                            }
+                        }
+                    }
+                    if (!usesConnections && configuration["outer"] != "reality" && configuration["outer"] != "aead") {
+                        row {
+                            SwitchRow("Packet Encryption", configuration["packet-encryption"] == true) { on ->
+                                val changed = LinkedHashMap(configuration)
+                                if (on) changed["packet-encryption"] = true else changed.remove("packet-encryption")
+                                apply(changed)
                             }
                         }
                     }
@@ -353,7 +365,7 @@ private fun InputRow(usesConnections: Boolean, configuration: Map<String, Any?>,
         val changed = LinkedHashMap(configuration)
         changed["node-options"] = configuration.optionsOf().apply { listOf("packet", "application", "mux").forEach { remove(it) } }
         changed["input"] = if (raw) "raw-ipv4" else "connections"
-        if (raw) changed.remove("geoip")
+        if (raw) changed.remove("geoip") else changed.remove("packet-encryption")
         changed["application"] = if (raw) "" else (configuration["application"] as? String)?.takeIf { it.isNotEmpty() } ?: "vless"
         changed["mux"] = if (raw) false else configuration["mux"] ?: false
         apply(changed)

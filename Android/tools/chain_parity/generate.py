@@ -35,6 +35,9 @@ BASES = [
     chain(application="http-proxy", outer="quic", **{"quic-carrier": "stream"}), chain(application="http-proxy", outer="none"),
     chain(input="raw-ipv4", application=""), chain(input="raw-ipv4", application="", outer="aead"),
     chain(input="raw-ipv4", application="", outer="quic"), chain(input="raw-ipv4", application="", carrier="kcp", obfuscator=True),
+    chain(input="raw-ipv4", application="", outer="none", **{"packet-encryption": True}),
+    chain(input="raw-ipv4", application="", outer="quic", **{"packet-encryption": True}),
+    chain(input="raw-ipv4", application="", carrier="kcp", outer="none", **{"packet-encryption": True}),
     {"version": 3, "mode": "direct", "node-options": {}}, {"version": 3, "mode": "wireguard", "node-options": {}},
 ]
 POOL = [True, False, 0, 1, -1, 2, 16, 68, 78, 86, 90, 255, 256, 1024, 1200, 1452, 1453, 4096, 16356, 16357, 16384, 65535, 65536, 65537,
@@ -56,7 +59,7 @@ SCHEMA = {
              "upgrade-response-headers", "headers", "content-type", "websocket-origin", "websocket-subprotocol", "websocket-extensions",
              "http1-mode", "split", "verbose", "unknown-key"],
     "obfuscator": ["method", "xor_key", "skip", "tls_record_header", "tls_header", "unknown-key"],
-    "kcp": ["mtu", "fec", "fec-data-shards", "fec-parity-shards", "kcp-nodelay", "kcp-interval-ms", "kcp-resend", "kcp-no-congestion-control",
+    "kcp": ["send-mtu", "mtu", "fec", "fec-data-shards", "fec-parity-shards", "kcp-nodelay", "kcp-interval-ms", "kcp-resend", "kcp-no-congestion-control",
             "kcp-send-window", "kcp-recv-window", "kcp-initial-cwnd", "kcp-rx-minrto-ms", "kcp-send-buffer-limit", "ping-interval-ms",
             "no-recv-timeout-ms", "unknown-key"],
     "outer": ["alpns", "x25519mlkem768", "fragment", "tls13-record-shaping", "ech-config-list", "ech-sni-trick", "verbose", "algorithm", "method",
@@ -103,6 +106,8 @@ def secrets_for(configuration):
     application = configuration.get("application")
     secret = {"vless": UUID, "vmess": UUID, "trojan": "trojan-password"}.get(application, "")
     outer = {"reality": "reality-password", "aead": "aead-password"}.get(configuration.get("outer"), "")
+    if configuration.get("packet-encryption") is True and not outer:
+        outer = "packet-password"
     return secret, outer
 
 
@@ -129,6 +134,7 @@ def corpus():
         "carrier": ["tcp", "tcp", "kcp", "other", 1],
         "quic-carrier": ["datagram", "stream", "other", 1],
         "bgp4": [False, True, 1],
+        "packet-encryption": [False, False, True, 1],
     }
     for _ in range(9000):
         configuration = {"version": 3, "node-options": {}}
@@ -200,7 +206,7 @@ def corpus():
                      {"global-padding": True, "chunk-masking": False}, {"global-padding": True}, {"packet-encoding": "packetaddr"}, {"packet-encoding": "packetaddr", "domain-strategy": "resolve-domains-and-prefer-ipv4"},
                      {"packet-encoding": "packetaddr", "domain-strategy": "do-not-resolve-domains"}, {"proto": "udp"}, {"proto": "tcp"}, {"protocol": "tcp", "proto": "udp"}]:
         items.append(case(with_options(chain(application="vmess"), "application", settings)))
-    for settings in [{"mtu": 77}, {"mtu": 78}, {"fec": True, "mtu": 85}, {"fec": True, "mtu": 86}, {"fec-data-shards": 200, "fec-parity-shards": 56}, {"fec-data-shards": 200, "fec-parity-shards": 55},
+    for settings in [{"mtu": 1350}, {"send-mtu": 117}, {"send-mtu": 118}, {"fec": True, "send-mtu": 125}, {"fec": True, "send-mtu": 126}, {"fec-data-shards": 200, "fec-parity-shards": 56}, {"fec-data-shards": 200, "fec-parity-shards": 55},
                      {"kcp-initial-cwnd": 129}, {"kcp-initial-cwnd": 128}, {"kcp-send-window": 8, "kcp-initial-cwnd": 9}, {"ping-interval-ms": 30000}, {"ping-interval-ms": 40000, "no-recv-timeout-ms": 50000}, {"no-recv-timeout-ms": 10000}]:
         items.append(case(with_options(chain(carrier="kcp"), "kcp", settings)))
     for settings in [{"max-buffered-bytes": 65536}, {"max-buffered-bytes": 65536, "receive-window-bytes": 65536, "max-buffered-buffers": 2730}, {"max-buffered-buffers": 65536},

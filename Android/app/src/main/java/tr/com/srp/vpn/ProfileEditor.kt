@@ -221,7 +221,7 @@ private fun ProfileEditPage(
                         row { TextFieldRow(title, draft.password, if (proxy) "Optional" else "Required", secure = true) { onChange(draft.copy(password = it)) } }
                     }
                     if (ChainConfig.needsOuterSecret(configuration)) {
-                        val title = if (configuration["outer"] == "aead") "AEAD Password" else "Reality Password"
+                        val title = if (configuration["packet-encryption"] == true) "Packet Password" else if (configuration["outer"] == "aead") "AEAD Password" else "Reality Password"
                         row { TextFieldRow(title, draft.outerSecret, "Required", secure = true) { onChange(draft.copy(outerSecret = it)) } }
                     }
                 }
