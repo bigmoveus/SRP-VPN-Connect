@@ -5,7 +5,7 @@
   "android": "a Samsung Galaxy A55 with Android 17",
   "app": "the iPhone running a Release build of commit 778e1b69, whose SSTP code TestFlight build 34 has, and Android running debug builds of this round's Android app, the one for Windows Server 2025 at commit 3bcb0567",
   "servers": "MikroTik RouterOS 7.25, SoftEther VPN Server 4.44, and Windows Server 2019, 2022 and 2025 with Routing and Remote Access, the last with FreeRADIUS 3.2.5",
-  "reruns": "Eleven iPhone cases ran again on commit 3bcb0567, and their rows show that run: the eight that this round's fixes concern (the message for refused login methods, Retry Times, and EAP-TTLS with FreeRADIUS), two whose expected result had been set wrong, and the SecureNAT download, which had started before SoftEther's NAT was ready."
+  "reruns": "Eleven iPhone cases ran again on commit 3bcb0567, whose SSTP code TestFlight build 35 has, and their rows show that run: the eight that this round's fixes concern (the message for refused login methods, Retry Times, and EAP-TTLS with FreeRADIUS), two whose expected result had been set wrong, and the SecureNAT download, which had started before SoftEther's NAT was ready."
  },
  "summary": {
   "cases": 233,

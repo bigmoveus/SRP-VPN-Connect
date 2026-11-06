@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The SSTP documentation names TestFlight build 35, the first with this round's SSTP fixes, and the results page says which build had which SSTP code.
+
 ## 1.2.0 (35) - 2026-11-06
 
 ### Added
