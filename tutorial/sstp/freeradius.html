@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreeRADIUS — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="The FreeRADIUS server our SSTP test servers send their logins to: clients, users, EAP with a Let's Encrypt certificate, and certificate login with EAP-TLS.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>FreeRADIUS</h1>
+<p class="lead">An SSTP server can check logins against a RADIUS server instead of its own user list. This page describes the FreeRADIUS server that our MikroTik router, our SoftEther server and our Windows Server 2025 use, and what it adds: one user list for all of them, PEAP and EAP-TTLS for any of them, and certificate login with EAP-TLS.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The settings below were read from our server on 6 November 2026: FreeRADIUS 3.2.5 from the Ubuntu 24.04 packages, compared with the files the package installed. The results named here come from the test runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2>When you need it</h2>
+<ul>
+  <li><strong>One user list for several SSTP servers.</strong> MikroTik, SoftEther and Windows can all ask the same RADIUS server.</li>
+  <li><strong>EAP methods the SSTP server lacks.</strong> MikroTik and SoftEther have no EAP of their own. Windows RRAS passes EAP to RADIUS unchanged, so with FreeRADIUS behind it the app can use PEAP, EAP-TTLS and EAP-TLS.</li>
+  <li><strong>Certificate login (EAP-TLS).</strong> With Windows' own NPS, EAP-TLS needs the server to be a member of an Active Directory domain. FreeRADIUS checks the client certificate against a CA file instead.</li>
+</ul>
+
+<h2 id="install">1. Install</h2>
+<pre data-label="Server (Ubuntu 24.04), as root"><code class="language-bash">apt-get install -y freeradius</code></pre>
+<p>The configuration lives in <code>/etc/freeradius/3.0/</code>. Keep a copy of each file before changing it.</p>
+
+<h2 id="clients">2. Allow each SSTP server as a client</h2>
+<p>Each SSTP server that sends logins is a RADIUS client with a shared secret. Add one block per server at the end of <code>clients.conf</code>:</p>
+<pre data-label="/etc/freeradius/3.0/clients.conf"><code>client sstp-mikrotik {
+	ipaddr = &lt;MIKROTIK_IP&gt;
+	secret = &lt;RADIUS_SECRET&gt;
+}
+client sstp-windows {
+	ipaddr = &lt;WINDOWS_IP&gt;
+	secret = &lt;RADIUS_SECRET&gt;
+}</code></pre>
+<p>Our SoftEther server runs on the same host as FreeRADIUS and uses the <code>localhost</code> client that the package already has; set its <code>secret</code> too. Use a long random secret, for example the output of <code>openssl rand -base64 24</code>, and enter the same one on the SSTP server.</p>
+
+<h2 id="users">3. Users</h2>
+<p>Our server keeps its test users in the files module. MS-CHAPv2 needs the password in a form the server can compute with, so it is stored as <code>Cleartext-Password</code>. Add one line per user at the top of <code>mods-config/files/authorize</code>:</p>
+<pre data-label="/etc/freeradius/3.0/mods-config/files/authorize"><code>vpnuser Cleartext-Password := "&lt;PASSWORD&gt;"</code></pre>
+<p>This file is readable only by root and the <code>freerad</code> group. A production server would usually take its users from a database or a directory instead.</p>
+
+<h2 id="eap-certificate">4. The EAP server certificate</h2>
+<p>With PEAP, EAP-TTLS and EAP-TLS the RADIUS server opens its own TLS session to the phone, inside PPP. The app checks that server's certificate: it must chain to a root the phone trusts, unless <strong>Allow Untrusted Certificate</strong> is on. The package's self-signed certificate does not, so our server uses its Let's Encrypt certificate. In <code>mods-available/eap</code>, in the <code>tls-config tls-common</code> section:</p>
+<pre data-label="/etc/freeradius/3.0/mods-available/eap"><code>		private_key_file = ${certdir}/srp-le-privkey.pem
+		certificate_file = ${certdir}/srp-le-fullchain.pem</code></pre>
+<p>Certbot's deploy hook on our server copies the renewed key and full chain to those two files in <code>/etc/freeradius/3.0/certs/</code>, readable by the <code>freerad</code> group, and restarts FreeRADIUS:</p>
+<pre data-label="/etc/letsencrypt/renewal-hooks/deploy/freeradius-eap.sh"><code class="language-bash">#!/bin/sh
+# FreeRADIUS reads the EAP certificate from its own directory with group freerad
+live=/etc/letsencrypt/live/&lt;SERVER_HOST&gt;
+install -o root -g freerad -m 640 $live/fullchain.pem /etc/freeradius/3.0/certs/srp-le-fullchain.pem
+install -o root -g freerad -m 640 $live/privkey.pem /etc/freeradius/3.0/certs/srp-le-privkey.pem
+systemctl restart freeradius</code></pre>
+<p>The same section keeps the package's <code>tls_min_version = "1.2"</code> and <code>tls_max_version = "1.2"</code>. The app offers TLS 1.3 for EAP by default and this server answers with TLS 1.2, which the app accepts.</p>
+
+<h2 id="eap-tls">5. Certificate login (EAP-TLS)</h2>
+<p>For EAP-TLS, FreeRADIUS accepts a client certificate only when it chains to the CA in <code>ca_file</code>. Our server points it at the test CA that issued our client certificates, instead of the system's list of public roots:</p>
+<pre data-label="/etc/freeradius/3.0/mods-available/eap"><code>		ca_file = ${certdir}/&lt;your-client-ca&gt;.pem</code></pre>
+<p>With that, a client certificate from that CA logged in, and one from another CA was refused. The app sends the certificate's file with its private key, imported as a .p12 or .pfx file; see <a href="app-setup.html#certificate">Certificate login</a>.</p>
+
+<h2 id="eap-methods">6. EAP methods</h2>
+<p>The package's <code>eap</code> module is used as it is. In it PEAP runs EAP-MSCHAPv2 inside, and EAP-TTLS takes PAP, CHAP and EAP-MSCHAPv2 inside. For EAP inside EAP-TTLS, the module first offers EAP-MD5 (<code>default_eap_type = md5</code> in its <code>ttls</code> section); the app never answers EAP-MD5 and asks for EAP-MSCHAPv2 instead, which FreeRADIUS then uses. TEAP is commented out in this version's file, so a profile that offers only TEAP is refused. PEAP from FreeRADIUS sends no crypto binding, so a profile with <strong>Require Crypto Binding</strong> on does not connect to it; that switch is for Windows NPS.</p>
+
+<h2 id="firewall">7. Firewall</h2>
+<p>RADIUS uses UDP 1812 (authentication) and 1813 (accounting). Our server accepts these ports only from the SSTP servers' addresses and from itself. Allow your SSTP servers the same way in your firewall.</p>
+
+<h2 id="start">8. Start and check</h2>
+<pre data-label="Server"><code class="language-bash">freeradius -XC
+systemctl restart freeradius
+systemctl status freeradius --no-pager</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p><code>freeradius -XC</code> reads the whole configuration and ends with <code>Configuration appears to be OK</code>. To see one login step by step, stop the service and run <code>freeradius -X</code> in a terminal; each request ends with <code>Access-Accept</code> or <code>Access-Reject</code>.</p>
+</div>
+
+<h2>Point the SSTP servers at it</h2>
+<ul>
+  <li>MikroTik: <a href="mikrotik.html#radius">RADIUS</a> on the MikroTik page.</li>
+  <li>SoftEther: <a href="softether.html#radius">RADIUS</a> on the SoftEther page.</li>
+  <li>Windows: <a href="windows-server.html#radius">RADIUS</a> on the Windows Server page.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

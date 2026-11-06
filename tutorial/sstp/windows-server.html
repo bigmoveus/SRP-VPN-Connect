@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows Server — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Set up an SSTP server on Windows Server 2019, 2022 or 2025 with Routing and Remote Access and Network Policy Server, the way our test servers are set up, and connect SRP VPN Connect to it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Windows Server</h1>
+<p class="lead">This page sets up an SSTP server on Windows Server 2019, 2022 or 2025 with Routing and Remote Access (RRAS), the way our three test servers are set up, and connects the app to it. RRAS is set up from PowerShell; the certificate, the users and the EAP settings are shown in the Windows consoles.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>On 6 November 2026 we removed the VPN configuration of our Windows Server 2019 test server and set it up again with the commands in steps 3 to 6, then tested the app against it on an iPhone and an Android phone. The screenshots are from our Windows Server 2022 test server, set up the same way with Network Policy Server, and the Windows Server 2025 section was read from that server on the same day. The results are in <a href="results.html">Test results</a>. Host names and addresses in the screenshots are replaced with <code>vpn.example.com</code> and <code>203.0.113.10</code>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>Windows Server 2019, 2022 or 2025 with a public IPv4 address. Each of our servers is a virtual machine with one network adapter.</li>
+  <li>A DNS name for the server, for example <code>vpn.example.com</code>, whose A record points to the server's public address. The app checks the server's certificate against this name.</li>
+  <li>TCP port 443 open to the server for SSTP, and TCP port 80 while Let's Encrypt issues and renews the certificate.</li>
+  <li>PowerShell started with <strong>Run as administrator</strong>.</li>
+</ul>
+<p>In the commands, replace the parts in angle brackets: <code>&lt;SERVER_HOST&gt;</code> is the server's DNS name, <code>&lt;PUBLIC_ADAPTER&gt;</code> the name of the network adapter that faces the internet (<code>Get-NetAdapter</code> lists them; ours are called <code>Ethernet0</code> on Windows Server 2019 and <code>Ethernet0 2</code> on 2022 and 2025), <code>&lt;THUMBPRINT&gt;</code> the certificate's thumbprint.</p>
+
+<h2 id="roles">1. Install the roles</h2>
+<p>SSTP is part of the Remote Access role. Network Policy Server gives the console in which step 7 sets up EAP and PEAP; skip it if MS-CHAPv2 is enough.</p>
+<pre data-label="PowerShell"><code class="language-powershell">Install-WindowsFeature RemoteAccess, DirectAccess-VPN, Routing -IncludeManagementTools
+Install-WindowsFeature NPAS -IncludeManagementTools</code></pre>
+<p>On our Windows Server 2019, where Network Policy Server is not installed, Windows reports for the second command that the server may need a restart afterwards. The first command installs the Routing and Remote Access console and the <code>RemoteAccess</code> PowerShell module used below; the second installs the Network Policy Server console.</p>
+
+<h2 id="certificate">2. Get a certificate</h2>
+<p>SSTP runs inside TLS, so the server needs a certificate for its name in the computer's <strong>Personal</strong> certificate store. Our servers use Let's Encrypt certificates that <a href="https://www.win-acme.com/">win-acme</a> 2.2.9 issued. In win-acme we entered the host name by hand, let win-acme answer Let's Encrypt's HTTP check itself on port 80, and stored the certificate in the Windows certificate store. win-acme adds a scheduled task, <em>win-acme renew (acme-v02.api.letsencrypt.org)</em>, that renews it.</p>
+<figure>
+  <a href="../assets/img/sstp/windows/certificate-store.png"><img src="../assets/img/sstp/windows/certificate-store.png" alt="The Certificates console for the local computer, Personal store: a certificate for vpn.example.com issued by YR2 and a self-signed one" width="1186" height="753" loading="lazy"></a>
+  <figcaption>The Personal store of our Windows Server 2022 (<code>certlm.msc</code>): the Let's Encrypt certificate that SSTP uses, issued by Let's Encrypt's intermediate YR2, and a self-signed certificate we keep for tests.</figcaption>
+</figure>
+<p>Find the certificate's thumbprint for step 5:</p>
+<pre data-label="PowerShell"><code class="language-powershell">Get-ChildItem Cert:\LocalMachine\My | Format-Table Thumbprint, Subject, Issuer, NotAfter</code></pre>
+<p>A certificate from another authority works the same way once it is in the Personal store with its private key. With a certificate the phone does not trust, such as a self-signed one, the app warns before every connection unless <strong>Allow Untrusted Certificate</strong> is on in the profile; see <a href="app-setup.html#certificate-warning">the certificate warning</a>.</p>
+
+<h2 id="rras">3. Turn on the VPN server</h2>
+<pre data-label="PowerShell"><code class="language-powershell">Install-RemoteAccess -VpnType Vpn -IPAddressRange "10.79.0.1", "10.79.0.254"
+Set-VpnAuthProtocol -UserAuthProtocolAccepted MsChapv2, EAP</code></pre>
+<p>The first command sets up RRAS as a VPN server that hands out addresses from 10.79.0.1 to 10.79.0.254. The server keeps the first one for itself: on our server the phone got 10.79.0.2 and the server was 10.79.0.1. As DNS servers, RRAS gives the phones the DNS servers of the server's own network adapter. The second command lets RRAS accept MS-CHAPv2 and EAP only; PAP, CHAP and MS-CHAPv1 stay off.</p>
+<p>On our server <code>Install-RemoteAccess</code> also turned on the PPTP and L2TP ports of RRAS, 128 of each. This guide needs only SSTP, so turn them off again:</p>
+<pre data-label="PowerShell"><code class="language-powershell">netsh ras set wanports device="WAN Miniport (PPTP)" rasinonly=disabled ddinout=disabled ddoutonly=disabled maxports=1
+netsh ras set wanports device="WAN Miniport (L2TP)" rasinonly=disabled ddinout=disabled ddoutonly=disabled maxports=0
+Restart-Service RemoteAccess -Force</code></pre>
+<p>RRAS does not accept 0 ports for PPTP, so one PPTP port stays, with no use set. The SSTP ports are not touched: RRAS has 128 of them, one for each connected phone.</p>
+<div class="callout warning">
+  <span class="callout-title">Firewall</span>
+  <p>On our Windows Server 2019, <code>Install-RemoteAccess</code> also turned on the inbound firewall rules <em>Routing and Remote Access (PPTP-In)</em>, <em>(L2TP-In)</em> and <em>(GRE-In)</em> (rule names <code>RRAS-PPTP-In-TCP</code>, <code>RRAS-L2TP-In-UDP</code>, <code>RRAS-GRE-In</code>). SSTP needs only <em>Secure Socket Tunneling Protocol (SSTP-In)</em>, so turn those three off in <strong>Windows Defender Firewall with Advanced Security</strong> unless you use PPTP or L2TP.</p>
+</div>
+
+<h2 id="nat">4. Let the clients reach the internet</h2>
+<p>The phones' traffic leaves the server with the server's own address through RRAS's NAT. <code>Internal</code> is RRAS's own interface on the VPN side.</p>
+<pre data-label="PowerShell"><code class="language-powershell">netsh routing ip nat install
+netsh routing ip nat add interface name="&lt;PUBLIC_ADAPTER&gt;" mode=full
+netsh routing ip nat add interface name="Internal" mode=private</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <pre data-label="PowerShell"><code class="language-powershell">netsh routing ip nat show interface</code></pre>
+  <p>Our server prints the public adapter with the mode <em>Address and Port Translation</em> and <code>Internal</code> with the mode <em>Private Interface</em>.</p>
+</div>
+
+<h2 id="bind">5. Give SSTP the certificate</h2>
+<pre data-label="PowerShell"><code class="language-powershell">$cert = Get-Item Cert:\LocalMachine\My\&lt;THUMBPRINT&gt;
+Stop-Service RemoteAccess -Force
+Set-RemoteAccess -SslCertificate $cert
+Start-Service RemoteAccess</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <pre data-label="PowerShell"><code class="language-powershell">(Get-RemoteAccess).SslCertificate | Format-List Subject, Issuer, NotAfter, Thumbprint</code></pre>
+  <p>It must show the certificate from step 2. From another computer, <code>openssl s_client -connect &lt;SERVER_HOST&gt;:443 -servername &lt;SERVER_HOST&gt;</code> shows the same certificate.</p>
+</div>
+<p>RRAS keeps the certificate with the thumbprint it was given, and PEAP (step 7) the one chosen in its settings. A renewed certificate has a new thumbprint, so give it to SSTP and PEAP again after each renewal. win-acme can run a script after every issue and renewal; ours runs one that does this.</p>
+
+<h2 id="users">6. Users</h2>
+<p>Our servers use local Windows accounts. Each account needs the dial-in permission <strong>Allow access</strong>.</p>
+<pre data-label="PowerShell"><code class="language-powershell">$password = Read-Host -AsSecureString "Password"
+New-LocalUser -Name "vpnuser" -Password $password -PasswordNeverExpires
+netsh ras set user name=vpnuser dialin=permit</code></pre>
+<p>The same permission is on the <strong>Dial-in</strong> tab of the user in <strong>Local Users and Groups</strong> (<code>lusrmgr.msc</code>).</p>
+<figure>
+  <a href="../assets/img/sstp/windows/user-dialin.png"><img src="../assets/img/sstp/windows/user-dialin.png" alt="The Dial-in tab of a user's properties, with Network Access Permission set to Allow access" width="411" height="520" loading="lazy"></a>
+  <figcaption>The Dial-in tab of one of our test users. <code>netsh ras show user name=vpnuser</code> shows the same setting as <em>Dialin: permit</em>.</figcaption>
+</figure>
+
+<h2 id="nps">7. EAP and PEAP (optional)</h2>
+<p>With step 3, the app connects with MS-CHAPv2, its default. For EAP-MSCHAPv2 and PEAP, the network policy that RRAS uses must allow those EAP types. Open <strong>Network Policy Server</strong> (<code>nps.msc</code>), go to <strong>Policies</strong> &gt; <strong>Network Policies</strong> and open <strong>Connections to Microsoft Routing and Remote Access server</strong>.</p>
+<figure>
+  <a href="../assets/img/sstp/windows/nps-policies.png"><img src="../assets/img/sstp/windows/nps-policies.png" alt="Network Policy Server console with the two default network policies; the RRAS policy is selected and its conditions and settings are shown below" width="1186" height="753" loading="lazy"></a>
+  <figcaption>The two network policies on our Windows Server 2022. The RRAS policy matches connections from RRAS (MS-RAS Vendor ID 311) and lists PEAP and EAP-MSCHAPv2 among its settings.</figcaption>
+</figure>
+<p>On the <strong>Overview</strong> tab, our policy keeps Windows' default <strong>Deny access</strong>, with <strong>Ignore user account dial-in properties</strong> off. The user's dial-in permission from step 6 decides then, and the policy's other settings, such as its EAP types, still apply.</p>
+<figure>
+  <a href="../assets/img/sstp/windows/nps-overview.png"><img src="../assets/img/sstp/windows/nps-overview.png" alt="Overview tab of the policy: Policy enabled, Deny access, Ignore user account dial-in properties off, network access server type Unspecified" width="724" height="605" loading="lazy"></a>
+  <figcaption>The Overview tab of the RRAS policy on our server.</figcaption>
+</figure>
+<p>On the <strong>Constraints</strong> tab, under <strong>Authentication Methods</strong>, click <strong>Add</strong> and add <strong>Microsoft: Protected EAP (PEAP)</strong> and <strong>Microsoft: Secured password (EAP-MSCHAP v2)</strong>.</p>
+<figure>
+  <a href="../assets/img/sstp/windows/nps-constraints.png"><img src="../assets/img/sstp/windows/nps-constraints.png" alt="Constraints tab, Authentication Methods: EAP types PEAP and EAP-MSCHAP v2; MS-CHAP-v2 and MS-CHAP ticked" width="724" height="605" loading="lazy"></a>
+  <figcaption>The authentication methods of our policy. RRAS itself offers only MS-CHAPv2 and EAP (step 3), so MS-CHAP here is never used.</figcaption>
+</figure>
+<p>Select <strong>Microsoft: Protected EAP (PEAP)</strong> and click <strong>Edit</strong>. Choose the certificate from step 2 in <strong>Certificate issued to</strong>; PEAP runs a TLS session inside the VPN login, and the app checks this certificate too. The EAP type inside PEAP is <strong>Secured password (EAP-MSCHAP v2)</strong>. Click <strong>OK</strong> in both windows.</p>
+<figure>
+  <a href="../assets/img/sstp/windows/nps-peap.png"><img src="../assets/img/sstp/windows/nps-peap.png" alt="Edit Protected EAP Properties: certificate issued to vpn.example.com by YR2, Enable Fast Reconnect ticked, Disconnect Clients without Cryptobinding not ticked, EAP type Secured password (EAP-MSCHAP v2)" width="434" height="393" loading="lazy"></a>
+  <figcaption>The PEAP settings of our server.</figcaption>
+</figure>
+<p>On our server <strong>Disconnect Clients without Cryptobinding</strong> is off. Network Policy Server sends PEAP's crypto binding anyway, so a profile with <strong>Require Crypto Binding</strong> on connects too.</p>
+<p>Our Network Policy Servers refused EAP-TTLS and TEAP, and they have no TLS 1.3 inside EAP: when the app offers TLS 1.3 for PEAP, the server ends the exchange and the app tries again with TLS 1.2 by itself. For EAP-TTLS and certificate login, see <a href="#radius">Windows Server 2025 with FreeRADIUS</a> below.</p>
+
+<h2 id="radius">Windows Server 2025 with FreeRADIUS</h2>
+<p>RRAS can send the logins to a RADIUS server instead of checking them against Windows accounts. Our Windows Server 2025 sends them to the FreeRADIUS server described in <a href="freeradius.html">FreeRADIUS</a>, which adds EAP-TTLS and certificate login (EAP-TLS) and keeps one user list for all our servers. Steps 1 to 5 are the same on it, with its own address range 10.80.0.1 to 10.80.0.254; users and EAP settings live on the RADIUS server, so steps 6 and 7 do not apply.</p>
+<pre data-label="PowerShell"><code class="language-powershell">Set-VpnAuthType -Type ExternalRadius -RadiusServer &lt;RADIUS_IP&gt; -SharedSecret &lt;RADIUS_SECRET&gt;
+Restart-Service RemoteAccess</code></pre>
+<p>On the RADIUS server, the Windows server must be a client with the same secret. <code>Get-RemoteAccessRadius</code> on our server shows the RADIUS server with port 1812, a timeout of 5 seconds and the purpose Authentication.</p>
+
+<h2 id="check">Check the server</h2>
+<pre data-label="PowerShell"><code class="language-powershell">Get-RemoteAccess | Format-List VpnStatus, AuthenticationType, IPAddressRangeList, SslCertificate
+Get-VpnAuthProtocol
+Get-NetFirewallRule -DisplayName "Secure Socket Tunneling Protocol (SSTP-In)" | Format-Table DisplayName, Enabled, Action</code></pre>
+<p>On our servers <code>VpnStatus</code> is <em>Installed</em>, <code>AuthenticationType</code> is <em>Windows</em> on 2019 and 2022 and <em>ExternalRadius</em> on 2025, and the firewall rule <em>Secure Socket Tunneling Protocol (SSTP-In)</em>, which RRAS turns on, allows TCP 443. RRAS logs refused logins in the System event log under the source <em>RemoteAccess</em> (events 20255 and 20269, which name the user and the reason); Network Policy Server's own decisions are Security events 6272 to 6274.</p>
+
+<h2 id="undo">Remove the VPN configuration</h2>
+<pre data-label="PowerShell"><code class="language-powershell">Uninstall-RemoteAccess -VpnType Vpn -Force
+netsh routing ip nat delete interface name="&lt;PUBLIC_ADAPTER&gt;"
+netsh routing ip nat delete interface name="Internal"
+netsh routing ip nat uninstall</code></pre>
+<p><code>Uninstall-RemoteAccess</code> alone left the NAT settings of step 4 in place on our server, so the last three commands remove them.</p>
+
+<h2>Connect the app</h2>
+<p>In the app, add a profile with the protocol <strong>SSTP VPN</strong>, the server's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The default settings use MS-CHAPv2. For PEAP or EAP-MSCHAPv2, turn them on in <strong>EAP Configuration</strong> under <strong>Authentication</strong>; <a href="app-setup.html">Setting up the app</a> describes every field. Leave <strong>Identity Privacy</strong> off for these servers: RRAS with local accounts refuses its outer identity <code>anonymous</code>.</p>
+
+<h2 id="console">About the Routing and Remote Access console</h2>
+<p>On our servers the Routing and Remote Access console could not show the server's settings, so this page uses PowerShell for RRAS. The reason is the <strong>Remote Access Connection Manager</strong> service (<code>RasMan</code>); see <a href="troubleshooting.html#windows-console">Troubleshooting</a>.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

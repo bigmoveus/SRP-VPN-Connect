@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MikroTik RouterOS — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Set up an SSTP server on MikroTik RouterOS 7 from the command line, the way our test router is set up, and connect SRP VPN Connect to it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>MikroTik RouterOS</h1>
+<p class="lead">This page sets up an SSTP server on a MikroTik router from the RouterOS command line, the way our test router is set up, and connects the app to it.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every setting below was read from our test router, a Cloud Hosted Router with RouterOS 7.25, on 6 November 2026 (<code>/export</code> and <code>print</code>). The results named on this page come from the test runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>A router with RouterOS 7. Our test router runs RouterOS 7.25 as a Cloud Hosted Router (CHR) with one public IPv4 address on <code>ether1</code>.</li>
+  <li>A DNS name for the router, for example <code>vpn.example.com</code>, whose A record points to the router's public address. The app checks the server's certificate against this name.</li>
+  <li>TCP port 443 open to the router for SSTP, and TCP port 80 while Let's Encrypt issues and renews the certificate.</li>
+  <li>A terminal on the router: SSH, WinBox's <strong>New Terminal</strong>, or WebFig's terminal.</li>
+</ul>
+<p>In the commands, replace the parts in angle brackets: <code>&lt;SERVER_HOST&gt;</code> is the router's DNS name, <code>&lt;PASSWORD&gt;</code> a user's password.</p>
+
+<h2 id="certificate">1. Get a certificate</h2>
+<p>SSTP runs inside TLS, so the router needs a certificate for its name. Our router uses a Let's Encrypt certificate that RouterOS requests and renews by itself. RouterOS's documentation gives this command for it; Let's Encrypt checks the name over HTTP, so the name must point to the router and TCP port 80 must be reachable from the internet.</p>
+<pre data-label="RouterOS"><code class="language-bash">/certificate add-acme directory-url=https://acme-v02.api.letsencrypt.org/directory domain-names=&lt;SERVER_HOST&gt;</code></pre>
+<p>Wait until the certificate appears with the flags <code>K</code> and <code>a</code>, and note its name: step 4 gives it to the SSTP server. Ours is called <code>sstp-le</code>; use your certificate's name wherever this page says <code>sstp-le</code>.</p>
+<pre data-label="RouterOS"><code class="language-bash">/certificate print detail where common-name=&lt;SERVER_HOST&gt;</code></pre>
+<p>A rename with <code>/certificate set [find common-name=&lt;SERVER_HOST&gt;] name=…</code> fails when two certificates have the same name inside, as on our router, which also keeps a self-signed certificate for tests: RouterOS answers <em>name must be unique!</em>.</p>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p>On our router the certificate shows the flags <code>K</code> (it has its private key) and <code>a</code> (RouterOS manages it through ACME), <code>common-name="&lt;SERVER_HOST&gt;"</code>, an issuer of Let's Encrypt, an RSA 2048-bit key, and an <code>acme-status</code> with the date of the next renewal. RouterOS renews it when 80% of its validity has passed.</p>
+</div>
+<p>A certificate from another authority works the same way: import its file and key with <code>/certificate import</code> and use its name in step 4. With a certificate the phone does not trust, such as a self-signed one, the app warns before every connection unless <strong>Allow Untrusted Certificate</strong> is on in the profile; see <a href="app-setup.html#certificate-warning">the certificate warning</a>.</p>
+
+<h2 id="addresses">2. Addresses for the clients</h2>
+<p>Each connected phone gets an address from a pool. The router keeps the first address of the range for itself, and the PPP profile hands out DNS servers.</p>
+<pre data-label="RouterOS"><code class="language-bash">/ip pool add name=sstp-pool ranges=10.77.0.10-10.77.0.250
+/ppp profile add name=sstp-profile local-address=10.77.0.1 remote-address=sstp-pool \
+    dns-server=1.1.1.1,8.8.8.8 change-tcp-mss=yes use-ipv6=no</code></pre>
+<p><code>change-tcp-mss=yes</code> lets the router lower the TCP segment size of connections through the tunnel to fit the tunnel. The app sends IPv4 only, so the profile hands out no IPv6.</p>
+
+<h2 id="users">3. Users</h2>
+<p>Each user is a PPP secret that may use the SSTP service.</p>
+<pre data-label="RouterOS"><code class="language-bash">/ppp secret add name=vpnuser password=&lt;PASSWORD&gt; profile=sstp-profile service=sstp</code></pre>
+<p>Users can also come from a RADIUS server instead; see <a href="#radius">RADIUS</a> below.</p>
+
+<h2 id="server">4. Turn on the SSTP server</h2>
+<pre data-label="RouterOS"><code class="language-bash">/interface sstp-server server set enabled=yes certificate=sstp-le default-profile=sstp-profile \
+    authentication=mschap2 pfs=yes</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <pre data-label="RouterOS"><code class="language-bash">/interface sstp-server server print</code></pre>
+  <p>Our router prints these values; the ones not set above are RouterOS 7.25's defaults:</p>
+<pre><code>                    enabled: yes
+                       port: 443
+                    max-mtu: 1500
+                    max-mru: 1500
+                       mrru: disabled
+          keepalive-timeout: 60
+            default-profile: sstp-profile
+             authentication: mschap2
+                certificate: sstp-le
+  verify-client-certificate: no
+                        pfs: yes
+                tls-version: any
+                    ciphers: aes256-sha
+                             aes256-gcm-sha384</code></pre>
+</div>
+<p>What each setting does with the app, as tested:</p>
+<table>
+  <thead><tr><th>Setting</th><th>Values tested</th><th>What the app needs</th></tr></thead>
+  <tbody>
+    <tr><td><code>authentication</code></td><td><code>mschap2</code> (ours), <code>pap</code>, <code>chap</code>, <code>pap,chap,mschap1,mschap2</code>, <code>mschap1</code></td><td>MS-CHAPv2 is the app's default and works with <code>mschap2</code>. For <code>pap</code> or <code>chap</code>, turn on <strong>Enable PAP / CHAP (Less Secure)</strong> in the profile. The app has no MS-CHAPv1, so a router that allows only <code>mschap1</code> refuses it. RouterOS's SSTP server has no EAP, so PEAP, EAP-TTLS, TEAP and certificate login do not apply to it.</td></tr>
+    <tr><td><code>tls-version</code></td><td><code>any</code> (ours), <code>only-1.2</code></td><td>Both connect. RouterOS's SSTP server offers TLS 1.0 to 1.2, not TLS 1.3, so the app uses TLS 1.2 with it.</td></tr>
+    <tr><td><code>ciphers</code></td><td>both (ours), <code>aes256-gcm-sha384</code>, <code>aes256-sha</code></td><td>Each connects.</td></tr>
+    <tr><td><code>pfs</code></td><td><code>yes</code> (ours), <code>required</code></td><td>Both connect.</td></tr>
+    <tr><td><code>max-mtu</code>, <code>max-mru</code></td><td>1500 (ours), 1400</td><td>Both connect.</td></tr>
+    <tr><td><code>mrru</code></td><td><code>disabled</code> (ours), 1600</td><td>Both connect.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="nat">5. Let the clients reach the internet</h2>
+<p>The phones' traffic leaves the router with the router's own address. Our router has one masquerade rule for this:</p>
+<pre data-label="RouterOS"><code class="language-bash">/ip firewall nat add chain=srcnat action=masquerade</code></pre>
+<p>That rule masquerades everything that leaves the router. To limit it to the SSTP clients, add <code>src-address=10.77.0.0/24 out-interface=ether1</code>, with your router's internet interface instead of <code>ether1</code>.</p>
+<div class="callout warning">
+  <span class="callout-title">Firewall</span>
+  <p>Our test router has no input firewall rule that drops traffic, so nothing more was needed for TCP 443 to reach the SSTP server. If your router drops input by default, it needs a rule that accepts TCP 443 (and TCP 80 for the certificate) before the drop rule.</p>
+</div>
+
+<h2 id="radius">RADIUS (optional)</h2>
+<p>RouterOS can check SSTP logins against a RADIUS server. Ours asks the FreeRADIUS server described in <a href="freeradius.html">FreeRADIUS</a>. RouterOS still checks its own PPP secrets first, so a user that exists in both places logs in with the local password.</p>
+<pre data-label="RouterOS"><code class="language-bash">/radius add address=&lt;RADIUS_IP&gt; secret=&lt;RADIUS_SECRET&gt; service=ppp timeout=3s
+/ppp aaa set use-radius=yes</code></pre>
+<p>With RADIUS, a RADIUS user logged in with MS-CHAPv2 and, with the router set to <code>authentication=pap</code>, with PAP. A wrong password ends with the app's authentication message.</p>
+
+<h2 id="check">Check the server</h2>
+<pre data-label="RouterOS"><code class="language-bash">/interface sstp-server server print
+/ppp active print
+/log print where topics~"sstp|ppp"</code></pre>
+<p>While a phone is connected, <code>/ppp active print</code> lists its user, the service <code>sstp</code> and the address it got from the pool. RouterOS logs the SSTP and PPP steps under the topics <code>sstp</code> and <code>ppp</code>; to keep more of them, add a logging rule such as <code>/system logging add topics=sstp action=memory</code>.</p>
+
+<h2>Connect the app</h2>
+<p>In the app, add a profile with the protocol <strong>SSTP VPN</strong>, the router's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The default settings match the router above. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

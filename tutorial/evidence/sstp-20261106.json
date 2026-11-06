@@ -1,0 +1,5676 @@
+{
+ "run": {
+  "date": "6 November 2026",
+  "iphone": "our iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the iPhone running a Release build of commit 778e1b69, whose SSTP code TestFlight build 34 has, and Android running debug builds of this round's Android app, the one for Windows Server 2025 at commit 3bcb0567",
+  "servers": "MikroTik RouterOS 7.25, SoftEther VPN Server 4.44, and Windows Server 2019, 2022 and 2025 with Routing and Remote Access, the last with FreeRADIUS 3.2.5",
+  "reruns": "Eleven iPhone cases ran again on commit 3bcb0567, and their rows show that run: the eight that this round's fixes concern (the message for refused login methods, Retry Times, and EAP-TTLS with FreeRADIUS), two whose expected result had been set wrong, and the SecureNAT download, which had started before SoftEther's NAT was ready."
+ },
+ "summary": {
+  "cases": 233,
+  "iphone_passed": 226,
+  "iphone_run": 226,
+  "android_passed": 229,
+  "android_run": 229
+ },
+ "cases": [
+  {
+   "id": "sstp-base-download",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 72.7,
+    "download_mbps": 108.65,
+    "seconds_measured": 63.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-base-full-duplex",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 105.4,
+    "download_mbps": 29.67,
+    "upload_mbps": 104.55,
+    "seconds_measured": 95.0,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-base-upload",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 75.6,
+    "download_mbps": 0.0,
+    "upload_mbps": 125.8,
+    "seconds_measured": 65.08,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-ip-verify-declined",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.0,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 10.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-ip-verify-accepted",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.0,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 10.5,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-ip-allow-untrusted",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address",
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.0,
+    "download_mbps": 109.55,
+    "seconds_measured": 33.08,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 5.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-ip-custom-sni",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-mikrotik.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.1,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-sni-wrong",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.8,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-sni-disabled-stale",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Custom SNI off (with wrong.example.com typed)"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.5,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-disable-legacy-tls",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Disable TLS 1.0 & 1.1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.7,
+    "download_mbps": 110.43,
+    "seconds_measured": 34.03,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 8.5,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-tls-frag-auto",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.0,
+    "download_mbps": 114.93,
+    "seconds_measured": 31.53,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-tls-frag-manual",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.2,
+    "download_mbps": 113.41,
+    "seconds_measured": 34.32,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-tls-frag-manual-1",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.6,
+    "download_mbps": 107.71,
+    "seconds_measured": 32.4,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-log-expert",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.8,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-log-debug",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.1,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-papchap-only",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.9,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.2,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "sstp-no-auth-method",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "MS-CHAPv2 off"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.6,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "sstp-eap-mschapv2-plus-mschapv2",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "EAP-MSCHAPv2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.9,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "sstp-wrong-password",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.8,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.3,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "sstp-wrong-port",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Port 4443"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.5,
+    "message": "Cannot reach the server (DNS/TCP/TLS failed). Check the host, port and certificate settings.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Cannot reach the server (DNS/TCP/TLS failed). Check the host, port and certificate settings."
+   }
+  },
+  {
+   "id": "sstp-proxy-manual",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 53.0,
+    "download_mbps": 107.41,
+    "seconds_measured": 33.74,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-proxy-manual-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 51.6,
+    "download_mbps": 110.11,
+    "seconds_measured": 32.91,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-proxy-wrong-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy with a wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 17.6,
+    "message": "Proxy authentication failed (HTTP 407)",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 16.9,
+    "transfer_s": null,
+    "message": "Proxy authentication failed (HTTP 407)"
+   }
+  },
+  {
+   "id": "sstp-proxy-auto-pac",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.3,
+    "download_mbps": 120.78,
+    "seconds_measured": 34.45,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.6,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-proxy-unreachable",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy that is not there"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.2,
+    "message": "Cannot reach the proxy 192.0.2.10:3999 (Connection refused). Check the proxy address and port.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Cannot reach the proxy 192.0.2.10:3999 (ECONNREFUSED). Check the proxy address and port."
+   }
+  },
+  {
+   "id": "sstp-heavy-soak",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 200.4,
+    "download_mbps": 30.44,
+    "upload_mbps": 90.63,
+    "seconds_measured": 189.57,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-tls-frag-full-duplex",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 76.8,
+    "download_mbps": 26.36,
+    "upload_mbps": 77.07,
+    "seconds_measured": 66.18,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "sstp-tls-frag-manual-upload",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 74.1,
+    "download_mbps": 0.0,
+    "upload_mbps": 119.32,
+    "seconds_measured": 62.99,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-pap",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on",
+    "router: authentication=pap"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.0,
+    "download_mbps": 108.83,
+    "seconds_measured": 33.3,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-chap",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on",
+    "router: authentication=chap"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.8,
+    "download_mbps": 105.8,
+    "seconds_measured": 36.79,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 4.9,
+    "transfer_s": 7.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-pap-client-mschapv2-only",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: authentication=pap"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.1,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.2,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "mt-srv-mschap1-only",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: authentication=mschap1"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.8,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.2,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "mt-srv-all-auth-client-mschapv2",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: authentication=pap,chap,mschap1,mschap2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.4,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "mt-srv-tls12-only",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: tls-version=only-1.2"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.5,
+    "download_mbps": 104.98,
+    "seconds_measured": 33.24,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-pfs-required",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: pfs=required"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.4,
+    "download_mbps": 108.71,
+    "seconds_measured": 32.1,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 7.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-cipher-gcm",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: ciphers=aes256-gcm-sha384"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 40.8,
+    "download_mbps": 104.93,
+    "seconds_measured": 30.7,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-cipher-cbc",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: ciphers=aes256-sha"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.4,
+    "download_mbps": 104.73,
+    "seconds_measured": 32.04,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-mrru",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: mrru=1600"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.1,
+    "download_mbps": 105.12,
+    "seconds_measured": 31.92,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-srv-mtu-1400",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "router: max-mtu=1400 max-mru=1400"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.3,
+    "download_mbps": 109.15,
+    "seconds_measured": 33.2,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-life-sleep-modes",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Debug",
+    "seconds": 40.8,
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.5 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.6 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "mt-life-peer-drop-reconnect",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Debug",
+    "seconds": 15.8,
+    "lifecycle": [
+     "the server dropped the session: connected again after 5.2 s"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "mt-life-peer-drop-no-reconnect",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Debug",
+    "seconds": 14.2,
+    "lifecycle": [
+     "the server dropped the session: ended after 5.0 s with: Connection lost (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "mt-life-retry-exhausted",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Debug",
+    "seconds": 17.1,
+    "lifecycle": [
+     "the SSTP server was turned off: ended after 5.0 s with: Could not reconnect after 2 attempts. Giving up."
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "mt-radius-mschapv2",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "RADIUS user"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 44.6,
+    "download_mbps": 100.82,
+    "seconds_measured": 31.95,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-radius-pap",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on",
+    "RADIUS user",
+    "router: authentication=pap"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.3,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "mt-radius-wrong-password",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "wrong password",
+    "RADIUS user"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.5,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "mt-radius-wrong-password-debug",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Log Level Debug",
+    "wrong password",
+    "RADIUS user"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.6,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "mt-m-frag-auto-duplex",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.3,
+    "download_mbps": 24.33,
+    "upload_mbps": 97.33,
+    "seconds_measured": 44.13,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-manual-default-duplex",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 55.1,
+    "download_mbps": 26.98,
+    "upload_mbps": 92.92,
+    "seconds_measured": 44.78,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 7.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-manual-1-1",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.2,
+    "download_mbps": 114.18,
+    "seconds_measured": 23.51,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-manual-43-128",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 43/128"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.1,
+    "download_mbps": 105.13,
+    "seconds_measured": 22.98,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-manual-max",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 4096/16384"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.0,
+    "download_mbps": 0.0,
+    "upload_mbps": 112.64,
+    "seconds_measured": 22.64,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-manual-too-big",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Manual 5000/20000"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.3,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds"
+   }
+  },
+  {
+   "id": "mt-m-frag-sni-ip",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-mikrotik.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.0,
+    "download_mbps": 100.2,
+    "seconds_measured": 24.11,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-sni-wrong",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Custom SNI wrong.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.7,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "mt-m-frag-proxy",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.4,
+    "download_mbps": 106.48,
+    "seconds_measured": 22.69,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.7,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-proxy-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.5,
+    "download_mbps": 0.0,
+    "upload_mbps": 96.25,
+    "seconds_measured": 25.1,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.7,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-pac",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.8,
+    "download_mbps": 86.37,
+    "seconds_measured": 23.31,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-legacy-off",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Disable TLS 1.0 & 1.1",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.1,
+    "download_mbps": 102.67,
+    "seconds_measured": 23.53,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 6.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-frag-sni-proxy-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-mikrotik.example.com",
+    "TLS Fragmentation Manual 32/256",
+    "manual proxy with username and password"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.2,
+    "download_mbps": 23.5,
+    "upload_mbps": 90.08,
+    "seconds_measured": 34.27,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.6,
+    "transfer_s": 5.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-sni-ip",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-mikrotik.example.com"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.2,
+    "download_mbps": 96.86,
+    "seconds_measured": 22.17,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-sni-wrong",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.4,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 10.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "mt-m-sni-off-ip-accepted",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 22.8,
+    "download_mbps": 100.54,
+    "seconds_measured": 13.35,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 10.5,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-proxy",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.4,
+    "download_mbps": 89.7,
+    "seconds_measured": 23.94,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.7,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-proxy-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 44.6,
+    "download_mbps": 0.0,
+    "upload_mbps": 117.64,
+    "seconds_measured": 23.96,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 17.0,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-pac",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.5,
+    "download_mbps": 95.31,
+    "seconds_measured": 23.94,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "mt-m-pac-auth",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "PAC proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.9,
+    "download_mbps": 106.03,
+    "seconds_measured": 24.05,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-base-download",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 74.2,
+    "download_mbps": 102.22,
+    "seconds_measured": 61.71,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-base-upload",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 76.6,
+    "download_mbps": 0.0,
+    "upload_mbps": 123.41,
+    "seconds_measured": 63.08,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-base-full-duplex",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 111.1,
+    "download_mbps": 30.3,
+    "upload_mbps": 107.44,
+    "seconds_measured": 97.44,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 7.9,
+    "transfer_s": 7.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-heavy-soak",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 201.9,
+    "download_mbps": 43.97,
+    "upload_mbps": 107.09,
+    "seconds_measured": 189.25,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 7.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-verify-declined",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.1,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-wrong-password",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate",
+    "wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.7,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.3,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "se-papchap-only",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on",
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.5,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-eap-mschapv2",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2",
+    "Allow Untrusted Certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.2,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "se-tls-frag-auto",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.0,
+    "download_mbps": 118.74,
+    "seconds_measured": 32.78,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 7.3,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-disable-legacy-tls",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate",
+    "Disable TLS 1.0 & 1.1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.2,
+    "download_mbps": 119.87,
+    "seconds_measured": 32.47,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 7.9,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-verified-download",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 73.9,
+    "download_mbps": 121.23,
+    "seconds_measured": 62.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 7.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-verified-upload",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 75.9,
+    "download_mbps": 0.0,
+    "upload_mbps": 134.28,
+    "seconds_measured": 62.97,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-ip-custom-sni",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-softether.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 12.0,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-radius-mschapv2",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "RADIUS user"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 78.3,
+    "download_mbps": 117.49,
+    "seconds_measured": 34.27,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-radius-pap",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PAP / CHAP on",
+    "RADIUS user"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 12.2,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-radius-wrong-password",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "wrong password",
+    "RADIUS user"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.4,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "se-d-eap-only",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2",
+    "Allow Untrusted Certificate",
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 5.7,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile."
+   }
+  },
+  {
+   "id": "se-securenat-download",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "SoftEther SecureNAT"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 73.5,
+    "download_mbps": 115.69,
+    "seconds_measured": 63.81,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-securenat-heavy-soak",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Allow Untrusted Certificate",
+    "SoftEther SecureNAT"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 198.8,
+    "download_mbps": 19.2,
+    "upload_mbps": 98.82,
+    "seconds_measured": 188.79,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 7.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-auto-duplex",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.5,
+    "download_mbps": 33.59,
+    "upload_mbps": 103.83,
+    "seconds_measured": 43.95,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-manual-default-duplex",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 61.0,
+    "download_mbps": 28.62,
+    "upload_mbps": 103.02,
+    "seconds_measured": 46.9,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-manual-1-1",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 36.0,
+    "download_mbps": 122.78,
+    "seconds_measured": 24.05,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-manual-43-128",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Manual 43/128"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 36.2,
+    "download_mbps": 118.18,
+    "seconds_measured": 23.85,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-manual-max",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Manual 4096/16384"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 37.1,
+    "download_mbps": 0.0,
+    "upload_mbps": 105.16,
+    "seconds_measured": 24.25,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-manual-too-big",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Manual 5000/20000"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.4,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds"
+   }
+  },
+  {
+   "id": "se-m-frag-sni-ip",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-softether.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.4,
+    "download_mbps": 70.58,
+    "seconds_measured": 24.72,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-sni-wrong",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Custom SNI wrong.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.4,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-m-frag-proxy",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.9,
+    "download_mbps": 108.33,
+    "seconds_measured": 23.54,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 19.5,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-proxy-auth",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 44.3,
+    "download_mbps": 0.0,
+    "upload_mbps": 123.02,
+    "seconds_measured": 20.73,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 19.4,
+    "transfer_s": 2.6,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-pac",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 35.1,
+    "download_mbps": 116.46,
+    "seconds_measured": 23.05,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-legacy-off",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Disable TLS 1.0 & 1.1",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 35.7,
+    "download_mbps": 121.75,
+    "seconds_measured": 23.15,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-frag-sni-proxy-auth",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-softether.example.com",
+    "TLS Fragmentation Manual 32/256",
+    "manual proxy with username and password"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 59.9,
+    "download_mbps": 29.14,
+    "upload_mbps": 105.63,
+    "seconds_measured": 36.85,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 19.9,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-sni-ip",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-softether.example.com"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 36.3,
+    "download_mbps": 114.42,
+    "seconds_measured": 23.46,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-sni-wrong",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.4,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "se-m-sni-off-ip-accepted",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 26.1,
+    "download_mbps": 103.46,
+    "seconds_measured": 14.27,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 13.5,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-proxy",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.5,
+    "download_mbps": 110.49,
+    "seconds_measured": 23.08,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 19.5,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-proxy-auth",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 47.4,
+    "download_mbps": 0.0,
+    "upload_mbps": 136.84,
+    "seconds_measured": 23.54,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 19.3,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-pac",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.3,
+    "download_mbps": 105.63,
+    "seconds_measured": 21.6,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "se-m-pac-auth",
+   "server": "SoftEther VPN Server 4.44",
+   "settings": [
+    "PAC proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 34.9,
+    "download_mbps": 117.27,
+    "seconds_measured": 22.89,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-base-download",
+   "server": "Windows Server 2019",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 70.4,
+    "download_mbps": 153.67,
+    "seconds_measured": 61.14,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-base-full-duplex",
+   "server": "Windows Server 2019",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 104.2,
+    "download_mbps": 34.19,
+    "upload_mbps": 122.52,
+    "seconds_measured": 94.21,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 5.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-base-upload",
+   "server": "Windows Server 2019",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 72.7,
+    "download_mbps": 0.0,
+    "upload_mbps": 139.14,
+    "seconds_measured": 62.7,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-eap-mschapv2",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.8,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-peap",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 45.0,
+    "download_mbps": 97.61,
+    "seconds_measured": 33.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-peap-crypto-binding",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP with Require Crypto Binding"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.5,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-peap-identity-privacy",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "Identity Privacy"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.5,
+    "message": "Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; if it checks the outer identity, turn Identity Privacy off.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; if it checks the outer identity, turn Identity Privacy off."
+   }
+  },
+  {
+   "id": "win2019-peap-tls13",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 on, TLS 1.0 & 1.1 off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.2,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-peap-tls12-legacy",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 off, TLS 1.0 & 1.1 allowed"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.4,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-ttls-expect-fail",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with CHAP"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.4,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2019-teap-expect-fail",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "TEAP"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.6,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2019-disable-legacy-tls",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Disable TLS 1.0 & 1.1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.9,
+    "download_mbps": 155.31,
+    "seconds_measured": 32.84,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-tls-frag-auto",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.5,
+    "download_mbps": 136.42,
+    "seconds_measured": 33.45,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-wrong-password",
+   "server": "Windows Server 2019",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.6,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.2,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2019-d-peap-tls13",
+   "server": "Windows Server 2019",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 on, TLS 1.0 & 1.1 off",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.2,
+    "download_mbps": 64.4,
+    "seconds_measured": 14.59,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-heavy-soak",
+   "server": "Windows Server 2019",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 198.7,
+    "download_mbps": 55.48,
+    "upload_mbps": 106.69,
+    "seconds_measured": 188.71,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-auto-duplex",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 56.3,
+    "download_mbps": 32.2,
+    "upload_mbps": 99.53,
+    "seconds_measured": 45.85,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 5.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-manual-default-duplex",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 55.1,
+    "download_mbps": 26.86,
+    "upload_mbps": 104.44,
+    "seconds_measured": 44.98,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-manual-1-1",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.7,
+    "download_mbps": 157.69,
+    "seconds_measured": 22.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-manual-43-128",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Manual 43/128"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.8,
+    "download_mbps": 119.78,
+    "seconds_measured": 22.41,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-manual-max",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Manual 4096/16384"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 47.1,
+    "download_mbps": 0.0,
+    "upload_mbps": 52.36,
+    "seconds_measured": 23.07,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 2.6,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-manual-too-big",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Manual 5000/20000"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.6,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds"
+   }
+  },
+  {
+   "id": "win2019-m-frag-sni-ip",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2019.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 38.3,
+    "download_mbps": 137.19,
+    "seconds_measured": 23.48,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-sni-wrong",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Custom SNI wrong.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 47.2,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.8,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-m-frag-proxy",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.4,
+    "download_mbps": 154.08,
+    "seconds_measured": 23.52,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.7,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-proxy-auth",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.6,
+    "download_mbps": 0.0,
+    "upload_mbps": 132.14,
+    "seconds_measured": 21.33,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-pac",
+   "server": "Windows Server 2019",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.3,
+    "download_mbps": 141.02,
+    "seconds_measured": 21.89,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-legacy-off",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Disable TLS 1.0 & 1.1",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 34.1,
+    "download_mbps": 145.38,
+    "seconds_measured": 23.08,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-frag-sni-proxy-auth",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2019.example.com",
+    "TLS Fragmentation Manual 32/256",
+    "manual proxy with username and password"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.8,
+    "download_mbps": 34.82,
+    "upload_mbps": 119.94,
+    "seconds_measured": 34.69,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.6,
+    "transfer_s": 4.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-sni-ip",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2019.example.com"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.8,
+    "download_mbps": 143.92,
+    "seconds_measured": 21.45,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-sni-wrong",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.4,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.8,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2019-m-sni-off-ip-accepted",
+   "server": "Windows Server 2019",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 21.3,
+    "download_mbps": 148.62,
+    "seconds_measured": 11.74,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 10.6,
+    "transfer_s": 5.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-proxy",
+   "server": "Windows Server 2019",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 48.0,
+    "download_mbps": 144.88,
+    "seconds_measured": 23.16,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-proxy-auth",
+   "server": "Windows Server 2019",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.8,
+    "download_mbps": 0.0,
+    "upload_mbps": 146.4,
+    "seconds_measured": 22.92,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-pac",
+   "server": "Windows Server 2019",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.4,
+    "download_mbps": 150.0,
+    "seconds_measured": 22.37,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2019-m-pac-auth",
+   "server": "Windows Server 2019",
+   "settings": [
+    "PAC proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.0,
+    "download_mbps": 146.95,
+    "seconds_measured": 21.92,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 4.9,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-base-download",
+   "server": "Windows Server 2022",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 72.2,
+    "download_mbps": 155.02,
+    "seconds_measured": 62.34,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-base-full-duplex",
+   "server": "Windows Server 2022",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 103.2,
+    "download_mbps": 34.63,
+    "upload_mbps": 122.66,
+    "seconds_measured": 93.01,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-base-upload",
+   "server": "Windows Server 2022",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 73.3,
+    "download_mbps": 0.0,
+    "upload_mbps": 137.02,
+    "seconds_measured": 62.69,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-eap-mschapv2",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.1,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-peap",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.8,
+    "download_mbps": 117.91,
+    "seconds_measured": 33.01,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-peap-crypto-binding",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP with Require Crypto Binding"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 11.1,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-peap-identity-privacy",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "Identity Privacy"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.8,
+    "message": "Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; if it checks the outer identity, turn Identity Privacy off.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; if it checks the outer identity, turn Identity Privacy off."
+   }
+  },
+  {
+   "id": "win2022-peap-tls13",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 on, TLS 1.0 & 1.1 off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.6,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-peap-tls12-legacy",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 off, TLS 1.0 & 1.1 allowed"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.0,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-ttls-expect-fail",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with CHAP"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.6,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2022-teap-expect-fail",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "TEAP"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.1,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2022-disable-legacy-tls",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Disable TLS 1.0 & 1.1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.1,
+    "download_mbps": 148.11,
+    "seconds_measured": 33.53,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-tls-frag-auto",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.1,
+    "download_mbps": 161.41,
+    "seconds_measured": 32.43,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-wrong-password",
+   "server": "Windows Server 2022",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.3,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2022-heavy-soak",
+   "server": "Windows Server 2022",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 207.8,
+    "download_mbps": 42.61,
+    "upload_mbps": 67.35,
+    "seconds_measured": 195.29,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-d-peap-tls13",
+   "server": "Windows Server 2022",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 on, TLS 1.0 & 1.1 off",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 36.9,
+    "download_mbps": 85.41,
+    "seconds_measured": 11.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 8.1,
+    "transfer_s": 3.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-auto-duplex",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 56.2,
+    "download_mbps": 36.47,
+    "upload_mbps": 94.22,
+    "seconds_measured": 44.16,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-manual-default-duplex",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 53.0,
+    "download_mbps": 40.64,
+    "upload_mbps": 93.79,
+    "seconds_measured": 42.93,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-manual-1-1",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.5,
+    "download_mbps": 148.99,
+    "seconds_measured": 21.62,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-manual-43-128",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Manual 43/128"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.3,
+    "download_mbps": 139.27,
+    "seconds_measured": 23.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-manual-max",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Manual 4096/16384"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 34.8,
+    "download_mbps": 0.0,
+    "upload_mbps": 105.0,
+    "seconds_measured": 21.73,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-manual-too-big",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Manual 5000/20000"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.7,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds"
+   }
+  },
+  {
+   "id": "win2022-m-frag-sni-ip",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2022.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.8,
+    "download_mbps": 127.25,
+    "seconds_measured": 22.15,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-sni-wrong",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Custom SNI wrong.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 47.1,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 10.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-m-frag-proxy",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.2,
+    "download_mbps": 133.0,
+    "seconds_measured": 23.21,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-proxy-auth",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.8,
+    "download_mbps": 0.0,
+    "upload_mbps": 133.69,
+    "seconds_measured": 23.09,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-pac",
+   "server": "Windows Server 2022",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.2,
+    "download_mbps": 137.69,
+    "seconds_measured": 22.42,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-legacy-off",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Disable TLS 1.0 & 1.1",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.6,
+    "download_mbps": 140.38,
+    "seconds_measured": 21.99,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-frag-sni-proxy-auth",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2022.example.com",
+    "TLS Fragmentation Manual 32/256",
+    "manual proxy with username and password"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 55.0,
+    "download_mbps": 34.69,
+    "upload_mbps": 119.49,
+    "seconds_measured": 34.82,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 5.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-sni-ip",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2022.example.com"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.6,
+    "download_mbps": 139.33,
+    "seconds_measured": 23.12,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-sni-wrong",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.3,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 10.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2022-m-sni-off-ip-accepted",
+   "server": "Windows Server 2022",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 21.2,
+    "download_mbps": 82.13,
+    "seconds_measured": 11.44,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 10.6,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-proxy",
+   "server": "Windows Server 2022",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.8,
+    "download_mbps": 136.96,
+    "seconds_measured": 22.54,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-proxy-auth",
+   "server": "Windows Server 2022",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.7,
+    "download_mbps": 0.0,
+    "upload_mbps": 152.32,
+    "seconds_measured": 22.91,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 2.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-pac",
+   "server": "Windows Server 2022",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.7,
+    "download_mbps": 153.57,
+    "seconds_measured": 21.85,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2022-m-pac-auth",
+   "server": "Windows Server 2022",
+   "settings": [
+    "PAC proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.3,
+    "download_mbps": 147.1,
+    "seconds_measured": 22.81,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-base-download",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 70.0,
+    "download_mbps": 151.45,
+    "seconds_measured": 61.15,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 4.9,
+    "transfer_s": 6.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-base-full-duplex",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 110.8,
+    "download_mbps": 31.92,
+    "upload_mbps": 104.45,
+    "seconds_measured": 92.52,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 9.4,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-base-upload",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 74.1,
+    "download_mbps": 0.0,
+    "upload_mbps": 120.73,
+    "seconds_measured": 63.37,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-eap-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.8,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-peap",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.3,
+    "download_mbps": 151.72,
+    "seconds_measured": 23.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-peap-crypto-binding",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP with Require Crypto Binding"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.4,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.3,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2025-peap-identity-privacy",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "Identity Privacy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 33.0,
+    "download_mbps": 153.06,
+    "seconds_measured": 22.8,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-peap-tls13",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 on, TLS 1.0 & 1.1 off"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.0,
+    "download_mbps": 159.86,
+    "seconds_measured": 21.83,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-peap-tls12-legacy",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 off, TLS 1.0 & 1.1 allowed"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.3,
+    "download_mbps": 172.95,
+    "seconds_measured": 21.73,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-ttls-expect-fail",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with CHAP"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.4,
+    "download_mbps": 167.62,
+    "seconds_measured": 21.62,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-teap-expect-fail",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "TEAP"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.8,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 6.0,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2025-disable-legacy-tls",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Disable TLS 1.0 & 1.1"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.1,
+    "download_mbps": 177.58,
+    "seconds_measured": 32.5,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 7.3,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-tls-frag-auto",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 42.3,
+    "download_mbps": 167.06,
+    "seconds_measured": 32.94,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 6.0,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-wrong-password",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 7.7,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 7.9,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2025-heavy-soak",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 180 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 200.3,
+    "download_mbps": 42.51,
+    "upload_mbps": 70.84,
+    "seconds_measured": 189.46,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 8.2,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-probe-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 9.3,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-probe-eap-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 8.5,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-radius-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "RADIUS user"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.0,
+    "download_mbps": 162.66,
+    "seconds_measured": 32.18,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 5.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-radius-eap-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2",
+    "RADIUS user"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 27.6,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-radius-peap",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 off, TLS 1.0 & 1.1 allowed",
+    "RADIUS user"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 17.7,
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-radius-wrong-password",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "wrong password",
+    "RADIUS user"
+   ],
+   "traffic": "download",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.5,
+    "message": "Authentication failed. The server rejected the username or password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.1,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the username or password."
+   }
+  },
+  {
+   "id": "win2025-ttls-pap",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with PAP"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.5,
+    "download_mbps": 165.32,
+    "seconds_measured": 21.92,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-ttls-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with MSCHAPv2"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.6,
+    "download_mbps": 172.68,
+    "seconds_measured": 22.54,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 8.4,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-ttls-eap",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-TTLS with EAP"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.8,
+    "download_mbps": 178.96,
+    "seconds_measured": 22.5,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-d-cert",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Method Certificate",
+    "MS-CHAPv2 off",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 21.3,
+    "download_mbps": 158.15,
+    "seconds_measured": 12.73,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-d-cert-rogue",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Method Certificate from another CA",
+    "MS-CHAPv2 off",
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 10.7,
+    "message": "Authentication failed. The server rejected the client certificate; check that the server trusts its issuer and that it is still valid.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 8.4,
+    "transfer_s": null,
+    "message": "Authentication failed. The server rejected the client certificate; check that the server trusts its issuer and that it is still valid."
+   }
+  },
+  {
+   "id": "win2025-d-radius-eap-mschapv2",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "EAP-MSCHAPv2",
+    "Log Level Debug",
+    "RADIUS user"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 22.4,
+    "download_mbps": 139.47,
+    "seconds_measured": 12.51,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 6.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-d-radius-peap",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "MS-CHAPv2 off",
+    "PEAP",
+    "EAP TLS 1.3 off, TLS 1.0 & 1.1 allowed",
+    "Log Level Debug",
+    "RADIUS user"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 22.1,
+    "download_mbps": 156.19,
+    "seconds_measured": 12.89,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-auto-duplex",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 53.9,
+    "download_mbps": 37.15,
+    "upload_mbps": 102.15,
+    "seconds_measured": 43.36,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 8.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-manual-default-duplex",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.4,
+    "download_mbps": 30.37,
+    "upload_mbps": 100.23,
+    "seconds_measured": 44.19,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.0,
+    "transfer_s": 5.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-manual-1-1",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Manual 1/1"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.5,
+    "download_mbps": 172.47,
+    "seconds_measured": 21.79,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-manual-43-128",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Manual 43/128"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.8,
+    "download_mbps": 159.64,
+    "seconds_measured": 21.86,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-manual-max",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Manual 4096/16384"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 34.5,
+    "download_mbps": 0.0,
+    "upload_mbps": 111.89,
+    "seconds_measured": 23.99,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 5.1,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-manual-too-big",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Manual 5000/20000"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 6.7,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connection Failed",
+    "connect_s": 5.1,
+    "transfer_s": null,
+    "message": "Invalid TLS fragmentation settings: chunk sizes out of bounds"
+   }
+  },
+  {
+   "id": "win2025-m-frag-sni-ip",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2025.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 30.9,
+    "download_mbps": 175.45,
+    "seconds_measured": 21.42,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-sni-wrong",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Custom SNI wrong.example.com",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.9,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 9.9,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-m-frag-proxy",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.5,
+    "download_mbps": 173.58,
+    "seconds_measured": 21.65,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-proxy-auth",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.4,
+    "download_mbps": 0.0,
+    "upload_mbps": 147.75,
+    "seconds_measured": 22.71,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-pac",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "TLS Fragmentation Auto",
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.3,
+    "download_mbps": 161.49,
+    "seconds_measured": 22.44,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-legacy-off",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Disable TLS 1.0 & 1.1",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 32.4,
+    "download_mbps": 142.47,
+    "seconds_measured": 22.61,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-frag-sni-proxy-auth",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2025.example.com",
+    "TLS Fragmentation Manual 32/256",
+    "manual proxy with username and password"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 54.5,
+    "download_mbps": 35.36,
+    "upload_mbps": 121.8,
+    "seconds_measured": 34.16,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.8,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-sni-ip",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Host is the server's IP address",
+    "Custom SNI vpn-2025.example.com"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.0,
+    "download_mbps": 165.32,
+    "seconds_measured": 21.92,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-sni-wrong",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Custom SNI wrong.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 46.2,
+    "message": "Connection status timed out",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "state": "Declined",
+    "connect_s": 10.0,
+    "transfer_s": null
+   }
+  },
+  {
+   "id": "win2025-m-sni-off-ip-accepted",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "Host is the server's IP address"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 22.0,
+    "download_mbps": 160.68,
+    "seconds_measured": 12.53,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 10.5,
+    "transfer_s": 4.9,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-proxy",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "manual proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 41.1,
+    "download_mbps": 163.09,
+    "seconds_measured": 22.22,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 16.9,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-proxy-auth",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "manual proxy with username and password"
+   ],
+   "traffic": "upload, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 43.0,
+    "download_mbps": 0.0,
+    "upload_mbps": 158.18,
+    "seconds_measured": 22.91,
+    "errors": "",
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 17.0,
+    "transfer_s": 2.7,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-pac",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "PAC proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.5,
+    "download_mbps": 163.54,
+    "seconds_measured": 22.98,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.2,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "win2025-m-pac-auth",
+   "server": "Windows Server 2025 with FreeRADIUS",
+   "settings": [
+    "PAC proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "configuration": "Release",
+    "seconds": 31.6,
+    "download_mbps": 169.82,
+    "seconds_measured": 22.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "state": "Connected",
+    "connect_s": 5.1,
+    "transfer_s": 3.8,
+    "through_server": true
+   }
+  },
+  {
+   "id": "android-life-sleep-stay",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "On Sleep Stay",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed"
+    ]
+   }
+  },
+  {
+   "id": "android-life-sleep-pause",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "On Sleep Pause",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "paused at sleep, connected again at wake; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "android-life-sleep-off-reconnects",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "On Sleep Off",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "closed at sleep, connected again at wake; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "android-life-sleep-off-ends",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "On Sleep Off",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "android-life-peer-drop-reconnect",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "connected again 2.8 s after the drop; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "android-life-peer-drop-no-reconnect",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "ended with: Connection lost (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "android-life-retry-exhausted",
+   "server": "MikroTik RouterOS 7.25",
+   "settings": [
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "state": null,
+    "connect_s": null,
+    "transfer_s": null,
+    "lifecycle": [
+     "ended after 2 retries with: Could not reconnect after 2 attempts. Giving up."
+    ]
+   }
+  }
+ ]
+}

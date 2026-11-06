@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoftEther VPN Server — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu as an SSTP server from the command line, the way our test server is set up.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SoftEther VPN Server</h1>
+<p class="lead">SoftEther VPN Server can answer SSTP clients next to its own protocol. This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up for SSTP from the command line, the way our test server is set up.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every setting below was read from our test server, Ubuntu 24.04 with SoftEther VPN Server 4.44 Build 9807, on 6 November 2026 (<code>vpncmd</code> and the files on the server). The results named on this page come from the test runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu server with a public IPv4 address. Ours runs Ubuntu 24.04 with 3 vCPUs and 4 GB of memory.</li>
+  <li>A DNS name for it, such as <code>vpn.example.com</code>, for the certificate.</li>
+  <li>TCP port 443 open, and TCP port 80 while Let's Encrypt issues and renews the certificate.</li>
+</ul>
+
+<div class="callout warning">
+  <span class="callout-title">Use version 4.44, not the Ubuntu package</span>
+  <p>Ubuntu's own <code>softether-vpnserver</code> package (version 5.01) did not answer SSTP clients on our server. Version 5 turns SSTP off with a setting that 4.44 does not have. Our server runs the 4.44 Stable release built from source, as below.</p>
+</div>
+
+<h2 id="build">1. Build SoftEther VPN Server 4.44</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt-get install -y build-essential libreadline-dev libssl-dev zlib1g-dev libncurses-dev git
+git clone --depth 1 --branch v4.44-9807-rtm https://github.com/SoftEtherVPN/SoftEtherVPN_Stable.git /opt/softether-stable-src
+cd /opt/softether-stable-src
+./configure
+make
+cp -a bin/vpnserver /opt/vpnserver
+cp bin/vpncmd/vpncmd /opt/vpnserver/</code></pre>
+<p>The tag <code>v4.44-9807-rtm</code> is SoftEther's 4.44 Stable release. <code>make</code> leaves the server program and its data file <code>hamcore.se2</code> in <code>bin/vpnserver</code>, and the command-line tool in <code>bin/vpncmd</code>; the two commands after it put both in <code>/opt/vpnserver</code>, as on our server. We ran these commands on our server on 6 November 2026 and the build ended without errors.</p>
+
+<h2 id="service">2. Run it as a service</h2>
+<p>Our server runs it with this systemd unit:</p>
+<pre data-label="/etc/systemd/system/softether4.service"><code>[Unit]
+Description=SoftEther VPN Server 4.44 Stable
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/opt/vpnserver/vpnserver start
+ExecStop=/opt/vpnserver/vpnserver stop
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre data-label="Server"><code class="language-bash">systemctl daemon-reload
+systemctl enable --now softether4</code></pre>
+<p>The server listens on TCP 443, 992, 1194 and 5555. SSTP uses 443.</p>
+
+<h2 id="admin">3. Set the administrator password</h2>
+<p>All further settings are made with <code>vpncmd</code>. A fresh server has no administrator password; set one at once:</p>
+<pre data-label="Server"><code class="language-bash">/opt/vpnserver/vpncmd localhost /SERVER /CMD ServerPasswordSet</code></pre>
+<p>From then on, add <code>/PASSWORD:&lt;ADMIN_PASSWORD&gt;</code> after <code>/SERVER</code>, or let <code>vpncmd</code> ask for it. The commands below are typed at its <code>VPN Server&gt;</code> prompt, which <code>vpncmd localhost /SERVER</code> opens.</p>
+
+<h2 id="certificate">4. Certificate</h2>
+<p>SoftEther keeps its own copy of the server certificate. Our server gets a Let's Encrypt certificate with certbot in standalone mode, as an RSA 2048-bit key, and loads it into SoftEther:</p>
+<pre data-label="Server — replace &lt;SERVER_HOST&gt; with your domain"><code class="language-bash">apt-get install -y certbot
+certbot certonly --standalone --key-type rsa --rsa-key-size 2048 -d &lt;SERVER_HOST&gt;</code></pre>
+<pre data-label="vpncmd"><code>ServerCertSet /LOADCERT:/etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem /LOADKEY:/etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem</code></pre>
+<p>Certbot renews the certificate by itself. This deploy hook loads each renewed one into SoftEther; it reads the administrator password from <code>/root/.softether-admin</code>, a file only root can read:</p>
+<pre data-label="/etc/letsencrypt/renewal-hooks/deploy/softether-sstp.sh"><code class="language-bash">#!/bin/sh
+# SoftEther keeps its own copy of the server certificate in vpn_server.config, so load the renewed one.
+set -e
+live=/etc/letsencrypt/live/&lt;SERVER_HOST&gt;
+umask 077
+printf "ServerCertSet /LOADCERT:%s/fullchain.pem /LOADKEY:%s/privkey.pem\n" "$live" "$live" > /root/srp-cert-in.txt
+timeout 60 /opt/vpnserver/vpncmd localhost /SERVER "/PASSWORD:$(cat /root/.softether-admin)" /IN:/root/srp-cert-in.txt &lt; /dev/null &gt; /root/srp-cert.log 2&gt;&amp;1
+rm -f /root/srp-cert-in.txt</code></pre>
+<p>SoftEther offers TLS 1.3, which the app uses with it.</p>
+
+<h2 id="sstp">5. Turn on SSTP and turn off what SSTP does not need</h2>
+<pre data-label="vpncmd"><code>SstpEnable yes
+KeepDisable
+VpnAzureSetEnable no</code></pre>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p><code>SstpGet</code> shows <code>SSTP VPN Clone Server Enabled | Yes</code>, <code>KeepGet</code> shows the keep-alive status <code>Disable</code>, and <code>VpnAzureGetStatus</code> shows <code>No</code>.</p>
+</div>
+
+<h2 id="users">6. Users</h2>
+<p>SSTP clients log in to the Virtual Hub named <code>DEFAULT</code>, which a new server already has.</p>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+UserCreate vpnuser /GROUP:none /REALNAME:none /NOTE:none
+UserPasswordSet vpnuser /PASSWORD:&lt;PASSWORD&gt;</code></pre>
+<p>SoftEther's PPP for SSTP accepts PAP, CHAP and MS-CHAPv2, but no EAP. The app's default, MS-CHAPv2, works. A profile that offers only EAP methods is refused; see <a href="troubleshooting.html">Troubleshooting</a>.</p>
+
+<h2 id="network">7. Give the clients a way out</h2>
+<p>SoftEther can route the clients' traffic in two ways. Both passed our tests:</p>
+<table>
+  <thead><tr><th>Way</th><th>What it is</th><th>Result in our tests</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Local Bridge</strong> with Linux NAT</td><td>The hub is bridged to a <code>tap</code> interface; Linux gives out addresses with dnsmasq and NATs them to the internet.</td><td>Every SSTP case passed. On the iPhone a one-minute download ran at 102 to 121 Mbit/s, and three minutes of downloads and uploads at once at 44 Mbit/s down and 107 Mbit/s up.</td></tr>
+    <tr><td><strong>SecureNAT</strong></td><td>SoftEther's built-in NAT and DHCP inside the hub, with no Linux network settings.</td><td>Every case passed once SoftEther's kernel-mode NAT was running: on the iPhone a one-minute download at 116 Mbit/s, and three minutes of downloads and uploads at once at 19 Mbit/s down and 99 Mbit/s up. A download that started at the same moment as SecureNAT, before the kernel-mode NAT was running, received nothing.</td></tr>
+  </tbody>
+</table>
+<p>The Local Bridge kept more download speed while the phone also uploaded; SecureNAT needs no Linux settings at all.</p>
+
+<h3 id="bridge">Local Bridge with Linux NAT</h3>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+SecureNatDisable
+BridgeCreate DEFAULT /DEVICE:soft /TAP:yes</code></pre>
+<p>SoftEther creates the interface <code>tap_soft</code>. On Linux, give it an address, turn on forwarding, NAT the clients' range to the internet interface (ours is <code>ens160</code>) and hand out addresses with dnsmasq:</p>
+<pre data-label="Server"><code class="language-bash">apt-get install -y dnsmasq-base
+ip addr replace 192.168.30.1/24 dev tap_soft
+ip link set tap_soft up
+sysctl -w net.ipv4.ip_forward=1
+iptables -t nat -A POSTROUTING -s 192.168.30.0/24 -o ens160 -j MASQUERADE
+dnsmasq --interface=tap_soft --bind-interfaces --port=0 --pid-file=/run/srp-dnsmasq.pid \
+  --dhcp-range=192.168.30.10,192.168.30.250,255.255.255.0,12h \
+  --dhcp-option=3,192.168.30.1 --dhcp-option=6,1.1.1.1,8.8.8.8</code></pre>
+<div class="callout warning">
+  <span class="callout-title">After a reboot</span>
+  <p>SoftEther keeps the bridge in its own settings, but the Linux part above does not survive a reboot on our server: we run it again after each start. Put it in a script that runs after the SoftEther service starts.</p>
+</div>
+
+<h3 id="securenat">SecureNAT</h3>
+<p>SecureNAT is one command, without the bridge: <code>SecureNatEnable</code>. Our hub's SecureNAT hands out 192.168.30.10 to 192.168.30.200 with the gateway 192.168.30.1. SoftEther then looks for a faster path, its kernel-mode NAT, and writes <em>The Kernel-mode NAT is starting</em> to its server log (<code>server_log/</code> in its folder) when it uses it; on our server that came about 10 seconds after SecureNAT started.</p>
+
+<h2 id="radius">RADIUS (optional)</h2>
+<p>A hub can send logins to a RADIUS server. Ours sends them to the FreeRADIUS server on the same host (<a href="freeradius.html">FreeRADIUS</a>), and a user marked for RADIUS is checked there:</p>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+RadiusServerSet 127.0.0.1:1812 /SECRET:&lt;RADIUS_SECRET&gt; /RETRY_INTERVAL:500
+UserCreate radiususer /GROUP:none /REALNAME:none /NOTE:none
+UserRadiusSet radiususer /ALIAS:none</code></pre>
+<p>A RADIUS user logged in with MS-CHAPv2 and with PAP; a wrong password ended with the app's authentication message. Version 4.44 takes the port as part of the address; it has no separate port option.</p>
+
+<h2 id="check">Check the server</h2>
+<pre data-label="vpncmd"><code>SstpGet
+Hub DEFAULT
+SessionList
+UserList</code></pre>
+<p>While a phone is connected, <code>SessionList</code> shows its session in the hub. The server's own log files are in <code>/opt/vpnserver/server_log/</code>.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>SSTP VPN</strong>, the server's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The defaults work with this server. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

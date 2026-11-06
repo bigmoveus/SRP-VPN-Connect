@@ -4,30 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SSTP — SRP VPN Connect Documentation</title>
-<meta name="description" content="Status of the SSTP guides for SRP VPN Connect.">
+<meta name="description" content="How SSTP works in SRP VPN Connect on iPhone and Android, which servers we set up and tested, and where to start.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>SSTP</h1>
-<p class="lead">SSTP (Secure Socket Tunneling Protocol) carries a VPN connection inside HTTPS on port 443.</p>
+<p class="lead">SSTP (Secure Socket Tunneling Protocol) carries a VPN connection inside HTTPS on TCP port 443. SRP VPN Connect connects to SSTP servers on iPhone and Android with the same SSTP and PPP code on both.</p>
 
-<div class="callout prereq">
-  <span class="callout-title">Status: guides not written yet</span>
-  The SSTP section is phase 2 of this documentation and starts once the WaterWall section is complete.
-</div>
+<h2>How an SSTP connection works</h2>
+<ol>
+  <li><strong>TCP and TLS.</strong> The app opens a TCP connection to the server, directly or through a proxy, and starts TLS. It checks the server's certificate against the server's name.</li>
+  <li><strong>HTTP.</strong> Inside TLS the app sends one HTTP request, <code>SSTP_DUPLEX_POST</code>, and the server answers it. From then on the connection carries SSTP packets both ways.</li>
+  <li><strong>PPP.</strong> SSTP carries PPP. PPP agrees on the link, then logs the user in with one of the methods the profile allows: MS-CHAPv2, PAP or CHAP, or EAP (EAP-MSCHAPv2, PEAP, EAP-TTLS, TEAP or, with a client certificate, EAP-TLS).</li>
+  <li><strong>Crypto binding.</strong> After the login, the app sends the server a value computed from the login's keys and the server certificate it saw. A server that checks it, as Windows does, can tell that nobody in the middle replaced the TLS connection.</li>
+  <li><strong>Addresses.</strong> PPP gives the phone an IPv4 address and DNS servers. All of the phone's IPv4 traffic then goes through the tunnel.</li>
+</ol>
 
-<h2>What the SSTP section will cover</h2>
-<p>We have already built and tested real SSTP servers with three different server products:</p>
-<ul>
-  <li>MikroTik RouterOS</li>
-  <li>Windows Server 2019, 2022 and 2025 with Routing and Remote Access (RRAS) and Network Policy Server (NPS)</li>
-  <li>SoftEther VPN Server 4.44, with a FreeRADIUS server for RADIUS logins</li>
-</ul>
-<p>The section will explain how SSTP works, how each of these servers was set up from scratch, certificates and TLS, users and RADIUS, addresses, routing, DNS and firewall rules, the app's SSTP settings, and every scenario we tested. Until those pages exist, nothing on this site should be read as an SSTP guide.</p>
+<h2>Servers we set up</h2>
+<p>Each guide sets up a server the way our test server is set up, and each was tested with the app on an iPhone and on an Android phone.</p>
+<table>
+  <thead><tr><th>Server</th><th>Guide</th><th>How it is set up</th></tr></thead>
+  <tbody>
+    <tr><td>Windows Server 2019, 2022 and 2025</td><td><a href="windows-server.html">Windows Server</a></td><td>Routing and Remote Access with Network Policy Server, step by step with screenshots.</td></tr>
+    <tr><td>MikroTik RouterOS 7</td><td><a href="mikrotik.html">MikroTik RouterOS</a></td><td>RouterOS command line.</td></tr>
+    <tr><td>SoftEther VPN Server 4.44</td><td><a href="softether.html">SoftEther VPN Server</a></td><td>Ubuntu and <code>vpncmd</code> command line.</td></tr>
+    <tr><td>FreeRADIUS 3.2.5 (optional)</td><td><a href="freeradius.html">FreeRADIUS</a></td><td>One user list for the servers above, and PEAP, EAP-TTLS and EAP-TLS for them.</td></tr>
+  </tbody>
+</table>
 
-<p><a href="../future.html">See how future protocols are added &rarr;</a></p>
+<h2>Where to start</h2>
+<ol>
+  <li>Set up a server with one of the guides above.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. TestFlight build 34 does not yet have this round's three SSTP fixes: EAP-TTLS with EAP inside against FreeRADIUS, the message when the server refuses the profile's login methods, and Retry Times after a lost connection.</li>
+  <li>Add an SSTP profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
+</ol>
+
+<h2>What was tested</h2>
+<p><a href="results.html">Test results</a> lists every case we ran against these servers, with its result on each phone: every authentication method, TLS setting, TLS Fragmentation mode, Custom SNI, the proxy modes, uploads and downloads at once, and what happens on sleep, on a dropped connection and when Retry Times runs out.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

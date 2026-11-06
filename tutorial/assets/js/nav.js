@@ -20,7 +20,14 @@ window.SITE_NAV = [
   {
     title: 'SSTP',
     children: [
-      { title: 'Status (Phase 2)', href: 'sstp/index.html' }
+      { title: 'Introduction', href: 'sstp/index.html' },
+      { title: 'Windows Server', href: 'sstp/windows-server.html' },
+      { title: 'MikroTik RouterOS', href: 'sstp/mikrotik.html' },
+      { title: 'SoftEther VPN Server', href: 'sstp/softether.html' },
+      { title: 'FreeRADIUS', href: 'sstp/freeradius.html' },
+      { title: 'Setting Up the App', href: 'sstp/app-setup.html' },
+      { title: 'Test Results', href: 'sstp/results.html' },
+      { title: 'Troubleshooting', href: 'sstp/troubleshooting.html' }
     ]
   },
   { title: 'Future Protocols', href: 'future.html' }

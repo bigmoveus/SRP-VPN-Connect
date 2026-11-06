@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Results — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every SSTP case we ran against MikroTik RouterOS, SoftEther and Windows Server, with its result on an iPhone and on an Android phone.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Test Results</h1>
+<p class="lead">Every SSTP case we ran on {date}, with its result on an iPhone and on an Android phone: {iphone_passed} of {iphone_run} cases passed on the iPhone and {android_passed} of {android_run} on Android.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">How these tests ran</span>
+  <p>The phones were {iphone} and {android}, with {app}. The servers were {servers}, set up as the guides in this section describe.</p>
+  <ul>
+    <li><strong>Each case</strong> saved a profile with the settings in its row, connected, and moved the traffic in its row through the tunnel to a test server on the internet. That server logged where each request came from, and every case that moves traffic checked that it came from the VPN server's address, so it went through the tunnel.</li>
+    <li><strong>Traffic.</strong> On the iPhone a download, an upload, or both at once ran for the time shown. On Android, which ran beside the iPhone, each traffic case moved 4 MiB down and 4 MiB up instead.</li>
+    <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row.</li>
+    <li><strong>Proxies.</strong> The proxy cases went through a test proxy on our office network, with and without a username and password, set by hand or by a PAC file.</li>
+    <li><strong>Lifecycle.</strong> The cases named <code>mt-life-…</code> and <code>android-life-…</code> checked On Sleep, a session the server dropped, and Retry Times running out while the server was off.</li>
+  </ul>
+  <p>{reruns}</p>
+</div>
+<!-- provenance:end -->
+
+<h2>How to read the results</h2>
+<table>
+  <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>The case did what its row expects: it connected and moved its traffic through the tunnel, or it was refused with the message shown.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The case did not do what its row expects; the row says what happened.</td></tr>
+    <tr><td><span class="status planned">NOT VERIFIED</span></td><td>The case did not run on that phone.</td></tr>
+  </tbody>
+</table>
+<p>Speeds are averages over the whole transfer on our office line. They show that traffic moved, and are not a benchmark.</p>
+
+<h2>Not tested in this round</h2>
+<ul>
+  <li><strong>Moving between Wi-Fi and cellular.</strong> Every case ran on Wi-Fi; no test changed the network under a connected tunnel.</li>
+  <li><strong>Real sleep on the iPhone.</strong> The iPhone's On Sleep cases tell the tunnel that the phone slept; the phone did not really sleep. On Android the screen was really turned off.</li>
+  <li><strong>IPv6 inside the tunnel.</strong> The app asks the servers for IPv4 only.</li>
+  <li><strong>Certificate login against Windows' own Network Policy Server.</strong> It needs an Active Directory domain, which our servers are not part of; certificate login (EAP-TLS) was tested through FreeRADIUS on Windows Server 2025.</li>
+</ul>
+
+{sections}
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

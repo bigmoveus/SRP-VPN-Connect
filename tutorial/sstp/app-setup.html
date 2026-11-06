@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of an SSTP profile in SRP VPN Connect on iPhone and Android: server, authentication, EAP, certificate login, proxy and options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">An SSTP profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did against real servers is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>SSTP VPN</strong>. Fill in the fields below and tap <strong>Save</strong>. Save names the first field that is still missing or wrong instead of saving an incomplete profile.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/protocol.png" alt="Protocol screen on iPhone with SSTP VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSTP VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/profile-editor.png" alt="SSTP profile editor on iPhone with Host, Port, Allow Untrusted Certificate and the authentication fields" width="260" loading="lazy">
+    <figcaption>The top of an SSTP profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same profile on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Host</td><td>The server's DNS name, for example <code>vpn.example.com</code>, or its IP address. The app connects here and, unless Custom SNI is on, checks the certificate against this name.</td></tr>
+    <tr><td>Port</td><td>Empty means 443, the SSTP port of all our test servers.</td></tr>
+    <tr><td>Allow Untrusted Certificate</td><td>Off by default: the app accepts only a certificate that the phone trusts and that is valid for the name it checks. On skips that check. Leave it off; see <a href="#certificate-warning">the certificate warning</a>.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="authentication">Authentication</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/profile-authentication.png" alt="Authentication section on iPhone: Method, Username, Password, EAP Configuration, Enable MS-CHAPv2 and Enable PAP / CHAP" width="260" loading="lazy">
+    <figcaption>The authentication section, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/profile-authentication.png" alt="The same section on Android" width="260" loading="lazy">
+    <figcaption>The same section on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Field</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Method</td><td><strong>Password</strong> (default) logs in with a username and password. <strong>Certificate</strong> logs in with a client certificate through EAP-TLS; see <a href="#certificate">Certificate login</a>.</td></tr>
+    <tr><td>Username, Password</td><td>The user on the SSTP server or its RADIUS server. With Certificate, the username is optional and is sent as the identity.</td></tr>
+    <tr><td>EAP Configuration</td><td>The EAP methods the app may use; see <a href="#eap">EAP</a>.</td></tr>
+    <tr><td>Enable MS-CHAPv2</td><td>On by default. MS-CHAPv2 is what MikroTik, Windows and SoftEther accept by default.</td></tr>
+    <tr><td>Enable PAP / CHAP (Less Secure)</td><td>Off by default. Turn it on only for a server that allows nothing else; PAP sends the password inside the TLS tunnel without hashing it.</td></tr>
+  </tbody>
+</table>
+<p>At least one method must be on: MS-CHAPv2, PAP / CHAP, or an EAP method. The app offers the ones that are on, and the server picks one. When the server accepts none of them, the connection ends with <em>The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.</em></p>
+
+<h3 id="eap">EAP</h3>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/eap-configuration.png" alt="EAP Configuration screen on iPhone" width="260" loading="lazy">
+    <figcaption>EAP Configuration, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/eap-configuration.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Enable EAP-MSCHAPv2</td><td>MS-CHAPv2 inside EAP, without a TLS tunnel of its own.</td></tr>
+    <tr><td>Enable PEAP</td><td>A TLS tunnel to the EAP server with EAP-MSCHAPv2 inside. This is what Windows NPS offers by name.</td></tr>
+    <tr><td>Require Crypto Binding</td><td>Only with PEAP: the connection fails unless the server proves, with PEAP's crypto binding, that the inner and outer sessions belong together. Windows NPS sends it; FreeRADIUS does not.</td></tr>
+    <tr><td>EAP-TTLS Method</td><td><strong>Disabled</strong> by default. Otherwise EAP-TTLS with <strong>PAP</strong> or <strong>CHAP</strong> inside, or with EAP-MSCHAPv2 inside, which both <strong>EAP</strong> and <strong>MSCHAPv2</strong> choose. In our tests Windows NPS refused EAP-TTLS, and FreeRADIUS took it with each of these inside.</td></tr>
+    <tr><td>Enable TEAP</td><td>TEAP without a secondary method.</td></tr>
+    <tr><td>Enable Identity Privacy, Identity</td><td>Sends the Identity (default <code>anonymous</code>) instead of the username before the TLS tunnel is up. Windows RRAS with local accounts refuses this outer identity.</td></tr>
+    <tr><td>Enable TLS 1.3</td><td>On by default. Windows NPS has no TLS 1.3 for EAP and ends the exchange on a TLS 1.3 offer; the app then tries once more with TLS 1.2.</td></tr>
+    <tr><td>Disable TLS 1.0 &amp; 1.1</td><td>On by default: the EAP tunnel uses TLS 1.2 or later.</td></tr>
+  </tbody>
+</table>
+<p>The app never answers EAP-MD5, even when a server offers it first, because MD5 gives no key for the SSTP crypto binding and no proof of the server.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/eap-ttls-method.png" alt="EAP-TTLS Method screen on iPhone: Disabled, EAP, PAP, CHAP and MSCHAPv2" width="260" loading="lazy">
+    <figcaption>The EAP-TTLS Method choices, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/eap-ttls-method.png" alt="The same choices on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h3 id="certificate">Certificate login</h3>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/method.png" alt="Method screen on iPhone with Password and Certificate" width="260" loading="lazy">
+    <figcaption>Method, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/method.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>With <strong>Method</strong> set to <strong>Certificate</strong>, tap <strong>Certificate</strong>, then <strong>Import</strong>, and choose a .p12 or .pfx file that holds the client certificate and its private key. The app asks for the file's passphrase and keeps the certificate in the iPhone's Keychain or, on Android, encrypted with a key in the Android Keystore. The server needs EAP-TLS: in our tests that was FreeRADIUS behind Windows Server 2025 (<a href="freeradius.html#eap-tls">FreeRADIUS</a>).</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/certificate.png" alt="Select Certificate screen on iPhone with the Import button" width="260" loading="lazy">
+    <figcaption>Select Certificate, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/certificate.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="proxy">Proxy</h2>
+<p>The app can reach the SSTP server through a proxy. The proxy carries only the connection to the server; the traffic inside the VPN does not use it.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/proxy-manual.png" alt="Proxy section on iPhone in Manual mode with Address, Port, Username and Password" width="260" loading="lazy">
+    <figcaption>Manual proxy, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/proxy-manual.png" alt="Manual proxy on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Mode</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>None</td><td>The app connects to the server directly (default).</td></tr>
+    <tr><td>Manual</td><td>The proxy at <strong>Address</strong> and <strong>Port</strong>. The app finds out whether it is a SOCKS5 or an HTTP CONNECT proxy by trying SOCKS5 first and, when the proxy does not answer as SOCKS5, HTTP CONNECT on a new connection. <strong>Username</strong> and <strong>Password</strong> are optional and go to the proxy when it asks for them.</td></tr>
+    <tr><td>Auto</td><td>A proxy auto-configuration (PAC) file at <strong>PAC URL</strong>, over http or https. The app runs its <code>FindProxyForURL</code> for the server and tries the proxies it returns in order. The username and password go to the proxy the script picks.</td></tr>
+  </tbody>
+</table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/proxy-auto.png" alt="Proxy section on iPhone in Auto mode with PAC URL, Username and Password" width="260" loading="lazy">
+    <figcaption>A PAC file, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/proxy-auto.png" alt="The same on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/options.png" alt="Options section on iPhone with Custom SNI on, its SNI Hostname, and TLS Fragmentation set to Manual with First Chunk 32 and Following Chunks 256" width="260" loading="lazy">
+    <figcaption>The options on iPhone, with Custom SNI on and TLS Fragmentation set to Manual.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Disable TLS 1.0 &amp; 1.1</td><td>The connection to the server uses TLS 1.2 or later. It applies to that connection only; the EAP tunnel has its own switch.</td></tr>
+    <tr><td>Auto Reconnect, Retry Times</td><td>Auto Reconnect (on by default) connects again 2 seconds after a connection that was up is lost. Retry Times limits the attempts in a row; empty means no limit. A login the server refused is never retried: the password or certificate must be fixed first.</td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>On by default: when Wi-Fi appears while the VPN is up, the app moves the connection to it.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the connection while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends.</td></tr>
+    <tr><td>Log Level</td><td>How much the connection log shows: Normal, Expert or Debug. Tap the status under the power button to open the log.</td></tr>
+    <tr><td>Enable Custom SNI, SNI Hostname</td><td>Sends another name in the TLS ClientHello and checks the certificate against that name, while the connection still goes to <strong>Host</strong>. The name must be a bare hostname.</td></tr>
+    <tr><td>TLS Fragmentation</td><td>Splits the outgoing bytes of the TLS handshake into small TCP writes; the TLS data itself is unchanged. <strong>Auto</strong> sends the first 43 bytes on their own, so that the server name lands in a later write, then 256 bytes per write (128 on cellular) with a few milliseconds between writes. <strong>Manual</strong> takes <strong>First Chunk</strong> (1 to 4096 bytes, default 32) and <strong>Following Chunks</strong> (1 to 16384, default 256).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="certificate-warning">The certificate warning</h2>
+<p>Before an SSTP connection starts, the app checks the server's certificate the way the tunnel will: it must chain to a root the phone trusts and be valid for the Host, or for the Custom SNI when that is on. When it is not, the app shows <strong>DANGEROUS!</strong> with each certificate of the chain and what is wrong with it, for example <em>Hostname does not match the certificate</em> or <em>Root is not trusted</em>.</p>
+<ul>
+  <li><strong>Continue</strong> connects this once without checking the certificate.</li>
+  <li><strong>Save and Continue</strong> turns on Allow Untrusted Certificate in the profile and connects.</li>
+  <li><strong>Cancel</strong> does not connect.</li>
+</ul>
+<p>Connecting to a server's IP address instead of its name usually brings this warning, because the certificate names the server, not its address. Use the name, or turn on Custom SNI with the name.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/home.png" alt="Home screen on iPhone with three example SSTP profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>SSTP profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the server has assigned the phone an address. The row of the profile then shows the time of one request through the tunnel. If it fails, the app shows <strong>Connection Failed</strong> with a reason; <a href="troubleshooting.html">Troubleshooting</a> explains each one.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

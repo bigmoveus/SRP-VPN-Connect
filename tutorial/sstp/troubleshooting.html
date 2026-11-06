@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — SSTP — SRP VPN Connect Documentation</title>
+<meta name="description" content="What SSTP messages in SRP VPN Connect mean, what to check on the server, and the limits of the servers we tested.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">Start with the checks below, then look up the message the app showed.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The messages and what triggers them were read from the source code of both apps; both use the same SSTP and PPP code and show the same messages. The server limits were seen in the test runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="first-checks">First checks</h2>
+<ol>
+  <li><strong>Open the log.</strong> Tap the status text under the power button. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again. Expert shows each PPP phase and the authentication methods the profile offered.</li>
+  <li><strong>Is the server listening?</strong> From a computer, <code>openssl s_client -connect &lt;SERVER_HOST&gt;:443 -servername &lt;SERVER_HOST&gt;</code> must show the server's certificate. If it times out, check the server's firewall and that its SSTP service is on.</li>
+  <li><strong>Does the name match the certificate?</strong> The app checks the certificate against <strong>Host</strong>, or against the Custom SNI when that is on.</li>
+  <li><strong>Do the methods match?</strong> The server must accept one of the methods that are on in the profile; see the table for each server below.</li>
+</ol>
+
+<h2 id="messages">Messages</h2>
+<h3>Before the connection starts</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><strong>DANGEROUS!</strong> with the server's certificates</td><td>The certificate does not chain to a root the phone trusts, or it is not valid for the name the app checks.</td><td>Use the name the certificate is for, or install a trusted certificate on the server. Continue and Save and Continue skip the check; see <a href="app-setup.html#certificate-warning">the certificate warning</a>.</td></tr>
+    <tr><td><em>Invalid TLS fragmentation settings: chunk sizes out of bounds</em></td><td>A Manual chunk size is larger than 4096 (First Chunk) or 16384 (Following Chunks).</td><td>Use smaller sizes, or Auto.</td></tr>
+    <tr><td><em>The client certificate could not be read. Re-import it in the profile.</em></td><td>The imported certificate is gone or cannot be read.</td><td>Import the .p12 or .pfx file again.</td></tr>
+  </tbody>
+</table>
+
+<h3>Reaching the server</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Cannot reach the server (DNS/TCP/TLS failed). Check the host, port and certificate settings.</em></td><td>The name did not resolve, nothing answered on the port, or the TLS handshake failed.</td><td>Host, Port, the server's firewall, and the certificate checks above.</td></tr>
+    <tr><td><em>Cannot reach the server after N attempts. …</em></td><td>The same, after the retries that Retry Times allowed.</td><td>The same.</td></tr>
+    <tr><td><em>The server certificate is not trusted: …</em></td><td>The tunnel itself refused the certificate, which the check before connecting had let through or the user had accepted for an earlier connection.</td><td>As for DANGEROUS! above.</td></tr>
+    <tr><td><em>TLS handshake failed: …</em></td><td>The server and the app found no TLS version or cipher in common, or the server ended the handshake.</td><td>Turn off <strong>Disable TLS 1.0 &amp; 1.1</strong> only if the server offers nothing newer; all our test servers offer TLS 1.2 or 1.3.</td></tr>
+    <tr><td><em>Connection timed out. The server did not respond.</em></td><td>No connection was up 30 seconds after the start.</td><td>The network, and whether the server answers at all.</td></tr>
+  </tbody>
+</table>
+
+<h3>Proxy</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th></tr></thead>
+  <tbody>
+    <tr><td><em>Cannot reach the proxy ADDRESS:PORT (reason). Check the proxy address and port.</em></td><td>Nothing answered at the proxy's address and port; the reason is the network's, for example <em>Connection refused</em>.</td></tr>
+    <tr><td><em>Proxy authentication required (HTTP 407)</em>, <em>Proxy authentication failed (HTTP 407)</em></td><td>The HTTP proxy wants a username and password, or refused the ones in the profile.</td></tr>
+    <tr><td><em>Proxy authentication required (SOCKS5)</em>, <em>Proxy authentication failed (SOCKS5)</em></td><td>The same for a SOCKS5 proxy.</td></tr>
+    <tr><td><em>HTTP CONNECT failed (status N)</em>, <em>SOCKS5 negotiation failed (reply code N)</em></td><td>The proxy refused the connection to the SSTP server.</td></tr>
+    <tr><td><em>Unsupported proxy protocol (neither SOCKS5 nor HTTP CONNECT answered)</em></td><td>The address answers, but not as a proxy.</td></tr>
+    <tr><td><em>Unable to download PAC configuration</em>, <em>Invalid PAC configuration (…)</em>, <em>PAC evaluation failed</em>, <em>No usable proxy returned by PAC</em></td><td>The PAC file could not be fetched, is not a script with <code>FindProxyForURL</code>, failed when it ran, or returned no proxy the app can use.</td></tr>
+  </tbody>
+</table>
+
+<h3>Logging in</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Authentication failed. The server rejected the username or password.</em></td><td>The server, or its RADIUS server, refused the login.</td><td>The username and password, and that the user may use the VPN (on Windows, the user's dial-in permission or the network policy).</td></tr>
+    <tr><td><em>Authentication failed. The server rejected the username or password, or the anonymous outer identity of Identity Privacy; …</em></td><td>As above, with Identity Privacy on.</td><td>Windows RRAS with local accounts refuses the outer identity <code>anonymous</code>: turn Identity Privacy off for it.</td></tr>
+    <tr><td><em>Authentication failed. The server rejected the client certificate; …</em></td><td>EAP-TLS: the server does not trust the client certificate's issuer, or the certificate expired.</td><td>The CA the RADIUS server trusts for client certificates (<a href="freeradius.html#eap-tls">FreeRADIUS</a>).</td></tr>
+    <tr><td><em>The EAP server's certificate is not trusted: …</em></td><td>With PEAP, EAP-TTLS or EAP-TLS, the RADIUS server's own certificate does not chain to a root the phone trusts.</td><td>Give the RADIUS server a trusted certificate, as ours has; turning on Allow Untrusted Certificate also skips this check.</td></tr>
+    <tr><td><em>The server closed the connection during PPP negotiation. Check that it accepts one of the authentication methods enabled in this profile.</em></td><td>The server accepts none of the methods that are on in the profile, for example a SoftEther server and a profile with only EAP methods, or a MikroTik router set to MS-CHAPv1 only.</td><td>Turn on a method the server has; see the table below.</td></tr>
+    <tr><td><em>The server closed the connection during authentication. Check the username and password.</em></td><td>The server ended the connection while the login was being checked.</td><td>The username, password and the server's log.</td></tr>
+    <tr><td><em>The server closed the connection while assigning the tunnel address. Check the server's address pool.</em></td><td>The login passed, but the server ended the connection before it gave the phone an address.</td><td>The server's address pool (MikroTik's IP pool, Windows' static pool or DHCP, SoftEther's DHCP).</td></tr>
+  </tbody>
+</table>
+
+<h3>After the connection was up</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th></tr></thead>
+  <tbody>
+    <tr><td><em>Connection lost (auto reconnect is off).</em></td><td>The connection ended and Auto Reconnect is off.</td></tr>
+    <tr><td><em>Could not reconnect after N attempts. Giving up.</em></td><td>Auto Reconnect used up Retry Times.</td></tr>
+    <tr><td><em>Server stopped responding.</em></td><td>The server stopped answering PPP's keepalive messages.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td>On Sleep is Off and Auto Reconnect is off, so the VPN ended when the device slept.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="servers">What each server accepts</h2>
+<table>
+  <thead><tr><th>Server</th><th>Methods that worked</th><th>Limits we met</th></tr></thead>
+  <tbody>
+    <tr><td>MikroTik RouterOS 7.25</td><td>MS-CHAPv2; PAP and CHAP with Enable PAP / CHAP.</td><td>No EAP and no TLS 1.3 on its SSTP server; MS-CHAPv1 only is refused by the app.</td></tr>
+    <tr><td>Windows Server 2019, 2022 (RRAS with NPS or RRAS policies)</td><td>MS-CHAPv2, EAP-MSCHAPv2, PEAP (with or without crypto binding).</td><td>No EAP-TTLS or TEAP; no TLS 1.3 for EAP, which the app works around by retrying with TLS 1.2; local accounts refuse Identity Privacy; EAP-TLS with RRAS's own NPS needs an Active Directory domain.</td></tr>
+    <tr><td>Windows Server 2025 (RRAS with FreeRADIUS)</td><td>MS-CHAPv2, EAP-MSCHAPv2, PEAP, EAP-TTLS, EAP-TLS.</td><td>FreeRADIUS sends no PEAP crypto binding and has no TEAP in its default configuration.</td></tr>
+    <tr><td>SoftEther 4.44</td><td>MS-CHAPv2; PAP and CHAP.</td><td>No EAP in its SSTP server.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="windows-console">The Routing and Remote Access console shows no details</h2>
+<p>On our Windows servers the console listed the server as started but could not open it: no Ports, Remote Access Clients or IPv4 below it, only View, Delete, Refresh and Properties in its menu, and <em>No properties are available on this object</em> for Properties. The <strong>Remote Access Connection Manager</strong> service (<code>RasMan</code>), which the console talks to, was disabled on these servers, and it did not start when we tried: Windows logged event 7024 with the text <em>{TDI Event Pending}</em>, and <code>sc queryex RasMan</code> showed its own exit code 711, which Microsoft lists as <em>RasMan initialization failure</em>. RRAS and SSTP ran without it, because on these servers the RRAS service does not depend on RasMan (<code>sc qc RemoteAccess</code> lists Bfe, Http, RpcSS and SstpSvc). We left RasMan disabled and set RRAS up from PowerShell, as <a href="windows-server.html">Windows Server</a> shows.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
