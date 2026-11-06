@@ -17,6 +17,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP's message about an EAP server certificate the phone does not trust names the profile switch by its name, Allow Untrusted Certificate.
 - SSTP with EAP-TTLS and EAP inside, which the EAP and MSCHAPv2 choices of EAP-TTLS Method use, failed against FreeRADIUS, whose EAP-TTLS offers EAP-MD5 first inside the tunnel. Both apps now answer an inner method they do not have with a Nak for EAP-MSCHAPv2, or for EAP-TLS with a client certificate, as they already did outside the tunnel; FreeRADIUS then switches to EAP-MSCHAPv2.
 
+### Development
+- An iOS unit test, `testSstpDocumentationScreenshotsWhenRequested`, renders the SSTP guide's iPhone screenshots with example profiles when `SRP_DOCS_SCREENSHOTS` is set.
+
 ## 1.2.0 (34) - 2026-11-06
 
 ### Added
