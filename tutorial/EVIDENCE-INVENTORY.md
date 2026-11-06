@@ -2,7 +2,7 @@
 
 Internal record of where each part of the documentation comes from. It is not linked from the site. Hosts, addresses and secrets are written as placeholders here too.
 
-Only the current state is documented: on the server, the official WaterWall 1.5.3 release, unchanged (program SHA-256 `8b726bf0…`, installed 5 November 2026); the iPhone app at commit `c87f4927`, a development build with WaterWall 1.5.3 (TestFlight build 33, commit `7e1b6c42`, still has 1.5.2), tested on 5 and 6 November 2026; and the Android debug APK of commit `c87f4927`, tested on 6 November 2026. Results of earlier versions are not used.
+Only the current state is documented: on the server, the official WaterWall 1.5.3 release, unchanged (program SHA-256 `8b726bf0…`, installed 5 November 2026); the iPhone app at commit `c87f4927` with WaterWall 1.5.3, tested on 5 and 6 November 2026, which TestFlight build 34 (commit `c26aedad`, uploaded 6 November 2026) contains unchanged but for the build number; and the Android debug APK of commit `c87f4927`, tested on 6 November 2026. Results of earlier versions are not used.
 
 ## Pages
 

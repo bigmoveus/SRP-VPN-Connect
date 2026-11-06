@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WaterWall documentation names TestFlight build 34, which contains WaterWall 1.5.3, and tells users of build 33 to update, because its KCP chains cannot work with a 1.5.3 server.
+
 ## 1.2.0 (34) - 2026-11-06
 
 ### Added

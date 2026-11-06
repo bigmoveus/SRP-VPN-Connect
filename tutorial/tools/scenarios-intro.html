@@ -9,7 +9,7 @@
     <li><strong>UDP and GeoIP routing.</strong> Chains that carry UDP were checked with a UDP echo server, and the GeoIP cases were checked for which way their downloads went.</li>
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
-  <p>The tests ran on app commit <code>c87f4927</code>, a development build that contains WaterWall 1.5.3; TestFlight build 33 is older and has WaterWall 1.5.2. On Raw IPv4 and native WireGuard chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
+  <p>The tests ran on app commit <code>c87f4927</code>, which contains WaterWall 1.5.3; TestFlight build 34, commit <code>c26aedad</code>, adds only the documentation, the build number and the change log. On Raw IPv4 and native WireGuard chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
   <p>Every scenario page describes its procedure in full. A page whose case ran more than once says how many runs passed.</p>
   <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>
