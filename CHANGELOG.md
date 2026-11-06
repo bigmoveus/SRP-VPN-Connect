@@ -15,6 +15,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSTP on iPhone: when the server accepted none of the profile's authentication methods, the app said the server closed the connection while assigning the tunnel address. It now says the server closed it during PPP negotiation and to check that the server accepts one of the profile's methods. The Android app has the same check from its first version.
 - SSTP on iPhone: after a connection that was up was lost, Retry Times reconnected one time fewer than set, while the message counted the full number. It now reconnects as many times as Retry Times says, as WaterWall does.
 - SSTP's message about an EAP server certificate the phone does not trust names the profile switch by its name, Allow Untrusted Certificate.
+- SSTP with EAP-TTLS and EAP inside, which the EAP and MSCHAPv2 choices of EAP-TTLS Method use, failed against FreeRADIUS, whose EAP-TTLS offers EAP-MD5 first inside the tunnel. Both apps now answer an inner method they do not have with a Nak for EAP-MSCHAPv2, or for EAP-TLS with a client certificate, as they already did outside the tunnel; FreeRADIUS then switches to EAP-MSCHAPv2.
 
 ## 1.2.0 (34) - 2026-11-06
 

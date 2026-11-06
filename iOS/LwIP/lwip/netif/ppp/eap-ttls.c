@@ -119,6 +119,7 @@ struct eap_ttls_state {
 	struct eap_tls_engine *inner_tls;
 	int inner_tls_started;
 	int nak_tls_sent;	/* inner method negotiation: NAKed for EAP-TLS once */
+	int nak_inner_sent;	/* inner method negotiation: NAKed an unsupported inner type once */
 };
 
 typedef struct eap_ttls_state eap_ttls_state;
@@ -590,6 +591,22 @@ static void ttls_handle_inner_eap(eap_ttls_state *st, const u_char *pkt, int len
 			    elen - EAP_HEADERLEN - 1);
 			break;
 		default:
+			/* FreeRADIUS offers inner EAP-MD5 first by default (ttls default_eap_type = md5), which the app never
+			 * answers; a Nak steers it to the inner method this profile has, as eap.c does outside the tunnel */
+			if (!st->nak_inner_sent) {
+				u_char nak[EAP_HEADERLEN + 2];
+				u_char *o = nak;
+				u_char want = st->pcb->settings.eap_tls_cert_pem != NULL ? EAPT_TLS : EAPT_MSCHAPV2;
+				st->nak_inner_sent = 1;
+				ppp_info("TTLS: inner EAP type %d offered; NAKing in favor of type %d", typenum, want);
+				PUTCHAR(EAP_RESPONSE, o);
+				PUTCHAR(iid, o);
+				PUTSHORT(EAP_HEADERLEN + 2, o);
+				PUTCHAR(EAPT_NAK, o);
+				PUTCHAR(want, o);
+				ttls_send_eap_avp(st, nak, (int)(o - nak));
+				break;
+			}
 			ppp_error("TTLS: unsupported inner EAP type %d; failing", typenum);
 			ttls_fail(st);
 			break;
