@@ -330,32 +330,41 @@ void quicHoldApplication(tunnel_t *t, line_t *l, bool hold)
     }
 }
 
+/* The carrier's flow signals reach the application only while QUIC's own backlog does not hold it. A
+ * Resume under that pressure would let the next reads pass the hard budget and close the association. */
 void quicSetCarrierPaused(tunnel_t *t, line_t *l, bool paused)
 {
     quic_context_t *context = quicGetContext(t, l);
-    if (context == NULL || ! context->attached || context->application_line == NULL ||
-        context->carrier_paused == paused)
+    assert(context != NULL);
+    if (! context->attached || context->application_line == NULL)
     {
         return;
     }
     context->carrier_paused = paused;
-    if (context->pressure)
+    bool entered            = quicEnter(context);
+    if (! context->pressure)
     {
-        // Our send backlog already holds the application; quicPressure resumes it.
-        return;
+        const quic_tstate_t *state       = tunnelGetState(t);
+        line_t              *application = context->application_line;
+        lineRef(application);
+        if (paused)
+        {
+            state->output->application_pause(t, application);
+        }
+        else
+        {
+            state->output->application_resume(t, application);
+        }
+        lineUnref(application);
     }
-    quic_tstate_t *state       = tunnelGetState(t);
-    line_t        *application = context->application_line;
-    lineRef(application);
-    if (paused)
+    if (entered)
     {
-        state->output->application_pause(t, application);
+        if (quicSurvived(context))
+        {
+            quicPump(context);
+        }
+        quicLeave(context);
     }
-    else
-    {
-        state->output->application_resume(t, application);
-    }
-    lineUnref(application);
 }
 
 void quicCloseAdmission(tunnel_t *t)

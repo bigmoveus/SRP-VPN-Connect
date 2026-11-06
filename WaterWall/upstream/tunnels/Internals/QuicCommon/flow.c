@@ -30,7 +30,7 @@ void quicPressure(quic_context_t *context)
     context->pressure = pause;
     if (context->carrier_paused)
     {
-        // The carrier's own Pause already holds the application and decides its Resume.
+        /* The carrier's Pause already holds the application, and its Resume releases it. */
         return;
     }
     if (pause)

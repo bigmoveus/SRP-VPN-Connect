@@ -8,7 +8,7 @@ esac
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$root"
-expected=2532398349155ef7e6ee3505dab00243a521d939
+expected=ccb40eafdd2a0306425fe1585751fbf1e7daebbd
 if [ -d "$root/upstream/.git" ]; then
     actual=$(git -C "$root/upstream" rev-parse HEAD)
     if [ "$actual" != "$expected" ]; then

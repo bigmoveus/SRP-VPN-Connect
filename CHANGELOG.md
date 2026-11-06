@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Changed
+- Both apps' WaterWall now follows upstream main at `ccb40eafd` instead of the v1.5.3 tag, keeping the apps' own client changes. It brings upstream's form of our QUIC carrier Pause/Resume fix (#353), which also flushes QUIC output when the carrier resumes; the KCP carrier and backpressure fix, so a carrier Resume no longer releases an application that KCP's own send backlog holds; HttpClient's split-startup guard, which fails the line instead of sending the split headers on an upload connection that has already closed; and lwIP's unsigned timestamp parsing and padded option sizing, which matter to the apps because both negotiate TCP timestamps. Tested on the iPhone and the Samsung against upstream's GitHub Actions server builds of the same commit: VLESS + QUIC Stream and an HTTP/1.1 split chain pass on the iPhone, and QUIC Stream on Android. Raw IPv4 + KCP uploads from the iPhone still stall against a server without TCP timestamps (4 of 6 runs); with upstream PR #352's build of the same commit, 0 of 6. The iOS and Android unit tests pass.
 - The SSTP documentation names TestFlight build 35, the first with this round's SSTP fixes, and the results page says which build had which SSTP code.
 
 ## 1.2.0 (35) - 2026-11-06
