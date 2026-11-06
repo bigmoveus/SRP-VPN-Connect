@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (34) - 2026-11-06
+
 ### Added
 - Packet Encryption for Raw IPv4 chains in both apps: WaterWall 1.5.3's packet-mode encryption with XChaCha20-Poly1305 between the packet device and `PacketsToStream`, using the profile's outer password field. It needs the same node on the server, and it cannot be combined with Reality or AEAD, which already encrypt the whole stream.
 - The Android app's release build can now be signed: Gradle signs `assembleRelease` when `SRP_ANDROID_KEYSTORE` and `SRP_ANDROID_KEYSTORE_PASSWORD` are set. The key and its password stay outside the repository, and a build without them needs neither.
