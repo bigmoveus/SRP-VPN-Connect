@@ -235,12 +235,21 @@
     }
 
 #elif __linux
-    #include <sys/time.h>
+    #include <time.h>
+    /* Monotonic, as on Apple: the wall clock can jump, and lwIP's timers would jump with it */
     u32_t sys_now(void)
     {
-        struct timeval te;
-        gettimeofday(&te, NULL);
-        return te.tv_sec*1000LL + te.tv_usec/1000;
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        return (u32_t)(ts.tv_sec * 1000LL + ts.tv_nsec / 1000000);
+    }
+
+    u32_t
+    sys_jiffies(void)
+    {
+      struct timespec ts;
+      clock_gettime(CLOCK_MONOTONIC, &ts);
+      return (u32_t)(ts.tv_sec * 1000000000L + ts.tv_nsec);
     }
 #elif __unix // all unices not caught above
     // Unix

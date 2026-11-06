@@ -42,13 +42,20 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import kotlinx.coroutines.delay
+import kotlin.concurrent.thread
 
 /** Where screens send their short messages and alerts. */
 class UiHost {
     var toast by mutableStateOf<Toast?>(null)
     var alert by mutableStateOf<Pair<String, String?>?>(null)
+    var choice by mutableStateOf<Choice?>(null)
+    var prompt by mutableStateOf<Prompt?>(null)
 
     class Toast(val text: String, val milliseconds: Long)
+
+    class Choice(val title: String, val message: String?, val buttons: List<String>, val destructive: Set<Int>, val onChoose: (Int) -> Unit)
+
+    class Prompt(val title: String, val message: String?, val placeholder: String, val secure: Boolean, val action: String, val onDone: (String?) -> Unit)
 
     fun showToast(text: String, milliseconds: Long = 2000) {
         toast = Toast(text, milliseconds)
@@ -86,16 +93,31 @@ private fun App() {
     val ui = remember { UiHost() }
     var modal by remember { mutableStateOf<Modal?>(null) }
     var pendingConnect by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingUntrusted by rememberSaveable { mutableStateOf(false) }
+    var checking by remember { mutableStateOf(false) }
     val status by VpnState.status.collectAsState()
 
-    fun send(action: String, profileId: String? = null) {
-        context.startService(Intent(context, WaterWallVpnService::class.java).setAction(action).putExtra(WaterWallVpnService.EXTRA_PROFILE, profileId))
+    fun send(action: String, profileId: String? = null, allowUntrusted: Boolean = false) {
+        context.startService(Intent(context, WaterWallVpnService::class.java).setAction(action).putExtra(WaterWallVpnService.EXTRA_PROFILE, profileId)
+            .putExtra(WaterWallVpnService.EXTRA_ALLOW_UNTRUSTED, allowUntrusted))
     }
 
     val consent = rememberLauncherForActivityResult(StartActivityForResult()) { result ->
         val profileId = pendingConnect
         pendingConnect = null
-        if (result.resultCode == Activity.RESULT_OK && profileId != null) send(WaterWallVpnService.ACTION_CONNECT, profileId)
+        if (result.resultCode == Activity.RESULT_OK && profileId != null) send(WaterWallVpnService.ACTION_CONNECT, profileId, pendingUntrusted)
+        else if (VpnState.client == null) VpnState.status.value = VpnState.Status.Disconnected   // the certificate check showed Connecting
+    }
+
+    fun connect(profile: Profile, allowUntrusted: Boolean) {
+        val request = VpnService.prepare(context)
+        if (request != null) {
+            pendingConnect = profile.nodeId
+            pendingUntrusted = allowUntrusted
+            consent.launch(request)
+        } else {
+            send(WaterWallVpnService.ACTION_CONNECT, profile.nodeId, allowUntrusted)
+        }
     }
 
     val focus = LocalFocusManager.current
@@ -116,16 +138,39 @@ private fun App() {
                         send(WaterWallVpnService.ACTION_DISCONNECT)
                     } else {
                         val selected = AppModel.selected
-                        if (selected == null || (selected.server.isEmpty() && !ChainConfig.isDirect(selected.configuration))) {
+                        if (selected == null || (selected.server.isEmpty() && (selected.isSstp || !ChainConfig.isDirect(selected.configuration)))) {
                             ui.showToast("Add a profile first (tap +)")
-                        } else {
-                            val request = VpnService.prepare(context)
-                            if (request != null) {
-                                pendingConnect = selected.nodeId
-                                consent.launch(request)
-                            } else {
-                                send(WaterWallVpnService.ACTION_CONNECT, selected.nodeId)
+                        } else if (selected.isSstp && !selected.allowInsecure) {
+                            // SSTP checks the server's certificate first and lets the user decide when it is not trusted
+                            if (!checking) {
+                                checking = true
+                                VpnState.status.value = VpnState.Status.Connecting
+                                thread(name = "sstp-certificate-check") {
+                                    val issue = SstpCertificateCheck.issue(selected)
+                                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                        checking = false
+                                        if (issue == null) {
+                                            connect(selected, false)
+                                            return@post
+                                        }
+                                        ui.choice = UiHost.Choice("DANGEROUS!", issue, listOf("Continue", "Save and Continue", "Cancel"), setOf(0, 1)) { index ->
+                                            when (index) {
+                                                0 -> connect(selected, true)
+                                                1 -> {
+                                                    AppModel.put(selected.copy(allowInsecure = true))
+                                                    connect(selected, true)
+                                                }
+                                                else -> {
+                                                    VpnState.lastError = null
+                                                    VpnState.status.value = VpnState.Status.Disconnected
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                        } else {
+                            connect(selected, false)
                         }
                     }
                 },
@@ -161,6 +206,18 @@ private fun App() {
             }
             ui.alert?.let { (title, message) ->
                 IosAlert(title, message) { ui.alert = null }
+            }
+            ui.choice?.let { choice ->
+                IosChoiceAlert(choice.title, choice.message, choice.buttons, choice.destructive) { index ->
+                    ui.choice = null
+                    choice.onChoose(index)
+                }
+            }
+            ui.prompt?.let { prompt ->
+                IosPrompt(prompt.title, prompt.message, prompt.placeholder, prompt.secure, prompt.action) { text ->
+                    ui.prompt = null
+                    prompt.onDone(text)
+                }
             }
         }
     }

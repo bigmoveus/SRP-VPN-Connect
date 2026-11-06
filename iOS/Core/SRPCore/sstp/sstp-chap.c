@@ -27,9 +27,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#define OPENSSL_SUPPRESS_DEPRECATED
 #include <openssl/sha.h>
 #include <openssl/md4.h>
 #include <openssl/evp.h>
+#include <openssl/core_names.h>
 #include "sstp-private.h"
 #include "sstp-chap.h"
 
@@ -82,6 +84,19 @@ static int sstp_chap_hash_pass(const char *pass, int len,
     
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
     EVP_MD *digest = EVP_MD_fetch(NULL, OSSL_DIGEST_NAME_MD4, "provider=legacy");
+    if (digest == NULL)
+    {
+        /* An OpenSSL without the legacy provider (the static build of the Android app) still has the low-level MD4 */
+        MD4_CTX md4;
+        MD4_Init(&md4);
+        MD4_Update(&md4, buf, (len << 1));
+        MD4_Final(outb, &md4);
+        MD4_Init(&md4);
+        MD4_Update(&md4, outb, 16);
+        MD4_Final(outb, &md4);
+        memcpy(hash, outb, 16);
+        return SSTP_OKAY;
+    }
 #else
     const EVP_MD* digest = EVP_md4();
 #endif

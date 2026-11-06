@@ -31,14 +31,15 @@ object VpnState {
     /** The reason of the last failure and when it happened. */
     @Volatile var lastError: Pair<String, Long>? = null
 
-    @Volatile var client: WaterWallClient? = null
+    @Volatile var client: TunnelClient? = null
 }
 
 /** The counterpart of the iOS packet tunnel provider: turns profiles into candidates and owns the tunnel. */
 class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     private val main = Handler(Looper.getMainLooper())
-    private var client: WaterWallClient? = null
+    private var client: TunnelClient? = null
     private var tun: ParcelFileDescriptor? = null
+    private var tunSettings: TunnelSettings? = null
     private var logLevel = 0
     private var connecting = false
     private var connectRequest = 0
@@ -56,7 +57,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_DISCONNECT -> disconnect()
-            ACTION_CONNECT -> connect(intent.getStringExtra(EXTRA_PROFILE))
+            ACTION_CONNECT -> connect(intent.getStringExtra(EXTRA_PROFILE), intent.getBooleanExtra(EXTRA_ALLOW_UNTRUSTED, false))
             // Android starts the service itself for an always-on VPN.
             else -> if (client == null && !connecting) connect(getSharedPreferences(PREFERENCES, MODE_PRIVATE).getString(KEY_LAST_PROFILE, null))
         }
@@ -73,7 +74,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         super.onDestroy()
     }
 
-    private fun connect(profileId: String?) {
+    private fun connect(profileId: String?, allowUntrusted: Boolean = false) {
         if (client != null || connecting) return
         connecting = true
         val request = ++connectRequest
@@ -87,6 +88,17 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             ConnectionLog.open(this)
             val profiles = ProfileStore(this).load()
             val profile = profiles.firstOrNull { it.nodeId == profileId }
+            if (profile != null && profile.isSstp) {
+                // Certificate login reads the PKCS#12 from the store here, off the main thread
+                val certificate = if (profile.certificateMode) CertificateStore(this).load(profile.certKey) else null
+                main.post {
+                    if (request != connectRequest) return@post
+                    connecting = false
+                    if (profile.certificateMode && certificate == null) fail("The client certificate could not be read. Re-import it in the profile.")
+                    else startSstp(profile, profile.allowInsecure || allowUntrusted, certificate)
+                }
+                return@thread
+            }
             var failure: String? = null
             val selected = if (profile == null) null else candidateFor(profile) { failure = it }
             val fallbacks = if (selected == null || !profile!!.autoSwitch) emptyList() else fallbackProfiles(profile, profiles).mapNotNull { other ->
@@ -119,8 +131,24 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         started.start()
     }
 
+    private fun startSstp(profile: Profile, allowInsecure: Boolean, certificate: Pair<ByteArray, String>?) {
+        logLevel = profile.logLevel
+        val connectivity = getSystemService(ConnectivityManager::class.java)
+        val cellular = {
+            connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
+        }
+        val started = SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
+        client = started
+        VpnState.client = started
+        registerReceiver(sleepReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        })
+        started.start()
+    }
+
     private fun disconnect() {
-        ConnectionLog.m("WaterWall: disconnecting")
+        if (client !is SstpClient) ConnectionLog.m("WaterWall: disconnecting")
         connecting = false
         connectRequest++
         finishTunnel()
@@ -153,7 +181,13 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         return ChainConfig.coreJson(logLevel, cacheDir.path, dns)
     }
 
-    override fun applyTunnelSettings(settings: TunnelSettings): String? {
+    override fun applyTunnelSettings(settings: TunnelSettings, attach: (Int) -> Unit): String? {
+        // An SSTP reconnect that gets the same address and DNS keeps the tunnel the system already has
+        val existing = tun
+        if (existing != null && client is SstpClient && settings == tunSettings) {
+            attach(existing.fd)
+            return null
+        }
         val established = try {
             val builder = Builder()
                 .setSession("SRP VPN Connect")
@@ -177,7 +211,8 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         } ?: return "VPN permission was withdrawn"
         val previous = tun
         tun = established
-        WaterWall.attachTun(established.fd)
+        tunSettings = settings
+        attach(established.fd)
         previous?.close()
         return null
     }
@@ -197,6 +232,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     override fun onClosed() {
         tun?.close()
         tun = null
+        tunSettings = null
     }
 
     private fun goForeground(text: String) {
@@ -336,6 +372,8 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         const val ACTION_CONNECT = "tr.com.srp.vpn.CONNECT"
         const val ACTION_DISCONNECT = "tr.com.srp.vpn.DISCONNECT"
         const val EXTRA_PROFILE = "profile"
+        /** The user chose Continue on the certificate warning: this connection skips verification, the profile stays as it is. */
+        const val EXTRA_ALLOW_UNTRUSTED = "allowUntrusted"
         private const val PREFERENCES = "vpn"
         private const val KEY_LAST_PROFILE = "lastProfile"
         private const val CHANNEL = "vpn"

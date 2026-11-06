@@ -17,6 +17,7 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | BoringSSL | [BoringSSL](https://boringssl.googlesource.com/boringssl/) | See `Licenses/BoringSSL/LICENSE` |
 | OpenSSL | [OpenSSL](https://www.openssl.org/) | Apache License 2.0; see `Licenses/OpenSSL/LICENSE.txt` |
 | lwIP | [lwIP](https://savannah.nongnu.org/projects/lwip/) | See the notices in the lwIP source tree |
+| sstp-client (SSTP code of the iOS and Android apps) | sstp-client by Eivind Naess | GPL 2.0 or later; see the notices in `iOS/Core/SRPCore/sstp` |
 | hev-socks5-tunnel and related components | [Heiher](https://github.com/heiher) | See `iOS/SSH/upstream/LICENSE` and the related component notices |
 | libssh2 | [libssh2](https://libssh2.org/) | See `iOS/SSH/libssh2/COPYING` |
 | IQKeyboardManager | [hackiftekhar/IQKeyboardManager](https://github.com/hackiftekhar/IQKeyboardManager) | MIT; see `Licenses/IQKeyboardManager/LICENSE.md` |

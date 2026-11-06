@@ -23,6 +23,9 @@ object ConnectionLog {
         cap()
     }
 
+    /** The file's path, for native code that writes into it too. */
+    val path: String get() = logFile.path
+
     /** A milestone: errors and connect or disconnect steps, printed at every log level. */
     @Synchronized
     fun m(message: String) {

@@ -28,6 +28,31 @@ class WaterWallCandidate(
 
 data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int)
 
+/** What the VPN service does for a protocol's client. */
+interface TunnelHost {
+    /** Brings the tunnel to these settings and gives its fd to [attach]. Null means done, a text is why it failed. */
+    fun applyTunnelSettings(settings: TunnelSettings, attach: (Int) -> Unit): String?
+
+    fun onConnected()
+
+    fun onFailure(reason: String)
+
+    /** The protocol has stopped and the tunnel can close. */
+    fun onClosed()
+}
+
+/** What the service and the home screen ask of a running protocol client. */
+interface TunnelClient {
+    fun close()
+
+    fun pauseForSleep()
+
+    fun wakeFromSleep()
+
+    /** Milliseconds of one request through the tunnel, -1 for a failure or -2 for a timeout. */
+    fun measurePing(result: (Long) -> Unit)
+}
+
 /**
  * The connection logic of SRPWaterWallClient.m on one worker thread: it proves the data plane before the tunnel takes traffic,
  * watches its health, reconnects, moves between the other profiles of a server and follows network changes and sleep.
@@ -41,20 +66,10 @@ class WaterWallClient(
     private val onSleep: Int,
     private val connectivity: ConnectivityManager,
     private val host: Host,
-) {
-    interface Host {
+) : TunnelClient {
+    interface Host : TunnelHost {
         /** The core settings for the next runtime start, with the DNS servers of the network at that moment. */
         fun coreJson(): String
-
-        /** Brings the tunnel to these settings and attaches it. Null means done, a text is why it failed. */
-        fun applyTunnelSettings(settings: TunnelSettings): String?
-
-        fun onConnected()
-
-        fun onFailure(reason: String)
-
-        /** The runtime has stopped and the tunnel can close. */
-        fun onClosed()
     }
 
     private val candidates = listOf(selected) + fallbacks
@@ -121,11 +136,11 @@ class WaterWallClient(
         }
     }
 
-    fun close() {
+    override fun close() {
         worker.post { closeNow() }
     }
 
-    fun pauseForSleep() {
+    override fun pauseForSleep() {
         worker.post {
             if (onSleep == 2 || closed) return@post
             ConnectionLog.m("WaterWall: device sleep: ${if (onSleep == 1) "pausing" else "closing"} the connection")
@@ -136,7 +151,7 @@ class WaterWallClient(
         }
     }
 
-    fun wakeFromSleep() {
+    override fun wakeFromSleep() {
         worker.post {
             if (!sleepPaused || closed) return@post
             sleepPaused = false
@@ -156,7 +171,7 @@ class WaterWallClient(
      * Times one HTTP request through the tunnel to the probe address. This app stays outside its own tunnel, so unlike iOS it cannot
      * send a normal request through it. [result] runs on the worker thread with the milliseconds, -1 for a failure or -2 for a timeout.
      */
-    fun measurePing(result: (Long) -> Unit) {
+    override fun measurePing(result: (Long) -> Unit) {
         worker.post {
             if (closed || !up || !candidate.probeTcp) {
                 result(-1)
@@ -324,7 +339,7 @@ class WaterWallClient(
                 else -> "WaterWall: no external data-plane probe required"
             },
         )
-        val error = host.applyTunnelSettings(buildSettings())
+        val error = host.applyTunnelSettings(buildSettings()) { WaterWall.attachTun(it) }
         if (closed || sleepPaused || probeStage != 6) return
         if (error != null) {
             handleRuntimeFailure("WaterWall network settings failed: $error")

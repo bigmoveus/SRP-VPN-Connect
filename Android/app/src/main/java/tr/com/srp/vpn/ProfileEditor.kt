@@ -62,6 +62,14 @@ sealed interface EditorPage {
     data class NodeOptions(val layer: String) : EditorPage
 
     data object Countries : EditorPage
+
+    data object SstpMethod : EditorPage
+
+    data object SstpCertificate : EditorPage
+
+    data object SstpEap : EditorPage
+
+    data object SstpTtls : EditorPage
 }
 
 /** Add Profile and Edit Profile. Nothing reaches the saved profile until Save. */
@@ -91,12 +99,16 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
         pageStates.SaveableStateProvider(page.toString()) {
             when (page) {
                 EditorPage.Main -> ProfileEditPage(draft, profile != null, { draft = it }, push, onClose, onSave)
-                EditorPage.Protocol -> ProtocolPage(pop)
+                EditorPage.Protocol -> ProtocolPage(draft, { draft = it }, pop)
                 EditorPage.WireGuardManual -> WireGuardManualPage(draft, { draft = it }, pop)
                 EditorPage.WaterWall -> WaterWallConfigPage(draft, { draft = it }, push, pop)
                 is EditorPage.Choice -> WaterWallChoicePage(page.row, draft, { draft = it }, pop)
                 is EditorPage.NodeOptions -> NodeOptionsPage(page.layer, draft, { draft = it }, pop)
                 EditorPage.Countries -> GeoIpCountriesPage(draft, { draft = it }, pop)
+                EditorPage.SstpMethod -> SstpMethodPage(draft, { draft = it }, pop)
+                EditorPage.SstpCertificate -> SstpCertificatePage(draft, { draft = it }, pop)
+                EditorPage.SstpEap -> SstpEapPage(draft, { draft = it }, push, pop)
+                EditorPage.SstpTtls -> SstpTtlsPage(draft, { draft = it }, pop)
             }
         }
     }
@@ -104,6 +116,7 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
 
 /** The first problem of a profile about to be saved, in the iOS app's words. */
 fun validationMessage(profile: Profile): String? {
+    if (profile.isSstp) return sstpValidationMessage(profile)
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -123,6 +136,11 @@ fun validationMessage(profile: Profile): String? {
 }
 
 private fun trimmedForSave(profile: Profile): Profile {
+    // Pasted values often carry a trailing space or newline, and none of these fields can start or end with one
+    if (profile.isSstp) {
+        return profile.copy(server = profile.server.trim(), port = profile.port.trim(), customSni = profile.customSni.trim(),
+            proxyAddress = profile.proxyAddress.trim(), proxyPort = profile.proxyPort.trim())
+    }
     val application = profile.configuration["application"]
     return profile.copy(
         server = profile.server.trim(),
@@ -183,7 +201,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert("Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isSstp) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -191,6 +209,11 @@ private fun ProfileEditPage(
             Section {
                 row { ValueRow("Protocol", draft.nodeName) { push(EditorPage.Protocol) } }
                 row { TextFieldRow("Description", draft.desc, "Optional", keyboardType = KeyboardType.Text) { onChange(draft.copy(desc = it)) } }
+            }
+            if (draft.isSstp) {
+                SstpSections(draft, onChange, push)
+                Spacer(Modifier.height(32.dp))
+                return@Column
             }
             Section("SERVER", SERVER_FOOTER) {
                 if (wireGuard) {
@@ -275,13 +298,22 @@ private fun NumberRow(title: String, value: Int, placeholder: String, onChange: 
     }
 }
 
-/** The Protocol screen: WaterWall is the one protocol of the Android app so far. */
+/** The Protocol screen: the protocols of the Android app so far, named and described as on iOS. */
 @Composable
-private fun ProtocolPage(onBack: () -> Unit) {
+private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: () -> Unit) {
+    fun choose(type: String) {
+        if (type != draft.protocolType) {
+            // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
+            onChange(draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
+                wgDns = "", wgAllowedIps = "", wgKeepalive = 0, port = if (type == "waterwall") "443" else draft.port))
+        }
+        onBack()
+    }
     Column(Modifier.fillMaxSize().background(LocalIosColors.current.groupedBackground)) {
         NavBar("Protocol", left = { RoundBarButton(Glyph.Back, "Back", onClick = onBack) })
         Section {
-            row { CheckRow("WaterWall VPN", "VLESS, VMess, Trojan, BGP4 and packet tunnels", checked = true, onClick = onBack) }
+            row { CheckRow("WaterWall VPN", "VLESS, VMess, Trojan, BGP4 and packet tunnels", checked = !draft.isSstp) { choose("waterwall") } }
+            row { CheckRow("SSTP VPN", "Microsoft SSTP over TLS", checked = draft.isSstp) { choose("sstp") } }
         }
     }
 }

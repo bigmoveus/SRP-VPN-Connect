@@ -13,9 +13,52 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** One saved connection, with the same fields and defaults as a WaterWall NodeModel on iOS. Secrets stay out of the stored profile. */
+/** The EAP settings of an SSTP profile, as SRPEapConfig on iOS: ttlsInnerMethod 0 = off, 1 = EAP, 2 = PAP, 3 = CHAP, 4 = MSCHAPv2. */
+data class EapConfig(
+    val eapMschapv2Enabled: Boolean = false,
+    val peapEnabled: Boolean = false,
+    val peapRequireCryptoBinding: Boolean = false,
+    val ttlsInnerMethod: Int = 0,
+    val teapEnabled: Boolean = false,
+    val identityPrivacyEnabled: Boolean = false,
+    val anonymousIdentity: String = "anonymous",
+    val eapTls13Enabled: Boolean = true,
+    val disableLegacyEapTls: Boolean = true,
+) {
+    val anyMethod get() = eapMschapv2Enabled || peapEnabled || teapEnabled || ttlsInnerMethod != 0
+
+    fun toMap(): Map<String, Any?> = linkedMapOf(
+        "eap_mschapv2_enabled" to eapMschapv2Enabled, "peap_enabled" to peapEnabled, "peap_require_crypto_binding" to peapRequireCryptoBinding,
+        "ttls_inner_method" to ttlsInnerMethod.toLong(), "teap_enabled" to teapEnabled, "teap_secondary_method" to 0L,
+        "identity_privacy_enabled" to identityPrivacyEnabled, "anonymous_identity" to anonymousIdentity,
+        "eap_tls13_enabled" to eapTls13Enabled, "disable_legacy_eap_tls" to disableLegacyEapTls,
+    )
+
+    companion object {
+        fun fromMap(item: Map<*, *>?): EapConfig {
+            val defaults = EapConfig()
+            if (item == null) return defaults
+            fun flag(key: String, default: Boolean) = item[key] as? Boolean ?: default
+            return EapConfig(
+                eapMschapv2Enabled = flag("eap_mschapv2_enabled", defaults.eapMschapv2Enabled),
+                peapEnabled = flag("peap_enabled", defaults.peapEnabled),
+                peapRequireCryptoBinding = flag("peap_require_crypto_binding", defaults.peapRequireCryptoBinding),
+                ttlsInnerMethod = (item["ttls_inner_method"] as? Number)?.toInt()?.takeIf { it in 0..4 } ?: defaults.ttlsInnerMethod,
+                teapEnabled = flag("teap_enabled", defaults.teapEnabled),
+                identityPrivacyEnabled = flag("identity_privacy_enabled", defaults.identityPrivacyEnabled),
+                anonymousIdentity = item["anonymous_identity"] as? String ?: defaults.anonymousIdentity,
+                eapTls13Enabled = flag("eap_tls13_enabled", defaults.eapTls13Enabled),
+                disableLegacyEapTls = flag("disable_legacy_eap_tls", defaults.disableLegacyEapTls),
+            )
+        }
+    }
+}
+
+/** One saved connection, with the same fields and defaults as a NodeModel on iOS. Secrets stay out of the stored profile. */
 data class Profile(
     val nodeId: String = UUID.randomUUID().toString().uppercase(),
+    /** "waterwall" or "sstp" */
+    val protocolType: String = "waterwall",
     val desc: String = "",
     val username: String = "",
     val password: String = "",
@@ -49,15 +92,37 @@ data class Profile(
     val wgAllowedIps: String = "",
     val wgKeepalive: Int = 0,
     val wgSecretRef: String = "",
+    // SSTP, with the defaults the iOS editor gives a new SSTP profile
+    val mschap2: Boolean = true,
+    val allowLegacyPapChap: Boolean = false,
+    /** "password" or "certificate" */
+    val authMethod: String = "password",
+    val certKey: String = "",
+    val certName: String = "",
+    val eap: EapConfig = EapConfig(),
+    /** 0 = none, 1 = manual, 2 = auto (PAC) */
+    val proxyMode: Int = 0,
+    val proxyAddress: String = "",
+    val proxyPort: String = "",
+    val proxyUsername: String = "",
+    val proxyPassword: String = "",
+    val proxyPasswordRef: String = "",
+    val pacUrl: String = "",
+    val disableLegacyOuterTls: Boolean = false,
+    val customSniEnabled: Boolean = false,
 ) {
+    val isSstp get() = protocolType == "sstp"
+
+    val certificateMode get() = isSstp && authMethod == "certificate"
+
     val configuration: Map<String, Any?>
         get() = ChainConfig.configurationWithJson(configJson) ?: ChainConfig.defaultConfiguration()
 
     /** An empty port means 443, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (ChainConfig.isWireGuard(configuration)) "51820" else "443" }
+        get() = port.ifEmpty { if (!isSstp && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
 
-    val nodeName get() = "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
@@ -123,12 +188,13 @@ class SecretStore(context: Context) {
 class ProfileStore(context: Context) {
     private val file = File(context.filesDir, "profiles.json")
     private val secrets = SecretStore(context)
+    private val certificates = CertificateStore(context)
 
     fun load(): List<Profile> {
         val stored = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
         val profiles = stored.map { fromStored(it) }
         // Re-save profiles that still contain a plaintext credential or WireGuard key.
-        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key").any { it in item } }) save(profiles)
+        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "proxy_password", "cert_p12").any { it in item } }) save(profiles)
         return profiles
     }
 
@@ -140,7 +206,7 @@ class ProfileStore(context: Context) {
     }
 
     fun deleteSecrets(profile: Profile) {
-        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
+        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef, profile.proxyPasswordRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
     }
 
     private fun toStored(profile: Profile): Map<String, Any?> {
@@ -156,6 +222,7 @@ class ProfileStore(context: Context) {
             if (saved.outerSecretRef.isEmpty()) saved = saved.copy(outerSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.outerSecretRef, saved.outerSecret)
         }
+        if (saved.isSstp) return sstpStored(saved)
         val keys = LinkedHashMap<String, Any?>()
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
@@ -180,6 +247,51 @@ class ProfileStore(context: Context) {
         )
     }
 
+    /** CheckConnectData's keys for an SSTP profile; the proxy password goes to the store like the main one. */
+    private fun sstpStored(profile: Profile): Map<String, Any?> {
+        var saved = profile
+        // A profile moved from WaterWall has no WireGuard keys left to keep
+        if (saved.wgSecretRef.isNotEmpty()) {
+            secrets.delete(saved.wgSecretRef)
+            saved = saved.copy(wgSecretRef = "")
+        }
+        if (saved.proxyPassword.isNotEmpty()) {
+            if (saved.proxyPasswordRef.isEmpty()) saved = saved.copy(proxyPasswordRef = UUID.randomUUID().toString())
+            secrets.set(saved.proxyPasswordRef, saved.proxyPassword)
+        } else if (saved.proxyPasswordRef.isNotEmpty() && secrets.get(saved.proxyPasswordRef) != null) {
+            secrets.delete(saved.proxyPasswordRef)
+            saved = saved.copy(proxyPasswordRef = "")
+        }
+        val eap = saved.eap
+        val stored = linkedMapOf<String, Any?>(
+            "type" to "sstp", "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
+            "port" to saved.effectivePort, "password_key" to saved.passwordKey,
+            "chap_enable" to saved.allowLegacyPapChap, "mschap2_enable" to saved.mschap2, "pap_enable" to saved.allowLegacyPapChap,
+            "allowInsecure" to saved.allowInsecure, "allow_legacy_papchap" to saved.allowLegacyPapChap, "auth_method" to saved.authMethod,
+            "eapmschapv2_enable" to eap.eapMschapv2Enabled, "peap_enable" to eap.peapEnabled, "peap_require_cb" to eap.peapRequireCryptoBinding,
+            "eapttls_enable" to (eap.ttlsInnerMethod != 0), "eapttls_inner" to ttlsInnerName(eap.ttlsInnerMethod), "eapteap_enable" to eap.teapEnabled,
+            "eap_identity_privacy" to eap.identityPrivacyEnabled, "eap_anonymous_identity" to eap.anonymousIdentity,
+            "eap_tls13" to eap.eapTls13Enabled, "eap_disable_legacy_tls" to eap.disableLegacyEapTls, "eap_config" to eap.toMap(),
+            "cert_auth" to (saved.authMethod == "certificate" && saved.certKey.isNotEmpty()),
+            "proxy_mode" to listOf("none", "manual", "auto")[saved.proxyMode.coerceIn(0, 2)],
+            "disable_legacy_outer_tls" to saved.disableLegacyOuterTls, "tls_frag" to saved.tlsFragMode.toLong(),
+            "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(), "switch_to_wifi" to saved.switchToWifi,
+            "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
+            "custom_sni_enabled" to saved.customSniEnabled,
+        )
+        if (saved.certKey.isNotEmpty()) stored["cert_key"] = saved.certKey
+        if (saved.certName.isNotEmpty()) stored["cert_name"] = saved.certName
+        if (saved.proxyAddress.isNotEmpty()) stored["proxy_host"] = saved.proxyAddress
+        if (saved.proxyPort.isNotEmpty()) stored["proxy_port"] = saved.proxyPort
+        if (saved.proxyUsername.isNotEmpty()) stored["proxy_user"] = saved.proxyUsername
+        if (saved.proxyPasswordRef.isNotEmpty()) stored["proxy_pass_ref"] = saved.proxyPasswordRef
+        if (saved.pacUrl.isNotEmpty()) stored["pac_url"] = saved.pacUrl
+        if (saved.tlsFragFirst > 0) stored["tls_frag_first"] = saved.tlsFragFirst.toLong()
+        if (saved.tlsFragFollowing > 0) stored["tls_frag_following"] = saved.tlsFragFollowing.toLong()
+        if (saved.customSni.isNotEmpty()) stored["sni"] = saved.customSni
+        return stored
+    }
+
     private fun fromStored(item: Map<*, *>): Profile {
         fun text(key: String) = item[key] as? String ?: ""
         fun flag(key: String, default: Boolean) = item[key] as? Boolean ?: default
@@ -191,6 +303,10 @@ class ProfileStore(context: Context) {
         val outerRef = text("ww_outer_secret_ref")
         val wgRef = text("wg_secret_ref")
         val wg = (if (wgRef.isNotEmpty()) secrets.get(wgRef) else null)?.let { Json.parseOrNull(it) as? Map<*, *> }
+        // A certificate written into the file as a PKCS#12 moves to the certificate store, as plaintext secrets move to theirs
+        val imported = text("cert_p12").takeIf { it.isNotEmpty() }?.let { p12 ->
+            runCatching { Base64.decode(p12, Base64.NO_WRAP) }.getOrNull()?.let { certificates.import(it, text("cert_passphrase")).getOrNull() }
+        }
         return Profile(
             nodeId = text("node_id").ifEmpty { defaults.nodeId },
             desc = text("desc"),
@@ -226,8 +342,31 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
+            protocolType = if (text("type") == "sstp") "sstp" else "waterwall",
+            mschap2 = flag("mschap2_enable", true),
+            allowLegacyPapChap = flag("allow_legacy_papchap", false),
+            authMethod = text("auth_method").ifEmpty { "password" },
+            certKey = imported?.ref ?: text("cert_key"),
+            certName = imported?.name ?: text("cert_name"),
+            eap = EapConfig.fromMap(item["eap_config"] as? Map<*, *>),
+            proxyMode = when (item["proxy_mode"]) { "manual" -> 1; "auto" -> 2; else -> 0 },
+            proxyAddress = text("proxy_host"),
+            proxyPort = text("proxy_port"),
+            proxyUsername = text("proxy_user"),
+            proxyPassword = text("proxy_password").ifEmpty { text("proxy_pass_ref").let { if (it.isNotEmpty()) secrets.get(it).orEmpty() else "" } },
+            proxyPasswordRef = text("proxy_pass_ref"),
+            pacUrl = text("pac_url"),
+            disableLegacyOuterTls = flag("disable_legacy_outer_tls", false),
+            customSniEnabled = flag("custom_sni_enabled", false),
         )
     }
+}
+
+/** The tunnel's name for a TTLS inner method, as CheckConnectData sends it: MSCHAPv2 runs as inner EAP. */
+fun ttlsInnerName(method: Int) = when (method) {
+    2 -> "pap"
+    3 -> "chap"
+    else -> "eap"
 }
 
 /** WireGuard keys as base64, as in wg-quick files. */

@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -480,6 +483,56 @@ fun IosAlert(title: String, message: String?, onDismiss: () -> Unit) {
             Hairline()
             Box(Modifier.fillMaxWidth().height(46.dp).clickable(role = Role.Button, onClick = onDismiss), contentAlignment = Alignment.Center) {
                 Label("OK", IosText.headline, colors.blue)
+            }
+        }
+    }
+}
+
+/** An alert with several buttons, stacked as UIAlertController stacks more than two; [destructive] ones are red. */
+@Composable
+fun IosChoiceAlert(title: String, message: String?, buttons: List<String>, destructive: Set<Int>, onChoose: (Int) -> Unit) {
+    val colors = LocalIosColors.current
+    Dialog(onDismissRequest = {}, properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false, dismissOnBackPress = false)) {
+        Column(Modifier.width(280.dp).clip(RoundedCornerShape(14.dp)).background(colors.cell), horizontalAlignment = Alignment.CenterHorizontally) {
+            Label(title, IosText.headline, textAlign = TextAlign.Center, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp))
+            if (!message.isNullOrEmpty()) {
+                Box(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                    Label(message, IosText.footnote, textAlign = TextAlign.Center, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp))
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+            buttons.forEachIndexed { index, text ->
+                Hairline()
+                Box(Modifier.fillMaxWidth().height(46.dp).clickable(role = Role.Button) { onChoose(index) }, contentAlignment = Alignment.Center) {
+                    Label(text, if (index == buttons.lastIndex && index !in destructive) IosText.headline else IosText.body, if (index in destructive) colors.red else colors.blue)
+                }
+            }
+        }
+    }
+}
+
+/** An alert with one text field, as UIAlertController with a text field: [onDone] gets the text, or null for Cancel. */
+@Composable
+fun IosPrompt(title: String, message: String?, placeholder: String, secure: Boolean, action: String, onDone: (String?) -> Unit) {
+    val colors = LocalIosColors.current
+    var text by remember { androidx.compose.runtime.mutableStateOf("") }
+    Dialog(onDismissRequest = { onDone(null) }, properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false)) {
+        Column(Modifier.width(280.dp).clip(RoundedCornerShape(14.dp)).background(colors.cell), horizontalAlignment = Alignment.CenterHorizontally) {
+            Label(title, IosText.headline, textAlign = TextAlign.Center, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp))
+            if (!message.isNullOrEmpty()) Label(message, IosText.footnote, textAlign = TextAlign.Center, modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp))
+            Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp).fillMaxWidth().clip(RoundedCornerShape(7.dp)).background(colors.groupedBackground).padding(horizontal = 8.dp, vertical = 8.dp)) {
+                InlineField(text, placeholder, secure, KeyboardType.Password, true, TextAlign.Start, Modifier.fillMaxWidth(), title, { onDone(text) }) { text = it }
+            }
+            Spacer(Modifier.height(18.dp))
+            Hairline()
+            Row(Modifier.fillMaxWidth().height(46.dp)) {
+                Box(Modifier.weight(1f).fillMaxHeight().clickable(role = Role.Button) { onDone(null) }, contentAlignment = Alignment.Center) {
+                    Label("Cancel", IosText.body, colors.blue)
+                }
+                Box(Modifier.width(0.5.dp).fillMaxHeight().background(colors.separator))
+                Box(Modifier.weight(1f).fillMaxHeight().clickable(role = Role.Button) { onDone(text) }, contentAlignment = Alignment.Center) {
+                    Label(action, IosText.headline, colors.blue)
+                }
             }
         }
     }

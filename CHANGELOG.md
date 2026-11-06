@@ -4,6 +4,10 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- SSTP in the Android app, built from the iOS app's SSTP and PPP code: the same profile fields and defaults; MS-CHAPv2, PAP and CHAP, EAP-MSCHAPv2, PEAP with crypto binding, EAP-TTLS, TEAP and certificate login (EAP-TLS) with an imported .p12 or .pfx file; the TLS settings, TLS Fragmentation and Custom SNI; HTTP and SOCKS5 proxies with or without a password and PAC files; the certificate warning before connecting; Auto Reconnect, Retry Times and On Sleep. The C code builds into its own library, `libsrpsstp.so`, against the OpenSSL that WaterWall already builds for Android. That OpenSSL has no legacy provider, so the shared MS-CHAP code now falls back to OpenSSL's own MD4 functions for the crypto binding, and lwIP's clock gained a Linux branch. A PAC file runs in a WebView that may not load anything from the network. The home screen shows the server and port under an SSTP profile, as on iOS. Tested on a Samsung Galaxy A55 against MikroTik RouterOS 7.25, SoftEther 4.44 and Windows Server 2019, 2022 and 2025; the results are in the SSTP documentation.
+- `THIRD_PARTY_NOTICES.md` names sstp-client by Eivind Naess (GPL 2.0 or later), on which the SSTP code of both apps is built.
+
 ### Changed
 - The WaterWall documentation names TestFlight build 34, which contains WaterWall 1.5.3, and tells users of build 33 to update, because its KCP chains cannot work with a 1.5.3 server.
 

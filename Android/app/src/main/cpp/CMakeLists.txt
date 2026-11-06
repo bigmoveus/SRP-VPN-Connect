@@ -8,3 +8,27 @@ target_link_libraries(waterwall PRIVATE SRPWaterWallBridge maxminddb sodium)
 # Only the JNI functions are for outsiders: the allocator's operator new and the crypto stay private.
 target_link_options(waterwall PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/exports.map")
 set_target_properties(waterwall PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/exports.map")
+
+# SSTP: the iOS app's SSTP core and lwIP PPP with its EAP methods, with this platform's engine in sstp_jni.c. Its own
+# library, so its lwIP and WaterWall's never meet; it links the same OpenSSL build as WaterWall, whose symbols carry a prefix.
+set(SRP_IOS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../iOS")
+set(SSTP_LWIP "${SRP_IOS_SOURCES}/LwIP/lwip")
+file(GLOB SSTP_LWIP_SOURCES CONFIGURE_DEPENDS
+    "${SSTP_LWIP}/core/*.c" "${SSTP_LWIP}/core/ipv4/*.c" "${SSTP_LWIP}/core/ipv6/*.c"
+    "${SSTP_LWIP}/netif/ppp/*.c" "${SSTP_LWIP}/netif/ppp/polarssl/*.c")
+set(SSTP_CORE_SOURCES)
+foreach(name IN ITEMS sstp-buff sstp-chap sstp-cmac sstp-fcs sstp-http sstp-packet sstp-pppd sstp-state sstp-stream
+                      sstp-task sstp-util utils)
+    list(APPEND SSTP_CORE_SOURCES "${SRP_IOS_SOURCES}/Core/SRPCore/sstp/${name}.c")
+endforeach()
+add_library(srpsstp SHARED sstp_jni.c ${SSTP_CORE_SOURCES} ${SSTP_LWIP_SOURCES}
+    "${SSTP_LWIP}/netif/ethernet.c" "${SSTP_LWIP}/custom/sys_arch.c")
+target_include_directories(srpsstp PRIVATE "${SRP_IOS_SOURCES}/Core/SRPCore" "${SRP_IOS_SOURCES}/Core/SRPCore/sstp"
+    "${SSTP_LWIP}/include" "${SSTP_LWIP}/custom")
+target_compile_definitions(srpsstp PRIVATE HAVE_PTY_H=1)
+set(SRP_OPENSSL_PREFIX "${CMAKE_BINARY_DIR}/waterwall-runtime/upstream/ww/srp_openssl_prefix.h")
+target_compile_options(srpsstp PRIVATE -include "${SRP_OPENSSL_PREFIX}" -Wno-unused-parameter -Wno-unused-function)
+target_link_libraries(srpsstp PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+add_dependencies(srpsstp srp_openssl_full_prefix)
+target_link_options(srpsstp PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/sstp_exports.map")
+set_target_properties(srpsstp PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sstp_exports.map")
