@@ -11,6 +11,11 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Changed
 - The WaterWall documentation names TestFlight build 34, which contains WaterWall 1.5.3, and tells users of build 33 to update, because its KCP chains cannot work with a 1.5.3 server.
 
+### Fixed
+- SSTP on iPhone: when the server accepted none of the profile's authentication methods, the app said the server closed the connection while assigning the tunnel address. It now says the server closed it during PPP negotiation and to check that the server accepts one of the profile's methods. The Android app has the same check from its first version.
+- SSTP on iPhone: after a connection that was up was lost, Retry Times reconnected one time fewer than set, while the message counted the full number. It now reconnects as many times as Retry Times says, as WaterWall does.
+- SSTP's message about an EAP server certificate the phone does not trust names the profile switch by its name, Allow Untrusted Certificate.
+
 ## 1.2.0 (34) - 2026-11-06
 
 ### Added

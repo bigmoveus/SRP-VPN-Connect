@@ -207,7 +207,7 @@ static NSString *SRPAuthenticationFailure(ppp_pcb *pcb) {
 static NSString *SRPEapCertificateRefusal(ppp_pcb *pcb) {
 #if EAP_SUPPORT
     if (pcb != NULL && pcb->settings.eap_cert_rejected[0] != '\0') {
-        return [NSString stringWithFormat:@"The EAP server's certificate is not trusted: %s. Install its root certificate on the device, or turn on Allow Insecure in the profile.", pcb->settings.eap_cert_rejected];
+        return [NSString stringWithFormat:@"The EAP server's certificate is not trusted: %s. Install its root certificate on the device, or turn on Allow Untrusted Certificate in the profile.", pcb->settings.eap_cert_rejected];
     }
 #endif
     return nil;
@@ -936,6 +936,12 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
         BOOL wasEstablished = _connectionEstablished;
         BOOL pppStarted = __ppp__ != NULL;
         u8_t pppPhase = pppStarted ? _pppLastPhase : PPP_PHASE_DEAD;
+        // A server whose authentication protocol the profile refused can still let LCP open; the link then passes the
+        // authentication phase without authenticating, and the close that follows is about the methods, not addresses
+        if (pppStarted && pppPhase >= PPP_PHASE_NETWORK && !__ppp__->lcp_hisoptions.neg_upap &&
+            !__ppp__->lcp_hisoptions.neg_chap && !__ppp__->lcp_hisoptions.neg_eap) {
+            pppPhase = PPP_PHASE_ESTABLISH;
+        }
         NSString *certificateRefusal = pppStarted ? SRPEapCertificateRefusal(__ppp__) : nil;
         BOOL tls13Refused = pppStarted && SRPEapTlsRefusedTls13(__ppp__);
         // The server's own refusal (CHAP or EAP Failure) is known before the link status callback,
@@ -1017,7 +1023,7 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
             }
             return;
         }
-        if (!SSReconnectAttemptAllowed(_failedAttempts + 1, _maxRetries)) {
+        if (!SSReconnectAttemptAllowed(_failedAttempts, _maxRetries)) {
             if (_mFailureCallback) {
                 _mFailureCallback([NSString stringWithFormat:
                     @"Could not reconnect after %ld attempts. Giving up.", (long)_maxRetries]);
