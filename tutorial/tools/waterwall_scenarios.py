@@ -212,6 +212,8 @@ def title_of(case):
     if case["id"].startswith("wireguard-native") or c.get("mode") == "wireguard":
         return "WireGuard mode" + suffix_of(case)
     parts = ["Raw IPv4"] if c.get("input") == "raw-ipv4" else [APPS.get(c.get("application"), c.get("application", "?"))]
+    if c.get("packet-encryption"):
+        parts.append("Packet Encryption")
     if c.get("mux"):
         parts.append("MUX")
     if c.get("obfuscator"):
@@ -313,6 +315,9 @@ def purpose_of(case):
     if group == "advanced" or (group == "download" and case["id"].startswith("adv-")):
         return "This case keeps a normal chain and changes one advanced node setting, to check that the setting works."
     text = PURPOSE.get("raw" if c.get("input") == "raw-ipv4" else c.get("outer", "none"), "")
+    if c.get("packet-encryption"):
+        text += (" Packet Encryption encrypts each packet's TCP or UDP payload with XChaCha20-Poly1305 and a password both"
+                 " ends share, adding 40 bytes per packet; the IP and TCP or UDP headers stay readable.")
     extras = []
     if c.get("mux"):
         extras.append("MUX carries many connections inside one")
@@ -398,8 +403,11 @@ def render_case(case, env, run):
                                       f"{routing.get('proxied_requests', 0)} through WaterWall"))
     path = result.get("path") or {}
     if path:
-        rows.append(("Through the tunnel", ("Yes" if path.get("status") == "passed" else "No") + ": the HTTPS test server saw these transfers come from " +
-                     (", ".join(path.get("addresses") or []) or "no address") + ", and it would have seen the phone's own network if they had left outside the tunnel"))
+        if path.get("addresses"):
+            rows.append(("Through the tunnel", ("Yes" if path.get("status") == "passed" else "No") + ": the HTTPS test server saw these transfers come from " +
+                         ", ".join(path["addresses"]) + ", and it would have seen the phone's own network if they had left outside the tunnel"))
+        else:
+            rows.append(("Through the tunnel", "Not checked: no transfer reached the HTTPS test server"))
     if device.get("https_checks"):
         rows.append(("HTTPS check through the tunnel", "; ".join(device["https_checks"])))
     udp = result.get("udp") or {}

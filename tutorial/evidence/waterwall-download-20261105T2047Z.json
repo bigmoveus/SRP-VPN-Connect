@@ -1,9 +1,9 @@
 {
  "run": {
-  "start_utc": "2026-11-04T12:32:11Z",
-  "end_utc": "2026-11-04T12:35:48Z",
-  "head": "02bf942c94336f60ab6e6106db546ef2d7796006",
-  "peer_sha256": "788a771dea521cb305b6fb1c0af1dbfabacbc810cc9a33272b1452e009f5cb0e"
+  "start_utc": "2026-11-05T20:47:30Z",
+  "end_utc": "2026-11-05T20:50:35Z",
+  "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e",
+  "peer_sha256": "8b726bf0594d1f58b3dd99c76cf791dac74e8098a023828b5eff15a82b29f79e"
  },
  "summary": {
   "identified": 1,
@@ -23,7 +23,7 @@
   "rounds_untested": 0
  },
  "environment": {
-  "profile": "download-tunnel"
+  "profile": "download"
  },
  "cases": [
   {
@@ -56,7 +56,7 @@
         {
          "persistentkeepalive": 0,
          "endpoint": "127.0.0.1:4097",
-         "publickey": "pQ78auN9Vy8K2HH8/j2EdYlOAMy6vvmHmigr2QGtmys=",
+         "publickey": "NXf1tmgX20Tmjbq2vZIcLw/rA4eH0Ik16AluDnHQInk=",
          "allowedips": "0.0.0.0/0"
         }
        ],
@@ -95,13 +95,13 @@
         "privatekey": "<PRIVATEKEY>",
         "peers": [
          {
-          "publickey": "8t1DBINURG9L5PP+iGlc5R+bEQE/zDBMNJZDplZC5m0=",
+          "publickey": "dWFZ7p5yUZ0W67sflvXGtIrMHdggAH5rtoqXQPbyVWA=",
           "allowedips": "10.99.0.2/32",
           "endpoint": "127.0.0.1:9",
           "persistentkeepalive": 0
          },
          {
-          "publickey": "xgLWpaBMLUahZXcFdAFN+d2HXsTThlTCVQlc0bPbUHw=",
+          "publickey": "zh5hXtn2LPmY86chHmoR41sin7WtWENkGZVRUiv1fkY=",
           "allowedips": "10.99.0.3/32",
           "endpoint": "127.0.0.1:9",
           "persistentkeepalive": 0
@@ -148,9 +148,6 @@
       "try-enabling-bbr": false,
       "tcp-tune": false
      },
-     "dns": {
-      "tries": 5
-     },
      "configs": [
       "/tmp/srp-device-matrix/peer.json"
      ]
@@ -161,28 +158,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 100.74,
-     "bytes": 1560281088,
-     "requests": 93,
+     "duration_s": 91.97,
+     "bytes": 1744830464,
+     "requests": 104,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 100.67,
+     "duration_s": 90.5,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 27.271,
-     "average_jitter_ms": 7.268,
-     "max_rtt_ms": 122.137,
+     "average_rtt_ms": 26.632,
+     "average_jitter_ms": 6.086,
+     "max_rtt_ms": 86.378,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      165.0,
-      141.0
+      126.0,
+      120.0
      ]
     },
     "routing": null,
@@ -198,15 +195,15 @@
     "lifecycle": null
    },
    "device": {
-    "started": "2026-11-04 15:33:48",
-    "finished": "2026-11-04 15:35:32",
-    "sustained": "Sustained stress: 100.74 seconds, 1560281088 bytes, 93 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-05 23:48:43",
+    "finished": "2026-11-05 23:50:19",
+    "sustained": "Sustained stress: 91.97 seconds, 1744830464 bytes, 104 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 100.74,
-     "downloaded": 1560281088,
+     "seconds": 91.97,
+     "downloaded": 1744830464,
      "uploaded": 0,
-     "download_requests": 93,
+     "download_requests": 104,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -214,25 +211,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 100.74,
-      "downloaded": 1560281088,
+      "seconds": 91.97,
+      "downloaded": 1744830464,
       "uploaded": 0,
-      "download_requests": 93,
+      "download_requests": 104,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 100.67 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.271, jitter_ms=7.268, max_rtt_ms=122.137, retries=2"
+     "Sustained UDP: 90.50 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=26.632, jitter_ms=6.086, max_rtt_ms=86.378, retries=0"
     ],
     "https_checks": [
-     "Ping: 165 ms",
-     "Ping: 141 ms"
+     "Ping: 126 ms",
+     "Ping: 120 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 100.67 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.271, jitter_ms=7.268, max_rtt_ms=122.137, retries=2"
+    "udp": "Sustained UDP: 90.50 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=26.632, jitter_ms=6.086, max_rtt_ms=86.378, retries=0"
    }
   }
  ]

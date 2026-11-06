@@ -20,13 +20,13 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The differences were read from the app's source code at commit <code>0fc837e3</code>. The results are from our tests on 3 and 4 November 2026, against the same production server as the <a href="scenarios/index.html">iPhone scenarios</a>.</p>
+  <p>The differences were read from the app's source code at commit <code>c87f4927</code>. The results are from our tests on 6 November 2026, against the same production server as the <a href="scenarios/index.html">iPhone scenarios</a>.</p>
 </div>
 
 <h2>What is the same</h2>
 <ul>
   <li><strong>The WaterWall program.</strong> Both apps build the same source folder, the same version as in <a href="requirements.html#versions-we-tested">Versions we tested</a>.</li>
-  <li><strong>The chains.</strong> The Android app builds the same client chain as the iPhone app for the same choices, so the server files in the guides fit both. To keep it that way, a test feeds both builders the same 37,977 configurations and compares every answer, including which ones are refused and with which message.</li>
+  <li><strong>The chains.</strong> The Android app builds the same client chain as the iPhone app for the same choices, so the server files in the guides fit both. To keep it that way, a test feeds both builders the same 41,295 configurations and compares every answer, including which ones are refused and with which message.</li>
   <li><strong>The screens and rules.</strong> The <a href="ui-guide.html">UI &amp; Profile Guide</a> describes both: every row, default, message and limit.</li>
   <li><strong>The connection logic.</strong> The start-up check, the health check, Auto Reconnect, Retry Times, Auto Switch, Switch to Wi-Fi and On Sleep follow the same rules with the same times, and the <a href="troubleshooting.html">messages</a> are the same.</li>
 </ul>
@@ -62,61 +62,62 @@
 <table>
   <thead><tr><th>Part</th><th>Version</th></tr></thead>
   <tbody>
-    <tr><td>App</td><td>SRP VPN Connect 1.2.0, debug APK. The chains ran on commit <code>1af4b70e</code> and the checks around the connection on commit <code>0fc837e3</code>; for the app the later commit adds only selective acknowledgements in WaterWall's TCP stack, and a larger default packet budget that the app does not use because it sets its own</td></tr>
+    <tr><td>App</td><td>SRP VPN Connect 1.2.0, debug APK of commit <code>c87f4927</code>, with WaterWall 1.5.3, the same app commit as the iPhone results</td></tr>
     <tr><td>Phone</td><td>Samsung Galaxy A55 (SM-A556E) with Android 17 (API level 37), on our office Wi-Fi and its own cellular connection</td></tr>
-    <tr><td>Emulator</td><td>Android Emulator 37.1, Pixel 8 profile, Android 16 (API level 36), arm64, on a Mac. Everything around the connection also ran here, and the screenshots come from here</td></tr>
-    <tr><td>Server</td><td>Our production <code>waterwall.service</code>, running the program that <a href="installation.html#server-program">Installation</a> builds, with the same files as in the <a href="scenarios/index.html#production">iPhone production scenarios</a>, its Let's Encrypt certificate and TLS Server Verification on</td></tr>
+    <tr><td>Emulator</td><td>Android Emulator 37.1, Pixel 8 profile, Android 16 (API level 36), arm64, on a Mac. Android's Always-on VPN setting, Direct mode and GeoIP direct routing were checked here, and the screenshots come from here</td></tr>
+    <tr><td>Server</td><td>Our production <code>waterwall.service</code>, running the official WaterWall 1.5.3 release as <a href="installation.html#server-program">Installation</a> installs it, with the same files as in the <a href="scenarios/index.html#production">iPhone production scenarios</a>, its Let's Encrypt certificate and TLS Server Verification on</td></tr>
     <tr><td>Traffic</td><td>A small test app on the phone, inside the VPN, made two downloads and two uploads at once to a speed test server on the server. Each upload's SHA-256 was compared with what the server received, and the server's log showed the requests arriving through the tunnel</td></tr>
   </tbody>
 </table>
 <!-- android:begin -->
-<p><strong>44 of 44</strong> chains and <strong>42 of 42</strong> checks passed.</p>
+<p><strong>45 of 45</strong> chains and <strong>42 of 42</strong> checks passed.</p>
 <h3 id="android-chains">Every chain of the production server</h3>
 <p>Each link opens the chain's scenario page, with its server file and the app settings, which are the same on both systems. The times show that traffic moved, and are not a benchmark.</p>
 <table><thead><tr><th>Chain</th><th>Result</th><th>To Connected</th><th>Two downloads and two uploads at once, 16 MiB each</th></tr></thead><tbody>
-<tr><td><a href="scenarios/prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>10.6 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>15.1 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>10.6 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>12.7 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>13.9 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>11.8 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-rawip-packet.html">Raw IPv4 + Packet Encryption (additional-rawip-packet.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>11.7 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vless-http1-tls.html">VLESS + HTTP/1.1 + TLS (additional-vless-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.5 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-http2-tls.html">VLESS + HTTP/2 + TLS (additional-vless-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-http2-tls.html">VLESS + HTTP/2 + TLS (additional-vless-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vless-kcp.html">VLESS + KCP (additional-vless-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>10.6 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-mux-quic-stream.html">VLESS + MUX + QUIC Stream (additional-vless-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-mux-quic-stream.html">VLESS + MUX + QUIC Stream (additional-vless-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vless-none.html">VLESS (no outer layer) (additional-vless-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-obf-http1-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS (additional-vless-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-obf-kcp.html">VLESS + Obfuscator + KCP (additional-vless-obf-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>10.5 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-obf-tls.html">VLESS + Obfuscator + TLS (additional-vless-obf-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vless-quic-stream.html">VLESS + QUIC Stream (additional-vless-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-http1-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS (additional-vless-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-kcp.html">VLESS + Obfuscator + KCP (additional-vless-obf-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>10.6 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-obf-tls.html">VLESS + Obfuscator + TLS (additional-vless-obf-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vless-quic-stream.html">VLESS + QUIC Stream (additional-vless-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vless-ws1-none.html">VLESS + WebSocket (additional-vless-ws1-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vless-ws1-tls.html">VLESS + WebSocket + TLS (additional-vless-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-aead.html">VMess + AEAD (additional-vmess-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-http2-tls.html">VMess + HTTP/2 + TLS (additional-vmess-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.7 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-kcp.html">VMess + KCP (additional-vmess-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-mux-quic-stream.html">VMess + MUX + QUIC Stream (additional-vmess-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.8 s</td><td>9.6 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-mux-tls.html">VMess + MUX + TLS (additional-vmess-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-aead.html">VMess + AEAD (additional-vmess-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-http2-tls.html">VMess + HTTP/2 + TLS (additional-vmess-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-kcp.html">VMess + KCP (additional-vmess-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>10.7 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-mux-quic-stream.html">VMess + MUX + QUIC Stream (additional-vmess-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-mux-tls.html">VMess + MUX + TLS (additional-vmess-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vmess-obf-http1-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS (additional-vmess-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-quic-stream.html">VMess + QUIC Stream (additional-vmess-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-quic-stream.html">VMess + QUIC Stream (additional-vmess-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
 <tr><td><a href="scenarios/prod-additional-vmess-reality.html">VMess + Reality (additional-vmess-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.5 s</td></tr>
-<tr><td><a href="scenarios/prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
 <tr><td><a href="scenarios/prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>11.6 s</td></tr>
-<tr><td><a href="scenarios/prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>13.9 s</td></tr>
-<tr><td><a href="scenarios/prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>11.7 s</td></tr>
-<tr><td><a href="scenarios/prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>12.8 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.5 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.6 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-mux-tls.html">Trojan + MUX + TLS (trojan-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.3 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-quic.html">Trojan + QUIC Datagram (trojan-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-reality.html">Trojan + Reality (trojan-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
-<tr><td><a href="scenarios/prod-trojan-tls.html">Trojan + TLS (trojan-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-aead.html">VLESS + AEAD (vless-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-mux-aead.html">VLESS + MUX + AEAD (vless-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.5 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-mux-reality.html">VLESS + MUX + Reality (vless-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.6 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-mux-tls.html">VLESS + MUX + TLS (vless-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.4 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-quic.html">VLESS + QUIC Datagram (vless-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.6 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-reality.html">VLESS + Reality (vless-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-reality-typed-sni.html">VLESS + Reality (vless-reality.json, SNI typed)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
-<tr><td><a href="scenarios/prod-vless-tls.html">VLESS + TLS (vless-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>16.2 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>13.7 s</td></tr>
+<tr><td><a href="scenarios/prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>16.2 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.2 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-mux-tls.html">Trojan + MUX + TLS (trojan-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-quic.html">Trojan + QUIC Datagram (trojan-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.5 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-reality.html">Trojan + Reality (trojan-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-trojan-tls.html">Trojan + TLS (trojan-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-aead.html">VLESS + AEAD (vless-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.1 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-aead.html">VLESS + MUX + AEAD (vless-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.5 s</td><td>8.2 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-reality.html">VLESS + MUX + Reality (vless-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-mux-tls.html">VLESS + MUX + TLS (vless-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-quic.html">VLESS + QUIC Datagram (vless-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-reality.html">VLESS + Reality (vless-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.4 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-reality-typed-sni.html">VLESS + Reality (vless-reality.json, SNI typed)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.7 s</td><td>8.3 s</td></tr>
+<tr><td><a href="scenarios/prod-vless-tls.html">VLESS + TLS (vless-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>8.6 s</td></tr>
 <tr><td><a href="scenarios/prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>7.6 s</td><td>9.5 s</td></tr>
 </tbody></table>
 <h3 id="android-checks">Everything around the connection</h3>
@@ -169,7 +170,7 @@
 
 <h2>Not tested on Android yet</h2>
 <ul>
-  <li><strong>Other phones.</strong> Only one phone model ran these tests, for an afternoon. How long it holds up over days, its battery use and how other manufacturers' power saving treats the VPN were not measured.</li>
+  <li><strong>Other phones.</strong> Only one phone model ran these tests, for a few hours. How long it holds up over days, its battery use and how other manufacturers' power saving treats the VPN were not measured.</li>
   <li><strong>Auto Switch on packet loss.</strong> Only the switch after a failed connection was tested; the loss rule needs a lossy network.</li>
   <li><strong>Android versions other than 16 and 17.</strong> The app is built for Android 8.0 and later.</li>
   <li><strong>Most combinations.</strong> The tests cover every chain our production server runs, not the wider set of the <a href="scenarios/index.html">iPhone scenarios</a>. Advanced node settings other than what those chains use were not run, and neither were SOCKS5 and HTTP CONNECT, which the production server does not offer.</li>

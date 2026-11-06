@@ -124,6 +124,7 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>Outer QUIC</td><td><code>QuicClient</code></td><td><code>QuicServer</code></td><td><code>protocol</code> <code>h3</code>, <code>carrier-mode</code> (<code>datagram</code> or <code>stream</code>)</td></tr>
     <tr><td>Carrier KCP</td><td><code>TcpOverUdpClient</code></td><td><code>TcpOverUdpServer</code></td><td>—</td></tr>
     <tr><td>Input Raw IPv4</td><td><code>PacketsToStream</code></td><td><code>StreamToPackets</code>, then <code>PacketsToConnection</code></td><td>—</td></tr>
+    <tr><td>Packet Encryption</td><td><code>EncryptionClient</code> in packet mode</td><td><code>EncryptionServer</code> in packet mode, between <code>StreamToPackets</code> and <code>PacketsToConnection</code></td><td><code>password</code>, <code>packet-mode</code> <code>true</code>, <code>algorithm</code> <code>xchacha20-poly1305</code>, <code>salt</code> <code>waterwall-packet</code>, <code>kdf-iterations</code> <code>12000</code></td></tr>
   </tbody>
 </table>
 <div class="callout warning">
@@ -140,13 +141,27 @@ systemctl status waterwall.service --no-pager</code></pre>
 </ul>
 <p>The server chain ends with a connector to the internet, normally <code>TcpUdpConnector</code> as above. For Raw IPv4, the server turns the stream back into packets with <code>StreamToPackets</code> and <code>PacketsToConnection</code> before the connector.</p>
 
+<h2 id="packet-encryption">Packet Encryption on a Raw IPv4 chain</h2>
+<p>With Input Raw IPv4, the app's <strong>Packet Encryption</strong> switch encrypts the TCP or UDP payload of each packet. This is the server side of our test chain, with no other layer; the address, certificate and password are examples. It needs the same password in the app's <strong>Packet Password</strong> field.</p>
+<pre data-label="Server chain"><code class="language-json">{
+  "name": "rawip-packet",
+  "nodes": [
+    { "name": "public-in", "type": "TcpListener", "settings": { "address": "0.0.0.0", "port": 18480, "nodelay": true }, "next": "stream-in" },
+    { "name": "stream-in", "type": "StreamToPackets", "settings": { "packet-validation-level": "hard" }, "next": "packet-crypto" },
+    { "name": "packet-crypto", "type": "EncryptionServer", "settings": { "packet-mode": true, "algorithm": "xchacha20-poly1305", "password": "a-long-random-password", "salt": "waterwall-packet", "kdf-iterations": 12000 }, "next": "packet-out" },
+    { "name": "packet-out", "type": "PacketsToConnection", "settings": { "mtu": 1420, "max-pending-bytes": 1048576 }, "next": "outbound" },
+    { "name": "outbound", "type": "TcpUdpConnector", "settings": { "address": "dest_context-&gt;address", "port": "dest_context-&gt;port", "domain-strategy": "prefer-ipv4", "nodelay": true } }
+  ]
+}</code></pre>
+<p>The IP and TCP or UDP headers stay visible inside the chain and only TCP and UDP pass, so ping does not work through it. The app does not offer it together with Reality or AEAD, which encrypt the whole stream and use the same password field in the app.</p>
+
 <h2 id="client-chain">The client chain the app builds</h2>
 <p>You never write the client file; the app builds it each time you connect. Knowing its shape helps when you write the server side.</p>
 <table>
   <thead><tr><th>Mode and input</th><th>Client chain, in order</th></tr></thead>
   <tbody>
     <tr><td>Chain, Connections</td><td>packet device → <code>PacketsToConnection</code> → <code>Router</code> → application → MUX → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
-    <tr><td>Chain, Raw IPv4</td><td>packet device → <code>PacketsToStream</code> → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
+    <tr><td>Chain, Raw IPv4</td><td>packet device → Packet Encryption → <code>PacketsToStream</code> → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
     <tr><td>Direct</td><td>packet device → <code>PacketsToConnection</code> → <code>TcpUdpConnector</code> to each destination</td></tr>
     <tr><td>WireGuard</td><td>The app's WireGuard client; see <a href="ui-guide.html#wireguard-mode">WireGuard mode</a>.</td></tr>
   </tbody>
@@ -188,7 +203,7 @@ systemctl status waterwall.service --no-pager</code></pre>
 <div class="callout warning" id="packet-budget">
   <span class="callout-title">The two pending-bytes keys also limit TCP connections</span>
   <p>Each TCP connection reserves <code>max-pending-bytes</code> of <code>max-total-pending-bytes</code> for as long as it lives, so the total divided by the per-connection value is how many can be open at once: 256 with the app's defaults. A new connection over that is refused, and iOS reports <em>A TLS error caused the secure connection to fail</em>. From the code only, not run: a <code>max-pending-bytes</code> above the total refuses every TCP connection, and the app's editor does not stop that. See <a href="troubleshooting.html#in-the-logs">Troubleshooting</a>.</p>
-  <p>A Raw IPv4 chain on the server has the same limit, shared by everyone on that chain, and the connections of a client that left without closing them still count until they time out. A server file without <code>max-total-pending-bytes</code> gets a total of 1073741824, which is also the most a file can set, so the <code>max-pending-bytes</code> of 1048576 in our files allows 1024 connections on each chain. Keep it that way unless you have a reason to lower it: browsing five sites in Chrome through one chain kept up to 304 connections open at once. A reservation is not memory: on our 2 GB server, 1024 connections whose destinations kept sending to a client that acknowledged nothing used about 270 MiB.</p>
+  <p>This limit is in the app only. The official server program has no such total: on a Raw IPv4 chain <code>max-pending-bytes</code> limits each TCP connection separately.</p>
 </div>
 <p>With Raw IPv4 input the Packet keys are instead <code>packet-validation-level</code> (<code>none</code>, <code>loose</code> or <code>hard</code>; the app uses <code>hard</code>), <code>sensitive-mode</code>, <code>interval-ms</code> and <code>tolerance-ms</code>. In Direct mode, Packet is the only layer.</p>
 
@@ -277,7 +292,7 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td><code>kcp-initial-cwnd</code></td><td>16</td><td>1 or more, and no more than the send window (128 unless you set <code>kcp-send-window</code>)</td></tr>
     <tr><td><code>kcp-send-buffer-limit</code></td><td>512</td><td>0 or more</td></tr>
     <tr><td><code>fec</code>, <code>fec-data-shards</code>, <code>fec-parity-shards</code></td><td>off</td><td>shards 1 to 255 each, 255 at most together</td></tr>
-    <tr><td><code>mtu</code></td><td>WaterWall's default</td><td>78 to 65535 (86 with FEC)</td></tr>
+    <tr><td><code>send-mtu</code></td><td>1420, the app's <code>misc.mtu</code></td><td>118 to 65535 (126 with FEC)</td></tr>
     <tr><td><code>ping-interval-ms</code>, <code>no-recv-timeout-ms</code></td><td>WaterWall's defaults (10000 and 30000)</td><td>the timeout must be longer than the ping interval</td></tr>
     <tr><td><code>kcp-nodelay</code>, <code>kcp-interval-ms</code> (10 to 5000), <code>kcp-resend</code>, <code>kcp-no-congestion-control</code>, <code>kcp-rx-minrto-ms</code></td><td>WaterWall's defaults</td><td>—</td></tr>
   </tbody>

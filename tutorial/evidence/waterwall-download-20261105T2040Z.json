@@ -1,0 +1,680 @@
+{
+ "run": {
+  "start_utc": "2026-11-05T20:39:59Z",
+  "end_utc": "2026-11-05T20:47:26Z",
+  "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e",
+  "peer_sha256": "8b726bf0594d1f58b3dd99c76cf791dac74e8098a023828b5eff15a82b29f79e"
+ },
+ "summary": {
+  "identified": 3,
+  "supported": 3,
+  "validator_excluded": 0,
+  "candidate_total": 3,
+  "range_start": 0,
+  "range_count": 3,
+  "executed": 3,
+  "passed": 3,
+  "failed": 0,
+  "supported_untested": 0,
+  "expected_rounds": 3,
+  "rounds_executed": 3,
+  "rounds_passed": 3,
+  "rounds_failed": 0,
+  "rounds_untested": 0
+ },
+ "environment": {
+  "profile": "download"
+ },
+ "cases": [
+  {
+   "id": "direct-diagnostics-download",
+   "kind": "download",
+   "why": "advanced/special",
+   "sni": null,
+   "server_file": null,
+   "configuration": {
+    "version": 3,
+    "mode": "direct",
+    "node-options": {}
+   },
+   "client": {
+    "name": "Direct (diagnostics)",
+    "nodes": [
+     {
+      "settings": {},
+      "name": "ne",
+      "type": "NEPacketDevice",
+      "next": "ptc"
+     },
+     {
+      "settings": {
+       "mtu": 1420,
+       "max-pending-bytes": 65536,
+       "max-total-pending-bytes": 16777216
+      },
+      "name": "ptc",
+      "type": "PacketsToConnection",
+      "next": "connector"
+     },
+     {
+      "name": "connector",
+      "type": "TcpUdpConnector",
+      "settings": {
+       "address": "dest_context->address",
+       "nodelay": true,
+       "port": "dest_context->port"
+      }
+     }
+    ]
+   },
+   "server": {
+    "peer": null,
+    "core": null,
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 101.29,
+     "bytes": 3170893824,
+     "requests": 189,
+     "timeouts": 0,
+     "error": ""
+    },
+    "udp": {
+     "status": "passed",
+     "duration_s": 100.96,
+     "sent": 900,
+     "received": 900,
+     "timeouts": 0,
+     "average_rtt_ms": 15.876,
+     "average_jitter_ms": 7.118,
+     "max_rtt_ms": 79.479,
+     "error": ""
+    },
+    "ping": {
+     "status": "passed",
+     "samples_ms": [
+      148.0,
+      115.0
+     ]
+    },
+    "routing": null,
+    "path": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-05 23:41:14",
+    "finished": "2026-11-05 23:42:58",
+    "sustained": "Sustained stress: 101.29 seconds, 3170893824 bytes, 189 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 101.29,
+     "downloaded": 3170893824,
+     "uploaded": 0,
+     "download_requests": 189,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 101.29,
+      "downloaded": 3170893824,
+      "uploaded": 0,
+      "download_requests": 189,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 100.96 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=15.876, jitter_ms=7.118, max_rtt_ms=79.479, retries=2"
+    ],
+    "https_checks": [
+     "Ping: 148 ms",
+     "Ping: 115 ms"
+    ],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 100.96 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=15.876, jitter_ms=7.118, max_rtt_ms=79.479, retries=2"
+   }
+  },
+  {
+   "id": "geoip-direct-country-download",
+   "kind": "download",
+   "why": "advanced/special",
+   "sni": null,
+   "server_file": null,
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "geoip": {
+     "countries": [
+      "IR",
+      "TR"
+     ]
+    }
+   },
+   "client": {
+    "name": "VLESS + TLS",
+    "nodes": [
+     {
+      "settings": {},
+      "name": "ne",
+      "type": "NEPacketDevice",
+      "next": "ptc"
+     },
+     {
+      "settings": {
+       "max-total-pending-bytes": 16777216,
+       "mtu": 1420,
+       "fake-dns": {
+        "address": "198.18.0.2",
+        "netmask": "255.192.0.0",
+        "enabled": true,
+        "port": 53,
+        "ttl": 60,
+        "cache-size": 10000,
+        "network": "100.64.0.0"
+       },
+       "max-pending-bytes": 65536
+      },
+      "name": "ptc",
+      "type": "PacketsToConnection",
+      "next": "router"
+     },
+     {
+      "settings": {
+       "port": "dest_context->port",
+       "domain-strategy": "do-not-resolve-domains",
+       "address": "dest_context->address",
+       "protocol": "dest_context->protocol",
+       "uuid": "<UUID>"
+      },
+      "name": "vless",
+      "type": "VlessClient",
+      "next": "tls"
+     },
+     {
+      "settings": {
+       "resolve-domains": true,
+       "geoip-db-path": "WaterWall/GeoIP/GeoLite2-Country.mmdb",
+       "rules": [
+        {
+         "target": "direct-local",
+         "destination-ip": [
+          "geoip:ir"
+         ]
+        },
+        {
+         "target": "direct-local",
+         "destination-ip": [
+          "geoip:tr"
+         ]
+        }
+       ]
+      },
+      "name": "router",
+      "type": "Router",
+      "next": "vless"
+     },
+     {
+      "name": "direct-local",
+      "type": "TcpUdpConnector",
+      "settings": {
+       "port": "dest_context->port",
+       "domain-strategy": "prefer-ipv4",
+       "nodelay": true,
+       "address": "dest_context->address"
+      }
+     },
+     {
+      "settings": {
+       "sni": "localhost",
+       "verify": false,
+       "alpns": [
+        "http/1.1"
+       ]
+      },
+      "name": "tls",
+      "type": "TlsClient",
+      "next": "connector"
+     },
+     {
+      "name": "connector",
+      "type": "TcpUdpConnector",
+      "settings": {
+       "address": "127.0.0.1",
+       "nodelay": true,
+       "port": 4097
+      }
+     }
+    ]
+   },
+   "server": {
+    "peer": {
+     "name": "geoip-direct-country-peer",
+     "nodes": [
+      {
+       "name": "listener",
+       "type": "TcpListener",
+       "settings": {
+        "address": "<SERVER_IP>",
+        "port": 4097
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/tmp/srp-device-matrix/cert.pem",
+        "key-file": "/tmp/srp-device-matrix/key.pem",
+        "verbose": true,
+        "select-alpns": [
+         "http/1.1"
+        ]
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "verbose": true
+       },
+       "next": "out"
+      },
+      {
+       "name": "out",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": {
+     "misc": {
+      "workers": 1,
+      "ram-profile": "minimal",
+      "splice": false,
+      "try-enabling-bbr": false,
+      "tcp-tune": false
+     },
+     "configs": [
+      "/tmp/srp-device-matrix/peer.json"
+     ]
+    },
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 95.8,
+     "bytes": 3187671040,
+     "requests": 190,
+     "timeouts": 0,
+     "error": ""
+    },
+    "udp": {
+     "status": "passed",
+     "duration_s": 95.61,
+     "sent": 900,
+     "received": 900,
+     "timeouts": 0,
+     "average_rtt_ms": 19.505,
+     "average_jitter_ms": 7.93,
+     "max_rtt_ms": 82.825,
+     "error": ""
+    },
+    "ping": {
+     "status": "passed",
+     "samples_ms": [
+      183.0,
+      150.0
+     ]
+    },
+    "routing": {
+     "status": "passed",
+     "expected": "direct",
+     "direct_requests": 190,
+     "proxied_requests": 0,
+     "other_requests": 0
+    },
+    "path": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-05 23:43:21",
+    "finished": "2026-11-05 23:45:00",
+    "sustained": "Sustained stress: 95.80 seconds, 3187671040 bytes, 190 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 95.8,
+     "downloaded": 3187671040,
+     "uploaded": 0,
+     "download_requests": 190,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 95.8,
+      "downloaded": 3187671040,
+      "uploaded": 0,
+      "download_requests": 190,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 95.61 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=19.505, jitter_ms=7.930, max_rtt_ms=82.825, retries=1"
+    ],
+    "https_checks": [
+     "Ping: 183 ms",
+     "Ping: 150 ms"
+    ],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 95.61 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=19.505, jitter_ms=7.930, max_rtt_ms=82.825, retries=1"
+   }
+  },
+  {
+   "id": "geoip-multi-countries-download",
+   "kind": "download",
+   "why": "advanced/special",
+   "sni": null,
+   "server_file": null,
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "node-options": {},
+    "input": "connections",
+    "application": "vless",
+    "mux": false,
+    "outer": "tls",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "geoip": {
+     "countries": [
+      "IR",
+      "US",
+      "TR"
+     ]
+    }
+   },
+   "client": {
+    "name": "VLESS + TLS",
+    "nodes": [
+     {
+      "settings": {},
+      "name": "ne",
+      "type": "NEPacketDevice",
+      "next": "ptc"
+     },
+     {
+      "settings": {
+       "max-total-pending-bytes": 16777216,
+       "mtu": 1420,
+       "fake-dns": {
+        "address": "198.18.0.2",
+        "netmask": "255.192.0.0",
+        "enabled": true,
+        "port": 53,
+        "ttl": 60,
+        "cache-size": 10000,
+        "network": "100.64.0.0"
+       },
+       "max-pending-bytes": 65536
+      },
+      "name": "ptc",
+      "type": "PacketsToConnection",
+      "next": "router"
+     },
+     {
+      "settings": {
+       "port": "dest_context->port",
+       "domain-strategy": "do-not-resolve-domains",
+       "address": "dest_context->address",
+       "protocol": "dest_context->protocol",
+       "uuid": "<UUID>"
+      },
+      "name": "vless",
+      "type": "VlessClient",
+      "next": "tls"
+     },
+     {
+      "settings": {
+       "resolve-domains": true,
+       "geoip-db-path": "WaterWall/GeoIP/GeoLite2-Country.mmdb",
+       "rules": [
+        {
+         "target": "direct-local",
+         "destination-ip": [
+          "geoip:ir"
+         ]
+        },
+        {
+         "target": "direct-local",
+         "destination-ip": [
+          "geoip:tr"
+         ]
+        },
+        {
+         "target": "direct-local",
+         "destination-ip": [
+          "geoip:us"
+         ]
+        }
+       ]
+      },
+      "name": "router",
+      "type": "Router",
+      "next": "vless"
+     },
+     {
+      "name": "direct-local",
+      "type": "TcpUdpConnector",
+      "settings": {
+       "port": "dest_context->port",
+       "domain-strategy": "prefer-ipv4",
+       "nodelay": true,
+       "address": "dest_context->address"
+      }
+     },
+     {
+      "settings": {
+       "sni": "localhost",
+       "verify": false,
+       "alpns": [
+        "http/1.1"
+       ]
+      },
+      "name": "tls",
+      "type": "TlsClient",
+      "next": "connector"
+     },
+     {
+      "name": "connector",
+      "type": "TcpUdpConnector",
+      "settings": {
+       "address": "127.0.0.1",
+       "nodelay": true,
+       "port": 4097
+      }
+     }
+    ]
+   },
+   "server": {
+    "peer": {
+     "name": "geoip-multi-countries-peer",
+     "nodes": [
+      {
+       "name": "listener",
+       "type": "TcpListener",
+       "settings": {
+        "address": "<SERVER_IP>",
+        "port": 4097
+       },
+       "next": "tls"
+      },
+      {
+       "name": "tls",
+       "type": "TlsServer",
+       "settings": {
+        "cert-file": "/tmp/srp-device-matrix/cert.pem",
+        "key-file": "/tmp/srp-device-matrix/key.pem",
+        "verbose": true,
+        "select-alpns": [
+         "http/1.1"
+        ]
+       },
+       "next": "vless"
+      },
+      {
+       "name": "vless",
+       "type": "VlessServer",
+       "settings": {
+        "uuid": "<UUID>",
+        "verbose": true
+       },
+       "next": "out"
+      },
+      {
+       "name": "out",
+       "type": "TcpUdpConnector",
+       "settings": {
+        "address": "dest_context->address",
+        "port": "dest_context->port",
+        "domain-strategy": "prefer-ipv4",
+        "nodelay": true
+       }
+      }
+     ]
+    },
+    "core": {
+     "misc": {
+      "workers": 1,
+      "ram-profile": "minimal",
+      "splice": false,
+      "try-enabling-bbr": false,
+      "tcp-tune": false
+     },
+     "configs": [
+      "/tmp/srp-device-matrix/peer.json"
+     ]
+    },
+    "cover": null
+   },
+   "result": {
+    "status": "passed",
+    "tcp": {
+     "status": "passed",
+     "duration_s": 95.75,
+     "bytes": 3187671040,
+     "requests": 190,
+     "timeouts": 0,
+     "error": ""
+    },
+    "udp": {
+     "status": "passed",
+     "duration_s": 95.6,
+     "sent": 900,
+     "received": 900,
+     "timeouts": 0,
+     "average_rtt_ms": 19.236,
+     "average_jitter_ms": 7.607,
+     "max_rtt_ms": 86.977,
+     "error": ""
+    },
+    "ping": {
+     "status": "passed",
+     "samples_ms": [
+      205.0,
+      128.0
+     ]
+    },
+    "routing": {
+     "status": "passed",
+     "expected": "direct",
+     "direct_requests": 190,
+     "proxied_requests": 0,
+     "other_requests": 0
+    },
+    "path": null,
+    "teardown": {
+     "passed": true
+    },
+    "lifecycle": null
+   },
+   "device": {
+    "started": "2026-11-05 23:45:28",
+    "finished": "2026-11-05 23:47:07",
+    "sustained": "Sustained stress: 95.75 seconds, 3187671040 bytes, 190 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "measured": {
+     "mode": "download",
+     "seconds": 95.75,
+     "downloaded": 3187671040,
+     "uploaded": 0,
+     "download_requests": 190,
+     "errors": [],
+     "finished": "4/4",
+     "timeouts": 0
+    },
+    "phases": [
+     {
+      "mode": "download",
+      "seconds": 95.75,
+      "downloaded": 3187671040,
+      "uploaded": 0,
+      "download_requests": 190,
+      "errors": [],
+      "finished": "4/4",
+      "timeouts": 0
+     }
+    ],
+    "udp_phases": [
+     "Sustained UDP: 95.60 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=19.236, jitter_ms=7.607, max_rtt_ms=86.977, retries=1"
+    ],
+    "https_checks": [
+     "Ping: 205 ms",
+     "Ping: 128 ms"
+    ],
+    "failures": [],
+    "last_error": null,
+    "udp": "Sustained UDP: 95.60 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=19.236, jitter_ms=7.607, max_rtt_ms=86.977, retries=1"
+   }
+  }
+ ]
+}

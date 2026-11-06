@@ -11,20 +11,19 @@
 <body>
 <main>
 <h1>Verified Test Scenarios</h1>
-<p class="lead">Every WaterWall combination we tested on 3 November 2026, on the current app build against our own WaterWall program: version 1.5.2 plus the changes in the SRP VPN Connect repository. Each page shows the server file, the app settings, how the test ran and what happened.</p>
+<p class="lead">Every WaterWall combination we tested on 5 and 6 November 2026, with the app against the official WaterWall 1.5.3 release on our server. Each page shows the server file, the app settings, how the test ran and what happened.</p>
 
 <div class="callout evidence">
   <span class="callout-title">How these tests ran</span>
-  <p>All tests used our iPhone 12 with iOS 27.2 and that WaterWall program on our Ubuntu test server, in four kinds of test. We did not test an official WaterWall release, so do not expect one to give the same results; see <a href="../installation.html#server-program">Installation</a>.</p>
+  <p>All tests used our iPhone 12 with iOS 27.2 and the official WaterWall 1.5.3 program, unchanged, on our Ubuntu test server, in four kinds of test.</p>
   <ul>
     <li><strong>Production server.</strong> The app connected to every configuration our permanent <code>waterwall.service</code> loads, with its Let's Encrypt certificate and TLS Server Verification on: the setup the guides describe.</li>
     <li><strong>Combinations.</strong> For each case, a test harness started a separate copy of the same program on the server with the matching server chain on port 4097, and the app connected to it. These copies used a self-signed certificate, so TLS Server Verification was off.</li>
     <li><strong>UDP and GeoIP routing.</strong> Chains that carry UDP were checked with a UDP echo server, and the GeoIP cases were checked for which way their downloads went.</li>
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
-  <p>The tests ran on app commit <code>a03a8bc2</code> with the server at WaterWall's default of 2 DNS tries, except three cases that ran on commit <code>be53fe6b</code>, which changes only test tools, with the server at 5 tries: <a href="adv-packet-budget.html">the packet budget case</a>, <a href="adv-mux-counter.html">the MUX counter case</a> and <a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS</a>. Each page's test setup says which setting it ran with.</p>
-  <p>The Raw IPv4 and native WireGuard cases ran later, on app commit <code>02bf942c</code> with the server at commit <code>1af4b70e</code> and 5 tries. On these two inputs iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server, and the test checked that it arrived through the tunnel.</p>
-  <p>Every scenario page describes its procedure in full.</p>
+  <p>The tests ran on app commit <code>c87f4927</code>, a development build that contains WaterWall 1.5.3; TestFlight build 33 is older and has WaterWall 1.5.2. On Raw IPv4 and native WireGuard chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
+  <p>Every scenario page describes its procedure in full. A page whose case ran more than once says how many runs passed.</p>
   <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>
 
@@ -32,7 +31,9 @@
 <table>
   <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>Every check passed.</td></tr>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>Every check passed, in every run.</td></tr>
+    <tr><td><span class="status partial">TESTED — PARTIALLY WORKING</span></td><td>Traffic moved, but not every check passed in every run; the page says what failed.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The first run moved no traffic; the page says what happened and whether a later run passed.</td></tr>
   </tbody>
 </table>
 <p>Speeds are averages over the whole test on our office line. They show that traffic moved, and are not a benchmark.</p>
@@ -43,190 +44,191 @@
   <li><strong>Auto Switch on packet loss.</strong> Only the switch after a failed connection was tested; the loss rule needs a lossy network.</li>
   <li><strong>Most combinations.</strong> The app accepts far more combinations than were run. The selection covers every outer layer, application and carrier, every chain our production server runs, BGP4 framing, and a set of advanced settings.</li>
 </ul>
-<p><strong>163</strong> scenarios: 163 verified.</p><h2 id="production">Production server</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>77 Mbit/s / 72 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 39 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>80 Mbit/s / 53 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>34 Mbit/s / 11 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>31 Mbit/s / 64 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>120 Mbit/s / 41 Mbit/s</td></tr>
-<tr><td><a href="prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>99 Mbit/s / 49 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>121 Mbit/s / 144 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>103 Mbit/s / 92 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>107 Mbit/s / 39 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS (trojan-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>67 Mbit/s / 63 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-quic.html">Trojan + QUIC Datagram (trojan-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>17 Mbit/s / 43 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-reality.html">Trojan + Reality (trojan-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>107 Mbit/s / 165 Mbit/s</td></tr>
-<tr><td><a href="prod-trojan-tls.html">Trojan + TLS (trojan-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>108 Mbit/s / 180 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-none.html">VLESS (no outer layer) (additional-vless-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>142 Mbit/s / 106 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-aead.html">VLESS + AEAD (vless-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>106 Mbit/s / 172 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-http1-tls.html">VLESS + HTTP/1.1 + TLS (additional-vless-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 80 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-http2-tls.html">VLESS + HTTP/2 + TLS (additional-vless-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>195 Mbit/s / 42 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-kcp.html">VLESS + KCP (additional-vless-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>35 Mbit/s / 35 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-mux-aead.html">VLESS + MUX + AEAD (vless-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>108 Mbit/s / 96 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-mux-quic-stream.html">VLESS + MUX + QUIC Stream (additional-vless-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>65 Mbit/s / 96 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-mux-reality.html">VLESS + MUX + Reality (vless-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>103 Mbit/s / 103 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-mux-tls.html">VLESS + MUX + TLS (vless-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>106 Mbit/s / 38 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-obf-http1-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS (additional-vless-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>125 Mbit/s / 107 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-obf-kcp.html">VLESS + Obfuscator + KCP (additional-vless-obf-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>46 Mbit/s / 50 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-obf-tls.html">VLESS + Obfuscator + TLS (additional-vless-obf-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>130 Mbit/s / 103 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-quic.html">VLESS + QUIC Datagram (vless-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>63 Mbit/s / 105 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-quic-stream.html">VLESS + QUIC Stream (additional-vless-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>88 Mbit/s / 101 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-reality.html">VLESS + Reality (vless-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>100 Mbit/s / 174 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-reality-typed-sni.html">VLESS + Reality (vless-reality.json, SNI typed)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>103 Mbit/s / 172 Mbit/s</td></tr>
-<tr><td><a href="prod-vless-tls.html">VLESS + TLS (vless-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>113 Mbit/s / 183 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-ws1-none.html">VLESS + WebSocket (additional-vless-ws1-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>141 Mbit/s / 104 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vless-ws1-tls.html">VLESS + WebSocket + TLS (additional-vless-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>58 Mbit/s / 69 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-aead.html">VMess + AEAD (additional-vmess-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>62 Mbit/s / 60 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-http2-tls.html">VMess + HTTP/2 + TLS (additional-vmess-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>171 Mbit/s / 46 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-kcp.html">VMess + KCP (additional-vmess-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>54 Mbit/s / 54 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-mux-quic-stream.html">VMess + MUX + QUIC Stream (additional-vmess-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>63 Mbit/s / 86 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-mux-tls.html">VMess + MUX + TLS (additional-vmess-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>102 Mbit/s / 40 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-obf-http1-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS (additional-vmess-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>117 Mbit/s / 104 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-quic-stream.html">VMess + QUIC Stream (additional-vmess-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>94 Mbit/s / 68 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-reality.html">VMess + Reality (additional-vmess-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 75 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>117 Mbit/s / 117 Mbit/s</td></tr>
-<tr><td><a href="prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 95 Mbit/s</td></tr>
-<tr><td><a href="prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>9 Mbit/s / 42 Mbit/s</td></tr>
+<p><strong>164</strong> scenarios: 161 verified, 2 partially working, 1 failed.</p><h2 id="production">Production server</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
+<tr><td><a href="prod-additional-rawip-none.html">Raw IPv4 (no outer layer) (additional-rawip-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>148 Mbit/s / 34 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-aead.html">Raw IPv4 + AEAD (rawip-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>166 Mbit/s / 34 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-http1-tls.html">Raw IPv4 + HTTP/1.1 + TLS (additional-rawip-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>152 Mbit/s / 34 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-kcp.html">Raw IPv4 + KCP (additional-rawip-kcp.json)</a></td><td><span class="status partial">TESTED — PARTIALLY WORKING</span></td><td>26 Mbit/s / 8 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-rawip-packet.html">Raw IPv4 + Packet Encryption (additional-rawip-packet.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>158 Mbit/s / 29 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-quic.html">Raw IPv4 + QUIC Datagram (rawip-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>16 Mbit/s / 23 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-reality.html">Raw IPv4 + Reality (rawip-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>143 Mbit/s / 32 Mbit/s</td></tr>
+<tr><td><a href="prod-rawip-tls.html">Raw IPv4 + TLS (rawip-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>149 Mbit/s / 32 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-aead.html">Trojan + AEAD (trojan-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>218 Mbit/s / 75 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-mux-aead.html">Trojan + MUX + AEAD (trojan-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>119 Mbit/s / 44 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-mux-reality.html">Trojan + MUX + Reality (trojan-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>104 Mbit/s / 36 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS (trojan-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>134 Mbit/s / 59 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-quic.html">Trojan + QUIC Datagram (trojan-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>75 Mbit/s / 112 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-reality.html">Trojan + Reality (trojan-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>220 Mbit/s / 71 Mbit/s</td></tr>
+<tr><td><a href="prod-trojan-tls.html">Trojan + TLS (trojan-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>234 Mbit/s / 66 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-none.html">VLESS (no outer layer) (additional-vless-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>195 Mbit/s / 85 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-aead.html">VLESS + AEAD (vless-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>218 Mbit/s / 78 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-http1-tls.html">VLESS + HTTP/1.1 + TLS (additional-vless-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>219 Mbit/s / 74 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-http2-tls.html">VLESS + HTTP/2 + TLS (additional-vless-http2-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>245 Mbit/s / 46 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-kcp.html">VLESS + KCP (additional-vless-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>59 Mbit/s / 57 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-mux-aead.html">VLESS + MUX + AEAD (vless-mux-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>128 Mbit/s / 56 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-mux-quic-stream.html">VLESS + MUX + QUIC Stream (additional-vless-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>66 Mbit/s / 79 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-mux-reality.html">VLESS + MUX + Reality (vless-mux-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>114 Mbit/s / 42 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-mux-tls.html">VLESS + MUX + TLS (vless-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>128 Mbit/s / 47 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-obf-http1-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS (additional-vless-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>203 Mbit/s / 80 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-obf-kcp.html">VLESS + Obfuscator + KCP (additional-vless-obf-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>55 Mbit/s / 55 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-obf-tls.html">VLESS + Obfuscator + TLS (additional-vless-obf-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>184 Mbit/s / 80 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-quic.html">VLESS + QUIC Datagram (vless-quic.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>69 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-quic-stream.html">VLESS + QUIC Stream (additional-vless-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>120 Mbit/s / 92 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-reality.html">VLESS + Reality (vless-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>169 Mbit/s / 132 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-reality-typed-sni.html">VLESS + Reality (vless-reality.json, SNI typed)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>211 Mbit/s / 84 Mbit/s</td></tr>
+<tr><td><a href="prod-vless-tls.html">VLESS + TLS (vless-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>236 Mbit/s / 66 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-ws1-none.html">VLESS + WebSocket (additional-vless-ws1-none.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>207 Mbit/s / 83 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vless-ws1-tls.html">VLESS + WebSocket + TLS (additional-vless-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>213 Mbit/s / 74 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-aead.html">VMess + AEAD (additional-vmess-aead.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>93 Mbit/s / 106 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-http2-tls.html">VMess + HTTP/2 + TLS (additional-vmess-http2-tls.json)</a></td><td><span class="status partial">TESTED — PARTIALLY WORKING</span></td><td>156 Mbit/s / 69 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-kcp.html">VMess + KCP (additional-vmess-kcp.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>55 Mbit/s / 55 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-mux-quic-stream.html">VMess + MUX + QUIC Stream (additional-vmess-mux-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>74 Mbit/s / 52 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-mux-tls.html">VMess + MUX + TLS (additional-vmess-mux-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>101 Mbit/s / 34 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-obf-http1-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS (additional-vmess-obf-http1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>135 Mbit/s / 100 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-quic-stream.html">VMess + QUIC Stream (additional-vmess-quic-stream.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>74 Mbit/s / 101 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-reality.html">VMess + Reality (additional-vmess-reality.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>87 Mbit/s / 108 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-tls.html">VMess + TLS (additional-vmess-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>121 Mbit/s / 121 Mbit/s</td></tr>
+<tr><td><a href="prod-additional-vmess-ws1-tls.html">VMess + WebSocket + TLS (additional-vmess-ws1-tls.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 109 Mbit/s</td></tr>
+<tr><td><a href="prod-wireguard.html">WireGuard mode (wireguard.json)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>79 Mbit/s / 53 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="tls">TLS</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-04705-http-proxy-tls.html">HTTP CONNECT + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>132 Mbit/s / 119 Mbit/s</td></tr>
-<tr><td><a href="ww-02977-trojan-tls.html">Trojan + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 118 Mbit/s</td></tr>
-<tr><td><a href="ww-02401-trojan-tls.html">Trojan + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>129 Mbit/s / 128 Mbit/s</td></tr>
-<tr><td><a href="ww-00099-vless-tls.html">VLESS + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>131 Mbit/s / 127 Mbit/s</td></tr>
-<tr><td><a href="ww-00131-vless-tls.html">VLESS + HTTP/1.1 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>135 Mbit/s / 124 Mbit/s</td></tr>
-<tr><td><a href="ww-00129-vless-tls.html">VLESS + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>132 Mbit/s / 112 Mbit/s</td></tr>
-<tr><td><a href="ww-00130-vless-tls.html">VLESS + HTTP/2 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>218 Mbit/s / 41 Mbit/s</td></tr>
-<tr><td><a href="ww-00673-vless-tls.html">VLESS + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>97 Mbit/s / 98 Mbit/s</td></tr>
-<tr><td><a href="ww-00145-vless-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>150 Mbit/s / 119 Mbit/s</td></tr>
-<tr><td><a href="ww-00113-vless-tls.html">VLESS + Obfuscator + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>101 Mbit/s / 67 Mbit/s</td></tr>
-<tr><td><a href="ww-00097-vless-tls.html">VLESS + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>141 Mbit/s / 110 Mbit/s</td></tr>
-<tr><td><a href="ww-00105-vless-tls.html">VLESS + TLS + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>73 Mbit/s / 67 Mbit/s</td></tr>
-<tr><td><a href="ww-00161-vless-tls.html">VLESS + WebSocket + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>139 Mbit/s / 122 Mbit/s</td></tr>
-<tr><td><a href="ww-01282-vmess-tls.html">VMess + HTTP/2 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 45 Mbit/s</td></tr>
-<tr><td><a href="ww-01825-vmess-tls.html">VMess + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>82 Mbit/s / 84 Mbit/s</td></tr>
-<tr><td><a href="ww-01297-vmess-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>130 Mbit/s / 105 Mbit/s</td></tr>
-<tr><td><a href="ww-01249-vmess-tls.html">VMess + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>111 Mbit/s / 63 Mbit/s</td></tr>
-<tr><td><a href="ww-01315-vmess-tls.html">VMess + WebSocket + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 93 Mbit/s</td></tr>
-<tr><td><a href="ww-01313-vmess-tls.html">VMess + WebSocket + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 105 Mbit/s</td></tr>
+<tr><td><a href="ww-04705-http-proxy-tls.html">HTTP CONNECT + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>155 Mbit/s / 115 Mbit/s</td></tr>
+<tr><td><a href="ww-02977-trojan-tls.html">Trojan + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>122 Mbit/s / 55 Mbit/s</td></tr>
+<tr><td><a href="ww-02401-trojan-tls.html">Trojan + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>181 Mbit/s / 126 Mbit/s</td></tr>
+<tr><td><a href="ww-00099-vless-tls.html">VLESS + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>157 Mbit/s / 122 Mbit/s</td></tr>
+<tr><td><a href="ww-00131-vless-tls.html">VLESS + HTTP/1.1 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>172 Mbit/s / 122 Mbit/s</td></tr>
+<tr><td><a href="ww-00129-vless-tls.html">VLESS + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>172 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="ww-00130-vless-tls.html">VLESS + HTTP/2 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>237 Mbit/s / 51 Mbit/s</td></tr>
+<tr><td><a href="ww-00673-vless-tls.html">VLESS + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>128 Mbit/s / 89 Mbit/s</td></tr>
+<tr><td><a href="ww-00145-vless-tls.html">VLESS + Obfuscator + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>163 Mbit/s / 121 Mbit/s</td></tr>
+<tr><td><a href="ww-00113-vless-tls.html">VLESS + Obfuscator + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>171 Mbit/s / 113 Mbit/s</td></tr>
+<tr><td><a href="ww-00097-vless-tls.html">VLESS + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>157 Mbit/s / 125 Mbit/s</td></tr>
+<tr><td><a href="ww-00105-vless-tls.html">VLESS + TLS + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 42 Mbit/s</td></tr>
+<tr><td><a href="ww-00161-vless-tls.html">VLESS + WebSocket + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>163 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="ww-01282-vmess-tls.html">VMess + HTTP/2 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>152 Mbit/s / 68 Mbit/s</td></tr>
+<tr><td><a href="ww-01825-vmess-tls.html">VMess + MUX + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>116 Mbit/s / 101 Mbit/s</td></tr>
+<tr><td><a href="ww-01297-vmess-tls.html">VMess + Obfuscator + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>116 Mbit/s / 130 Mbit/s</td></tr>
+<tr><td><a href="ww-01249-vmess-tls.html">VMess + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>92 Mbit/s / 90 Mbit/s</td></tr>
+<tr><td><a href="ww-01315-vmess-tls.html">VMess + WebSocket + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>112 Mbit/s / 125 Mbit/s</td></tr>
+<tr><td><a href="ww-01313-vmess-tls.html">VMess + WebSocket + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>106 Mbit/s / 131 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="reality">Reality</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-04801-http-proxy-reality.html">HTTP CONNECT + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>140 Mbit/s / 111 Mbit/s</td></tr>
-<tr><td><a href="ww-03129-trojan-reality.html">Trojan + MUX + Obfuscator + HTTP/1.1 + Reality + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>70 Mbit/s / 67 Mbit/s</td></tr>
-<tr><td><a href="ww-03073-trojan-reality.html">Trojan + MUX + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 118 Mbit/s</td></tr>
-<tr><td><a href="ww-02497-trojan-reality.html">Trojan + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>146 Mbit/s / 113 Mbit/s</td></tr>
-<tr><td><a href="ww-00195-vless-reality.html">VLESS + BGP4 framing + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 131 Mbit/s</td></tr>
-<tr><td><a href="ww-00769-vless-reality.html">VLESS + MUX + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>111 Mbit/s / 98 Mbit/s</td></tr>
-<tr><td><a href="ww-00193-vless-reality.html">VLESS + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>143 Mbit/s / 117 Mbit/s</td></tr>
-<tr><td><a href="ww-00258-vless-reality.html">VLESS + WebSocket (HTTP/2) + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>202 Mbit/s / 46 Mbit/s</td></tr>
-<tr><td><a href="ww-01345-vmess-reality.html">VMess + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>102 Mbit/s / 83 Mbit/s</td></tr>
+<tr><td><a href="ww-04801-http-proxy-reality.html">HTTP CONNECT + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>155 Mbit/s / 110 Mbit/s</td></tr>
+<tr><td><a href="ww-03129-trojan-reality.html">Trojan + MUX + Obfuscator + HTTP/1.1 + Reality + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>59 Mbit/s / 56 Mbit/s</td></tr>
+<tr><td><a href="ww-03073-trojan-reality.html">Trojan + MUX + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>130 Mbit/s / 51 Mbit/s</td></tr>
+<tr><td><a href="ww-02497-trojan-reality.html">Trojan + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>170 Mbit/s / 124 Mbit/s</td></tr>
+<tr><td><a href="ww-00195-vless-reality.html">VLESS + BGP4 framing + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>164 Mbit/s / 130 Mbit/s</td></tr>
+<tr><td><a href="ww-00769-vless-reality.html">VLESS + MUX + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>129 Mbit/s / 51 Mbit/s</td></tr>
+<tr><td><a href="ww-00193-vless-reality.html">VLESS + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>94 Mbit/s / 65 Mbit/s</td></tr>
+<tr><td><a href="ww-00258-vless-reality.html">VLESS + WebSocket (HTTP/2) + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>203 Mbit/s / 59 Mbit/s</td></tr>
+<tr><td><a href="ww-01345-vmess-reality.html">VMess + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>81 Mbit/s / 111 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="aead">AEAD</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-04897-http-proxy-aead.html">HTTP CONNECT + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>147 Mbit/s / 106 Mbit/s</td></tr>
-<tr><td><a href="ww-02593-trojan-aead.html">Trojan + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>142 Mbit/s / 106 Mbit/s</td></tr>
-<tr><td><a href="ww-03169-trojan-aead.html">Trojan + MUX + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>97 Mbit/s / 97 Mbit/s</td></tr>
-<tr><td><a href="ww-03171-trojan-aead.html">Trojan + MUX + BGP4 framing + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>104 Mbit/s / 92 Mbit/s</td></tr>
-<tr><td><a href="ww-00289-vless-aead.html">VLESS + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>145 Mbit/s / 116 Mbit/s</td></tr>
-<tr><td><a href="ww-00321-vless-aead.html">VLESS + HTTP/1.1 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>144 Mbit/s / 116 Mbit/s</td></tr>
-<tr><td><a href="ww-00865-vless-aead.html">VLESS + MUX + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>96 Mbit/s / 96 Mbit/s</td></tr>
-<tr><td><a href="ww-01441-vmess-aead.html">VMess + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>105 Mbit/s / 82 Mbit/s</td></tr>
+<tr><td><a href="ww-04897-http-proxy-aead.html">HTTP CONNECT + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>151 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="ww-02593-trojan-aead.html">Trojan + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>163 Mbit/s / 114 Mbit/s</td></tr>
+<tr><td><a href="ww-03169-trojan-aead.html">Trojan + MUX + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 95 Mbit/s</td></tr>
+<tr><td><a href="ww-03171-trojan-aead.html">Trojan + MUX + BGP4 framing + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>123 Mbit/s / 93 Mbit/s</td></tr>
+<tr><td><a href="ww-00289-vless-aead.html">VLESS + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>177 Mbit/s / 124 Mbit/s</td></tr>
+<tr><td><a href="ww-00321-vless-aead.html">VLESS + HTTP/1.1 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>182 Mbit/s / 121 Mbit/s</td></tr>
+<tr><td><a href="ww-00865-vless-aead.html">VLESS + MUX + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>135 Mbit/s / 98 Mbit/s</td></tr>
+<tr><td><a href="ww-01441-vmess-aead.html">VMess + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>81 Mbit/s / 112 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="quic">QUIC</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-05013-http-proxy-quic.html">HTTP CONNECT + Obfuscator + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>86 Mbit/s / 102 Mbit/s</td></tr>
-<tr><td><a href="ww-02689-trojan-quic.html">Trojan + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>47 Mbit/s / 86 Mbit/s</td></tr>
-<tr><td><a href="ww-02693-trojan-quic.html">Trojan + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>86 Mbit/s / 100 Mbit/s</td></tr>
-<tr><td><a href="ww-00391-vless-quic.html">VLESS + BGP4 framing + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>123 Mbit/s / 88 Mbit/s</td></tr>
-<tr><td><a href="ww-00965-vless-quic.html">VLESS + MUX + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>73 Mbit/s / 113 Mbit/s</td></tr>
-<tr><td><a href="ww-00385-vless-quic.html">VLESS + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>62 Mbit/s / 118 Mbit/s</td></tr>
-<tr><td><a href="ww-00389-vless-quic.html">VLESS + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>47 Mbit/s / 39 Mbit/s</td></tr>
-<tr><td><a href="ww-02117-vmess-quic.html">VMess + MUX + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>99 Mbit/s / 62 Mbit/s</td></tr>
-<tr><td><a href="ww-01553-vmess-quic.html">VMess + Obfuscator + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>35 Mbit/s / 95 Mbit/s</td></tr>
-<tr><td><a href="ww-01541-vmess-quic.html">VMess + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>100 Mbit/s / 68 Mbit/s</td></tr>
+<tr><td><a href="ww-05013-http-proxy-quic.html">HTTP CONNECT + Obfuscator + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>108 Mbit/s / 95 Mbit/s</td></tr>
+<tr><td><a href="ww-02689-trojan-quic.html">Trojan + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>65 Mbit/s / 90 Mbit/s</td></tr>
+<tr><td><a href="ww-02693-trojan-quic.html">Trojan + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>62 Mbit/s / 67 Mbit/s</td></tr>
+<tr><td><a href="ww-00391-vless-quic.html">VLESS + BGP4 framing + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>104 Mbit/s / 106 Mbit/s</td></tr>
+<tr><td><a href="ww-00965-vless-quic.html">VLESS + MUX + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>93 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="ww-00385-vless-quic.html">VLESS + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>57 Mbit/s / 129 Mbit/s</td></tr>
+<tr><td><a href="ww-00389-vless-quic.html">VLESS + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>61 Mbit/s / 61 Mbit/s</td></tr>
+<tr><td><a href="ww-02117-vmess-quic.html">VMess + MUX + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>82 Mbit/s / 88 Mbit/s</td></tr>
+<tr><td><a href="ww-01553-vmess-quic.html">VMess + Obfuscator + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>23 Mbit/s / 86 Mbit/s</td></tr>
+<tr><td><a href="ww-01541-vmess-quic.html">VMess + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>85 Mbit/s / 82 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="none">No outer layer</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-04609-http-proxy-none.html">HTTP CONNECT (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>147 Mbit/s / 115 Mbit/s</td></tr>
-<tr><td><a href="ww-03457-socks5-none.html">SOCKS5 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>144 Mbit/s / 115 Mbit/s</td></tr>
-<tr><td><a href="ww-02914-trojan-none.html">Trojan + MUX + HTTP/2</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>142 Mbit/s / 16 Mbit/s</td></tr>
-<tr><td><a href="ww-00001-vless-none.html">VLESS (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>107 Mbit/s / 188 Mbit/s</td></tr>
-<tr><td><a href="ww-00011-vless-none.html">VLESS + BGP4 framing + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>80 Mbit/s / 74 Mbit/s</td></tr>
-<tr><td><a href="ww-00009-vless-none.html">VLESS + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>69 Mbit/s / 63 Mbit/s</td></tr>
-<tr><td><a href="ww-00025-vless-none.html">VLESS + Obfuscator + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>52 Mbit/s / 36 Mbit/s</td></tr>
-<tr><td><a href="ww-00065-vless-none.html">VLESS + WebSocket</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>119 Mbit/s / 83 Mbit/s</td></tr>
-<tr><td><a href="ww-01153-vmess-none.html">VMess (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>136 Mbit/s / 116 Mbit/s</td></tr>
-<tr><td><a href="ww-01161-vmess-none.html">VMess + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 56 Mbit/s</td></tr>
+<tr><td><a href="ww-04609-http-proxy-none.html">HTTP CONNECT (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>171 Mbit/s / 110 Mbit/s</td></tr>
+<tr><td><a href="ww-03457-socks5-none.html">SOCKS5 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>160 Mbit/s / 99 Mbit/s</td></tr>
+<tr><td><a href="ww-02914-trojan-none.html">Trojan + MUX + HTTP/2</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>170 Mbit/s / 17 Mbit/s</td></tr>
+<tr><td><a href="ww-00001-vless-none.html">VLESS (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>133 Mbit/s / 198 Mbit/s</td></tr>
+<tr><td><a href="ww-00011-vless-none.html">VLESS + BGP4 framing + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>41 Mbit/s / 41 Mbit/s</td></tr>
+<tr><td><a href="ww-00009-vless-none.html">VLESS + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>63 Mbit/s / 57 Mbit/s</td></tr>
+<tr><td><a href="ww-00025-vless-none.html">VLESS + Obfuscator + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>58 Mbit/s / 57 Mbit/s</td></tr>
+<tr><td><a href="ww-00065-vless-none.html">VLESS + WebSocket</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>158 Mbit/s / 111 Mbit/s</td></tr>
+<tr><td><a href="ww-01153-vmess-none.html">VMess (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 144 Mbit/s</td></tr>
+<tr><td><a href="ww-01161-vmess-none.html">VMess + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>57 Mbit/s / 51 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="bgp4">BGP4</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-05089-http-proxy-bgp4.html">HTTP CONNECT + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>146 Mbit/s / 115 Mbit/s</td></tr>
-<tr><td><a href="ww-03450-trojan-bgp4.html">Trojan + MUX + Obfuscator + WebSocket (HTTP/2) + BGP4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>89 Mbit/s / 16 Mbit/s</td></tr>
-<tr><td><a href="ww-00481-vless-bgp4.html">VLESS + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>154 Mbit/s / 105 Mbit/s</td></tr>
-<tr><td><a href="ww-01633-vmess-bgp4.html">VMess + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 102 Mbit/s</td></tr>
+<tr><td><a href="ww-05089-http-proxy-bgp4.html">HTTP CONNECT + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 113 Mbit/s</td></tr>
+<tr><td><a href="ww-03450-trojan-bgp4.html">Trojan + MUX + Obfuscator + WebSocket (HTTP/2) + BGP4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>88 Mbit/s / 11 Mbit/s</td></tr>
+<tr><td><a href="ww-00481-vless-bgp4.html">VLESS + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>148 Mbit/s / 106 Mbit/s</td></tr>
+<tr><td><a href="ww-01633-vmess-bgp4.html">VMess + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>144 Mbit/s / 114 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="raw">Raw IPv4</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="ww-12673-raw-none.html">Raw IPv4 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>36 Mbit/s / 109 Mbit/s</td></tr>
-<tr><td><a href="ww-12961-raw-aead.html">Raw IPv4 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 72 Mbit/s</td></tr>
-<tr><td><a href="ww-12771-raw-tls.html">Raw IPv4 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>35 Mbit/s / 77 Mbit/s</td></tr>
-<tr><td><a href="ww-13185-raw-bgp4.html">Raw IPv4 + HTTP/1.1 + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>36 Mbit/s / 84 Mbit/s</td></tr>
-<tr><td><a href="ww-12801-raw-tls.html">Raw IPv4 + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>39 Mbit/s / 78 Mbit/s</td></tr>
-<tr><td><a href="ww-12681-raw-none.html">Raw IPv4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>34 Mbit/s / 34 Mbit/s</td></tr>
-<tr><td><a href="ww-13050-raw-aead.html">Raw IPv4 + Obfuscator + WebSocket (HTTP/2) + AEAD + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>11 Mbit/s / 23 Mbit/s</td></tr>
-<tr><td><a href="ww-13057-raw-quic.html">Raw IPv4 + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>17 Mbit/s / 44 Mbit/s</td></tr>
-<tr><td><a href="ww-13061-raw-quic.html">Raw IPv4 + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>48 Mbit/s / 48 Mbit/s</td></tr>
-<tr><td><a href="ww-12865-raw-reality.html">Raw IPv4 + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>56 Mbit/s / 74 Mbit/s</td></tr>
-<tr><td><a href="ww-12769-raw-tls.html">Raw IPv4 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>26 Mbit/s / 62 Mbit/s</td></tr>
+<tr><td><a href="ww-12673-raw-none.html">Raw IPv4 (no outer layer)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>47 Mbit/s / 89 Mbit/s</td></tr>
+<tr><td><a href="ww-12961-raw-aead.html">Raw IPv4 + AEAD</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>79 Mbit/s / 80 Mbit/s</td></tr>
+<tr><td><a href="ww-12771-raw-tls.html">Raw IPv4 + BGP4 framing + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>66 Mbit/s / 88 Mbit/s</td></tr>
+<tr><td><a href="ww-13185-raw-bgp4.html">Raw IPv4 + HTTP/1.1 + BGP4</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>75 Mbit/s / 76 Mbit/s</td></tr>
+<tr><td><a href="ww-12801-raw-tls.html">Raw IPv4 + HTTP/1.1 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>78 Mbit/s / 85 Mbit/s</td></tr>
+<tr><td><a href="ww-12681-raw-none.html">Raw IPv4 + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>17 Mbit/s / 27 Mbit/s</td></tr>
+<tr><td><a href="ww-13050-raw-aead.html">Raw IPv4 + Obfuscator + WebSocket (HTTP/2) + AEAD + KCP</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>18 Mbit/s / 21 Mbit/s</td></tr>
+<tr><td><a href="ww-13057-raw-quic.html">Raw IPv4 + QUIC Datagram</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>45 Mbit/s / 41 Mbit/s</td></tr>
+<tr><td><a href="ww-13061-raw-quic.html">Raw IPv4 + QUIC Stream</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>74 Mbit/s / 58 Mbit/s</td></tr>
+<tr><td><a href="ww-12865-raw-reality.html">Raw IPv4 + Reality</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>82 Mbit/s / 81 Mbit/s</td></tr>
+<tr><td><a href="ww-12769-raw-tls.html">Raw IPv4 + TLS</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>67 Mbit/s / 84 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="modes">Direct and WireGuard</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="direct-diagnostics.html">Direct mode (diagnostics)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>141 Mbit/s / 151 Mbit/s</td></tr>
-<tr><td><a href="wireguard-native.html">WireGuard mode</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>14 Mbit/s / 52 Mbit/s</td></tr>
+<tr><td><a href="direct-diagnostics.html">Direct mode (diagnostics)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>192 Mbit/s / 108 Mbit/s</td></tr>
+<tr><td><a href="wireguard-native.html">WireGuard mode</a></td><td><span class="status failed">TESTED — FAILED</span></td><td>0 Mbit/s / 0 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="advanced">Advanced settings</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="adv-raw-validation.html">Raw IPv4 + AEAD with packet packet-validation-level = &quot;hard&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>61 Mbit/s / 71 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-counter-strict.html">VMess (no outer layer) with application encrypted-counter-policy = &quot;strict&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 104 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-packetaddr.html">VMess (no outer layer) with application packet-encoding = &quot;packetaddr&quot;, application domain-strategy = &quot;resolve-domains-and-use-only-ipv4&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>130 Mbit/s / 68 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-security-aes-128-gcm.html">VMess (no outer layer) with application security = &quot;aes-128-gcm&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>126 Mbit/s / 123 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-security-auto.html">VMess (no outer layer) with application security = &quot;auto&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>116 Mbit/s / 134 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-security-chacha20-poly1305.html">VMess (no outer layer) with application security = &quot;chacha20-poly1305&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 121 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-masking-padding.html">VMess (no outer layer) with application security = &quot;chacha20-poly1305&quot;, application chunk-masking = true, application global-padding = true, application authenticated-length = true</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>145 Mbit/s / 110 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-security-none.html">VMess (no outer layer) with application security = &quot;none&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 122 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-security-zero.html">VMess (no outer layer) with application security = &quot;zero&quot;, application protocol = &quot;tcp&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>149 Mbit/s / 124 Mbit/s</td></tr>
-<tr><td><a href="adv-vmess-no-termination.html">VMess (no outer layer) with application send-termination = false</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>110 Mbit/s / 102 Mbit/s</td></tr>
-<tr><td><a href="adv-packet-fake-dns.html">VMess (no outer layer) with packet fake-dns = {&quot;enabled&quot;: true, &quot;address&quot;: &quot;198.18.0.2&quot;, &quot;network&quot;: &quot;100.64.0.0&quot;, &quot;netmask&quot;: &quot;255.192.0.0&quot;, &quot;cache-size&quot;: 256, &quot;ttl&quot;: 1}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>114 Mbit/s / 101 Mbit/s</td></tr>
-<tr><td><a href="adv-packet-budget.html">VMess (no outer layer) with packet max-pending-bytes = 8192, packet max-total-pending-bytes = 262144</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>62 Mbit/s / 121 Mbit/s</td></tr>
-<tr><td><a href="adv-aead-aes.html">VMess + AEAD with outer algorithm = &quot;aes-256-gcm&quot;, outer max-frame-size = 16356</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>77 Mbit/s / 70 Mbit/s</td></tr>
-<tr><td><a href="adv-http1-split.html">VMess + HTTP/1.1 + TLS with http http1-mode = &quot;split&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>98 Mbit/s / 79 Mbit/s</td></tr>
-<tr><td><a href="adv-http-headers.html">VMess + HTTP/1.1 + TLS with http path = &quot;/matrix&quot;, http user-agent = &quot;SRP-Matrix&quot;, http headers = {&quot;X-Test&quot;: &quot;WaterWall&quot;}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>61 Mbit/s / 97 Mbit/s</td></tr>
-<tr><td><a href="adv-kcp-windows.html">VMess + KCP with kcp kcp-send-window = 128, kcp kcp-recv-window = 128, kcp kcp-initial-cwnd = 16, kcp kcp-send-buffer-limit = 256</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>55 Mbit/s / 44 Mbit/s</td></tr>
-<tr><td><a href="adv-kcp-fec.html">VMess + KCP with kcp mtu = 1350, kcp fec = true, kcp fec-data-shards = 10, kcp fec-parity-shards = 3, kcp kcp-nodelay = true, kcp kcp-interval-ms = 20</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>26 Mbit/s / 26 Mbit/s</td></tr>
-<tr><td><a href="adv-mux-counter.html">VMess + MUX + TLS with mux connection-capacity = 1, mux mode = &quot;counter&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 67 Mbit/s</td></tr>
-<tr><td><a href="adv-mux-timer.html">VMess + MUX + TLS with mux connection-duration-ms = 61000, mux mode = &quot;timer&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>92 Mbit/s / 70 Mbit/s</td></tr>
-<tr><td><a href="adv-mux-keepalive.html">VMess + MUX + TLS with mux keepalive = true, mux ping-interval = 1000</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>87 Mbit/s / 35 Mbit/s</td></tr>
-<tr><td><a href="adv-mux-fixed-connections-count.html">VMess + MUX + TLS with mux per-worker-connections-count = 1, mux mode = &quot;fixed-connections-count&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>35 Mbit/s / 30 Mbit/s</td></tr>
-<tr><td><a href="adv-quic-buffers.html">VMess + QUIC Datagram with outer max-buffered-bytes = 2097152, outer max-buffered-buffers = 1024, outer receive-window-bytes = 1048576, outer handshake-timeout-ms = 10000, outer idle-timeout-ms = 30000</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>31 Mbit/s / 54 Mbit/s</td></tr>
-<tr><td><a href="adv-reality-aes.html">VMess + Reality with outer algorithm = &quot;aes-256-gcm&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>70 Mbit/s / 71 Mbit/s</td></tr>
-<tr><td><a href="adv-tls-alpn.html">VMess + TLS with outer alpns = [&quot;http/1.1&quot;]</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>107 Mbit/s / 110 Mbit/s</td></tr>
-<tr><td><a href="adv-tls-fragment.html">VMess + TLS with outer fragment = {&quot;mode&quot;: &quot;counter&quot;, &quot;count&quot;: 1, &quot;tls-hello-fragment&quot;: true, &quot;tls-hello-timeout-ms&quot;: 1000, &quot;cuts&quot;: [[32, 0, 100]]}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>85 Mbit/s / 110 Mbit/s</td></tr>
-<tr><td><a href="adv-tls-record-shaping.html">VMess + TLS with outer tls13-record-shaping = {&quot;scope&quot;: {&quot;first-application-records&quot;: 2}, &quot;outcomes&quot;: [{&quot;probability&quot;: 100, &quot;padding-bytes&quot;: 64}]}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>110 Mbit/s / 108 Mbit/s</td></tr>
+<tr><td><a href="adv-raw-validation.html">Raw IPv4 + AEAD with packet packet-validation-level = &quot;hard&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>85 Mbit/s / 74 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-counter-strict.html">VMess (no outer layer) with application encrypted-counter-policy = &quot;strict&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>149 Mbit/s / 111 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-packetaddr.html">VMess (no outer layer) with application packet-encoding = &quot;packetaddr&quot;, application domain-strategy = &quot;resolve-domains-and-use-only-ipv4&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>146 Mbit/s / 114 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-security-aes-128-gcm.html">VMess (no outer layer) with application security = &quot;aes-128-gcm&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>115 Mbit/s / 146 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-security-auto.html">VMess (no outer layer) with application security = &quot;auto&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>136 Mbit/s / 122 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-security-chacha20-poly1305.html">VMess (no outer layer) with application security = &quot;chacha20-poly1305&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>173 Mbit/s / 123 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-masking-padding.html">VMess (no outer layer) with application security = &quot;chacha20-poly1305&quot;, application chunk-masking = true, application global-padding = true, application authenticated-length = true</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 111 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-security-none.html">VMess (no outer layer) with application security = &quot;none&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>161 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-security-zero.html">VMess (no outer layer) with application security = &quot;zero&quot;, application protocol = &quot;tcp&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>157 Mbit/s / 116 Mbit/s</td></tr>
+<tr><td><a href="adv-vmess-no-termination.html">VMess (no outer layer) with application send-termination = false</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>150 Mbit/s / 111 Mbit/s</td></tr>
+<tr><td><a href="adv-packet-fake-dns.html">VMess (no outer layer) with packet fake-dns = {&quot;enabled&quot;: true, &quot;address&quot;: &quot;198.18.0.2&quot;, &quot;network&quot;: &quot;100.64.0.0&quot;, &quot;netmask&quot;: &quot;255.192.0.0&quot;, &quot;cache-size&quot;: 256, &quot;ttl&quot;: 1}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>145 Mbit/s / 112 Mbit/s</td></tr>
+<tr><td><a href="adv-packet-budget.html">VMess (no outer layer) with packet max-pending-bytes = 8192, packet max-total-pending-bytes = 262144</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>135 Mbit/s / 124 Mbit/s</td></tr>
+<tr><td><a href="adv-aead-aes.html">VMess + AEAD with outer algorithm = &quot;aes-256-gcm&quot;, outer max-frame-size = 16356</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>64 Mbit/s / 91 Mbit/s</td></tr>
+<tr><td><a href="adv-http1-split.html">VMess + HTTP/1.1 + TLS with http http1-mode = &quot;split&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>120 Mbit/s / 122 Mbit/s</td></tr>
+<tr><td><a href="adv-http-headers.html">VMess + HTTP/1.1 + TLS with http path = &quot;/matrix&quot;, http user-agent = &quot;SRP-Matrix&quot;, http headers = {&quot;X-Test&quot;: &quot;WaterWall&quot;}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>129 Mbit/s / 118 Mbit/s</td></tr>
+<tr><td><a href="adv-kcp-windows.html">VMess + KCP with kcp kcp-send-window = 128, kcp kcp-recv-window = 128, kcp kcp-initial-cwnd = 16, kcp kcp-send-buffer-limit = 256</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>55 Mbit/s / 49 Mbit/s</td></tr>
+<tr><td><a href="adv-kcp-fec.html">VMess + KCP with kcp send-mtu = 1350, kcp fec = true, kcp fec-data-shards = 10, kcp fec-parity-shards = 3, kcp kcp-nodelay = true, kcp kcp-interval-ms = 20</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>32 Mbit/s / 32 Mbit/s</td></tr>
+<tr><td><a href="adv-mux-counter.html">VMess + MUX + TLS with mux connection-capacity = 1, mux mode = &quot;counter&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>122 Mbit/s / 116 Mbit/s</td></tr>
+<tr><td><a href="adv-mux-timer.html">VMess + MUX + TLS with mux connection-duration-ms = 61000, mux mode = &quot;timer&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>109 Mbit/s / 87 Mbit/s</td></tr>
+<tr><td><a href="adv-mux-keepalive.html">VMess + MUX + TLS with mux keepalive = true, mux ping-interval = 1000</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 104 Mbit/s</td></tr>
+<tr><td><a href="adv-mux-fixed-connections-count.html">VMess + MUX + TLS with mux per-worker-connections-count = 1, mux mode = &quot;fixed-connections-count&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>127 Mbit/s / 52 Mbit/s</td></tr>
+<tr><td><a href="adv-quic-buffers.html">VMess + QUIC Datagram with outer max-buffered-bytes = 2097152, outer max-buffered-buffers = 1024, outer receive-window-bytes = 1048576, outer handshake-timeout-ms = 10000, outer idle-timeout-ms = 30000</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>27 Mbit/s / 88 Mbit/s</td></tr>
+<tr><td><a href="adv-reality-aes.html">VMess + Reality with outer algorithm = &quot;aes-256-gcm&quot;</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>64 Mbit/s / 89 Mbit/s</td></tr>
+<tr><td><a href="adv-tls-alpn.html">VMess + TLS with outer alpns = [&quot;http/1.1&quot;]</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>100 Mbit/s / 140 Mbit/s</td></tr>
+<tr><td><a href="adv-tls-fragment.html">VMess + TLS with outer fragment = {&quot;mode&quot;: &quot;counter&quot;, &quot;count&quot;: 1, &quot;tls-hello-fragment&quot;: true, &quot;tls-hello-timeout-ms&quot;: 1000, &quot;cuts&quot;: [[32, 0, 100]]}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>99 Mbit/s / 139 Mbit/s</td></tr>
+<tr><td><a href="adv-tls-record-shaping.html">VMess + TLS with outer tls13-record-shaping = {&quot;scope&quot;: {&quot;first-application-records&quot;: 2}, &quot;outcomes&quot;: [{&quot;probability&quot;: 100, &quot;padding-bytes&quot;: 64}]}</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>98 Mbit/s / 139 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="download">UDP and GeoIP routing</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
-<tr><td><a href="direct-diagnostics-download.html">Direct mode (diagnostics) (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>264 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="ww-03457-socks5-none-download.html">SOCKS5 (no outer layer) (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>249 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="ww-02401-trojan-tls-download.html">Trojan + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>243 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="ww-00113-vless-tls-download.html">VLESS + Obfuscator + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>254 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="ww-00097-vless-tls-download.html">VLESS + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>247 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="geoip-default-proxy-download.html">VLESS + TLS with GeoIP direct routing for IR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>249 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="geoip-direct-country-download.html">VLESS + TLS with GeoIP direct routing for IR, TR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>258 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="geoip-multi-countries-download.html">VLESS + TLS with GeoIP direct routing for IR, US, TR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>259 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="direct-diagnostics-download.html">Direct mode (diagnostics) (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>250 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="ww-03457-socks5-none-download.html">SOCKS5 (no outer layer) (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>252 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="ww-02401-trojan-tls-download.html">Trojan + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>266 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="ww-00113-vless-tls-download.html">VLESS + Obfuscator + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>260 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="ww-00097-vless-tls-download.html">VLESS + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>256 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="geoip-default-proxy-download.html">VLESS + TLS with GeoIP direct routing for IR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>264 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="geoip-direct-country-download.html">VLESS + TLS with GeoIP direct routing for IR, TR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>266 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="geoip-multi-countries-download.html">VLESS + TLS with GeoIP direct routing for IR, US, TR</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>266 Mbit/s / 0 Mbit/s</td></tr>
 <tr><td><a href="adv-vmess-udp-download.html">VMess (no outer layer) with application protocol = &quot;udp&quot; (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>0 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="ww-01249-vmess-tls-download.html">VMess + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>206 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="adv-tls-alpn-download.html">VMess + TLS with outer alpns = [&quot;http/1.1&quot;] (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>209 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="wireguard-native-download.html">WireGuard mode (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>124 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="ww-01249-vmess-tls-download.html">VMess + TLS (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>207 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="adv-tls-alpn-download.html">VMess + TLS with outer alpns = [&quot;http/1.1&quot;] (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>211 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="wireguard-native-download.html">WireGuard mode (downloads and UDP)</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>152 Mbit/s / 0 Mbit/s</td></tr>
 </tbody></table>
 <h2 id="lifecycle">Connection lifecycle</h2><table><thead><tr><th>Scenario</th><th>Status</th><th>Down / up</th></tr></thead><tbody>
 <tr><td><a href="lifecycle-reconnect-disabled-ww-00097-vless-tls.html">Auto Reconnect off ends the VPN on a failure</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
 <tr><td><a href="lifecycle-auto-switch-ww-00097-vless-tls.html">Auto Switch to another profile of the same server</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
 <tr><td><a href="lifecycle-sleep-modes-ww-00097-vless-tls.html">On Sleep: Stay, Pause and Off</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
 <tr><td><a href="lifecycle-tcp-ping-ww-00097-vless-tls.html">Ping uses the phone&#x27;s own network</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
-<tr><td><a href="lifecycle-peer-recovery-ww-00097-vless-tls.html">Reconnecting after the server stops and comes back</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>252 Mbit/s / 0 Mbit/s</td></tr>
-<tr><td><a href="lifecycle-runtime-recovery-ww-00097-vless-tls.html">Recovery after sleep and after WaterWall stops</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>253 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="lifecycle-peer-recovery-ww-00097-vless-tls.html">Reconnecting after the server stops and comes back</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>263 Mbit/s / 0 Mbit/s</td></tr>
+<tr><td><a href="lifecycle-runtime-recovery-ww-00097-vless-tls.html">Recovery after sleep and after WaterWall stops</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>265 Mbit/s / 0 Mbit/s</td></tr>
 <tr><td><a href="lifecycle-retry-reset-ww-00097-vless-tls.html">Retry Times starts again after a good connection</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
 <tr><td><a href="lifecycle-retry-exhausted-ww-00097-vless-tls.html">Retry Times used up ends the VPN with a message</a></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>—</td></tr>
 </tbody></table>

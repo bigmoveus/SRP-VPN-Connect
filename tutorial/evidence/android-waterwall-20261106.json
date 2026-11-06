@@ -1,14 +1,13 @@
 {
  "run": {
-  "date": "2026-11-04",
-  "head": "1af4b70e",
+  "date": "2026-11-06",
+  "head": "c87f4927",
   "device": "SM-A556E",
-  "android": "17",
-  "checks_head": "0fc837e3"
+  "android": "17"
  },
  "summary": {
-  "chains": 44,
-  "chains_passed": 44,
+  "chains": 45,
+  "chains_passed": 45,
   "checks": 42,
   "checks_passed": 42,
   "skipped": [
@@ -35,7 +34,7 @@
    "server_file": "vless-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.6
   },
   {
    "id": "prod-trojan-tls",
@@ -55,7 +54,7 @@
    },
    "server_file": "trojan-tls.json",
    "passed": true,
-   "connect_s": 7.6,
+   "connect_s": 7.7,
    "transfer_s": 8.4
   },
   {
@@ -77,7 +76,7 @@
    "server_file": "vless-mux-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.4
+   "transfer_s": 8.3
   },
   {
    "id": "prod-trojan-mux-tls",
@@ -97,8 +96,8 @@
    },
    "server_file": "trojan-mux-tls.json",
    "passed": true,
-   "connect_s": 7.5,
-   "transfer_s": 8.3
+   "connect_s": 7.6,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-reality",
@@ -118,8 +117,8 @@
    },
    "server_file": "vless-reality.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 8.3
+   "connect_s": 7.6,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-reality-typed-sni",
@@ -140,7 +139,7 @@
    "server_file": "vless-reality.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 8.4
+   "transfer_s": 8.3
   },
   {
    "id": "prod-trojan-reality",
@@ -161,7 +160,7 @@
    "server_file": "trojan-reality.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 8.3
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-mux-reality",
@@ -182,7 +181,7 @@
    "server_file": "vless-mux-reality.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 9.6
+   "transfer_s": 9.4
   },
   {
    "id": "prod-trojan-mux-reality",
@@ -202,8 +201,8 @@
    },
    "server_file": "trojan-mux-reality.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 9.6
+   "connect_s": 7.6,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-vless-aead",
@@ -223,8 +222,8 @@
    },
    "server_file": "vless-aead.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.4
+   "connect_s": 7.5,
+   "transfer_s": 8.1
   },
   {
    "id": "prod-vless-mux-aead",
@@ -244,8 +243,8 @@
    },
    "server_file": "vless-mux-aead.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 9.5
+   "connect_s": 7.5,
+   "transfer_s": 8.2
   },
   {
    "id": "prod-trojan-aead",
@@ -265,8 +264,8 @@
    },
    "server_file": "trojan-aead.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.4
+   "connect_s": 7.5,
+   "transfer_s": 8.2
   },
   {
    "id": "prod-trojan-mux-aead",
@@ -286,8 +285,8 @@
    },
    "server_file": "trojan-mux-aead.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.5
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-rawip-tls",
@@ -308,7 +307,7 @@
    "server_file": "rawip-tls.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 12.8
+   "transfer_s": 16.2
   },
   {
    "id": "prod-rawip-reality",
@@ -329,7 +328,7 @@
    "server_file": "rawip-reality.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 11.7
+   "transfer_s": 13.7
   },
   {
    "id": "prod-rawip-aead",
@@ -370,8 +369,8 @@
    },
    "server_file": "vless-quic.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 9.6
+   "connect_s": 7.6,
+   "transfer_s": 9.4
   },
   {
    "id": "prod-trojan-quic",
@@ -391,7 +390,7 @@
    },
    "server_file": "trojan-quic.json",
    "passed": true,
-   "connect_s": 7.6,
+   "connect_s": 7.7,
    "transfer_s": 9.5
   },
   {
@@ -413,7 +412,7 @@
    "server_file": "rawip-quic.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 13.9
+   "transfer_s": 16.2
   },
   {
    "id": "prod-wireguard",
@@ -520,7 +519,7 @@
    },
    "server_file": "additional-vless-http2-tls.json",
    "passed": true,
-   "connect_s": 7.6,
+   "connect_s": 7.7,
    "transfer_s": 8.4
   },
   {
@@ -566,8 +565,8 @@
    },
    "server_file": "additional-vless-obf-tls.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.4
+   "connect_s": 7.7,
+   "transfer_s": 8.5
   },
   {
    "id": "prod-additional-vless-obf-http1-tls",
@@ -591,7 +590,7 @@
    },
    "server_file": "additional-vless-obf-http1-tls.json",
    "passed": true,
-   "connect_s": 7.6,
+   "connect_s": 7.7,
    "transfer_s": 8.4
   },
   {
@@ -633,8 +632,8 @@
    },
    "server_file": "additional-vless-obf-kcp.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 10.5
+   "connect_s": 7.5,
+   "transfer_s": 10.6
   },
   {
    "id": "prod-additional-vless-quic-stream",
@@ -654,8 +653,8 @@
    },
    "server_file": "additional-vless-quic-stream.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.5
+   "connect_s": 7.7,
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vless-mux-quic-stream",
@@ -676,7 +675,7 @@
    "server_file": "additional-vless-mux-quic-stream.json",
    "passed": true,
    "connect_s": 7.6,
-   "transfer_s": 9.5
+   "transfer_s": 8.3
   },
   {
    "id": "prod-additional-rawip-http1-tls",
@@ -701,7 +700,7 @@
    "server_file": "additional-rawip-http1-tls.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 10.6
+   "transfer_s": 12.7
   },
   {
    "id": "prod-additional-rawip-none",
@@ -722,7 +721,7 @@
    "server_file": "additional-rawip-none.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 10.6
+   "transfer_s": 11.8
   },
   {
    "id": "prod-additional-rawip-kcp",
@@ -742,8 +741,8 @@
    },
    "server_file": "additional-rawip-kcp.json",
    "passed": true,
-   "connect_s": 7.7,
-   "transfer_s": 15.1
+   "connect_s": 7.6,
+   "transfer_s": 13.9
   },
   {
    "id": "prod-additional-vmess-tls",
@@ -763,8 +762,8 @@
    },
    "server_file": "additional-vmess-tls.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 8.5
+   "connect_s": 7.7,
+   "transfer_s": 8.3
   },
   {
    "id": "prod-additional-vmess-mux-tls",
@@ -785,7 +784,7 @@
    "server_file": "additional-vmess-mux-tls.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 9.5
+   "transfer_s": 8.3
   },
   {
    "id": "prod-additional-vmess-ws1-tls",
@@ -809,7 +808,7 @@
    },
    "server_file": "additional-vmess-ws1-tls.json",
    "passed": true,
-   "connect_s": 7.7,
+   "connect_s": 7.6,
    "transfer_s": 8.4
   },
   {
@@ -835,7 +834,7 @@
    "server_file": "additional-vmess-http2-tls.json",
    "passed": true,
    "connect_s": 7.7,
-   "transfer_s": 9.7
+   "transfer_s": 8.4
   },
   {
    "id": "prod-additional-vmess-kcp",
@@ -855,8 +854,8 @@
    },
    "server_file": "additional-vmess-kcp.json",
    "passed": true,
-   "connect_s": 7.6,
-   "transfer_s": 9.5
+   "connect_s": 7.7,
+   "transfer_s": 10.7
   },
   {
    "id": "prod-additional-vmess-quic-stream",
@@ -876,7 +875,7 @@
    },
    "server_file": "additional-vmess-quic-stream.json",
    "passed": true,
-   "connect_s": 7.7,
+   "connect_s": 7.6,
    "transfer_s": 8.3
   },
   {
@@ -897,8 +896,8 @@
    },
    "server_file": "additional-vmess-mux-quic-stream.json",
    "passed": true,
-   "connect_s": 7.8,
-   "transfer_s": 9.6
+   "connect_s": 7.6,
+   "transfer_s": 9.5
   },
   {
    "id": "prod-additional-vmess-obf-http1-tls",
@@ -964,8 +963,30 @@
    },
    "server_file": "additional-vmess-aead.json",
    "passed": true,
-   "connect_s": 7.6,
+   "connect_s": 7.7,
    "transfer_s": 8.3
+  },
+  {
+   "id": "prod-additional-rawip-packet",
+   "configuration": {
+    "version": 3,
+    "mode": "chain",
+    "input": "raw-ipv4",
+    "application": "",
+    "mux": false,
+    "outer": "none",
+    "http": "off",
+    "http-version": 1,
+    "obfuscator": false,
+    "carrier": "tcp",
+    "quic-carrier": "datagram",
+    "node-options": {},
+    "packet-encryption": true
+   },
+   "server_file": "additional-rawip-packet.json",
+   "passed": true,
+   "connect_s": 7.7,
+   "transfer_s": 11.7
   }
  ],
  "checks": [
@@ -973,77 +994,77 @@
    "id": "start_failure_alert",
    "what": "Nothing listens at the server's port: the start-up check fails and the app says why, with Auto Reconnect off.",
    "passed": true,
-   "seconds": 31.8,
+   "seconds": 32.0,
    "message": "WaterWall TCP probe failed after fifteen attempts"
   },
   {
    "id": "retry_exhausted",
    "what": "Retry Times 2 with no server: three tries, then the app gives up with the count in its message.",
    "passed": true,
-   "seconds": 66.6,
+   "seconds": 66.8,
    "message": "Could not reconnect after 2 attempts. (WaterWall TCP probe failed after fifteen attempts)"
   },
   {
    "id": "cancel_while_connecting",
    "what": "The power button while connecting stops it, and the next connect still works.",
    "passed": true,
-   "seconds": 33.5,
+   "seconds": 33.4,
    "message": ""
   },
   {
    "id": "peer_lost_reconnect_off",
    "what": "With Auto Reconnect off, losing the server ends the VPN after the health check.",
    "passed": true,
-   "seconds": 44.8,
+   "seconds": 44.7,
    "message": "WaterWall TCP health probe failed"
   },
   {
    "id": "peer_lost_recovers",
    "what": "With Auto Reconnect on, the app keeps trying while the server is gone and comes back without any tap.",
    "passed": true,
-   "seconds": 76.2,
+   "seconds": 76.0,
    "message": ""
   },
   {
    "id": "retry_count_resets",
    "what": "Retry Times counts failures in a row: a good connection in between starts the count again.",
    "passed": true,
-   "seconds": 91.6,
+   "seconds": 91.7,
    "message": ""
   },
   {
    "id": "auto_switch_on_failure",
    "what": "The selected profile's port is dead, a sibling with the same Server works: the next attempt uses it.",
    "passed": true,
-   "seconds": 38.5,
+   "seconds": 38.6,
    "message": ""
   },
   {
    "id": "wifi_to_cellular_and_back",
    "what": "Wi-Fi off moves the connection to cellular, Wi-Fi on moves it back, and traffic works on both.",
    "passed": true,
-   "seconds": 54.1,
+   "seconds": 46.6,
    "message": ""
   },
   {
    "id": "wifi_change_ignored_when_off",
    "what": "With Switch to Wi-Fi off, the app does not act on the change itself.",
    "passed": true,
-   "seconds": 37.0,
+   "seconds": 37.2,
    "message": ""
   },
   {
    "id": "sleep_stay",
    "what": "On Sleep Stay: the screen goes off, the connection stays.",
    "passed": true,
-   "seconds": 34.6,
+   "seconds": 34.7,
    "message": ""
   },
   {
    "id": "sleep_pause",
    "what": "On Sleep Pause: closes at screen off and always reconnects at wake, even with Auto Reconnect off.",
    "passed": true,
-   "seconds": 25.8,
+   "seconds": 26.1,
    "message": ""
   },
   {
@@ -1064,84 +1085,84 @@
    "id": "tls_check_refuses_self_signed",
    "what": "A self-signed certificate for the right name: the check refuses it. With the check off the same handshake finishes.",
    "passed": true,
-   "seconds": 53.3,
+   "seconds": 53.5,
    "message": ""
   },
   {
    "id": "geoip_needs_database",
    "what": "GeoIP in the profile with no database installed: the app refuses to connect and says what to do.",
    "passed": true,
-   "seconds": 17.3,
+   "seconds": 16.9,
    "message": "GeoIP is enabled but its database is unavailable: A valid GeoIP country database is required."
   },
   {
    "id": "geoip_switch_installs_bundled",
    "what": "The GeoIP Routing switch installs the bundled database and selects Iran, as on iOS.",
    "passed": true,
-   "seconds": 30.6,
+   "seconds": 24.3,
    "message": ""
   },
   {
    "id": "geoip_selected_country_goes_direct",
    "what": "The test server is in Turkey. With TR selected its downloads go direct: it sees this network's own address.",
    "passed": true,
-   "seconds": 22.1,
+   "seconds": 21.9,
    "message": ""
   },
   {
    "id": "geoip_other_country_goes_through_server",
    "what": "With another country selected the same download goes through the server.",
    "passed": true,
-   "seconds": 21.2,
+   "seconds": 22.0,
    "message": ""
   },
   {
    "id": "geoip_upload_validates",
    "what": "Upload MMDB: a good database replaces the old one; a file that is not one is refused and the old one stays.",
    "passed": true,
-   "seconds": 62.9,
+   "seconds": 63.2,
    "message": ""
   },
   {
    "id": "geoip_download_validates",
    "what": "Download & Replace: plain http is refused; an HTTPS link is downloaded, checked and installed.",
    "passed": true,
-   "seconds": 58.1,
+   "seconds": 58.9,
    "message": ""
   },
   {
    "id": "wireguard_import_conf",
    "what": "Import Config (.conf) through the file picker fills Server and Port, stores the keys and connects.",
    "passed": true,
-   "seconds": 67.2,
+   "seconds": 67.5,
    "message": ""
   },
   {
    "id": "wireguard_manual_keys",
    "what": "Manual Configuration: the keys typed in the fields build the same connection, and Gen makes a pair with its public key.",
    "passed": true,
-   "seconds": 42.1,
+   "seconds": 43.8,
    "message": ""
   },
   {
    "id": "direct_mode",
    "what": "Direct needs no server: traffic leaves through WaterWall straight to the internet.",
    "passed": true,
-   "seconds": 21.4,
+   "seconds": 27.2,
    "message": ""
   },
   {
    "id": "names_resolve_after_reconnect",
    "what": "After a reconnect the new runtime never gave out the placeholders the system cached, so the cache must not outlive it.",
    "passed": true,
-   "seconds": 59.9,
+   "seconds": 59.6,
    "message": ""
   },
   {
    "id": "wireguard_conf_with_odd_lines",
    "what": "AllowedIPs with host bits set and a search domain on the DNS line, both valid in wg-quick files, connect instead of being refused by Android.",
    "passed": true,
-   "seconds": 23.6,
+   "seconds": 22.9,
    "message": ""
   },
   {
@@ -1155,42 +1176,42 @@
    "id": "not_metered_on_wifi",
    "what": "The VPN counts as metered only when the network under it does, so apps do not hold back on Wi-Fi.",
    "passed": true,
-   "seconds": 16.7,
+   "seconds": 16.8,
    "message": ""
   },
   {
    "id": "link_quality_is_read_on_tcp",
    "what": "The loss rule's counters work on a TCP carrier: the app writes a summary of the last minute.",
    "passed": true,
-   "seconds": 75.3,
+   "seconds": 75.5,
    "message": ""
   },
   {
    "id": "tls_fragmentation",
    "what": "Auto and Manual: connection and transfers work, with the settings in the chain.",
    "passed": true,
-   "seconds": 40.7,
+   "seconds": 41.2,
    "message": ""
   },
   {
    "id": "remote_dns_on_and_off",
    "what": "On: a name gets a placeholder from 100.64.0.0/10. Off: the real address, and the probe uses the real DNS.",
    "passed": true,
-   "seconds": 45.0,
+   "seconds": 45.3,
    "message": ""
   },
   {
    "id": "direct_lan_routing",
    "what": "A private address: reached straight from the phone with the option on, through the server with it off.",
    "passed": true,
-   "seconds": 35.4,
+   "seconds": 35.5,
    "message": ""
   },
   {
    "id": "ping_on_the_list",
    "what": "Pull to ping, swipe to ping, the KCP message, the result kept after closing the app.",
    "passed": true,
-   "seconds": 23.5,
+   "seconds": 23.6,
    "message": ""
   },
   {
@@ -1211,56 +1232,56 @@
    "id": "editor_state_and_keyboard",
    "what": "The editor keeps what was typed through rotation and dark mode, keeps its scroll position across a sub-screen, and a touch outside closes the keyboard.",
    "passed": true,
-   "seconds": 56.3,
+   "seconds": 54.1,
    "message": ""
   },
   {
    "id": "connected_ping",
    "what": "After connecting, the row shows the delay through the tunnel; swiping that row measures it again.",
    "passed": true,
-   "seconds": 30.7,
+   "seconds": 30.8,
    "message": ""
   },
   {
    "id": "log_screen",
    "what": "The status text opens the log; levels change what it holds; Share opens the sheet; Clear empties it.",
    "passed": true,
-   "seconds": 66.7,
+   "seconds": 66.8,
    "message": ""
   },
   {
    "id": "profile_editor_and_secrets",
    "what": "A profile made through the screens: its checks, where its secrets go, and that Delete removes them.",
    "passed": true,
-   "seconds": 124.8,
+   "seconds": 125.6,
    "message": ""
   },
   {
    "id": "notification_and_foreground",
    "what": "While connected the system shows the VPN key and the app's notification.",
    "passed": true,
-   "seconds": 17.0,
+   "seconds": 17.1,
    "message": ""
   },
   {
    "id": "ipv6_is_blocked",
    "what": "The tunnel carries IPv4 only. Android keeps IPv6 from leaving outside it while the VPN is up.",
    "passed": true,
-   "seconds": 16.6,
+   "seconds": 16.9,
    "message": ""
   },
   {
    "id": "always_on",
    "what": "Turned on in Android's VPN settings, Android starts the app's VPN by itself and it connects the profile used last.",
    "passed": true,
-   "seconds": 42.9,
+   "seconds": 49.5,
    "message": ""
   },
   {
    "id": "reconnect_three_times",
    "what": "The same process connects again: the runtime starts a second and a third time.",
    "passed": true,
-   "seconds": 58.1,
+   "seconds": 58.8,
    "message": ""
   }
  ]

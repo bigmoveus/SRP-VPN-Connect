@@ -1,17 +1,16 @@
-<p class="lead">Every WaterWall combination we tested on 3 November 2026, on the current app build against our own WaterWall program: version 1.5.2 plus the changes in the SRP VPN Connect repository. Each page shows the server file, the app settings, how the test ran and what happened.</p>
+<p class="lead">Every WaterWall combination we tested on 5 and 6 November 2026, with the app against the official WaterWall 1.5.3 release on our server. Each page shows the server file, the app settings, how the test ran and what happened.</p>
 
 <div class="callout evidence">
   <span class="callout-title">How these tests ran</span>
-  <p>All tests used our iPhone 12 with iOS 27.2 and that WaterWall program on our Ubuntu test server, in four kinds of test. We did not test an official WaterWall release, so do not expect one to give the same results; see <a href="../installation.html#server-program">Installation</a>.</p>
+  <p>All tests used our iPhone 12 with iOS 27.2 and the official WaterWall 1.5.3 program, unchanged, on our Ubuntu test server, in four kinds of test.</p>
   <ul>
     <li><strong>Production server.</strong> The app connected to every configuration our permanent <code>waterwall.service</code> loads, with its Let's Encrypt certificate and TLS Server Verification on: the setup the guides describe.</li>
     <li><strong>Combinations.</strong> For each case, a test harness started a separate copy of the same program on the server with the matching server chain on port 4097, and the app connected to it. These copies used a self-signed certificate, so TLS Server Verification was off.</li>
     <li><strong>UDP and GeoIP routing.</strong> Chains that carry UDP were checked with a UDP echo server, and the GeoIP cases were checked for which way their downloads went.</li>
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
-  <p>The tests ran on app commit <code>a03a8bc2</code> with the server at WaterWall's default of 2 DNS tries, except three cases that ran on commit <code>be53fe6b</code>, which changes only test tools, with the server at 5 tries: <a href="adv-packet-budget.html">the packet budget case</a>, <a href="adv-mux-counter.html">the MUX counter case</a> and <a href="prod-trojan-mux-tls.html">Trojan + MUX + TLS</a>. Each page's test setup says which setting it ran with.</p>
-  <p>The Raw IPv4 and native WireGuard cases ran later, on app commit <code>02bf942c</code> with the server at commit <code>1af4b70e</code> and 5 tries. On these two inputs iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server, and the test checked that it arrived through the tunnel.</p>
-  <p>Every scenario page describes its procedure in full.</p>
+  <p>The tests ran on app commit <code>c87f4927</code>, a development build that contains WaterWall 1.5.3; TestFlight build 33 is older and has WaterWall 1.5.2. On Raw IPv4 and native WireGuard chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
+  <p>Every scenario page describes its procedure in full. A page whose case ran more than once says how many runs passed.</p>
   <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>
 
@@ -19,7 +18,9 @@
 <table>
   <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
   <tbody>
-    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>Every check passed.</td></tr>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>Every check passed, in every run.</td></tr>
+    <tr><td><span class="status partial">TESTED — PARTIALLY WORKING</span></td><td>Traffic moved, but not every check passed in every run; the page says what failed.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The first run moved no traffic; the page says what happened and whether a later run passed.</td></tr>
   </tbody>
 </table>
 <p>Speeds are averages over the whole test on our office line. They show that traffic moved, and are not a benchmark.</p>

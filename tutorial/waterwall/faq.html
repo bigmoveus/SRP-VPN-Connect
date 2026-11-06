@@ -22,7 +22,7 @@
 <p>No. SRP VPN Connect contains its own WaterWall client. You only install WaterWall on your server; see <a href="installation.html">Installation</a>.</p>
 
 <h3>Which WaterWall versions does this guide cover?</h3>
-<p>WaterWall 1.5.2 plus the changes in the SRP VPN Connect repository on the server, and the app's build 33, which contains its own WaterWall based on 1.5.2. Results with other server programs, including the official 1.5.2 release, are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
+<p>The official WaterWall 1.5.3 release on the server, and the iPhone and Android apps, which contain their own WaterWall built from 1.5.3. Results with other server programs are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
 
 <h3>Do I need a domain name and a certificate?</h3>
 <p>For chains with Outer <strong>TLS</strong> or <strong>QUIC</strong>, yes: the server needs a certificate, and with TLS Server Verification on (the default) it must be valid for the name the app sends. Our server uses a free Let's Encrypt certificate. Outer <strong>Reality</strong> and <strong>AEAD</strong> do not use a certificate of your own.</p>
@@ -52,6 +52,12 @@
 
 <h3>Does traffic to the server itself go through the tunnel?</h3>
 <p>On iPhone, with Raw IPv4 input or WireGuard, no. The app keeps the server's own address out of the tunnel, so a speed test or a site on that same address goes straight there over your normal network, and shows that network's speed. With Connections input and Remote DNS (Fake IP) on, it goes through the tunnel. On Android it always goes through the tunnel.</p>
+
+<h3>Does the app support Fake TCP (<code>FakeTcpHeaderClient</code>)?</h3>
+<p>No, and a phone cannot run it without root. Fake TCP sends IP packets with a made-up TCP header directly onto the network, which needs a raw socket. iOS refuses a raw socket both in the app and in its VPN extension, and Android refuses it to an ordinary app: in our test each attempt ended with <code>Operation not permitted</code> or <code>Permission denied</code>. A VPN tunnel's packets only reach the phone's own system, so they cannot replace this.</p>
+
+<h3>What is Packet Encryption, and when should I use it?</h3>
+<p>It is WaterWall's packet mode encryption for Raw IPv4 chains: each packet's TCP or UDP payload is encrypted separately with XChaCha20-Poly1305, adding 40 bytes per packet. The IP and TCP or UDP headers stay readable to anyone who can see inside the chain, and only TCP and UDP pass, so ping (ICMP) does not work through it. It helps when the chain has no other encryption, such as Outer None or BGP4. If you can choose, Outer AEAD or TLS hide the whole stream. See the <a href="configuration.html#packet-encryption">Configuration Reference</a>.</p>
 
 <h3>Is the Obfuscator a kind of encryption?</h3>
 <p>No. It scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD, QUIC or VMess for encryption.</p>
