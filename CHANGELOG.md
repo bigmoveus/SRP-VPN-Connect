@@ -9,6 +9,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - `THIRD_PARTY_NOTICES.md` names sstp-client by Eivind Naess (GPL 2.0 or later), on which the SSTP code of both apps is built.
 
 ### Changed
+- The Android app's version code is 3, for the release APK that adds SSTP; the version name stays 1.2.0.
 - The WaterWall documentation names TestFlight build 34, which contains WaterWall 1.5.3, and tells users of build 33 to update, because its KCP chains cannot work with a 1.5.3 server.
 
 ### Fixed
