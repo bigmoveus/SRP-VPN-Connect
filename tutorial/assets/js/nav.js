@@ -30,5 +30,15 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'sstp/troubleshooting.html' }
     ]
   },
+  {
+    title: 'SoftEther VPN',
+    children: [
+      { title: 'Introduction', href: 'softether/index.html' },
+      { title: 'SoftEther VPN Server', href: 'softether/server.html' },
+      { title: 'Setting Up the App', href: 'softether/app-setup.html' },
+      { title: 'Test Results', href: 'softether/results.html' },
+      { title: 'Troubleshooting', href: 'softether/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];

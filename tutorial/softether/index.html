@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoftEther VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="SoftEther VPN in SRP VPN Connect on iPhone and Android: how a connection works, how to set up the server, the app's settings and the test results.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SoftEther VPN</h1>
+<p class="lead">SoftEther VPN is the native protocol of SoftEther VPN Server: a virtual Ethernet carried inside TLS, usually on TCP port 443. SRP VPN Connect connects to it on iPhone and Android with the same SoftEther client core on both.</p>
+
+<h2>How a SoftEther connection works</h2>
+<ol>
+  <li><strong>TCP and TLS.</strong> The app opens a TCP connection to the server, directly or through a proxy, and starts TLS. With TLS Server Verification on, it checks the server's certificate against the server's name, or against <strong>Hostname</strong> when that is set.</li>
+  <li><strong>Login.</strong> Inside TLS the app names the Virtual Hub and logs in as a user of that hub, with a password, through the server's RADIUS server, with a client certificate, or anonymously.</li>
+  <li><strong>More connections.</strong> When the profile asks for more than one, the app opens further TCP connections for the same session, up to 32.</li>
+  <li><strong>UDP.</strong> With UDP acceleration on, the app and the server also exchange the VPN's packets over UDP. With NAT traversal on, the app can reach a server that has no open TCP port through the NAT-T servers of SoftEther Corporation.</li>
+  <li><strong>Addresses.</strong> The session is a virtual Ethernet cable into the hub. The app asks the hub for an address with DHCP, for example from the hub's SecureNAT, and all of the phone's IPv4 traffic then goes through the tunnel.</li>
+</ol>
+
+<h2>Where to start</h2>
+<ol>
+  <li>Set up the server: <a href="server.html">SoftEther VPN Server</a> builds SoftEther VPN Server 4.44 on Ubuntu and sets it up from the command line, with a user for every login method.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. Our tests ran the app built from commit <code>013f04fb</code> on both phones. TestFlight build 35 is older than that commit and lacks its SoftEther changes, so on iPhone use a build made from it or later.</li>
+  <li>Add a SoftEther VPN profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
+</ol>
+
+<h2>What was tested</h2>
+<p><a href="results.html">Test results</a> lists every case we ran against our SoftEther VPN Server 4.44, with its result on an iPhone and on an Android phone: every login method and the refusals, the Virtual Hub, Hostname and the certificate check, the ports, 1 to 32 connections, UDP acceleration, NAT traversal with and without a hint, HTTP and SOCKS5 proxies and PAC files, TLS Fragmentation, the log levels, and what happens on sleep, when the server ends the session, when it is away for a while and when Retry Times runs out.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

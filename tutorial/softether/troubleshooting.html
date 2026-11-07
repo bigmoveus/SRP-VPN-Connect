@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — SoftEther — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each SoftEther VPN message of SRP VPN Connect means and what to do about it, on iPhone and Android.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">Start with the checks below, then look up the message the app showed.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The messages and what triggers them were read from the source code of both apps, which share the SoftEther client core and show the same messages. The cases named next to a message produced it in the test runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="first-checks">First checks</h2>
+<ol>
+  <li><strong>Open the log.</strong> Tap the status text under the power button. On iPhone only Debug builds made with Xcode write the log; TestFlight builds do not. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again: Expert adds the states the connection goes through and the virtual adapter's DHCP and ARP lines, and Debug adds the SoftEther core's own lines, such as each TCP connection it opens.</li>
+  <li><strong>Is the server listening?</strong> From a computer, <code>openssl s_client -connect &lt;SERVER_HOST&gt;:443 -servername &lt;SERVER_HOST&gt;</code> must show the server's certificate. If it does not, check the server's firewall and that SoftEther VPN Server runs (<code>ListenerList</code> in <code>vpncmd</code>).</li>
+  <li><strong>Does the name match the certificate?</strong> The app checks the certificate against <strong>Hostname</strong>, or against <strong>Server</strong> when Hostname is empty.</li>
+  <li><strong>Does the method match the user?</strong> The login method in the profile must match the user's kind on the server; see <a href="server.html#users">Users for each login method</a>.</li>
+  <li><strong>What does the server say?</strong> The hub's log in <code>/opt/vpnserver/security_log/&lt;HUB&gt;/</code> names each login and why it failed.</li>
+</ol>
+
+<h2 id="messages">Messages</h2>
+<h3>Before the connection starts</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><strong>DANGEROUS!</strong> with the server's certificates</td><td>With TLS Server Verification on, the certificate does not chain to a root the phone trusts, or it is not valid for the name the app checks. Our case <code>sev-verify-ip-declined</code>, a profile with the server's IP address, brings it.</td><td>Use the name the certificate is for, or put it in <strong>Hostname</strong>. Continue and Save and Continue skip the check; see <a href="app-setup.html#certificate-warning">the certificate warning</a>.</td></tr>
+    <tr><td><em>Certificate authentication requires a client certificate in the profile.</em> (iPhone) or <em>The client certificate could not be read. Re-import it in the profile.</em></td><td>Method Certificate without a certificate the app can read.</td><td>Import the .p12 or .pfx file again in the profile.</td></tr>
+  </tbody>
+</table>
+
+<h3>Reaching the server</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em></td><td>The name did not resolve, or no connection came up. Our cases <code>sev-natt-off-closed-tcp-port</code>, a port nothing listens on, and <code>sev-natt-hint-wrong</code>, NAT-T with a hint no server has, end this way.</td><td>Check <strong>Server</strong>, <strong>Port</strong> and the phone's network. With NAT-T, check <strong>NAT-T Hint</strong>. A server whose TCP port cannot be reached at all may still be reached with <strong>Enable NAT Traversal</strong> (<code>sev-natt-closed-tcp-port</code>).</td></tr>
+    <tr><td><em>The TLS handshake with the server failed. Check the Server and Port fields.</em></td><td>Another service answered at that address and port, so no TLS connection came up. Our case <code>sev-port-other-service</code>, the server's SSH port, ends this way.</td><td>Use a port of the server's <code>ListenerList</code> (443, 992 or 5555 by default).</td></tr>
+    <tr><td><em>The server did not answer as a SoftEther VPN server. Check the Server and Port fields.</em></td><td>Something answered at that address and port, but not as SoftEther VPN Server, for example a web server, or the connection closed during the TLS handshake.</td><td>Check <strong>Server</strong> and <strong>Port</strong>.</td></tr>
+    <tr><td><em>The server and the app have no TLS version in common.</em> or <em>… no TLS cipher in common.</em></td><td>The server offers only TLS versions or ciphers the app does not use.</td><td>Check the TLS versions and ciphers the server allows. Our server's defaults worked on both phones, with TLS 1.3.</td></tr>
+    <tr><td><em>Connection timed out. The server did not respond.</em></td><td>The connection did not come up within 30 seconds.</td><td>Check that the server is up and that its port is reachable from the phone's network.</td></tr>
+    <tr><td><em>The connection to the server was closed.</em></td><td>The connection ended before the login finished.</td><td>Check the server, and the proxy if the profile uses one.</td></tr>
+  </tbody>
+</table>
+
+<h3>Proxies</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Proxy authentication failed.</em></td><td>The proxy refused the proxy username or password (<code>sev-proxy-http-wrong-auth</code>, <code>sev-proxy-socks5-wrong-auth</code>).</td><td>Check <strong>Username</strong> and <strong>Password</strong> in the proxy section, and the proxy's <strong>Type</strong>.</td></tr>
+    <tr><td><em>Cannot connect to the proxy server.</em></td><td>The proxy did not take the connection (<code>sev-proxy-unreachable</code>, a proxy port nothing listens on).</td><td>Check the proxy's address and port.</td></tr>
+    <tr><td><em>Unable to download PAC configuration</em></td><td>The PAC URL did not answer with a file (<code>sev-pac-missing</code>).</td><td>Open the PAC URL in a browser; it must answer over http or https.</td></tr>
+    <tr><td><em>No usable proxy returned by PAC</em></td><td>The PAC file's <code>FindProxyForURL</code> returned no entry the app can use.</td><td>Return <code>PROXY host:port</code>, <code>SOCKS host:port</code>, <code>SOCKS5 host:port</code> or <code>DIRECT</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3>Login and certificate</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Authentication failed. Check the username, password and authentication method.</em></td><td>The hub refused the login: a wrong password (<code>sev-wrong-password</code>, <code>sev-radius-wrong-password</code>), a method that does not match the user's kind (<code>sev-radius-user-standard-method</code>, <code>sev-anon-on-password-user</code>), or a client certificate the hub does not accept (<code>sev-cert-rogue-ca</code>). The app does not retry it.</td><td>Check the username and password, the <strong>Method</strong>, and for certificates the hub's <code>CAList</code> or the user's certificate. The hub's security log says which user failed.</td></tr>
+    <tr><td><em>Virtual Hub not found. Check the Virtual Hub field.</em></td><td>The server has no hub of that name (<code>sev-wrong-hub</code>).</td><td>Use a name from <code>HubList</code> in <code>vpncmd</code>; empty means <code>DEFAULT</code>.</td></tr>
+    <tr><td><em>The server certificate name does not match the server. Check the Hostname field.</em></td><td>The certificate is trusted but not for the name the app checks (<code>sev-hostname-override-wrong</code> on iPhone; on Android the certificate warning comes first).</td><td>Put the name the certificate is for in <strong>Hostname</strong>, or empty it.</td></tr>
+    <tr><td><em>The server certificate is not trusted. Enable verification only with a valid certificate, or check the Hostname field.</em></td><td>The certificate does not chain to a root the phone trusts.</td><td>Install a certificate from a public authority on the server (<a href="server.html#certificate">Certificate</a>), or turn TLS Server Verification off.</td></tr>
+    <tr><td><em>The server certificate has expired.</em></td><td>The server's certificate is past its end date.</td><td>Renew it on the server and load it with <code>ServerCertSet</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3>After the connection was up</h3>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Connection lost (auto reconnect is off).</em></td><td>The session ended, for example because the server disconnected it, and Auto Reconnect is off (<code>sev-life-peer-drop-no-reconnect</code>).</td><td>Connect again, or turn Auto Reconnect on.</td></tr>
+    <tr><td><em>Could not reconnect after N attempts. (…)</em></td><td>Auto Reconnect tried as often as Retry Times allows and the server stayed away (<code>sev-life-retry-exhausted</code>). The reason of the last attempt follows in brackets.</td><td>Check the server. Empty Retry Times keeps trying while the server is away (<code>sev-life-outage-reconnect</code>).</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td>On Sleep is Off and Auto Reconnect is off, so the connection closed when the device slept and did not come back on wake.</td><td>Choose On Sleep Stay or Pause, or turn Auto Reconnect on.</td></tr>
+    <tr><td><em>SoftEther error N: …</em></td><td>Another error of the SoftEther core, by its number and name.</td><td>Look the number up in SoftEther's error list, and check the server's log at the same time.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="limits">Limits</h2>
+<ul>
+  <li><strong>IPv6 inside the tunnel.</strong> The iPhone app takes an IPv6 address when the hub announces one; the Android app routes IPv4 only and logs a line when the hub offers IPv6. Our hubs use SecureNAT, which hands out IPv4 only, so IPv6 inside the tunnel was not tested.</li>
+  <li><strong>UDP acceleration through a proxy.</strong> With a proxy the session stays on TCP; the core uses UDP acceleration only for direct connections.</li>
+  <li><strong>NT Domain login.</strong> Only SoftEther VPN Server on Windows checks passwords against a Windows domain; our server runs on Linux, so the method was tested with RADIUS only.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SoftEther VPN Server — SoftEther — SRP VPN Connect Documentation</title>
+<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu from the command line for the SoftEther VPN protocol, with every login method the app offers.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SoftEther VPN Server</h1>
+<p class="lead">This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up from the command line for the app's SoftEther profiles: a Virtual Hub with SecureNAT, users for every login method the app offers, a trusted certificate, and the server side of UDP acceleration and NAT traversal.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>We ran these commands on a freshly installed test server, Ubuntu 24.04 with 2 vCPUs and 4 GB of memory, on 7 November 2026, and every setting below was read back from it with <code>vpncmd</code>. The phones' results named on this page come from the runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu server with a public IPv4 address.</li>
+  <li>A DNS name for it, such as <code>vpn.example.com</code>, for the certificate.</li>
+  <li>TCP port 443 open (or 992 or 5555, which SoftEther also listens on), and TCP port 80 while Let's Encrypt issues and renews the certificate.</li>
+  <li>For UDP acceleration and NAT traversal, incoming UDP to the server: SoftEther picks its UDP ports itself. Our server's firewall lets all incoming UDP through.</li>
+</ul>
+
+<h2 id="build">1. Build SoftEther VPN Server 4.44</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt-get install -y build-essential libreadline-dev libssl-dev zlib1g-dev libncurses-dev git
+git clone --depth 1 --branch v4.44-9807-rtm https://github.com/SoftEtherVPN/SoftEtherVPN_Stable.git /opt/softether-stable-src
+cd /opt/softether-stable-src
+./configure
+make
+cp -a bin/vpnserver /opt/vpnserver
+cp bin/vpncmd/vpncmd /opt/vpnserver/</code></pre>
+<p>The tag <code>v4.44-9807-rtm</code> is SoftEther's 4.44 Stable release, the newest Stable release on 7 November 2026. <code>make</code> leaves the server program and its data file <code>hamcore.se2</code> in <code>bin/vpnserver</code>, and the command-line tool in <code>bin/vpncmd</code>; the last two commands put both in <code>/opt/vpnserver</code>. On our fresh server the build ended without errors.</p>
+
+<h2 id="service">2. Run it as a service</h2>
+<pre data-label="/etc/systemd/system/softether4.service"><code>[Unit]
+Description=SoftEther VPN Server 4.44 Stable
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/opt/vpnserver/vpnserver start
+ExecStop=/opt/vpnserver/vpnserver stop
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre data-label="Server"><code class="language-bash">systemctl daemon-reload
+systemctl enable --now softether4</code></pre>
+<p>The server listens on TCP 443, 992, 1194 and 5555. The app's SoftEther profiles connected on 443, 992 and 5555.</p>
+
+<h2 id="admin">3. Set the administrator password</h2>
+<p>All further settings are made with <code>vpncmd</code>. A fresh server has no administrator password; set one at once:</p>
+<pre data-label="Server"><code class="language-bash">/opt/vpnserver/vpncmd localhost /SERVER /CMD ServerPasswordSet</code></pre>
+<p>From then on, add <code>/PASSWORD:&lt;ADMIN_PASSWORD&gt;</code> after <code>/SERVER</code>, or let <code>vpncmd</code> ask for it. The commands below are typed at its <code>VPN Server&gt;</code> prompt, which <code>vpncmd localhost /SERVER</code> opens.</p>
+
+<h2 id="certificate">4. Certificate</h2>
+<p>With <strong>TLS Server Verification</strong> on, the app's default, the server needs a certificate the phone trusts for the name in the profile. Our server gets one from Let's Encrypt with certbot in standalone mode, as an RSA 2048-bit key, and loads it into SoftEther, which keeps its own copy:</p>
+<pre data-label="Server — replace &lt;SERVER_HOST&gt; with your domain"><code class="language-bash">apt-get install -y certbot
+certbot certonly --standalone --key-type rsa --rsa-key-size 2048 -d &lt;SERVER_HOST&gt;</code></pre>
+<pre data-label="vpncmd"><code>ServerCertSet /LOADCERT:/etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem /LOADKEY:/etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem</code></pre>
+<p>Certbot renews the certificate by itself. This deploy hook loads each renewed one into SoftEther; it reads the administrator password from <code>/root/.softether-admin</code>, a file only root can read:</p>
+<pre data-label="/etc/letsencrypt/renewal-hooks/deploy/softether.sh"><code class="language-bash">#!/bin/sh
+# SoftEther keeps its own copy of the server certificate in vpn_server.config, so load the renewed one.
+set -e
+live=/etc/letsencrypt/live/&lt;SERVER_HOST&gt;
+umask 077
+printf "ServerCertSet /LOADCERT:%s/fullchain.pem /LOADKEY:%s/privkey.pem\n" "$live" "$live" > /root/srp-cert-in.txt
+timeout 60 /opt/vpnserver/vpncmd localhost /SERVER "/PASSWORD:$(cat /root/.softether-admin)" /IN:/root/srp-cert-in.txt &lt; /dev/null &gt; /root/srp-cert.log 2&gt;&amp;1
+rm -f /root/srp-cert-in.txt</code></pre>
+<pre data-label="Server"><code class="language-bash">chmod 700 /etc/letsencrypt/renewal-hooks/deploy/softether.sh</code></pre>
+<p>Our server negotiates TLS 1.3 with the app on both phones (<code>TLS_AES_256_GCM_SHA384</code> in <code>SessionGet</code>).</p>
+
+<h2 id="services">5. Turn off what the app does not need</h2>
+<pre data-label="vpncmd"><code>KeepDisable
+VpnAzureSetEnable no</code></pre>
+<p>The first stops the keep-alive packets to SoftEther's servers, the second the VPN Azure relay. Neither is used by the app.</p>
+
+<h2 id="hub">6. Virtual Hub and the way out</h2>
+<p>A new server has the Virtual Hub <code>DEFAULT</code>; the app's <strong>Virtual Hub</strong> field defaults to that name. Another hub is one command, and each hub needs a way for its clients to reach the internet. Ours use SecureNAT, SoftEther's built-in DHCP and NAT:</p>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+SecureNatEnable
+HubCreate TEST-HUB /PASSWORD:&lt;HUB_ADMIN_PASSWORD&gt;
+Hub TEST-HUB
+SecureNatEnable</code></pre>
+<p>SecureNAT gives the phone an address from 192.168.30.10 on with the gateway and DNS server 192.168.30.1. Once it runs, <code>SecureNatStatusGet</code> shows <code>Kernel-mode NAT is Active | Yes</code>: SoftEther then forwards the clients' traffic in the kernel. Profiles with <strong>Virtual Hub</strong> set to <code>TEST-HUB</code> connected to the second hub.</p>
+<p>The SoftEther page of the SSTP section describes the other way out, a <a href="../sstp/softether.html#bridge">Local Bridge with Linux NAT</a>.</p>
+
+<h2 id="users">7. Users for each login method</h2>
+<p>The app's <strong>Method</strong> picks how it logs in. Each method needs a user of the matching kind in the hub:</p>
+<table>
+  <thead><tr><th>App method</th><th>User on the server</th></tr></thead>
+  <tbody>
+    <tr><td>Standard Password</td><td>Password authentication</td></tr>
+    <tr><td>RADIUS / NT Domain</td><td>RADIUS authentication (or NT Domain authentication, which only SoftEther on Windows offers; we tested RADIUS)</td></tr>
+    <tr><td>Certificate</td><td>Signed certificate authentication or individual certificate authentication</td></tr>
+    <tr><td>Anonymous</td><td>Anonymous authentication</td></tr>
+  </tbody>
+</table>
+<p>A user of another kind is refused with the app's authentication message, for example a RADIUS user with <strong>Standard Password</strong>, or a password user with <strong>Anonymous</strong>.</p>
+
+<h3 id="password">Standard password</h3>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+UserCreate vpnuser /GROUP:none /REALNAME:none /NOTE:none
+UserPasswordSet vpnuser /PASSWORD:&lt;PASSWORD&gt;</code></pre>
+
+<h3 id="anonymous">Anonymous</h3>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+UserCreate guest /GROUP:none /REALNAME:none /NOTE:none
+UserAnonymousSet guest</code></pre>
+<p>In the app, <strong>Method</strong> Anonymous with the user's name in <strong>Username</strong>; there is no password.</p>
+
+<h3 id="radius">RADIUS</h3>
+<p>Our server checks RADIUS users with FreeRADIUS on the same host, listening only on the loopback address:</p>
+<pre data-label="Server"><code class="language-bash">apt-get install -y freeradius freeradius-utils</code></pre>
+<p>In <code>/etc/freeradius/3.0/clients.conf</code>, set the <code>secret</code> of <code>client localhost</code> to a long random value, &lt;RADIUS_SECRET&gt;. In <code>/etc/freeradius/3.0/sites-available/default</code>, change every <code>ipaddr = *</code> to <code>ipaddr = 127.0.0.1</code> and every <code>ipv6addr = ::</code> to <code>ipv6addr = ::1</code> in its <code>listen</code> sections, so FreeRADIUS answers only on this host: <code>ss -lnup</code> then shows ports 1812 and 1813 on <code>127.0.0.1</code> and <code>::1</code> only. Then add the user at the top of <code>/etc/freeradius/3.0/mods-config/files/authorize</code>:</p>
+<pre data-label="/etc/freeradius/3.0/mods-config/files/authorize (first line)"><code>radiususer	Cleartext-Password := "&lt;RADIUS_USER_PASSWORD&gt;"</code></pre>
+<pre data-label="Server"><code class="language-bash">systemctl restart freeradius
+radtest radiususer '&lt;RADIUS_USER_PASSWORD&gt;' 127.0.0.1 0 '&lt;RADIUS_SECRET&gt;'</code></pre>
+<p><code>radtest</code> answers <code>Received Access-Accept</code>. Then point the hub at it and add the user, whose password stays in FreeRADIUS:</p>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+RadiusServerSet 127.0.0.1:1812 /SECRET:&lt;RADIUS_SECRET&gt; /RETRY_INTERVAL:500
+UserCreate radiususer /GROUP:none /REALNAME:none /NOTE:none
+UserRadiusSet radiususer /ALIAS:none</code></pre>
+<p>Version 4.44 takes the port as part of the address. In the app, <strong>Method</strong> RADIUS / NT Domain sends the password to the server inside TLS, and the server asks FreeRADIUS.</p>
+
+<h3 id="certificates">Certificates</h3>
+<p>Certificate login needs a client certificate with its private key in a <code>.p12</code> file for the phone. This makes a small certificate authority and one client certificate with OpenSSL, on any computer. The last command writes the <code>.p12</code> with the encryption that the iPhone and Android both import:</p>
+<pre data-label="Any computer with OpenSSL"><code class="language-bash">openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.crt -days 3650 -subj "/CN=Example VPN CA" \
+  -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign"
+printf 'basicConstraints=CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=clientAuth\n' &gt; client.ext
+openssl req -newkey rsa:2048 -nodes -keyout vpnuser.key -out vpnuser.csr -subj "/CN=vpnuser"
+openssl x509 -req -in vpnuser.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out vpnuser.crt -days 1825 -extfile client.ext
+openssl pkcs12 -export -inkey vpnuser.key -in vpnuser.crt -certfile ca.crt -name vpnuser -out vpnuser.p12 \
+  -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1</code></pre>
+<p>SoftEther has two kinds of certificate users. Copy <code>ca.crt</code> or <code>vpnuser.crt</code> to the server first.</p>
+<p><strong>Signed certificate</strong>: the hub trusts the certificate authority, and any certificate it signed with the right common name logs in as the user.</p>
+<pre data-label="vpncmd, started in the folder that holds ca.crt (here /root)"><code>Hub DEFAULT
+CAAdd ca.crt
+UserCreate vpnuser /GROUP:none /REALNAME:none /NOTE:none
+UserSignedSet vpnuser /CN:vpnuser /SERIAL:none</code></pre>
+<div class="callout warning">
+  <span class="callout-title">Give CAAdd a relative path</span>
+  <p><code>vpncmd</code> reads a value that starts with <code>/</code> as the name of an option, so <code>CAAdd /root/ca.crt</code> is refused with <em>It is not possible to specify this parameter</em> and adds nothing. Start <code>vpncmd</code> in the folder of the file and give a path relative to it, as above, then check with <code>CAList</code>, which lists the authority under <code>Issued to</code>.</p>
+</div>
+<p><strong>Individual certificate</strong>: the server keeps the user's own certificate.</p>
+<pre data-label="vpncmd"><code>Hub DEFAULT
+UserCreate certuser /GROUP:none /REALNAME:none /NOTE:none
+UserCertSet certuser /LOADCERT:/root/certuser.crt</code></pre>
+<p>A certificate signed by another authority is refused with the app's authentication message.</p>
+
+<h2 id="udp">8. UDP acceleration and NAT traversal</h2>
+<p>Both are on by default on the server: a hub accepts UDP acceleration unless its option <code>DisableUdpAcceleration</code> is set, and the server takes part in NAT traversal unless <code>DisableNatTraversal</code> is set in <code>vpn_server.config</code>. The app uses them only when its switches are on:</p>
+<ul>
+  <li><strong>Enable UDP Acceleration</strong>: after the TLS connection is up, the app and the server also exchange the VPN's packets over UDP. <code>SessionGet</code> then shows <code>UDP Acceleration is Active | Yes</code>.</li>
+  <li><strong>Enable NAT Traversal (NAT-T)</strong>: when the server cannot be reached over TCP, for example behind a NAT without a port forward, the app reaches it over UDP through the NAT-T servers of SoftEther Corporation. <code>SessionGet</code> then shows <code>Physical Underlay Protocol | VPN over UDP with NAT-T (IPv4)</code>. In our test the profile pointed at a TCP port the server does not listen on, and it connected over NAT-T; with the switch off, the same profile was refused.</li>
+</ul>
+
+<h2 id="check">Check the server</h2>
+<pre data-label="vpncmd"><code>ListenerList
+Hub DEFAULT
+UserList
+SessionList
+SessionGet &lt;SESSION_NAME&gt;</code></pre>
+<p>While a phone is connected, <code>SessionList</code> shows its session, and <code>SessionGet</code> its number of TCP connections, UDP acceleration and underlying protocol. With the server's VoIP / QoS function on, the default, a session uses at least two TCP connections even when the profile asks for one. The server's own log files are in <code>/opt/vpnserver/server_log/</code>, each hub's in <code>/opt/vpnserver/security_log/</code>.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>SoftEther VPN</strong>, the server's name in <strong>Server</strong>, 443 in <strong>Port</strong>, the hub in <strong>Virtual Hub</strong>, and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

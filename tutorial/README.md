@@ -1,6 +1,6 @@
 # SRP VPN Connect documentation site
 
-A static site (HTML, CSS and JavaScript, no build step) with the WaterWall guides, and later SSTP. It can be served by GitHub Pages or copied to the app's website as it is.
+A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP and SoftEther VPN guides. It can be served by GitHub Pages or copied to the app's website as it is.
 
 ## Rules for content
 
@@ -20,6 +20,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall guide
 | `waterwall/scenarios/` | One page per tested scenario, generated |
 | `waterwall/android.html` | What differs on Android, and the Android results, generated into its `android:begin` block |
 | `sstp/` | SSTP section (phase 2) |
+| `softether/` | SoftEther VPN section: server, app setup, results, troubleshooting |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
 | `assets/js/site.js` | Header, sidebar, table of contents, search, theme and copy buttons |
@@ -66,6 +67,20 @@ python3 tutorial/tools/android_results.py render --evidence tutorial/evidence/an
 ```
 
 `extract` refuses to write a file that still contains a public IPv4 address, and of a case run more than once it keeps the last file's run. The Android screenshots in `assets/img/waterwall/android/` come from `docs_screenshots.py` in the same tools, with the same example profiles as the iPhone ones.
+
+## SoftEther results and screenshots
+
+The SoftEther runs come from the private test tools in `softether/`: `run_profile_cases.py` on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json`:
+
+```bash
+python3 tutorial/tools/softether_results.py extract --cases <cases-full.json> --ios <results.json files> \
+  --android <results.json files> --replace <server name>=<SERVER_HOST> <server IP>=<SERVER_IP> <proxy IP>=<PROXY_HOST> \
+  --egress <server IP> --date "<day month year>" --iphone "<phone>" --android-device "<phone>" --app "<build>" \
+  --server "<server>" --output tutorial/evidence/softether-<date>.json
+python3 tutorial/tools/softether_results.py render --evidence tutorial/evidence/softether-<date>.json
+```
+
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac. `render` rewrites `softether/results.html` from `tools/softether-results-intro.html`. The iPhone screenshots in `assets/img/softether/` come from the unit test `testSoftEtherDocumentationScreenshotsWhenRequested` with `TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1`, which writes them to `tmp/srp-docs-screenshots-softether` in the app's data container; the Android ones in `assets/img/softether/android/` come from `docs_screenshots_android.py` on the emulator.
 
 ## Checking locally
 

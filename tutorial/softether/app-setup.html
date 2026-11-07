@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — SoftEther — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of a SoftEther VPN profile in SRP VPN Connect on iPhone and Android: server, Virtual Hub, login methods, connections, UDP acceleration, NAT traversal, proxies and options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">A SoftEther VPN profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>SoftEther VPN</strong>. Fill in the fields below and tap <strong>Save</strong>. Save names the first field that is still missing or wrong instead of saving an incomplete profile.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/protocol.png" alt="Protocol screen on iPhone with SoftEther VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SoftEther VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/server.png" alt="Server section on iPhone: Server, Port, Hostname, TLS Server Verification, Virtual Hub, Connections, UDP acceleration, NAT traversal and NAT-T Hint" width="260" loading="lazy">
+    <figcaption>The server section on iPhone, with 4 connections, UDP acceleration and NAT-T on.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/server.png" alt="The lower part of the same section on Android" width="260" loading="lazy">
+    <figcaption>The same section on Android, scrolled to NAT-T.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>The server's DNS name, for example <code>vpn.example.com</code>, or its IP address. The app connects here.</td></tr>
+    <tr><td>Port</td><td>Empty means 443. SoftEther VPN Server also listens on 992 and 5555 by default; all three worked in our tests.</td></tr>
+    <tr><td>Hostname</td><td>Optional. A name to send in the TLS handshake (SNI) and to check the server certificate against, while the connection still goes to <strong>Server</strong>. Use it when <strong>Server</strong> is an IP address and the certificate names the server.</td></tr>
+    <tr><td>TLS Server Verification</td><td>On by default: the app accepts only a certificate that the phone trusts and that is valid for <strong>Hostname</strong>, or for <strong>Server</strong> when Hostname is empty. Off skips that check. See <a href="#certificate-warning">the certificate warning</a>.</td></tr>
+    <tr><td>Virtual Hub</td><td>The hub on the server; empty means <code>DEFAULT</code>.</td></tr>
+    <tr><td>Connections</td><td>1 to 32 TCP connections for one session (default 1). More connections can carry more traffic but use more memory. With the server's VoIP / QoS function on, its default, a session uses at least two. After the first, the app adds one connection per second until it has them all.</td></tr>
+    <tr><td>Enable UDP Acceleration</td><td>Off by default. On: the app and the server also exchange the VPN's packets over UDP when the server accepts it. It is not used through a proxy.</td></tr>
+    <tr><td>Enable NAT Traversal (NAT-T)</td><td>Off by default. On: when the server cannot be reached over TCP, the app reaches it over UDP through the NAT-T servers of SoftEther Corporation, which receive the connection's details. Off: the app never contacts those servers.</td></tr>
+    <tr><td>NAT-T Hint</td><td>Shown when NAT-T is on. Optional: the server's private IP address when several VPN servers share one public address. With a hint the app connects over NAT-T only.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="authentication">Authentication</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/method.png" alt="Authentication method screen on iPhone: Standard Password, RADIUS / NT Domain, Certificate and Anonymous" width="260" loading="lazy">
+    <figcaption>The login methods, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/method.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Method</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Standard Password</td><td>Default. SoftEther's own password login: the password itself never leaves the phone, only a proof of it. The user on the server has password authentication.</td></tr>
+    <tr><td>RADIUS / NT Domain</td><td>Sends the password inside the TLS connection, and the server checks it with its RADIUS server (or a Windows domain, on SoftEther for Windows).</td></tr>
+    <tr><td>Certificate</td><td>Logs in with a client certificate; see <a href="#certificate">Certificate login</a>.</td></tr>
+    <tr><td>Anonymous</td><td>Logs in as a user with anonymous authentication; there is no password.</td></tr>
+  </tbody>
+</table>
+<p><strong>Username</strong> is always needed. <strong>Password</strong> is needed for the first two methods. The method must match the user's kind on the server; otherwise the server refuses the login.</p>
+
+<h3 id="certificate">Certificate login</h3>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/authentication-certificate.png" alt="Authentication section on iPhone with Method Certificate and the Certificate row" width="260" loading="lazy">
+    <figcaption>Method Certificate, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/authentication-certificate.png" alt="The same on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>With <strong>Method</strong> set to <strong>Certificate</strong>, tap <strong>Certificate</strong>, then <strong>Import</strong>, and choose a .p12 or .pfx file that holds the client certificate and its private key. The app asks for the file's passphrase and keeps the certificate in the iPhone's Keychain or, on Android, encrypted with a key in the Android Keystore. Both kinds of certificate users on the server work: a signed certificate, checked against a certificate authority the hub trusts, and an individual certificate, stored on the server (<a href="server.html#certificates">SoftEther VPN Server</a>).</p>
+
+<h2 id="proxy">Proxy</h2>
+<p>The app can reach the server through a proxy. The proxy carries only the connection to the server; the traffic inside the VPN does not use it.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/proxy-manual.png" alt="Proxy section on iPhone in Manual mode with Address, Port, Type, Username and Password" width="260" loading="lazy">
+    <figcaption>Manual proxy, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/proxy-manual.png" alt="Manual proxy on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Mode</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>None</td><td>The app connects to the server directly (default).</td></tr>
+    <tr><td>Manual</td><td>The proxy at <strong>Address</strong> and <strong>Port</strong>, of the <strong>Type</strong> you choose: <strong>HTTP</strong> (an HTTP CONNECT proxy) or <strong>SOCKS5</strong>. <strong>Username</strong> and <strong>Password</strong> are optional and go to the proxy.</td></tr>
+    <tr><td>Auto</td><td>A proxy auto-configuration (PAC) file at <strong>PAC URL</strong>, over http or https. The app runs its <code>FindProxyForURL</code> for the server: <code>PROXY</code> is used as HTTP CONNECT, <code>SOCKS</code> and <code>SOCKS5</code> as SOCKS5, and <code>DIRECT</code> connects directly. When an entry cannot be reached, the app tries the next one. The username and password go to the proxy the script picks.</td></tr>
+  </tbody>
+</table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/proxy-auto.png" alt="Proxy section on iPhone in Auto mode with PAC URL, Username and Password" width="260" loading="lazy">
+    <figcaption>A PAC file, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/proxy-auto.png" alt="The same on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/options.png" alt="Options section on iPhone with TLS Fragmentation set to Manual and its two sizes" width="260" loading="lazy">
+    <figcaption>The options on iPhone, with TLS Fragmentation set to Manual.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>Auto Reconnect (on by default) connects again 2 seconds after a connection that was up is lost, and keeps trying while the server is away. Retry Times limits the failed attempts in a row; empty means no limit. A login the server refused is never retried: the password or certificate must be fixed first. Without Auto Reconnect, a lost connection ends the VPN with <em>Connection lost (auto reconnect is off).</em></td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>On by default: when Wi-Fi appears while the VPN is up, the app moves the connection to it.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the connection while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones, such as connecting, the session, the network settings and errors. <strong>Expert</strong> adds the states the connection goes through and the DHCP and ARP lines of the virtual adapter. <strong>Debug</strong> adds the SoftEther core's own lines, such as each TCP connection it opens. No level writes TLS session secrets. Tap the status under the power button to open the log. On iPhone only Debug builds made with Xcode write the log; TestFlight builds do not.</td></tr>
+    <tr><td>TLS Fragmentation</td><td>Splits the outgoing bytes of the TLS handshake into small TCP writes; the TLS data itself is unchanged. <strong>Auto</strong> sends the first 43 bytes on their own, so that the server name lands in a later write, then 256 bytes per write (128 on cellular) a few milliseconds apart. <strong>Manual</strong> takes <strong>First Chunk</strong> (default 32 bytes) and <strong>Following Chunks</strong> (default 256 bytes).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="certificate-warning">The certificate warning</h2>
+<p>With TLS Server Verification on, the app checks the server's certificate before it connects: it must chain to a root the phone trusts and be valid for the name the app checks. When it is not, the app shows <strong>DANGEROUS!</strong> with each certificate of the chain and what is wrong with it.</p>
+<ul>
+  <li><strong>Continue</strong> connects this once without checking the certificate.</li>
+  <li><strong>Save and Continue</strong> turns TLS Server Verification off in the profile and connects.</li>
+  <li><strong>Cancel</strong> does not connect.</li>
+</ul>
+<p>Connecting to a server's IP address instead of its name brings this warning, because the certificate names the server, not its address. Use the name, or put the name in <strong>Hostname</strong>.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/home.png" alt="Home screen on iPhone with three example SoftEther profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>SoftEther profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the hub has given the phone an address. The row of the profile then shows the time of one request through the tunnel. If it fails, the app shows <strong>Connection Failed</strong> with a reason; <a href="troubleshooting.html">Troubleshooting</a> explains each one.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

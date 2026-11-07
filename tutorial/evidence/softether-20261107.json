@@ -1,0 +1,1346 @@
+{
+ "run": {
+  "date": "7 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the app built from commit 013f04fb, as a Debug build on the iPhone and a debug APK on Android",
+  "server": "SoftEther VPN Server 4.44 Build 9807 on Ubuntu 24.04"
+ },
+ "summary": {
+  "cases": 60,
+  "iphone_passed": 60,
+  "iphone_run": 60,
+  "android_passed": 60,
+  "android_run": 60
+ },
+ "cases": [
+  {
+   "id": "sev-pass-download",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 126.06,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pass-full-duplex",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "2 TCP connections"
+    ],
+    "download_mbps": 5.25,
+    "upload_mbps": 56.39,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 15.0,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pass-upload",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "2 TCP connections"
+    ],
+    "download_mbps": 0.0,
+    "upload_mbps": 61.38,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-radius-download",
+   "settings": [
+    "Method RADIUS / NT Domain"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 130.31,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-anon-download",
+   "settings": [
+    "Method Anonymous"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 123.32,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.4,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-cert-signed-download",
+   "settings": [
+    "Method Certificate (signed certificate user)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 117.91,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-cert-individual-download",
+   "settings": [
+    "Method Certificate (individual certificate user)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 122.61,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-hub-test-hub",
+   "settings": [
+    "Virtual Hub TEST-HUB"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 121.87,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-wrong-password",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method."
+   }
+  },
+  {
+   "id": "sev-wrong-hub",
+   "settings": [
+    "Virtual Hub NO-SUCH-HUB"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Virtual Hub not found. Check the Virtual Hub field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Virtual Hub not found. Check the Virtual Hub field."
+   }
+  },
+  {
+   "id": "sev-radius-user-standard-method",
+   "settings": [
+    "RADIUS user"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method."
+   }
+  },
+  {
+   "id": "sev-radius-wrong-password",
+   "settings": [
+    "Method RADIUS / NT Domain",
+    "wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method."
+   }
+  },
+  {
+   "id": "sev-anon-on-password-user",
+   "settings": [
+    "Method Anonymous",
+    "password user"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method."
+   }
+  },
+  {
+   "id": "sev-cert-rogue-ca",
+   "settings": [
+    "Method Certificate (a certificate from another authority)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username, password and authentication method."
+   }
+  },
+  {
+   "id": "sev-cert-missing",
+   "settings": [
+    "Method Certificate without a certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Certificate authentication requires a client certificate in the profile.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The client certificate could not be read. Re-import it in the profile."
+   }
+  },
+  {
+   "id": "sev-verify-ip-declined",
+   "settings": [
+    "Server is the server's IP address"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "the certificate warning was declined",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "the certificate warning was declined"
+   }
+  },
+  {
+   "id": "sev-verify-ip-accepted",
+   "settings": [
+    "Server is the server's IP address"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the certificate warning was accepted"
+    ],
+    "download_mbps": 125.21,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-hostname-override-ip",
+   "settings": [
+    "Server is the server's IP address",
+    "Hostname <SERVER_HOST>"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 117.89,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-hostname-override-wrong",
+   "settings": [
+    "Hostname a name the certificate is not for"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server certificate name does not match the server. Check the Hostname field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "the certificate warning was declined"
+   }
+  },
+  {
+   "id": "sev-allow-untrusted-ip",
+   "settings": [
+    "Server is the server's IP address",
+    "TLS Server Verification off"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 118.93,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-port-992",
+   "settings": [
+    "Port 992"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 115.7,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-port-5555",
+   "settings": [
+    "Port 5555"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 113.19,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.1,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-port-other-service",
+   "settings": [
+    "Port 22 (the server's SSH answers it)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The TLS handshake with the server failed. Check the Server and Port fields.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The TLS handshake with the server failed. Check the Server and Port fields."
+   }
+  },
+  {
+   "id": "sev-conns-2",
+   "settings": [
+    "Connections 2"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "2 TCP connections"
+    ],
+    "download_mbps": 10.92,
+    "upload_mbps": 54.6,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 14.0,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-conns-8",
+   "settings": [
+    "Connections 8"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "8 TCP connections"
+    ],
+    "download_mbps": 17.45,
+    "upload_mbps": 49.86,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 15.0,
+    "facts": [
+     "8 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-conns-32",
+   "settings": [
+    "Connections 32"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "12 TCP connections"
+    ],
+    "download_mbps": 42.95,
+    "upload_mbps": 40.27,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 16.2,
+    "facts": [
+     "13 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-udp-accel",
+   "settings": [
+    "UDP acceleration on"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "2 TCP connections",
+     "UDP acceleration active"
+    ],
+    "download_mbps": 9.81,
+    "upload_mbps": 49.04,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 13.9,
+    "facts": [
+     "2 TCP connections",
+     "UDP acceleration active"
+    ]
+   }
+  },
+  {
+   "id": "sev-udp-accel-conns-4",
+   "settings": [
+    "Connections 4",
+    "UDP acceleration on"
+   ],
+   "traffic": "download and upload at once, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "4 TCP connections",
+     "UDP acceleration active"
+    ],
+    "download_mbps": 10.29,
+    "upload_mbps": 48.9,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 16.1,
+    "facts": [
+     "4 TCP connections",
+     "UDP acceleration active"
+    ]
+   }
+  },
+  {
+   "id": "sev-natt-closed-tcp-port",
+   "settings": [
+    "Port 5557 (nothing listens on it)",
+    "NAT-T on"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "over NAT-T"
+    ],
+    "download_mbps": 84.51,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "2 TCP connections",
+     "over NAT-T"
+    ]
+   }
+  },
+  {
+   "id": "sev-natt-off-closed-tcp-port",
+   "settings": [
+    "Port 5557 (nothing listens on it)",
+    "NAT-T off"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection."
+   }
+  },
+  {
+   "id": "sev-natt-hint-server",
+   "settings": [
+    "NAT-T on, hint the server's own address"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "over NAT-T"
+    ],
+    "download_mbps": 93.28,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "2 TCP connections",
+     "over NAT-T"
+    ]
+   }
+  },
+  {
+   "id": "sev-natt-hint-wrong",
+   "settings": [
+    "NAT-T on, hint an address no server has"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection."
+   }
+  },
+  {
+   "id": "sev-proxy-http",
+   "settings": [
+    "HTTP proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 114.2,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-proxy-http-auth",
+   "settings": [
+    "HTTP proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 126.62,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-proxy-http-wrong-auth",
+   "settings": [
+    "HTTP proxy with a wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Proxy authentication failed.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Proxy authentication failed."
+   }
+  },
+  {
+   "id": "sev-proxy-socks5",
+   "settings": [
+    "SOCKS5 proxy"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 123.08,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-proxy-socks5-auth",
+   "settings": [
+    "SOCKS5 proxy with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 114.17,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-proxy-socks5-wrong-auth",
+   "settings": [
+    "SOCKS5 proxy with a wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Proxy authentication failed.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Proxy authentication failed."
+   }
+  },
+  {
+   "id": "sev-proxy-unreachable",
+   "settings": [
+    "proxy port nothing listens on"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Cannot connect to the proxy server.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Cannot connect to the proxy server."
+   }
+  },
+  {
+   "id": "sev-pac-http",
+   "settings": [
+    "PAC file: PROXY"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 108.43,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-http-auth",
+   "settings": [
+    "PAC file: PROXY with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 123.59,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-socks5",
+   "settings": [
+    "PAC file: SOCKS5"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 121.35,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-socks",
+   "settings": [
+    "PAC file: SOCKS"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 109.21,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-socks5-auth",
+   "settings": [
+    "PAC file: SOCKS5 with username and password"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 104.77,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-direct",
+   "settings": [
+    "PAC file: DIRECT"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 110.47,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-fallback",
+   "settings": [
+    "PAC file: an unreachable PROXY, then a working one"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 103.96,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-pac-missing",
+   "settings": [
+    "PAC file: a PAC URL that answers 404"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Unable to download PAC configuration",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Unable to download PAC configuration"
+   }
+  },
+  {
+   "id": "sev-frag-off-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Off"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ClientHello sent as 324 bytes"
+    ],
+    "download_mbps": 116.78,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections",
+     "ClientHello sent as 1440 bytes"
+    ]
+   }
+  },
+  {
+   "id": "sev-frag-auto-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ClientHello sent as 43 + 256 + 25 bytes"
+    ],
+    "download_mbps": 112.02,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections",
+     "ClientHello sent as 43 + 256 + 256 + 256 + 256 + 256 + 228 bytes"
+    ]
+   }
+  },
+  {
+   "id": "sev-frag-manual-20-100-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Manual 20/100"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ClientHello sent as 20 + 100 + 100 + 100 + 4 bytes"
+    ],
+    "download_mbps": 112.32,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.1,
+    "facts": [
+     "2 TCP connections",
+     "ClientHello sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 bytes"
+    ]
+   }
+  },
+  {
+   "id": "sev-frag-auto-verified",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 111.52,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-frag-auto-proxy",
+   "settings": [
+    "HTTP proxy",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "download_mbps": 114.65,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.3,
+    "facts": [
+     "2 TCP connections"
+    ]
+   }
+  },
+  {
+   "id": "sev-log-normal",
+   "settings": [
+    "Log Level Normal"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "in the log: the connect line, the session line",
+     "not in the log: the adapter's DHCP line, the core's own lines, TLS secrets"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the session line",
+     "not in the log: the adapter's DHCP line, the core's own lines, TLS secrets"
+    ]
+   }
+  },
+  {
+   "id": "sev-log-expert",
+   "settings": [
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "in the log: the connect line, the adapter's DHCP line",
+     "not in the log: the core's own lines, TLS secrets"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the adapter's DHCP line",
+     "not in the log: the core's own lines, TLS secrets"
+    ]
+   }
+  },
+  {
+   "id": "sev-log-debug",
+   "settings": [
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "in the log: the connect line, the adapter's DHCP line, the core's own lines",
+     "not in the log: TLS secrets"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the adapter's DHCP line, the core's own lines",
+     "not in the log: TLS secrets"
+    ]
+   }
+  },
+  {
+   "id": "sev-life-sleep-modes",
+   "settings": [
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.1 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 4.4 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 4.3 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.5 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "paused at sleep, connected again at wake; transfer passed",
+     "closed at sleep, connected again at wake; transfer passed",
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "sev-life-peer-drop-reconnect",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 5.1 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 2.9 s after the drop; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "sev-life-peer-drop-no-reconnect",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 5.0 s with: Connection lost (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: Connection lost (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "sev-life-retry-exhausted",
+   "settings": [
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "the server was stopped: ended after 27.7 s with: Could not reconnect after 2 attempts. (Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.)"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended after 2 retries with: Could not reconnect after 2 attempts. (Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.)"
+    ]
+   }
+  },
+  {
+   "id": "sev-life-outage-reconnect",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 23.0 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 3.9 s after the server came back, after 1 attempts; transfer passed"
+    ]
+   }
+  }
+ ]
+}

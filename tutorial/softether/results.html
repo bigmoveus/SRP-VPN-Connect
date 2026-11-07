@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Results — SoftEther — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every SoftEther VPN case we ran against SoftEther VPN Server 4.44, with its result on an iPhone and on an Android phone.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Test Results</h1>
+<p class="lead">Every SoftEther VPN case we ran on 7 November 2026, with its result on an iPhone and on an Android phone: 60 of 60 cases passed on the iPhone and 60 of 60 on Android.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">How these tests ran</span>
+  <p>The phones were an iPhone 12 with iOS 27.2 and a Samsung Galaxy A55 with Android 17, with the app built from commit 013f04fb, as a Debug build on the iPhone and a debug APK on Android. The server was SoftEther VPN Server 4.44 Build 9807 on Ubuntu 24.04, set up as <a href="server.html">SoftEther VPN Server</a> describes, with the users of each login method in the hubs <code>DEFAULT</code> and <code>TEST-HUB</code>.</p>
+  <ul>
+    <li><strong>Each case</strong> saved a profile with the settings in its row, connected, and moved the traffic in its row through the tunnel to a test server on the internet. That server logged where each request came from, and every case that moves traffic checked that it came from the VPN server's address, so it went through the tunnel.</li>
+    <li><strong>Traffic.</strong> On the iPhone four 16 MiB transfers at a time ran for the time shown, as downloads, uploads or both. On Android each transfer case moved two 16 MiB downloads, two 16 MiB uploads, or both, and the row shows how long that took.</li>
+    <li><strong>The server's view.</strong> Where a row names TCP connections, UDP acceleration or NAT-T, the server's <code>SessionGet</code> showed it for the phone's session while the case ran. In the cases that set Connections it was read about 10 seconds into the transfer; the app adds one connection per second, so with 32 the server counted fewer at that moment. Where a row shows how the ClientHello was sent, the server recorded the sizes of the phone's first TCP segments to port 443.</li>
+    <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row, or with the certificate warning declined.</li>
+    <li><strong>Log levels.</strong> The cases named <code>sev-log-…</code> read the connection log back and checked its lines: Normal must show the connect and session lines and neither the virtual adapter's DHCP line nor the core's own lines; Expert adds the DHCP line; Debug adds the core's lines; and no level may show a TLS session secret. On the iPhone they ran on a Debug build: we ran <code>sev-log-expert</code> once with a Release build, as TestFlight has, and it connected but did not write the log at all.</li>
+    <li><strong>Proxies.</strong> The proxy cases went through HTTP CONNECT and SOCKS5 proxies and PAC files on a computer in our office network, with and without a username and password.</li>
+    <li><strong>Lifecycle.</strong> The cases named <code>sev-life-…</code> checked On Sleep, a session the server disconnected (<code>SessionDisconnect</code>), the SoftEther service stopped until Retry Times ran out, and the service stopped for 8 seconds and started again. On Android the screen was really turned off; the iPhone's On Sleep case tells the tunnel that the phone slept.</li>
+  </ul>
+</div>
+<!-- provenance:end -->
+
+<h2>How to read the results</h2>
+<table>
+  <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>The case did what its row expects: it connected and moved its traffic through the tunnel, or it was refused with the message shown.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The case did not do what its row expects; the row says what happened.</td></tr>
+    <tr><td><span class="status planned">NOT VERIFIED</span></td><td>The case did not run on that phone.</td></tr>
+  </tbody>
+</table>
+<p>Speeds are averages over the whole transfer on our office line. They show that traffic moved, and are not a benchmark. When both directions ran at once on the iPhone, the uploads took most of the line.</p>
+
+<h2>Not tested in this round</h2>
+<ul>
+  <li><strong>Moving between Wi-Fi and cellular.</strong> Every case ran on Wi-Fi; no test changed the network under a connected tunnel.</li>
+  <li><strong>Real sleep on the iPhone.</strong> The iPhone's On Sleep case tells the tunnel that the phone slept; the phone did not really sleep.</li>
+  <li><strong>IPv6 inside the tunnel.</strong> The hubs' SecureNAT hands out IPv4 addresses only.</li>
+  <li><strong>NT Domain login.</strong> It needs SoftEther VPN Server on Windows; our server runs on Linux, and the RADIUS / NT Domain method was tested with RADIUS.</li>
+</ul>
+
+<h2 id="logins-and-hubs">Logins and hubs</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-pass-download</code></td><td>defaults</td><td>download, 60 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>126.06 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pass-full-duplex</code></td><td>defaults</td><td>download and upload at once, 90 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 5.25 / up 56.39 Mbit/s<br>2 TCP connections</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 15.0 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pass-upload</code></td><td>defaults</td><td>upload, 60 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 0.0 / up 61.38 Mbit/s<br>2 TCP connections</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 8.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-radius-download</code></td><td>Method RADIUS / NT Domain</td><td>download, 30 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>130.31 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-anon-download</code></td><td>Method Anonymous</td><td>download, 30 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>123.32 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 8.4 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-cert-signed-download</code></td><td>Method Certificate (signed certificate user)</td><td>download, 30 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>117.91 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-cert-individual-download</code></td><td>Method Certificate (individual certificate user)</td><td>download, 30 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>122.61 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-hub-test-hub</code></td><td>Virtual Hub TEST-HUB</td><td>download, 30 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>121.87 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-wrong-password</code></td><td>wrong password</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td></tr>
+<tr><td><code>sev-wrong-hub</code></td><td>Virtual Hub NO-SUCH-HUB</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Virtual Hub not found. Check the Virtual Hub field.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Virtual Hub not found. Check the Virtual Hub field.</em></td></tr>
+<tr><td><code>sev-radius-user-standard-method</code></td><td>RADIUS user</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td></tr>
+<tr><td><code>sev-radius-wrong-password</code></td><td>Method RADIUS / NT Domain; wrong password</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td></tr>
+<tr><td><code>sev-anon-on-password-user</code></td><td>Method Anonymous; password user</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td></tr>
+<tr><td><code>sev-cert-rogue-ca</code></td><td>Method Certificate (a certificate from another authority)</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Authentication failed. Check the username, password and authentication method.</em></td></tr>
+<tr><td><code>sev-cert-missing</code></td><td>Method Certificate without a certificate</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Certificate authentication requires a client certificate in the profile.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>The client certificate could not be read. Re-import it in the profile.</em></td></tr>
+</tbody></table></div>
+
+<h2 id="certificate-check-hostname-and-ports">Certificate check, Hostname and ports</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-verify-ip-declined</code></td><td>Server is the server&#x27;s IP address</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>the certificate warning was declined</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>the certificate warning was declined</em></td></tr>
+<tr><td><code>sev-verify-ip-accepted</code></td><td>Server is the server&#x27;s IP address</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>125.21 Mbit/s<br>the certificate warning was accepted</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-hostname-override-ip</code></td><td>Server is the server&#x27;s IP address; Hostname &lt;SERVER_HOST&gt;</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>117.89 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-hostname-override-wrong</code></td><td>Hostname a name the certificate is not for</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>The server certificate name does not match the server. Check the Hostname field.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>the certificate warning was declined</em></td></tr>
+<tr><td><code>sev-allow-untrusted-ip</code></td><td>Server is the server&#x27;s IP address; TLS Server Verification off</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>118.93 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-port-992</code></td><td>Port 992</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>115.7 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-port-5555</code></td><td>Port 5555</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>113.19 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.1 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-port-other-service</code></td><td>Port 22 (the server&#x27;s SSH answers it)</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>The TLS handshake with the server failed. Check the Server and Port fields.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>The TLS handshake with the server failed. Check the Server and Port fields.</em></td></tr>
+</tbody></table></div>
+
+<h2 id="connections-and-udp-acceleration">Connections and UDP acceleration</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-conns-2</code></td><td>Connections 2</td><td>download and upload at once, 40 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 10.92 / up 54.6 Mbit/s<br>2 TCP connections</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 14.0 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-conns-8</code></td><td>Connections 8</td><td>download and upload at once, 40 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 17.45 / up 49.86 Mbit/s<br>8 TCP connections</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 15.0 s<br>8 TCP connections</td></tr>
+<tr><td><code>sev-conns-32</code></td><td>Connections 32</td><td>download and upload at once, 40 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 42.95 / up 40.27 Mbit/s<br>12 TCP connections</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 16.2 s<br>13 TCP connections</td></tr>
+<tr><td><code>sev-udp-accel</code></td><td>UDP acceleration on</td><td>download and upload at once, 40 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 9.81 / up 49.04 Mbit/s<br>2 TCP connections<br>UDP acceleration active</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 13.9 s<br>2 TCP connections<br>UDP acceleration active</td></tr>
+<tr><td><code>sev-udp-accel-conns-4</code></td><td>Connections 4; UDP acceleration on</td><td>download and upload at once, 40 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>down 10.29 / up 48.9 Mbit/s<br>4 TCP connections<br>UDP acceleration active</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 16.1 s<br>4 TCP connections<br>UDP acceleration active</td></tr>
+</tbody></table></div>
+
+<h2 id="nat-traversal">NAT traversal</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-natt-closed-tcp-port</code></td><td>Port 5557 (nothing listens on it); NAT-T on</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>84.51 Mbit/s<br>over NAT-T</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 8.3 s<br>2 TCP connections<br>over NAT-T</td></tr>
+<tr><td><code>sev-natt-off-closed-tcp-port</code></td><td>Port 5557 (nothing listens on it); NAT-T off</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em></td></tr>
+<tr><td><code>sev-natt-hint-server</code></td><td>NAT-T on, hint the server&#x27;s own address</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>93.28 Mbit/s<br>over NAT-T</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 8.3 s<br>2 TCP connections<br>over NAT-T</td></tr>
+<tr><td><code>sev-natt-hint-wrong</code></td><td>NAT-T on, hint an address no server has</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em></td></tr>
+</tbody></table></div>
+
+<h2 id="proxies-and-pac-files">Proxies and PAC files</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-proxy-http</code></td><td>HTTP proxy</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>114.2 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 8.3 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-proxy-http-auth</code></td><td>HTTP proxy with username and password</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>126.62 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-proxy-http-wrong-auth</code></td><td>HTTP proxy with a wrong password</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Proxy authentication failed.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Proxy authentication failed.</em></td></tr>
+<tr><td><code>sev-proxy-socks5</code></td><td>SOCKS5 proxy</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>123.08 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-proxy-socks5-auth</code></td><td>SOCKS5 proxy with username and password</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>114.17 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-proxy-socks5-wrong-auth</code></td><td>SOCKS5 proxy with a wrong password</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Proxy authentication failed.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Proxy authentication failed.</em></td></tr>
+<tr><td><code>sev-proxy-unreachable</code></td><td>proxy port nothing listens on</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot connect to the proxy server.</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Cannot connect to the proxy server.</em></td></tr>
+<tr><td><code>sev-pac-http</code></td><td>PAC file: PROXY</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>108.43 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-http-auth</code></td><td>PAC file: PROXY with username and password</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>123.59 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-socks5</code></td><td>PAC file: SOCKS5</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>121.35 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-socks</code></td><td>PAC file: SOCKS</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>109.21 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-socks5-auth</code></td><td>PAC file: SOCKS5 with username and password</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>104.77 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-direct</code></td><td>PAC file: DIRECT</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>110.47 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-fallback</code></td><td>PAC file: an unreachable PROXY, then a working one</td><td>download, 20 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>103.96 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-pac-missing</code></td><td>PAC file: a PAC URL that answers 404</td><td>connect only</td><td>refused</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Unable to download PAC configuration</em></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br><em>Unable to download PAC configuration</em></td></tr>
+</tbody></table></div>
+
+<h2 id="tls-fragmentation">TLS Fragmentation</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-frag-off-capture</code></td><td>TLS Server Verification off; TLS Fragmentation Off</td><td>download, 15 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>116.78 Mbit/s<br>ClientHello sent as 324 bytes</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections<br>ClientHello sent as 1440 bytes</td></tr>
+<tr><td><code>sev-frag-auto-capture</code></td><td>TLS Server Verification off; TLS Fragmentation Auto</td><td>download, 15 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>112.02 Mbit/s<br>ClientHello sent as 43 + 256 + 25 bytes</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections<br>ClientHello sent as 43 + 256 + 256 + 256 + 256 + 256 + 228 bytes</td></tr>
+<tr><td><code>sev-frag-manual-20-100-capture</code></td><td>TLS Server Verification off; TLS Fragmentation Manual 20/100</td><td>download, 15 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>112.32 Mbit/s<br>ClientHello sent as 20 + 100 + 100 + 100 + 4 bytes</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 6.1 s<br>2 TCP connections<br>ClientHello sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 bytes</td></tr>
+<tr><td><code>sev-frag-auto-verified</code></td><td>TLS Fragmentation Auto</td><td>download, 15 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>111.52 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.2 s<br>2 TCP connections</td></tr>
+<tr><td><code>sev-frag-auto-proxy</code></td><td>HTTP proxy; TLS Fragmentation Auto</td><td>download, 15 s</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>114.65 Mbit/s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>transfer 7.3 s<br>2 TCP connections</td></tr>
+</tbody></table></div>
+
+<h2 id="log-levels">Log levels</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-log-normal</code></td><td>Log Level Normal</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the session line<br>not in the log: the adapter&#x27;s DHCP line, the core&#x27;s own lines, TLS secrets</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the session line<br>not in the log: the adapter&#x27;s DHCP line, the core&#x27;s own lines, TLS secrets</td></tr>
+<tr><td><code>sev-log-expert</code></td><td>Log Level Expert</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the adapter&#x27;s DHCP line<br>not in the log: the core&#x27;s own lines, TLS secrets</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the adapter&#x27;s DHCP line<br>not in the log: the core&#x27;s own lines, TLS secrets</td></tr>
+<tr><td><code>sev-log-debug</code></td><td>Log Level Debug</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the adapter&#x27;s DHCP line, the core&#x27;s own lines<br>not in the log: TLS secrets</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>in the log: the connect line, the adapter&#x27;s DHCP line, the core&#x27;s own lines<br>not in the log: TLS secrets</td></tr>
+</tbody></table></div>
+
+<h2 id="sleep-lost-connections-and-retry-times">Sleep, lost connections and Retry Times</h2>
+<div class="table-scroll"><table>
+<thead><tr><th>Case</th><th>Settings</th><th>Traffic</th><th>Expected</th><th>iPhone</th><th>Android</th></tr></thead>
+<tbody>
+<tr><td><code>sev-life-sleep-modes</code></td><td>On Sleep Stay, Pause and Off, and Off with Auto Reconnect off</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>On Sleep Stay, Auto Reconnect on: connected again after 3.1 s<br>On Sleep Pause, Auto Reconnect off: connected again after 4.4 s<br>On Sleep Off, Auto Reconnect on: connected again after 4.3 s<br>On Sleep Off, Auto Reconnect off: ended after 3.5 s with: The connection was closed while the device slept.</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>stayed connected through 10 s of sleep; transfer after wake passed<br>paused at sleep, connected again at wake; transfer passed<br>closed at sleep, connected again at wake; transfer passed<br>ended at wake: The connection was closed while the device slept.</td></tr>
+<tr><td><code>sev-life-peer-drop-reconnect</code></td><td>Auto Reconnect on</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>connected again after 5.1 s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>connected again 2.9 s after the drop; transfer passed</td></tr>
+<tr><td><code>sev-life-peer-drop-no-reconnect</code></td><td>Auto Reconnect off</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>ended after 5.0 s with: Connection lost (auto reconnect is off).</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>ended with: Connection lost (auto reconnect is off).</td></tr>
+<tr><td><code>sev-life-retry-exhausted</code></td><td>Auto Reconnect on; Retry Times 2</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>the server was stopped: ended after 27.7 s with: Could not reconnect after 2 attempts. (Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.)</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>ended after 2 retries with: Could not reconnect after 2 attempts. (Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.)</td></tr>
+<tr><td><code>sev-life-outage-reconnect</code></td><td>Auto Reconnect on</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>connected again after 23.0 s</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>connected again 3.9 s after the server came back, after 1 attempts; transfer passed</td></tr>
+</tbody></table></div>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
