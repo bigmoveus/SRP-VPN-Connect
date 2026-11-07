@@ -779,7 +779,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if (section == 1 && [self isOpenConnect]) {
-        return @"AnyConnect (e.g. ocserv) or F5 BIG-IP APM. The server certificate is verified against the Server hostname. F5 BIG-IP is supported on firmware with the classic login flow.";
+        return @"AnyConnect (for example ocserv), F5 BIG-IP or Palo Alto GlobalProtect. With TLS Server Verification on, the server certificate must be valid for the Server name.";
     }
     if (section == 1 && [self isSSH]) {
         return @"SSH tunnel (direct TCP forwarding). Host Key pins the server's SSH fingerprint (OpenSSH \"SHA256:...\" form); leave empty to accept any key. UDP Relay uses the administrator-installed HEV service on the server (no extra credentials).";
@@ -846,7 +846,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"SoftEther always requires TLS 1.2 or later.";
     }
     if (section == 4 && [self isOpenConnect]) {
-        return @"OpenConnect always uses TLS 1.2 or later; DTLS (UDP) is used when the server supports it.";
+        return @"Auto Reconnect resumes the same session when the connection breaks; Retry Times limits the attempts (empty = as long as the server keeps the session, then new logins). Off: the VPN disconnects with the reason. OpenConnect always uses TLS 1.2 or later; DTLS (UDP) is used when the server supports it.";
     }
     if (section == 4 && [self isSSH]) {
         return @"SSH transport is encrypted by the SSH session itself. UDP uses the HEV relay over an SSH channel (reliable stream — media quality depends on the network).";

@@ -3488,8 +3488,9 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     return [when isKindOfClass:NSDate.class] && [when compare:date] != NSOrderedAscending ? lastError[@"message"] : nil;
 }
 
-// Recovery of any protocol: SRP_LIFECYCLE_STEP is sleep-modes, peer-drop or retry-exhausted. The last
-// two log a marker on which the harness breaks the server side (ends the session, stops the server).
+// Recovery of any protocol: SRP_LIFECYCLE_STEP is sleep-modes, peer-drop, retry-exhausted or path-switch (SSL VPN).
+// peer-drop and retry-exhausted log a marker on which the harness breaks the server side (ends the session, stops the
+// server); path-switch logs one before it moves the session to the network path again.
 - (void)testProfileLiveLifecycleWhenConfigured {
 #if DEBUG
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
@@ -3523,6 +3524,11 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                 [NSThread sleepForTimeInterval:3];
                 [self waterWallProviderCommand:@"wake" manager:manager];
                 resumes = model.onSleep != 0 || model.autoReconnect;
+            } else if ([step isEqualToString:@"path-switch"]) {
+                // What Switch to Wi-Fi does when Wi-Fi appears, without changing the phone's network
+                NSLog(@"SRP path switch test ready");
+                [self waterWallProviderCommand:@"path-switch" manager:manager];
+                resumes = YES;
             } else {
                 NSLog(@"SRP peer-failure test ready");
                 [NSThread sleepForTimeInterval:5];
@@ -5389,6 +5395,83 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionTop animated:NO];
     shoot(nil, @"proxy-auto");
     edited.proxyMode = 0;
+    edited.tlsFragMode = 2;
+    [editorTable reloadData];
+    [self scrollTableToEnd:editorTable];
+    shoot(nil, @"options");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+// The SSL VPN screens of the tutorial (tutorial/sslvpn/app-setup.html), rendered from the real editor.
+- (void)testSslVpnDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-sslvpn"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    NodeModel *(^profile)(NSString *) = ^NodeModel *(NSString *description) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"openconnect" toModel:model];
+        model.desc = description;
+        model.server = @"vpn.example.com";
+        model.port = @"443";
+        model.username = @"vpnuser";
+        model.password = @"example-password";
+        return model;
+    };
+    NodeModel *password = profile(@"Example: AnyConnect (password)");
+    NodeModel *certificate = profile(@"Example: AnyConnect with a certificate");
+    certificate.authMethod = @"certificate";
+    certificate.certName = @"vpnuser";
+    NodeModel *otherPort = profile(@"Example: AnyConnect on port 8443");
+    otherPort.port = @"8443";
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[password, certificate, otherPort]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    CreateVC *create = [self profileEditorHostForModel:password saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+    shoot(create, @"profile-editor");
+    [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:password] animated:NO];
+    shoot(nil, @"protocol");
+    [navigation popToRootViewControllerAnimated:NO];
+    [navigation pushViewController:[[NSClassFromString(@"SRPOCServerTypeViewController") alloc] initWithNodeModel:password] animated:NO];
+    shoot(nil, @"server-type");
+    [navigation popToRootViewControllerAnimated:NO];
+    [navigation pushViewController:[[NSClassFromString(@"SRPMethodViewController") alloc] initWithNodeModel:password] animated:NO];
+    shoot(nil, @"method");
+    [navigation popToRootViewControllerAnimated:NO];
+
+    // The editor works on its own copy of the profile
+    NodeModel *edited = [navigation.topViewController valueForKey:@"modal"];
+    edited.authMethod = @"certificate";
+    edited.certName = @"vpnuser";
+    [editorTable reloadData];
+    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:NO];
+    shoot(nil, @"authentication-certificate");
+    edited.authMethod = @"password";
     edited.tlsFragMode = 2;
     [editorTable reloadData];
     [self scrollTableToEnd:editorTable];

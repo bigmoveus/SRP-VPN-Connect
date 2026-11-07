@@ -39,9 +39,10 @@ typedef void(^SRPOCDisconnectedCallback)(void);
 /// ON = verify the server certificate against the system trust store.
 @property (nonatomic) BOOL tlsServerVerification;
 
-/// TLS write splitting of the initial flight (ClientHello): 0 = Off
-/// (default), 1 = Manual (tlsFragFirst/tlsFragFollowing bytes), 2 = Auto
-/// (computed from the access network; same policy as the SSTP channel)
+/// TLS write splitting of the initial flight (ClientHello), in the profile's
+/// numbering (SSFragModeFromProfileValue): 0 = Off (default), 1 = Auto
+/// (computed from the access network; same policy as the SSTP channel),
+/// 2 = Manual (tlsFragFirst/tlsFragFollowing bytes)
 @property (nonatomic) NSInteger tlsFragMode;
 @property (nonatomic) NSInteger tlsFragFirst;
 @property (nonatomic) NSInteger tlsFragFollowing;
@@ -69,6 +70,9 @@ typedef void(^SRPOCDisconnectedCallback)(void);
 
 - (void)pauseForSleep;
 - (void)wakeFromSleep;
+
+/// Moves the running session to the current network path (what Switch to Wi-Fi does when Wi-Fi appears).
+- (void)switchNetworkPath;
 
 @end
 

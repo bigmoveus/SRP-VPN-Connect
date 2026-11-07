@@ -6,6 +6,17 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The SoftEther and SSTP documentation name TestFlight build 36, the first with this round's SoftEther changes and the iPhone's SSTP log.
+- SSL VPN on iPhone: Auto Reconnect resumes the same session with its cookie when the connection breaks, as the AnyConnect protocol intends, and Retry Times now limits those attempts (empty: as long as the server keeps the session, then new logins). Before, the library tried for five minutes whatever the profile said, and Retry Times and Auto Reconnect off only counted after that. Switch to Wi-Fi moves the running session to the new network instead of logging in again, which left the old session open on the server.
+- SSL VPN on iPhone: failed logins name their cause instead of one message for all: a name that cannot be found, no connection on the port, a port that does not answer with TLS, a server with only TLS 1.1 or older, a failed TLS handshake (a refused client certificate, or an address the server blocks), and a server that does not speak the chosen Server Type, such as an ocserv with camouflage on.
+- SSL VPN on iPhone: the editor's footers name all three server types, no longer promise untested F5 firmware, and say what Auto Reconnect and Retry Times do.
+
+### Fixed
+- SSL VPN on iPhone: the tunnel extension kept every packet it received in memory until the session ended, so about 16 MB of download reached iOS's 50 MB limit for VPN extensions and the system ended the VPN. Each packet is now released at once. The extension's internal packet channel held about three packets (4 KB), so packets were dropped in both directions under load; it now holds 2 MB, and the downloads of our tests ran at about 180 Mbit/s.
+- SSL VPN on iPhone: TLS Fragmentation's Auto and Manual were swapped, so Auto split nothing and Manual ignored the chosen sizes.
+- SSL VPN on iPhone: a connection that ended for good after it was up (a server that ended the session with Auto Reconnect off, Retry Times used up, or On Sleep Off without Auto Reconnect) left the VPN on without a tunnel; it now ends with its reason, as SSTP and SoftEther do. A reconnect whose login failed ended the VPN even with Retry Times left; it now counts as one attempt.
+- SSL VPN on iPhone: closing or sleeping during a login could free the session while the login still used it, and the end of an older session could take down a newer one after a network switch; each session now runs and ends on its own, and a close cancels a login at once. One file descriptor leaked per session.
+- SSL VPN on iPhone Release builds (TestFlight): no connection log was written; it now is, with `OpenConnect: closing with reason:` naming why the app gave up, as for SSTP and SoftEther.
+- SSL VPN on iPhone: the Debug log level wrote the value of the server's context cookie (ocserv's `webvpncontext`), a session token; cookie values are now written as `<elided>`. The client certificate's private key, written to a file for the library, stayed there after the session; it is now readable by the extension alone and removed when the session ends.
 
 ## 1.2.0 (36) - 2026-11-07
 

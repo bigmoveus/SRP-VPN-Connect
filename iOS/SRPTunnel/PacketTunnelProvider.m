@@ -314,6 +314,9 @@ static uint64_t SRPFootprintBytes(void);
 #pragma mark - OpenConnect (AnyConnect) VPN Protocol
 
 -(void)startOpenConnectWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
+#if !DEBUG
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
+#endif
     [SRPOpenConnectClient initializeCore];
 
     SRPOpenConnectClient *oc = [[SRPOpenConnectClient alloc] init];
@@ -326,18 +329,6 @@ static uint64_t SRPFootprintBytes(void);
     oc.tlsFragMode = [v[@"tls_frag"] integerValue];
     oc.tlsFragFirst = [v[@"tls_frag_first"] integerValue];
     oc.tlsFragFollowing = [v[@"tls_frag_following"] integerValue];
-
-    // Client certificate (optional): unwrap the .p12 from the shared Keychain
-    if ([v[@"cert_auth"] boolValue] && [v[@"cert_ref"] length] > 0) {
-        NSString *certPass = nil;
-        NSData *p12 = [SRPKeychain certificateForKey:v[@"cert_ref"] passphrase:&certPass];
-        if (p12 == nil) {
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The client certificate could not be read. Re-import it in the profile."}]);
-            return;
-        }
-        oc.clientCertP12 = p12;
-        oc.clientCertPassphrase = certPass;
-    }
 
     // OPTIONS section
     oc.autoReconnect = v[@"auto_reconnect"] ? [v[@"auto_reconnect"] boolValue] : YES;
@@ -370,6 +361,19 @@ static uint64_t SRPFootprintBytes(void);
         completionHandler(e);
     };
 
+    // Client certificate (optional): unwrap the .p12 from the shared Keychain. Every way out of the start, this
+    // early one too, leaves its reason where the app shows it
+    if ([v[@"cert_auth"] boolValue] && [v[@"cert_ref"] length] > 0) {
+        NSString *certPass = nil;
+        NSData *p12 = [SRPKeychain certificateForKey:v[@"cert_ref"] passphrase:&certPass];
+        if (p12 == nil) {
+            finish([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The client certificate could not be read. Re-import it in the profile."}]);
+            return;
+        }
+        oc.clientCertP12 = p12;
+        oc.clientCertPassphrase = certPass;
+    }
+
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"Connection timed out. The server did not respond."}]);
     });
@@ -383,6 +387,11 @@ static uint64_t SRPFootprintBytes(void);
     } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
         SSLogM(@"OpenConnect: applying settings addr=%@ dns=%@ mtu=%@",
                setting.IPv4Settings.addresses, setting.DNSSettings.servers, setting.MTU);
+        if (finished) {
+            // A reconnect's settings: apply them; the packet read loop already runs (one per tunnel)
+            [weakSelf setTunnelNetworkSettings:setting completionHandler:nil];
+            return;
+        }
         [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
             if (e) {
                 SSLogE(@"OpenConnect: setTunnelNetworkSettings failed: %@", e);
@@ -393,7 +402,14 @@ static uint64_t SRPFootprintBytes(void);
             finish(nil);
         }];
     } connectedCallback:nil disconnectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"OpenConnect connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"OpenConnect connection failed"}];
+        if (finished) {
+            // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel (as SSTP)
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
@@ -1292,7 +1308,7 @@ static void SRPTunnelLogOpen(void) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
 
 #if DEBUG
-    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther), from their start methods.
+    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo before logging
@@ -1433,6 +1449,12 @@ static void SRPTunnelLogOpen(void) {
         }
         if ([command isEqualToString:@"wake"]) {
             [self wake];
+            completionHandler(messageData);
+            return;
+        }
+        if ([command isEqualToString:@"path-switch"]) {
+            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN), without changing the phone's network
+            [self.ocClient switchNetworkPath];
             completionHandler(messageData);
             return;
         }
