@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (37) - 2026-11-07
+
 ### Added
 - SSL VPN in the Android app, from the iOS app's OpenConnect 9.21 core with upstream's JNI binding (`LibOpenConnect`), its own libxml2 2.15.4 (`iOS/OpenConnect/build_libxml2_android.sh`, checked against the published SHA-256) and the SoftEther core's OpenSSL 3.5 (`iOS/OpenConnect/build_openconnect_android.sh`): the same profile fields and defaults as on iOS, that is Server Type AnyConnect, F5 BIG-IP or Palo Alto GlobalProtect, Server, Port, TLS Server Verification with the certificate warning, password or certificate login, Auto Reconnect resuming the same session, Retry Times, Switch to Wi-Fi moving the session, On Sleep, Log Level with the server's cookies hidden, and TLS Fragmentation; the same message for each kind of failed login; split-tunnel routes (and excluded ranges from Android 13); and the home screen's ping, through a packet channel between the library and the tunnel. The tunnel comes up as soon as the server has sent the addresses, without waiting for DTLS. IPv4 only. F5 BIG-IP and GlobalProtect use the same core but were not tested against real servers.
 
