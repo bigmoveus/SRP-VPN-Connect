@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The SSL VPN documentation names TestFlight build 38, the first with the Path field.
+
 ## 1.2.0 (38) - 2026-11-07
 
 ### Added
