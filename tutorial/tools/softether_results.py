@@ -128,7 +128,8 @@ def session_facts(result):
 LOG_WORDS = {"SoftEther connecting to": "the connect line", "SoftEther: session established": "the session line",
              "SoftEther: negotiation": "the connection steps", "[se] DHCP bound": "the adapter's DHCP line",
              "SessionConnect() Started": "the core's own lines", "SSL_KEYLOG": "TLS secrets", "_SECRET ": "TLS secrets",
-             "CLIENT_RANDOM": "TLS secrets"}
+             "CLIENT_RANDOM": "TLS secrets",
+             "SoftEther: closing with reason: Authentication failed": "the reason the app closed the connection"}
 
 
 def log_facts(result):

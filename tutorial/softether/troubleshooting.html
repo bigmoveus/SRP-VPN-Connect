@@ -20,7 +20,7 @@
 
 <h2 id="first-checks">First checks</h2>
 <ol>
-  <li><strong>Open the log.</strong> Tap the status text under the power button. On iPhone only Debug builds made with Xcode write the log; TestFlight builds do not. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again: Expert adds the states the connection goes through and the virtual adapter's DHCP and ARP lines, and Debug adds the SoftEther core's own lines, such as each TCP connection it opens.</li>
+  <li><strong>Open the log.</strong> Tap the status text under the power button. When the app gave up on a connection, the line starting with <code>SoftEther: closing with reason:</code> names the reason. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again: Expert adds the states the connection goes through and the virtual adapter's DHCP and ARP lines, and Debug adds the SoftEther core's own lines, such as each TCP connection it opens.</li>
   <li><strong>Is the server listening?</strong> From a computer, <code>openssl s_client -connect &lt;SERVER_HOST&gt;:443 -servername &lt;SERVER_HOST&gt;</code> must show the server's certificate. If it does not, check the server's firewall and that SoftEther VPN Server runs (<code>ListenerList</code> in <code>vpncmd</code>).</li>
   <li><strong>Does the name match the certificate?</strong> The app checks the certificate against <strong>Hostname</strong>, or against <strong>Server</strong> when Hostname is empty.</li>
   <li><strong>Does the method match the user?</strong> The login method in the profile must match the user's kind on the server; see <a href="server.html#users">Users for each login method</a>.</li>

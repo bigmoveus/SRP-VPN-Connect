@@ -3,7 +3,7 @@
   "date": "7 November 2026",
   "iphone": "an iPhone 12 with iOS 27.2",
   "android": "a Samsung Galaxy A55 with Android 17",
-  "app": "the app built from commit 013f04fb, as a Debug build on the iPhone and a debug APK on Android",
+  "app": "the app built from commit 013f04fb, as a Debug build on the iPhone and a debug APK on Android; the iPhone's rows of the log cases and sev-wrong-password come from a Release build of commit 7708f7a3, the kind TestFlight ships",
   "server": "SoftEther VPN Server 4.44 Build 9807 on Ubuntu 24.04"
  },
  "summary": {
@@ -197,14 +197,20 @@
    "expect": "fail",
    "iphone": {
     "status": "passed",
-    "facts": [],
+    "facts": [
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: TLS secrets"
+    ],
     "message": "Authentication failed. Check the username, password and authentication method.",
     "through_server": null
    },
    "android": {
     "status": "passed",
     "transfer_s": null,
-    "facts": [],
+    "facts": [
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: TLS secrets"
+    ],
     "message": "Authentication failed. Check the username, password and authentication method."
    }
   },
