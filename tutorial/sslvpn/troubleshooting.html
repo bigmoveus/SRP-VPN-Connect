@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each message of an SSL VPN profile means and what to do about it, and how to look at the server side with occtl.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">What the app's messages for an SSL VPN profile mean, what to do about each, and where to look on the server.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Each message below is the one the app showed in the case named beside it, on the iPhone and on Android, against our ocserv test server; see <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="messages">Messages while connecting</h2>
+<p>The app shows these in the <em>Connection Failed</em> alert, and writes them to its log after <em>closing with reason:</em>.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Authentication failed. Check the username and password.</em></td><td>The server refused the login: a wrong password, a user it does not have, or, on the iPhone, <strong>Method</strong> Certificate with no certificate imported (<code>ocv-wrong-password</code>, <code>ocv-wrong-user</code>, <code>ocv-cert-missing</code>).</td><td>Check the Username and Password. On the server, <code>ocpasswd -c /etc/ocserv/ocpasswd &lt;user&gt;</code> sets the password again. The app does not send a refused password again, so a wrong one ends the attempt at once.</td></tr>
+    <tr><td><em>The server name could not be found. Check the Server field.</em></td><td>The name in <strong>Server</strong> did not resolve (<code>ocv-host-unknown</code>).</td><td>Check the name for typos, and that it resolves on the phone's network.</td></tr>
+    <tr><td><em>Cannot connect to the server on this port. Check the Server and Port fields and the network.</em></td><td>Nothing accepted a TCP connection on that port: a wrong Port, ocserv not running, or a firewall on the way (<code>ocv-port-closed</code>).</td><td>Check <strong>Port</strong> (ocserv's <code>tcp-port</code>, 443 by default). On the server, <code>systemctl status ocserv</code> and <code>ss -lntp | grep ocserv</code>.</td></tr>
+    <tr><td><em>The server did not answer with TLS on this port. Check the Port field.</em></td><td>Another service answers that port, here the server's SSH (<code>ocv-port-other-service</code>).</td><td>Use ocserv's port.</td></tr>
+    <tr><td><em>The server offers only TLS 1.1 or older; the app needs TLS 1.2 or later.</em></td><td>The server's TLS is too old for the app (<code>ocv-server-tls11-only</code>).</td><td>Allow TLS 1.2 on the server. ocserv on Ubuntu 24.04 cannot even offer TLS 1.1.</td></tr>
+    <tr><td><em>The TLS handshake with the server failed. The server may refuse the client certificate, or block this address for a while after wrong passwords.</em></td><td>The server ended the handshake. We saw it for a client certificate from an authority the server does not trust (<code>ocv-cert-rogue-ca</code>), and while ocserv's ban blocked the phone's address (<code>ocv-server-ban</code>).</td><td>With <strong>Method</strong> Certificate, import a certificate signed by the authority in ocserv's <code>ca-cert</code>. Otherwise see <a href="#ban">Blocked address</a>.</td></tr>
+    <tr><td><em>The server did not answer as an AnyConnect server. Check the Server Type and the Server field.</em> (or <em>as an F5 BIG-IP server</em>, <em>as a GlobalProtect server</em>)</td><td>The server answered, but not as the chosen <strong>Server Type</strong>: F5 or GlobalProtect chosen for an AnyConnect server (<code>ocv-type-f5-on-anyconnect</code>, <code>ocv-type-gp-on-anyconnect</code>), or an ocserv with <code>camouflage</code> on, which hides itself from anyone without its secret: the profile's <strong>Path</strong> was empty (<code>ocv-server-camouflage</code>) or held a wrong secret (<code>ocv-path-camouflage-wrong-secret</code>).</td><td>Choose the server's type. For an ocserv with camouflage, enter <code>?</code> and its <code>camouflage_secret</code> in <strong>Path</strong>.</td></tr>
+    <tr><td><em>The client certificate could not be read. Re-import it in the profile.</em></td><td>On Android, <strong>Method</strong> Certificate with no certificate the app can read (<code>ocv-cert-missing</code>).</td><td>Import the <code>.p12</code> file again under <strong>Certificate</strong>.</td></tr>
+    <tr><td><em>Could not connect after 2 attempts. (…)</em></td><td>With <strong>Auto Reconnect</strong> on and <strong>Retry Times</strong> set, the first connection failed that many times; the reason follows in brackets (<code>ocv-retry-before-connect</code>).</td><td>The reason in brackets says what to fix.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="later">Messages after the VPN was up</h2>
+<p>These end a VPN that was connected. The app keeps the reason; its log names it after <em>closing with reason:</em>.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Connection lost (auto reconnect is off).</em></td><td>The connection to the server broke, and Auto Reconnect is off (<code>ocv-life-reset-no-reconnect</code>).</td><td>Turn Auto Reconnect on: the app then resumes the same session.</td></tr>
+    <tr><td><em>The server ended the session (auto reconnect is off).</em></td><td>The server ended the session, for example with <code>occtl disconnect user</code> (<code>ocv-life-server-ends-no-reconnect</code>).</td><td>With Auto Reconnect on the app logs in again.</td></tr>
+    <tr><td><em>Could not reconnect after 2 attempts.</em></td><td>The connection broke, and the server did not answer within the attempts that Retry Times allows (<code>ocv-life-retry-exhausted</code>, with ocserv stopped).</td><td>Leave Retry Times empty to keep trying, and check the server.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> Off closed the connection when the phone slept, and Auto Reconnect is off, so nothing connected it again (<code>ocv-life-sleep-modes</code>).</td><td>Use On Sleep Pause or Stay, or turn Auto Reconnect on.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="ban">Blocked address</h2>
+<p>ocserv counts points for each address that connects, and more for each wrong password. Above <code>max-ban-score</code> it refuses the address until <code>ban-reset-time</code> has passed; the app then reports a failed TLS handshake. On the server:</p>
+<pre data-label="Server"><code class="language-bash">occtl show ip bans
+occtl show ip ban points
+occtl unban ip &lt;ADDRESS&gt;</code></pre>
+<p>The address is the phone's public address as the server sees it; with several phones behind one office router they share it, and one user's wrong passwords can block the others.</p>
+
+<h2 id="slow">Connected, but slow</h2>
+<ul>
+  <li><strong>No DTLS.</strong> When UDP to the server's <code>udp-port</code> is blocked, the app carries everything over TLS. It still works (<code>ocv-tls-only-download</code>); on the server, <code>occtl show user &lt;user&gt;</code> shows no <code>DTLS cipher</code> line for such a session. Open UDP 443 for DTLS.</li>
+</ul>
+
+<h2 id="server-side">Looking at the server</h2>
+<pre data-label="Server"><code class="language-bash">occtl show status
+occtl show users
+occtl show user &lt;user&gt;
+journalctl -u ocserv --since "10 min ago"</code></pre>
+<p><code>occtl show user</code> shows the session's address, routes, DNS servers, the TLS suite and, under <code>DTLS cipher</code>, whether the data travels over DTLS. The journal shows each login, the reason a session ended, and refused connections.</p>
+
+<h2 id="log">The app's log</h2>
+<p>Set <strong>Log Level</strong> to Expert to see OpenConnect's own progress lines and the routes the server sent, or Debug for the server's headers. The values of the server's cookies are hidden as <code>&lt;elided&gt;</code> at every level, and no level writes the password or TLS secrets. <a href="app-setup.html#log">Setting up the app</a> says where the log is.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

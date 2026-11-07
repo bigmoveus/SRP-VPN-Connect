@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="SSL VPN in SRP VPN Connect on iPhone and Android: AnyConnect, F5 BIG-IP and Palo Alto GlobalProtect servers, how a connection works, the server, the app's settings and the test results.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SSL VPN</h1>
+<p class="lead">SSL VPN profiles speak Cisco's AnyConnect protocol, which ocserv, the open-source OpenConnect server, also serves, and the protocols of F5 BIG-IP and Palo Alto GlobalProtect. SRP VPN Connect speaks all three with the same OpenConnect client core (9.21) on iPhone and Android.</p>
+
+<h2>How an SSL VPN connection works</h2>
+<ol>
+  <li><strong>TCP and TLS.</strong> The app opens a TLS connection to the server, on port 443 unless the profile names another. With TLS Server Verification on, the server's certificate must be trusted by the phone and issued for the server's name.</li>
+  <li><strong>Login.</strong> The server sends its login form; the app fills in the profile's username and password, or presents its client certificate during the TLS handshake. The server answers with a session cookie.</li>
+  <li><strong>The tunnel.</strong> With the cookie, the app opens the tunnel over TLS. The server gives it an address, DNS servers and the routes that go through the tunnel: everything, or only some networks.</li>
+  <li><strong>DTLS.</strong> When the server also offers DTLS on UDP, the VPN's packets travel over it, which suits them better than TCP. When UDP does not get through, everything stays on the TLS connection.</li>
+  <li><strong>Keeping the session.</strong> If the connection breaks, or the phone moves to Wi-Fi, the app resumes the same session with its cookie, so it keeps its address without a new login.</li>
+</ol>
+
+<h2 id="server-types">Server types</h2>
+<ul>
+  <li><strong>AnyConnect</strong>: tested on both phones against ocserv 1.2.4, the AnyConnect server Ubuntu 24.04 ships. Every result in <a href="results.html">Test results</a> is from it.</li>
+  <li><strong>F5 BIG-IP</strong> and <strong>Palo Alto GlobalProtect</strong>: the same core speaks them, on both phones, but we had no F5 or Palo Alto server to test against. Treat them as untested.</li>
+</ul>
+
+<h2>Where to start</h2>
+<ol>
+  <li>Set up the server: <a href="server.html">ocserv (AnyConnect server)</a> installs and sets up ocserv on Ubuntu, with password and certificate users and a split-tunnel group.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. TestFlight build 37 is the first with this round's SSL VPN changes. The <strong>Path</strong> field, for an ocserv with camouflage, came after it in commit <code>ec77a882</code> and needs a later build. Our tests ran build 37's code (commit <code>23ec28b1</code>) on the iPhone and commit <code>4aae66d7</code> on Android, and the Path cases on <code>ec77a882</code> on both.</li>
+  <li>Add an SSL VPN profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>The server settings that matter to the app, and what each profile field does: <a href="configuration.html">Configuration Reference</a>.</li>
+  <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
+</ol>
+
+<h2>What was tested</h2>
+<p><a href="results.html">Test results</a> lists every case we ran against our ocserv, with its result on an iPhone and on an Android phone: transfers over DTLS and over TLS alone, password and certificate logins and their refusals, the certificate check, other ports and wrong server names, a Server Type the server does not speak, TLS 1.3, DTLS without PSK, compression, a split-tunnel group, ocserv's ban and camouflage, a server with only TLS 1.1, TLS Fragmentation, the log levels, and what happens on sleep, when the server ends the session or resets the connection, when the phone switches networks, when the server is away for a while and when Retry Times runs out.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

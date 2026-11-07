@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="The ocserv settings that matter to the app's SSL VPN profiles, what each profile field does on the wire, and the settings the app always uses.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">The server settings that change what the app's SSL VPN profiles do, what each field of a profile does on the wire, and the settings the app always uses. <a href="server.html">ocserv</a> builds the server this page refers to; <a href="results.html">Test results</a> has the case behind each statement.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every server setting below was tested by changing it on our ocserv 1.2.4 test server, connecting both phones, and reading the session back with <code>occtl</code>; the case names in the tables are the rows of <a href="results.html">Test results</a>. Settings this page describes without a case were left as the package sets them.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="server">Server settings (ocserv.conf)</h2>
+<p>ocserv reads <code>/etc/ocserv/ocserv.conf</code> when it starts; after a change, <code>systemctl restart ocserv</code>, which ends the sessions that are open. A user's group file in <code>config-per-group</code> replaces the routes for the users of that group.</p>
+
+<h3 id="logins">Logins</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>auth = "plain[passwd=/etc/ocserv/ocpasswd]"</code></td><td>Users and hashed passwords from the file <code>ocpasswd</code> writes. The app answers the server's login form with the profile's <strong>Username</strong> and <strong>Password</strong>. A wrong password or an unknown user ends with <em>Authentication failed. Check the username and password.</em></td><td><code>ocv-pass-download</code>, <code>ocv-wrong-password</code>, <code>ocv-wrong-user</code></td></tr>
+    <tr><td><code>enable-auth = "certificate"</code><br><code>ca-cert = /etc/ocserv/client-ca.pem</code><br><code>cert-user-oid = 2.5.4.3</code></td><td>A client certificate signed by the authority in <code>ca-cert</code> is enough on its own; the user is the certificate's common name, whatever the profile's <strong>Username</strong> says. A certificate from another authority fails the TLS handshake. With <strong>Method</strong> Certificate and no certificate imported the server asks for a password, and the login fails.</td><td><code>ocv-cert-download</code>, <code>ocv-cert-other-username</code>, <code>ocv-cert-rogue-ca</code>, <code>ocv-cert-missing</code></td></tr>
+    <tr><td><code>max-ban-score = 80</code><br><code>ban-reset-time = 1200</code></td><td>Points for every connection and more for every wrong password; an address above the limit is refused until the points reset. The app sees the TLS handshake end and says so. For our other cases we set <code>max-ban-score = 0</code>, so that the cases with wrong passwords would not block our address.</td><td><code>ocv-server-ban</code></td></tr>
+    <tr><td><code>camouflage = true</code><br><code>camouflage_secret = …</code></td><td>ocserv answers only requests that carry the secret in the URL, as <code>https://vpn.example.com/?secret</code>. Enter <code>?</code> and the secret in the profile's <strong>Path</strong>. Without the secret, or with a wrong one, the app says <em>The server did not answer as an AnyConnect server.</em> The connection log shows only the secret's length.</td><td><code>ocv-path-camouflage</code>, <code>ocv-path-camouflage-log</code>, <code>ocv-path-camouflage-reset-resume</code>, <code>ocv-path-camouflage-wrong-secret</code>, <code>ocv-server-camouflage</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="transport">TLS and DTLS</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>tcp-port = 443</code></td><td>The TLS connection: the login and, when there is no DTLS, the VPN's packets. The profile's <strong>Port</strong> is this port, or one the server forwards to it.</td><td><code>ocv-port-8443</code></td></tr>
+    <tr><td><code>udp-port = 443</code></td><td>DTLS over UDP. When it is reachable the VPN's packets go over DTLS; when UDP is blocked on the way, everything goes over the TLS connection and the app connects all the same.</td><td><code>ocv-pass-download</code>, <code>ocv-tls-only-download</code>, <code>ocv-tls-only-full-duplex</code></td></tr>
+    <tr><td><code>tls-priorities = "NORMAL:%SERVER_PRECEDENCE:%COMPAT:-VERS-SSL3.0:-VERS-TLS1.0:-VERS-TLS1.1:-VERS-TLS1.3"</code></td><td>The package's default allows only TLS 1.2. Without <code>-VERS-TLS1.3</code> the app and the server use TLS 1.3. A server that offers only TLS 1.1 or older is refused: <em>The server offers only TLS 1.1 or older; the app needs TLS 1.2 or later.</em> On Ubuntu 24.04 ocserv cannot offer TLS 1.0 or 1.1 at all, because the system's GnuTLS turns them off; that case used another TLS server.</td><td><code>ocv-server-tls13</code>, <code>ocv-server-tls11-only</code></td></tr>
+    <tr><td><code>dtls-psk = true</code> (the default)</td><td>DTLS 1.2 keyed from the TLS session (PSK); <code>occtl show user</code> shows <code>(DTLS1.2)-(PSK)-(AES-256-GCM)</code>. With <code>dtls-psk = false</code> it showed <code>(DTLS1.2)-(ECDHE-RSA)-(AES-256-GCM)</code>, and the app's traffic went over DTLS just as well.</td><td><code>ocv-pass-download</code>, <code>ocv-server-dtls-no-psk</code></td></tr>
+    <tr><td><code>compression = true</code></td><td>The server compresses the VPN's packets with LZS, which the app accepts (<em>selected DTLS compression method lzs</em> in the server's log).</td><td><code>ocv-server-compression</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="network">Addresses, DNS and routes</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>ipv4-network = 10.83.0.0/24</code></td><td>The phone's tunnel address; with <code>predictable-ips = true</code> a user gets the same address again.</td><td>every connect case</td></tr>
+    <tr><td><code>dns = 1.1.1.1</code></td><td>The phone's DNS servers while the VPN is on.</td><td>every connect case</td></tr>
+    <tr><td><code>route = default</code></td><td>All the phone's IPv4 traffic goes through the tunnel.</td><td>every connect case</td></tr>
+    <tr><td><code>route = 203.0.113.0/24</code> in a group file</td><td>Only these ranges go through the tunnel (split tunnel). The app shows them in its log at Expert and Debug: <em>routes through the tunnel: …</em>.</td><td><code>ocv-split-group</code></td></tr>
+    <tr><td><code>no-route = …</code></td><td>Ranges that stay outside the tunnel. iOS applies them; Android does from version 13. Not part of our tests.</td><td></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="sessions">Sessions</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>cookie-timeout = 300</code></td><td>How long the server keeps a session whose connection broke. Within it the app resumes the same session (same address, no new login) when the connection breaks or the phone moves to another network; the server's log shows <em>temporarily closing session</em> and then the same session again. Our resumes happened within seconds.</td><td><code>ocv-life-reset-resume</code>, <code>ocv-life-path-switch</code></td></tr>
+    <tr><td><code>occtl disconnect user …</code></td><td>Ends the session on the server. With Auto Reconnect on, the app logs in again; with it off, the VPN ends with <em>The server ended the session (auto reconnect is off).</em></td><td><code>ocv-life-server-ends-reconnect</code>, <code>ocv-life-server-ends-no-reconnect</code></td></tr>
+    <tr><td><code>max-same-clients = 2</code></td><td>How many sessions one user may have at once. Left as the package sets it.</td><td></td></tr>
+    <tr><td><code>dpd = 90</code></td><td>How often each side checks that the other is still there. The server suggested 90 seconds to the app (<em>suggesting DPD of 90 secs</em> in its log). Left as the package sets it.</td><td>every connect case</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="profile">What each profile field does</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Field</th><th>On the wire</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Server Type</strong></td><td>The protocol: AnyConnect, F5 BIG-IP or Palo Alto GlobalProtect, all spoken by the same OpenConnect core (9.21). A type the server does not speak ends with <em>The server did not answer as … server.</em> Only AnyConnect was tested against a real server.</td></tr>
+    <tr><td><strong>Server</strong>, <strong>Port</strong></td><td>The app connects to <code>https://Server:Port/</code>. An empty Port is 443.</td></tr>
+    <tr><td><strong>TLS Server Verification</strong></td><td>On: the server's certificate must chain to a root the phone trusts and be issued for the Server name. Before connecting, the app checks the certificate itself and shows a warning that can be accepted once. Off: any certificate is accepted.</td></tr>
+    <tr><td><strong>Method</strong>, <strong>Username</strong>, <strong>Password</strong> / <strong>Certificate</strong></td><td>Password: the app fills the server's login form; it answers a form at most three times and does not send a refused password again. Certificate: the app presents the imported client certificate during the TLS handshake.</td></tr>
+    <tr><td><strong>Auto Reconnect</strong>, <strong>Retry Times</strong></td><td>When the connection breaks, the app resumes the same session with its cookie: at once, then after waits of 2, 4, 6 … seconds. With Auto Reconnect on and Retry Times empty it keeps trying as long as the server keeps the session, and then logs in again. With Retry Times <em>n</em> it tries <em>n</em> times and then ends the VPN with <em>Could not reconnect after n attempts.</em> Before the first connection, Retry Times also repeats a failed login (<em>Could not connect after n attempts.</em>). With Auto Reconnect off a broken connection ends the VPN with <em>Connection lost (auto reconnect is off).</em></td></tr>
+    <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>When Wi-Fi appears, the app moves the running session to it: the connections close and the session resumes over Wi-Fi, without a new login.</td></tr>
+    <tr><td><strong>On Sleep</strong></td><td>Stay keeps the connection while the phone sleeps. Pause closes it and connects again on wake. Off closes it; on wake the app connects again only with Auto Reconnect on, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr><td><strong>Log Level</strong></td><td>Normal: the app's own milestones and OpenConnect's errors. Expert adds OpenConnect's progress lines and the routes. Debug adds the server's headers; the values of the server's cookies are written as <code>&lt;elided&gt;</code> at every level.</td></tr>
+    <tr><td><strong>TLS Fragmentation</strong></td><td>Splits the TLS ClientHello into several TCP writes; the TLS stream itself is unchanged. Auto: 43 bytes, then 256 bytes 3 ms apart (128 bytes, 10 ms apart, on cellular). Manual: First Chunk, then Following Chunks (32 and 256 when empty).</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="always">Settings the app always uses</h2>
+<ul>
+  <li>The app's user agent is <code>SRP VPN Connect v9.21</code> (<code>occtl show user</code> shows it), and it names its platform <code>apple-ios</code> on iPhone and <code>android</code> on Android.</li>
+  <li>It gives DTLS 60 seconds to start; until then, and whenever DTLS is not up, the packets go over TLS.</li>
+  <li>For GlobalProtect it does not use ESP (UDP); the tunnel runs over TLS.</li>
+  <li>The Android app routes IPv4 only: when the server also gives an IPv6 address, the log says so and the address is not used.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of an SSL VPN profile in SRP VPN Connect on iPhone and Android: server type, server, certificate check, password or certificate login, and the options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">An SSL VPN profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>SSL VPN</strong>. Fill in the fields below and tap <strong>Save</strong>. Save names the first field that is still missing instead of saving an incomplete profile: <em>Enter the server address.</em>, <em>Enter the username.</em>, <em>Enter the password.</em> or <em>Import a client certificate.</em></p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/protocol.png" alt="Protocol screen on iPhone with SSL VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSL VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/profile-editor.png" alt="Profile editor on iPhone: Server Type, Server, Port, Path and TLS Server Verification, then Method, Username and Password" width="260" loading="lazy">
+    <figcaption>A new SSL VPN profile on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server Type</td><td><strong>AnyConnect</strong> (default) for a Cisco AnyConnect server or ocserv, <strong>F5 BIG-IP</strong>, or <strong>Palo Alto GP</strong> for GlobalProtect. It must match the server: a server that speaks another protocol is refused with <em>The server did not answer as … server.</em> We tested AnyConnect only; see <a href="index.html#server-types">Server types</a>.</td></tr>
+    <tr><td>Server</td><td>The server's DNS name, for example <code>vpn.example.com</code>, or its IP address. An address pasted whole, such as <code>https://vpn.example.com:8443/?secret</code>, is split on Save: the port goes to <strong>Port</strong> and the rest to <strong>Path</strong>.</td></tr>
+    <tr><td>Port</td><td>Empty means 443, ocserv's default. Any port that reaches the server's TLS port works; our tests also used 8443, which the server forwarded to 443.</td></tr>
+    <tr><td>Path</td><td>Empty for most servers. What follows the server in its address: for an ocserv with <code>camouflage</code>, a question mark and the server's secret, for example <code>?secret</code> (see <a href="configuration.html#logins">Configuration Reference</a>). The connection log shows only the secret's length.</td></tr>
+    <tr><td>TLS Server Verification</td><td>On by default: the app accepts only a certificate that the phone trusts and that is valid for <strong>Server</strong>. Off skips that check. See <a href="#certificate-warning">the certificate warning</a>.</td></tr>
+  </tbody>
+</table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/server-type.png" alt="Server Type screen on iPhone: AnyConnect, F5 BIG-IP and Palo Alto GP" width="260" loading="lazy">
+    <figcaption>The server types, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/server-type.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="authentication">Authentication</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/method.png" alt="Method screen on iPhone: Password and Certificate" width="260" loading="lazy">
+    <figcaption>The login methods, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/method.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Method</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Password</td><td>Default. The app answers the server's login form with <strong>Username</strong> and <strong>Password</strong>, inside the TLS connection. A refused password is not sent again.</td></tr>
+    <tr><td>Certificate</td><td>Logs in with a client certificate; see <a href="#certificate">Certificate login</a>.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="certificate">Certificate login</h3>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/authentication-certificate.png" alt="Authentication section on iPhone with Method Certificate and the Certificate row" width="260" loading="lazy">
+    <figcaption>Method Certificate, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/authentication-certificate.png" alt="The same on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>With <strong>Method</strong> set to <strong>Certificate</strong>, tap <strong>Certificate</strong>, then <strong>Import</strong>, and choose a .p12 or .pfx file that holds the client certificate and its private key. The app asks for the file's passphrase and keeps the certificate in the iPhone's Keychain or, on Android, encrypted with a key in the Android Keystore. The app presents the certificate in the TLS handshake. ocserv takes the user from the certificate, so <strong>Username</strong> does not change who logs in (<a href="server.html#certificates">ocserv</a> makes such a certificate).</p>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/options.png" alt="Options section on iPhone with TLS Fragmentation set to Manual and its two sizes" width="260" loading="lazy">
+    <figcaption>The options on iPhone, with TLS Fragmentation set to Manual.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>Auto Reconnect (on by default): when the connection breaks, the app resumes the same session with its cookie, at once and then after waits of 2, 4, 6 … seconds; when the server ends the session, it logs in again. Retry Times limits the attempts; empty means as long as the server keeps the session, and then new logins. A login the server refused is never retried. Before the first connection, Retry Times also repeats a failed login. Without Auto Reconnect, a broken connection ends the VPN with <em>Connection lost (auto reconnect is off).</em></td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>On by default: when Wi-Fi appears while the VPN is up, the app moves the session to it, without a new login.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the connection while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones, such as connecting, the session and the network settings, and OpenConnect's errors. <strong>Expert</strong> adds OpenConnect's progress lines and the routes the server sent. <strong>Debug</strong> adds the server's headers. The values of the server's cookies show as <code>&lt;elided&gt;</code>, and no level writes the password or TLS secrets. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>OpenConnect: closing with reason:</code> names the reason.</td></tr>
+    <tr><td>TLS Fragmentation</td><td>Splits the outgoing bytes of the TLS handshake into small TCP writes; the TLS data itself is unchanged. <strong>Auto</strong> sends the first 43 bytes on their own, so that the server name lands in a later write, then 256 bytes per write (128 on cellular) a few milliseconds apart. <strong>Manual</strong> takes <strong>First Chunk</strong> (default 32 bytes) and <strong>Following Chunks</strong> (default 256 bytes).</td></tr>
+  </tbody>
+</table>
+<p>An SSL VPN profile has no proxy setting: the app always connects to the server directly.</p>
+
+<h2 id="certificate-warning">The certificate warning</h2>
+<p>With TLS Server Verification on, the app checks the server's certificate before it connects: it must chain to a root the phone trusts and be valid for <strong>Server</strong>. When it is not, the app shows <strong>DANGEROUS!</strong> with each certificate of the chain and what is wrong with it.</p>
+<ul>
+  <li><strong>Continue</strong> connects this once without checking the certificate.</li>
+  <li><strong>Save and Continue</strong> turns TLS Server Verification off in the profile and connects.</li>
+  <li><strong>Cancel</strong> does not connect.</li>
+</ul>
+<p>Connecting to a server's IP address instead of its name brings this warning, because the certificate names the server, not its address. Use the name.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/home.png" alt="Home screen on iPhone with three example SSL VPN profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>SSL VPN profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the server has given the phone its address. The row of the profile then shows the time of one request through the tunnel. If it fails, the app shows <strong>Connection Failed</strong> with a reason; <a href="troubleshooting.html">Troubleshooting</a> explains each one.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

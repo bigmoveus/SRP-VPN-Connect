@@ -40,5 +40,16 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'softether/troubleshooting.html' }
     ]
   },
+  {
+    title: 'SSL VPN',
+    children: [
+      { title: 'Introduction', href: 'sslvpn/index.html' },
+      { title: 'ocserv (AnyConnect Server)', href: 'sslvpn/server.html' },
+      { title: 'Setting Up the App', href: 'sslvpn/app-setup.html' },
+      { title: 'Configuration Reference', href: 'sslvpn/configuration.html' },
+      { title: 'Test Results', href: 'sslvpn/results.html' },
+      { title: 'Troubleshooting', href: 'sslvpn/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ocserv (AnyConnect Server) — SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Install and set up ocserv, the AnyConnect-compatible OpenConnect server, on Ubuntu for the app's SSL VPN profiles: certificate, password and certificate users, split tunnel, NAT.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>ocserv (AnyConnect server)</h1>
+<p class="lead">ocserv, the OpenConnect server, speaks the AnyConnect protocol that the app's SSL VPN profiles use with <strong>Server Type</strong> AnyConnect. This page installs it on Ubuntu and sets it up for every way the app logs in: a trusted certificate, password users, certificate users, a split-tunnel group, and the forwarding that takes the phones' traffic to the internet.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>We ran these steps on our test server, Ubuntu 24.04 with 2 vCPUs and 2 GB of memory, on 7 November 2026, after removing the ocserv that was there, and read every setting back from the server. The phones' results named on this page come from the runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu server with a public IPv4 address.</li>
+  <li>A DNS name for it, such as <code>vpn.example.com</code>, for the certificate.</li>
+  <li>TCP port 443 open for the TLS connection, UDP port 443 for DTLS, and TCP port 80 while Let's Encrypt issues and renews the certificate. Without UDP 443 the app still connects and carries everything over TLS.</li>
+</ul>
+
+<h2 id="install">1. Install ocserv</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt-get update
+apt-get install -y ocserv</code></pre>
+<p>Ubuntu 24.04 installs ocserv 1.2.4. Its service starts at once and stops again with <em>the 'server-cert' and 'server-key' configuration options must be specified</em>: the sample configuration has no certificate yet. The next steps give it one.</p>
+
+<h2 id="certificate">2. Certificate</h2>
+<p>With <strong>TLS Server Verification</strong> on, the app's default, the server needs a certificate the phone trusts for the name in the profile. Ours comes from Let's Encrypt, with certbot in standalone mode:</p>
+<pre data-label="Server — replace &lt;SERVER_HOST&gt; with your domain"><code class="language-bash">apt-get install -y certbot
+certbot certonly --standalone -d &lt;SERVER_HOST&gt;</code></pre>
+<p>Certbot gives an ECDSA key by default, and the app accepts it on both phones (<code>occtl</code> showed <code>(TLS1.2)-(ECDHE-SECP256R1)-(ECDSA-SHA256)-(AES-256-GCM)</code>). Certbot renews the certificate by itself; this hook makes ocserv load each renewed one:</p>
+<pre data-label="/etc/letsencrypt/renewal-hooks/deploy/ocserv.sh"><code class="language-bash">#!/bin/sh
+systemctl reload ocserv</code></pre>
+<pre data-label="Server"><code class="language-bash">chmod 755 /etc/letsencrypt/renewal-hooks/deploy/ocserv.sh
+certbot renew --dry-run</code></pre>
+<p>The dry run ends with <em>Congratulations, all simulated renewals succeeded</em> when port 80 is reachable.</p>
+
+<h2 id="config">3. The configuration file</h2>
+<p>Replace <code>/etc/ocserv/ocserv.conf</code> with this file. It keeps the package's defaults for everything the app does not depend on; the <a href="configuration.html">Configuration Reference</a> explains each line that matters to the app, and what our tests showed when we changed it.</p>
+<pre data-label="/etc/ocserv/ocserv.conf — replace &lt;SERVER_HOST&gt;"><code># Password users in /etc/ocserv/ocpasswd; a client certificate signed by client-ca.pem is enough on its own
+auth = "plain[passwd=/etc/ocserv/ocpasswd]"
+enable-auth = "certificate"
+tcp-port = 443
+udp-port = 443
+run-as-user = ocserv
+run-as-group = ocserv
+socket-file = /run/ocserv-socket
+chroot-dir = /var/lib/ocserv
+isolate-workers = true
+server-cert = /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/fullchain.pem
+server-key = /etc/letsencrypt/live/&lt;SERVER_HOST&gt;/privkey.pem
+ca-cert = /etc/ocserv/client-ca.pem
+cert-user-oid = 2.5.4.3
+max-clients = 16
+max-same-clients = 2
+rate-limit-ms = 100
+server-stats-reset-time = 604800
+keepalive = 32400
+dpd = 90
+mobile-dpd = 1800
+switch-to-tcp-timeout = 25
+try-mtu-discovery = false
+tls-priorities = "NORMAL:%SERVER_PRECEDENCE:%COMPAT:-VERS-SSL3.0:-VERS-TLS1.0:-VERS-TLS1.1:-VERS-TLS1.3"
+auth-timeout = 240
+min-reauth-time = 300
+max-ban-score = 80
+ban-reset-time = 1200
+cookie-timeout = 300
+deny-roaming = false
+rekey-time = 172800
+rekey-method = ssl
+use-occtl = true
+pid-file = /run/ocserv.pid
+log-level = 2
+device = vpns
+predictable-ips = true
+ipv4-network = 10.83.0.0/24
+dns = 1.1.1.1
+dns = 8.8.8.8
+ping-leases = false
+route = default
+config-per-group = /etc/ocserv/config-per-group/
+cisco-client-compat = true
+dtls-legacy = true
+client-bypass-protocol = false</code></pre>
+<p>The phones get an address from 10.83.0.0/24, the DNS servers 1.1.1.1 and 8.8.8.8, and the default route, so all their IPv4 traffic goes through the tunnel. <code>ca-cert</code> must name a file that exists before ocserv starts; step 5 makes it. If you do not want certificate logins, leave out <code>enable-auth</code>, <code>ca-cert</code> and <code>cert-user-oid</code>.</p>
+
+<h2 id="users">4. Password users</h2>
+<pre data-label="Server"><code class="language-bash">ocpasswd -c /etc/ocserv/ocpasswd vpnuser</code></pre>
+<p><code>ocpasswd</code> asks for the password twice and writes the user with a hashed password. In the app this is <strong>Method</strong> Password with the user's name and password. A wrong password or an unknown user is refused with the app's authentication message.</p>
+
+<h2 id="certificates">5. Certificate users</h2>
+<p>Certificate login needs a client certificate with its private key in a <code>.p12</code> file for the phone, signed by a certificate authority that ocserv trusts. This makes a small authority and one client certificate with OpenSSL; we ran the same commands with OpenSSL 3.0 on the server and 4.0 on a Mac. The last command writes the <code>.p12</code> with the encryption that the iPhone and Android both import:</p>
+<pre data-label="Any computer with OpenSSL"><code class="language-bash">openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.crt -days 3650 -subj "/CN=Example VPN CA" \
+  -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign"
+printf 'basicConstraints=CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=clientAuth\n' &gt; client.ext
+openssl req -newkey rsa:2048 -nodes -keyout vpnuser.key -out vpnuser.csr -subj "/CN=vpnuser"
+openssl x509 -req -in vpnuser.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out vpnuser.crt -days 1825 -extfile client.ext
+openssl pkcs12 -export -inkey vpnuser.key -in vpnuser.crt -certfile ca.crt -name vpnuser -out vpnuser.p12 \
+  -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1</code></pre>
+<p>Copy <code>ca.crt</code> to the server as <code>/etc/ocserv/client-ca.pem</code>. Keep <code>ca.key</code> off the server. With <code>cert-user-oid = 2.5.4.3</code>, ocserv takes the user's name from the certificate's common name (<code>CN=vpnuser</code>); the user needs no entry in <code>ocpasswd</code>, and the <strong>Username</strong> of the app's profile does not change who logs in. A certificate signed by another authority does not log in.</p>
+
+<h2 id="split">6. A split-tunnel group (optional)</h2>
+<p>A user can belong to a group whose own file replaces the routes. With these lines only the named ranges go through the tunnel and everything else keeps using the phone's own network:</p>
+<pre data-label="/etc/ocserv/config-per-group/split"><code>route = 203.0.113.0/24
+route = 1.1.1.1/32
+route = 8.8.8.8/32</code></pre>
+<pre data-label="Server"><code class="language-bash">ocpasswd -c /etc/ocserv/ocpasswd -g split splituser</code></pre>
+<p>Route the DNS servers through the tunnel as well, as above: the phone keeps using the server's <code>dns</code> lines. The app shows the routes it received in its log at the Expert and Debug levels (<em>routes through the tunnel: …</em>).</p>
+
+<h2 id="nat">7. Forwarding and NAT</h2>
+<p>ocserv hands the phones' packets to Linux; forwarding and a NAT rule take them to the internet. Use the name of the server's outgoing interface (<code>ip route show default</code> shows it; ours is <code>ens160</code>):</p>
+<pre data-label="Server — replace &lt;INTERFACE&gt;"><code class="language-bash">echo 'net.ipv4.ip_forward = 1' &gt; /etc/sysctl.d/60-ocserv.conf
+sysctl -p /etc/sysctl.d/60-ocserv.conf
+iptables -t nat -A POSTROUTING -s 10.83.0.0/24 -o &lt;INTERFACE&gt; -j MASQUERADE
+apt-get install -y iptables-persistent
+netfilter-persistent save</code></pre>
+<p>If a firewall such as ufw is active on your server, also allow TCP 443, UDP 443 and TCP 80 in it. Our server has no firewall of its own.</p>
+
+<h2 id="start">8. Start and check</h2>
+<pre data-label="Server"><code class="language-bash">systemctl restart ocserv
+systemctl enable ocserv
+occtl show status
+ss -lntup | grep ocserv</code></pre>
+<p><code>ss</code> shows ocserv on TCP 443 and UDP 443. While a phone is connected:</p>
+<pre data-label="Server"><code class="language-bash">occtl show users
+occtl show user vpnuser</code></pre>
+<p><code>occtl show user</code> shows the phone's tunnel address, its routes and DNS servers, the TLS suite, and under <code>DTLS cipher</code> whether the data travels over DTLS (UDP). The server's log is in the journal: <code>journalctl -u ocserv</code>. To end a user's session: <code>occtl disconnect user vpnuser</code>.</p>
+
+<h2 id="ban">Wrong passwords block the address for a while</h2>
+<p>ocserv scores each address: points for every connection and more for every wrong password. An address whose score passes <code>max-ban-score</code> (80 above) is refused until its score is reset, <code>ban-reset-time</code> seconds later. While it is blocked the app cannot tell this from a server it cannot reach; see <a href="troubleshooting.html">Troubleshooting</a>. <code>occtl show ip bans</code> lists the blocked addresses, and <code>occtl unban ip &lt;ADDRESS&gt;</code> lets one in again. Keep the ban on for a server on the internet; set <code>max-ban-score = 0</code> only for testing.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>SSL VPN</strong>, <strong>Server Type</strong> AnyConnect, the server's name in <strong>Server</strong>, 443 in <strong>Port</strong>, and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

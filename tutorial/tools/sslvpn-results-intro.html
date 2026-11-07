@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Results — SSL VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every SSL VPN case we ran against ocserv, the AnyConnect server, with its result on an iPhone and on an Android phone.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Test Results</h1>
+<p class="lead">Every SSL VPN case we ran on {date}, with its result on an iPhone and on an Android phone: {iphone_passed} of {iphone_run} cases passed on the iPhone and {android_passed} of {android_run} on Android.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">How these tests ran</span>
+  <p>The phones were {iphone} and {android}, with {app}. The server was {server}, set up as <a href="server.html">ocserv (AnyConnect server)</a> describes, with the profiles' Server Type AnyConnect unless a row says otherwise.</p>
+  <ul>
+    <li><strong>Each case</strong> saved a profile with the settings in its row, connected, and moved the traffic in its row through the tunnel to a test server on the internet. That server logged where each request came from, and every case that moves traffic checked that it came from the VPN server's address, so it went through the tunnel.</li>
+    <li><strong>Traffic.</strong> On the iPhone four 16 MiB transfers at a time ran for the time shown, as downloads, uploads or both. On Android each transfer case moved two 16 MiB downloads, two 16 MiB uploads, or both, and the row shows how long that took.</li>
+    <li><strong>The server's view.</strong> While a case ran, <code>occtl show user</code> read the phone's session on the server: its TLS version, and whether the VPN's packets went over DTLS (and which kind) or over TLS alone. Where a row shows how the ClientHello was sent, the server recorded the sizes of the phone's first TCP segments to port 443.</li>
+    <li><strong>Server settings.</strong> A row that names a server setting changed that one setting in <code>ocserv.conf</code> for the case, restarted ocserv, and put the setting back afterwards. Our server ran with <code>max-ban-score = 0</code> for every other case, so that the cases with wrong passwords would not block our address.</li>
+    <li><strong>Path.</strong> The cases named <code>ocv-path-…</code> turned on ocserv's <code>camouflage</code> with a secret for the case and put <code>?</code> and the secret, or a wrong one, in the profile's Path. They ran on a later commit than the other cases, the one that adds Path, on both phones.</li>
+    <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row, or with the certificate warning declined.</li>
+    <li><strong>Log levels.</strong> The cases named <code>ocv-log-…</code> read the connection log back and checked its lines: Normal must show the connect and session lines and none of OpenConnect's progress lines; Expert adds those and the routes; Debug adds the server's headers, with the server's cookies written as <code>&lt;elided&gt;</code>; and no level may show a TLS or DTLS secret. <code>ocv-wrong-password</code> also checked that the log names the reason the app closed the connection. On the iPhone these four cases ran on a Release build, the kind TestFlight ships, as well as on the Debug build.</li>
+    <li><strong>Lifecycle.</strong> The cases named <code>ocv-life-…</code> checked On Sleep; a session the server ended (<code>occtl disconnect user</code>); a TCP connection the server reset while it kept the session (<code>ss -K</code>); a switch to a new network path; ocserv stopped until Retry Times ran out; and ocserv stopped for 8 seconds and started again. On Android the screen was really turned off and Wi-Fi was really switched off and on; on the iPhone the On Sleep case tells the tunnel that the phone slept, and the network case makes the tunnel move its session as it does when Wi-Fi appears.</li>
+  </ul>
+</div>
+<!-- provenance:end -->
+
+<h2>How to read the results</h2>
+<table>
+  <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>The case did what its row expects: it connected and moved its traffic through the tunnel, or it was refused with the message shown.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The case did not do what its row expects; the row says what happened.</td></tr>
+    <tr><td><span class="status planned">NOT VERIFIED</span></td><td>The case did not run on that phone.</td></tr>
+  </tbody>
+</table>
+<p>Speeds are averages over the whole transfer on our office line. They show that traffic moved, and are not a benchmark. When both directions ran at once on the iPhone, the downloads took most of the line.</p>
+
+<h2>Not tested in this round</h2>
+<ul>
+  <li><strong>F5 BIG-IP and Palo Alto GlobalProtect servers.</strong> We had none; those Server Types were only tried against our AnyConnect server, which refuses them.</li>
+  <li><strong>Cisco's own AnyConnect servers.</strong> Every AnyConnect case ran against ocserv.</li>
+  <li><strong>Moving between Wi-Fi and cellular on the iPhone.</strong> The iPhone's network case makes the tunnel move its session without a real change of network.</li>
+  <li><strong>Real sleep on the iPhone.</strong> The iPhone's On Sleep case tells the tunnel that the phone slept; the phone did not really sleep.</li>
+  <li><strong>IPv6 inside the tunnel</strong>, and ranges the server keeps outside it (<code>no-route</code>).</li>
+</ul>
+
+{sections}
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

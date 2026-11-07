@@ -1,0 +1,1202 @@
+{
+ "run": {
+  "date": "7 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the app built from commit 23ec28b1, TestFlight build 37's code, as a Debug build on the iPhone, and with the code of commit 4aae66d7 as a debug APK on Android; the iPhone's rows of the log cases, ocv-wrong-password and ocv-pass-download come from a Release build of 23ec28b1, the kind TestFlight ships; the ocv-path rows come from commit ec77a882, which adds Path, on both phones",
+  "server": "ocserv 1.2.4 on Ubuntu 24.04"
+ },
+ "summary": {
+  "cases": 49,
+  "iphone_passed": 49,
+  "iphone_run": 49,
+  "android_passed": 48,
+  "android_run": 48
+ },
+ "cases": [
+  {
+   "id": "ocv-pass-download",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 202.04,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-pass-full-duplex",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 167.86,
+    "upload_mbps": 27.49,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 10.5,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-pass-upload",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 0.0,
+    "upload_mbps": 149.23,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-tls-only-download",
+   "settings": [
+    "server: UDP 443 blocked (no DTLS)"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over TLS (no DTLS)",
+     "ClientHello sent as 443 bytes"
+    ],
+    "download_mbps": 173.94,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.8,
+    "facts": [
+     "TLS 1.2",
+     "data over TLS (no DTLS)",
+     "ClientHello sent as 443 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-tls-only-full-duplex",
+   "settings": [
+    "server: UDP 443 blocked (no DTLS)"
+   ],
+   "traffic": "download and upload at once, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over TLS (no DTLS)",
+     "ClientHello sent as 443 bytes"
+    ],
+    "download_mbps": 48.61,
+    "upload_mbps": 131.03,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 12.4,
+    "facts": [
+     "TLS 1.2",
+     "data over TLS (no DTLS)",
+     "ClientHello sent as 443 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-cert-download",
+   "settings": [
+    "Method Certificate"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "logged in as the certificate's user"
+    ],
+    "download_mbps": 193.77,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "logged in as the certificate's user"
+    ]
+   }
+  },
+  {
+   "id": "ocv-cert-other-username",
+   "settings": [
+    "Method Certificate",
+    "Username of another user"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "logged in as the certificate's user"
+    ],
+    "download_mbps": 182.03,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "logged in as the certificate's user"
+    ]
+   }
+  },
+  {
+   "id": "ocv-wrong-password",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: TLS secrets, the DTLS secret"
+    ],
+    "message": "Authentication failed. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: TLS secrets, the DTLS secret"
+    ],
+    "message": "Authentication failed. Check the username and password."
+   }
+  },
+  {
+   "id": "ocv-wrong-user",
+   "settings": [
+    "a user the server does not have"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Authentication failed. Check the username and password."
+   }
+  },
+  {
+   "id": "ocv-cert-rogue-ca",
+   "settings": [
+    "Method Certificate (a certificate from another authority)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The TLS handshake with the server failed. The server may refuse the client certificate, or block this address for a while after wrong passwords.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The TLS handshake with the server failed. The server may refuse the client certificate, or block this address for a while after wrong passwords."
+   }
+  },
+  {
+   "id": "ocv-cert-missing",
+   "settings": [
+    "Method Certificate without a certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Authentication failed. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The client certificate could not be read. Re-import it in the profile."
+   }
+  },
+  {
+   "id": "ocv-split-group",
+   "settings": [
+    "a user of the split-tunnel group",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "routes ['TEST_SERVER_IP/255.255.255.255', '1.1.1.1/255.255.255.255', '8.8.8.8/255.255.255.255']",
+     "in the log: the routes line",
+     "not in the log: a full-tunnel routes line, TLS secrets, the DTLS secret"
+    ],
+    "download_mbps": 188.33,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.1,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "routes ['TEST_SERVER_IP/255.255.255.255', '1.1.1.1/255.255.255.255', '8.8.8.8/255.255.255.255']",
+     "in the log: the routes line",
+     "not in the log: a full-tunnel routes line, TLS secrets, the DTLS secret"
+    ]
+   }
+  },
+  {
+   "id": "ocv-verify-ip-declined",
+   "settings": [
+    "Server is the server's IP address"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "the certificate warning was declined",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "the certificate warning was declined"
+   }
+  },
+  {
+   "id": "ocv-verify-ip-accepted",
+   "settings": [
+    "Server is the server's IP address"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "the certificate warning was accepted"
+    ],
+    "download_mbps": 190.47,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-allow-untrusted-ip",
+   "settings": [
+    "Server is the server's IP address",
+    "TLS Server Verification off"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 193.12,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-port-8443",
+   "settings": [
+    "Port 8443 (redirected to 443 on the server)"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 8443 bytes"
+    ],
+    "download_mbps": 194.61,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 8443 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-port-closed",
+   "settings": [
+    "Port 4443 (nothing listens on it)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Cannot connect to the server on this port. Check the Server and Port fields and the network.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Cannot connect to the server on this port. Check the Server and Port fields and the network."
+   }
+  },
+  {
+   "id": "ocv-port-other-service",
+   "settings": [
+    "Port 22 (the server's SSH answers it)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer with TLS on this port. Check the Port field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer with TLS on this port. Check the Port field."
+   }
+  },
+  {
+   "id": "ocv-host-unknown",
+   "settings": [
+    "Server is a name that does not exist"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server name could not be found. Check the Server field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server name could not be found. Check the Server field."
+   }
+  },
+  {
+   "id": "ocv-type-f5-on-anyconnect",
+   "settings": [
+    "Server Type F5 BIG-IP (the server speaks AnyConnect)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer as an F5 BIG-IP server. Check the Server Type and the Server field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer as an F5 BIG-IP server. Check the Server Type and the Server field."
+   }
+  },
+  {
+   "id": "ocv-type-gp-on-anyconnect",
+   "settings": [
+    "Server Type Palo Alto GP (the server speaks AnyConnect)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer as a GlobalProtect server. Check the Server Type and the Server field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer as a GlobalProtect server. Check the Server Type and the Server field."
+   }
+  },
+  {
+   "id": "ocv-server-tls13",
+   "settings": [
+    "server: TLS 1.3 allowed in tls-priorities"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.3",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 184.15,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.8,
+    "facts": [
+     "TLS 1.3",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-server-dtls-no-psk",
+   "settings": [
+    "server: dtls-psk = false"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (ECDHE-RSA)"
+    ],
+    "download_mbps": 194.58,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (ECDHE-RSA)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-server-compression",
+   "settings": [
+    "server: compression = true"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 159.93,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-server-tls11-only",
+   "settings": [
+    "Port 4443",
+    "a server on another port that offers only TLS 1.1"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server offers only TLS 1.1 or older; the app needs TLS 1.2 or later.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server offers only TLS 1.1 or older; the app needs TLS 1.2 or later."
+   }
+  },
+  {
+   "id": "ocv-server-ban",
+   "settings": [
+    "server: max-ban-score = 1"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The TLS handshake with the server failed. The server may refuse the client certificate, or block this address for a while after wrong passwords.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The TLS handshake with the server failed. The server may refuse the client certificate, or block this address for a while after wrong passwords."
+   }
+  },
+  {
+   "id": "ocv-server-camouflage",
+   "settings": [
+    "server: camouflage on, with a secret; Path empty"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer as an AnyConnect server. Check the Server Type and the Server field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer as an AnyConnect server. Check the Server Type and the Server field."
+   }
+  },
+  {
+   "id": "ocv-frag-off-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Off"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 517 bytes"
+    ],
+    "download_mbps": 185.29,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.9,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 1557 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-frag-auto-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 43 + 256 + 218 bytes"
+    ],
+    "download_mbps": 188.82,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 43 + 256 + 256 + 256 + 256 + 256 + 234 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-frag-manual-20-100-capture",
+   "settings": [
+    "TLS Server Verification off",
+    "TLS Fragmentation Manual 20/100"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 20 + 100 + 100 + 100 + 100 + 97 bytes"
+    ],
+    "download_mbps": 177.93,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)",
+     "ClientHello sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 bytes"
+    ]
+   }
+  },
+  {
+   "id": "ocv-frag-auto-verified",
+   "settings": [
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 183.86,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-frag-manual-verified",
+   "settings": [
+    "TLS Fragmentation Manual 20/100"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 160.84,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-log-normal",
+   "settings": [
+    "Log Level Normal"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "in the log: the connect line, the session line",
+     "not in the log: libopenconnect's progress lines, the routes line, the server's tunnel headers, TLS secrets, the DTLS secret"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the session line",
+     "not in the log: libopenconnect's progress lines, the routes line, the server's tunnel headers, TLS secrets, the DTLS secret"
+    ]
+   }
+  },
+  {
+   "id": "ocv-log-expert",
+   "settings": [
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "in the log: the connect line, libopenconnect's progress lines, the routes line",
+     "not in the log: the server's tunnel headers, TLS secrets, the DTLS secret"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, libopenconnect's progress lines, the routes line",
+     "not in the log: the server's tunnel headers, TLS secrets, the DTLS secret"
+    ]
+   }
+  },
+  {
+   "id": "ocv-log-debug",
+   "settings": [
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "in the log: the connect line, libopenconnect's progress lines, the server's tunnel headers, the session cookie, hidden, the context cookie, hidden",
+     "not in the log: TLS secrets, the DTLS secret"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, libopenconnect's progress lines, the server's tunnel headers, the session cookie, hidden, the context cookie, hidden",
+     "not in the log: TLS secrets, the DTLS secret"
+    ]
+   }
+  },
+  {
+   "id": "ocv-retry-before-connect",
+   "settings": [
+    "server: ocserv stopped",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Could not connect after 2 attempts. (Cannot connect to the server on this port. Check the Server and Port fields and the network.)",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Could not connect after 2 attempts. (Cannot connect to the server on this port. Check the Server and Port fields and the network.)"
+   }
+  },
+  {
+   "id": "ocv-life-sleep-modes",
+   "settings": [
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.6 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.4 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.5 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "paused at sleep, connected again at wake; transfer passed",
+     "closed at sleep, connected again at wake; transfer passed",
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-server-ends-reconnect",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 5.2 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 2.8 s after the drop; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-server-ends-no-reconnect",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 5.0 s with: The server ended the session (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The server ended the session (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-reset-resume",
+   "settings": [
+    "Log Level Expert",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 5.2 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "resumed the same session 0.2 s after the reset; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-reset-no-reconnect",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 5.0 s with: Connection lost (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: Connection lost (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-path-switch",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "path-switch: connected again after 0.3 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "moved to Wi-Fi again: resumed the same session, 1 login(s); transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-path-switch-no-reconnect",
+   "settings": [
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "path-switch: connected again after 0.3 s"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ocv-life-retry-exhausted",
+   "settings": [
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "the server was stopped: ended after 5.0 s with: Could not reconnect after 2 attempts."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: Could not reconnect after 2 attempts."
+    ]
+   }
+  },
+  {
+   "id": "ocv-life-outage-reconnect",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 15.2 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 1.4 s after the server came back, after 4 attempts; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ocv-path-camouflage",
+   "settings": [
+    "server: camouflage on; Path ?secret"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ],
+    "download_mbps": 181.04,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "TLS 1.2",
+     "data over DTLS 1.2 (PSK)"
+    ]
+   }
+  },
+  {
+   "id": "ocv-path-camouflage-wrong-secret",
+   "settings": [
+    "server: camouflage on; Path with a wrong secret"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer as an AnyConnect server. Check the Server Type and the Server field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer as an AnyConnect server. Check the Server Type and the Server field."
+   }
+  },
+  {
+   "id": "ocv-path-camouflage-log",
+   "settings": [
+    "server: camouflage on; Path ?secret; the log checked for the secret",
+    "Log Level Debug"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "in the log: the connect line, the Path's secret as its length",
+     "not in the log: the Path's secret"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "in the log: the connect line, the Path's secret as its length",
+     "not in the log: the Path's secret"
+    ]
+   }
+  },
+  {
+   "id": "ocv-path-camouflage-reset-resume",
+   "settings": [
+    "server: camouflage on; Path ?secret; the server resets the TCP connection, Auto Reconnect on",
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 5.3 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "resumed the same session 0.2 s after the reset; transfer passed"
+    ]
+   }
+  }
+ ]
+}
