@@ -583,6 +583,7 @@ JNIEXPORT void JNICALL Java_tr_com_srp_vpn_SoftEther_setLog(JNIEnv *env, jclass 
   }
   atomic_store(&log_level, level);
   atomic_store(&log_bytes, 0);
+  SRPSESetCoreDebug(level >= 2);   // the core's own lines belong to Log Level Debug, as on iOS
   // The core prints its own progress to stdout (Debug() in Mayaqua); like the iOS extension, it goes to the tunnel log
   if (fd >= 0) {
     fflush(stdout);

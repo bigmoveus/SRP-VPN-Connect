@@ -87,6 +87,11 @@ int SRPSEGlobalInit(const char *writableDir, bool debugLog)
     return 0;
 }
 
+void SRPSESetCoreDebug(bool on)
+{
+    g_debug = on;
+}
+
 // ---- trust hook ------------------------------------------------------------------
 
 static void *g_trustCtx = NULL;
@@ -156,7 +161,7 @@ static void se_status_thread(THREAD *t, void *param)
 {
     SRPSEClient *c = (SRPSEClient *)param;
     (void)t;
-    printf("[se] monitor thread started\n");
+    Debug("[se] monitor thread started\n");
     while (!c->MonitorHalt)
     {
         int st = -1; uint32_t err = 0;
@@ -326,7 +331,7 @@ int SRPSEClientStart(SRPSEClient *c)
             if (certK) FreeK(certK);
             return -2;
         }
-        printf("[se] cert parsed: bits=%u compatible=%u\n", certX->bits, certX->is_compatible_bit);
+        Debug("[se] cert parsed: bits=%u compatible=%u\n", certX->bits, certX->is_compatible_bit);
         a.ClientX = certX;
         a.ClientK = certK;
         break;
@@ -453,6 +458,9 @@ const char *SRPSEErrorName(uint32_t err)
     case 85: return "certificate not trusted";
     case 106: return "server certificate expired";
     case 149: return "certificate hostname mismatch";
+    case 150: return "TLS version not supported";
+    case 151: return "no common TLS cipher";
+    case 152: return "TLS handshake failed";
     default: return "unknown";
     }
 }

@@ -81,6 +81,8 @@ typedef uint32_t (*SRPSETrustFn)(void *ctx, const uint8_t *const *chainDer,
 // One-time global init. writableDir must be a writable directory (a marker file
 // is created there; it also becomes SoftEther's exe/db/log dir). Returns 0 on success.
 int SRPSEGlobalInit(const char *writableDir, bool debugLog);
+/// The core's own progress lines (Mayaqua Debug() on stdout) on or off for the next connection; the apps tie it to Log Level Debug.
+void SRPSESetCoreDebug(bool on);
 
 // Register the global trust hook before starting clients (NULL = accept any cert).
 void SRPSESetTrustHook(void *ctx, SRPSETrustFn fn);

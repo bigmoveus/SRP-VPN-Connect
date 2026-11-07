@@ -27,3 +27,9 @@ Applied to `upstream/` (vendored copy). Keep this list current when patching.
 10. `Mayaqua/DNS.c` — `DnsResolver` thread: on Android (`__ANDROID__`) the IPv6 case asks `getaddrinfo` for
     `AF_UNSPEC` with `AI_ADDRCONFIG`, because Bionic refuses `AI_ALL | AI_V4MAPPED` with `EAI_BADFLAGS` and no server
     name resolved; each result is read by its own family (unchanged on iOS, where the results are IPv6 or v4-mapped).
+11. `Mayaqua/Network.c` — UNIX `connect_timeout`: on Apple platforms (`SRP_IOS` and `__APPLE__`) an `EISCONN` answer
+    counts as connected only when `getpeername` finds a peer, because Darwin answers `EISCONN` to the repeated `connect()`
+    after the first one was refused; without it a closed port looked connected and failed later as "not a VPN server"
+    (Linux and Android answer `ECONNREFUSED` and never reach the check).
+12. `Mayaqua/Network.c` — `NewSSLCtx`: no `SSL_CTX_set_keylog_callback` under `SRP_IOS` (iOS and Android). Upstream
+    prints every TLS session secret through `Debug()`, and both apps send the core's `Debug()` lines to the user's log.

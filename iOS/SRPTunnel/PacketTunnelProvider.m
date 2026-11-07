@@ -1274,8 +1274,9 @@ static void SRPTunnelLogCap(NSString *path) {
     NSString *logFilePath = SRPTunnelLogPath();
     [[NSFileManager defaultManager] removeItemAtPath:logFilePath error:nil];
     [[NSFileManager defaultManager] createFileAtPath:logFilePath contents:nil attributes:nil];
-    freopen([logFilePath cStringUsingEncoding:NSUTF8StringEncoding], "w+", stdout);
-    freopen([logFilePath cStringUsingEncoding:NSUTF8StringEncoding], "w+", stderr);
+    // Append mode: two streams opened with "w+" each kept their own offset and wrote over each other's lines.
+    freopen([logFilePath cStringUsingEncoding:NSUTF8StringEncoding], "a", stdout);
+    freopen([logFilePath cStringUsingEncoding:NSUTF8StringEncoding], "a", stderr);
     // A file-backed stdout is fully buffered; a stopped extension loses the
     // tail (or all) of the log. Line-buffer both streams instead.
     setvbuf(stdout, NULL, _IOLBF, 0);

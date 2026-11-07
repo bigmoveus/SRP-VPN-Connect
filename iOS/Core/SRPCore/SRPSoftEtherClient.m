@@ -132,6 +132,7 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
     _disconnectedCb = disconnected;
     _failureCb = failure;
     SSLogSetLevel((SSLogLevel)_logLevel);
+    SRPSESetCoreDebug(_logLevel >= SSLogLevelDebug);
     dispatch_async(_worker, ^{
         [self startLocked];
         [self startPathMonitor];
@@ -439,6 +440,9 @@ static void seObjcLog(void *ctx, const char *line) {
     if (err == 1)  return @"Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.";
     if (err == 2)  return @"The server did not answer as a SoftEther VPN server. Check the Server and Port fields.";
     if (err == 3)  return @"The connection to the server was closed.";
+    if (err == 150) return @"The server and the app have no TLS version in common.";
+    if (err == 151) return @"The server and the app have no TLS cipher in common.";
+    if (err == 152) return @"The TLS handshake with the server failed. Check the Server and Port fields.";
     if (err == 13) return @"Connection timed out.";
     if (err == 17) return @"Cannot connect to the proxy server.";
     if (err == 19) return @"Proxy authentication failed.";

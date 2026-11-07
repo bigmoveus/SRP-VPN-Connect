@@ -13699,6 +13699,15 @@ int connect_timeout(SOCKET s, struct sockaddr *addr, int size, int timeout, bool
 		ret = connect(s, addr, size);
 		if (ret == 0 || errno == EISCONN)
 		{
+#if defined(SRP_IOS) && defined(__APPLE__)
+			// SRP: Darwin answers EISCONN to the repeated connect() even when the first one was refused; only a socket with a peer is connected.
+			struct sockaddr_storage srp_peer;
+			socklen_t srp_peer_len = sizeof(srp_peer);
+			if (ret != 0 && getpeername(s, (struct sockaddr *)&srp_peer, &srp_peer_len) != 0)
+			{
+				break;
+			}
+#endif
 			ok = true;
 			break;
 		}
@@ -16258,7 +16267,9 @@ struct ssl_ctx_st *NewSSLCtx(bool server_mode)
 	SSL_CTX_set_ecdh_auto(ctx, 1);
 #endif	// SSL_CTX_set_ecdh_auto
 
+#ifndef	SRP_IOS
 	SSL_CTX_set_keylog_callback(ctx, &keylog_cb_func);
+#endif	// SRP: the apps show the core's Debug() lines in the user's log, which must never hold TLS secrets
 
 	return ctx;
 }
