@@ -171,6 +171,10 @@ static uint64_t SRPFootprintBytes(void);
 #pragma mark - SoftEther VPN Protocol
 
 -(void)startSoftEtherWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
+#if !DEBUG
+    // Release builds (TestFlight) write the log for SoftEther; the other protocols follow when each is retested.
+    SRPTunnelLogOpen();
+#endif
     // Writable dir for the SoftEther core (also where the tunnel log lives)
     NSString *dir = [SRPTunnelLogPath() stringByDeletingLastPathComponent];
     [SRPSoftEtherClient initializeCoreInDirectory:dir debugLog:YES];
@@ -1267,10 +1271,8 @@ static void SRPTunnelLogCap(NSString *path) {
     }
 }
 
-- (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
-
-#if DEBUG
-    // Debug builds only: release builds never write logs to disk.
+/// Sends stdout and stderr (NSLog's lines too) to a fresh log for this tunnel start.
+static void SRPTunnelLogOpen(void) {
     NSString *logFilePath = SRPTunnelLogPath();
     [[NSFileManager defaultManager] removeItemAtPath:logFilePath error:nil];
     [[NSFileManager defaultManager] createFileAtPath:logFilePath contents:nil attributes:nil];
@@ -1281,6 +1283,13 @@ static void SRPTunnelLogCap(NSString *path) {
     // tail (or all) of the log. Line-buffer both streams instead.
     setvbuf(stdout, NULL, _IOLBF, 0);
     setvbuf(stderr, NULL, _IOLBF, 0);
+}
+
+- (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
+
+#if DEBUG
+    // Debug builds log every protocol; Release builds only SoftEther so far (startSoftEtherWithOptions).
+    SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo before logging
     NSString* (^maskURI)(NSString *) = ^NSString *(NSString *uri) {

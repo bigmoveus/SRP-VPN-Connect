@@ -2904,7 +2904,12 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 #endif
 
 - (void)logWaterWallProviderFile:(NSString *)command manager:(PDVPNManager *)manager {
-    if (manager.status == YDVPNStatusDisconnected) {
+#if DEBUG
+    BOOL readFile = manager.status == YDVPNStatusDisconnected;
+#else
+    BOOL readFile = YES;   // a Release build's extension answers no debug commands; the app reads the shared file itself
+#endif
+    if (readFile) {
         NSURL *container = [NSFileManager.defaultManager containerURLForSecurityApplicationGroupIdentifier:@"group.tr.com.srp.vpn"];
         NSString *name = [command isEqualToString:@"native-log"] ? @"ww-native-current.log" : @"srptunnel.log";
         NSString *path = [(container ? container.path : NSHomeDirectory()) stringByAppendingPathComponent:[@"Library/" stringByAppendingString:name]];

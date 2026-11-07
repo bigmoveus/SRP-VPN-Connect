@@ -21,6 +21,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SoftEther on iPhone: a port nothing listens on, or a server whose SoftEther service is stopped, was reported as a server that did not answer as SoftEther VPN, also in the message of a reconnect that gave up. The core's connect loop took the `EISCONN` answer Darwin gives to a repeated `connect()` after a refusal as success; it now checks for a peer, and the app says it cannot reach the server, as on Android.
 - SoftEther (both apps): the core's TLS errors 150 to 152 (no TLS version or cipher in common with the server, or a failed handshake, as when another service answers the port) showed as `SoftEther error 152: unknown`; each now has its own message.
 - iPhone Debug builds: the tunnel log lost lines, because its two output streams were opened separately with `w+` and wrote over each other; they now append.
+- SoftEther on iPhone: Release builds, such as TestFlight's, wrote no connection log, so the log screen stayed empty and Log Level did nothing there; SoftEther connections now write it in every build. The other protocols still write it only in Debug builds made with Xcode. The live tests read the log from the shared container in Release builds.
+- SoftEther on iPhone: when the app gave up on a connection, the log did not say why; it now writes `SoftEther: closing with reason:` and the message the app shows, as Android does.
 
 ## 1.2.0 (35) - 2026-11-06
 

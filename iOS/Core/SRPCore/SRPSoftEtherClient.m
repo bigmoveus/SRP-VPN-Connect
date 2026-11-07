@@ -450,6 +450,7 @@ static void seObjcLog(void *ctx, const char *line) {
 }
 
 - (void)failWithReason:(NSString *)reason {
+    SSLogM(@"SoftEther: closing with reason: %@", reason);
     SRPSoftEtherFailureCallback cb = _failureCb;
     [self stopLockedSession];
     [self stopPathMonitor];
