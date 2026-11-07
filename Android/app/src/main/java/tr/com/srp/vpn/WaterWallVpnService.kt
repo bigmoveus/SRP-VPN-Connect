@@ -88,7 +88,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             ConnectionLog.open(this)
             val profiles = ProfileStore(this).load()
             val profile = profiles.firstOrNull { it.nodeId == profileId }
-            if (profile != null && profile.isSstp) {
+            if (profile != null && (profile.isSstp || profile.isSoftEther)) {
                 // Certificate login reads the PKCS#12 from the store here, off the main thread
                 val certificate = if (profile.certificateMode) CertificateStore(this).load(profile.certKey) else null
                 main.post {
@@ -137,18 +137,19 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         val cellular = {
             connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
         }
-        val started = SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
+        val started = if (profile.isSoftEther) SoftEtherClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
+                      else SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
         client = started
         VpnState.client = started
         registerReceiver(sleepReceiver, IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
         })
-        started.start()
+        if (started is SoftEtherClient) started.start() else (started as SstpClient).start()
     }
 
     private fun disconnect() {
-        if (client !is SstpClient) ConnectionLog.m("WaterWall: disconnecting")
+        if (client !is SstpClient && client !is SoftEtherClient) ConnectionLog.m("WaterWall: disconnecting")
         connecting = false
         connectRequest++
         finishTunnel()
@@ -184,7 +185,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     override fun applyTunnelSettings(settings: TunnelSettings, attach: (Int) -> Unit): String? {
         // An SSTP reconnect that gets the same address and DNS keeps the tunnel the system already has
         val existing = tun
-        if (existing != null && client is SstpClient && settings == tunSettings) {
+        if (existing != null && (client is SstpClient || client is SoftEtherClient) && settings == tunSettings) {
             attach(existing.fd)
             return null
         }

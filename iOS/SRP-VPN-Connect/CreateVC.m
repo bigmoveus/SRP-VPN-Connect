@@ -822,7 +822,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"The proxy protocol (SOCKS5 or HTTP CONNECT) is detected automatically by negotiation.";
     }
     if (section == 3 && self.modal.proxyMode == 2 && [self isSoftEther]) {
-        return @"Auto (PAC) proxy is not supported for SoftEther profiles yet; the connection will be made directly.";
+        return @"The PAC script picks the proxy for the connection to the VPN server: PROXY is used as HTTP CONNECT, SOCKS and SOCKS5 as SOCKS5, and the next entry is tried when one cannot be reached. The username and password go to that proxy.";
     }
     if (section == 3 && self.modal.proxyMode == 2 && [self isSSTP]) {
         return @"The PAC script picks the proxy for the connection to the VPN server; the username and password go to that proxy when it asks for them.";
@@ -953,7 +953,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             if ([self isSoftEther]) {
                 switch (self.modal.proxyMode) {
                     case 1: return 6; // Mode, Address, Port, Type, Username, Password
-                    case 2: return 2; // Mode, PAC URL
+                    case 2: return 4; // Mode, PAC URL, Username, Password
                     default: return 1;
                 }
             }

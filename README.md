@@ -40,7 +40,7 @@ The native SSTP client supports TLS transport, password authentication, and EAP 
 
 ### SoftEther VPN
 
-The SoftEther client core is written in C and runs inside the extension. Profiles support a Virtual Hub, authentication settings, multiple connections, hostname overrides, and optional UDP acceleration. TLS verification and optional handshake fragmentation are handled separately from the SoftEther session settings.
+The SoftEther client core is written in C and runs inside the extension on iOS and in the app on Android. Profiles support a Virtual Hub, standard password, RADIUS / NT Domain, certificate and anonymous login, 1 to 32 connections, hostname overrides, UDP acceleration and NAT traversal, HTTP and SOCKS5 proxies and PAC files. TLS verification and optional handshake fragmentation are handled separately from the SoftEther session settings. The [SoftEther documentation](tutorial/softether/index.html) covers the server, the app and the test results.
 
 ### SSL VPN (OpenConnect)
 
@@ -157,7 +157,7 @@ The public beta and the source repository may not always be on the same revision
 
 ## Android
 
-`Android/` holds the Android app. It has WaterWall with the same screens, options, messages and connection rules as the iOS app, and the same [documentation](tutorial/waterwall/android.html). The other protocols come later.
+`Android/` holds the Android app. It has WaterWall, SSTP and SoftEther VPN with the same screens, options, messages and connection rules as the iOS app, and the same documentation ([WaterWall](tutorial/waterwall/android.html), [SSTP](tutorial/sstp/index.html), [SoftEther](tutorial/softether/index.html)). The other protocols come later.
 
 Install Android Studio, or its SDK with platform 36, then build a debug APK with its Java and SDK:
 

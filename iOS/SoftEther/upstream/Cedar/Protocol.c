@@ -4461,6 +4461,13 @@ REDIRECTED:
 						no_nat_t = true;
 					}
 
+#ifdef SRP_IOS
+					// SRP: the app's NAT-T switch is off (hint "tcp"): no query to the NAT-T servers here either
+					if (StrCmpi(sess->ClientOption->HintStr, "tcp") == 0)
+					{
+						no_nat_t = true;
+					}
+#endif
 
 					sess->UdpAccel = NewUdpAccel(c->Cedar, &s->LocalIP, true, true, no_nat_t);
 				}

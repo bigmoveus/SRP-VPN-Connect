@@ -32,3 +32,34 @@ target_link_libraries(srpsstp PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 add_dependencies(srpsstp srp_openssl_full_prefix)
 target_link_options(srpsstp PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/sstp_exports.map")
 set_target_properties(srpsstp PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/sstp_exports.map")
+
+# SoftEther: the iOS app's client core (iOS/SoftEther: Mayaqua, the client half of Cedar and the SRPSE bridge) with its own
+# OpenSSL 3 (iOS/SoftEther/build_openssl_android.sh): the core reads ASN1 strings that OpenSSL 4, the WaterWall runtime's,
+# made opaque. The version script keeps those symbols inside libsrpse.so. SRP_IOS turns on the same upstream patches as on
+# iOS (see iOS/SoftEther/PATCHES.md).
+set(SE_ROOT "${SRP_IOS_SOURCES}/SoftEther")
+set(SE_UP "${SE_ROOT}/upstream")
+set(SE_SOURCES "${SE_UP}/Mayaqua/Crypto/Key.c")
+foreach(name IN ITEMS Cfg DNS Encoding Encrypt FileIO HTTP Internat Kernel Mayaqua Memory Network OS Object Pack Proxy Secure Str
+                      Table TcpIp Tick64 Tracking Unix)
+    list(APPEND SE_SOURCES "${SE_UP}/Mayaqua/${name}.c")
+endforeach()
+foreach(name IN ITEMS Hamcore FileSystem Memory)
+    list(APPEND SE_SOURCES "${SE_UP}/libhamcore/${name}.c")
+endforeach()
+file(GLOB SE_CEDAR_SOURCES CONFIGURE_DEPENDS "${SE_UP}/Cedar/*.c")
+list(FILTER SE_CEDAR_SOURCES EXCLUDE REGEX "/(Proto_WireGuard|VLanUnix|VLanWin32|BridgeWin32|Console|Command)\\.c$")
+add_library(srpse SHARED softether_jni.c softether/iconv_shim.c ${SE_SOURCES} ${SE_CEDAR_SOURCES}
+    "${SE_ROOT}/bridge/SRPSEAdapter.c" "${SE_ROOT}/bridge/SRPSEClient.c" "${SE_ROOT}/bridge/SRPSEStubs.c"
+    "${SRP_IOS_SOURCES}/Core/SRPCore/SRPFragBio.c")
+# softether/ first: its iconv.h stands in for Bionic's, which needs API 28
+target_include_directories(srpse BEFORE PRIVATE softether)
+set(SE_OPENSSL "${SE_ROOT}/openssl/android-arm64")
+target_include_directories(srpse PRIVATE "${SE_OPENSSL}/include" "${SE_UP}" "${SE_UP}/Mayaqua" "${SE_UP}/Cedar" "${SE_UP}/libhamcore/include"
+    "${SE_ROOT}/bridge" "${SE_ROOT}/shim" "${SRP_IOS_SOURCES}/Core/SRPCore")
+target_compile_definitions(srpse PRIVATE UNIX OS_UNIX UNIX_LINUX SKIP_CPU_FEATURES NO_VLAN SRP_IOS SKIP_OQS_PROVIDER
+    _REENTRANT _THREAD_SAFE _FILE_OFFSET_BITS=64)
+target_compile_options(srpse PRIVATE -w -fno-strict-aliasing)
+target_link_libraries(srpse PRIVATE "${SE_OPENSSL}/lib/libssl.a" "${SE_OPENSSL}/lib/libcrypto.a" z)
+target_link_options(srpse PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/softether_exports.map")
+set_target_properties(srpse PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/softether_exports.map")

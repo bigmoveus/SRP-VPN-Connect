@@ -6,6 +6,7 @@
 #import "SRPSoftEtherClient.h"
 #import "SSLog.h"
 #import "SSNetOptions.h"
+#import "SSProxyResolver.h"
 
 #import <NetworkExtension/NetworkExtension.h>
 #import <Security/Security.h>
@@ -34,10 +35,13 @@
     BOOL _sleepPaused;
     BOOL _tunnelUp;               // DHCP config applied at least once
     BOOL _established;            // protocol established right now
+    BOOL _everEstablished;        // a session of this connection was up once: reconnects follow Auto Reconnect
     NSInteger _failedAttempts;
     nw_path_monitor_t _pathMonitor;
     BOOL _lastPathHadWifi;
     NSString *_resolvedRemote;    // server IP for tunnelRemoteAddress
+    NSArray<SSProxyHop *> *_pacHops;   // Auto proxy: the PAC answer, evaluated once per connection
+    NSUInteger _pacHopIndex;           // the entry in use; the next one is tried when it cannot be reached
 }
 
 static void seObjcPacket(void *ctx, const uint8_t *pkt, uint32_t len, int family);
@@ -96,16 +100,22 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
         }
         CFErrorRef err = NULL;
         BOOL ok = SecTrustEvaluateWithError(trust, &err);
+        uint32_t result = 0;
         if (!ok) {
             SSLogM(@"SoftEther TLS: certificate not trusted for %@: %@", host,
                    err ? (__bridge NSError *)err : @"unknown");
+            // A chain that is trusted without the name check fails only on the name: say so (149, as on Android)
+            SecPolicyRef anyName = SecPolicyCreateSSL(true, NULL);
+            SecTrustSetPolicies(trust, anyName);
+            result = SecTrustEvaluateWithError(trust, NULL) ? 149 : 85;
+            CFRelease(anyName);
         } else {
             SSLogI(@"SoftEther TLS: server certificate trusted for %@", host);
         }
         if (err) CFRelease(err);
         CFRelease(trust);
         CFRelease(policy);
-        return ok ? 0 : 85;
+        return result;
     }
 }
 
@@ -130,6 +140,26 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
 
 - (void)startLocked {
     [self stopLockedSession];
+
+    // Auto proxy: download and run the PAC file first (as SSTP does), then connect through its answer
+    if (_proxyMode == 2 && _pacHops == nil) {
+        SSLogM(@"SoftEther: evaluating the PAC file for %@", _host);
+        __weak SRPSoftEtherClient *weakSelf = self;
+        [SSProxyResolver resolveMode:2 proxyHost:nil proxyPort:0 proxyUsername:_proxyUsername
+                       proxyPassword:_proxyPassword pacURL:_pacURL targetHost:_host targetPort:_port
+                               queue:_worker completion:^(NSArray<SSProxyHop *> *hops, NSError *error) {
+            SRPSoftEtherClient *strongSelf = weakSelf;
+            if (strongSelf == nil || strongSelf->_closedManually || strongSelf->_sleepPaused) return;
+            if (hops.count == 0) {
+                [strongSelf failWithReason:error.localizedDescription ?: @"No usable proxy returned by PAC"];
+                return;
+            }
+            strongSelf->_pacHops = hops;
+            strongSelf->_pacHopIndex = 0;
+            [strongSelf startLocked];
+        }];
+        return;
+    }
 
     // Resolve the server address once for tunnelRemoteAddress
     _resolvedRemote = nil;
@@ -174,11 +204,12 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
     // SSTP channel/OpenConnect: 43 covers record+handshake headers and the
     // client random (SNI always lands later); cellular gets tighter chunks
     // and pacing.
+    // The profile's numbering, as SSFragModeFromProfileValue reads it: 1 = Auto, 2 = Manual
     if (self.tlsFragMode > 0) {
         uint32_t first = 43, following = 256, gap = 3;
-        if (self.tlsFragMode == 1) {
-            first = (uint32_t)self.tlsFragFirst;
-            following = (uint32_t)self.tlsFragFollowing;
+        if (self.tlsFragMode == 2) {
+            first = (uint32_t)(self.tlsFragFirst > 0 ? self.tlsFragFirst : 32);
+            following = (uint32_t)(self.tlsFragFollowing > 0 ? self.tlsFragFollowing : 256);
         } else {
             nw_path_monitor_t mon = nw_path_monitor_create();
             dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -197,7 +228,7 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
         cfg.tlsFragFollowing = following;
         cfg.tlsFragGapMs = gap;
         SSLogM(@"SoftEther: TLS fragmentation %@ (first=%u following=%u gap=%u ms)",
-               self.tlsFragMode == 2 ? @"auto" : @"manual", first, following, gap);
+               self.tlsFragMode == 1 ? @"auto" : @"manual", first, following, gap);
     }
     cfg.maxConnections = (uint32_t)MAX(1, MIN(32, _connections));
     cfg.udpAcceleration = _udpAcceleration;
@@ -214,8 +245,19 @@ static uint32_t seObjcTrust(void *ctx, const uint8_t *const *chainDer,
         if (_proxyUsername) snprintf(cfg.proxyUsername, sizeof(cfg.proxyUsername), "%s", _proxyUsername.UTF8String);
         if (_proxyPassword) snprintf(cfg.proxyPassword, sizeof(cfg.proxyPassword), "%s", _proxyPassword.UTF8String);
     }
-    else if (_proxyMode == 2) {
-        SSLogM(@"SoftEther: proxy Auto/PAC is not supported yet for this protocol; connecting directly");
+    else if (_proxyMode == 2 && _pacHopIndex < _pacHops.count) {
+        SSProxyHop *hop = _pacHops[_pacHopIndex];
+        if (hop.type == SSProxyHopTypeDirect) {
+            SSLogM(@"SoftEther: PAC entry %lu of %lu: DIRECT", (unsigned long)_pacHopIndex + 1, (unsigned long)_pacHops.count);
+        } else {
+            cfg.proxyType = hop.type == SSProxyHopTypeSOCKS5 ? SRPSEProxySOCKS5 : SRPSEProxyHTTP;
+            snprintf(cfg.proxyHost, sizeof(cfg.proxyHost), "%s", hop.host.UTF8String);
+            cfg.proxyPort = (uint16_t)hop.port;
+            if (hop.username) snprintf(cfg.proxyUsername, sizeof(cfg.proxyUsername), "%s", hop.username.UTF8String);
+            if (hop.password) snprintf(cfg.proxyPassword, sizeof(cfg.proxyPassword), "%s", hop.password.UTF8String);
+            SSLogM(@"SoftEther: PAC entry %lu of %lu: %@ %@:%ld", (unsigned long)_pacHopIndex + 1, (unsigned long)_pacHops.count,
+                   hop.type == SSProxyHopTypeSOCKS5 ? @"SOCKS5" : @"HTTP CONNECT", hop.host, (long)hop.port);
+        }
     }
     cfg.retryIntervalSec = 5;
 
@@ -317,6 +359,7 @@ static void seObjcLog(void *ctx, const char *line) {
         case 3:
             SSLogM(@"SoftEther: session established");
             _established = YES;
+            _everEstablished = YES;
             _failedAttempts = 0;
             break;
         case 4: SSLogI(@"SoftEther: retry wait"); break;
@@ -332,6 +375,19 @@ static void seObjcLog(void *ctx, const char *line) {
             }
             _tunnelUp = NO;
 
+            // Auto proxy: a PAC entry that could not be reached moves on to the next one, as browsers do;
+            // a session that was up evaluates the PAC file again on its next connection
+            if (_proxyMode == 2) {
+                BOOL unreachable = (err == 1 || err == 13 || err == 17 || err == 18);
+                if (!wasUp && unreachable && _pacHopIndex + 1 < _pacHops.count) {
+                    _pacHopIndex++;
+                    SSLogM(@"SoftEther: %@; trying the next PAC entry", [self describeError:err]);
+                    [self startLocked];
+                    return;
+                }
+                if (wasUp) _pacHops = nil;
+            }
+
             // Auth/cert errors: never retried — the user must fix the profile
             BOOL fatalAuth = (err == 9 || err == 7 || err == 8 ||
                               err == 85 || err == 106 || err == 149);
@@ -340,10 +396,10 @@ static void seObjcLog(void *ctx, const char *line) {
                 return;
             }
             if (!_autoReconnect) {
-                [self failWithReason:[self describeError:err]];
+                [self failWithReason:wasUp ? @"Connection lost (auto reconnect is off)." : [self describeError:err]];
                 return;
             }
-            if (!wasUp) {
+            if (!wasUp && !_everEstablished) {
                 // Never established (DNS/TCP/TLS failed): SSTP semantics — fail
                 // fast unless the user set an explicit Retry Times budget.
                 if (!(_retryTimes > 0 && SSReconnectAttemptAllowed(_failedAttempts, _retryTimes))) {
@@ -352,6 +408,7 @@ static void seObjcLog(void *ctx, const char *line) {
                 }
             }
             else if (!SSReconnectAttemptAllowed(_failedAttempts, _retryTimes)) {
+                // A reconnect after the tunnel had been up: Retry Times counts the failed attempts (0 = unlimited)
                 [self failWithReason:[NSString stringWithFormat:
                     @"Could not reconnect after %ld attempts. (%@)",
                     (long)_retryTimes, [self describeError:err]]];
@@ -380,6 +437,8 @@ static void seObjcLog(void *ctx, const char *line) {
     if (err == 106) return @"The server certificate has expired.";
     if (err == 149) return @"The server certificate name does not match the server. Check the Hostname field.";
     if (err == 1)  return @"Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.";
+    if (err == 2)  return @"The server did not answer as a SoftEther VPN server. Check the Server and Port fields.";
+    if (err == 3)  return @"The connection to the server was closed.";
     if (err == 13) return @"Connection timed out.";
     if (err == 17) return @"Cannot connect to the proxy server.";
     if (err == 19) return @"Proxy authentication failed.";
@@ -494,6 +553,7 @@ static void seObjcLog(void *ctx, const char *line) {
         if (SSShouldReconnectForPathChange(hadWifi, hasWifi, satisfied, strongSelf->_tunnelUp)) {
             SSLogM(@"Wi-Fi became available; switching the SoftEther connection to the new path");
             strongSelf->_failedAttempts = 0;
+            strongSelf->_pacHops = nil;   // the new network may get another answer from the PAC file
             [strongSelf startLocked];   // deliberate migration: not a failure
         }
     });
@@ -528,8 +588,13 @@ static void seObjcLog(void *ctx, const char *line) {
         self->_sleepPaused = NO;
         if (self->_onSleep == 1 || self->_autoReconnect) {
             self->_failedAttempts = 0;
+            self->_pacHops = nil;
             SSLogM(@"device wake: reconnecting the SoftEther connection");
             [self startLocked];
+        } else {
+            // Off without Auto Reconnect leaves no connection; end the tunnel instead of keeping a VPN that drops every
+            // packet (lwIP.m does the same for SSTP)
+            [self failWithReason:@"The connection was closed while the device slept."];
         }
     });
 }

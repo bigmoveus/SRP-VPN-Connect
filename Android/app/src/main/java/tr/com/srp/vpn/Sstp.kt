@@ -1,11 +1,5 @@
 package tr.com.srp.vpn
 
-import java.security.KeyStore
-import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
-import javax.net.ssl.TrustManagerFactory
-import javax.net.ssl.X509TrustManager
-
 /** The SSTP engine in libsrpsstp.so; sstp_jni.c has the threading rules. One session runs at a time. */
 internal object Sstp {
     const val EVENT_NETWORK_UP = 1
@@ -44,19 +38,7 @@ internal object Sstp {
     /** The certificate's name and expiry in seconds since 1970, or null when the file or the passphrase is wrong. */
     @JvmStatic external fun p12Info(p12: ByteArray, passphrase: String): Array<String>?
 
-    private val trustManager: X509TrustManager by lazy {
-        val factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-        factory.init(null as KeyStore?)
-        factory.trustManagers.filterIsInstance<X509TrustManager>().first()
-    }
-
     /** Called by the engine with a server's chain, leaf first: null when the device trusts it, otherwise why not. */
     @JvmStatic
-    fun trustChain(chain: Array<ByteArray>): String? = runCatching {
-        val factory = CertificateFactory.getInstance("X.509")
-        val certificates = chain.map { factory.generateCertificate(it.inputStream()) as X509Certificate }.toTypedArray()
-        if (certificates.isEmpty()) return "the server sent no certificate"
-        trustManager.checkServerTrusted(certificates, if (certificates[0].publicKey.algorithm == "EC") "ECDHE_ECDSA" else "ECDHE_RSA")
-        null
-    }.getOrElse { error -> error.message ?: "not trusted" }
+    fun trustChain(chain: Array<ByteArray>): String? = PlatformTrust.check(chain)
 }

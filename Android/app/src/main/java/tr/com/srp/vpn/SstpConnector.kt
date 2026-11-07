@@ -32,7 +32,7 @@ internal object SstpConnector {
     private const val PAC_TIMEOUT_MS = 15000
 
     /** null type = DIRECT, true = SOCKS5, false = HTTP CONNECT. */
-    private data class Hop(val socks: Boolean?, val host: String, val port: Int)
+    data class Hop(val socks: Boolean?, val host: String, val port: Int)
 
     fun connect(profile: Profile, host: String, port: Int, context: Context, cancelled: () -> Boolean): Socket = when (profile.proxyMode) {
         1 -> {
@@ -182,20 +182,7 @@ internal object SstpConnector {
     }
 
     private fun throughPac(profile: Profile, host: String, port: Int, context: Context, cancelled: () -> Boolean): Socket {
-        ConnectionLog.m("Proxy mode: Auto")
-        ConnectionLog.m("PAC URL: ${profile.pacUrl}")
-        val url = runCatching { URL(profile.pacUrl.trim()) }.getOrNull()
-        if (url == null || (url.protocol != "http" && url.protocol != "https") || url.host.isNullOrEmpty()) {
-            throw SstpConnectFailure("Invalid PAC configuration (the PAC URL must be a http(s) URL)")
-        }
-        val script = runCatching { if (url.protocol == "http") plainGet(url) else httpsGet(url) }.getOrNull()
-        if (script == null || script.isEmpty()) throw SstpConnectFailure("Unable to download PAC configuration")
-        val text = runCatching { Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(script)).toString() }.getOrNull()
-        if (text.isNullOrEmpty()) throw SstpConnectFailure("Invalid PAC configuration (not a text script)")
-        val result = PacEvaluator.findProxy(context, text, host)
-        ConnectionLog.m("PAC result: $result")
-        val hops = hops(result)
-        if (hops.isEmpty()) throw SstpConnectFailure("No usable proxy returned by PAC")
+        val hops = pacHops(profile, host, context)
         var failure: SstpConnectFailure? = null
         for ((index, hop) in hops.withIndex()) {
             if (cancelled()) break
@@ -218,6 +205,25 @@ internal object SstpConnector {
             }
         }
         throw failure ?: SstpConnectFailure("Proxy connection failed (no usable proxy path)")
+    }
+
+    /** The PAC file's answer for [host], in its order (SSProxyResolver): throws with the iOS message when there is none. Blocking. */
+    fun pacHops(profile: Profile, host: String, context: Context): List<Hop> {
+        ConnectionLog.m("Proxy mode: Auto")
+        ConnectionLog.m("PAC URL: ${profile.pacUrl}")
+        val url = runCatching { URL(profile.pacUrl.trim()) }.getOrNull()
+        if (url == null || (url.protocol != "http" && url.protocol != "https") || url.host.isNullOrEmpty()) {
+            throw SstpConnectFailure("Invalid PAC configuration (the PAC URL must be a http(s) URL)")
+        }
+        val script = runCatching { if (url.protocol == "http") plainGet(url) else httpsGet(url) }.getOrNull()
+        if (script == null || script.isEmpty()) throw SstpConnectFailure("Unable to download PAC configuration")
+        val text = runCatching { Charsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(script)).toString() }.getOrNull()
+        if (text.isNullOrEmpty()) throw SstpConnectFailure("Invalid PAC configuration (not a text script)")
+        val result = PacEvaluator.findProxy(context, text, host)
+        ConnectionLog.m("PAC result: $result")
+        val hops = hops(result)
+        if (hops.isEmpty()) throw SstpConnectFailure("No usable proxy returned by PAC")
+        return hops
     }
 
     private fun httpsGet(url: URL): ByteArray? {
@@ -409,7 +415,12 @@ internal object SstpCertificateCheck {
     fun issue(profile: Profile): String? {
         val host = profile.server.trim()
         val port = profile.effectivePort.toIntOrNull() ?: 443
-        val verifyHost = if (profile.customSniEnabled && profile.customSni.trim().isNotEmpty()) profile.customSni.trim() else host
+        // SoftEther checks its Hostname field when one is set, SSTP its Custom SNI
+        val verifyHost = when {
+            profile.isSoftEther -> profile.hostnameOverride.trim().ifEmpty { host }
+            profile.customSniEnabled && profile.customSni.trim().isNotEmpty() -> profile.customSni.trim()
+            else -> host
+        }
         var chain: Array<java.security.cert.X509Certificate>? = null
         val capture = object : javax.net.ssl.X509TrustManager {
             override fun checkClientTrusted(certificates: Array<java.security.cert.X509Certificate>, authType: String) = Unit
@@ -446,7 +457,7 @@ internal object SstpCertificateCheck {
                 "Certificate is not valid yet"
             }
         }
-        val trustError = Sstp.trustChain(certificates.map { it.encoded }.toTypedArray())
+        val trustError = PlatformTrust.check(certificates.map { it.encoded }.toTypedArray())
         if (leafErrors.isEmpty() && validity.all { it == null } && trustError == null) return null
         val text = StringBuilder("TLS verification on the server certificate ($verifyHost) has failed due to the following error. As such, the identity of the server can't be verified at the moment.\n\n")
         for ((index, certificate) in certificates.withIndex()) {

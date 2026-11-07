@@ -59,8 +59,10 @@ typedef void(^SRPSoftEtherDisconnectedCallback)(void);
 @property (nonatomic, strong, nullable) NSString *natTHint;
 @property (nonatomic) BOOL useCompress;
 
-// Proxy (manual HTTP/SOCKS5 only in v1; auto/PAC falls back to direct)
+// Proxy: manual HTTP CONNECT/SOCKS5, or auto: the PAC file's answer for the server (PROXY, SOCKS,
+// SOCKS5 or DIRECT, tried in its order when a proxy cannot be reached)
 @property (nonatomic) NSInteger proxyMode;        // 0 none, 1 manual, 2 auto
+@property (nonatomic, strong, nullable) NSString *pacURL;
 @property (nonatomic, strong, nullable) NSString *proxyType;   // "http" | "socks5"
 @property (nonatomic, strong, nullable) NSString *proxyHost;
 @property (nonatomic) NSInteger proxyPort;

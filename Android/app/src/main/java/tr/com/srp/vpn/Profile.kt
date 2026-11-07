@@ -57,7 +57,7 @@ data class EapConfig(
 /** One saved connection, with the same fields and defaults as a NodeModel on iOS. Secrets stay out of the stored profile. */
 data class Profile(
     val nodeId: String = UUID.randomUUID().toString().uppercase(),
-    /** "waterwall" or "sstp" */
+    /** "waterwall", "sstp" or "softether" */
     val protocolType: String = "waterwall",
     val desc: String = "",
     val username: String = "",
@@ -110,19 +110,31 @@ data class Profile(
     val pacUrl: String = "",
     val disableLegacyOuterTls: Boolean = false,
     val customSniEnabled: Boolean = false,
+    // SoftEther (NodeModel's se* fields): standardPassword, radiusNT, certificate or anonymous
+    val seAuthMethod: String = "standardPassword",
+    val hubName: String = "DEFAULT",
+    /** TLS SNI and certificate-verification name; empty = the server field */
+    val hostnameOverride: String = "",
+    val seConnections: Int = 1,
+    val seUdpAcceleration: Boolean = false,
+    val seNatTraversal: Boolean = false,
+    val seNatTHint: String = "",
+    /** The manual proxy's protocol: "http" or "socks5" (SSTP finds it by negotiation instead) */
+    val proxyType: String = "http",
 ) {
     val isSstp get() = protocolType == "sstp"
+    val isSoftEther get() = protocolType == "softether"
 
-    val certificateMode get() = isSstp && authMethod == "certificate"
+    val certificateMode get() = (isSstp && authMethod == "certificate") || (isSoftEther && seAuthMethod == "certificate")
 
     val configuration: Map<String, Any?>
         get() = ChainConfig.configurationWithJson(configJson) ?: ChainConfig.defaultConfiguration()
 
     /** An empty port means 443, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (!isSstp && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
+        get() = port.ifEmpty { if (!isSstp && !isSoftEther && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
 
-    val nodeName get() = if (isSstp) "SSTP VPN" else "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
@@ -222,7 +234,7 @@ class ProfileStore(context: Context) {
             if (saved.outerSecretRef.isEmpty()) saved = saved.copy(outerSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.outerSecretRef, saved.outerSecret)
         }
-        if (saved.isSstp) return sstpStored(saved)
+        if (saved.isSstp || saved.isSoftEther) return sstpStored(saved)
         val keys = LinkedHashMap<String, Any?>()
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
@@ -247,7 +259,7 @@ class ProfileStore(context: Context) {
         )
     }
 
-    /** CheckConnectData's keys for an SSTP profile; the proxy password goes to the store like the main one. */
+    /** CheckConnectData's keys for an SSTP or SoftEther profile; the proxy password goes to the store like the main one. */
     private fun sstpStored(profile: Profile): Map<String, Any?> {
         var saved = profile
         // A profile moved from WaterWall has no WireGuard keys left to keep
@@ -264,7 +276,7 @@ class ProfileStore(context: Context) {
         }
         val eap = saved.eap
         val stored = linkedMapOf<String, Any?>(
-            "type" to "sstp", "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
+            "type" to saved.protocolType, "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
             "port" to saved.effectivePort, "password_key" to saved.passwordKey,
             "chap_enable" to saved.allowLegacyPapChap, "mschap2_enable" to saved.mschap2, "pap_enable" to saved.allowLegacyPapChap,
             "allowInsecure" to saved.allowInsecure, "allow_legacy_papchap" to saved.allowLegacyPapChap, "auth_method" to saved.authMethod,
@@ -272,7 +284,7 @@ class ProfileStore(context: Context) {
             "eapttls_enable" to (eap.ttlsInnerMethod != 0), "eapttls_inner" to ttlsInnerName(eap.ttlsInnerMethod), "eapteap_enable" to eap.teapEnabled,
             "eap_identity_privacy" to eap.identityPrivacyEnabled, "eap_anonymous_identity" to eap.anonymousIdentity,
             "eap_tls13" to eap.eapTls13Enabled, "eap_disable_legacy_tls" to eap.disableLegacyEapTls, "eap_config" to eap.toMap(),
-            "cert_auth" to (saved.authMethod == "certificate" && saved.certKey.isNotEmpty()),
+            "cert_auth" to (saved.certificateMode && saved.certKey.isNotEmpty()),
             "proxy_mode" to listOf("none", "manual", "auto")[saved.proxyMode.coerceIn(0, 2)],
             "disable_legacy_outer_tls" to saved.disableLegacyOuterTls, "tls_frag" to saved.tlsFragMode.toLong(),
             "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(), "switch_to_wifi" to saved.switchToWifi,
@@ -289,6 +301,16 @@ class ProfileStore(context: Context) {
         if (saved.tlsFragFirst > 0) stored["tls_frag_first"] = saved.tlsFragFirst.toLong()
         if (saved.tlsFragFollowing > 0) stored["tls_frag_following"] = saved.tlsFragFollowing.toLong()
         if (saved.customSni.isNotEmpty()) stored["sni"] = saved.customSni
+        if (saved.isSoftEther) {
+            stored["se_auth_method"] = saved.seAuthMethod
+            stored["hub"] = saved.hubName.ifEmpty { "DEFAULT" }
+            stored["se_connections"] = saved.seConnections.coerceIn(1, 32).toLong()
+            stored["se_udp_accel"] = saved.seUdpAcceleration
+            stored["se_natt"] = saved.seNatTraversal
+            if (saved.seNatTHint.isNotEmpty()) stored["se_natt_hint"] = saved.seNatTHint
+            if (saved.hostnameOverride.isNotEmpty()) stored["hostname_override"] = saved.hostnameOverride
+            stored["proxy_type"] = saved.proxyType
+        }
         return stored
     }
 
@@ -342,7 +364,7 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
-            protocolType = if (text("type") == "sstp") "sstp" else "waterwall",
+            protocolType = text("type").takeIf { it == "sstp" || it == "softether" } ?: "waterwall",
             mschap2 = flag("mschap2_enable", true),
             allowLegacyPapChap = flag("allow_legacy_papchap", false),
             authMethod = text("auth_method").ifEmpty { "password" },
@@ -358,6 +380,14 @@ class ProfileStore(context: Context) {
             pacUrl = text("pac_url"),
             disableLegacyOuterTls = flag("disable_legacy_outer_tls", false),
             customSniEnabled = flag("custom_sni_enabled", false),
+            seAuthMethod = text("se_auth_method").ifEmpty { "standardPassword" },
+            hubName = text("hub").ifEmpty { "DEFAULT" },
+            hostnameOverride = text("hostname_override"),
+            seConnections = number("se_connections").coerceIn(1, 32),
+            seUdpAcceleration = flag("se_udp_accel", false),
+            seNatTraversal = flag("se_natt", false),
+            seNatTHint = text("se_natt_hint"),
+            proxyType = if (text("proxy_type") == "socks5") "socks5" else "http",
         )
     }
 }

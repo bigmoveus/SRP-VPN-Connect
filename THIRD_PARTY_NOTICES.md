@@ -6,7 +6,7 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 
 | Component | Upstream | License or notice |
 | --- | --- | --- |
-| SoftEther VPN | [SoftEtherVPN/SoftEtherVPN](https://github.com/SoftEtherVPN/SoftEtherVPN) | Apache License 2.0; see `iOS/SoftEther/LICENSE` |
+| SoftEther VPN (client core of the iOS and Android apps) | [SoftEtherVPN/SoftEtherVPN](https://github.com/SoftEtherVPN/SoftEtherVPN) | Apache License 2.0; see `iOS/SoftEther/LICENSE` |
 | OpenConnect | [OpenConnect](https://www.infradead.org/openconnect/) | LGPL 2.1; see `iOS/OpenConnect/upstream/COPYING.LGPL` |
 | OpenVPN 3 | [OpenVPN/openvpn3](https://github.com/OpenVPN/openvpn3) | AGPL 3.0 or MPL 2.0, with the linking permission described in `iOS/OpenVPN/upstream/LICENSE.md` |
 | WireGuard / wireguard-go | [WireGuard](https://www.wireguard.com/) | MIT; see `Licenses/WireGuard/LICENSE` |
@@ -15,7 +15,7 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | Psiphon clientlib | [Psiphon-Labs/psiphon-tunnel-core](https://github.com/Psiphon-Labs/psiphon-tunnel-core) | GPL 3.0; see `Licenses/Psiphon/LICENSE` |
 | WaterWall | [radkesvat/WaterWall](https://github.com/radkesvat/WaterWall) | See `WaterWall/upstream/LICENSE.txt` and the notices in its source directories |
 | BoringSSL | [BoringSSL](https://boringssl.googlesource.com/boringssl/) | See `Licenses/BoringSSL/LICENSE` |
-| OpenSSL | [OpenSSL](https://www.openssl.org/) | Apache License 2.0; see `Licenses/OpenSSL/LICENSE.txt` |
+| OpenSSL (3.0 in the iOS SoftEther core, 3.5 in the Android one, 4.0 in the WaterWall runtime) | [OpenSSL](https://www.openssl.org/) | Apache License 2.0; see `Licenses/OpenSSL/LICENSE.txt` |
 | lwIP | [lwIP](https://savannah.nongnu.org/projects/lwip/) | See the notices in the lwIP source tree |
 | sstp-client (SSTP code of the iOS and Android apps) | sstp-client by Eivind Naess | GPL 2.0 or later; see the notices in `iOS/Core/SRPCore/sstp` |
 | hev-socks5-tunnel and related components | [Heiher](https://github.com/heiher) | See `iOS/SSH/upstream/LICENSE` and the related component notices |

@@ -1,0 +1,7 @@
+{
+  global:
+    JNI_OnLoad;
+    Java_tr_com_srp_vpn_SoftEther_*;
+  local:
+    *;
+};

@@ -75,6 +75,8 @@ struct SRPSEAdapter
     uint8_t GwMac[6];
     bool GwMacKnown;
     uint64_t NextArpTick;
+    bool ConfigPending;           // DHCP bound, address held back until the gateway's MAC is known
+    uint64_t ConfigPendingTick;
 
     // IPv6 (NDP/SLAAC) state
     uint8_t LinkLocal6[16];
@@ -274,6 +276,9 @@ static void *se_build_dhcp(SRPSEAdapter *a, uint8_t msgType, uint32_t reqIp, uin
 }
 
 // Parse a DHCP packet from the server. Returns msg type (2=offer,5=ack,6=nak,0=invalid).
+static void se_report_config(SRPSEAdapter *a);
+static void se_arp_request(SRPSEAdapter *a, uint32_t targetIp);
+
 static uint8_t se_parse_dhcp(SRPSEAdapter *a, const uint8_t *p, uint32_t len)
 {
     if (len < sizeof(ETH_HDR) + 20 + 8 + 240) return 0;
@@ -346,8 +351,17 @@ static uint8_t se_parse_dhcp(SRPSEAdapter *a, const uint8_t *p, uint32_t len)
             strncat(ds, t, sizeof(ds) - strlen(ds) - 1);
         }
         se_log(a, "DHCP bound: ip=%s mask=%s gw=%s dns=%s lease=%us", ips, ms, gs, ds, a->LeaseSec);
-        if (first && a->ConfigCb != NULL) {
-            a->ConfigCb(a->CbCtx, ips, ms, gs, ds, a->LeaseSec);
+        if (first) {
+            if (a->GwMacKnown) {
+                se_report_config(a);
+            } else {
+                // Packets sent before ARP answers are dropped, and a dropped first SYN costs every app's first
+                // connection TCP's one-second retry: report the address once the gateway's MAC is known
+                a->ConfigPending = true;
+                a->ConfigPendingTick = Tick64();
+                se_arp_request(a, a->Gw);
+                a->NextArpTick = a->ConfigPendingTick + ARP_REFRESH_MS;
+            }
         }
     }
     else if (msg == 6) {
@@ -359,6 +373,23 @@ static uint8_t se_parse_dhcp(SRPSEAdapter *a, const uint8_t *p, uint32_t len)
         a->NextDhcpActionTick = 0;
     }
     return msg;
+}
+
+// The bound address for the tunnel's settings (the config callback); once per lease, after the gateway's MAC is known
+static void se_report_config(SRPSEAdapter *a)
+{
+    if (a->ConfigCb == NULL) return;
+    char ips[32], ms[32], gs[32], ds[256];
+    ip_to_str(a->Ip, ips, sizeof(ips));
+    ip_to_str(a->Mask, ms, sizeof(ms));
+    ip_to_str(a->Gw, gs, sizeof(gs));
+    ds[0] = 0;
+    for (int i = 0; i < a->DnsCount; i++) {
+        char t[32]; ip_to_str(a->Dns[i], t, sizeof(t));
+        if (i) strncat(ds, ",", sizeof(ds) - strlen(ds) - 1);
+        strncat(ds, t, sizeof(ds) - strlen(ds) - 1);
+    }
+    a->ConfigCb(a->CbCtx, ips, ms, gs, ds, a->LeaseSec);
 }
 
 static void se_arp_request(SRPSEAdapter *a, uint32_t targetIp)
@@ -397,6 +428,10 @@ static void se_handle_arp(SRPSEAdapter *a, const uint8_t *p, uint32_t len)
         a->GwMacKnown = true;
         se_log(a, "ARP: gateway MAC learned %02X:%02X:%02X:%02X:%02X:%02X",
                arp->sha[0], arp->sha[1], arp->sha[2], arp->sha[3], arp->sha[4], arp->sha[5]);
+        if (a->ConfigPending) {
+            a->ConfigPending = false;
+            se_report_config(a);
+        }
     }
 
     if (op == 1 && a->HasConfig && tpa == a->Ip) {
@@ -708,6 +743,12 @@ static void se_dhcp_thread(THREAD *t, void *param)
                 a->DhcpState = DHCP_STATE_RENEWING;
                 a->NextDhcpActionTick = 0;
             }
+            // A gateway that does not answer ARP must not hold the tunnel back: report the address after 1.5 s
+            if (a->ConfigPending && now >= a->ConfigPendingTick + 1500) {
+                se_log(a, "ARP: no answer from the gateway yet; using the address anyway");
+                a->ConfigPending = false;
+                se_report_config(a);
+            }
             // ARP for gateway once bound
             if (a->HasConfig && !a->GwMacKnown && now >= a->NextArpTick) {
                 se_arp_request(a, a->Gw);
@@ -725,6 +766,7 @@ static void se_dhcp_thread(THREAD *t, void *param)
             if (a->NextDhcpActionTick == 0) next = now;
             else if (a->NextDhcpActionTick < next) next = a->NextDhcpActionTick;
             if (a->NextArpTick && a->NextArpTick < next) next = a->NextArpTick;
+            if (a->ConfigPending && a->ConfigPendingTick + 1500 < next) next = a->ConfigPendingTick + 1500;
             waitMs = (next > now) ? (uint32_t)(next - now) : 0;
         }
         Unlock(a->Lock);
@@ -791,6 +833,10 @@ static bool se_pa_put_packet(SESSION *s, void *data, UINT size)
                 memcpy(a->GwMac, ((ETH_HDR *)p)->src, 6);
                 a->GwMacKnown = true;
                 se_log(a, "Gateway MAC learned from inbound IP frame");
+                if (a->ConfigPending) {
+                    a->ConfigPending = false;
+                    se_report_config(a);
+                }
             }
             if (ip[9] == 17) {  // UDP — DHCP reply?
                 uint32_t ihl = (ip[0] & 0x0F) * 4;

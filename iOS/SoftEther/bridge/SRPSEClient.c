@@ -161,18 +161,20 @@ static void se_status_thread(THREAD *t, void *param)
     {
         int st = -1; uint32_t err = 0;
         SRPSEClientGetStatus(c, &st, &err);
+        if (st == 5 /* CLIENT_STATUS_IDLE */) break;   // session thread ended: reported once, below
         if (st != c->LastReportedStatus)
         {
             c->LastReportedStatus = st;
             if (c->StateFn) c->StateFn(c->CbCtx, st, err);
         }
-        if (st == 5 /* CLIENT_STATUS_IDLE */) break;   // session thread ended
         Wait(c->MonitorEvent, 200);
     }
     if (!c->MonitorHalt)
     {
+        // The end goes out exactly once: a second one would start a second reconnect, or end the next session
         int st = -1; uint32_t err = 0;
         SRPSEClientGetStatus(c, &st, &err);
+        c->LastReportedStatus = 5;
         if (c->StateFn) c->StateFn(c->CbCtx, 5, err);   // final: ended with error code
     }
 }
@@ -256,9 +258,10 @@ int SRPSEClientStart(SRPSEClient *c)
     o.AdditionalConnectionInterval = 1;
     o.PortUDP = 0;
     StrCpy(o.DeviceName, sizeof(o.DeviceName), "vpn");   // non-empty: use our PA, not virtual-host mode
-    // UDP acceleration and NAT-T are independent switches
+    // UDP acceleration and NAT-T are independent switches. The core tries NAT-T beside TCP
+    // unless the hint is "tcp" (BindConnectEx5), so NAT-T off sends no query to the NAT-T servers.
     o.NoUdpAcceleration = !c->Cfg.udpAcceleration;
-    StrCpy(o.HintStr, sizeof(o.HintStr), c->Cfg.natTHint);
+    StrCpy(o.HintStr, sizeof(o.HintStr), c->Cfg.natTraversal ? c->Cfg.natTHint : "tcp");
     StrCpy(o.SniOverride, sizeof(o.SniOverride), c->Cfg.sniOverride);
 
     o.ProxyType = (UINT)c->Cfg.proxyType;

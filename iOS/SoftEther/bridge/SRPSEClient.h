@@ -45,8 +45,8 @@ typedef struct {
     bool     tlsVerify;               // true = evaluate server cert via trust hook
     uint32_t maxConnections;          // 1..32
     bool     udpAcceleration;
-    bool     natTraversal;            // false also disables UDP acceleration
-    char     natTHint[256];
+    bool     natTraversal;            // false: no NAT-T connect and no NAT-T query from UDP acceleration
+    char     natTHint[256];           // NAT-T on: the server's private IP (forces NAT-T); empty = NAT-T beside TCP
     bool     useCompress;
     SRPSEProxyType proxyType;
     char     proxyHost[256];

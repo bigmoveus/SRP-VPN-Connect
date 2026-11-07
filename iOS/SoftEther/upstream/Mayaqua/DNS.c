@@ -492,8 +492,14 @@ void DnsResolver(THREAD *t, void *param)
 
 	if (HasIPv6Address())
 	{
+#ifdef __ANDROID__
+		// SRP: Bionic refuses AI_ALL and AI_V4MAPPED (EAI_BADFLAGS); ask for both families instead
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_flags = AI_ADDRCONFIG;
+#else
 		hints.ai_family = AF_INET6;
 		hints.ai_flags = AI_ALL | AI_ADDRCONFIG | AI_V4MAPPED;
+#endif
 	}
 	else
 	{
@@ -509,7 +515,7 @@ void DnsResolver(THREAD *t, void *param)
 		for (struct addrinfo *result = results; result != NULL; result = result->ai_next)
 		{
 			IP ip;
-			if (hints.ai_family == AF_INET6)
+			if (result->ai_family == AF_INET6)   // SRP: by each result's family, as AF_UNSPEC returns both
 			{
 				const struct sockaddr_in6 *in = (struct sockaddr_in6 *)result->ai_addr;
 				InAddrToIP6(&ip, &in->sin6_addr);

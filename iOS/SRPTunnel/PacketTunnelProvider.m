@@ -176,6 +176,25 @@ static uint64_t SRPFootprintBytes(void);
     [SRPSoftEtherClient initializeCoreInDirectory:dir debugLog:YES];
 
     SRPSoftEtherClient *se = [[SRPSoftEtherClient alloc] init];
+    // Every way out of the start, the early ones too, leaves its reason where the app shows it
+    __weak PacketTunnelProvider *weakSelf = self;
+    __block BOOL finished = NO;
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    void (^finish)(NSError *) = ^(NSError *e) {
+        if (finished) {
+            return;
+        }
+        finished = YES;
+        if (e) {
+            [shared setObject:@{@"message": e.localizedDescription ?: @"SoftEther connection failed",
+                                @"date": [NSDate date]} forKey:@"SRPLastError"];
+        }
+        else {
+            [shared removeObjectForKey:@"SRPLastError"];
+        }
+        [shared synchronize];
+        completionHandler(e);
+    };
     se.host = v[@"address"];
     se.port = [v[@"port"] intValue] ?: 443;
     se.hubName = [v[@"hub"] length] > 0 ? [v[@"hub"] stringByRemovingPercentEncoding] : @"DEFAULT";
@@ -201,23 +220,24 @@ static uint64_t SRPFootprintBytes(void);
     // Certificate authentication: unwrap the client .p12 from the shared Keychain
     if (se.authMethod == SRPSoftEtherAuthCertificate) {
         if ([v[@"cert_ref"] length] == 0) {
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"Certificate authentication requires a client certificate in the profile."}]);
+            finish([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"Certificate authentication requires a client certificate in the profile."}]);
             return;
         }
         NSString *certPass = nil;
         NSData *p12 = [SRPKeychain certificateForKey:v[@"cert_ref"] passphrase:&certPass];
         if (p12 == nil) {
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The client certificate could not be read. Re-import it in the profile."}]);
+            finish([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"The client certificate could not be read. Re-import it in the profile."}]);
             return;
         }
         se.clientCertP12 = p12;
         se.clientCertPassphrase = certPass;
     }
 
-    // Proxy (manual HTTP/SOCKS5; auto/PAC falls back to direct with a log note)
+    // Proxy (manual HTTP/SOCKS5, or auto: the PAC file's answer)
     NSString *proxyMode = v[@"proxy_mode"];
     se.proxyMode = [proxyMode isEqualToString:@"manual"] ? 1
                  : [proxyMode isEqualToString:@"auto"] ? 2 : 0;
+    se.pacURL = [v[@"pac_url"] stringByRemovingPercentEncoding];
     se.proxyType = [v[@"proxy_type"] isEqualToString:@"socks5"] ? @"socks5" : @"http";
     se.proxyHost = [v[@"proxy_host"] stringByRemovingPercentEncoding];
     se.proxyPort = [v[@"proxy_port"] integerValue];
@@ -238,24 +258,6 @@ static uint64_t SRPFootprintBytes(void);
 
     self.seClient = se;
 
-    __weak PacketTunnelProvider *weakSelf = self;
-    __block BOOL finished = NO;
-    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
-    void (^finish)(NSError *) = ^(NSError *e) {
-        if (finished) {
-            return;
-        }
-        finished = YES;
-        if (e) {
-            [shared setObject:@{@"message": e.localizedDescription ?: @"SoftEther connection failed",
-                                @"date": [NSDate date]} forKey:@"SRPLastError"];
-        }
-        else {
-            [shared removeObjectForKey:@"SRPLastError"];
-        }
-        [shared synchronize];
-        completionHandler(e);
-    };
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"Connection timed out. The server did not respond."}]);
@@ -277,7 +279,14 @@ static uint64_t SRPFootprintBytes(void);
             finish(nil);
         }];
     } connectedCallback:nil disconnectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SoftEther connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SoftEther connection failed"}];
+        if (finished) {
+            // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel (as SSTP)
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
