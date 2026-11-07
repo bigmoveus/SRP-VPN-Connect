@@ -170,7 +170,7 @@ class SslVpnClient(
             try {
                 if (cancelled) return
                 configure(lib) ?: return
-                ConnectionLog.m("OpenConnect connecting to https://${profile.server.trim()}:${port()}/ (protocol $protocol, user ${profile.username.trim()}, verify=${if (allowInsecure) 0 else 1})")
+                ConnectionLog.m("OpenConnect connecting to ${maskSecret(sslVpnUrl(profile.server.trim(), port().toString(), profile.ocPath))} (protocol $protocol, user ${profile.username.trim()}, verify=${if (allowInsecure) 0 else 1})")
                 val untrusted = "The server's certificate is not trusted. Check the Server field, or turn off TLS Server Verification in the profile."
                 if (lib.obtainCookie() != 0) {
                     sessionFailed(if (certFailed) untrusted else if (authFailed) "Authentication failed. Check the username and password."
@@ -260,7 +260,7 @@ class SslVpnClient(
                 if (lib.setClientCert(file.path, null) != 0) ConnectionLog.m("OpenConnect: client certificate rejected")
                 lib.setKeyPassword(passphrase)
             }
-            if (lib.parseURL("https://${profile.server.trim()}:${port()}/") != 0) {
+            if (lib.parseURL(sslVpnUrl(profile.server.trim(), port().toString(), profile.ocPath)) != 0) {
                 sessionFailed("Invalid server address")
                 return null
             }
@@ -275,7 +275,8 @@ class SslVpnClient(
     /** libopenconnect's callbacks; they run on the session's thread. */
     private inner class Library(private val session: Session) : LibOpenConnect("SRP VPN Connect") {
         override fun onProgress(level: Int, message: String) {
-            val line = maskCookies(message.trim())
+            // libopenconnect logs each request's URL, the Path with it
+            val line = maskSecret(maskCookies(message.trim()))
             if (line.isEmpty()) return
             when (level) {
                 LibOpenConnect.PRG_ERR -> {
@@ -385,6 +386,11 @@ class SslVpnClient(
     }
 
     private fun port() = profile.effectivePort.toIntOrNull() ?: 443
+
+    /** The Path's secret (after "?"): a camouflage secret is a password of sorts, so the log shows only its length */
+    private val pathSecret = profile.ocPath.substringAfter('?', "").trim()
+
+    private fun maskSecret(line: String) = if (pathSecret.isEmpty()) line else line.replace("?$pathSecret", "?<${pathSecret.length} characters>")
 
     /** The server's addresses, DNS servers and routes as the tunnel's settings; null without an IPv4 address. */
     private fun settingsFrom(info: IPInfo): TunnelSettings? {

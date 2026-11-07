@@ -31,6 +31,8 @@ typedef void(^SRPOCDisconnectedCallback)(void);
 @property (nonatomic) int port;
 /// OpenConnect sub-protocol: "anyconnect" (v1). Others are enable-tested later.
 @property (nonatomic, strong) NSString *ocProtocol;
+/// What follows the server in its URL, such as ocserv camouflage's "?secret" (optional)
+@property (nonatomic, strong, nullable) NSString *urlPath;
 @property (nonatomic, strong) NSString *username;
 @property (nonatomic, strong, nullable) NSString *password;
 /// Client certificate (PKCS#12 blob + passphrase), optional.

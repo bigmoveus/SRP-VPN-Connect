@@ -373,4 +373,24 @@
     XCTAssertTrue(caps.supportsTeap);
 }
 
+- (void)testSslVpnPathPlumbingAndSplit {
+    NodeModel *m = [NodeModel new];
+    m.protocolType = @"openconnect";
+    m.server = @"vpn.example.com";
+    m.username = @"u";
+    m.ocPath = @"/?secret";
+    NSDictionary *d = [CheckConnectData checkConnectParmer:m];
+    XCTAssertEqualObjects(d[@"oc_path"], @"/?secret");
+    XCTAssertEqualObjects([CheckConnectData getModalForDic:d].ocPath, @"/?secret");
+
+    // An address pasted whole into Server
+    XCTAssertEqualObjects([CheckConnectData splitSslVpnAddress:@" https://vpn.example.com:8443/?secret\n"],
+                          (@{@"server": @"vpn.example.com", @"port": @"8443", @"path": @"/?secret"}));
+    XCTAssertEqualObjects([CheckConnectData splitSslVpnAddress:@"HTTPS://vpn.example.com?secret"],
+                          (@{@"server": @"vpn.example.com", @"path": @"?secret"}));
+    XCTAssertEqualObjects([CheckConnectData splitSslVpnAddress:@"vpn.example.com/"], @{@"server": @"vpn.example.com"});
+    XCTAssertEqualObjects([CheckConnectData splitSslVpnAddress:@"[2001:db8::1]:443"], (@{@"server": @"[2001:db8::1]", @"port": @"443"}));
+    XCTAssertEqualObjects([CheckConnectData splitSslVpnAddress:@"2001:db8::1"], @{@"server": @"2001:db8::1"});
+}
+
 @end

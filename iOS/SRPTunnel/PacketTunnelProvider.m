@@ -323,6 +323,7 @@ static uint64_t SRPFootprintBytes(void);
     oc.host = v[@"address"];
     oc.port = [v[@"port"] intValue] ?: 443;
     oc.ocProtocol = [v[@"ocproto"] length] > 0 ? v[@"ocproto"] : @"anyconnect";
+    oc.urlPath = [v[@"ocpath"] stringByRemovingPercentEncoding];
     oc.username = v[@"username"];
     oc.password = [v[@"password"] length] > 0 ? v[@"password"] : nil;
     oc.tlsServerVerification = ![v[@"allowInsecure"] boolValue];
@@ -1311,11 +1312,13 @@ static void SRPTunnelLogOpen(void) {
     // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN), from their start methods.
     SRPTunnelLogOpen();
 #endif
-    // Never log credentials: mask the URI userinfo before logging
+    // Never log credentials: mask the URI userinfo, and the SSL VPN Path (an ocserv camouflage secret), before logging
     NSString* (^maskURI)(NSString *) = ^NSString *(NSString *uri) {
         if (!uri) {
             return uri;
         }
+        uri = [uri stringByReplacingOccurrencesOfString:@"([?&]ocpath=)[^&#]*" withString:@"$1<redacted>"
+                                                options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
         NSRange schemeEnd = [uri rangeOfString:@"//"];
         NSRange atSign = [uri rangeOfString:@"@"];
         if (schemeEnd.location != NSNotFound && atSign.location != NSNotFound && atSign.location > schemeEnd.location + 1) {

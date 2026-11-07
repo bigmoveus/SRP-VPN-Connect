@@ -62,6 +62,7 @@
     }
     if ([modal.protocolType isEqualToString:@"openconnect"]) {
         d[@"oc_protocol"] = modal.ocProtocol.length > 0 ? modal.ocProtocol : @"anyconnect";
+        if (modal.ocPath.length > 0) d[@"oc_path"] = modal.ocPath;
     }
     if ([modal.protocolType isEqualToString:@"ssh"]) {
         d[@"ssh_udp"] = @(modal.sshUdpRelay);
@@ -268,6 +269,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.seNatTHint = selectDic[@"se_natt_hint"];
         modal.proxyType = selectDic[@"proxy_type"];
         modal.ocProtocol = selectDic[@"oc_protocol"];
+        modal.ocPath = selectDic[@"oc_path"];
         // SSH engine fields (migration-safe: absent = relay off, no pinned key)
         if (selectDic[@"ssh_udp"] != nil) {
             modal.sshUdpRelay = [selectDic[@"ssh_udp"] boolValue];
@@ -470,6 +472,30 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
                             modal.proxyPasswordRef ?: @"", modal.wgSecretRef ?: @""]) {
         if (key.length > 0) [SRPKeychain deletePasswordForKey:key];
     }
+}
+
++(NSDictionary<NSString*, NSString*>*)splitSslVpnAddress:(NSString*)text {
+    NSString *rest = [text ?: @"" stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    NSRange scheme = [rest rangeOfString:@"^https?://" options:NSRegularExpressionSearch | NSCaseInsensitiveSearch];
+    if (scheme.location != NSNotFound) rest = [rest substringFromIndex:NSMaxRange(scheme)];
+    NSMutableDictionary *parts = [NSMutableDictionary dictionary];
+    NSString *hostPort = rest;
+    NSRange cut = [rest rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"/?"]];
+    if (cut.location != NSNotFound) {
+        hostPort = [rest substringToIndex:cut.location];
+        NSString *path = [rest substringFromIndex:cut.location];
+        if (![path isEqualToString:@"/"]) parts[@"path"] = path;
+    }
+    // host:port, or [IPv6]:port; a bare IPv6 address has more than one colon and no port
+    static NSRegularExpression *hostAndPort;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        hostAndPort = [NSRegularExpression regularExpressionWithPattern:@"^(\\[[^\\]]+\\]|[^:]+):(\\d{1,5})$" options:0 error:nil];
+    });
+    NSTextCheckingResult *match = [hostAndPort firstMatchInString:hostPort options:0 range:NSMakeRange(0, hostPort.length)];
+    parts[@"server"] = match ? [hostPort substringWithRange:[match rangeAtIndex:1]] : hostPort;
+    if (match) parts[@"port"] = [hostPort substringWithRange:[match rangeAtIndex:2]];
+    return parts;
 }
 
 @end

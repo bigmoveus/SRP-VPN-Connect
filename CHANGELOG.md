@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- SSL VPN profiles have a Path (both apps): what follows the server in its address, such as `?secret` for an ocserv with `camouflage`, which answers no client without its secret. An address pasted whole into Server, such as `https://vpn.example.com:8443/?secret`, is split into Server, Port and Path on Save. The connection log shows the secret only as its length.
+
 ## 1.2.0 (37) - 2026-11-07
 
 ### Added

@@ -39,6 +39,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// OpenConnect sub-protocol: "anyconnect" (default), "f5" (BIG-IP) or "gp" (Palo Alto GlobalProtect)
 @property (nonatomic,copy,nullable) NSString * ocProtocol;
 
+/// OpenConnect: what follows the server in its URL, such as ocserv camouflage's "?secret" (optional)
+@property (nonatomic,copy,nullable) NSString * ocPath;
+
 /// SSH engine: pinned server host key, OpenSSH "SHA256:...." form (optional;
 /// empty = accept any — TOFU is left to the administrator)
 @property (nonatomic,copy,nullable) NSString * sshHostKey;

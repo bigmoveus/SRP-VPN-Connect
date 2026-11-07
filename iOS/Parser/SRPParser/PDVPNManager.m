@@ -322,6 +322,9 @@ typedef void(^YDFetchCompletion)(NETunnelProviderManager *manager);
 // Mask URI userinfo (may contain base64 credentials) before logging
 static NSString *SRPMaskedURI(NSString *uri) {
     if (uri == nil) return nil;
+    // The SSL VPN Path may hold an ocserv camouflage secret
+    uri = [uri stringByReplacingOccurrencesOfString:@"([?&]ocpath=)[^&#]*" withString:@"$1<redacted>"
+                                            options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
     NSRange schemeEnd = [uri rangeOfString:@"//"];
     NSRange atSign = [uri rangeOfString:@"@"];
     if (schemeEnd.location != NSNotFound && atSign.location != NSNotFound && atSign.location > schemeEnd.location + 1) {
@@ -387,6 +390,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
     if (safeServer[@"wg_private_key"]) safeServer[@"wg_private_key"] = @"***";
     if (safeServer[@"wg_preshared_key"]) safeServer[@"wg_preshared_key"] = @"***";
     if (safeServer[@"ww_config"]) safeServer[@"ww_config"] = @"***";
+    if (safeServer[@"oc_path"]) safeServer[@"oc_path"] = @"***";
     if (safeServer[@"ww_fallbacks"]) {
         safeServer[@"ww_fallbacks"] = [NSString stringWithFormat:@"%lu profiles", (unsigned long)[server[@"ww_fallbacks"] count]];
     }
@@ -713,6 +717,9 @@ static NSString *SRPMaskedURI(NSString *uri) {
     }
     if ([server[@"type"] isEqualToString:@"openconnect"] && [server[@"oc_protocol"] length] > 0) {
         [uri appendFormat:@"&ocproto=%@", server[@"oc_protocol"]];
+    }
+    if ([server[@"type"] isEqualToString:@"openconnect"] && [server[@"oc_path"] length] > 0) {
+        [uri appendFormat:@"&ocpath=%@", [server[@"oc_path"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];
     }
     // SSH engine parameters
     if ([server[@"type"] isEqualToString:@"ssh"]) {

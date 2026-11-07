@@ -57,6 +57,7 @@
     NSMutableArray<NSString *> *_loginErrors;   // libopenconnect's error lines of the current session, for the failure message
     NSString *_certPath;          // the client certificate as files for libopenconnect, removed when the session ends
     NSString *_keyPath;
+    NSString *_pathSecret;        // the Path's part after "?", such as an ocserv camouflage secret
 }
 
 static void ocProgress(void *privdata, int level, const char *fmt, ...);
@@ -107,7 +108,15 @@ static NSString *SRPOCMaskCookies(NSString *line) {
                                         withTemplate:@"$1<elided>"];
 }
 
+/// A camouflage secret is a password of sorts, so the log shows only its length
+- (NSString *)maskPathSecret:(NSString *)line {
+    if (_pathSecret.length == 0) return line;
+    return [line stringByReplacingOccurrencesOfString:[@"?" stringByAppendingString:_pathSecret]
+                                           withString:[NSString stringWithFormat:@"?<%lu characters>", (unsigned long)_pathSecret.length]];
+}
+
 static void ocProgress(void *privdata, int level, const char *fmt, ...) {
+    SRPOpenConnectClient *self = (__bridge SRPOpenConnectClient *)privdata;
     char buf[1024];
     va_list ap; va_start(ap, fmt);
     vsnprintf(buf, sizeof(buf), fmt, ap);
@@ -115,9 +124,8 @@ static void ocProgress(void *privdata, int level, const char *fmt, ...) {
     NSString *line = [[NSString stringWithUTF8String:buf]
                       stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     if (line.length == 0) return;
-    line = SRPOCMaskCookies(line);
+    line = [self maskPathSecret:SRPOCMaskCookies(line)];   // libopenconnect logs each request's URL, the Path with it
     if (level == PRG_ERR) {
-        SRPOpenConnectClient *self = (__bridge SRPOpenConnectClient *)privdata;
         if (self->_loginErrors.count < 16) [self->_loginErrors addObject:line];
         SSLogM(@"[oc] %@", line);   // errors explain a failure at every log level
     } else if (level == PRG_INFO) {
@@ -328,14 +336,18 @@ static int ocAuthForm(void *privdata, struct oc_auth_form *form) {
         }
     }
 
-    NSString *url = [NSString stringWithFormat:@"https://%@:%d/", _host, _port];
+    // libopenconnect splits the host from the path at the first "/", so the path starts with one
+    NSString *path = [_urlPath stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet] ?: @"";
+    NSRange query = [path rangeOfString:@"?"];
+    _pathSecret = query.location == NSNotFound ? nil : [path substringFromIndex:NSMaxRange(query)];
+    NSString *url = [NSString stringWithFormat:@"https://%@:%d%@%@", _host, _port, [path hasPrefix:@"/"] ? @"" : @"/", path];
     if (openconnect_parse_url(_vpn, url.UTF8String) != 0) {
         [self failWithReason:@"Invalid server address"];
         return;
     }
 
     SSLogM(@"OpenConnect connecting to %@ (protocol %@, user %@, verify=%d)",
-           url, _ocProtocol, _username, _tlsServerVerification);
+           [self maskPathSecret:url], _ocProtocol, _username, _tlsServerVerification);
 
     // The thread keeps its own session pointer and semaphore: the ivars belong to whichever session is current
     struct openconnect_info *vpn = _vpn;

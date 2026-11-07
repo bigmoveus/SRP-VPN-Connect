@@ -145,6 +145,11 @@ fun validationMessage(profile: Profile): String? {
 
 private fun trimmedForSave(profile: Profile): Profile {
     // Pasted values often carry a trailing space or newline, and none of these fields can start or end with one
+    if (profile.isOpenConnect) {
+        // An address pasted whole, such as vpn.example.com/?secret, goes to Server, Port and Path
+        val (server, port, path) = splitSslVpnAddress(profile.server)
+        return profile.copy(server = server, port = port ?: profile.port.trim(), ocPath = path ?: profile.ocPath.trim())
+    }
     if (profile.isTlsVpn) {
         return profile.copy(server = profile.server.trim(), port = profile.port.trim(), customSni = profile.customSni.trim(),
             proxyAddress = profile.proxyAddress.trim(), proxyPort = profile.proxyPort.trim(), hostnameOverride = profile.hostnameOverride.trim(),

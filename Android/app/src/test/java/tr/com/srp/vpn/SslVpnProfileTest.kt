@@ -74,4 +74,25 @@ class SslVpnProfileTest {
             reasonFromErrors(listOf("SSL connection failure", "error:0A00014D:SSL routines::legacy sigalg disallowed or unsupported"), "anyconnect"))
         assertNull(reasonFromErrors(emptyList(), "anyconnect"))
     }
+
+    @Test
+    fun splitsAnAddressPastedWholeIntoServer() {
+        assertEquals(Triple("vpn.example.com", null, "/?secret"), splitSslVpnAddress("vpn.example.com/?secret"))
+        assertEquals(Triple("vpn.example.com", "8443", "/?secret"), splitSslVpnAddress(" https://vpn.example.com:8443/?secret "))
+        assertEquals(Triple("vpn.example.com", "443", "?secret"), splitSslVpnAddress("vpn.example.com:443?secret"))
+        assertEquals(Triple("vpn.example.com", null, "/group"), splitSslVpnAddress("HTTPS://vpn.example.com/group"))
+        assertEquals(Triple("vpn.example.com", null, null), splitSslVpnAddress("vpn.example.com/"))
+        assertEquals(Triple("192.0.2.7", "8443", null), splitSslVpnAddress("192.0.2.7:8443"))
+        assertEquals(Triple("[2001:db8::7]", "443", "/?s"), splitSslVpnAddress("[2001:db8::7]:443/?s"))
+        assertEquals(Triple("2001:db8::7", null, null), splitSslVpnAddress("2001:db8::7"))
+        assertEquals(Triple("vpn.example.com", null, null), splitSslVpnAddress("vpn.example.com"))
+    }
+
+    @Test
+    fun startsThePathWithASlash() {
+        assertEquals("https://vpn.example.com:443/", sslVpnUrl("vpn.example.com", "443", ""))
+        assertEquals("https://vpn.example.com:443/?secret", sslVpnUrl("vpn.example.com", "443", "?secret"))
+        assertEquals("https://vpn.example.com:443/?secret", sslVpnUrl("vpn.example.com", "443", " /?secret "))
+        assertEquals("https://vpn.example.com:8443/group", sslVpnUrl("vpn.example.com", "8443", "group"))
+    }
 }

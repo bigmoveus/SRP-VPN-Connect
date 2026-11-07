@@ -3,6 +3,7 @@
 
 #import "CreateVC.h"
 #import "NodeModel.h"
+#import "CheckConnectData.h"
 #import "SRPEapConfig.h"
 #import "SRPEapConfigViewController.h"
 #import "SRPMethodViewController.h"
@@ -81,6 +82,9 @@ static const NSInteger kSegmentSEProxyType = 23;
 // SSH field/switch tags
 static const NSInteger kFieldSSHHostKey = 24;    // pinned server host key (optional)
 static const NSInteger kSwitchSSHRelay = 27;     // HEV UDP relay on/off
+
+// OpenConnect field tags
+static const NSInteger kFieldOCPath = 44;        // what follows the server in its URL (optional)
 
 // OpenVPN field/switch tags
 static const NSInteger kSwitchOVPNStunnel = 28;  // stunnel (outer TLS) on/off
@@ -454,6 +458,13 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     self.modal.customSni = [self.modal.customSni stringByTrimmingCharactersInSet:edges];
     self.modal.proxyAddress = [self.modal.proxyAddress stringByTrimmingCharactersInSet:edges];
     self.modal.proxyPort = [self.modal.proxyPort stringByTrimmingCharactersInSet:edges];
+    if ([self isOpenConnect]) {
+        // An address pasted whole, such as vpn.example.com/?secret, goes to Server, Port and Path
+        NSDictionary *parts = [CheckConnectData splitSslVpnAddress:self.modal.server];
+        self.modal.server = parts[@"server"];
+        if (parts[@"port"]) self.modal.port = parts[@"port"];
+        self.modal.ocPath = parts[@"path"] ?: [self.modal.ocPath stringByTrimmingCharactersInSet:edges];
+    }
     if ([self isWaterWall]) {
         NSString *application = [self waterWallConfiguration][@"application"];
         if ([application isEqualToString:@"vless"] || [application isEqualToString:@"vmess"]) {
@@ -574,6 +585,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             break;
         }
         case kFieldSSHHostKey: self.modal.sshHostKey = field.text; break;
+        case kFieldOCPath: self.modal.ocPath = field.text; break;
         case kFieldOVPNStunnelHost: self.modal.ovpnStunnelHost = field.text; break;
         case kFieldOVPNStunnelPort: self.modal.ovpnStunnelPort = field.text; break;
         case kFieldOVPNStunnelSNI: self.modal.ovpnStunnelSNI = field.text; break;
@@ -779,7 +791,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if (section == 1 && [self isOpenConnect]) {
-        return @"AnyConnect (for example ocserv), F5 BIG-IP or Palo Alto GlobalProtect. With TLS Server Verification on, the server certificate must be valid for the Server name.";
+        return @"AnyConnect (for example ocserv), F5 BIG-IP or Palo Alto GlobalProtect. Path is what follows the server in its address, such as ?secret for an ocserv with camouflage; an address pasted whole into Server is split on Save. With TLS Server Verification on, the server certificate must be valid for the Server name.";
     }
     if (section == 1 && [self isSSH]) {
         return @"SSH tunnel (direct TCP forwarding). Host Key pins the server's SSH fingerprint (OpenSSH \"SHA256:...\" form); leave empty to accept any key. UDP Relay uses the administrator-installed HEV service on the server (no extra credentials).";
@@ -898,7 +910,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 return [self.modal.aetherTor isEqualToString:@"only"] ? 2 : 5;
             }
             if ([self isOpenConnect]) {
-                return 4;   // Server Type, Server, Port, TLS Server Verification
+                return 5;   // Server Type, Server, Port, Path, TLS Server Verification
             }
             if ([self isWireGuard]) {
                 return 4;   // Import, Manual, Server, Port
@@ -1197,6 +1209,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                     return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"443"
                                                tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
                 case 3:
+                    return [self textCellWithTitle:@"Path" text:self.modal.ocPath placeholder:@"Optional"
+                                               tag:kFieldOCPath keyboardType:UIKeyboardTypeURL secure:NO];
+                case 4:
                     return [self switchCellWithTitle:@"TLS Server Verification" on:!self.modal.TLS tag:kSwitchSETLSVerify];
                 default: break;
             }

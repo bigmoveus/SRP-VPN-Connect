@@ -123,6 +123,8 @@ data class Profile(
     val proxyType: String = "http",
     /** SSL VPN server type: "anyconnect", "f5" (F5 BIG-IP) or "gp" (Palo Alto GlobalProtect) */
     val ocProtocol: String = "anyconnect",
+    /** SSL VPN: what follows the server in its URL, such as ocserv camouflage's "?secret"; empty for none */
+    val ocPath: String = "",
 ) {
     val isSstp get() = protocolType == "sstp"
     val isSoftEther get() = protocolType == "softether"
@@ -316,7 +318,10 @@ class ProfileStore(context: Context) {
             if (saved.hostnameOverride.isNotEmpty()) stored["hostname_override"] = saved.hostnameOverride
             stored["proxy_type"] = saved.proxyType
         }
-        if (saved.isOpenConnect) stored["oc_protocol"] = saved.ocProtocol.ifEmpty { "anyconnect" }
+        if (saved.isOpenConnect) {
+            stored["oc_protocol"] = saved.ocProtocol.ifEmpty { "anyconnect" }
+            if (saved.ocPath.isNotEmpty()) stored["oc_path"] = saved.ocPath
+        }
         return stored
     }
 
@@ -395,6 +400,7 @@ class ProfileStore(context: Context) {
             seNatTHint = text("se_natt_hint"),
             proxyType = if (text("proxy_type") == "socks5") "socks5" else "http",
             ocProtocol = text("oc_protocol").takeIf { it == "f5" || it == "gp" } ?: "anyconnect",
+            ocPath = text("oc_path"),
         )
     }
 }

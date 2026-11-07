@@ -18,6 +18,9 @@ NS_ASSUME_NONNULL_BEGIN
 +(NSArray<NSDictionary*>*)waterWallFallbacksForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles;
 /// checkConnectParmer: plus the Auto Switch fallbacks of a WaterWall profile.
 +(NSDictionary*)connectParametersForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles;
+/// An SSL VPN address pasted whole into Server, such as https://vpn.example.com:8443/?secret, as "server" plus "port"
+/// and "path" when the text has them. Mirrors splitSslVpnAddress of the Android app.
++(NSDictionary<NSString*, NSString*>*)splitSslVpnAddress:(NSString*)text;
 @end
 
 NS_ASSUME_NONNULL_END
