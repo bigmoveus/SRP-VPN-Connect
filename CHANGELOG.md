@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The SoftEther and SSTP documentation name TestFlight build 36, the first with this round's SoftEther changes and the iPhone's SSTP log.
+
 ## 1.2.0 (36) - 2026-11-07
 
 ### Added
