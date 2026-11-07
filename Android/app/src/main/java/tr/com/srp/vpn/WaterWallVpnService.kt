@@ -88,7 +88,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             ConnectionLog.open(this)
             val profiles = ProfileStore(this).load()
             val profile = profiles.firstOrNull { it.nodeId == profileId }
-            if (profile != null && (profile.isSstp || profile.isSoftEther)) {
+            if (profile != null && (profile.isSstp || profile.isSoftEther || profile.isOpenConnect)) {
                 // Certificate login reads the PKCS#12 from the store here, off the main thread
                 val certificate = if (profile.certificateMode) CertificateStore(this).load(profile.certKey) else null
                 main.post {
@@ -138,6 +138,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
         }
         val started = if (profile.isSoftEther) SoftEtherClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
+                      else if (profile.isOpenConnect) SslVpnClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
                       else SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
         client = started
         VpnState.client = started
@@ -145,11 +146,15 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
         })
-        if (started is SoftEtherClient) started.start() else (started as SstpClient).start()
+        when (started) {
+            is SoftEtherClient -> started.start()
+            is SslVpnClient -> started.start()
+            else -> (started as SstpClient).start()
+        }
     }
 
     private fun disconnect() {
-        if (client !is SstpClient && client !is SoftEtherClient) ConnectionLog.m("WaterWall: disconnecting")
+        if (client !is SstpClient && client !is SoftEtherClient && client !is SslVpnClient) ConnectionLog.m("WaterWall: disconnecting")
         connecting = false
         connectRequest++
         finishTunnel()
@@ -185,7 +190,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     override fun applyTunnelSettings(settings: TunnelSettings, attach: (Int) -> Unit): String? {
         // An SSTP reconnect that gets the same address and DNS keeps the tunnel the system already has
         val existing = tun
-        if (existing != null && (client is SstpClient || client is SoftEtherClient) && settings == tunSettings) {
+        if (existing != null && (client is SstpClient || client is SoftEtherClient || client is SslVpnClient) && settings == tunSettings) {
             attach(existing.fd)
             return null
         }
@@ -204,6 +209,9 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             // Otherwise Android counts the VPN as metered on any network, and apps hold back on Wi-Fi.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) builder.setMetered(false)
             settings.routes.forEach { (address, prefix) -> builder.addRoute(address, prefix) }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                settings.excludedRoutes.forEach { (address, prefix) -> builder.excludeRoute(android.net.IpPrefix(java.net.InetAddress.getByName(address), prefix)) }
+            }
             // A DNS line of a wg-quick file may hold search domains too.
             settings.dnsServers.forEach { if (ProbePackets.ipv4(it) != null || ':' in it) builder.addDnsServer(it) else builder.addSearchDomain(it) }
             builder.establish()

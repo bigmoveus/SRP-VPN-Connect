@@ -72,6 +72,8 @@ sealed interface EditorPage {
     data object SstpTtls : EditorPage
 
     data object SoftEtherMethod : EditorPage
+
+    data object SslVpnServerType : EditorPage
 }
 
 /** Add Profile and Edit Profile. Nothing reaches the saved profile until Save. */
@@ -112,6 +114,7 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
                 EditorPage.SstpEap -> SstpEapPage(draft, { draft = it }, push, pop)
                 EditorPage.SstpTtls -> SstpTtlsPage(draft, { draft = it }, pop)
                 EditorPage.SoftEtherMethod -> SoftEtherMethodPage(draft, { draft = it }, pop)
+                EditorPage.SslVpnServerType -> SslVpnServerTypePage(draft, { draft = it }, pop)
             }
         }
     }
@@ -121,6 +124,7 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
 fun validationMessage(profile: Profile): String? {
     if (profile.isSstp) return sstpValidationMessage(profile)
     if (profile.isSoftEther) return softEtherValidationMessage(profile)
+    if (profile.isOpenConnect) return sslVpnValidationMessage(profile)
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -141,7 +145,7 @@ fun validationMessage(profile: Profile): String? {
 
 private fun trimmedForSave(profile: Profile): Profile {
     // Pasted values often carry a trailing space or newline, and none of these fields can start or end with one
-    if (profile.isSstp || profile.isSoftEther) {
+    if (profile.isTlsVpn) {
         return profile.copy(server = profile.server.trim(), port = profile.port.trim(), customSni = profile.customSni.trim(),
             proxyAddress = profile.proxyAddress.trim(), proxyPort = profile.proxyPort.trim(), hostnameOverride = profile.hostnameOverride.trim(),
             hubName = profile.hubName.trim(), seNatTHint = profile.seNatTHint.trim(), pacUrl = profile.pacUrl.trim())
@@ -206,7 +210,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert(if (trimmed.isSstp || trimmed.isSoftEther) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -222,6 +226,11 @@ private fun ProfileEditPage(
             }
             if (draft.isSoftEther) {
                 SoftEtherSections(draft, onChange, push)
+                Spacer(Modifier.height(32.dp))
+                return@Column
+            }
+            if (draft.isOpenConnect) {
+                SslVpnSections(draft, onChange, push)
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
@@ -325,6 +334,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             row { CheckRow("WaterWall VPN", "VLESS, VMess, Trojan, BGP4 and packet tunnels", checked = draft.protocolType == "waterwall") { choose("waterwall") } }
             row { CheckRow("SSTP VPN", "Microsoft SSTP over TLS", checked = draft.isSstp) { choose("sstp") } }
             row { CheckRow("SoftEther VPN", "SoftEther over TLS", checked = draft.isSoftEther) { choose("softether") } }
+            row { CheckRow("SSL VPN", "AnyConnect, F5 BIG-IP, Palo Alto GlobalProtect", checked = draft.isOpenConnect) { choose("openconnect") } }
         }
     }
 }

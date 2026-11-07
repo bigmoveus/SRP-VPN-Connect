@@ -141,6 +141,8 @@ public abstract class LibOpenConnect {
 	public synchronized native void setLocalName(String localName);
 	public synchronized native void setCAFile(String caFile);
 	public synchronized native void setReportedOS(String os);
+	/* SRP: splits the TLS handshake's first writes (openconnect_set_tls_fragmentation); 0 turns it off */
+	public synchronized native void setTLSFragmentation(int firstChunk, int followingChunks, int gapMs);
 	public synchronized native void setMobileInfo(String mobilePlatformVersion,
 						      String mobileDeviceType,
 						      String mobileDeviceUniqueID);

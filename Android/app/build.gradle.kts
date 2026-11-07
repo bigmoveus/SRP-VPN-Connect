@@ -21,7 +21,7 @@ android {
             cmake {
                 // Debug would turn on asserts meant for upstream's tests; iOS also runs a Release build.
                 arguments += "-DCMAKE_BUILD_TYPE=Release"
-                targets += listOf("waterwall", "srpsstp", "srpse")
+                targets += listOf("waterwall", "srpsstp", "srpse", "srpopenconnect")
             }
         }
     }
@@ -41,6 +41,8 @@ android {
         getByName("main") {
             // The bundled country database, which both apps ship.
             assets.srcDir("../../WaterWall/GeoIP")
+            // libopenconnect's Java binding (LibOpenConnect), beside the C sources both apps build
+            java.srcDir("../../iOS/OpenConnect/upstream/java/src")
         }
     }
 

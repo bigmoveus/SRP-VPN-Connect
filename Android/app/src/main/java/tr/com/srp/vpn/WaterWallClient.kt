@@ -26,7 +26,9 @@ class WaterWallCandidate(
     val udpCarrier: Boolean,
 )
 
-data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int)
+data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int,
+                          /** Ranges that stay outside the tunnel (an SSL VPN server's no-route lines); Android 13 and later */
+                          val excludedRoutes: List<Pair<String, Int>> = emptyList())
 
 /** What the VPN service does for a protocol's client. */
 interface TunnelHost {

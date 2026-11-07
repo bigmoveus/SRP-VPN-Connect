@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- SSL VPN in the Android app, from the iOS app's OpenConnect 9.21 core with upstream's JNI binding (`LibOpenConnect`), its own libxml2 2.15.4 (`iOS/OpenConnect/build_libxml2_android.sh`, checked against the published SHA-256) and the SoftEther core's OpenSSL 3.5 (`iOS/OpenConnect/build_openconnect_android.sh`): the same profile fields and defaults as on iOS, that is Server Type AnyConnect, F5 BIG-IP or Palo Alto GlobalProtect, Server, Port, TLS Server Verification with the certificate warning, password or certificate login, Auto Reconnect resuming the same session, Retry Times, Switch to Wi-Fi moving the session, On Sleep, Log Level with the server's cookies hidden, and TLS Fragmentation; the same message for each kind of failed login; split-tunnel routes (and excluded ranges from Android 13); and the home screen's ping, through a packet channel between the library and the tunnel. The tunnel comes up as soon as the server has sent the addresses, without waiting for DTLS. IPv4 only. F5 BIG-IP and GlobalProtect use the same core but were not tested against real servers.
+
 ### Changed
 - The SoftEther and SSTP documentation name TestFlight build 36, the first with this round's SoftEther changes and the iPhone's SSTP log.
 - SSL VPN on iPhone: Auto Reconnect resumes the same session with its cookie when the connection breaks, as the AnyConnect protocol intends, and Retry Times now limits those attempts (empty: as long as the server keeps the session, then new logins). Before, the library tried for five minutes whatever the profile said, and Retry Times and Auto Reconnect off only counted after that. Switch to Wi-Fi moves the running session to the new network instead of logging in again, which left the old session open on the server.

@@ -1,0 +1,7 @@
+{
+  global:
+    Java_org_infradead_libopenconnect_*;
+    Java_tr_com_srp_vpn_OpenConnectTun_*;
+  local:
+    *;
+};

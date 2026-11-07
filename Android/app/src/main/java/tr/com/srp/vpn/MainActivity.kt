@@ -138,10 +138,10 @@ private fun App() {
                         send(WaterWallVpnService.ACTION_DISCONNECT)
                     } else {
                         val selected = AppModel.selected
-                        if (selected == null || (selected.server.isEmpty() && (selected.isSstp || selected.isSoftEther || !ChainConfig.isDirect(selected.configuration)))) {
+                        if (selected == null || (selected.server.isEmpty() && (selected.isTlsVpn || !ChainConfig.isDirect(selected.configuration)))) {
                             ui.showToast("Add a profile first (tap +)")
-                        } else if ((selected.isSstp || selected.isSoftEther) && !selected.allowInsecure) {
-                            // SSTP and SoftEther check the server's certificate first and let the user decide when it is not trusted
+                        } else if (selected.isTlsVpn && !selected.allowInsecure) {
+                            // SSTP, SoftEther and SSL VPN check the server's certificate first and let the user decide when it is not trusted
                             if (!checking) {
                                 checking = true
                                 VpnState.status.value = VpnState.Status.Connecting

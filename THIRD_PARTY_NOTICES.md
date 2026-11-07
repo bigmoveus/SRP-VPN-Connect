@@ -7,7 +7,8 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | Component | Upstream | License or notice |
 | --- | --- | --- |
 | SoftEther VPN (client core of the iOS and Android apps) | [SoftEtherVPN/SoftEtherVPN](https://github.com/SoftEtherVPN/SoftEtherVPN) | Apache License 2.0; see `iOS/SoftEther/LICENSE` |
-| OpenConnect | [OpenConnect](https://www.infradead.org/openconnect/) | LGPL 2.1; see `iOS/OpenConnect/upstream/COPYING.LGPL` |
+| OpenConnect (SSL VPN core of the iOS and Android apps) | [OpenConnect](https://www.infradead.org/openconnect/) | LGPL 2.1; see `iOS/OpenConnect/upstream/COPYING.LGPL` |
+| libxml2 (in the Android SSL VPN core) | [GNOME/libxml2](https://gitlab.gnome.org/GNOME/libxml2) | MIT; see `Licenses/libxml2/Copyright` |
 | OpenVPN 3 | [OpenVPN/openvpn3](https://github.com/OpenVPN/openvpn3) | AGPL 3.0 or MPL 2.0, with the linking permission described in `iOS/OpenVPN/upstream/LICENSE.md` |
 | WireGuard / wireguard-go | [WireGuard](https://www.wireguard.com/) | MIT; see `Licenses/WireGuard/LICENSE` |
 | AmneziaWG-go | [amnezia-vpn/amneziawg-go](https://github.com/amnezia-vpn/amneziawg-go) | MIT; see `Licenses/AmneziaWG/LICENSE` |

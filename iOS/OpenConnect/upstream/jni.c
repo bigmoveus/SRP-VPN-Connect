@@ -920,6 +920,17 @@ JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setCSDWr
 	release_cstring(ctx->jenv, jarg2, arg2);
 }
 
+/* SRP: the TLS write splitting of openconnect_set_tls_fragmentation() (see openconnect.h) for the Android app. */
+JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setTLSFragmentation(
+	JNIEnv *jenv, jobject jobj, jint first_chunk, jint following_chunk, jint gap_ms)
+{
+	struct libctx *ctx = getctx(jenv, jobj);
+
+	if (!ctx)
+		return;
+	openconnect_set_tls_fragmentation(ctx->vpninfo, first_chunk, following_chunk, gap_ms);
+}
+
 JNIEXPORT void JNICALL Java_org_infradead_libopenconnect_LibOpenConnect_setMobileInfo(
 	JNIEnv *jenv, jobject jobj, jstring jarg0, jstring jarg1, jstring jarg2)
 {

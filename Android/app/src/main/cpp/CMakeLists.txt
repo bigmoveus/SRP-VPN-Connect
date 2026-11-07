@@ -63,3 +63,16 @@ target_compile_options(srpse PRIVATE -w -fno-strict-aliasing)
 target_link_libraries(srpse PRIVATE "${SE_OPENSSL}/lib/libssl.a" "${SE_OPENSSL}/lib/libcrypto.a" z)
 target_link_options(srpse PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/softether_exports.map")
 set_target_properties(srpse PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/softether_exports.map")
+
+# SSL VPN: libopenconnect as the iOS app builds it, for Android with upstream's JNI binding (LibOpenConnect.java)
+# (iOS/OpenConnect/build_openconnect_android.sh), and the packet channel to the tunnel. It links the SoftEther core's
+# OpenSSL 3 and its own libxml2 (iOS/OpenConnect/build_libxml2_android.sh); the version script keeps them inside.
+set(OC_ROOT "${SRP_IOS_SOURCES}/OpenConnect")
+add_library(srpopenconnect SHARED openconnect_tun_jni.c)
+target_link_libraries(srpopenconnect PRIVATE
+    "-Wl,--whole-archive" "${OC_ROOT}/build/android-arm64/libSRPOpenConnect.a" "-Wl,--no-whole-archive"
+    "${OC_ROOT}/libxml2/android-arm64/lib/libxml2.a"
+    "${SE_ROOT}/openssl/android-arm64/lib/libssl.a" "${SE_ROOT}/openssl/android-arm64/lib/libcrypto.a" z m log)
+target_link_options(srpopenconnect PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/openconnect_exports.map")
+set_target_properties(srpopenconnect PROPERTIES LINK_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/openconnect_exports.map;${OC_ROOT}/build/android-arm64/libSRPOpenConnect.a;${OC_ROOT}/libxml2/android-arm64/lib/libxml2.a")
