@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (38) - 2026-11-07
+
 ### Added
 - SSL VPN profiles have a Path (both apps): what follows the server in its address, such as `?secret` for an ocserv with `camouflage`, which answers no client without its secret. An address pasted whole into Server, such as `https://vpn.example.com:8443/?secret`, is split into Server, Port and Path on Save. The connection log shows the secret only as its length.
 - SSL VPN documentation for both apps (`tutorial/sslvpn/`): installing and setting up ocserv 1.2.4 on Ubuntu 24.04 with password, certificate and split-tunnel users, NAT and a check after a reboot; every field of the SSL VPN editor, Path included, with iPhone and Android screenshots; a Configuration Reference of the ocserv settings that matter to the app and what each profile field does; troubleshooting by the app's messages; and the results of 49 cases on an iPhone (TestFlight build 37's code, the Path cases on `ec77a882`) and 48 on Android (`tools/sslvpn_results.py`, `evidence/sslvpn-20261107.json`).
