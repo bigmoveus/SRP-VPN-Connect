@@ -100,6 +100,8 @@ def settings_of(case, clean):
         items.append("Log Level Expert")
     elif profile.get("logLevel") == 2:
         items.append("Log Level Debug")
+    elif profile.get("logLevel") == 0:
+        items.append("Log Level Normal")
     if "-life-" in case["id"]:
         # the lifecycle cases are about these two settings; elsewhere the test profiles just turn Auto Reconnect off
         if "onSleep" in profile:

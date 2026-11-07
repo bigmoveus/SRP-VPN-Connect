@@ -11,7 +11,7 @@
 <body>
 <main>
 <h1>Test Results</h1>
-<p class="lead">Every SSTP case we ran on 6 November 2026, with its result on an iPhone and on an Android phone: 226 of 226 cases passed on the iPhone and 229 of 229 on Android.</p>
+<p class="lead">Every SSTP case we ran on 6 November 2026, with its result on an iPhone and on an Android phone: 227 of 227 cases passed on the iPhone and 230 of 230 on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -22,9 +22,10 @@
     <li><strong>Traffic.</strong> On the iPhone a download, an upload, or both at once ran for the time shown. On Android, which ran beside the iPhone, each traffic case moved 4 MiB down and 4 MiB up instead.</li>
     <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row.</li>
     <li><strong>Proxies.</strong> The proxy cases went through a test proxy on our office network, with and without a username and password, set by hand or by a PAC file.</li>
+    <li><strong>Log levels.</strong> The cases named <code>sstp-log-…</code> and <code>sstp-wrong-password</code> read the connection log back and checked its lines: Normal must show the connect line and the PPP link and neither the PPP phases nor the SSTP client's own lines; Expert adds the phases; Debug adds the client's lines; the refused login's log names the reason; and no level may show a TLS session secret.</li>
     <li><strong>Lifecycle.</strong> The cases named <code>mt-life-…</code> and <code>android-life-…</code> checked On Sleep, a session the server dropped, and Retry Times running out while the server was off.</li>
   </ul>
-  <p>Eleven iPhone cases ran again on commit 3bcb0567, whose SSTP code TestFlight build 35 has, and their rows show that run: the eight that this round&#x27;s fixes concern (the message for refused login methods, Retry Times, and EAP-TTLS with FreeRADIUS), two whose expected result had been set wrong, and the SecureNAT download, which had started before SoftEther&#x27;s NAT was ready.</p>
+  <p>Eleven iPhone cases ran again on commit 3bcb0567, whose SSTP code TestFlight build 35 has, and their rows show that run: the eight that this round&#x27;s fixes concern (the message for refused login methods, Retry Times, and EAP-TTLS with FreeRADIUS), two whose expected result had been set wrong, and the SecureNAT download, which had started before SoftEther&#x27;s NAT was ready. On 7 November the iPhone ran the log cases sstp-log-normal, sstp-log-expert and sstp-log-debug and the case sstp-wrong-password on a Release build of commit a098b9e5, the kind TestFlight ships, and their iPhone rows show that run; a Debug build of the same commit gave the same result. Android ran sstp-log-normal with a debug build of commit 013f04fb.</p>
 </div>
 <!-- provenance:end -->
 
@@ -125,6 +126,7 @@
 <tr><td><code>android-life-peer-drop-reconnect</code></td><td>Auto Reconnect on</td><td>connect only</td><td>connect</td><td><span class="status planned">NOT VERIFIED</span></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>connected again 2.8 s after the drop; transfer passed</td></tr>
 <tr><td><code>android-life-peer-drop-no-reconnect</code></td><td>Auto Reconnect off</td><td>connect only</td><td>connect</td><td><span class="status planned">NOT VERIFIED</span></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>ended with: Connection lost (auto reconnect is off).</td></tr>
 <tr><td><code>android-life-retry-exhausted</code></td><td>Auto Reconnect on; Retry Times 2</td><td>connect only</td><td>connect</td><td><span class="status planned">NOT VERIFIED</span></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span><br>ended after 2 retries with: Could not reconnect after 2 attempts. Giving up.</td></tr>
+<tr><td><code>sstp-log-normal</code></td><td>Log Level Normal</td><td>connect only</td><td>connect</td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td></tr>
 </tbody></table></div>
 
 <h2 id="softether-vpn-server-4-44">SoftEther VPN Server 4.44</h2>

@@ -22,6 +22,7 @@
     <li><strong>Traffic.</strong> On the iPhone a download, an upload, or both at once ran for the time shown. On Android, which ran beside the iPhone, each traffic case moved 4 MiB down and 4 MiB up instead.</li>
     <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row.</li>
     <li><strong>Proxies.</strong> The proxy cases went through a test proxy on our office network, with and without a username and password, set by hand or by a PAC file.</li>
+    <li><strong>Log levels.</strong> The cases named <code>sstp-log-…</code> and <code>sstp-wrong-password</code> read the connection log back and checked its lines: Normal must show the connect line and the PPP link and neither the PPP phases nor the SSTP client's own lines; Expert adds the phases; Debug adds the client's lines; the refused login's log names the reason; and no level may show a TLS session secret.</li>
     <li><strong>Lifecycle.</strong> The cases named <code>mt-life-…</code> and <code>android-life-…</code> checked On Sleep, a session the server dropped, and Retry Times running out while the server was off.</li>
   </ul>
   <p>{reruns}</p>

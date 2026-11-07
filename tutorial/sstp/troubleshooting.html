@@ -20,7 +20,7 @@
 
 <h2 id="first-checks">First checks</h2>
 <ol>
-  <li><strong>Open the log.</strong> Tap the status text under the power button. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again. Expert shows each PPP phase and the authentication methods the profile offered.</li>
+  <li><strong>Open the log.</strong> Tap the status text under the power button. When the app gave up on a connection, the line starting with <code>SSTP: closing with reason:</code> names the reason. For more detail, set <strong>Log Level</strong> to Expert or Debug in the profile and connect again. Expert shows each PPP phase and the authentication methods the profile offered; Debug adds the SSTP client's and PPP's own lines.</li>
   <li><strong>Is the server listening?</strong> From a computer, <code>openssl s_client -connect &lt;SERVER_HOST&gt;:443 -servername &lt;SERVER_HOST&gt;</code> must show the server's certificate. If it times out, check the server's firewall and that its SSTP service is on.</li>
   <li><strong>Does the name match the certificate?</strong> The app checks the certificate against <strong>Host</strong>, or against the Custom SNI when that is on.</li>
   <li><strong>Do the methods match?</strong> The server must accept one of the methods that are on in the profile; see the table for each server below.</li>
