@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from softether_results import e, fragments, lifecycle_words, segments_of  # noqa: E402
+from softether_results import e, hello_fact, hello_length, lifecycle_words  # noqa: E402
 from sstp_results import FAILED, NOT_RUN, VERIFIED, Sanitizer, merged  # noqa: E402
 from waterwall_scenarios import LOCAL_PATH, PUBLIC_IPV4  # noqa: E402
 
@@ -153,9 +153,9 @@ def ios_result(case, result, clean, egress, hello=None):
     if result.get("lifecycle"):
         entry["lifecycle"] = [clean.text(lifecycle_words(": ".join(item))) for item in result["lifecycle"]]
     entry["facts"].extend(log_facts(result))
-    segments = fragments(result, hello)
-    if segments:
-        entry["facts"].append("ClientHello sent as " + " + ".join(map(str, segments)) + " bytes")
+    sent = hello_fact(result, hello)
+    if sent:
+        entry["facts"].append(sent)
     moves = case.get("traffic", "download") != "none" and case.get("expect") != "fail"
     entry["through_server"] = egress in (result.get("stress_sources") or {}) if moves else None
     return entry
@@ -175,9 +175,9 @@ def android_result(case, result, clean, hello=None):
     if result.get("lifecycle"):
         entry["lifecycle"] = [clean.text(item) for item in result["lifecycle"]]
     entry["facts"].extend(log_facts(result))
-    segments = fragments(result, hello)
-    if segments:
-        entry["facts"].append("ClientHello sent as " + " + ".join(map(str, segments)) + " bytes")
+    sent = hello_fact(result, hello)
+    if sent:
+        entry["facts"].append(sent)
     return entry
 
 
@@ -197,8 +197,8 @@ def extract(args):
             "ocv-life-retry-exhausted": ["android-life-retry-exhausted"],
             "ocv-life-outage-reconnect": ["android-life-outage-reconnect"],
             "ocv-path-camouflage-reset-resume": ["android-life-camouflage-reset-resume"]}
-    hello_ios = (segments_of(ios.get("ocv-frag-off-capture")) or [None])[0]
-    hello_android = (segments_of(android.get("ocv-frag-off-capture")) or [None])[0]
+    hello_ios = hello_length(ios.get("ocv-frag-auto-capture"))
+    hello_android = hello_length(android.get("ocv-frag-auto-capture"))
     out = []
     for case in cases:
         if case["id"] not in ios and case["id"] not in android and not any(name in android for name in life.get(case["id"], [])):

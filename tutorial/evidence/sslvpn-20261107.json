@@ -103,8 +103,7 @@
     "status": "passed",
     "facts": [
      "TLS 1.2",
-     "data over TLS (no DTLS)",
-     "ClientHello sent as 443 bytes"
+     "data over TLS (no DTLS)"
     ],
     "download_mbps": 173.94,
     "through_server": true
@@ -114,8 +113,7 @@
     "transfer_s": 5.8,
     "facts": [
      "TLS 1.2",
-     "data over TLS (no DTLS)",
-     "ClientHello sent as 443 bytes"
+     "data over TLS (no DTLS)"
     ]
    }
   },
@@ -130,8 +128,7 @@
     "status": "passed",
     "facts": [
      "TLS 1.2",
-     "data over TLS (no DTLS)",
-     "ClientHello sent as 443 bytes"
+     "data over TLS (no DTLS)"
     ],
     "download_mbps": 48.61,
     "upload_mbps": 131.03,
@@ -142,8 +139,7 @@
     "transfer_s": 12.4,
     "facts": [
      "TLS 1.2",
-     "data over TLS (no DTLS)",
-     "ClientHello sent as 443 bytes"
+     "data over TLS (no DTLS)"
     ]
    }
   },
@@ -404,8 +400,7 @@
     "status": "passed",
     "facts": [
      "TLS 1.2",
-     "data over DTLS 1.2 (PSK)",
-     "ClientHello sent as 8443 bytes"
+     "data over DTLS 1.2 (PSK)"
     ],
     "download_mbps": 194.61,
     "through_server": true
@@ -415,8 +410,7 @@
     "transfer_s": 5.0,
     "facts": [
      "TLS 1.2",
-     "data over DTLS 1.2 (PSK)",
-     "ClientHello sent as 8443 bytes"
+     "data over DTLS 1.2 (PSK)"
     ]
    }
   },
@@ -736,7 +730,7 @@
     "facts": [
      "TLS 1.2",
      "data over DTLS 1.2 (PSK)",
-     "ClientHello sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 bytes"
+     "ClientHello of 1557 bytes; its first 720 bytes sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 (the server recorded the first 8 pieces)"
     ]
    }
   },

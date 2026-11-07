@@ -151,6 +151,9 @@ def log_facts(result):
 
 def segments_of(result):
     """The sizes of the first client segments to TCP 443 that the server recorded (TLS Fragmentation cases)."""
+    # only the capture cases' outputs are segment sizes; other cases' commands print other numbers, such as a port
+    if not (result or {}).get("id", "").endswith("-capture"):
+        return None
     for output in (result or {}).get("after_outputs") or []:
         sizes = [int(size) for size in output.split() if size.isdigit()]
         if sizes:
@@ -158,21 +161,32 @@ def segments_of(result):
     return None
 
 
-def fragments(result, hello):
-    """The segments that carried the ClientHello: the first ones up to its length, which the case with
-    TLS Fragmentation Off shows as its first segment."""
+def hello_length(auto_result):
+    """A phone's ClientHello length, from the case with TLS Fragmentation Auto: 43 bytes, pieces of one size, then a
+    shorter last piece. None when the capture shows no last piece."""
+    sizes = segments_of(auto_result) or []
+    for index in range(2, len(sizes)):
+        if sizes[index] < sizes[1]:
+            return sum(sizes[:index + 1])
+    return None
+
+
+def hello_fact(result, hello):
+    """How the ClientHello went out: the first client segments up to its length. The server's capture keeps only the
+    first few segments (srp-frag-capture.sh), so a ClientHello in more pieces than that shows only its beginning."""
     sizes = segments_of(result)
     if not sizes:
         return None
     if not hello:
-        return sizes[:1]
+        return f"ClientHello sent as {sizes[0]} bytes"
     taken, total = [], 0
     for size in sizes:
         taken.append(size)
         total += size
         if total >= hello:
-            break
-    return taken
+            return "ClientHello sent as " + " + ".join(map(str, taken)) + " bytes"
+    return (f"ClientHello of {hello} bytes; its first {total} bytes sent as " + " + ".join(map(str, taken))
+            + f" (the server recorded the first {len(taken)} pieces)")
 
 
 def ios_result(case, result, clean, egress, hello=None):
@@ -192,9 +206,9 @@ def ios_result(case, result, clean, egress, hello=None):
     if result.get("lifecycle"):
         entry["lifecycle"] = [clean.text(lifecycle_words(": ".join(item))) for item in result["lifecycle"]]
     entry["facts"].extend(log_facts(result))
-    segments = fragments(result, hello)
-    if segments:
-        entry["facts"].append("ClientHello sent as " + " + ".join(map(str, segments)) + " bytes")
+    sent = hello_fact(result, hello)
+    if sent:
+        entry["facts"].append(sent)
     moves = case.get("traffic", "download") != "none" and case.get("expect") != "fail"
     entry["through_server"] = egress in (result.get("stress_sources") or {}) if moves else None
     return entry
@@ -214,9 +228,9 @@ def android_result(case, result, clean, hello=None):
     if result.get("lifecycle"):
         entry["lifecycle"] = [clean.text(item) for item in result["lifecycle"]]
     entry["facts"].extend(log_facts(result))
-    segments = fragments(result, hello)
-    if segments:
-        entry["facts"].append("ClientHello sent as " + " + ".join(map(str, segments)) + " bytes")
+    sent = hello_fact(result, hello)
+    if sent:
+        entry["facts"].append(sent)
     return entry
 
 
@@ -232,9 +246,9 @@ def extract(args):
             "sev-life-peer-drop-no-reconnect": ["android-life-peer-drop-no-reconnect"],
             "sev-life-retry-exhausted": ["android-life-retry-exhausted"],
             "sev-life-outage-reconnect": ["android-life-outage-reconnect"]}
-    # each phone's ClientHello length: the first segment of the case without TLS Fragmentation
-    hello_ios = (segments_of(ios.get("sev-frag-off-capture")) or [None])[0]
-    hello_android = (segments_of(android.get("sev-frag-off-capture")) or [None])[0]
+    # each phone's ClientHello length, from its case with TLS Fragmentation Auto
+    hello_ios = hello_length(ios.get("sev-frag-auto-capture"))
+    hello_android = hello_length(android.get("sev-frag-auto-capture"))
     out = []
     for case in cases:
         if case["id"] not in ios and case["id"] not in android and not any(name in android for name in life.get(case["id"], [])):

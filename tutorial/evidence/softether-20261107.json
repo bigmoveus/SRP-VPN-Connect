@@ -1052,7 +1052,7 @@
     "transfer_s": 7.2,
     "facts": [
      "2 TCP connections",
-     "ClientHello sent as 1440 bytes"
+     "ClientHello sent as 1440 + 111 bytes"
     ]
    }
   },
@@ -1102,7 +1102,7 @@
     "transfer_s": 6.1,
     "facts": [
      "2 TCP connections",
-     "ClientHello sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 bytes"
+     "ClientHello of 1551 bytes; its first 720 bytes sent as 20 + 100 + 100 + 100 + 100 + 100 + 100 + 100 (the server recorded the first 8 pieces)"
     ]
    }
   },
