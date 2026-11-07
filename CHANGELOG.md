@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (36) - 2026-11-07
+
 ### Added
 - SoftEther VPN in the Android app, built from the iOS app's SoftEther client core (Mayaqua, the client half of Cedar and the SRPSE bridge) with its own OpenSSL 3.5, since the WaterWall runtime's OpenSSL 4 hides structures the core reads: the same profile fields and defaults as on iOS, that is Virtual Hub, Hostname for the TLS name and certificate check, TLS Server Verification with the certificate warning, 1 to 32 connections, UDP acceleration and NAT traversal with its hint; standard password, RADIUS / NT Domain, certificate and anonymous login; HTTP CONNECT and SOCKS5 proxies with or without a password, and PAC files; TLS Fragmentation; Auto Reconnect, Retry Times, Switch to Wi-Fi, On Sleep and Log Level; and the home screen's ping.
 - Auto (PAC) proxy for SoftEther profiles on iOS: the PAC file's answer carries the connection to the server (PROXY as HTTP CONNECT, SOCKS and SOCKS5 as SOCKS5, or DIRECT), the next entry is tried when one cannot be reached, and the proxy's username and password rows show in Auto mode too.
