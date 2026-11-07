@@ -50,6 +50,9 @@ static uint64_t SRPFootprintBytes(void);
 }
 
 -(void)startSSTPWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
+#if !DEBUG
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
+#endif
 
     SSSstp *p = [[SSSstp alloc] init];
     p.username = v[@"username"];
@@ -117,6 +120,7 @@ static uint64_t SRPFootprintBytes(void);
     self.onSleepMode = p.onSleep;
     NSString *logLevel = v[@"log_level"];
     p.logLevel = [logLevel isEqualToString:@"expert"] ? 1 : [logLevel isEqualToString:@"debug"] ? 2 : 0;
+    SSLogM(@"SSTP: connecting to %@:%d", p.host, p.port);
 
     self.sstpActive = YES;
     [[lwIP shared] setup:p];
@@ -142,6 +146,7 @@ static uint64_t SRPFootprintBytes(void);
     };
 
     [[lwIP shared] SetlwFailureCallback:^(NSString *reason) {
+        SSLogM(@"SSTP: closing with reason: %@", reason);
         NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SSTP connection failed"}];
         if (finished) {
             // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel
@@ -172,8 +177,7 @@ static uint64_t SRPFootprintBytes(void);
 
 -(void)startSoftEtherWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
 #if !DEBUG
-    // Release builds (TestFlight) write the log for SoftEther; the other protocols follow when each is retested.
-    SRPTunnelLogOpen();
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
 #endif
     // Writable dir for the SoftEther core (also where the tunnel log lives)
     NSString *dir = [SRPTunnelLogPath() stringByDeletingLastPathComponent];
@@ -1288,7 +1292,7 @@ static void SRPTunnelLogOpen(void) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
 
 #if DEBUG
-    // Debug builds log every protocol; Release builds only SoftEther so far (startSoftEtherWithOptions).
+    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo before logging
