@@ -30,15 +30,16 @@
     <tr><td>Windows Server 2019, 2022 and 2025</td><td><a href="windows-server.html">Windows Server</a></td><td>Routing and Remote Access with Network Policy Server, step by step with screenshots.</td></tr>
     <tr><td>MikroTik RouterOS 7</td><td><a href="mikrotik.html">MikroTik RouterOS</a></td><td>RouterOS command line.</td></tr>
     <tr><td>SoftEther VPN Server 4.44</td><td><a href="softether.html">SoftEther VPN Server</a></td><td>Ubuntu and <code>vpncmd</code> command line.</td></tr>
-    <tr><td>FreeRADIUS 3.2.5 (optional)</td><td><a href="freeradius.html">FreeRADIUS</a></td><td>One user list for the servers above, and PEAP, EAP-TTLS and EAP-TLS for them.</td></tr>
+    <tr><td>FreeRADIUS 3.2.5 (optional)</td><td><a href="freeradius.html">FreeRADIUS</a></td><td>One user list for the servers above, and PEAP, EAP-TTLS and EAP-TLS for Windows Server 2025, the one of them that sends EAP to it.</td></tr>
   </tbody>
 </table>
 
 <h2>Where to start</h2>
 <ol>
   <li>Set up a server with one of the guides above.</li>
-  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. TestFlight build 35 (commit <code>e91ff127</code>) and later have this round's three SSTP fixes, which build 34 does not: EAP-TTLS with EAP inside against FreeRADIUS, the message when the server refuses the profile's login methods, and Retry Times after a lost connection. The connection log on iPhone needs TestFlight build 36 (commit <code>868a4df1</code>) or later; build 35 does not write it.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. On iPhone use TestFlight build 36 (commit <code>868a4df1</code>) or later, the first with all of the SSTP behaviour these pages describe, the connection log included.</li>
   <li>Add an SSTP profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>The server settings that matter to the app, and what each profile field does: <a href="configuration.html">Configuration Reference</a>.</li>
   <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
 </ol>
 

@@ -42,7 +42,7 @@
 <p>A certificate from another authority works the same way: import its file and key with <code>/certificate import</code> and use its name in step 4. With a certificate the phone does not trust, such as a self-signed one, the app warns before every connection unless <strong>Allow Untrusted Certificate</strong> is on in the profile; see <a href="app-setup.html#certificate-warning">the certificate warning</a>.</p>
 
 <h2 id="addresses">2. Addresses for the clients</h2>
-<p>Each connected phone gets an address from a pool. The router keeps the first address of the range for itself, and the PPP profile hands out DNS servers.</p>
+<p>Each connected phone gets an address from a pool. The router's own address in the tunnel is the PPP profile's <code>local-address</code>, outside the pool, and the PPP profile hands out DNS servers.</p>
 <pre data-label="RouterOS"><code class="language-bash">/ip pool add name=sstp-pool ranges=10.77.0.10-10.77.0.250
 /ppp profile add name=sstp-profile local-address=10.77.0.1 remote-address=sstp-pool \
     dns-server=1.1.1.1,8.8.8.8 change-tcp-mss=yes use-ipv6=no</code></pre>

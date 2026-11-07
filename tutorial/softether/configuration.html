@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — SoftEther VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="The SoftEther VPN Server settings that matter to the app's SoftEther VPN profiles, what each profile field does on the wire, and the settings the app always uses.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">The server settings that change what the app's SoftEther VPN profiles do, what each field of a profile does on the wire, and the settings the app always uses. <a href="server.html">SoftEther VPN Server</a> builds the server this page refers to; <a href="results.html">Test results</a> has the cases named in the tables.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Our SoftEther VPN Server 4.44 test server was set up as <a href="server.html">SoftEther VPN Server</a> describes, and its settings were read back with <code>vpncmd</code>. The cases named in the tables connected both phones to it with the profile settings in their rows; where a row names TCP connections, UDP acceleration or NAT-T, the server's <code>SessionGet</code> showed it for the phone's session while the case ran. The case names are the rows of <a href="results.html">Test results</a>. Settings this page describes without a case were left as SoftEther sets them, or were not part of our tests. What each profile field does comes from the source code of both apps and, where a case covers it, from that case.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="server">Server settings (vpncmd)</h2>
+<p>Settings are made with <code>vpncmd</code>, at the <code>VPN Server&gt;</code> prompt that <code>vpncmd localhost /SERVER</code> opens. A command for a hub acts on the hub chosen before it with <code>Hub &lt;name&gt;</code>. Our server has the users of every login method in both its hubs, <code>DEFAULT</code> and <code>TEST-HUB</code>. While a phone is connected, <code>SessionList</code> in the hub shows its session, and <code>SessionGet &lt;SESSION_NAME&gt;</code> the session's TCP connections, UDP acceleration and underlying protocol.</p>
+
+<h3 id="listeners">Listeners and certificate</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>Listeners on TCP 443, 992, 1194 and 5555 (<code>ListenerList</code>)</td><td>The profile's <strong>Port</strong> is one of them: the app connected on 443, its default, and on 992 and 5555. On a port where another service answers, the app ends with <em>The TLS handshake with the server failed. Check the Server and Port fields.</em> On a port nothing listens on, with NAT-T off, it ends with <em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em> Left as SoftEther sets them.</td><td><code>sev-pass-download</code>, <code>sev-port-992</code>, <code>sev-port-5555</code>, <code>sev-port-other-service</code>, <code>sev-natt-off-closed-tcp-port</code></td></tr>
+    <tr><td><code>ServerCertSet /LOADCERT:…/fullchain.pem /LOADKEY:…/privkey.pem</code></td><td>The certificate the app checks with <strong>TLS Server Verification</strong> on. Ours is from Let's Encrypt for the server's name, so a profile with that name in <strong>Server</strong> connects. With the server's IP address in <strong>Server</strong> the app shows its certificate warning: declined, it does not connect; accepted, it does. With the name in <strong>Hostname</strong>, or with verification off, the same profile connects. A name the certificate is not for in <strong>Hostname</strong> ends on iPhone with <em>The server certificate name does not match the server. Check the Hostname field.</em>; on Android the certificate warning comes first.</td><td><code>sev-pass-download</code>, <code>sev-verify-ip-declined</code>, <code>sev-verify-ip-accepted</code>, <code>sev-hostname-override-ip</code>, <code>sev-allow-untrusted-ip</code>, <code>sev-hostname-override-wrong</code></td></tr>
+    <tr><td>TLS versions and ciphers</td><td>Our server and the app use TLS 1.3 on both phones; <code>SessionGet</code> shows <code>TLS_AES_256_GCM_SHA384</code>. Left as SoftEther sets them.</td><td></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="hubs">Virtual Hubs and addresses</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>The hub <code>DEFAULT</code></td><td>A new server has it. The app logs in to it when <strong>Virtual Hub</strong> is empty.</td><td><code>sev-pass-download</code></td></tr>
+    <tr><td><code>HubCreate TEST-HUB /PASSWORD:&lt;HUB_ADMIN_PASSWORD&gt;</code></td><td>A second hub, with its own users. A profile with <strong>Virtual Hub</strong> <code>TEST-HUB</code> logs in to it. A name the server has no hub for ends with <em>Virtual Hub not found. Check the Virtual Hub field.</em></td><td><code>sev-hub-test-hub</code>, <code>sev-wrong-hub</code></td></tr>
+    <tr><td><code>SecureNatEnable</code> in each hub</td><td>SoftEther's built-in DHCP and NAT, the hub's way out. The phone gets an address from 192.168.30.10 on, with the gateway and DNS server 192.168.30.1, and its IPv4 traffic leaves from the server's address: in every case that moved traffic, our test server on the internet saw it arrive from there. SecureNAT hands out IPv4 addresses only.</td><td><code>sev-pass-download</code>, <code>sev-pass-upload</code>, <code>sev-hub-test-hub</code></td></tr>
+    <tr><td>A Local Bridge with Linux NAT</td><td>The other way out for a hub's clients, instead of SecureNAT. The SoftEther page of the SSTP section describes it: <a href="../sstp/softether.html#bridge">Local Bridge with Linux NAT</a>. Not part of our tests.</td><td></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="logins">Users and logins</h3>
+<p>Each user is made in its hub with <code>UserCreate &lt;name&gt; /GROUP:none /REALNAME:none /NOTE:none</code> and then given one kind of login, which the profile's <strong>Method</strong> must match. Every refusal below, a wrong password, a method that does not match the user's kind or a certificate the hub does not accept, ends with <em>Authentication failed. Check the username, password and authentication method.</em></p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>UserPasswordSet vpnuser /PASSWORD:&lt;PASSWORD&gt;</code></td><td>Password authentication, for <strong>Method</strong> Standard Password. A wrong password is refused, and so is <strong>Method</strong> Anonymous with this user's name.</td><td><code>sev-pass-download</code>, <code>sev-wrong-password</code>, <code>sev-anon-on-password-user</code></td></tr>
+    <tr><td><code>UserAnonymousSet guest</code></td><td>Anonymous authentication, for <strong>Method</strong> Anonymous: the app logs in with the user's name and no password.</td><td><code>sev-anon-download</code></td></tr>
+    <tr><td><code>RadiusServerSet 127.0.0.1:1812 /SECRET:&lt;RADIUS_SECRET&gt; /RETRY_INTERVAL:500</code><br><code>UserRadiusSet radiususer /ALIAS:none</code></td><td>RADIUS authentication, for <strong>Method</strong> RADIUS / NT Domain. The app sends the password inside TLS, and the hub asks the RADIUS server, here <a href="server.html#radius">FreeRADIUS on the same host</a>, which keeps the password. Version 4.44 takes the port as part of the address. A wrong password is refused, and so is this user with <strong>Method</strong> Standard Password.</td><td><code>sev-radius-download</code>, <code>sev-radius-wrong-password</code>, <code>sev-radius-user-standard-method</code></td></tr>
+    <tr><td>NT Domain authentication</td><td>Checks the password against a Windows domain, for the same <strong>Method</strong>, RADIUS / NT Domain. Only SoftEther VPN Server on Windows offers it; our server runs on Linux. Not part of our tests.</td><td></td></tr>
+    <tr><td><code>CAAdd ca.crt</code><br><code>UserSignedSet vpnuser /CN:vpnuser /SERIAL:none</code><br><code>UserCertSet certuser /LOADCERT:/root/certuser.crt</code></td><td>Certificate users, for <strong>Method</strong> Certificate. Signed certificate: the hub trusts the authority added with <code>CAAdd</code>, and any certificate it signed with the user's common name logs in as the user. Individual certificate: the server keeps the user's own certificate. The app logged in as both kinds with the client certificate imported in the profile. A certificate signed by another authority is refused.</td><td><code>sev-cert-signed-download</code>, <code>sev-cert-individual-download</code>, <code>sev-cert-rogue-ca</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="udp">UDP acceleration and NAT traversal</h3>
+<p>Both are on by default on the server, and both need incoming UDP: SoftEther picks its UDP ports itself, and our server's firewall lets all incoming UDP through. The app uses them only when its switches are on.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>Hub option <code>DisableUdpAcceleration</code> not set</td><td>With <strong>Enable UDP Acceleration</strong> on, once the TLS connection is up, the app and the server also exchange the VPN's packets over UDP. <code>SessionGet</code> showed <code>UDP Acceleration is Active | Yes</code> with the profile's <strong>Connections</strong> at 1 and at 4. Left as SoftEther sets it.</td><td><code>sev-udp-accel</code>, <code>sev-udp-accel-conns-4</code></td></tr>
+    <tr><td><code>DisableNatTraversal</code> not set in <code>vpn_server.config</code></td><td>The server takes part in NAT traversal through the NAT-T servers of SoftEther Corporation. With <strong>Enable NAT Traversal (NAT-T)</strong> on, a profile whose <strong>Port</strong> the server does not listen on connected over UDP through them; <code>SessionGet</code> showed <code>Physical Underlay Protocol | VPN over UDP with NAT-T (IPv4)</code>. With NAT-T off the same profile ends with <em>Cannot reach the server (DNS lookup or TCP connection failed). Check the Server field for typos and the network connection.</em> With <strong>NAT-T Hint</strong> set to the server's own address the app connected over NAT-T; with an address no server has, it ends with the same message. Left as SoftEther sets it.</td><td><code>sev-natt-closed-tcp-port</code>, <code>sev-natt-off-closed-tcp-port</code>, <code>sev-natt-hint-server</code>, <code>sev-natt-hint-wrong</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="sessions">Sessions</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>VoIP / QoS function on</td><td>A session uses at least two TCP connections even when the profile's <strong>Connections</strong> is 1: <code>SessionGet</code> counted 2 for a profile with the defaults, on both phones. Left as SoftEther sets it.</td><td><code>sev-pass-download</code>, <code>sev-pass-full-duplex</code>, <code>sev-pass-upload</code></td></tr>
+    <tr><td><code>SessionDisconnect …</code></td><td>Ends the phone's session on the server. With <strong>Auto Reconnect</strong> on, the app connects again; with it off, the VPN ends with <em>Connection lost (auto reconnect is off).</em></td><td><code>sev-life-peer-drop-reconnect</code>, <code>sev-life-peer-drop-no-reconnect</code></td></tr>
+    <tr><td>The SoftEther service stopped</td><td>With <strong>Auto Reconnect</strong> on, the app keeps trying while the server is away: when the service stopped for 8 seconds and started again, the app connected again. With <strong>Retry Times</strong> 2 and the service left stopped, the VPN ends after two failed attempts with <em>Could not reconnect after N attempts. (…)</em>, the last attempt's reason in the brackets.</td><td><code>sev-life-outage-reconnect</code>, <code>sev-life-retry-exhausted</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="profile">What each profile field does</h2>
+<p>The fields in the order the editor shows them. <a href="app-setup.html">Setting up the app</a> has the screens and the defaults, and <a href="troubleshooting.html">Troubleshooting</a> what each message means.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Field</th><th>On the wire</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Server</strong>, <strong>Port</strong></td><td>The app opens a TCP connection to Server on Port, directly or through the proxy, and starts TLS; inside TLS it names the Virtual Hub and logs in. Server is a DNS name, such as <code>vpn.example.com</code>, or an IP address. An empty Port is 443.</td></tr>
+    <tr><td><strong>Hostname</strong></td><td>Optional. The name the app sends in the TLS handshake (SNI) and checks the server's certificate against, while the connection still goes to Server. Use it when Server is an IP address and the certificate names the server.</td></tr>
+    <tr><td><strong>TLS Server Verification</strong></td><td>On, the default: before it connects, the app checks the server's certificate. It must chain to a root the phone trusts and be valid for Hostname, or for Server when Hostname is empty. When it is not, the app shows <strong>DANGEROUS!</strong> with each certificate of the chain: <strong>Continue</strong> connects this once without the check, <strong>Save and Continue</strong> turns verification off in the profile and connects, <strong>Cancel</strong> does not connect. Off skips the check.</td></tr>
+    <tr><td><strong>Virtual Hub</strong></td><td>The hub the app names inside TLS when it logs in. Empty means <code>DEFAULT</code>.</td></tr>
+    <tr><td><strong>Connections</strong></td><td>How many TCP connections carry one session: 1 to 32, default 1. After the first, the app opens one more per second until it has them all. With the server's VoIP / QoS function on, a session uses at least two.</td></tr>
+    <tr><td><strong>Enable UDP Acceleration</strong></td><td>Off by default. On: once the TLS connection is up, the app and the server also exchange the VPN's packets over UDP, when the server accepts it. It is not used through a proxy; there the session stays on TCP.</td></tr>
+    <tr><td><strong>Enable NAT Traversal (NAT-T)</strong>, <strong>NAT-T Hint</strong></td><td>Off by default. On: when the server cannot be reached over TCP, the app reaches it over UDP through the NAT-T servers of SoftEther Corporation, which receive the connection's details. Off: the app never contacts those servers. NAT-T Hint, shown when NAT-T is on, is optional: the server's private IP address when several VPN servers share one public address. With a hint the app connects over NAT-T only.</td></tr>
+    <tr><td><strong>Method</strong>, <strong>Username</strong>, <strong>Password</strong> / <strong>Certificate</strong></td><td>Standard Password, the default: SoftEther's own password login, which sends only a proof of the password, never the password itself. RADIUS / NT Domain: the password goes to the server inside TLS, and the server checks it with its RADIUS server (or a Windows domain, on SoftEther for Windows; we tested RADIUS). Certificate: the app logs in with the client certificate imported from a .p12 or .pfx file, which it keeps in the iPhone's Keychain or, on Android, encrypted with a key in the Android Keystore. Anonymous: the user's name, no password. Username is always needed, Password for the first two methods. Method Certificate without a certificate the app can read stops before connecting: <em>Certificate authentication requires a client certificate in the profile.</em> on iPhone, <em>The client certificate could not be read. Re-import it in the profile.</em> on Android.</td></tr>
+    <tr><td><strong>Proxy</strong> None or Manual: <strong>Address</strong>, <strong>Port</strong>, <strong>Type</strong>, <strong>Username</strong>, <strong>Password</strong></td><td>The proxy carries only the connection to the server; the traffic inside the VPN does not use it. None, the default, connects directly. Manual uses the proxy at Address and Port as an HTTP CONNECT proxy (Type HTTP) or a SOCKS5 proxy (Type SOCKS5); Username and Password are optional and go to the proxy. A proxy that refuses them ends with <em>Proxy authentication failed.</em>; one that does not take the connection, with <em>Cannot connect to the proxy server.</em></td></tr>
+    <tr><td><strong>Proxy</strong> Auto: <strong>PAC URL</strong>, <strong>Username</strong>, <strong>Password</strong></td><td>The app loads the PAC file at PAC URL, over http or https, and runs its <code>FindProxyForURL</code> for the server: <code>PROXY</code> is used as HTTP CONNECT, <code>SOCKS</code> and <code>SOCKS5</code> as SOCKS5, and <code>DIRECT</code> connects directly. When an entry cannot be reached, the app tries the next one. The username and password go to the proxy the script picks. A PAC URL that does not answer with a file ends with <em>Unable to download PAC configuration</em>.</td></tr>
+    <tr><td><strong>Auto Reconnect</strong>, <strong>Retry Times</strong></td><td>Auto Reconnect, on by default, connects again 2 seconds after a connection that was up is lost, and keeps trying while the server is away. Retry Times limits the failed attempts in a row; empty means no limit. When they run out, the VPN ends with <em>Could not reconnect after N attempts. (…)</em>. A login the server refused is never retried. With Auto Reconnect off, a lost connection ends the VPN with <em>Connection lost (auto reconnect is off).</em></td></tr>
+    <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>On by default: when Wi-Fi appears while the VPN is up, the app moves the connection to it. Not part of our tests.</td></tr>
+    <tr><td><strong>On Sleep</strong></td><td>Stay, the default, keeps the connection while the device sleeps. Pause closes it and connects again on wake. Off closes it; on wake the app connects again only with Auto Reconnect on, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr><td><strong>Log Level</strong></td><td>Normal: the milestones, such as connecting, the session, the network settings and errors. Expert adds the states the connection goes through and the virtual adapter's DHCP and ARP lines. Debug adds the SoftEther core's own lines, such as each TCP connection it opens. No level writes TLS session secrets. When the app gives up on a connection, a line starting with <code>SoftEther: closing with reason:</code> names the reason.</td></tr>
+    <tr><td><strong>TLS Fragmentation</strong>, <strong>First Chunk</strong>, <strong>Following Chunks</strong></td><td>Splits the outgoing bytes of the TLS handshake into small TCP writes; the TLS data itself is unchanged. Auto sends the first 43 bytes on their own, so that the server name lands in a later write, then 256 bytes per write (128 on cellular) a few milliseconds apart. Manual takes First Chunk and Following Chunks, 32 and 256 bytes by default. Our server saw the iPhone's ClientHello, 324 bytes in one piece with TLS Fragmentation off, arrive as 43 + 256 + 25 bytes with Auto, and as 20 + 100 + 100 + 100 + 4 bytes with First Chunk 20 and Following Chunks 100.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="always">Settings the app always uses</h2>
+<ul>
+  <li>Both apps connect with the same SoftEther client core.</li>
+  <li>The session is a virtual Ethernet cable into the hub. The app asks the hub for an address with DHCP, shows <strong>Connected</strong> once it has one, and sends all of the phone's IPv4 traffic through the tunnel.</li>
+  <li>It gives the connection to the server 30 seconds to come up; then it ends with <em>Connection timed out. The server did not respond.</em></li>
+  <li>The Android app routes IPv4 only and writes a line to the log when the hub offers IPv6; the iPhone app takes an IPv6 address the hub announces. Our hubs' SecureNAT hands out IPv4 only, so IPv6 inside the tunnel was not part of our tests.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -11,7 +11,7 @@
 <body>
 <main>
 <h1>FreeRADIUS</h1>
-<p class="lead">An SSTP server can check logins against a RADIUS server instead of its own user list. This page describes the FreeRADIUS server that our MikroTik router, our SoftEther server and our Windows Server 2025 use, and what it adds: one user list for all of them, PEAP and EAP-TTLS for any of them, and certificate login with EAP-TLS.</p>
+<p class="lead">An SSTP server can check logins against a RADIUS server instead of its own user list. This page describes the FreeRADIUS server that our MikroTik router, our SoftEther server and our Windows Server 2025 use, and what it adds: one user list for all of them, and, for Windows Server 2025, the one of them that sends EAP to it, PEAP, EAP-TTLS and certificate login with EAP-TLS.</p>
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
@@ -62,7 +62,7 @@ systemctl restart freeradius</code></pre>
 <h2 id="eap-tls">5. Certificate login (EAP-TLS)</h2>
 <p>For EAP-TLS, FreeRADIUS accepts a client certificate only when it chains to the CA in <code>ca_file</code>. Our server points it at the test CA that issued our client certificates, instead of the system's list of public roots:</p>
 <pre data-label="/etc/freeradius/3.0/mods-available/eap"><code>		ca_file = ${certdir}/&lt;your-client-ca&gt;.pem</code></pre>
-<p>With that, a client certificate from that CA logged in, and one from another CA was refused. The app sends the certificate's file with its private key, imported as a .p12 or .pfx file; see <a href="app-setup.html#certificate">Certificate login</a>.</p>
+<p>With that, a client certificate from that CA logged in, and one from another CA was refused. The app uses the client certificate and its private key from the .p12 or .pfx file imported into the profile; see <a href="app-setup.html#certificate">Certificate login</a>.</p>
 
 <h2 id="eap-methods">6. EAP methods</h2>
 <p>The package's <code>eap</code> module is used as it is. In it PEAP runs EAP-MSCHAPv2 inside, and EAP-TTLS takes PAP, CHAP and EAP-MSCHAPv2 inside. For EAP inside EAP-TTLS, the module first offers EAP-MD5 (<code>default_eap_type = md5</code> in its <code>ttls</code> section); the app never answers EAP-MD5 and asks for EAP-MSCHAPv2 instead, which FreeRADIUS then uses. TEAP is commented out in this version's file, so a profile that offers only TEAP is refused. PEAP from FreeRADIUS sends no crypto binding, so a profile with <strong>Require Crypto Binding</strong> on does not connect to it; that switch is for Windows NPS.</p>

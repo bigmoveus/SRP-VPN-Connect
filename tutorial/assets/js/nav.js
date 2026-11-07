@@ -26,6 +26,7 @@ window.SITE_NAV = [
       { title: 'SoftEther VPN Server', href: 'sstp/softether.html' },
       { title: 'FreeRADIUS', href: 'sstp/freeradius.html' },
       { title: 'Setting Up the App', href: 'sstp/app-setup.html' },
+      { title: 'Configuration Reference', href: 'sstp/configuration.html' },
       { title: 'Test Results', href: 'sstp/results.html' },
       { title: 'Troubleshooting', href: 'sstp/troubleshooting.html' }
     ]
@@ -36,6 +37,7 @@ window.SITE_NAV = [
       { title: 'Introduction', href: 'softether/index.html' },
       { title: 'SoftEther VPN Server', href: 'softether/server.html' },
       { title: 'Setting Up the App', href: 'softether/app-setup.html' },
+      { title: 'Configuration Reference', href: 'softether/configuration.html' },
       { title: 'Test Results', href: 'softether/results.html' },
       { title: 'Troubleshooting', href: 'softether/troubleshooting.html' }
     ]
