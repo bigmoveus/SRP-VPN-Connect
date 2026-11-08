@@ -1123,6 +1123,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
 					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
 				);
@@ -1134,6 +1136,9 @@
 					"-laether",
 					"-lSRPSSHEngine",
 					"-lSRPSSH2",
+					"-lSRPOpenVPN",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";
@@ -1165,6 +1170,8 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/SSH/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/OpenVPN/build/$(PLATFORM_NAME)",
+					"$(SRCROOT)/SoftEther/openssl/$(PLATFORM_NAME)/lib",
 					"$(SRCROOT)/WireGuard/lib/$(PLATFORM_NAME)",
 					"$(SRCROOT)/Aether/lib/$(PLATFORM_NAME)",
 				);
@@ -1176,6 +1183,9 @@
 					"-laether",
 					"-lSRPSSHEngine",
 					"-lSRPSSH2",
+					"-lSRPOpenVPN",
+					"-lsrpse_ssl",
+					"-lsrpse_crypto",
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "tr.com.srp.vpn.SRP-VPN-ConnectTests";

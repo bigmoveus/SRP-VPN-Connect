@@ -317,7 +317,12 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
 
 /// OpenVPN: the imported profile asks for interactive credentials
 - (BOOL)ovpnNeedsAuth {
-    return [self isOpenVPN] && [self.modal.ovpnProfile containsString:@"auth-user-pass"];
+    // An auth-user-pass line that is not commented out
+    NSString *profile = self.modal.ovpnProfile;
+    if (![self isOpenVPN] || profile.length == 0) return NO;
+    NSRegularExpression *line = [NSRegularExpression regularExpressionWithPattern:@"^[ \\t]*auth-user-pass\\b"
+                                                                         options:NSRegularExpressionAnchorsMatchLines error:nil];
+    return [line numberOfMatchesInString:profile options:0 range:NSMakeRange(0, profile.length)] > 0;
 }
 
 - (BOOL)isCertificateMode {
@@ -438,7 +443,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"Custom SNI must be a bare hostname, without a scheme, port, path or spaces.";
     }
     // Empty sizes mean the placeholders; larger ones would only be refused when connecting
-    if ([self isSSTP] && self.modal.tlsFragMode == 2) {
+    if (([self isSSTP] || ([self isOpenVPN] && self.modal.ovpnStunnelEnabled)) && self.modal.tlsFragMode == 2) {
         if (self.modal.tlsFragFirst > SSTlsFragMaxFirstChunk) {
             return [NSString stringWithFormat:@"First Chunk can be at most %ld bytes.", (long)SSTlsFragMaxFirstChunk];
         }
@@ -798,9 +803,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     }
     if (section == 1 && [self isOpenVPN]) {
         if (self.modal.ovpnStunnelEnabled) {
-            return @"The .ovpn profile supplies the OpenVPN configuration and credentials. With stunnel on, the OpenVPN TCP connection is wrapped in a TLS connection to the server's stunnel listener; CA Certificate pins the CA that signs the stunnel certificate (empty = system trust).";
+            return @"The .ovpn profile supplies the OpenVPN configuration and credentials. With stunnel on, OpenVPN runs over TCP (also for a UDP profile) inside a TLS connection to the server's stunnel listener; CA Certificate pins the CA that signs the stunnel certificate (empty = system trust).";
         }
-        return @"The .ovpn profile supplies the OpenVPN configuration and credentials (client certificate or auth-user-pass). Server and Port are filled from the profile's remote line on import. Enable stunnel to wrap OpenVPN TCP in an outer TLS connection.";
+        return @"The .ovpn profile supplies the OpenVPN configuration and credentials (client certificate or auth-user-pass). Server and Port are filled from the profile's first remote line on import; change them to connect to another address or port. Enable stunnel to wrap OpenVPN TCP in an outer TLS connection.";
     }
     if (section == 1 && [self isPsiphon]) {
         return @"Psiphon connects to your own psiphond server(s) — paste the hex server entry produced by 'psiphond generate'; several entries (space- or newline-separated) rotate automatically. Transports: Auto tries everything; Speed skips the slower web-shaped carriers; Stealth keeps only web-like traffic.";
@@ -864,7 +869,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"Auto Reconnect opens a new SSH session when the connection breaks or the server stops answering keepalives; connections that were open start again. Retry Times limits the attempts (empty = no limit). Off: the VPN disconnects with the reason. UDP through the relay travels inside the SSH session's TCP stream, so calls and games are only as smooth as that stream.";
     }
     if (section == 4 && [self isOpenVPN]) {
-        return @"OpenVPN uses the TLS parameters negotiated with the server (tls-crypt, data-channel ciphers). With stunnel on, the outer TLS connection requires TLS 1.2 or later. TLS Fragmentation applies to the outer stunnel TLS handshake.";
+        return @"Auto Reconnect lets OpenVPN connect again when the connection breaks or the server stops answering its keepalives; Retry Times limits the attempts (empty = no limit). Off: the VPN disconnects with the reason. OpenVPN uses the TLS parameters negotiated with the server (tls-crypt, data-channel ciphers). With stunnel on, the outer TLS connection requires TLS 1.2 or later, and TLS Fragmentation splits its handshake.";
     }
     if (section == 4 && [self isPsiphon]) {
         return @"Psiphon carries TCP only; DNS is answered inside the tunnel and names are resolved by the server.";

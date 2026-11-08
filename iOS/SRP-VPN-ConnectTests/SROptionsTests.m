@@ -14,6 +14,8 @@
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
 #import "SSFragTLSChannel.h"
+#import "SRPOpenVPNClient.h"
+#import <NetworkExtension/NetworkExtension.h>
 #import "SRPCertificateStore.h"
 #import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
@@ -3618,6 +3620,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
             } else {
                 // A connection that is gone for good must end the VPN with a reason, not leave it up
                 NSTimeInterval limit = [step isEqualToString:@"retry-exhausted"] ? 30 + 10.0 * MAX(1, model.retryTimes) : 30;
+                // A dead path is noticed only when keepalives go unanswered: the case says how long that may take
+                if ([environment[@"SRP_LIFECYCLE_END_SECONDS"] doubleValue] > 0) limit = [environment[@"SRP_LIFECYCLE_END_SECONDS"] doubleValue];
                 BOOL ended = [self waitForLiveVPNDisconnectedStatus:manager timeout:limit];
                 NSString *message = [self liveLastErrorSince:broken];
                 NSLog(@"Live %@: disconnected=%d after %.1f seconds, error: %@", label, ended, -broken.timeIntervalSinceNow, message);
@@ -3633,6 +3637,84 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 #else
     XCTSkip(@"Sleep instrumentation requires a Debug build.");
 #endif
+}
+
+// OpenVPN: the tunnel settings a server pushes (topology subnet and net30, routes around the tunnel, OpenVPN 2.6's dns
+// option) and the remote lines the Server and Port fields start from
+- (void)testOpenVPNPushedSettingsAndProfileRemotes {
+    NEPacketTunnelNetworkSettings *subnet = [SRPOpenVPNClient settingsForPushedOptions:@[
+        @[@"redirect-gateway", @"def1", @"bypass-dhcp"], @[@"dhcp-option", @"DNS", @"1.1.1.1"], @[@"route-gateway", @"10.8.0.1"],
+        @[@"topology", @"subnet"], @[@"ifconfig", @"10.8.0.2", @"255.255.255.0"], @[@"route", @"192.0.2.0", @"255.255.255.0", @"net_gateway"],
+        @[@"tun-mtu", @"1500"]] serverAddress:@"198.51.100.7"];
+    XCTAssertEqualObjects(subnet.IPv4Settings.addresses, @[@"10.8.0.2"]);
+    XCTAssertEqualObjects(subnet.IPv4Settings.subnetMasks, @[@"255.255.255.0"]);
+    XCTAssertEqualObjects(subnet.IPv4Settings.includedRoutes.firstObject.destinationAddress, @"0.0.0.0");
+    NSArray *excluded = [subnet.IPv4Settings.excludedRoutes valueForKey:@"destinationAddress"];
+    XCTAssertEqualObjects(excluded, (@[@"192.0.2.0", @"198.51.100.7"]));
+    XCTAssertEqualObjects(subnet.DNSSettings.servers, @[@"1.1.1.1"]);
+    XCTAssertEqualObjects(subnet.MTU, @1500);
+    // net30 (OpenVPN 2.6's default topology): the second ifconfig word is the peer, not a netmask
+    NEPacketTunnelNetworkSettings *net30 = [SRPOpenVPNClient settingsForPushedOptions:@[
+        @[@"route", @"10.8.6.1"], @[@"topology", @"net30"], @[@"ifconfig", @"10.8.6.6", @"10.8.6.5"],
+        @[@"dns", @"server", @"0", @"address", @"9.9.9.9", @"[2620:fe::fe]:53"], @[@"dhcp-option", @"DOMAIN", @"corp.example"]]
+                                                                       serverAddress:@"198.51.100.7"];
+    XCTAssertEqualObjects(net30.IPv4Settings.subnetMasks, @[@"255.255.255.255"]);
+    NSArray *included = [net30.IPv4Settings.includedRoutes valueForKey:@"destinationAddress"];
+    XCTAssertEqualObjects(included, (@[@"10.8.6.1", @"10.8.6.5"]));
+    XCTAssertEqualObjects(net30.DNSSettings.servers, (@[@"9.9.9.9", @"2620:fe::fe"]));
+    XCTAssertEqualObjects(net30.DNSSettings.searchDomains, @[@"corp.example"]);
+
+    NSString *profile = @"client\nproto tcp\nport 1195\n# remote commented.example 1\nremote a.example\nremote b.example 443 udp\n";
+    XCTAssertEqualObjects([SRPOpenVPNClient firstRemoteOfProfile:profile], (@[@"a.example", @"1195", @"tcp"]));
+    XCTAssertEqual([SRPOpenVPNClient remoteCountOfProfile:profile], 2);
+    XCTAssertEqualObjects([SRPOpenVPNClient firstRemoteOfProfile:@"remote c.example 1194 udp\n"], (@[@"c.example", @"1194", @"udp"]));
+    XCTAssertEqual([SRPOpenVPNClient remoteCountOfProfile:@"client\n"], 1);
+
+    // stunnel carries TCP: a UDP profile is turned into TCP (the core's override only picks TCP remotes)
+    XCTAssertEqualObjects([SRPOpenVPNClient profileText:@"client\nproto udp\nremote a.example 1194 udp\n<ca>\nx\n</ca>" withProtocol:@"tcp"],
+                          @"client\nproto tcp\nremote a.example 1194 tcp\n<ca>\nx\n</ca>");
+    XCTAssertEqualObjects([SRPOpenVPNClient profileText:@"remote a.example 1194" withProtocol:@"tcp"], @"proto tcp\nremote a.example 1194");
+    // Reasons the core gives only in its log
+    XCTAssertEqualObjects([SRPOpenVPNClient messageForLogLine:@"Transport Error: TCPv4 connect error on 'vpn.example:1199' (192.0.2.1:1199): Connection refused"],
+                          @"The server refused the connection: no OpenVPN server answers on that port.");
+    XCTAssertEqualObjects([SRPOpenVPNClient messageForLogLine:@"Transport Error: DNS resolve error on 'no.example' for UDP session: Host not found"],
+                          @"The server name no.example could not be resolved.");
+    XCTAssertTrue([[SRPOpenVPNClient messageForLogLine:@"Client exception in transport_recv: ERR_PROFILE_OPTION: option_error: Problem accepting server-pushed compressor 'lz4-v2': compressor_unavailable"]
+                   containsString:@"compression (lz4-v2)"]);
+    XCTAssertNil([SRPOpenVPNClient messageForLogLine:@"Contacting 192.0.2.1:1194 via UDP"]);
+}
+
+// The OpenVPN editor's imports (From Files and From URL both end in handleImportedText:mode:): Server and Port from the
+// first remote line, files that are not profiles or whose certificates are damaged refused, the stunnel CA, and a
+// commented-out auth-user-pass line that asks for nothing
+- (void)testOpenVPNEditorImportsAProfileAndItsCA {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"openvpn" toModel:model];
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    NodeModel *edited = [editor valueForKey:@"modal"];
+    XCTAssertNotNil(edited);
+    NSString *certificate = @"-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----\n";
+    NSString *profile = [NSString stringWithFormat:@"client\ndev tun\nproto udp\nremote vpn.example.com 1195\nremote backup.example.com 1194\n<ca>\n%@</ca>\n# auth-user-pass\n", certificate];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    SEL import = NSSelectorFromString(@"handleImportedText:mode:");
+    [editor performSelector:import withObject:profile withObject:@"ovpn"];
+    XCTAssertEqualObjects(edited.ovpnProfile, profile);
+    XCTAssertEqualObjects(edited.server, @"vpn.example.com");
+    XCTAssertEqualObjects(edited.port, @"1195");
+    XCTAssertFalse([[editor valueForKey:@"ovpnNeedsAuth"] boolValue]);
+    // Not a profile, or a damaged certificate inside: the imported profile stays
+    [editor performSelector:import withObject:@"hello" withObject:@"ovpn"];
+    [editor performSelector:import withObject:[profile stringByReplacingOccurrencesOfString:@"AAAA" withString:@"A!A"] withObject:@"ovpn"];
+    XCTAssertEqualObjects(edited.ovpnProfile, profile);
+    [editor performSelector:import withObject:[profile stringByAppendingString:@"auth-user-pass\n"] withObject:@"ovpn"];
+    XCTAssertTrue([[editor valueForKey:@"ovpnNeedsAuth"] boolValue]);
+    [editor performSelector:import withObject:certificate withObject:@"ca"];
+    XCTAssertEqualObjects(edited.ovpnStunnelCA, certificate);
+    [editor performSelector:import withObject:@"not a certificate" withObject:@"ca"];
+    XCTAssertEqualObjects(edited.ovpnStunnelCA, certificate);
+#pragma clang diagnostic pop
 }
 
 // An SSH profile without a port uses SSH's own port; other protocols keep theirs
@@ -5700,6 +5782,83 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
     [self scrollTableToEnd:editorTable];
     shoot(nil, @"options");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+// The OpenVPN screens of the tutorial (tutorial/openvpn/app-setup.html), rendered from the real editor with example profiles.
+- (void)testOpenVpnDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-openvpn"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    // Example profiles: the texts stand for imported .ovpn files (the editor shows only that one is imported)
+    NodeModel *(^profile)(NSString *, NSString *) = ^NodeModel *(NSString *description, NSString *text) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"openvpn" toModel:model];
+        model.desc = description;
+        model.server = @"vpn.example.com";
+        model.ovpnProfile = text;
+        return model;
+    };
+    NodeModel *udp = profile(@"Example: OpenVPN (UDP, certificate)", @"client\ndev tun\nproto udp\nremote vpn.example.com 1194\n");
+    NodeModel *login = profile(@"Example: OpenVPN with a password", @"client\ndev tun\nproto udp\nremote vpn.example.com 1195\nauth-user-pass\n");
+    login.port = @"1195";
+    login.username = @"vpnuser";
+    login.password = @"example-password";
+    NodeModel *stunnel = profile(@"Example: OpenVPN inside stunnel", @"client\ndev tun\nproto tcp\nremote vpn.example.com 443\n");
+    stunnel.port = @"443";
+    stunnel.ovpnStunnelEnabled = YES;
+    stunnel.ovpnStunnelSNI = @"vpn.example.com";
+    stunnel.tlsFragMode = 1;
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[udp, login, stunnel]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    void (^editor)(NodeModel *, NSString *, NSString *) = ^(NodeModel *model, NSString *top, NSString *bottom) {
+        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+        UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+        [editorTable reloadData];
+        shoot(create, top);
+        if (bottom == nil) return;
+        // Estimated row heights leave the content size short until the last rows have been laid out once
+        NSInteger last = editorTable.numberOfSections - 1;
+        [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[editorTable numberOfRowsInSection:last] - 1 inSection:last]
+                           atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
+        [self scrollTableToEnd:editorTable];
+        shoot(nil, bottom);
+    };
+    editor(login, @"profile-editor", nil);
+    editor(stunnel, @"stunnel-editor", @"options");
+
+    CreateVC *create = [self profileEditorHostForModel:udp saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    shoot(create, @"certificate-profile");
+    [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:udp] animated:NO];
+    shoot(nil, @"protocol");
 
     window.hidden = YES;
     [previous makeKeyWindow];

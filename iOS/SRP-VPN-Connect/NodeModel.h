@@ -55,7 +55,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,assign) BOOL ovpnStunnelEnabled;
 /// stunnel listener host (empty = the Server field)
 @property (nonatomic,copy,nullable) NSString * ovpnStunnelHost;
-/// stunnel listener port (default 9443)
+/// stunnel listener port (empty = 443)
 @property (nonatomic,copy,nullable) NSString * ovpnStunnelPort;
 /// Outer-TLS SNI / verification hostname (empty = stunnel host)
 @property (nonatomic,copy,nullable) NSString * ovpnStunnelSNI;

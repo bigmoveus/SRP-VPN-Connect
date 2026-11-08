@@ -536,12 +536,18 @@ static uint64_t SRPFootprintBytes(void);
 #pragma mark - OpenVPN Protocol
 
 -(void)startOpenVPNWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
+#if !DEBUG
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
+#endif
     SRPOpenVPNClient *ovpn = [[SRPOpenVPNClient alloc] init];
     ovpn.profileText = [v[@"profile"] stringByRemovingPercentEncoding];
     if (ovpn.profileText.length == 0) {
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"No .ovpn profile is stored in this VPN profile. Import one in the profile editor."}]);
         return;
     }
+    // Server and Port start as the profile's first remote line; changed in the editor, they replace it
+    ovpn.server = [v[@"address"] description];
+    ovpn.port = [v[@"port"] description];
     ovpn.stunnelEnabled = [v[@"stunnel"] boolValue];
     ovpn.tlsFragMode = [v[@"tls_frag"] integerValue];
     ovpn.tlsFragFirst = [v[@"tls_frag_first"] integerValue];
@@ -594,6 +600,7 @@ static uint64_t SRPFootprintBytes(void);
         finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"Connection timed out. The server did not respond."}]);
     });
 
+    __weak SRPOpenVPNClient *weakOvpn = ovpn;
     [ovpn startWithOutputCallback:^(NSData *ipPacket, int family) {
         g_ovpnOutPackets++;
         if (g_ovpnOutPackets <= 20 || g_ovpnOutPackets % 100 == 0) {
@@ -601,18 +608,37 @@ static uint64_t SRPFootprintBytes(void);
         }
         [weakSelf.packetFlow writePackets:@[ipPacket] withProtocols:@[@(family)]];
     } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
+        if (finished) {
+            // A reconnect's settings (every new connection of the core brings them): apply them; the packet read
+            // loop already runs (one per tunnel)
+            [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
+                if (e) {
+                    SSLogE(@"OpenVPN: setTunnelNetworkSettings failed: %@", e);
+                }
+                [weakOvpn tunApplied];
+            }];
+            return;
+        }
         [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
             if (e) {
                 SSLogE(@"OpenVPN: setTunnelNetworkSettings failed: %@", e);
+                [weakOvpn tunApplied];
                 return finish(e);
             }
             SSLogM(@"OpenVPN: settings applied, starting readPacketsOVPN");
-            [ovpn tunApplied];
+            [weakOvpn tunApplied];
             [weakSelf readPacketsOVPN];
             finish(nil);
         }];
     } connectedCallback:nil disconnectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"OpenVPN connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"OpenVPN connection failed"}];
+        if (finished) {
+            // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel (as SSTP)
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
@@ -1322,7 +1348,7 @@ static void SRPTunnelLogOpen(void) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
 
 #if DEBUG
-    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH), from their start methods.
+    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH, OpenVPN), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo, and the SSL VPN Path (an ocserv camouflage secret), before logging
@@ -1331,6 +1357,9 @@ static void SRPTunnelLogOpen(void) {
             return uri;
         }
         uri = [uri stringByReplacingOccurrencesOfString:@"([?&]ocpath=)[^&#]*" withString:@"$1<redacted>"
+                                                options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
+        // The OpenVPN profile holds the client's private key and the tls-crypt key
+        uri = [uri stringByReplacingOccurrencesOfString:@"([?&]profile=)[^&#]*" withString:@"$1<redacted>"
                                                 options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
         NSRange schemeEnd = [uri rangeOfString:@"//"];
         NSRange atSign = [uri rangeOfString:@"@"];
@@ -1469,9 +1498,10 @@ static void SRPTunnelLogOpen(void) {
             return;
         }
         if ([command isEqualToString:@"path-switch"]) {
-            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN, SSH), without changing the phone's network
+            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN, SSH, OpenVPN), without changing the phone's network
             [self.ocClient switchNetworkPath];
             [self.sshClient switchNetworkPath];
+            [self.ovpnClient switchNetworkPath];
             completionHandler(messageData);
             return;
         }
