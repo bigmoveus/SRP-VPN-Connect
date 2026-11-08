@@ -76,3 +76,57 @@ target_link_libraries(srpopenconnect PRIVATE
 target_link_options(srpopenconnect PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/openconnect_exports.map")
 set_target_properties(srpopenconnect PROPERTIES LINK_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/openconnect_exports.map;${OC_ROOT}/build/android-arm64/libSRPOpenConnect.a;${OC_ROOT}/libxml2/android-arm64/lib/libxml2.a")
+
+# SSH VPN: the iOS app's SSH bridge (iOS/Core/SRPCore/SRPSSHBridge.c) on libssh2 1.11.1 (iOS/SSH/libssh2) and the
+# hev-socks5-tunnel packet engine (iOS/SSH/upstream), from the same sources as on iOS, with the packet channel and the
+# events for SshClient.kt in ssh_jni.c. libssh2 links the SoftEther core's OpenSSL 3; the engine is built with the iOS
+# build's srpssh_ names (iOS/SSH/build/srpssh-prefix.h), and the version script keeps it all inside libsrpssh.so.
+enable_language(ASM)
+set(SSH_ROOT "${SRP_IOS_SOURCES}/SSH")
+set(SSH_UP "${SSH_ROOT}/upstream")
+set(SSH2_SOURCES)
+foreach(name IN ITEMS agent bcrypt_pbkdf channel comp chacha cipher-chachapoly crypt crypto global hostkey keepalive kex
+                      knownhost mac misc openssl packet pem poly1305 publickey scp session sftp transport userauth
+                      userauth_kbd_packet version)
+    list(APPEND SSH2_SOURCES "${SSH_ROOT}/libssh2/src/${name}.c")
+endforeach()
+set(SSH_ENGINE_SOURCES)
+foreach(name IN ITEMS hev-config hev-mapped-dns hev-socks5-session hev-socks5-session-tcp hev-socks5-session-udp
+                      hev-socks5-tunnel hev-tunnel-linux hev-main)
+    list(APPEND SSH_ENGINE_SOURCES "${SSH_UP}/src/${name}.c")
+endforeach()
+file(GLOB SSH_ENGINE_MISC CONFIGURE_DEPENDS "${SSH_UP}/src/misc/*.c")
+list(FILTER SSH_ENGINE_MISC EXCLUDE REGEX "/hev-wintun\\.c$")
+file(GLOB_RECURSE SSH_ENGINE_DEPENDENCIES CONFIGURE_DEPENDS "${SSH_UP}/src/core/src/*.c" "${SSH_UP}/third-part/yaml/src/*.c"
+    "${SSH_UP}/third-part/lwip/src/core/*.c" "${SSH_UP}/third-part/lwip/src/api/*.c")
+# The task system is a library of its own, as in upstream's Android.mk and the iOS archive: its list and tree helpers
+# have the same names as the engine's misc ones, and an archive keeps only the copies the link needs
+file(GLOB_RECURSE SSH_TASK_SOURCES CONFIGURE_DEPENDS "${SSH_UP}/third-part/hev-task-system/src/*.c")
+list(APPEND SSH_ENGINE_SOURCES ${SSH_ENGINE_MISC} ${SSH_ENGINE_DEPENDENCIES}
+    "${SSH_UP}/third-part/lwip/src/ports/lib/mem.c" "${SSH_UP}/third-part/lwip/src/ports/unix/lib/sys_arch.c"
+    "${SSH_ROOT}/srpssh-glue.c")
+add_library(srpssh_tasks STATIC ${SSH_TASK_SOURCES} "${SSH_UP}/third-part/hev-task-system/src/kern/task/hev-task-execute.S")
+set_target_properties(srpssh_tasks PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(srpssh_tasks PRIVATE "${SSH_UP}/third-part/hev-task-system/include" "${SSH_UP}/third-part/hev-task-system/src")
+add_library(srpssh SHARED ssh_jni.c "${SRP_IOS_SOURCES}/Core/SRPCore/SRPSSHBridge.c" ${SSH2_SOURCES} ${SSH_ENGINE_SOURCES})
+target_include_directories(srpssh PRIVATE ssh "${SE_OPENSSL}/include" "${SSH_ROOT}/libssh2/include" "${SSH_ROOT}/libssh2/src"
+    "${SSH_ROOT}/build" "${SRP_IOS_SOURCES}/Core/SRPCore"
+    "${SSH_UP}/src" "${SSH_UP}/src/misc" "${SSH_UP}/src/core/include" "${SSH_UP}/src/core/src"
+    "${SSH_UP}/third-part/yaml/include" "${SSH_UP}/third-part/lwip/src/include" "${SSH_UP}/third-part/lwip/src/ports/include"
+    "${SSH_UP}/third-part/hev-task-system/include" "${SSH_UP}/third-part/hev-task-system/src")
+set(SSH_ENGINE_DEFINITIONS _GNU_SOURCE ENABLE_LIBRARY ENABLE_STACK_OVERFLOW_DETECTION ENABLE_STACK_OVERFLOW_DETECTOR
+    ENABLE_MEMALLOC_SLICE ENABLE_IO_SPLICE_SYSCALL CONFIG_STACK_BACKEND=STACK_MMAP CONFIG_STACK_OVERFLOW_DETECTION=1
+    CONFIG_MEMALLOC_SLICE_ALIGN=16 CONFIG_MEMALLOC_SLICE_MAX_SIZE=4096 CONFIG_MEMALLOC_SLICE_MAX_COUNT=1000
+    CONFIG_SCHED_CLOCK=CLOCK_NONE YAML_VERSION_MAJOR=0 YAML_VERSION_MINOR=2 YAML_VERSION_PATCH=5 YAML_VERSION_STRING="0.2.5"
+    FD_SET_DEFINED SOCKLEN_T_DEFINED)
+target_compile_definitions(srpssh PRIVATE ${SSH_ENGINE_DEFINITIONS})
+target_compile_definitions(srpssh_tasks PRIVATE ${SSH_ENGINE_DEFINITIONS})
+target_compile_options(srpssh PRIVATE $<$<COMPILE_LANGUAGE:C>:-w>)
+target_compile_options(srpssh_tasks PRIVATE $<$<COMPILE_LANGUAGE:C>:-w>)
+# libssh2 reads its configuration from ssh/libssh2_config.h (the engine's yaml has a config.h of its own kind)
+set_source_files_properties(${SSH2_SOURCES} PROPERTIES COMPILE_DEFINITIONS "HAVE_CONFIG_H;LIBSSH2_LIBRARY")
+# The engine's names as the bridge calls them (libssh2 and the bridge's own code take no prefix)
+set_source_files_properties(${SSH_ENGINE_SOURCES} ${SSH_TASK_SOURCES} PROPERTIES COMPILE_OPTIONS "-include;${SSH_ROOT}/build/srpssh-prefix.h")
+target_link_libraries(srpssh PRIVATE srpssh_tasks "${SE_OPENSSL}/lib/libssl.a" "${SE_OPENSSL}/lib/libcrypto.a" z log)
+target_link_options(srpssh PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/ssh_exports.map")
+set_target_properties(srpssh PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ssh_exports.map")

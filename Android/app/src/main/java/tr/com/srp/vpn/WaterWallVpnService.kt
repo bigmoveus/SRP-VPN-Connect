@@ -88,7 +88,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             ConnectionLog.open(this)
             val profiles = ProfileStore(this).load()
             val profile = profiles.firstOrNull { it.nodeId == profileId }
-            if (profile != null && (profile.isSstp || profile.isSoftEther || profile.isOpenConnect)) {
+            if (profile != null && (profile.isSstp || profile.isSoftEther || profile.isOpenConnect || profile.isSsh)) {
                 // Certificate login reads the PKCS#12 from the store here, off the main thread
                 val certificate = if (profile.certificateMode) CertificateStore(this).load(profile.certKey) else null
                 main.post {
@@ -137,7 +137,8 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         val cellular = {
             connectivity.getNetworkCapabilities(connectivity.activeNetwork)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
         }
-        val started = if (profile.isSoftEther) SoftEtherClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
+        val started = if (profile.isSsh) SshClient(profile, connectivity, this)
+                      else if (profile.isSoftEther) SoftEtherClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
                       else if (profile.isOpenConnect) SslVpnClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
                       else SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
         client = started
@@ -149,12 +150,13 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         when (started) {
             is SoftEtherClient -> started.start()
             is SslVpnClient -> started.start()
+            is SshClient -> started.start()
             else -> (started as SstpClient).start()
         }
     }
 
     private fun disconnect() {
-        if (client !is SstpClient && client !is SoftEtherClient && client !is SslVpnClient) ConnectionLog.m("WaterWall: disconnecting")
+        if (client !is SstpClient && client !is SoftEtherClient && client !is SslVpnClient && client !is SshClient) ConnectionLog.m("WaterWall: disconnecting")
         connecting = false
         connectRequest++
         finishTunnel()
@@ -190,7 +192,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     override fun applyTunnelSettings(settings: TunnelSettings, attach: (Int) -> Unit): String? {
         // An SSTP reconnect that gets the same address and DNS keeps the tunnel the system already has
         val existing = tun
-        if (existing != null && (client is SstpClient || client is SoftEtherClient || client is SslVpnClient) && settings == tunSettings) {
+        if (existing != null && (client is SstpClient || client is SoftEtherClient || client is SslVpnClient || client is SshClient) && settings == tunSettings) {
             attach(existing.fd)
             return null
         }

@@ -87,7 +87,7 @@ fun SslVpnSections(draft: Profile, onChange: (Profile) -> Unit, push: (EditorPag
 
 /** A number field where empty means zero and zero shows as empty. */
 @Composable
-private fun CountRow(title: String, value: Int, placeholder: String, onChange: (Int) -> Unit) {
+internal fun CountRow(title: String, value: Int, placeholder: String, onChange: (Int) -> Unit) {
     TextFieldRow(title, if (value > 0) value.toString() else "", placeholder, keyboardType = KeyboardType.Number) { text ->
         onChange(text.filter { it in '0'..'9' }.take(9).toIntOrNull() ?: 0)
     }

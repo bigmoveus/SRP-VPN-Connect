@@ -21,7 +21,7 @@ android {
             cmake {
                 // Debug would turn on asserts meant for upstream's tests; iOS also runs a Release build.
                 arguments += "-DCMAKE_BUILD_TYPE=Release"
-                targets += listOf("waterwall", "srpsstp", "srpse", "srpopenconnect")
+                targets += listOf("waterwall", "srpsstp", "srpse", "srpopenconnect", "srpssh")
             }
         }
     }

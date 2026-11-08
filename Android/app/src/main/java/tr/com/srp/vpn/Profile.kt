@@ -57,7 +57,7 @@ data class EapConfig(
 /** One saved connection, with the same fields and defaults as a NodeModel on iOS. Secrets stay out of the stored profile. */
 data class Profile(
     val nodeId: String = UUID.randomUUID().toString().uppercase(),
-    /** "waterwall", "sstp", "softether" or "openconnect" (SSL VPN) */
+    /** "waterwall", "sstp", "softether", "openconnect" (SSL VPN) or "ssh" */
     val protocolType: String = "waterwall",
     val desc: String = "",
     val username: String = "",
@@ -125,10 +125,15 @@ data class Profile(
     val ocProtocol: String = "anyconnect",
     /** SSL VPN: what follows the server in its URL, such as ocserv camouflage's "?secret"; empty for none */
     val ocPath: String = "",
+    /** SSH: the server's host key fingerprint ("SHA256:..." or the line ssh-keygen -lf prints); empty accepts any key */
+    val sshHostKey: String = "",
+    /** SSH: UDP through the HEV relay on the server (off by default, as on iOS) */
+    val sshUdpRelay: Boolean = false,
 ) {
     val isSstp get() = protocolType == "sstp"
     val isSoftEther get() = protocolType == "softether"
     val isOpenConnect get() = protocolType == "openconnect"
+    val isSsh get() = protocolType == "ssh"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
@@ -137,11 +142,11 @@ data class Profile(
     val configuration: Map<String, Any?>
         get() = ChainConfig.configurationWithJson(configJson) ?: ChainConfig.defaultConfiguration()
 
-    /** An empty port means 443, or 51820 in WireGuard mode. */
+    /** An empty port means 443, 22 for SSH, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (!isTlsVpn && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
+        get() = port.ifEmpty { if (isSsh) "22" else if (!isTlsVpn && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
 
-    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
@@ -241,7 +246,7 @@ class ProfileStore(context: Context) {
             if (saved.outerSecretRef.isEmpty()) saved = saved.copy(outerSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.outerSecretRef, saved.outerSecret)
         }
-        if (saved.isTlsVpn) return sstpStored(saved)
+        if (saved.isTlsVpn || saved.isSsh) return sstpStored(saved)
         val keys = LinkedHashMap<String, Any?>()
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
@@ -266,7 +271,7 @@ class ProfileStore(context: Context) {
         )
     }
 
-    /** CheckConnectData's keys for an SSTP, SoftEther or SSL VPN profile; the proxy password goes to the store like the main one. */
+    /** CheckConnectData's keys for an SSTP, SoftEther, SSL VPN or SSH profile; the proxy password goes to the store like the main one. */
     private fun sstpStored(profile: Profile): Map<String, Any?> {
         var saved = profile
         // A profile moved from WaterWall has no WireGuard keys left to keep
@@ -322,6 +327,11 @@ class ProfileStore(context: Context) {
             stored["oc_protocol"] = saved.ocProtocol.ifEmpty { "anyconnect" }
             if (saved.ocPath.isNotEmpty()) stored["oc_path"] = saved.ocPath
         }
+        if (saved.isSsh) {
+            // CheckConnectData's keys for an SSH profile
+            stored["ssh_udp"] = saved.sshUdpRelay
+            if (saved.sshHostKey.isNotEmpty()) stored["hostkey"] = saved.sshHostKey
+        }
         return stored
     }
 
@@ -375,7 +385,7 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
-            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" } ?: "waterwall",
+            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" } ?: "waterwall",
             mschap2 = flag("mschap2_enable", true),
             allowLegacyPapChap = flag("allow_legacy_papchap", false),
             authMethod = text("auth_method").ifEmpty { "password" },
@@ -401,6 +411,8 @@ class ProfileStore(context: Context) {
             proxyType = if (text("proxy_type") == "socks5") "socks5" else "http",
             ocProtocol = text("oc_protocol").takeIf { it == "f5" || it == "gp" } ?: "anyconnect",
             ocPath = text("oc_path"),
+            sshHostKey = text("hostkey"),
+            sshUdpRelay = flag("ssh_udp", false),
         )
     }
 }

@@ -9,6 +9,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSH VPN logins through the server's keyboard-interactive (PAM) method when it offers no password method; the app answers the prompt with the profile's password.
 - SSH VPN keepalives every 15 seconds, answers to the server's own keepalives while the session is idle, and limits of 15 seconds for the TCP connection and 20 for the SSH handshake and login.
 - The SSH log in Release builds of the iPhone app, with the server's host key, the login, the reason a session ended and, at Expert, the transfer counters; no level writes the password.
+- SSH VPN in the Android app, built from the iOS app's SSH core: the vendored libssh2 1.11.1 on the SoftEther core's OpenSSL 3.5, the packet engine of hev-socks5-tunnel and the same bridge, with a packet channel to the tunnel (`Android/app/src/main/cpp/ssh_jni.c`, CMake target `srpssh`). The same profile fields and defaults as on iOS, that is Server, Port (22 when empty), Host Key (the SHA256 fingerprint, or the whole line `ssh-keygen -lf` prints), UDP Relay (HEV), Username and Password, Auto Reconnect, Retry Times, Switch to Wi-Fi, On Sleep and Log Level; the same message for each kind of failure; and the home screen's ping and server:port line. IPv4 only.
 
 ### Changed
 - The SSL VPN documentation names TestFlight build 38, the first with the Path field.

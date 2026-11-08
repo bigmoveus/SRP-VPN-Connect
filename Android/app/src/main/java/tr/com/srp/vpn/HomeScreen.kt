@@ -255,7 +255,7 @@ private fun ProfileRow(profile: Profile, status: VpnState.Status, open: OpenSwip
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Label(profile.desc.ifEmpty { profile.server.ifEmpty { profile.nodeName } }, IosText.headline, maxLines = 1)
                 // iOS's home row: the chain summary for WaterWall, the server and port for SSTP
-                Label(if (profile.isTlsVpn) "${profile.server}:${profile.port}" else ChainConfig.summary(profile.configuration), IosText.subheadline, colors.secondaryLabel, maxLines = 1)
+                Label(if (profile.isTlsVpn || profile.isSsh) "${profile.server}:${profile.effectivePort}" else ChainConfig.summary(profile.configuration), IosText.subheadline, colors.secondaryLabel, maxLines = 1)
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
