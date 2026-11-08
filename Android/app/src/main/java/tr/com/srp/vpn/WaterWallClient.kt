@@ -28,7 +28,9 @@ class WaterWallCandidate(
 
 data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int,
                           /** Ranges that stay outside the tunnel (an SSL VPN server's no-route lines); Android 13 and later */
-                          val excludedRoutes: List<Pair<String, Int>> = emptyList())
+                          val excludedRoutes: List<Pair<String, Int>> = emptyList(),
+                          /** The address's prefix length (an OpenVPN server's netmask; 32 for its net30 topology) */
+                          val addressPrefix: Int = 24)
 
 /** What the VPN service does for a protocol's client. */
 interface TunnelHost {

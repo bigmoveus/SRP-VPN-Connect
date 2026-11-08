@@ -57,7 +57,7 @@ data class EapConfig(
 /** One saved connection, with the same fields and defaults as a NodeModel on iOS. Secrets stay out of the stored profile. */
 data class Profile(
     val nodeId: String = UUID.randomUUID().toString().uppercase(),
-    /** "waterwall", "sstp", "softether", "openconnect" (SSL VPN) or "ssh" */
+    /** "waterwall", "sstp", "softether", "openconnect" (SSL VPN), "ssh" or "openvpn" */
     val protocolType: String = "waterwall",
     val desc: String = "",
     val username: String = "",
@@ -129,11 +129,25 @@ data class Profile(
     val sshHostKey: String = "",
     /** SSH: UDP through the HEV relay on the server (off by default, as on iOS) */
     val sshUdpRelay: Boolean = false,
+    /** OpenVPN: the imported .ovpn with its keys inline; it holds the client's private key, so it is kept in the SecretStore */
+    val ovpnProfile: String = "",
+    val ovpnProfileRef: String = "",
+    /** OpenVPN inside TLS to the server's stunnel listener (TCP; also for a UDP profile) */
+    val ovpnStunnelEnabled: Boolean = false,
+    /** Empty = the Server field */
+    val ovpnStunnelHost: String = "",
+    /** Empty = 443 */
+    val ovpnStunnelPort: String = "",
+    /** The outer TLS's SNI and certificate name; empty = the stunnel host */
+    val ovpnStunnelSni: String = "",
+    /** PEM of the CA that signs the stunnel certificate; empty = the system's trust */
+    val ovpnStunnelCa: String = "",
 ) {
     val isSstp get() = protocolType == "sstp"
     val isSoftEther get() = protocolType == "softether"
     val isOpenConnect get() = protocolType == "openconnect"
     val isSsh get() = protocolType == "ssh"
+    val isOpenVpn get() = protocolType == "openvpn"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
@@ -142,11 +156,11 @@ data class Profile(
     val configuration: Map<String, Any?>
         get() = ChainConfig.configurationWithJson(configJson) ?: ChainConfig.defaultConfiguration()
 
-    /** An empty port means 443, 22 for SSH, or 51820 in WireGuard mode. */
+    /** An empty port means 443, 22 for SSH, 1194 for OpenVPN, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (isSsh) "22" else if (!isTlsVpn && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
+        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (!isTlsVpn && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
 
-    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
@@ -218,7 +232,7 @@ class ProfileStore(context: Context) {
         val stored = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
         val profiles = stored.map { fromStored(it) }
         // Re-save profiles that still contain a plaintext credential or WireGuard key.
-        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "proxy_password", "cert_p12").any { it in item } }) save(profiles)
+        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "proxy_password", "cert_p12", "ovpn_profile").any { it in item } }) save(profiles)
         return profiles
     }
 
@@ -230,7 +244,7 @@ class ProfileStore(context: Context) {
     }
 
     fun deleteSecrets(profile: Profile) {
-        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef, profile.proxyPasswordRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
+        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef, profile.proxyPasswordRef, profile.ovpnProfileRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
     }
 
     private fun toStored(profile: Profile): Map<String, Any?> {
@@ -246,7 +260,7 @@ class ProfileStore(context: Context) {
             if (saved.outerSecretRef.isEmpty()) saved = saved.copy(outerSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.outerSecretRef, saved.outerSecret)
         }
-        if (saved.isTlsVpn || saved.isSsh) return sstpStored(saved)
+        if (saved.isTlsVpn || saved.isSsh || saved.isOpenVpn) return sstpStored(saved)
         val keys = LinkedHashMap<String, Any?>()
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
@@ -271,7 +285,7 @@ class ProfileStore(context: Context) {
         )
     }
 
-    /** CheckConnectData's keys for an SSTP, SoftEther, SSL VPN or SSH profile; the proxy password goes to the store like the main one. */
+    /** CheckConnectData's keys for an SSTP, SoftEther, SSL VPN, SSH or OpenVPN profile; the proxy password and the .ovpn go to the store like the main one. */
     private fun sstpStored(profile: Profile): Map<String, Any?> {
         var saved = profile
         // A profile moved from WaterWall has no WireGuard keys left to keep
@@ -332,6 +346,19 @@ class ProfileStore(context: Context) {
             stored["ssh_udp"] = saved.sshUdpRelay
             if (saved.sshHostKey.isNotEmpty()) stored["hostkey"] = saved.sshHostKey
         }
+        if (saved.isOpenVpn) {
+            // CheckConnectData's keys for an OpenVPN profile; the .ovpn itself goes to the store (it holds the private key)
+            if (saved.ovpnProfile.isNotEmpty()) {
+                if (saved.ovpnProfileRef.isEmpty()) saved = saved.copy(ovpnProfileRef = UUID.randomUUID().toString())
+                secrets.set(saved.ovpnProfileRef, saved.ovpnProfile)
+                stored["ovpn_profile_ref"] = saved.ovpnProfileRef
+            }
+            stored["stunnel"] = saved.ovpnStunnelEnabled
+            if (saved.ovpnStunnelHost.isNotEmpty()) stored["stunnel_host"] = saved.ovpnStunnelHost
+            if (saved.ovpnStunnelPort.isNotEmpty()) stored["stunnel_port"] = saved.ovpnStunnelPort
+            if (saved.ovpnStunnelSni.isNotEmpty()) stored["stunnel_sni"] = saved.ovpnStunnelSni
+            if (saved.ovpnStunnelCa.isNotEmpty()) stored["stunnel_ca"] = saved.ovpnStunnelCa
+        }
         return stored
     }
 
@@ -385,7 +412,7 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
-            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" } ?: "waterwall",
+            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" || it == "openvpn" } ?: "waterwall",
             mschap2 = flag("mschap2_enable", true),
             allowLegacyPapChap = flag("allow_legacy_papchap", false),
             authMethod = text("auth_method").ifEmpty { "password" },
@@ -413,6 +440,14 @@ class ProfileStore(context: Context) {
             ocPath = text("oc_path"),
             sshHostKey = text("hostkey"),
             sshUdpRelay = flag("ssh_udp", false),
+            // a plaintext .ovpn (written by an older build or a test) moves to the store on the next save
+            ovpnProfile = text("ovpn_profile").ifEmpty { text("ovpn_profile_ref").let { if (it.isNotEmpty()) secrets.get(it).orEmpty() else "" } },
+            ovpnProfileRef = text("ovpn_profile_ref"),
+            ovpnStunnelEnabled = flag("stunnel", false),
+            ovpnStunnelHost = text("stunnel_host"),
+            ovpnStunnelPort = text("stunnel_port"),
+            ovpnStunnelSni = text("stunnel_sni"),
+            ovpnStunnelCa = text("stunnel_ca"),
         )
     }
 }

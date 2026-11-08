@@ -126,6 +126,7 @@ fun validationMessage(profile: Profile): String? {
     if (profile.isSoftEther) return softEtherValidationMessage(profile)
     if (profile.isOpenConnect) return sslVpnValidationMessage(profile)
     if (profile.isSsh) return sshValidationMessage(profile)
+    if (profile.isOpenVpn) return openVpnValidationMessage(profile)
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -150,6 +151,12 @@ private fun trimmedForSave(profile: Profile): Profile {
         // An address pasted whole, such as vpn.example.com/?secret, goes to Server, Port and Path
         val (server, port, path) = splitSslVpnAddress(profile.server)
         return profile.copy(server = server, port = port ?: profile.port.trim(), ocPath = path ?: profile.ocPath.trim())
+    }
+    if (profile.isOpenVpn) {
+        // The password stays as typed: it may begin or end with a space
+        return profile.copy(server = profile.server.trim(), port = profile.port.trim(), username = profile.username.trim(),
+            ovpnStunnelHost = profile.ovpnStunnelHost.trim(), ovpnStunnelPort = profile.ovpnStunnelPort.trim(),
+            ovpnStunnelSni = profile.ovpnStunnelSni.trim())
     }
     if (profile.isSsh) {
         // The password stays as typed: an SSH password may begin or end with a space
@@ -221,7 +228,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -247,6 +254,11 @@ private fun ProfileEditPage(
             }
             if (draft.isSsh) {
                 SshSections(draft, onChange)
+                Spacer(Modifier.height(32.dp))
+                return@Column
+            }
+            if (draft.isOpenVpn) {
+                OpenVpnSections(draft, onChange)
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
@@ -340,7 +352,8 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
         if (type != draft.protocolType) {
             // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
             onChange(draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
-                wgDns = "", wgAllowedIps = "", wgKeepalive = 0, port = if (type == "waterwall") "443" else if (type == "ssh") "22" else draft.port))
+                wgDns = "", wgAllowedIps = "", wgKeepalive = 0,
+                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194" else draft.port))
         }
         onBack()
     }
@@ -352,6 +365,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             row { CheckRow("SoftEther VPN", "SoftEther over TLS", checked = draft.isSoftEther) { choose("softether") } }
             row { CheckRow("SSL VPN", "AnyConnect, F5 BIG-IP, Palo Alto GlobalProtect", checked = draft.isOpenConnect) { choose("openconnect") } }
             row { CheckRow("SSH VPN", "SSH tunnel with optional UDP relay", checked = draft.isSsh) { choose("ssh") } }
+            row { CheckRow("OpenVPN", "OpenVPN 3 — UDP/TCP, optional stunnel (TLS 1.3)", checked = draft.isOpenVpn) { choose("openvpn") } }
         }
     }
 }

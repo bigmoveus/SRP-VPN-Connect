@@ -130,3 +130,22 @@ set_source_files_properties(${SSH_ENGINE_SOURCES} ${SSH_TASK_SOURCES} PROPERTIES
 target_link_libraries(srpssh PRIVATE srpssh_tasks "${SE_OPENSSL}/lib/libssl.a" "${SE_OPENSSL}/lib/libcrypto.a" z log)
 target_link_options(srpssh PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/ssh_exports.map")
 set_target_properties(srpssh PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ssh_exports.map")
+
+# OpenVPN: OpenVPN 3 Core (iOS/OpenVPN: release/3.11.7 with asio, lz4 and jsoncpp, the sources and flags of
+# iOS/OpenVPN/build_openvpn.sh) with the external TUN of openvpn_jni.cpp and the core's own UDP and TCP transports
+# (stunnel is StunnelRelay.kt's). It links the SoftEther core's OpenSSL 3; the version script keeps it all inside libsrpopenvpn.so.
+set(OVPN_ROOT "${SRP_IOS_SOURCES}/OpenVPN")
+add_library(srpopenvpn SHARED openvpn_jni.cpp "${OVPN_ROOT}/upstream/client/ovpncli.cpp"
+    "${OVPN_ROOT}/upstream/openvpn/crypto/data_epoch.cpp"
+    "${OVPN_ROOT}/jsoncpp/src/lib_json/json_reader.cpp" "${OVPN_ROOT}/jsoncpp/src/lib_json/json_value.cpp"
+    "${OVPN_ROOT}/jsoncpp/src/lib_json/json_writer.cpp"
+    "${OVPN_ROOT}/lz4/lib/lz4.c" "${OVPN_ROOT}/lz4/lib/lz4hc.c" "${OVPN_ROOT}/lz4/lib/xxhash.c")
+target_include_directories(srpopenvpn PRIVATE "${OVPN_ROOT}/upstream" "${OVPN_ROOT}/upstream/client" "${OVPN_ROOT}/asio/include"
+    "${OVPN_ROOT}/lz4/lib" "${OVPN_ROOT}/jsoncpp/include" "${SE_OPENSSL}/include")
+target_compile_definitions(srpopenvpn PRIVATE USE_OPENSSL USE_ASIO ASIO_STANDALONE OPENVPN_EXTERNAL_TUN_FACTORY
+    OPENVPN_EXTERNAL_TRANSPORT_FACTORY)
+target_compile_features(srpopenvpn PRIVATE cxx_std_17)
+target_compile_options(srpopenvpn PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -frtti> -w)
+target_link_libraries(srpopenvpn PRIVATE "${SE_OPENSSL}/lib/libssl.a" "${SE_OPENSSL}/lib/libcrypto.a" z log)
+target_link_options(srpopenvpn PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/openvpn_exports.map")
+set_target_properties(srpopenvpn PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/openvpn_exports.map")

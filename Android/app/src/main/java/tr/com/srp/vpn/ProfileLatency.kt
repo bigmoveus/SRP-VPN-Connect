@@ -66,10 +66,20 @@ class TcpPinger {
 
         /** Host and port of a profile that reaches its server over TCP, or null for one without a TCP server. */
         fun endpoint(profile: Profile): Pair<String, Int>? {
-            val configuration = profile.configuration
-            if (ChainConfig.isDirect(configuration) || ChainConfig.usesUdpCarrier(configuration)) return null
-            val host = profile.server.trim()
-            val port = profile.effectivePort.trim().toIntOrNull() ?: return null
+            var host = profile.server.trim()
+            var port = profile.effectivePort.trim().toIntOrNull() ?: return null
+            if (profile.isOpenVpn) {
+                // OpenVPN reaches its server over TCP only through stunnel or with a TCP profile (SRPProfileLatencyTester on iOS)
+                if (profile.ovpnStunnelEnabled) {
+                    host = profile.ovpnStunnelHost.trim().ifEmpty { host }
+                    port = profile.ovpnStunnelPort.trim().toIntOrNull() ?: 443
+                } else if (!OpenVpnProfileText.firstRemote(profile.ovpnProfile).proto.lowercase().startsWith("tcp")) {
+                    return null
+                }
+            } else if (!profile.isTlsVpn && !profile.isSsh) {
+                val configuration = profile.configuration
+                if (ChainConfig.isDirect(configuration) || ChainConfig.usesUdpCarrier(configuration)) return null
+            }
             return if (host.isEmpty() || port !in 1..65535) null else host to port
         }
 
