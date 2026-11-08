@@ -16,7 +16,7 @@ bool halfduplexclientForwardPayload(tunnel_t *t, line_t *main, sbuf_t *buf)
     uint32_t       length  = sbufGetLength(buf);
     const uint64_t total   = (uint64_t) length + kHLFDIntroSize;
     // Ordinary headroom also proves that the prepended length fits its uint32_t capacity.
-    const bool     reuse   = ! sbufIsSplice(buf) && sbufGetLeftCapacity(buf) >= kHLFDIntroSize;
+    const bool     reuse   = ! sbufIsSplice(buf) && sbufGetHeadroom(buf) >= kHLFDIntroSize;
     sbuf_t        *framed  = reuse ? buf : bufferpoolTryGetBestFit(pool, total, padding);
     if (framed == NULL)
     {
@@ -48,7 +48,7 @@ bool halfduplexclientForwardPayload(tunnel_t *t, line_t *main, sbuf_t *buf)
             else
             {
                 memoryCopyLarge(wire + kHLFDIntroSize, sbufGetRawPtr(buf), length);
-                sbufSetLength(framed, (uint32_t) total);
+                sbufSetLength(framed, total);
             }
             lineReuseBuffer(main, buf);
         }
@@ -82,11 +82,12 @@ void halfduplexclientTunnelUpStreamPayload(tunnel_t *t, line_t *main, sbuf_t *bu
         lineReuseBuffer(main, buf);
         return;
     }
-    if (ls->pair_initializing || ls->intro_dispatching || ls->draining || bufferqueueGetBufCount(&ls->pending_up) != 0)
+    if (ls->pair_initializing || ls->intro_dispatching || ls->draining ||
+        bufferqueueGetEntryCount(&ls->pending_up) != 0)
     {
         size_t length = sbufGetLength(buf);
         if (UNLIKELY(length > kHalfDuplexClientMaxPendingBytes ||
-                     bufferqueueGetBufLen(&ls->pending_up) > kHalfDuplexClientMaxPendingBytes - length ||
+                     bufferqueueGetLength(&ls->pending_up) > kHalfDuplexClientMaxPendingBytes - length ||
                      bufferqueueGetCharge(&ls->pending_up) > kHalfDuplexClientMaxPendingCharge ||
                      sbufGetQueueCharge(buf) >
                          kHalfDuplexClientMaxPendingCharge - bufferqueueGetCharge(&ls->pending_up) ||

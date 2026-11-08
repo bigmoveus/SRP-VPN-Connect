@@ -338,7 +338,7 @@ static tun_drain_result_t tunDrainPackets(tun_device_t *tdev)
             continue;
         }
 
-        sbufSetLength(bufs[queued_count], (uint32_t) nread - sizeof(family));
+        sbufSetLength(bufs[queued_count], nread - sizeof(family));
 
         if (UNLIKELY(sbufGetLength(bufs[queued_count]) > tunDeviceMtu(tdev)))
         {
@@ -450,7 +450,7 @@ static bool tunWriteBatch(void *context, worker_t *worker, sbuf_t **buffers, siz
         if (UNLIKELY(sbufGetLength(buf) > UINT16_MAX))
         {
             if (atomicLogRateLimiterShouldLog(&tun_oversized_output_log, kTunPacketWarningIntervalMs))
-                LOGW("TunDevice: discarded a packet -> size %u exceeds maximum IP packet size %u",
+                LOGW("TunDevice: discarded a packet -> size %zu exceeds maximum IP packet size %u",
                      sbufGetLength(buf),
                      (unsigned) UINT16_MAX);
             bufferpoolReuseBuffer(worker->buffer_pool, buf);
@@ -463,7 +463,7 @@ static bool tunWriteBatch(void *context, worker_t *worker, sbuf_t **buffers, siz
             continue;
         }
 
-        const uint8_t version = (uint8_t) (((const uint8_t *) sbufGetRawPtr(buf))[0] >> 4U);
+        const uint8_t version = (uint8_t) ((sbufGetRawPtr(buf))[0] >> 4U);
         uint32_t      family;
         if (version == 4)
         {

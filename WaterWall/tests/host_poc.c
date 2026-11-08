@@ -606,7 +606,7 @@ int main(void) {
       const char *settings = getenv("POC_KCP_SETTINGS");
       snprintf(
           kcp_node, sizeof(kcp_node),
-          "{\"name\":\"kcp\",\"type\":\"TcpOverUdpClient\",\"settings\":%s,"
+          "{\"name\":\"kcp\",\"type\":\"KcpClient\",\"settings\":%s,"
           "\"next\":\"out\"},",
           settings != NULL
               ? settings

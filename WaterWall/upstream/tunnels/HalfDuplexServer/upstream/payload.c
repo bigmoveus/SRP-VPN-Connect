@@ -170,9 +170,7 @@ static void initializeMainLineConnection(tunnel_t *t, line_t *main, sbuf_t *init
         &ls->startup_budget,
         (buffer_budget_cost_t) {.bytes = kHalfDuplexServerStartupBytes, .charge = kHalfDuplexServerStartupCharge});
     bufferqueueInitEmpty(&ls->startup_pending);
-    bool attached = bufferqueueTryAttachBudget(&ls->startup_pending, &ls->startup_budget);
-    assert(attached);
-    discard attached;
+    bufferqueueAttachBudget(&ls->startup_pending, &ls->startup_budget);
     ls->startup_active       = true;
     ls->startup_initializing = true;
     tunnelNextUpStreamInit(t, main);
@@ -338,7 +336,7 @@ void halfduplexserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
         assert(ls->buffering == NULL || ! sbufIsSplice(ls->buffering));
         const uint64_t retained = ls->buffering ? sbufGetLength(ls->buffering) : 0;
         const uint64_t total    = retained + sbufGetLength(buf);
-        uint32_t       capacity;
+        size_t         capacity;
         if (! sbufTryComputeCapacity(total, padding, &capacity))
             goto setup_failure;
 
@@ -349,9 +347,9 @@ void halfduplexserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
         }
         // Reserve before the ordinary merge, including full onward padding.
         if (ls->buffering != NULL &&
-            (total > sbufGetMaximumWriteableSize(ls->buffering) || sbufGetLeftCapacity(ls->buffering) < padding))
+            (total > sbufGetWritableCapacity(ls->buffering) || sbufGetHeadroom(ls->buffering) < padding))
         {
-            sbuf_t *merged = bufferpoolGetBestFit(pool, (uint32_t) total, padding);
+            sbuf_t *merged = bufferpoolGetBestFit(pool, total, padding);
             sbufConcatNoCheck(merged, ls->buffering);
             bufferpoolReuseBuffer(pool, ls->buffering);
             ls->buffering = merged;

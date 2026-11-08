@@ -345,7 +345,7 @@ int main(void) {
   char outer_json[512];
   if (bgp4) {
     snprintf(outer_json, sizeof(outer_json), outer, kcp ? "kcp" : "out",
-             kcp ? "{\"name\":\"kcp\",\"type\":\"TcpOverUdpClient\","
+             kcp ? "{\"name\":\"kcp\",\"type\":\"KcpClient\","
                    "\"settings\":{},\"next\":\"out\"},"
                  : "");
   } else {

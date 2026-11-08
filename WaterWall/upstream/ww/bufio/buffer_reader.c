@@ -18,7 +18,7 @@ static bool readerGatherPrefix(buffer_pool_t *pool, sbuf_t **active_head, buffer
         sbuf_t *head = readerHead(active_head, tail);
         if (head == NULL)
             return false;
-        const uint32_t count = min(needed - *filled, sbufGetLength(head));
+        const uint16_t count = (uint16_t) MIN_SIZE(needed - *filled, sbufGetLength(head));
         sbufReadRangeToMemory(head, dst + *filled, count);
         *filled += count;
         if (sbufGetLength(head) == 0)
@@ -39,10 +39,10 @@ static bool readerSettleRetained(buffer_pool_t *pool, sbuf_t **active_head, buff
     if (head_charge <= max_charge && bufferqueueGetCharge(tail) <= max_charge - head_charge)
         return true;
 
-    const uint32_t head_bytes = head == NULL ? 0 : sbufGetLength(head);
-    if (bufferqueueGetBufLen(tail) > UINT32_MAX - head_bytes)
+    const size_t head_bytes = head == NULL ? 0 : sbufGetLength(head);
+    if (head_bytes > UINT32_MAX || bufferqueueGetLength(tail) > UINT32_MAX - head_bytes)
         return false;
-    const uint32_t bytes = (uint32_t) bufferqueueGetBufLen(tail) + head_bytes;
+    const size_t bytes = bufferqueueGetLength(tail) + head_bytes;
     if (bytes == 0)
     {
         while ((head = readerHead(active_head, tail)) != NULL)
@@ -57,18 +57,19 @@ static bool readerSettleRetained(buffer_pool_t *pool, sbuf_t **active_head, buff
     if (! bufferpoolQueryBestFit(pool, bytes, padding, &fit) || fit.allocation_charge > max_charge)
         return false;
 
-    uint32_t capacity = bytes;
+    size_t capacity = bytes;
     if (head != NULL)
     {
         /* Growth headroom is optional; the exact retained bytes must fit first. */
-        const uint64_t grown = max(bytes, (uint64_t) sbufGetLength(head) * 2U);
+        const uint64_t grown = MAX_U64(bytes, (uint64_t) sbufGetLength(head) * 2U);
         if (bufferpoolQueryBestFit(pool, grown, padding, &fit) && fit.allocation_charge <= max_charge)
-            capacity = (uint32_t) grown;
+            capacity = (size_t) grown;
     }
 
     sbuf_t *combined = NULL;
-    if (head != NULL && head_charge <= max_charge && sbufGetLeftCapacity(head) >= padding &&
-        (sbufIsSplice(head) ? head->curpos == head->l_pad : bufferqueueGetBufLen(tail) <= sbufGetTailCapacity(head)))
+    if (head != NULL && head_charge <= max_charge && sbufGetHeadroom(head) >= padding &&
+        (sbufIsSplice(head) ? sbufGetHeadroom(head) == head->initial_headroom
+                            : bufferqueueGetLength(tail) <= sbufGetTailroom(head)))
     {
         combined     = head;
         *active_head = NULL;
@@ -78,7 +79,7 @@ static bool readerSettleRetained(buffer_pool_t *pool, sbuf_t **active_head, buff
         bool has_pipe = head != NULL && sbufIsSplice(head);
         c_foreach(entry, ww_sbuffer_queue_t, tail->q) has_pipe |= sbufIsSplice(*entry.ref);
         combined = has_pipe ? bufferpoolGetSpliceBuffer(pool) : NULL;
-        if (combined != NULL && sbufGetLeftCapacity(combined) < padding)
+        if (combined != NULL && sbufGetHeadroom(combined) < padding)
         {
             bufferpoolReuseBuffer(pool, combined);
             combined = NULL;
@@ -89,8 +90,8 @@ static bool readerSettleRetained(buffer_pool_t *pool, sbuf_t **active_head, buff
     if (sbufIsSplice(combined))
     {
         size_t         charge;
-        const uint64_t pipe_capacity = (uint64_t) bytes + sbufGetLeftPadding(combined);
-        if (pipe_capacity > UINT32_MAX || ! sbufTryComputeQueueCharge((uint32_t) pipe_capacity, &charge) ||
+        const uint64_t pipe_capacity = (uint64_t) bytes + sbufGetInitialHeadroom(combined);
+        if (pipe_capacity > UINT32_MAX || ! sbufTryComputeQueueCharge((size_t) pipe_capacity, &charge) ||
             charge > max_charge)
         {
             if (combined == head)
@@ -117,9 +118,9 @@ static sbuf_t *readerTakeExact(buffer_pool_t *pool, sbuf_t **active_head, buffer
     assert(tail->budget == NULL);
     const uint16_t padding = bufferpoolGetLargeBufferPadding(pool);
 #ifndef NDEBUG
-    const uint32_t    active_bytes = *active_head == NULL ? 0 : sbufGetLength(*active_head);
+    const size_t      active_bytes = *active_head == NULL ? 0 : sbufGetLength(*active_head);
     buffer_pool_fit_t fit;
-    assert(bytes <= active_bytes || bytes - active_bytes <= bufferqueueGetBufLen(tail));
+    assert(bytes <= active_bytes || bytes - active_bytes <= bufferqueueGetLength(tail));
     assert(bufferpoolQueryBestFit(pool, bytes, padding, &fit));
 #endif
     if (bytes == 0)
@@ -127,7 +128,7 @@ static sbuf_t *readerTakeExact(buffer_pool_t *pool, sbuf_t **active_head, buffer
 
     sbuf_t *head = readerHead(active_head, tail);
     assert(head != NULL);
-    if (sbufGetLength(head) == bytes && sbufGetLeftCapacity(head) >= padding)
+    if (sbufGetLength(head) == bytes && sbufGetHeadroom(head) >= padding)
     {
         *active_head = NULL;
         return head;
@@ -144,7 +145,7 @@ static sbuf_t *readerTakeExact(buffer_pool_t *pool, sbuf_t **active_head, buffer
     }
 
     sbuf_t *result = has_pipe ? bufferpoolGetSpliceBuffer(pool) : NULL;
-    if (result != NULL && sbufGetLeftCapacity(result) < padding)
+    if (result != NULL && sbufGetHeadroom(result) < padding)
     {
         bufferpoolReuseBuffer(pool, result);
         result = NULL;
@@ -194,7 +195,7 @@ void bufferreaderDestroy(buffer_reader_t *reader)
 
 bool bufferreaderTryPush(buffer_reader_t *reader, sbuf_t **input, size_t max_bytes)
 {
-    const uint32_t bytes = sbufGetLength(*input);
+    const size_t bytes = sbufGetLength(*input);
     if (reader->bytes > max_bytes || bytes > max_bytes - reader->bytes ||
         ! bufferqueueTryPushBack(&reader->pending, input))
         return false;
@@ -248,8 +249,8 @@ bool bufferreaderSettle(buffer_reader_t *reader, size_t max_charge)
 
 bool bufferreaderMoveToQueue(buffer_reader_t *reader, buffer_queue_t *destination, bool restore_header)
 {
-    assert(destination != &reader->pending && destination->budget == NULL && bufferqueueGetBufCount(destination) == 0 &&
-           reader->pending.budget == NULL);
+    assert(destination != &reader->pending && destination->budget == NULL &&
+           bufferqueueGetEntryCount(destination) == 0 && reader->pending.budget == NULL);
     assert(restore_header || reader->header_filled == 0);
     if (reader->head != NULL)
     {

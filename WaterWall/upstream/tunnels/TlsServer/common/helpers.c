@@ -343,7 +343,7 @@ static bool tlsserverTryRetireShaping(tunnel_t *t, line_t *l, tlsserver_lstate_t
         LOGD("TlsServer: configured TLS 1.3 record shaping scope drained; output shaper retired");
     }
 
-    if (release_producer_pause)
+    if (release_producer_pause && ! ls->prev_paused)
     {
         if (! lineCallWithRef(l, tunnelNextUpStreamResume, t))
         {
@@ -407,7 +407,7 @@ static bool tlsserverUpdateShapingBackpressure(tunnel_t *t, line_t *l, tlsserver
     if (ls->shaping_producer_paused && queued <= kTlsRecordShapingQueueLowWatermark)
     {
         ls->shaping_producer_paused = false;
-        if (! ls->upstream_finished && ! ls->downstream_finishing)
+        if (! ls->upstream_finished && ! ls->downstream_finishing && ! ls->prev_paused)
         {
             if (! lineCallWithRef(l, tunnelNextUpStreamResume, t))
             {
@@ -599,9 +599,9 @@ bool tlsserverFlushSslOutput(tunnel_t *t, line_t *l, tlsserver_lstate_t *ls)
         {
             if (ls->verbose)
             {
-                LOGD("TlsServer: worker %u flushing %u TLS bytes downstream",
+                LOGD("TlsServer: worker %u flushing %zu TLS bytes downstream",
                      (unsigned int) lineGetWID(l),
-                     (unsigned int) sbufGetLength(ssl_buf));
+                     sbufGetLength(ssl_buf));
             }
             if (shape_output)
             {
@@ -746,7 +746,7 @@ bool tlsserverEncryptAndSendApplicationData(tunnel_t *t, line_t *l, tlsserver_ls
 
 bool tlsserverFlushPendingDownQueue(tunnel_t *t, line_t *l, tlsserver_lstate_t *ls)
 {
-    size_t pending_count = bufferqueueGetBufCount(&ls->pending_down);
+    size_t pending_count = bufferqueueGetEntryCount(&ls->pending_down);
     if (pending_count > 0 && ls->verbose)
     {
         LOGD("TlsServer: worker %u flushing %u queued downstream payload buffers after handshake",
@@ -754,7 +754,7 @@ bool tlsserverFlushPendingDownQueue(tunnel_t *t, line_t *l, tlsserver_lstate_t *
              (unsigned int) pending_count);
     }
 
-    while (bufferqueueGetBufCount(&ls->pending_down) > 0)
+    while (bufferqueueGetEntryCount(&ls->pending_down) > 0)
     {
         if (ls->upstream_finished || ls->downstream_finishing)
         {

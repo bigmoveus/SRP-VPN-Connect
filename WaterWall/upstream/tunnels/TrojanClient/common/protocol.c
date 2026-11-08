@@ -68,7 +68,7 @@ bool trojanclientSendInitialRequest(tunnel_t *t, line_t *l, trojanclient_lstate_
     uint64_t       total          = (uint64_t) header_len + udp_header_len + body_len;
     buffer_pool_t *pool           = lineGetBufferPool(l);
     uint16_t       padding        = bufferpoolGetLargeBufferPadding(pool);
-    bool reuse_body = body != NULL && ! sbufIsSplice(body) && sbufGetLeftCapacity(body) >= header_len + udp_header_len;
+    bool    reuse_body = body != NULL && ! sbufIsSplice(body) && sbufGetHeadroom(body) >= header_len + udp_header_len;
     sbuf_t *buf     = reuse_body ? body : bufferpoolTryGetBestFit(pool, total, padding);
     if (UNLIKELY(buf == NULL))
     {
@@ -99,10 +99,10 @@ bool trojanclientSendInitialRequest(tunnel_t *t, line_t *l, trojanclient_lstate_
     }
     if (! reuse_body)
     {
-        sbufSetLength(buf, (uint32_t) off);
+        sbufSetLength(buf, off);
         if (body != NULL)
         {
-            buf = sbufMoveRangeTo(pool, body, buf, body_len, (uint32_t) total, padding);
+            buf = sbufMoveRangeTo(pool, body, buf, body_len, total, padding);
             lineReuseBuffer(l, body);
         }
     }
@@ -136,9 +136,9 @@ bool trojanclientWrapUdpPayload(line_t *l, sbuf_t **buf_io, const address_contex
 
     uint32_t header_len = (uint32_t) socksAddressEncodedLength(&address) + 2U + kTrojanClientCrlfLen;
 
-    if (sbufGetLeftCapacity(buf) < header_len)
+    if (sbufGetHeadroom(buf) < header_len)
     {
-        buf = sbufEnsureLeftCapacity(lineGetBufferPool(l), buf, kTrojanClientUdpHeaderMaxLen);
+        buf = sbufEnsureHeadroom(lineGetBufferPool(l), buf, kTrojanClientUdpHeaderMaxLen);
     }
     sbufShiftLeft(buf, header_len);
 

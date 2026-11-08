@@ -175,8 +175,8 @@ def peer_nodes(client_root, port, cert, key, cover_port):
         elif kind == "Bgp4Client":
             server_type = "Bgp4Server"
             settings = copy.deepcopy(node["settings"])
-        elif kind == "TcpOverUdpClient":
-            server_type = "TcpOverUdpServer"
+        elif kind == "KcpClient":
+            server_type = "KcpServer"
             settings = copy.deepcopy(node["settings"])
         elif kind in ("TcpConnector", "UdpConnector", "TcpUdpConnector"):
             continue
@@ -195,7 +195,7 @@ def peer_nodes(client_root, port, cert, key, cover_port):
     connector = client_root["nodes"][-1]
     stream_outer = any(node["type"] in ("TlsClient", "RealityClient", "EncryptionClient")
                        for node in client_root["nodes"])
-    kcp_carrier = any(node["type"] == "TcpOverUdpClient" for node in client_root["nodes"])
+    kcp_carrier = any(node["type"] == "KcpClient" for node in client_root["nodes"])
     listener_type = "UdpListener" if kcp_carrier else "TcpListener" if stream_outer else {
         "TcpConnector": "TcpListener", "UdpConnector": "UdpListener",
         "TcpUdpConnector": "TcpUdpListener"}[connector["type"]]

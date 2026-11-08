@@ -6,9 +6,7 @@ void httpReceiveInit(http_receive_t *receive)
     bufferqueueInitEmpty(&receive->pending);
     bufferbudgetInit(&receive->budget,
                      (buffer_budget_cost_t) {.bytes = kHttpReceiveNestedBytes, .charge = kHttpReceiveNestedCharge});
-    const bool attached = bufferqueueTryAttachBudget(&receive->pending, &receive->budget);
-    assert(attached);
-    discard attached;
+    bufferqueueAttachBudget(&receive->pending, &receive->budget);
 }
 
 void httpReceiveDestroy(http_receive_t *receive, buffer_pool_t *pool)
@@ -33,7 +31,7 @@ http_receive_result_t httpReceiveAdmit(http_receive_t *receive, buffer_pool_t *p
     if (receive->draining)
         return bufferqueueTryPushBack(&receive->pending, &buf) ? kHttpReceiveQueued : kHttpReceiveRejected;
 
-    assert(receive->active == NULL && bufferqueueGetBufCount(&receive->pending) == 0);
+    assert(receive->active == NULL && bufferqueueGetEntryCount(&receive->pending) == 0);
     receive->active   = buf;
     receive->draining = true;
     return kHttpReceiveDrain;
@@ -67,7 +65,7 @@ sbuf_t *httpReceiveNext(http_receive_t *receive, buffer_pool_t *pool)
 
 bool httpReceiveSettle(buffer_stream_t *stream, size_t max_bytes)
 {
-    if (bufferstreamGetBufLen(stream) > max_bytes)
+    if (bufferstreamGetLength(stream) > max_bytes)
         return false;
     return bufferstreamSettleRetained(stream, kHttpReceiveStreamCharge);
 }

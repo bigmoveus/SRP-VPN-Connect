@@ -83,7 +83,7 @@ PY
     if [ "$transport" = "kcp" ]; then
         listener="UdpListener"
         listener_next="kcp"
-        carrier="{\"name\":\"kcp\",\"type\":\"TcpOverUdpServer\",\"settings\":$kcp_settings,\"next\":\"bgp4\"},"
+        carrier="{\"name\":\"kcp\",\"type\":\"KcpServer\",\"settings\":$kcp_settings,\"next\":\"bgp4\"},"
     fi
     cat > "$TMPDIR_TEST/core.json" <<EOF
 {"misc":{"workers":1,"ram-profile":"minimal"},"configs":["$TMPDIR_TEST/nodes.json"]}

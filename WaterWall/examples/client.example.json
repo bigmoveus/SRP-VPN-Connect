@@ -63,7 +63,7 @@
     },
     {
       "name": "kcp",
-      "type": "TcpOverUdpClient",
+      "type": "KcpClient",
       "settings": {
         "kcp-recv-window": 512,
         "kcp-send-buffer-limit": 512

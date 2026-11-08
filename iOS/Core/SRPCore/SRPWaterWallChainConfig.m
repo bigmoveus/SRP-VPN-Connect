@@ -1034,7 +1034,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             [nodes addObject:@{@"name": outer, @"type": outerType, @"settings": outerSettings, @"next": kcp ? @"kcp" : @"connector"}];
         }
         if (kcp) {
-            [nodes addObject:@{@"name": @"kcp", @"type": @"TcpOverUdpClient",
+            [nodes addObject:@{@"name": @"kcp", @"type": @"KcpClient",
                                @"settings": [self settings:@{@"kcp-send-window": @128, @"kcp-recv-window": @128,
                                                              @"kcp-initial-cwnd": @16, @"kcp-send-buffer-limit": @512}
                                               overrides:advanced[@"kcp"]

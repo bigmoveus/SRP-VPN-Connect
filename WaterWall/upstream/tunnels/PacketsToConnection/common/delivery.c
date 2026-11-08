@@ -50,7 +50,7 @@ static bool ptcQueueUdpStartup(ptc_lstate_t *ls, sbuf_t *buf)
     }
     const uint32_t length = sbufGetLength(buf);
     if (length > kUdpStartupMaxBytes || ls->udp_pending_bytes > kUdpStartupMaxBytes - length ||
-        bufferqueueGetBufCount(&ls->udp_pending) >= kUdpStartupMaxDatagrams ||
+        bufferqueueGetEntryCount(&ls->udp_pending) >= kUdpStartupMaxDatagrams ||
         ! bufferqueueTryPushBack(&ls->udp_pending, &buf))
     {
         LOGD("PacketsToConnection: UDP startup queue is full; dropping a datagram");

@@ -229,7 +229,7 @@ int main(void) {
       "\"port\":80,\"protocol\":\"tcp\"},\"next\":\"bgp4\"},"
       "{\"name\":\"bgp4\",\"type\":\"Bgp4Client\",\"settings\":{},\"next\":"
       "\"kcp\"},"
-      "{\"name\":\"kcp\",\"type\":\"TcpOverUdpClient\",\"settings\":{},"
+      "{\"name\":\"kcp\",\"type\":\"KcpClient\",\"settings\":{},"
       "\"next\":"
       "\"out\"},"
       "{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":"

@@ -12,7 +12,7 @@
     },
     {
       "name": "kcp",
-      "type": "TcpOverUdpServer",
+      "type": "KcpServer",
       "settings": {
         "kcp-recv-window": 512,
         "kcp-send-buffer-limit": 512

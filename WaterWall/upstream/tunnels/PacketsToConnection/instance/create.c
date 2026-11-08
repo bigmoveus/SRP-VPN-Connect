@@ -1,3 +1,4 @@
+#include "capacity_api.h"
 #include "structure.h"
 
 #include "loggers/network_logger.h"
@@ -142,6 +143,12 @@ tunnel_t *ptcTunnelCreate(node_t *node)
 
     initTcpIpStack();
     ptcRxWrapperPoolInitializeOnce();
+
+    if (! wwLwipCapacityRegisterApi(t))
+    {
+        ptcTunnelDestroy(t, wwLifecycleStartupRollback());
+        return NULL;
+    }
 
     return t;
 }

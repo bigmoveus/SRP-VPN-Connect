@@ -291,6 +291,8 @@ typedef struct my_custom_pbuf
 {
     struct pbuf_custom p;
     sbuf_t            *sbuf; /* NULL after ownership transfers to TCP receive staging. */
+    size_t             allocation_charge; /* Retained input storage until custom pbuf release. */
+    bool               recovery_allocation;
     buffer_pool_t     *origin_pool;
     wid_t              origin_wid;
 } my_custom_pbuf_t;
@@ -302,9 +304,8 @@ enum
     kLineStateSize   = sizeof(ptc_lstate_t)
 };
 
-WW_EXPORT void         ptcTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
-WW_EXPORT tunnel_t    *ptcTunnelCreate(node_t *node);
-WW_EXPORT api_result_t ptcTunnelApi(tunnel_t *instance, sbuf_t *message);
+WW_EXPORT void      ptcTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
+WW_EXPORT tunnel_t *ptcTunnelCreate(node_t *node);
 
 void ptcTunnelOnStart(tunnel_t *t);
 void ptcTunnelOnQuiesceRequest(tunnel_t *t, const ww_lifecycle_context_t *context);

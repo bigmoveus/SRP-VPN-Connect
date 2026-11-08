@@ -75,7 +75,7 @@ bool vlessclientSendInitialRequest(tunnel_t *t, line_t *l, vlessclient_lstate_t 
     }
     buffer_pool_t *pool           = lineGetBufferPool(l);
     uint16_t       padding        = bufferpoolGetLargeBufferPadding(pool);
-    bool reuse_body = body != NULL && ! sbufIsSplice(body) && sbufGetLeftCapacity(body) >= header_len + udp_header_len;
+    bool    reuse_body = body != NULL && ! sbufIsSplice(body) && sbufGetHeadroom(body) >= header_len + udp_header_len;
     sbuf_t *buf     = reuse_body ? body : bufferpoolTryGetBestFit(pool, total, padding);
     if (UNLIKELY(buf == NULL))
     {
@@ -101,10 +101,10 @@ bool vlessclientSendInitialRequest(tunnel_t *t, line_t *l, vlessclient_lstate_t 
     }
     if (! reuse_body)
     {
-        sbufSetLength(buf, (uint32_t) off);
+        sbufSetLength(buf, off);
         if (body != NULL)
         {
-            buf = sbufMoveRangeTo(pool, body, buf, body_len, (uint32_t) total, padding);
+            buf = sbufMoveRangeTo(pool, body, buf, body_len, total, padding);
             lineReuseBuffer(l, body);
         }
     }
@@ -122,7 +122,7 @@ void vlessclientWrapUdpPayload(line_t *l, sbuf_t **buf_io)
     sbuf_t  *buf     = *buf_io;
     uint32_t payload = sbufGetLength(buf);
     assert(payload <= kVlessClientUdpMaxPacket);
-    buf = sbufEnsureLeftCapacity(lineGetBufferPool(l), buf, kVlessClientUdpHeaderLen);
+    buf = sbufEnsureHeadroom(lineGetBufferPool(l), buf, kVlessClientUdpHeaderLen);
     sbufShiftLeft(buf, kVlessClientUdpHeaderLen);
     uint16_t length = htobe16((uint16_t) payload);
     memoryCopy(sbufGetMutablePtr(buf), &length, sizeof(length));

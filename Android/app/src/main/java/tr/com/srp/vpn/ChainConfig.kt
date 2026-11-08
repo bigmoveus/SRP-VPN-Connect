@@ -933,7 +933,7 @@ object ChainConfig {
             }
             if (kcp) {
                 val defaults = mapOf("kcp-send-window" to 128L, "kcp-recv-window" to 128L, "kcp-initial-cwnd" to 16L, "kcp-send-buffer-limit" to 512L)
-                nodes.add(node("kcp", "TcpOverUdpClient", merged(defaults, advancedOf("kcp"), emptyMap()), "connector"))
+                nodes.add(node("kcp", "KcpClient", merged(defaults, advancedOf("kcp"), emptyMap()), "connector"))
             }
             val applicationProtocol = advancedOf("application")?.get("protocol") ?: advancedOf("application")?.get("proto")
             val fixedApplicationProtocol = applicationProtocol in listOf("tcp", "connect", "udp", "udp-associate")

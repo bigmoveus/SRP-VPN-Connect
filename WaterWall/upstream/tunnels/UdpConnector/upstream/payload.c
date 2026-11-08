@@ -132,13 +132,11 @@ static bool udpconnectorMaybeResumeQueuedSender(tunnel_t *t, line_t *l, udpconne
 static void udpconnectorPacketDestinationDropPending(udpconnector_lstate_t             *ls,
                                                      udpconnector_packet_destination_t *cache)
 {
-    while (bufferqueueGetBufCount(&cache->pending_queue) > 0)
+    while (bufferqueueGetEntryCount(&cache->pending_queue) > 0)
         lineReuseBuffer(ls->line, udpconnectorPopWrite(ls, &cache->pending_queue));
     bufferqueueDestroy(&cache->pending_queue);
     cache->pending_queue = bufferqueueCreate(kUdpPauseQueueCapacity);
-    const bool attached  = bufferqueueTryAttachBudget(&cache->pending_queue, &ls->write_budget);
-    assert(attached);
-    discard attached;
+    bufferqueueAttachBudget(&cache->pending_queue, &ls->write_budget);
 }
 
 static bool udpconnectorPacketDestinationFail(tunnel_t *t, line_t *l, udpconnector_lstate_t *ls,
@@ -162,7 +160,7 @@ static bool udpconnectorFlushPacketDestinationQueue(tunnel_t *t, line_t *l, udpc
         return udpconnectorPacketDestinationFail(t, l, ls, cache);
     }
 
-    while (bufferqueueGetBufCount(&cache->pending_queue) > 0)
+    while (bufferqueueGetEntryCount(&cache->pending_queue) > 0)
     {
         sbuf_t *buf = udpconnectorPopWrite(ls, &cache->pending_queue);
         udpconnectorWriteUsingBinding(l, ts, ls, binding, buf);

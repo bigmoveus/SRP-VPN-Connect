@@ -44,7 +44,7 @@ set(BUILD_TESTING ON CACHE BOOL "" FORCE)
 add_dependencies(ww srp_openssl_full_prefix)
 add_dependencies(VmessCommon srp_openssl_full_prefix)
 add_dependencies(VmessClient srp_openssl_full_prefix)
-target_include_directories(tcp_over_udp_fec PRIVATE upstream/ww/libc)
+target_include_directories(kcp_fec PRIVATE upstream/ww/libc)
 
 add_library(SRPWaterWallBridge STATIC
     native/SRPWaterWallBridge.c
@@ -80,7 +80,7 @@ target_compile_definitions(SRPWaterWallBridge PRIVATE
     INCLUDE_QUIC_CLIENT=1
     INCLUDE_HTTP_CLIENT=1
     INCLUDE_OBFUSCATOR_CLIENT=1
-    INCLUDE_TCP_OVER_UDP_CLIENT=1
+    INCLUDE_KCP_CLIENT=1
 )
 target_include_directories(SRPWaterWallBridge PUBLIC
     native
@@ -118,7 +118,7 @@ target_link_libraries(SRPWaterWallBridge PUBLIC
     QuicCommon
     HttpClient
     ObfuscatorClient
-    TcpOverUdpClient
+    KcpClient
     waterwall_quiche
     ww
 )
@@ -197,7 +197,7 @@ add_custom_command(
         $<TARGET_FILE:HttpClient>
         $<TARGET_FILE:HttpCommon>
         $<TARGET_FILE:ObfuscatorClient>
-        $<TARGET_FILE:TcpOverUdpClient>
+        $<TARGET_FILE:KcpClient>
         $<TARGET_FILE:ProxyClientCommon>
         $<TARGET_FILE:VlessCommon>
         $<TARGET_FILE:TrojanCommon>
@@ -206,10 +206,10 @@ add_custom_command(
         $<TARGET_FILE:Ipv4StreamCodec>
         $<TARGET_FILE:ObfuscatorCommon>
         $<TARGET_FILE:EncryptionCommon>
-        $<TARGET_FILE:TcpOverUdpCommon>
+        $<TARGET_FILE:KcpCommon>
         $<TARGET_OBJECTS:http_client_def>
-        $<TARGET_OBJECTS:tcp_over_udp_fec>
-        $<TARGET_OBJECTS:tcp_over_udp_kcp>
+        $<TARGET_OBJECTS:kcp_fec>
+        $<TARGET_OBJECTS:kcp_protocol>
         $<TARGET_FILE:nghttp2_static>
         $<TARGET_FILE:ssl>
         $<TARGET_FILE:crypto>
@@ -264,7 +264,7 @@ add_custom_command(
         HttpClient
         HttpCommon
         ObfuscatorClient
-        TcpOverUdpClient
+        KcpClient
         ProxyClientCommon
         VlessCommon
         TrojanCommon
@@ -273,10 +273,10 @@ add_custom_command(
         Ipv4StreamCodec
         ObfuscatorCommon
         EncryptionCommon
-        TcpOverUdpCommon
+        KcpCommon
         http_client_def
-        tcp_over_udp_fec
-        tcp_over_udp_kcp
+        kcp_fec
+        kcp_protocol
         nghttp2_static
         ssl
         crypto

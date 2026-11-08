@@ -251,7 +251,7 @@ bool socks5clientWrapUdpPayload(line_t *l, sbuf_t **buf_io, const address_contex
 
     buf     = sbufEnsureOrdinary(lineGetBufferPool(l), buf);
     *buf_io = buf;
-    if (sbufGetLeftCapacity(buf) < header_len)
+    if (sbufGetHeadroom(buf) < header_len)
     {
         sbuf_t  *wrapped = socks5clientAllocHandshakeBuffer(l, (uint32_t) (payload + header_len));
         uint8_t *dst     = sbufGetMutablePtr(wrapped);
@@ -261,7 +261,7 @@ bool socks5clientWrapUdpPayload(line_t *l, sbuf_t **buf_io, const address_contex
     }
     else
     {
-        sbufShiftLeft(buf, (uint32_t) header_len);
+        sbufShiftLeft(buf, header_len);
     }
 
     *buf_io = buf;

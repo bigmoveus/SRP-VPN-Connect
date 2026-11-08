@@ -1356,7 +1356,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     NSArray *nodes = root[@"nodes"];
     NSArray *names = @[@"ne", @"ptc", @"vless", @"router", @"mux", @"obfuscator", @"http", @"reality", @"kcp", @"connector"];
     NSArray *types = @[@"NEPacketDevice", @"PacketsToConnection", @"VlessClient", @"Router", @"MuxClient", @"ObfuscatorClient",
-                       @"HttpClient", @"RealityClient", @"TcpOverUdpClient", @"UdpConnector"];
+                       @"HttpClient", @"RealityClient", @"KcpClient", @"UdpConnector"];
     XCTAssertEqual(nodes.count, names.count);
     for (NSUInteger index = 0; index < names.count; index++) {
         XCTAssertEqualObjects(nodes[index][@"name"], names[index]);
@@ -1416,7 +1416,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     nodes = [self waterWallRootForConfiguration:rawKCP options:nil][@"nodes"];
     XCTAssertEqual(nodes.count, 4);
     XCTAssertEqualObjects(nodes[1][@"next"], @"kcp");
-    XCTAssertEqualObjects(nodes[2][@"type"], @"TcpOverUdpClient");
+    XCTAssertEqualObjects(nodes[2][@"type"], @"KcpClient");
     XCTAssertEqualObjects(nodes.lastObject[@"type"], @"UdpConnector");
 
     NSMutableDictionary *stream = [[self waterWallConfigurationWithApplication:@"vless" mux:YES outer:@"quic"] mutableCopy];
@@ -2009,7 +2009,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     root = [self waterWallRootForConfiguration:kcp options:nil];
     byName = [self waterWallNodesByName:root[@"nodes"]];
     XCTAssertEqualObjects(byName[@"bgp4"][@"next"], @"kcp");
-    XCTAssertEqualObjects(byName[@"kcp"][@"type"], @"TcpOverUdpClient");
+    XCTAssertEqualObjects(byName[@"kcp"][@"type"], @"KcpClient");
     XCTAssertEqualObjects(byName[@"connector"][@"type"], @"UdpConnector");
     XCTAssertEqualObjects([SRPWaterWallChainConfig summaryForConfiguration:kcp], @"VLESS + BGP4 + KCP");
 }

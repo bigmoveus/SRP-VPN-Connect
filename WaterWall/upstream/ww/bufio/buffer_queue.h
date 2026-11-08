@@ -175,23 +175,23 @@ sbuf_t *bufferqueuePopFront(buffer_queue_t *self);
  * @param self A pointer to the buffer queue.
  * @return A pointer to the sbuf_t at the front of the queue, or NULL if the queue is empty.
  */
-const sbuf_t *bufferqueueFront(buffer_queue_t *self);
+const sbuf_t *bufferqueueFront(const buffer_queue_t *self);
 
 /**
- * @brief Gets the number of elements in the queue.
+ * @brief Gets the number of retained entries, including empty buffers.
  *
  * @param self A pointer to the buffer queue.
  * @return The number of sbuf_t pointers currently in the queue.
  */
-size_t bufferqueueGetBufCount(buffer_queue_t *self);
+size_t bufferqueueGetEntryCount(const buffer_queue_t *self);
 
 /**
- * @brief Gets the total length of the sbuf_t pointers in the queue.
+ * @brief Gets the total logical payload length across queued buffers.
  *
  * @param self A pointer to the buffer queue.
- * @return The total length of the sbuf_t pointers currently in the queue.
+ * @return Logical payload bytes currently owned by the queue.
  */
-size_t bufferqueueGetBufLen(buffer_queue_t *self);
+size_t bufferqueueGetLength(const buffer_queue_t *self);
 
 /** O(1) sum of sbufGetQueueCharge() for the entries still owned by this queue.
  * Counts capacity, padding and sbuf overhead independently of logical length;
@@ -203,6 +203,11 @@ size_t bufferqueueGetCharge(const buffer_queue_t *self);
 /** Requires an unbound queue and a live budget. Atomically admits all existing
  * entries; refusal leaves both objects unchanged. Empty attachment cannot fail. */
 bool bufferqueueTryAttachBudget(buffer_queue_t *self, buffer_budget_t *budget);
+/** Requires the same preconditions as bufferqueueTryAttachBudget(), with admission
+ * already established by the caller. Empty queues always satisfy admission.
+ * Returns with the budget attached; refusal logs a fatal error and terminates in
+ * every build. Use the try form when budget exhaustion is an expected outcome. */
+void bufferqueueAttachBudget(buffer_queue_t *self, buffer_budget_t *budget);
 /** Requires a bound queue and live, stable budgets on the owning worker.
  * Transfers only the queue's current bytes and charge to destination;
  * previously popped reservations remain with their original budget.

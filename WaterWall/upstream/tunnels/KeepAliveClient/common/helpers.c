@@ -37,10 +37,9 @@ static bool keepaliveclientSendFrame(tunnel_t *t, line_t *l, sbuf_t *buf, uint8_
 {
     const uint32_t length = sbufGetLength(buf);
     assert(length <= kKeepAliveMaxPayloadChunkSize);
-    assert(sbufGetLeftCapacity(buf) >= kKeepAliveFramePrefixSize);
+    assert(sbufGetHeadroom(buf) >= kKeepAliveFramePrefixSize);
     /* Only the real left padding is written, including for a private-pipe body. */
-    sbufShiftLeft(buf, kKeepAliveFramePrefixSize);
-    uint8_t *header         = sbufGetMutablePtr(buf);
+    uint8_t *header         = sbufShiftLeft(buf, kKeepAliveFramePrefixSize);
     uint32_t network_length = htonl(length + kKeepAliveFrameTypeSize);
     sbufByteCopy(header, &network_length, sizeof(network_length));
     header[kKeepAliveFrameLengthSize] = kind;
@@ -80,7 +79,7 @@ void keepaliveclientSendNormalFrameUpstream(tunnel_t *t, line_t *l, sbuf_t *buf)
     if (ls->write_draining)
     {
         const size_t pending =
-            bufferqueueGetBufLen(&ls->write_reentry) + (ls->write_active != NULL ? sbufGetLength(ls->write_active) : 0);
+            bufferqueueGetLength(&ls->write_reentry) + (ls->write_active != NULL ? sbufGetLength(ls->write_active) : 0);
         const size_t active_charge = ls->write_active != NULL ? sbufGetQueueCharge(ls->write_active) : 0;
         const size_t queued_charge = bufferqueueGetCharge(&ls->write_reentry);
         if (pending > kKeepAliveMaxReentryBytes || length > kKeepAliveMaxReentryBytes - pending ||
