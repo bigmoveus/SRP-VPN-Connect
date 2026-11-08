@@ -148,6 +148,7 @@ data class Profile(
     val isOpenConnect get() = protocolType == "openconnect"
     val isSsh get() = protocolType == "ssh"
     val isOpenVpn get() = protocolType == "openvpn"
+    val isWireGuard get() = protocolType == "wireguard"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
@@ -158,13 +159,13 @@ data class Profile(
 
     /** An empty port means 443, 22 for SSH, 1194 for OpenVPN, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (!isTlsVpn && ChainConfig.isWireGuard(configuration)) "51820" else "443" }
+        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard || (!isTlsVpn && ChainConfig.isWireGuard(configuration))) "51820" else "443" }
 
-    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else if (isWireGuard) "WireGuard VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
-        if (wgConfig.isNotEmpty()) return wgConfig
+        if (wgConfig.isNotEmpty()) return if (isWireGuard) wgConfigWithEndpointFromFields(wgConfig) else wgConfig
         if (wgPrivateKey.isEmpty() || wgPeerPublicKey.isEmpty() || wgAddress.isEmpty() || server.isEmpty()) return null
         return buildString {
             append("[Interface]\nPrivateKey = $wgPrivateKey\nAddress = $wgAddress\n")
@@ -176,6 +177,22 @@ data class Profile(
             if (wgKeepalive > 0) append("PersistentKeepalive = $wgKeepalive\n")
         }
     }
+}
+
+/**
+ * An imported WireGuard config with the editor's Server and Port as its Endpoint (NodeModel wgConfigWithEndpointFromFields): the
+ * import fills them from the Endpoint line, so they differ only when changed. An empty field keeps the file's value.
+ */
+internal fun Profile.wgConfigWithEndpointFromFields(config: String): String {
+    val host = server.trim()
+    val number = port.trim()
+    if (host.isEmpty() && number.isEmpty()) return config
+    val endpoint = Regex("""^([ \t]*Endpoint[ \t]*=[ \t]*)(\[[^\]]*\]|[^\s#;]*?)(?::(\d+))?[ \t]*$""", setOf(RegexOption.MULTILINE, RegexOption.IGNORE_CASE))
+    val match = endpoint.find(config) ?: return config
+    var name = host.ifEmpty { match.groupValues[2] }
+    if (':' in name && !name.startsWith("[")) name = "[$name]"
+    val value = number.ifEmpty { match.groups[3]?.value ?: "51820" }
+    return config.replaceRange(match.range, "${match.groupValues[1]}$name:$value")
 }
 
 /** The app's secrets, encrypted with a key that the Android Keystore holds; the counterpart of the iOS Keychain. */
@@ -271,6 +288,16 @@ class ProfileStore(context: Context) {
         } else if (saved.wgSecretRef.isNotEmpty() && secrets.get(saved.wgSecretRef) != null) {
             secrets.delete(saved.wgSecretRef)
             saved = saved.copy(wgSecretRef = "")
+        }
+        if (saved.isWireGuard) {
+            // CheckConnectData's keys for a WireGuard profile; the keys and the imported file went to the store above
+            return linkedMapOf(
+                "type" to "wireguard", "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
+                "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(),
+                "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
+                "wg_peer_public_key" to saved.wgPeerPublicKey, "wg_address" to saved.wgAddress, "wg_dns" to saved.wgDns,
+                "wg_allowed_ips" to saved.wgAllowedIps, "wg_keepalive" to saved.wgKeepalive.toLong(), "wg_secret_ref" to saved.wgSecretRef,
+            )
         }
         return linkedMapOf(
             "type" to "waterwall", "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
@@ -412,7 +439,7 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
-            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" || it == "openvpn" } ?: "waterwall",
+            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" || it == "openvpn" || it == "wireguard" } ?: "waterwall",
             mschap2 = flag("mschap2_enable", true),
             allowLegacyPapChap = flag("allow_legacy_papchap", false),
             authMethod = text("auth_method").ifEmpty { "password" },

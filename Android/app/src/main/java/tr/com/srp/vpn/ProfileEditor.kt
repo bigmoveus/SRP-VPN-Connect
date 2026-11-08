@@ -127,6 +127,7 @@ fun validationMessage(profile: Profile): String? {
     if (profile.isOpenConnect) return sslVpnValidationMessage(profile)
     if (profile.isSsh) return sshValidationMessage(profile)
     if (profile.isOpenVpn) return openVpnValidationMessage(profile)
+    if (profile.isWireGuard) return wireGuardValidationMessage(profile)
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -158,6 +159,12 @@ private fun trimmedForSave(profile: Profile): Profile {
             ovpnStunnelHost = profile.ovpnStunnelHost.trim(), ovpnStunnelPort = profile.ovpnStunnelPort.trim(),
             ovpnStunnelSni = profile.ovpnStunnelSni.trim())
     }
+    if (profile.isWireGuard) {
+        // Keys, addresses and the endpoint cannot start or end with a space
+        return profile.copy(server = profile.server.trim(), port = profile.port.trim(), wgPrivateKey = profile.wgPrivateKey.trim(),
+            wgPeerPublicKey = profile.wgPeerPublicKey.trim(), wgPresharedKey = profile.wgPresharedKey.trim(), wgAddress = profile.wgAddress.trim(),
+            wgDns = profile.wgDns.trim(), wgAllowedIps = profile.wgAllowedIps.trim())
+    }
     if (profile.isSsh) {
         // The password stays as typed: an SSH password may begin or end with a space
         return profile.copy(server = profile.server.trim(), port = profile.port.trim(), username = profile.username.trim(),
@@ -178,7 +185,7 @@ private fun trimmedForSave(profile: Profile): Profile {
 }
 
 /** Server and Port from a wg-quick file's Endpoint line, once it looks like a WireGuard file. */
-private fun importedWireGuard(text: String, profile: Profile): Profile? {
+internal fun importedWireGuard(text: String, profile: Profile): Profile? {
     if ("[Interface]" !in text || "[Peer]" !in text) return null
     var imported = profile.copy(wgConfig = text)
     val endpoint = text.lineSequence().map { it.trim() }.firstOrNull { it.lowercase().startsWith("endpoint") }
@@ -228,7 +235,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn || trimmed.isWireGuard) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -259,6 +266,17 @@ private fun ProfileEditPage(
             }
             if (draft.isOpenVpn) {
                 OpenVpnSections(draft, onChange)
+                Spacer(Modifier.height(32.dp))
+                return@Column
+            }
+            if (draft.isWireGuard) {
+                Section("SERVER", WIREGUARD_SERVER_FOOTER) {
+                    row { ValueRow("Import Config (.conf)", if (draft.wgConfig.isNotEmpty()) "Imported" else "None") { importFile.launch(arrayOf("*/*")) } }
+                    row { ValueRow("Manual Configuration", wireGuardConfigState(draft)) { push(EditorPage.WireGuardManual) } }
+                    row { TextFieldRow("Server", draft.server, "Required", keyboardType = KeyboardType.Uri) { onChange(draft.copy(server = it)) } }
+                    row { TextFieldRow("Port", draft.port, "51820", keyboardType = KeyboardType.Number) { onChange(draft.copy(port = it)) } }
+                }
+                WireGuardOptionsSection(draft, onChange)
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
@@ -353,7 +371,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
             onChange(draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
                 wgDns = "", wgAllowedIps = "", wgKeepalive = 0,
-                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194" else draft.port))
+                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194" else if (type == "wireguard") "51820" else draft.port))
         }
         onBack()
     }
@@ -366,6 +384,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             row { CheckRow("SSL VPN", "AnyConnect, F5 BIG-IP, Palo Alto GlobalProtect", checked = draft.isOpenConnect) { choose("openconnect") } }
             row { CheckRow("SSH VPN", "SSH tunnel with optional UDP relay", checked = draft.isSsh) { choose("ssh") } }
             row { CheckRow("OpenVPN", "OpenVPN 3 — UDP/TCP, optional stunnel (TLS 1.3)", checked = draft.isOpenVpn) { choose("openvpn") } }
+            row { CheckRow("WireGuard VPN", "WireGuard — fast modern UDP", checked = draft.isWireGuard) { choose("wireguard") } }
         }
     }
 }

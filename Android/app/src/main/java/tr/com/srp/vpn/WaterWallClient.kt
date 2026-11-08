@@ -30,7 +30,9 @@ data class TunnelSettings(val address: String, val dnsServers: List<String>, val
                           /** Ranges that stay outside the tunnel (an SSL VPN server's no-route lines); Android 13 and later */
                           val excludedRoutes: List<Pair<String, Int>> = emptyList(),
                           /** The address's prefix length (an OpenVPN server's netmask; 32 for its net30 topology) */
-                          val addressPrefix: Int = 24)
+                          val addressPrefix: Int = 24,
+                          /** More addresses with their prefixes (a WireGuard Address line's IPv6 one) */
+                          val extraAddresses: List<Pair<String, Int>> = emptyList())
 
 /** What the VPN service does for a protocol's client. */
 interface TunnelHost {
