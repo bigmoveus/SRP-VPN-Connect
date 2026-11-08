@@ -640,11 +640,12 @@ static void splice_drive(SStream *st) {
 
 #pragma mark - pump loop
 
-/// Why the session ended, from what libssh2's reader returned and what the socket said
+/// Why the session ended, from what libssh2's reader returned and what the socket said. A socket error comes first:
+/// Linux reports a reset once and an end of stream on every read after it.
 static const char *lost_reason(int rc) {
-    if (g_rx_eof || rc == LIBSSH2_ERROR_SOCKET_DISCONNECT) return "the server closed the connection";
     if (g_rx_errno == ECONNRESET) return "the connection was reset";
     if (g_rx_errno == ETIMEDOUT) return "the connection timed out";
+    if (g_rx_eof || rc == LIBSSH2_ERROR_SOCKET_DISCONNECT) return "the server closed the connection";
     return "the connection was lost";
 }
 

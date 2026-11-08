@@ -27,6 +27,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSH Host Key: the app asks for the server's keys in OpenSSH's order, so a server with an ED25519 key shows that one (libssh2 preferred ECDSA, and the ED25519 fingerprint that `ssh` shows never matched). The field also takes the whole line `ssh-keygen -lf` prints, and a mismatch names the key the server presented.
 - SSH passwords that hold ":" or characters whose base64 has a "/" (such as "?" or letters outside ASCII) reach the server as typed.
 - The SSH bridge keeps its own copy of the profile's strings; it read them after their buffers had gone.
+- SSH VPN on Android: a connection the server resets is named as reset ("The connection was reset", or "the connection was reset; reconnecting" with Auto Reconnect) instead of as closed by the server. Linux reports the reset once and an end of stream on every read after it, and the shared bridge looked at the end of stream first; it now looks at the socket's error first, on both systems.
 
 ## 1.2.0 (38) - 2026-11-07
 
