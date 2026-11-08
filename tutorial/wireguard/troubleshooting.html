@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — WireGuard — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each message of a WireGuard profile in SRP VPN Connect means and what to do about it, on iPhone and Android.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">When a connection fails, the app shows <strong>Connection Failed</strong> with one of the messages below; when a connection that was up ends, the connection log has the message in a line that starts with <code>WireGuard: closing with reason:</code>.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Each message below was produced by a case of <a href="results.html">Test results</a>, on both phones, and the server's side of each comes from the server's log in the same run. The first one, the import's, is the editor's: the apps' unit tests check that it refuses such a file.</p>
+</div>
+
+<h2 id="first">First checks</h2>
+<ul>
+  <li>Open the connection log: tap the status under the power button. Set <strong>Log Level</strong> to <strong>Expert</strong> to see, every 30 seconds, how long ago the last handshake was and how much came and went.</li>
+  <li>On the server, <code>wg show wg0</code> lists each phone with its <code>latest handshake</code>. A phone without one has never reached the server with the right keys.</li>
+</ul>
+
+<h2 id="silence">Why WireGuard says so little</h2>
+<p>A WireGuard server answers nothing to a handshake it cannot take: one from a key it does not know, with the wrong preshared key, for another server key, or on a port where nothing listens. To the app all of these look the same, a server that does not answer, so its message names every cause; the server's peer list and the keys in the files show which one it is.</p>
+
+<h2 id="file">The configuration</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></td><td>The imported file is not a wg-quick configuration. Import the <code>.conf</code> file the server made for this phone.</td></tr>
+    <tr><td><em>Invalid WireGuard config: The config has no [Interface] PrivateKey.</em>, <em>… no [Interface] Address.</em></td><td>A line the app needs is missing from the file. Make the phone's file again (<a href="server.html#phones">add-phone.sh</a>), or enter the value under Manual Configuration.</td></tr>
+    <tr><td><em>Invalid WireGuard config: a key is not valid base64 (32 bytes).</em></td><td>The private key or the server's public key is damaged: a WireGuard key is 44 characters of base64 ending in <code>=</code>. Copy it again, without spaces or line breaks.</td></tr>
+    <tr><td><em>Invalid WireGuard config: the PresharedKey is not valid base64 (32 bytes).</em></td><td>The same for the preshared key.</td></tr>
+    <tr><td><em>The WireGuard endpoint … could not be resolved.</em></td><td>The server's name in Server (or in the file's <code>Endpoint</code>) does not resolve. Check the name, or enter the server's address.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="connect">Connecting</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port … may be closed.</em></td><td>No answer within 10 seconds. Compare the profile's <strong>Server Public Key</strong> with the server's <code>server.pub</code>, and its preshared key with the server's for this phone; check that <code>wg show wg0</code> lists this phone's public key (a removed phone is no longer there); check that the port is the server's <code>ListenPort</code> and open to the phone on every network it uses: a firewall rule that accepts only some addresses leaves out the phone's mobile data.</td></tr>
+    <tr><td><em>Could not connect after 3 attempts. (The server did not answer the WireGuard handshake.)</em></td><td>The same, after the attempts that <strong>Retry Times</strong> adds before the first connection.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="up">A connection that was up</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server stopped answering: nothing came back for 30 seconds (auto reconnect is off).</em></td><td>The server, or the path to it, stopped answering while the phone was sending. With <strong>Auto Reconnect</strong> on, the app tries new handshakes instead.</td></tr>
+    <tr><td><em>Could not reconnect after 2 attempts. (The server did not answer the WireGuard handshake.)</em></td><td>The server stopped answering and did not answer the attempts that <strong>Retry Times</strong> allows. Leave Retry Times empty to keep trying while the server is away.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off: the app closed WireGuard when the device slept and does not connect again at wake. Choose Stay or Pause, or turn Auto Reconnect on.</td></tr>
+  </tbody>
+</table></div>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

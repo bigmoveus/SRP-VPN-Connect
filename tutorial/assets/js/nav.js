@@ -75,5 +75,16 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'openvpn/troubleshooting.html' }
     ]
   },
+  {
+    title: 'WireGuard',
+    children: [
+      { title: 'Introduction', href: 'wireguard/index.html' },
+      { title: 'WireGuard Server', href: 'wireguard/server.html' },
+      { title: 'Setting Up the App', href: 'wireguard/app-setup.html' },
+      { title: 'Configuration Reference', href: 'wireguard/configuration.html' },
+      { title: 'Test Results', href: 'wireguard/results.html' },
+      { title: 'Troubleshooting', href: 'wireguard/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];

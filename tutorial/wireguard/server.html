@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WireGuard Server — WireGuard — SRP VPN Connect Documentation</title>
+<meta name="description" content="Setting up WireGuard on Ubuntu 24.04 for WireGuard profiles of SRP VPN Connect: the server's keys and wg0, forwarding and NAT, a configuration file for each phone, removing a phone, and checking it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>WireGuard server</h1>
+<p class="lead">This page sets up WireGuard on Ubuntu 24.04 for the app: the server's keys and its interface <code>wg0</code>, forwarding and NAT so the phones reach the internet through it, a configuration file for each phone that the app imports, and removing a phone again.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>We ran these steps on our test server, Ubuntu 24.04 with the kernel's WireGuard (Linux 6.8) and wireguard-tools 1.0.20210914, 2 vCPUs and 2 GB of memory, on 8 November 2026, as the page shows them, with our server's name in place of <code>vpn.example.com</code>; then both phones connected with the page's <code>phone1.conf</code>, and <code>phone2</code>, removed as part 5 says, was refused (the <code>wg-guide-…</code> cases in <a href="results.html">Test results</a>). Three things ran differently: the port was 51821, as WaterWall's own WireGuard holds 51820 on our server; the <code>ufw</code> line of part 3 was not run, as a rule of ours already opened the port; and part 5 removed <code>phone2</code>, which we had added with part 4's script for that. After <code>systemctl restart wg-quick@wg0</code> the server still had <code>phone1</code>, as <code>SaveConfig = true</code> keeps it.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu 24.04 server with a public IPv4 address, and root on it. Its kernel has WireGuard built in.</li>
+  <li>UDP port 51820 open to the phones. A DNS name for the server is optional: the phones' files may name the server or its address.</li>
+</ul>
+
+<h2 id="install">1. Install</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt update
+apt install -y wireguard</code></pre>
+<p>This installs <code>wg</code> and <code>wg-quick</code>, the tools that configure the kernel's WireGuard.</p>
+
+<h2 id="server">2. The server's keys and wg0</h2>
+<pre data-label="Server, as root"><code class="language-bash">cd /etc/wireguard
+umask 077
+wg genkey | tee server.key | wg pubkey &gt; server.pub
+cat &gt; /etc/wireguard/wg0.conf &lt;&lt;EOF
+[Interface]
+Address = 10.66.66.1/24
+ListenPort = 51820
+PrivateKey = $(cat /etc/wireguard/server.key)
+SaveConfig = true
+PostUp = iptables -I FORWARD 1 -i %i -j ACCEPT; iptables -I FORWARD 2 -o %i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -A POSTROUTING -s 10.66.66.0/24 -o ens160 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT; iptables -t nat -D POSTROUTING -s 10.66.66.0/24 -o ens160 -j MASQUERADE
+EOF</code></pre>
+<ul>
+  <li><code>server.key</code> is the server's private key and <code>server.pub</code> its public key, which every phone's file names. <code>umask 077</code> keeps the keys readable by root only.</li>
+  <li><code>Address = 10.66.66.1/24</code> is the server's address inside the tunnel; the phones get the other addresses of 10.66.66.0/24.</li>
+  <li><code>SaveConfig = true</code> lets <code>wg-quick save</code> write the phones that <a href="#phones">part 4</a> adds back into this file, so they come back after a restart.</li>
+  <li>The <code>PostUp</code> lines let the phones' traffic through the server (also where ufw refuses routed traffic by default) and replace their addresses with the server's on the way out; <code>PostDown</code> takes the rules away. <code>ens160</code> is the name of our server's network interface; <code>ip route show default</code> prints yours after <code>dev</code>.</li>
+</ul>
+<pre data-label="Server, as root"><code class="language-bash">echo 'net.ipv4.ip_forward = 1' &gt; /etc/sysctl.d/60-wireguard.conf
+sysctl -p /etc/sysctl.d/60-wireguard.conf
+systemctl enable --now wg-quick@wg0
+wg show wg0</code></pre>
+<p><code>wg show</code> prints the interface with its public key and <code>listening port: 51820</code>.</p>
+
+<h2 id="firewall">3. Firewall</h2>
+<p>Open UDP port 51820 to the phones. If ufw is active: <code>ufw allow 51820/udp</code>. The <code>PostUp</code> rules of part 2 already let the phones' traffic through.</p>
+
+<h2 id="phones">4. A file for each phone</h2>
+<p>Each phone gets its own key pair, and its own preshared key, which adds a second secret to the handshake. This script makes them, adds the phone to <code>wg0</code> and writes the file the app imports; save it as <code>/etc/wireguard/add-phone.sh</code> and put your server's name or address in <code>endpoint=</code>:</p>
+<pre data-label="/etc/wireguard/add-phone.sh"><code class="language-bash">#!/bin/bash
+# add-phone.sh NAME NUMBER: a key pair and a preshared key for the phone NAME, its peer on wg0 with the address
+# 10.66.66.NUMBER, and /etc/wireguard/clients/NAME.conf, the file the app imports.
+set -euo pipefail
+name=$1; number=$2; endpoint=vpn.example.com:51820
+cd /etc/wireguard
+umask 077
+mkdir -p clients
+private=$(wg genkey); public=$(echo "$private" | wg pubkey); psk=$(wg genpsk)
+echo "$public" &gt; "clients/$name.pub"
+wg set wg0 peer "$public" preshared-key &lt;(echo "$psk") allowed-ips "10.66.66.$number/32"
+wg-quick save wg0
+cat &gt; "clients/$name.conf" &lt;&lt;EOF
+[Interface]
+PrivateKey = $private
+Address = 10.66.66.$number/32
+DNS = 1.1.1.1, 8.8.8.8
+
+[Peer]
+PublicKey = $(cat server.pub)
+PresharedKey = $psk
+Endpoint = $endpoint
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25
+EOF
+echo "/etc/wireguard/clients/$name.conf"</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 700 /etc/wireguard/add-phone.sh
+/etc/wireguard/add-phone.sh phone1 2</code></pre>
+<ul>
+  <li>It prints the file's name, here <code>/etc/wireguard/clients/phone1.conf</code>. The file holds the phone's private key: whoever has it can connect as that phone. Copy it to the phone and import it in the app (<a href="app-setup.html#profile">Import Config</a>), then delete the copies you do not need.</li>
+  <li><code>AllowedIPs = 0.0.0.0/0</code> sends all of the phone's IPv4 traffic through the VPN, and <code>DNS</code> names the name servers it uses meanwhile; <a href="configuration.html">Configuration Reference</a> explains the other lines.</li>
+  <li><code>PersistentKeepalive = 25</code> makes the phone send a keepalive every 25 seconds when nothing else goes (the server's log shows them), so routers between the phone and the server keep its path open.</li>
+  <li>Give each phone its own number, and its own file: <a href="configuration.html#keys">one key on two phones</a> does not work.</li>
+</ul>
+
+<h2 id="remove">5. Removing a phone</h2>
+<p>This script takes a phone off <code>wg0</code> at once and out of the saved configuration; save it as <code>/etc/wireguard/remove-phone.sh</code>:</p>
+<pre data-label="/etc/wireguard/remove-phone.sh"><code class="language-bash">#!/bin/bash
+# remove-phone.sh NAME: the phone NAME off wg0 and out of wg0.conf, and its files deleted.
+set -euo pipefail
+name=$1
+cd /etc/wireguard
+wg set wg0 peer "$(cat "clients/$name.pub")" remove
+wg-quick save wg0
+rm -f "clients/$name.pub" "clients/$name.conf"</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 700 /etc/wireguard/remove-phone.sh
+/etc/wireguard/remove-phone.sh phone2</code></pre>
+<p>The server answers nothing to a key it does not know, so a removed phone cannot connect: the app waits for the handshake and then reports that the server did not answer it.</p>
+
+<h2 id="check">6. Check</h2>
+<pre data-label="Server, as root"><code class="language-bash">wg show wg0</code></pre>
+<p>Each phone is a <code>peer</code> with its <code>allowed ips</code>. A phone that connected has an <code>endpoint</code> (the address it came from), a <code>latest handshake</code> (WireGuard renews it every 2 minutes while traffic flows) and its <code>transfer</code>.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>WireGuard VPN</strong> and import the phone's <code>.conf</code> file; Server and Port fill themselves in from it. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

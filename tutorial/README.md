@@ -1,6 +1,6 @@
 # SRP VPN Connect documentation site
 
-A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN, SSL VPN, SSH VPN and OpenVPN guides. It can be served by GitHub Pages or copied to the app's website as it is.
+A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN, SSL VPN, SSH VPN, OpenVPN and WireGuard guides. It can be served by GitHub Pages or copied to the app's website as it is.
 
 ## Rules for content
 
@@ -24,6 +24,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP
 | `sslvpn/` | SSL VPN section: ocserv server, app setup, configuration reference, results, troubleshooting |
 | `ssh/` | SSH VPN section: OpenSSH server and UDP relay, app setup, configuration reference, results, troubleshooting |
 | `openvpn/` | OpenVPN section: OpenVPN 2.6 server with stunnel, app setup, configuration reference, results, troubleshooting |
+| `wireguard/` | WireGuard section: WireGuard server on Ubuntu 24.04, app setup, configuration reference, results, troubleshooting |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
 | `assets/js/site.js` | Header, sidebar, table of contents, search, theme and copy buttons |
@@ -127,6 +128,21 @@ python3 tutorial/tools/openvpn_results.py render --evidence tutorial/evidence/op
 ```
 
 `extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac. `render` rewrites `openvpn/results.html` from `tools/openvpn-results-intro.html`. The iPhone screenshots in `assets/img/openvpn/` come from the unit test `testOpenVpnDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-openvpn`), the Android ones in `assets/img/openvpn/android/` from `docs_screenshots_android.py` on the emulator.
+
+## WireGuard results and screenshots
+
+The WireGuard runs come from the private test tools in `wireguard/`: `run_profile_cases.py` on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json` (`make_wg_cases.py`):
+
+```bash
+python3 tutorial/tools/wireguard_results.py extract --cases <cases-full.json> <cases-release.json> <cases-guide.json> \
+  --android-cases <Android case lists> --ios <results.json files> --android <results.json files> \
+  --replace <server IP>=<SERVER_IP> <office IP>=<OFFICE_IP> <server name>=<SERVER_HOST> --server-ip <server IP> \
+  --date "<day month year>" --iphone "<phone>" --android-device "<phone>" --app "<build>" --server "<server>" \
+  --output tutorial/evidence/wireguard-<date>.json
+python3 tutorial/tools/wireguard_results.py render --evidence tutorial/evidence/wireguard-<date>.json
+```
+
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac; `--server-ip` is only compared with the answers of the UDP cases and is never written. `render` rewrites `wireguard/results.html` from `tools/wireguard-results-intro.html`. The iPhone screenshots in `assets/img/wireguard/` come from the unit test `testWireGuardDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-wireguard`), the Android ones in `assets/img/wireguard/android/` from `docs_screenshots_android.py` on the emulator.
 
 ## Checking locally
 

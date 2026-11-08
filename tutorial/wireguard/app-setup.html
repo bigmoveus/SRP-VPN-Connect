@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — WireGuard — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of a WireGuard profile in SRP VPN Connect on iPhone and Android: importing the .conf file, the keys entered by hand, Server and Port, and the options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">A WireGuard profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles and example keys. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>WireGuard VPN</strong>; Port becomes 51820. Import the phone's <code>.conf</code> file or enter its keys, check the fields below and tap <strong>Save</strong>. Save names the first thing that is still missing instead of saving an incomplete profile: <em>Enter the server address.</em> or <em>Import or enter a WireGuard configuration.</em></p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/wireguard/protocol.png" alt="Protocol screen on iPhone with WireGuard VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing WireGuard, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="profile">The configuration</h2>
+<p>There are two ways to give the app the phone's keys; an imported file wins over keys entered by hand.</p>
+<ul>
+  <li><strong>Import Config (.conf)</strong> opens the phone's files. The app takes a file in wg-quick format, with an <code>[Interface]</code> and a <code>[Peer]</code> section, as <a href="server.html#phones">the server guide</a> makes it; it refuses a file without them: <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em> The row then says <strong>Imported</strong>, and Server and Port fill themselves in from the file's <code>Endpoint</code> line.</li>
+  <li><strong>Manual Configuration</strong> takes the same values one by one. <strong>Private Key</strong> is this phone's key: type it, or tap <strong>Gen</strong> for a new one. <strong>Public Key</strong> is worked out from it; tap it to copy it, and add it to the server as a peer. <strong>Address</strong> is the phone's address inside the tunnel, <strong>DNS</strong> its name servers. Under the server: <strong>Server Public Key</strong>, <strong>Preshared Key</strong> (optional, but it must match the server's for this phone), <strong>AllowedIPs</strong> (empty means 0.0.0.0/0: all IPv4 traffic) and <strong>Keepalive</strong> in seconds (empty means none). The endpoint is the profile's Server and Port. With a file imported, the row says <strong>Overridden by import</strong>.</li>
+</ul>
+<p>The file and the keys are this phone's secrets: on iPhone the app keeps them in the Keychain, on Android in its encrypted store.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/wireguard/profile-editor.png" alt="Profile editor on iPhone with an imported configuration: Import Config Imported, Server and Port 51820" width="260" loading="lazy">
+    <figcaption>A profile with an imported file, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/manual-configuration.png" alt="Manual Configuration on iPhone: Private Key with Gen, Public Key, Address, DNS, Server Public Key, Preshared Key, AllowedIPs and Keepalive" width="260" loading="lazy">
+    <figcaption>Keys entered by hand, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/manual-configuration.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server and Port</h2>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>The server's name or address. An import fills it from the file's <code>Endpoint</code>; changed, it replaces it.</td></tr>
+    <tr><td>Port</td><td>The server's UDP port. An import fills it from the same line; changed, it replaces the file's port. Empty means the file's port, or 51820 for keys entered by hand.</td></tr>
+  </tbody>
+</table>
+<p>A WireGuard profile has no proxy setting: WireGuard runs over UDP, straight to the server.</p>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/wireguard/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, On Sleep and Log Level" width="260" loading="lazy">
+    <figcaption>The options, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>The server answers nothing to a phone it does not take, so the app counts as connected only once the server answered its handshake: it waits 10 seconds for that, and Retry Times adds more attempts of 10 seconds before it gives up. While the VPN is up, nothing coming back for 30 seconds while the phone sends means the server stopped answering. Auto Reconnect (on by default) then starts new handshakes, 10 seconds each, until the server answers again; Retry Times limits them (empty means no limit). Without Auto Reconnect, the VPN ends with the reason: <em>The server stopped answering: nothing came back for 30 seconds (auto reconnect is off).</em> A server that restarts or is away for a few seconds is answered by WireGuard itself, without an attempt.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps WireGuard running while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the server, its address and port, whether the profile has a keepalive and a preshared key, the handshake, network changes, and why a connection ended. <strong>Expert</strong> adds a line every 30 seconds with the time since the last handshake and the bytes received and sent. <strong>Debug</strong> adds WireGuard's own lines. No level writes a key. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>WireGuard: closing with reason:</code> names the reason.</td></tr>
+  </tbody>
+</table>
+<p>There is no <strong>Switch to Wi-Fi When Available</strong>: WireGuard always uses the network the phone uses, and its packets go over Wi-Fi by themselves when it appears. On every change of network the app moves WireGuard's sockets to the new one.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/wireguard/home.png" alt="Home screen on iPhone with three example WireGuard profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>WireGuard profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the server has answered the handshake. The row of the profile then shows the time of one request through the tunnel. If the server does not answer, the app shows <strong>Connection Failed</strong> with the reason; <a href="troubleshooting.html">Troubleshooting</a> explains each message.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

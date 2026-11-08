@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — WireGuard — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each setting of a WireGuard server and each line of a phone's .conf file does for SRP VPN Connect, with the test cases that show it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">What each setting of the server's <code>wg0.conf</code> and each line of a phone's <code>.conf</code> file does for the app. The cases are the rows of <a href="results.html">Test results</a> that show it, on both phones unless a row says otherwise.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The behaviour comes from the cases named in each row, run against WireGuard on Ubuntu 24.04 with the server's own view of each (<code>wg show</code> and its log), and from the source code of both apps.</p>
+</div>
+
+<h2 id="server">The server (wg0.conf)</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>ListenPort</code></td><td>The UDP port of the phones' <code>Endpoint</code>. A phone whose file names another port gets no answer: <em>The server did not answer the WireGuard handshake …</em></td><td><code>wg-download</code>, <code>wg-closed-port</code></td></tr>
+    <tr><td><code>Address</code></td><td>The server's address in the tunnel; the phones get one address each of its network.</td><td><code>wg-download</code></td></tr>
+    <tr><td><code>PostUp</code> forwarding and NAT</td><td>The phones reach the internet through the server, with its address: a DNS question over UDP to OpenDNS for the asker's own address came back with the server's address.</td><td><code>wg-udp-probe</code></td></tr>
+    <tr><td><code>SaveConfig = true</code></td><td><code>wg-quick save</code> keeps the phones that <code>wg set</code> added: after a restart of <code>wg-quick@wg0</code> the server still knows them.</td><td>The guide's server (<a href="server.html">WireGuard server</a>, its source note)</td></tr>
+    <tr><td>A <code>[Peer]</code> with <code>AllowedIPs</code> = the phone's address</td><td>One peer per phone: the server takes a handshake only from a key it has as a peer, and sends that phone only its own address. A key it does not have gets no answer.</td><td><code>wg-download</code>, <code>wg-unknown-client-key</code>, <code>wg-guide-removed</code></td></tr>
+    <tr><td>The peer's <code>PresharedKey</code></td><td>Optional; when the server has one for a phone, the phone's file must have the same. A different one gets no answer.</td><td><code>wg-no-psk</code>, <code>wg-wrong-psk</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="file">The phone's file</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Line</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>[Interface] PrivateKey</code></td><td>The phone's key; the server must have its public key as a peer. A damaged key: <em>Invalid WireGuard config: a key is not valid base64 (32 bytes).</em></td><td><code>wg-unknown-client-key</code>, <code>wg-bad-key</code></td></tr>
+    <tr><td><code>Address</code></td><td>The phone's address in the tunnel. Without it: <em>Invalid WireGuard config: The config has no [Interface] Address.</em></td><td><code>wg-download</code>, <code>wg-no-address</code></td></tr>
+    <tr><td><code>DNS</code></td><td>The name servers the phone asks while connected, through the tunnel.</td><td><code>wg-download</code></td></tr>
+    <tr><td><code>MTU</code></td><td>The tunnel's MTU on the phone; 1420 when the file has none.</td><td><code>wg-mtu-1280</code></td></tr>
+    <tr><td><code>[Peer] PublicKey</code></td><td>The server's public key (<code>server.pub</code>). Another key gets no answer.</td><td><code>wg-wrong-server-key</code></td></tr>
+    <tr><td><code>PresharedKey</code></td><td>As the server's for this phone; a damaged one: <em>Invalid WireGuard config: the PresharedKey is not valid base64 (32 bytes).</em></td><td><code>wg-download</code>, <code>wg-bad-preshared-key</code></td></tr>
+    <tr><td><code>Endpoint</code></td><td>The server's name or address and its port, which fill <strong>Server</strong> and <strong>Port</strong> on import; changed in the editor, they replace it. A name the app cannot look up: <em>The WireGuard endpoint … could not be resolved.</em> The app looks the name up for an IPv4 address.</td><td><code>wg-endpoint-ip</code>, <code>wg-port-field-overrides-profile</code>, <code>wg-server-field-overrides-profile</code>, <code>wg-unknown-host</code></td></tr>
+    <tr><td><code>AllowedIPs = 0.0.0.0/0</code></td><td>All of the phone's IPv4 traffic goes through the VPN.</td><td><code>wg-download</code>, <code>wg-udp-probe</code></td></tr>
+    <tr><td><code>AllowedIPs = 10.66.66.0/24</code></td><td>Only that network goes through the VPN, the rest the usual way: a DNS question over UDP left from the phone's own network, while the server's tunnel address answered through the tunnel.</td><td><code>wg-split-tunnel</code></td></tr>
+    <tr><td><code>PersistentKeepalive</code></td><td>A keepalive every so many seconds when nothing else goes. Without it the VPN works the same; the app's handshake check switches a keepalive on only until the first handshake.</td><td><code>wg-download</code>, <code>wg-no-keepalive</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="keys">One key per phone</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>The same file on two phones</td><td>One key is one peer to the server, which sends to the address it last heard that key from: with two phones on it at once, each loses the traffic the server sends to the other. While Android used the iPhone's file, the server's endpoint for that peer moved to Android for 14 seconds, and four of the iPhone's downloads timed out. Give each phone its own file (<a href="server.html#phones">add-phone.sh</a>).</td><td>The guide's server, with the iPhone downloading with <code>phone1.conf</code> when Android connected with the same file</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="always">What the app always does</h2>
+<ul>
+  <li>WireGuard over UDP, straight to the server: no proxy, no TCP.</li>
+  <li>Connected only after a handshake: up to 10 seconds per attempt (<a href="app-setup.html#options">Auto Reconnect and Retry Times</a>).</li>
+  <li>New sockets on every change of network, and the server's name looked up again.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
