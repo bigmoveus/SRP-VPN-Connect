@@ -66,7 +66,7 @@
   <thead><tr><th>Field</th><th>What it does</th></tr></thead>
   <tbody>
     <tr><td>Method</td><td><strong>Password</strong> (default) logs in with a username and password. <strong>Certificate</strong> logs in with a client certificate through EAP-TLS; see <a href="#certificate">Certificate login</a>.</td></tr>
-    <tr><td>Username, Password</td><td>The user on the SSTP server or its RADIUS server. With Certificate, the username is optional and is sent as the identity.</td></tr>
+    <tr><td>Username, Password</td><td>The user on the SSTP server or its RADIUS server. With Certificate, the username is optional and is sent as the identity. A password may hold any character, letters of any script included. Windows and FreeRADIUS take a password with characters outside ASCII at once; RouterOS's local secrets and SoftEther hash such a password another way for MS-CHAP, and the app logs in to them at a second attempt it makes on its own, about a second later.</td></tr>
     <tr><td>EAP Configuration</td><td>The EAP methods the app may use; see <a href="#eap">EAP</a>.</td></tr>
     <tr><td>Enable MS-CHAPv2</td><td>On by default. MS-CHAPv2 is what MikroTik, Windows and SoftEther accept by default.</td></tr>
     <tr><td>Enable PAP / CHAP (Less Secure)</td><td>Off by default. Turn it on only for a server that allows nothing else; PAP sends the password inside the TLS tunnel without hashing it.</td></tr>

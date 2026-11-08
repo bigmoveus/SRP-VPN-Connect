@@ -14,6 +14,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The SSL VPN documentation names TestFlight build 38, the first with the Path field.
+- The SSTP documentation says that a password may hold any character, and that RouterOS's local secrets and SoftEther take one with characters outside ASCII at the app's second attempt.
 
 ### Fixed
 - SSH VPN on iPhone: a download no longer ends the VPN. The packet pump kept every received packet in memory until the session ended, and iOS stopped the tunnel at its 50 MB limit within seconds.
