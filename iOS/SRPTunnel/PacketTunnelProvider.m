@@ -1241,26 +1241,12 @@ static void SRPLogSSTPMemoryIfHigh(void) {
     NSString *username = url.user;
     NSString *password = url.password;
     if (password == nil) {
-        BOOL ssh = [url.scheme isEqualToString:@"ssh"];
-        // SSH carries its user info in the URL-safe alphabet: a "/" of plain base64 would end the URL's user part
-        NSString *encoded = ssh ? [[username stringByReplacingOccurrencesOfString:@"-" withString:@"+"]
-                                   stringByReplacingOccurrencesOfString:@"_" withString:@"/"] : username;
-        NSString *decoded = [PDBase64 decode:encoded];
-        NSArray *up = [decoded componentsSeparatedByString:@":"];
-        if (ssh) {
-            // An SSH password may hold ":" and edge spaces (a user name cannot hold ":"): split at the first one only
-            NSRange colon = [decoded rangeOfString:@":"];
-            up = colon.location == NSNotFound ? @[] : @[[decoded substringToIndex:colon.location],
-                                                        [decoded substringFromIndex:NSMaxRange(colon)]];
-        }
-        if (up.count != 2) {
+        NSArray *up = [PDVPNManager credentialsFromTunnelURIUser:username];
+        if (up == nil) {
             return nil;
         }
         username = up[0];
         password = up[1];
-
-        username = [username stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-        if (!ssh) password = [password stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     }
     NSMutableDictionary *body = @{@"username":username, @"password":password, @"port":url.port, @"xx":url.scheme, @"address":url.host, @"remark":remark}.mutableCopy;
     [parameters enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {

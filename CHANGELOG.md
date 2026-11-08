@@ -29,6 +29,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - SSH passwords that hold ":" or characters whose base64 has a "/" (such as "?" or letters outside ASCII) reach the server as typed.
 - The SSH bridge keeps its own copy of the profile's strings; it read them after their buffers had gone.
 - SSH VPN on Android: a connection the server resets is named as reset ("The connection was reset", or "the connection was reset; reconnecting" with Auto Reconnect) instead of as closed by the server. Linux reports the reset once and an end of stream on every read after it, and the shared bridge looked at the end of stream first; it now looks at the socket's error first, on both systems.
+- SSTP, SoftEther VPN, SSL VPN and OpenVPN passwords that hold ":" or spaces at their ends, or characters whose base64 has a "/" (such as "?" or letters outside ASCII), reach the server as typed, as SSH passwords already did. The iPhone app hands each profile's login to its tunnel inside an address; such passwords broke that address, so the VPN did not start, or lost their spaces in the tunnel. The address now carries the login in base64's URL-safe alphabet for every protocol, and the tunnel still reads the ones older versions saved.
 
 ## 1.2.0 (38) - 2026-11-07
 

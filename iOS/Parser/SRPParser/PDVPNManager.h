@@ -98,6 +98,12 @@ typedef enum : NSUInteger {
 /// - Parameter server: server info
 -(BOOL)connectUsing:(NSDictionary *)server auth:(YDUnsafeAuthRequest)auth;
 
+/// The user part of a tunnel URI: "username:password" in base64's URL-safe alphabet
++(NSString *)tunnelURIUserWithUsername:(NSString *)username password:(NSString *)password;
+
+/// The user name and password from a tunnel URI's user part, or nil; plain base64 (URIs saved by older versions) reads the same
++(nullable NSArray<NSString *> *)credentialsFromTunnelURIUser:(nullable NSString *)user;
+
 /// Last TLS error from the server certificate check (for the warning dialog)
 @property (nonatomic, strong, readonly, nullable)NSString *lastTLSIssue;
 

@@ -130,6 +130,21 @@
 }
 @end
 
+@interface PDVPNManager (SRPTunnelURITesting)
+- (BOOL)connectDirectly:(NSDictionary *)server;
+@end
+
+// Keeps the URI that connectDirectly: hands to connect: instead of starting a VPN
+@interface SRPTunnelURICapturingManager : PDVPNManager
+@property (nonatomic, copy) NSString *capturedURI;
+@end
+
+@implementation SRPTunnelURICapturingManager
+- (void)connect:(NSString *)url {
+    self.capturedURI = url;
+}
+@end
+
 // Lifecycle tests never start a bridge; the app test bundle has no engine linkage.
 static SRPWaterWallCallbacks SRPTestWWCallbacks;
 
@@ -3626,6 +3641,35 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(model.port, @"22");
     model.protocolType = @"sstp";
     XCTAssertEqualObjects(model.port, @"443");
+}
+
+// Every protocol that carries its login in the tunnel URI gets the password as typed: ":" and spaces at the ends
+// survive, and "?" or letters outside ASCII (a "/" in plain base64) no longer end the URI's user part. The URI is the
+// one connectDirectly: builds; the tunnel's parse: reads it with NSURL and credentialsFromTunnelURIUser:.
+- (void)testTunnelURIKeepsPasswordsWithAnyCharacter {
+    XCTAssertTrue([[PDBase64 encode:@"vpnuser:?"] containsString:@"/"]);
+    NSArray<NSString *> *passwords = @[@"a:b:c", @"?", @"???", @"a/b", @"  edges  ", @" p:?/ ", @"ğüşİÖç", @"пароль",
+                                       @"رمز عبور", @"密码?", @">"];
+    for (NSString *type in @[@"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether", @"psiphon"]) {
+        for (NSString *password in passwords) {
+            SRPTunnelURICapturingManager *manager = [SRPTunnelURICapturingManager new];
+            NSDictionary *server = @{@"type": type, @"username": @"vpnuser", @"password": password, @"address": @"vpn.example.com", @"port": @"443"};
+            XCTAssertTrue([manager connectDirectly:server]);
+            NSURL *url = [NSURL URLWithString:manager.capturedURI];
+            XCTAssertEqualObjects(url.scheme, type);
+            XCTAssertEqualObjects(url.host, @"vpn.example.com", @"%@ %@", type, password);
+            XCTAssertNil(url.password, @"%@ %@", type, password);
+            XCTAssertEqualObjects([PDVPNManager credentialsFromTunnelURIUser:url.user], (@[@"vpnuser", password]), @"%@ %@", type, password);
+        }
+    }
+    // A URI saved by an older version carries plain base64 ("+" but never "-" or "_")
+    NSString *plain = [PDBase64 encode:@" vpnuser  :>"];
+    XCTAssertTrue([plain containsString:@"+"]);
+    NSURL *saved = [NSURL URLWithString:[NSString stringWithFormat:@"sstp://%@@vpn.example.com:443?t=1", plain]];
+    XCTAssertEqualObjects([PDVPNManager credentialsFromTunnelURIUser:saved.user], (@[@"vpnuser", @">"]));
+    XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:nil]);
+    XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:@"!!!"]);
+    XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:[PDBase64 encode:@"no colon"]]);
 }
 
 - (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {

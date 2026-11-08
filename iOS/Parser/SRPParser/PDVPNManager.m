@@ -530,6 +530,24 @@ static NSString *SRPMaskedURI(NSString *uri) {
     }];
 }
 
++(NSString *)tunnelURIUserWithUsername:(NSString *)username password:(NSString *)password {
+    NSString *up = [PDBase64 encode:[NSString stringWithFormat:@"%@:%@", username, password]];
+    // URL-safe alphabet: a "/" (from "?" or a letter outside ASCII in the password) would end the URL's user part
+    return [[up stringByReplacingOccurrencesOfString:@"+" withString:@"-"] stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+}
+
++(nullable NSArray<NSString *> *)credentialsFromTunnelURIUser:(nullable NSString *)user {
+    if (user.length == 0) return nil;
+    // Plain base64 has neither "-" nor "_", so it decodes as before
+    NSString *decoded = [PDBase64 decode:[[user stringByReplacingOccurrencesOfString:@"-" withString:@"+"]
+                                          stringByReplacingOccurrencesOfString:@"_" withString:@"/"]];
+    NSRange colon = decoded != nil ? [decoded rangeOfString:@":"] : NSMakeRange(NSNotFound, 0);
+    if (colon.location == NSNotFound) return nil;
+    // A password may hold ":" and spaces at its ends (a user name cannot hold ":"): split at the first one, trim the name only
+    return @[[[decoded substringToIndex:colon.location] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet],
+             [decoded substringFromIndex:NSMaxRange(colon)]];
+}
+
 -(BOOL)connectDirectly:(NSDictionary *)server {
     NSMutableString *uri = NSMutableString.new;
     if (!server[@"type"] || !server[@"username"] || !server[@"password"] || !server[@"address"] || !server[@"port"]) {
@@ -570,14 +588,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
         return NO;
     }
     
-    NSString *up = [NSString stringWithFormat:@"%@:%@", server[@"username"], server[@"password"]];
-    up = [PDBase64 encode:up];
-    if ([server[@"type"] isEqualToString:@"ssh"]) {
-        // URL-safe alphabet: a "/" (from "?" or a letter outside ASCII in the password) would end the URL's user
-        // part; the tunnel turns it back
-        up = [[up stringByReplacingOccurrencesOfString:@"+" withString:@"-"] stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
-    }
-    [uri appendFormat:@"%@", up];
+    [uri appendFormat:@"%@", [PDVPNManager tunnelURIUserWithUsername:server[@"username"] password:server[@"password"]]];
     // Psiphon entries carry their own server addresses; the profile's
     // address field may be empty — keep the URI parseable regardless
     NSString *host = [server[@"address"] length] > 0 ? server[@"address"] : @"127.0.0.1";
