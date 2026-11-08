@@ -12,7 +12,7 @@ android {
         applicationId = "tr.com.srp.vpn"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
+        versionCode = 5
         versionName = "1.2.0"
         ndk {
             abiFilters += "arm64-v8a"

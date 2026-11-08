@@ -12,6 +12,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Changed
 - The OpenVPN, SSH VPN and SSTP documentation name TestFlight build 39, the first with their code; for SSTP, the first that takes passwords with characters outside ASCII (build 36 was named before).
 - WireGuard: the Server and Port fields take effect: changed, they replace the imported file's Endpoint.
+- The Android app's version code is 5, for the release APK that adds WireGuard; the version name stays 1.2.0.
 
 ### Fixed
 - WireGuard on iPhone no longer says Connected when the server never answered. A wrong server key, a key the server does not have, a wrong preshared key or a closed port now end after 10 seconds with a message naming those causes; before, the VPN showed Connected and nothing passed.
