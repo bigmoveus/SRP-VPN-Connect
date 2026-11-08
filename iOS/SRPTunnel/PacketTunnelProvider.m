@@ -665,6 +665,11 @@ static uint64_t SRPFootprintBytes(void);
 -(void)startWireGuardWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
     SRPWireGuardClient *wg = [[SRPWireGuardClient alloc] init];
     wg.amnezia = [v[@"xx"] isEqualToString:@"amnezia"];
+#if !DEBUG
+    if (!wg.amnezia) {
+        SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
+    }
+#endif
     wg.configText = [v[@"wg_conf"] stringByRemovingPercentEncoding];
     if (wg.configText.length == 0) {
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"No WireGuard/AmneziaWG config is stored in this VPN profile. Import a .conf file or use Manual Configuration."}]);
@@ -674,10 +679,14 @@ static uint64_t SRPFootprintBytes(void);
     wg.logLevel = [logLevel isEqualToString:@"expert"] ? 1 : [logLevel isEqualToString:@"debug"] ? 2 : 0;
     NSString *onSleep = v[@"on_sleep"];
     self.onSleepMode = [onSleep isEqualToString:@"off"] ? 0 : [onSleep isEqualToString:@"pause"] ? 1 : 2;
+    wg.autoReconnect = v[@"auto_reconnect"] ? [v[@"auto_reconnect"] boolValue] : YES;
+    wg.retryTimes = MAX(0, [v[@"retry_times"] integerValue]);
+    wg.onSleep = self.onSleepMode;
     self.wgClient = wg;
 
     __weak PacketTunnelProvider *weakSelf = self;
     __block BOOL finished = NO;
+    __block BOOL settingsApplied = NO;
     NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
     void (^finish)(NSError *) = ^(NSError *e) {
         if (finished) {
@@ -695,25 +704,53 @@ static uint64_t SRPFootprintBytes(void);
         completionHandler(e);
     };
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    // WireGuard waits for the first handshake in attempts of 10 seconds (1 + Retry Times with Auto Reconnect); this
+    // only catches a start that never got that far. AmneziaWG keeps its 30 seconds.
+    NSInteger attempts = (!wg.amnezia && wg.autoReconnect && wg.retryTimes > 0) ? 1 + wg.retryTimes : 1;
+    NSTimeInterval limit = wg.amnezia ? 30 : 30 + 12.0 * attempts;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(limit * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"Connection timed out. The server did not respond."}]);
     });
 
+    wg.lostCallback = ^(NSString *reason) {
+        // A session that was up ended for good (reconnects ran out, Auto Reconnect off, On Sleep Off): stop the VPN
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"WireGuard connection failed"}];
+        [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+        [weakSelf cancelTunnelWithError:error];
+    };
     [wg startWithNetworkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
+        if (settingsApplied) {
+            // The endpoint's name resolved to another address: its route stays outside the tunnel
+            [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
+                if (e) {
+                    SSLogE(@"WireGuard: setTunnelNetworkSettings failed: %@", e);
+                }
+            }];
+            return;
+        }
+        settingsApplied = YES;
         [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
             if (e) {
                 SSLogE(@"WireGuard: setTunnelNetworkSettings failed: %@", e);
                 return finish(e);
             }
             // The utun fd exists only after the settings are applied
-            NSError *actErr = nil;
-            if (![wg activateWithError:&actErr]) {
-                return finish(actErr);
+            if (wg.amnezia) {
+                NSError *actErr = nil;
+                if (![wg activateWithError:&actErr]) {
+                    return finish(actErr);
+                }
+                SSLogM(@"WireGuard: session established");
+                return finish(nil);
             }
-            SSLogM(@"WireGuard: session established");
-            finish(nil);
+            [wg activateAndWaitForHandshake:^(NSString *failureReason) {
+                finish(failureReason ? [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: failureReason}] : nil);
+            }];
         }];
     } failureCallback:^(NSString *reason) {
+        if (reason.length > 0) {
+            SSLogM(@"WireGuard: closing with reason: %@", reason);
+        }
         finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"WireGuard connection failed"}]);
     }];
 }
@@ -1348,7 +1385,7 @@ static void SRPTunnelLogOpen(void) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
 
 #if DEBUG
-    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH, OpenVPN), from their start methods.
+    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH, OpenVPN, WireGuard), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo, and the SSL VPN Path (an ocserv camouflage secret), before logging
@@ -1358,8 +1395,8 @@ static void SRPTunnelLogOpen(void) {
         }
         uri = [uri stringByReplacingOccurrencesOfString:@"([?&]ocpath=)[^&#]*" withString:@"$1<redacted>"
                                                 options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
-        // The OpenVPN profile holds the client's private key and the tls-crypt key
-        uri = [uri stringByReplacingOccurrencesOfString:@"([?&]profile=)[^&#]*" withString:@"$1<redacted>"
+        // The OpenVPN profile holds the client's private key and the tls-crypt key; a WireGuard configuration its keys
+        uri = [uri stringByReplacingOccurrencesOfString:@"([?&](?:profile|wg_conf|wg_private_key|wg_preshared_key)=)[^&#]*" withString:@"$1<redacted>"
                                                 options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
         NSRange schemeEnd = [uri rangeOfString:@"//"];
         NSRange atSign = [uri rangeOfString:@"@"];
@@ -1498,10 +1535,12 @@ static void SRPTunnelLogOpen(void) {
             return;
         }
         if ([command isEqualToString:@"path-switch"]) {
-            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN, SSH, OpenVPN), without changing the phone's network
+            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN, SSH, OpenVPN), and a network change for WireGuard,
+        // without changing the phone's network
             [self.ocClient switchNetworkPath];
             [self.sshClient switchNetworkPath];
             [self.ovpnClient switchNetworkPath];
+            [self.wgClient switchNetworkPath];
             completionHandler(messageData);
             return;
         }

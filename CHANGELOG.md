@@ -4,8 +4,18 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- WireGuard profiles have Auto Reconnect, Retry Times and On Sleep on iPhone, with WireGuard's own meaning: a server that sends nothing back for 30 seconds while the phone sends counts as gone; Auto Reconnect then starts new handshakes of 10 seconds each, Retry Times limits them, and without Auto Reconnect the VPN ends with the reason; before the first connection Retry Times adds attempts; On Sleep Pause and Off close WireGuard while the device sleeps. There is no Switch to Wi-Fi: WireGuard follows the network the phone uses, and the app now moves its sockets on every network change.
+- The WireGuard log in Release builds of the iPhone app: the server, its address and port, whether the profile has a keepalive and a preshared key, the handshake, network changes and the reason a connection ended; Expert adds a line every 30 seconds with the time since the last handshake and the bytes; Debug adds WireGuard's own lines. No level writes a key.
+
 ### Changed
 - The OpenVPN, SSH VPN and SSTP documentation name TestFlight build 39, the first with their code; for SSTP, the first that takes passwords with characters outside ASCII (build 36 was named before).
+- WireGuard: the Server and Port fields take effect: changed, they replace the imported file's Endpoint.
+
+### Fixed
+- WireGuard on iPhone no longer says Connected when the server never answered. A wrong server key, a key the server does not have, a wrong preshared key or a closed port now end after 10 seconds with a message naming those causes; before, the VPN showed Connected and nothing passed.
+- WireGuard: a profile without a Port uses 51820, WireGuard's own port; it used 443.
+- The Debug build's tunnel start log no longer writes the WireGuard configuration with its keys.
 
 ## 1.2.0 (39) - 2026-11-08
 

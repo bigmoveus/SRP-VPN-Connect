@@ -104,6 +104,9 @@ static NodeModel * modal = nil;
         if ([_protocolType isEqualToString:@"ssh"]) {
             return @"22";   // the Port field's hint: SSH's own port
         }
+        if ([_protocolType isEqualToString:@"wireguard"]) {
+            return @"51820";   // the Port field's hint: WireGuard's own port
+        }
         return @"443";
     }
     return _port;
@@ -122,9 +125,35 @@ static NodeModel * modal = nil;
     _wgKeepalive = _wgJc = _wgJmin = _wgJmax = _wgS1 = _wgS2 = _wgS3 = _wgS4 = _wgH1 = _wgH2 = _wgH3 = _wgH4 = 0;
 }
 
+/// An imported WireGuard config with the editor's Server and Port as its Endpoint: the import fills them from the
+/// Endpoint line, so they differ from it only when the user changed them. An IPv6 server goes in brackets.
+-(NSString*)wgConfigWithEndpointFromFields:(NSString*)config {
+    NSCharacterSet *space = NSCharacterSet.whitespaceAndNewlineCharacterSet;
+    // The fields as typed (an empty Port keeps the file's port; the getter would give the hint)
+    NSString *server = [_server stringByTrimmingCharactersInSet:space] ?: @"";
+    NSString *port = [_port stringByTrimmingCharactersInSet:space] ?: @"";
+    if (server.length == 0 && port.length == 0) {
+        return config;
+    }
+    NSRegularExpression *endpoint = [NSRegularExpression regularExpressionWithPattern:@"^([ \\t]*Endpoint[ \\t]*=[ \\t]*)(\\[[^\\]]*\\]|[^\\s#;]*?)(?::(\\d+))?[ \\t]*$"
+                                                                              options:NSRegularExpressionAnchorsMatchLines | NSRegularExpressionCaseInsensitive error:nil];
+    NSTextCheckingResult *match = [endpoint firstMatchInString:config options:0 range:NSMakeRange(0, config.length)];
+    if (!match) {
+        return config;
+    }
+    NSString *host = server.length > 0 ? server : [config substringWithRange:[match rangeAtIndex:2]];
+    if ([host containsString:@":"] && ![host hasPrefix:@"["]) {
+        host = [NSString stringWithFormat:@"[%@]", host];
+    }
+    NSRange portRange = [match rangeAtIndex:3];
+    NSString *value = port.length > 0 ? port : (portRange.location != NSNotFound ? [config substringWithRange:portRange] : @"51820");
+    NSString *line = [NSString stringWithFormat:@"%@%@:%@", [config substringWithRange:[match rangeAtIndex:1]], host, value];
+    return [config stringByReplacingCharactersInRange:match.range withString:line];
+}
+
 -(NSString*)wgEffectiveConfig {
     if (_wgConfig.length > 0) {
-        return _wgConfig;
+        return [_protocolType isEqualToString:@"wireguard"] ? [self wgConfigWithEndpointFromFields:_wgConfig] : _wgConfig;
     }
     if (_wgPrivateKey.length == 0 || _wgPeerPublicKey.length == 0 ||
         _wgAddress.length == 0 || self.server.length == 0) {

@@ -15,6 +15,7 @@
 #import "SRPWaterWallChainConfig.h"
 #import "SSFragTLSChannel.h"
 #import "SRPOpenVPNClient.h"
+#import "SRPWireGuardClient.h"
 #import <NetworkExtension/NetworkExtension.h>
 #import "SRPCertificateStore.h"
 #import "SRPGeoIPDatabase.h"
@@ -3717,6 +3718,94 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 #pragma clang diagnostic pop
 }
 
+// WireGuard: what the client reads from the engine to see a handshake and a server that stopped answering
+- (void)testWireGuardPeerStateFromEngine {
+    NSString *uapi = @"private_key=0011\nlisten_port=51000\npublic_key=aabb\npreshared_key=ccdd\nprotocol_version=1\n"
+                      "endpoint=192.0.2.7:51820\nlast_handshake_time_sec=1794170000\nlast_handshake_time_nsec=12\n"
+                      "tx_bytes=1480\nrx_bytes=92\npersistent_keepalive_interval=25\nallowed_ip=0.0.0.0/0\nerrno=0\n";
+    NSDictionary *state = [SRPWireGuardClient peerStateFromUAPI:uapi];
+    XCTAssertEqualObjects(state, (@{@"last_handshake_time_sec": @1794170000, @"tx_bytes": @1480, @"rx_bytes": @92}));
+    // No peer yet: nothing to judge by
+    XCTAssertNil([SRPWireGuardClient peerStateFromUAPI:@"private_key=0011\nlisten_port=51000\nerrno=0\n"]);
+}
+
+// WireGuard: the editor's Server and Port replace an imported config's Endpoint (the import fills them from it);
+// AmneziaWG keeps its file as it is
+- (void)testWireGuardServerAndPortReplaceTheImportedEndpoint {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"wireguard";
+    model.wgConfig = @"[Interface]\nPrivateKey = a\nAddress = 10.66.66.2/32\n\n[Peer]\nPublicKey = b\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0\n";
+    model.server = @"vpn.example.com";
+    model.port = @"51820";
+    XCTAssertEqualObjects([model wgEffectiveConfig], model.wgConfig);
+    model.port = @"51821";
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51821\n"]);
+    model.server = @"203.0.113.9";
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = 203.0.113.9:51821\n"]);
+    model.server = @"2001:db8::7";
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = [2001:db8::7]:51821\n"]);
+    // Empty fields: the file's own Endpoint
+    model.server = @"";
+    model.port = @"";
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51820\n"]);
+    model.protocolType = @"amnezia";
+    model.port = @"51821";
+    XCTAssertEqualObjects([model wgEffectiveConfig], model.wgConfig);
+    // Manual configuration without a Port: WireGuard's own port, as the field's hint says
+    NodeModel *manual = [NodeModel new];
+    manual.protocolType = @"wireguard";
+    manual.server = @"vpn.example.com";
+    manual.wgPrivateKey = @"a";
+    manual.wgPeerPublicKey = @"b";
+    manual.wgAddress = @"10.66.66.2/32";
+    XCTAssertTrue([[manual wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51820\n"]);
+}
+
+// WireGuard's import (Import Config (.conf) ends in handleImportedText:mode: "wg"): Server and Port from the Endpoint line, a
+// file without [Interface] and [Peer] refused
+- (void)testWireGuardEditorImportsAConfig {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"wireguard" toModel:model];
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UIViewController *editor = [self profileEditorOfHost:create];
+    NodeModel *edited = [editor valueForKey:@"modal"];
+    XCTAssertNotNil(edited);
+    NSString *conf = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\n\n"
+                      "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = vpn.example.com:51821\nAllowedIPs = 0.0.0.0/0\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    SEL import = NSSelectorFromString(@"handleImportedText:mode:");
+    [editor performSelector:import withObject:conf withObject:@"wg"];
+    XCTAssertEqualObjects(edited.wgConfig, conf);
+    XCTAssertEqualObjects(edited.server, @"vpn.example.com");
+    XCTAssertEqualObjects(edited.port, @"51821");
+    [editor performSelector:import withObject:@"[Interface]\nPrivateKey = x\n" withObject:@"wg"];
+    XCTAssertEqualObjects(edited.wgConfig, conf);
+#pragma clang diagnostic pop
+}
+
+// WireGuard's options: Auto Reconnect (+Retry Times), On Sleep and Log Level; no Switch to Wi-Fi (WireGuard follows the
+// phone's network by itself). AmneziaWG keeps Log Level only.
+- (void)testWireGuardOptions {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"wireguard" toModel:model];
+    model.autoReconnect = YES;
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level"]));
+    NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
+    XCTAssertTrue([footer containsString:@"no Switch to Wi-Fi option"]);
+    UISwitch *reconnect = [self optionControlTitled:@"Auto Reconnect" inEditor:editor];
+    reconnect.on = NO;
+    [reconnect sendActionsForControlEvents:UIControlEventValueChanged];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], (@[@"Auto Reconnect", @"On Sleep", @"Log Level"]));
+
+    NodeModel *amnezia = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"amnezia" toModel:amnezia];
+    CreateVC *other = [self profileEditorHostForModel:amnezia saved:[NSMutableArray new]];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:(UITableViewController *)[self profileEditorOfHost:other]], (@[@"Log Level"]));
+}
+
 // An SSH profile without a port uses SSH's own port; other protocols keep theirs
 - (void)testSSHProfileWithoutPortUsesPort22 {
     NodeModel *model = [NodeModel new];
@@ -5858,6 +5947,83 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
     shoot(create, @"certificate-profile");
     [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:udp] animated:NO];
+    shoot(nil, @"protocol");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+// The WireGuard screens of the tutorial (tutorial/wireguard/app-setup.html), rendered from the real editor with example profiles.
+- (void)testWireGuardDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-wireguard"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    // Example profiles with example keys (32 bytes of 1, 2 and 3): the editor shows only that a file is imported
+    NodeModel *(^profile)(NSString *, NSString *) = ^NodeModel *(NSString *description, NSString *port) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"wireguard" toModel:model];
+        model.desc = description;
+        model.server = @"vpn.example.com";
+        model.port = port;
+        return model;
+    };
+    NodeModel *imported = profile(@"Example: WireGuard (imported file)", @"51820");
+    imported.wgConfig = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\nDNS = 1.1.1.1\n\n"
+                         "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0\n";
+    NodeModel *manual = profile(@"Example: WireGuard (keys entered)", @"51820");
+    manual.wgPrivateKey = @"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=";
+    manual.wgAddress = @"10.66.66.3/32";
+    manual.wgDNS = @"1.1.1.1, 8.8.8.8";
+    manual.wgPeerPublicKey = @"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=";
+    manual.wgPresharedKey = @"BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=";
+    manual.wgKeepalive = 25;
+    NodeModel *split = profile(@"Example: WireGuard on another port", @"51821");
+    split.wgConfig = [imported.wgConfig stringByReplacingOccurrencesOfString:@":51820" withString:@":51821"];
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[imported, manual, split]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    CreateVC *create = [self profileEditorHostForModel:imported saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+    [editorTable reloadData];
+    shoot(create, @"profile-editor");
+    // Estimated row heights leave the content size short until the last rows have been laid out once
+    NSInteger last = editorTable.numberOfSections - 1;
+    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[editorTable numberOfRowsInSection:last] - 1 inSection:last]
+                       atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
+    [self scrollTableToEnd:editorTable];
+    shoot(nil, @"options");
+
+    CreateVC *manualHost = [self profileEditorHostForModel:manual saved:[NSMutableArray new]];
+    UINavigationController *manualNavigation = (UINavigationController *)manualHost.childViewControllers.firstObject;
+    shoot(manualHost, @"manual-profile");
+    [manualNavigation pushViewController:[[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:manual] animated:NO];
+    shoot(nil, @"manual-configuration");
+    [manualNavigation popViewControllerAnimated:NO];
+    [manualNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:manual] animated:NO];
     shoot(nil, @"protocol");
 
     window.hidden = YES;

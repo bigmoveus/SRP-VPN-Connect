@@ -6,6 +6,7 @@
 #import "SRPWireGuardClient.h"
 #import "SSLog.h"
 #import <NetworkExtension/NetworkExtension.h>
+#import <Network/Network.h>
 #import <arpa/inet.h>
 #import <netdb.h>
 #import <sys/ioctl.h>
@@ -227,6 +228,27 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
     NSString *_uapi;         // prepared UAPI settings (keys are hex)
     int32_t _handle;         // wireguard-go tunnel handle, -1 when down
     dispatch_queue_t _worker;
+    // activateAndWaitForHandshake: (the WireGuard protocol), all on _worker
+    SRPWGConfig *_cfg;
+    NSString *_endpointIP;
+    NSString *_peerHex;
+    BOOL _managed;           // the session is watched (handshake, silence, sleep, network changes)
+    BOOL _up;                // the first handshake happened
+    BOOL _reconnecting;
+    BOOL _paused;            // closed for sleep (On Sleep Pause or Off)
+    BOOL _closed;
+    BOOL _keepaliveTemp;     // a keepalive switched on only to start a handshake
+    BOOL _peerFresh;         // the device was just turned on: its peer has sent nothing yet
+    NSInteger _attempts;
+    CFAbsoluteTime _attemptStart;
+    long long _handshakeBefore;
+    void (^_activateCompletion)(NSString *);
+    dispatch_source_t _pollTimer;
+    dispatch_source_t _monitorTimer;
+    NSMutableArray<NSArray<NSNumber *> *> *_samples;   // (time, rx, tx) every 5 s
+    CFAbsoluteTime _lastCounterLine;
+    nw_path_monitor_t _pathMonitor;
+    NSString *_pathKey;
 }
 
 - (instancetype)init {
@@ -267,6 +289,12 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
         _failureCb(@"Invalid WireGuard config: a key is not valid base64 (32 bytes).");
         return;
     }
+    _cfg = cfg;
+    _endpointIP = endpointIP;
+    _peerHex = pubHex;
+    SSLogM(@"WireGuard: connecting to %@ (%@) port %ld over UDP, keepalive %@, preshared key %@", cfg.endpointHost, endpointIP,
+           (long)cfg.endpointPort, cfg.keepalive > 0 ? [NSString stringWithFormat:@"%ld s", (long)cfg.keepalive] : @"off",
+           cfg.presharedKey.length > 0 ? @"yes" : @"no");
 
     // UAPI settings (one peer)
     NSMutableString *uapi = [NSMutableString new];
@@ -311,6 +339,22 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
 }
 
 - (BOOL)activateWithError:(NSError **)error {
+    return [self turnOnWithoutKeepalive:NO error:error];
+}
+
+/// The settings without the peer's keepalive: a device that starts with one sends a handshake initiation at once, and a
+/// second one from the first attempt within the same few milliseconds is dropped by the server as a replay
+- (NSString *)uapiWithoutKeepaliveLocked {
+    NSMutableArray<NSString *> *lines = [NSMutableArray new];
+    for (NSString *line in [_uapi componentsSeparatedByString:@"\n"]) {
+        if (![line hasPrefix:@"persistent_keepalive_interval="]) {
+            [lines addObject:line];
+        }
+    }
+    return [lines componentsJoinedByString:@"\n"];
+}
+
+- (BOOL)turnOnWithoutKeepalive:(BOOL)withoutKeepalive error:(NSError **)error {
     __block BOOL ok = NO;
     __block NSString *msg = nil;
     dispatch_sync(_worker, ^{
@@ -323,8 +367,9 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
             msg = @"WireGuard: the tunnel interface (utun) was not found — were the network settings applied?";
             return;
         }
-        int32_t handle = self->_amnezia ? awgTurnOn(self->_uapi.UTF8String, fd)
-                                        : wgTurnOn(self->_uapi.UTF8String, fd);
+        NSString *settings = withoutKeepalive ? [self uapiWithoutKeepaliveLocked] : self->_uapi;
+        int32_t handle = self->_amnezia ? awgTurnOn(settings.UTF8String, fd)
+                                        : wgTurnOn(settings.UTF8String, fd);
         if (handle < 0) {
             msg = @"WireGuard: the engine refused the configuration (see log).";
             return;
@@ -422,6 +467,7 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
 
 - (void)close {
     dispatch_async(_worker, ^{
+        [self stopWatchingLocked];
         if (self->_handle >= 0) {
             if (self->_amnezia) awgTurnOff(self->_handle); else wgTurnOff(self->_handle);
             self->_handle = -1;
@@ -431,6 +477,7 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
 
 - (void)closeAndWait {
     dispatch_sync(_worker, ^{
+        [self stopWatchingLocked];
         if (self->_handle >= 0) {
             if (self->_amnezia) awgTurnOff(self->_handle); else wgTurnOff(self->_handle);
             self->_handle = -1;
@@ -439,11 +486,26 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
 }
 
 - (void)pauseForSleep {
-    // Nothing to do: WireGuard tolerates sleep; sockets are re-bound on wake.
+    // Called for On Sleep Pause and Off. Unwatched (Aether): nothing to do, sockets are re-bound on wake.
+    dispatch_async(_worker, ^{
+        if (!self->_managed || self->_handle < 0 || self->_paused) {
+            return;
+        }
+        [self cancelTimer:&self->_pollTimer];
+        [self cancelTimer:&self->_monitorTimer];
+        wgTurnOff(self->_handle);
+        self->_handle = -1;
+        self->_paused = YES;
+        SSLogM(@"WireGuard: closed for sleep (On Sleep %@)", self->_onSleep == 0 ? @"Off" : @"Pause");
+    });
 }
 
 - (void)wakeFromSleep {
     dispatch_async(_worker, ^{
+        if (self->_managed && self->_paused) {
+            [self wakeFromPauseLocked];
+            return;
+        }
         if (self->_handle >= 0) {
             if (self->_amnezia) {
                 awgBumpSockets(self->_handle);
@@ -455,6 +517,358 @@ static void SRPWGLogToObjC(void *ctx, int level, const char *msg) {
             SSLogM(@"WireGuard: wake — sockets re-bound");
         }
     });
+}
+
+#pragma mark - The WireGuard protocol: handshake, session watch, sleep and network changes
+
+/// Two handshake initiations: wireguard-go sends one at once and retries every 5 seconds
+static const CFAbsoluteTime SRPWGAttemptSeconds = 10;
+/// Nothing back for this long while the phone sends: the server stopped answering. A live server answers every data
+/// packet within 10 s (a passive keepalive at the latest), and re-handshakes every 2 minutes.
+static const CFAbsoluteTime SRPWGSilenceSeconds = 30;
+/// Sent bytes that are more than keepalives (32 bytes each): two handshake initiations (148 bytes each) or data
+static const long long SRPWGSilenceSentBytes = 296;
+
++ (NSDictionary<NSString *, NSNumber *> *)peerStateFromUAPI:(NSString *)uapi {
+    NSMutableDictionary<NSString *, NSNumber *> *state = [NSMutableDictionary new];
+    for (NSString *line in [uapi componentsSeparatedByString:@"\n"]) {
+        NSRange equals = [line rangeOfString:@"="];
+        if (equals.location == NSNotFound) {
+            continue;
+        }
+        NSString *key = [line substringToIndex:equals.location];
+        if ([key isEqualToString:@"last_handshake_time_sec"] || [key isEqualToString:@"rx_bytes"] || [key isEqualToString:@"tx_bytes"]) {
+            state[key] = @([[line substringFromIndex:equals.location + 1] longLongValue]);
+        }
+    }
+    return state.count == 3 ? state : nil;
+}
+
+- (NSDictionary<NSString *, NSNumber *> *)peerStateLocked {
+    if (_handle < 0) {
+        return nil;
+    }
+    char *raw = wgGetConfig(_handle);
+    if (!raw) {
+        return nil;
+    }
+    NSString *text = [NSString stringWithUTF8String:raw];   // holds the private key: parsed here, never logged
+    free(raw);
+    return text ? [SRPWireGuardClient peerStateFromUAPI:text] : nil;
+}
+
+- (void)setPeerLocked:(NSString *)line {
+    if (_handle < 0) {
+        return;
+    }
+    NSString *uapi = [NSString stringWithFormat:@"public_key=%@\nupdate_only=true\n%@\n", _peerHex, line];
+    wgSetConfig(_handle, uapi.UTF8String);
+}
+
+- (dispatch_source_t)timerEvery:(NSTimeInterval)seconds handler:(dispatch_block_t)handler {
+    dispatch_source_t timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
+    dispatch_source_set_timer(timer, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)),
+                              (uint64_t)(seconds * NSEC_PER_SEC), (uint64_t)(0.05 * NSEC_PER_SEC));
+    dispatch_source_set_event_handler(timer, handler);
+    dispatch_resume(timer);
+    return timer;
+}
+
+- (void)cancelTimer:(dispatch_source_t __strong *)timer {
+    if (*timer) {
+        dispatch_source_cancel(*timer);
+        *timer = nil;
+    }
+}
+
+- (void)stopWatchingLocked {
+    _closed = YES;
+    [self cancelTimer:&_pollTimer];
+    [self cancelTimer:&_monitorTimer];
+    if (_pathMonitor) {
+        nw_path_monitor_cancel(_pathMonitor);
+        _pathMonitor = nil;
+    }
+}
+
+- (void)activateAndWaitForHandshake:(void (^)(NSString *))completion {
+    NSError *error = nil;
+    if (![self turnOnWithoutKeepalive:YES error:&error]) {
+        completion(error.localizedDescription ?: @"WireGuard failed to start");
+        return;
+    }
+    dispatch_async(_worker, ^{
+        self->_managed = YES;
+        self->_peerFresh = YES;
+        self->_activateCompletion = [completion copy];
+        self->_attempts = 0;
+        [self startPathMonitorLocked];
+        [self startAttemptLocked];
+    });
+}
+
+/// Retry Times: before the first handshake 1 attempt, or 1 + Retry Times with Auto Reconnect (as the other protocols
+/// try their remotes); afterwards Retry Times attempts (0 = no limit), one without Auto Reconnect (a wake from Pause)
+- (NSInteger)attemptBudgetLocked {
+    if (!_up) {
+        return (_autoReconnect && _retryTimes > 0) ? 1 + _retryTimes : 1;
+    }
+    if (!_autoReconnect) {
+        return 1;
+    }
+    return _retryTimes > 0 ? _retryTimes : NSIntegerMax;
+}
+
+/// One attempt: a persistent keepalive switched on (from 0) makes wireguard-go send a handshake initiation at once. On a
+/// device just turned on that is all; later attempts set the peer up afresh, without the session it had (after a server
+/// restart the phone's old session key would only be dropped, and wireguard-go would re-handshake on its own only 2
+/// minutes later).
+- (void)startAttemptLocked {
+    if (_closed || _handle < 0) {
+        return;
+    }
+    _attempts++;
+    _attemptStart = CFAbsoluteTimeGetCurrent();
+    if (_peerFresh) {
+        _peerFresh = NO;
+        [self setPeerLocked:[NSString stringWithFormat:@"persistent_keepalive_interval=%ld", (long)(_cfg.keepalive > 0 ? _cfg.keepalive : 25)]];
+        _keepaliveTemp = _cfg.keepalive == 0;
+        _handshakeBefore = [[self peerStateLocked][@"last_handshake_time_sec"] longLongValue];
+        if (_attempts > 1 || _up) {
+            SSLogM(@"WireGuard: handshake attempt %ld", (long)_attempts);
+        }
+        [self cancelTimer:&_pollTimer];
+        __weak SRPWireGuardClient *weakSelf = self;
+        _pollTimer = [self timerEvery:0.25 handler:^{ [weakSelf pollAttemptLocked]; }];
+        return;
+    }
+    NSMutableString *peer = [NSMutableString stringWithFormat:@"replace_peers=true\npublic_key=%@\n", _peerHex];
+    if (_cfg.presharedKey.length > 0) {
+        [peer appendFormat:@"preshared_key=%@\n", SRPWGBase64ToHex(_cfg.presharedKey)];
+    }
+    [peer appendFormat:@"endpoint=%@:%ld\n", _endpointIP, (long)_cfg.endpointPort];
+    for (NSString *ip in _cfg.allowedIPs) {
+        [peer appendFormat:@"allowed_ip=%@\n", ip];
+    }
+    [peer appendFormat:@"persistent_keepalive_interval=%ld\n", (long)(_cfg.keepalive > 0 ? _cfg.keepalive : 25)];
+    wgSetConfig(_handle, peer.UTF8String);
+    _keepaliveTemp = _cfg.keepalive == 0;
+    _handshakeBefore = [[self peerStateLocked][@"last_handshake_time_sec"] longLongValue];
+    if (_attempts > 1 || _up) {
+        SSLogM(@"WireGuard: handshake attempt %ld", (long)_attempts);
+    }
+    [self cancelTimer:&_pollTimer];
+    __weak SRPWireGuardClient *weakSelf = self;
+    _pollTimer = [self timerEvery:0.25 handler:^{ [weakSelf pollAttemptLocked]; }];
+}
+
+- (void)restoreKeepaliveLocked {
+    if (_keepaliveTemp) {
+        [self setPeerLocked:@"persistent_keepalive_interval=0"];
+        _keepaliveTemp = NO;
+    }
+}
+
+- (void)pollAttemptLocked {
+    NSDictionary<NSString *, NSNumber *> *state = [self peerStateLocked];
+    CFAbsoluteTime waited = CFAbsoluteTimeGetCurrent() - _attemptStart;
+    if (state && [state[@"last_handshake_time_sec"] longLongValue] > _handshakeBefore) {
+        [self cancelTimer:&_pollTimer];
+        [self restoreKeepaliveLocked];
+        if (!_up) {
+            _up = YES;
+            SSLogM(@"WireGuard: session established: handshake with %@:%ld after %.1f s", _cfg.endpointHost, (long)_cfg.endpointPort, waited);
+            void (^completion)(NSString *) = _activateCompletion;
+            _activateCompletion = nil;
+            if (completion) {
+                completion(nil);
+            }
+        } else {
+            SSLogM(@"WireGuard: the server answers again: handshake after %.1f s (attempt %ld)", waited, (long)_attempts);
+        }
+        _reconnecting = NO;
+        _attempts = 0;
+        [self startMonitorLocked];
+        return;
+    }
+    if (waited < SRPWGAttemptSeconds) {
+        return;
+    }
+    [self cancelTimer:&_pollTimer];
+    SSLogM(@"WireGuard: no handshake in %.0f seconds (attempt %ld)", SRPWGAttemptSeconds, (long)_attempts);
+    if (_attempts < [self attemptBudgetLocked] && !_closed) {
+        [self refreshEndpointLocked];
+        [self startAttemptLocked];
+        return;
+    }
+    [self restoreKeepaliveLocked];
+    NSString *reason = [NSString stringWithFormat:@"The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port %ld may be closed.", (long)_cfg.endpointPort];
+    if (_attempts > 1) {
+        reason = [NSString stringWithFormat:@"Could not %@ after %ld attempt%@. (The server did not answer the WireGuard handshake.)",
+                  _up ? @"reconnect" : @"connect", (long)_attempts, _attempts == 1 ? @"" : @"s"];
+    } else if (_up) {
+        reason = @"Could not reconnect: the server did not answer the WireGuard handshake.";
+    }
+    if (!_up) {
+        SSLogM(@"WireGuard: closing with reason: %@", reason);
+        void (^completion)(NSString *) = _activateCompletion;
+        _activateCompletion = nil;
+        if (completion) {
+            completion(reason);
+        }
+        return;
+    }
+    [self giveUpLocked:reason];
+}
+
+- (void)giveUpLocked:(NSString *)reason {
+    SSLogM(@"WireGuard: closing with reason: %@", reason);
+    [self stopWatchingLocked];
+    if (_handle >= 0) {
+        wgTurnOff(_handle);
+        _handle = -1;
+    }
+    if (_lostCallback) {
+        _lostCallback(reason);
+    }
+}
+
+- (void)startMonitorLocked {
+    [self cancelTimer:&_monitorTimer];
+    _samples = [NSMutableArray new];
+    _lastCounterLine = CFAbsoluteTimeGetCurrent();
+    __weak SRPWireGuardClient *weakSelf = self;
+    _monitorTimer = [self timerEvery:5 handler:^{ [weakSelf monitorLocked]; }];
+}
+
+- (void)monitorLocked {
+    if (_reconnecting || _paused || _handle < 0) {
+        return;
+    }
+    NSDictionary<NSString *, NSNumber *> *state = [self peerStateLocked];
+    if (!state) {
+        return;
+    }
+    CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+    long long rx = [state[@"rx_bytes"] longLongValue], tx = [state[@"tx_bytes"] longLongValue];
+    [_samples addObject:@[@(now), @(rx), @(tx)]];
+    while (_samples.count > 0 && now - _samples.firstObject[0].doubleValue > 60) {
+        [_samples removeObjectAtIndex:0];
+    }
+    if (_logLevel >= 1 && now - _lastCounterLine >= 30) {
+        _lastCounterLine = now;
+        long long handshake = [state[@"last_handshake_time_sec"] longLongValue];
+        SSLogM(@"WireGuard: last handshake %lld s ago, received %lld bytes, sent %lld bytes",
+               handshake > 0 ? (long long)NSDate.date.timeIntervalSince1970 - handshake : -1, rx, tx);
+    }
+    NSArray<NSNumber *> *base = nil;
+    for (NSArray<NSNumber *> *sample in _samples) {
+        if (now - sample[0].doubleValue >= SRPWGSilenceSeconds) {
+            base = sample;
+        }
+    }
+    if (base && rx == base[1].longLongValue && tx - base[2].longLongValue >= SRPWGSilenceSentBytes) {
+        [self peerLostLocked];
+    }
+}
+
+- (void)peerLostLocked {
+    NSString *reason = [NSString stringWithFormat:@"The server stopped answering: nothing came back for %.0f seconds", SRPWGSilenceSeconds];
+    SSLogM(@"WireGuard: %@", reason);
+    if (!_autoReconnect) {
+        [self giveUpLocked:[reason stringByAppendingString:@" (auto reconnect is off)."]];
+        return;
+    }
+    [self cancelTimer:&_monitorTimer];
+    _reconnecting = YES;
+    _attempts = 0;
+    [self refreshEndpointLocked];
+    [self startAttemptLocked];
+}
+
+/// The endpoint's name may point elsewhere now (or resolve differently on the new network); the sockets move to the
+/// network the phone uses now, as the official WireGuard app does on every network change
+- (void)refreshEndpointLocked {
+    if (_handle < 0) {
+        return;
+    }
+    NSString *ip = SRPWGResolveIPv4(_cfg.endpointHost);
+    if (ip && ![ip isEqualToString:_endpointIP]) {
+        SSLogM(@"WireGuard: %@ is now %@", _cfg.endpointHost, ip);
+        _endpointIP = ip;
+        [self setPeerLocked:[NSString stringWithFormat:@"endpoint=%@:%ld", ip, (long)_cfg.endpointPort]];
+        if (_settingsCb) {
+            _settingsCb([self buildSettingsFromConfig:_cfg endpointIP:ip]);
+        }
+    }
+    wgBumpSockets(_handle);
+}
+
+- (void)startPathMonitorLocked {
+    if (_pathMonitor) {
+        return;
+    }
+    _pathMonitor = nw_path_monitor_create();
+    nw_path_monitor_set_queue(_pathMonitor, _worker);
+    __weak SRPWireGuardClient *weakSelf = self;
+    nw_path_monitor_set_update_handler(_pathMonitor, ^(nw_path_t path) {
+        [weakSelf pathUpdatedLocked:path];
+    });
+    nw_path_monitor_start(_pathMonitor);
+}
+
+- (void)pathUpdatedLocked:(nw_path_t)path {
+    if (nw_path_get_status(path) != nw_path_status_satisfied) {
+        return;
+    }
+    NSMutableArray<NSString *> *names = [NSMutableArray new];
+    nw_path_enumerate_interfaces(path, ^bool(nw_interface_t interface) {
+        [names addObject:@(nw_interface_get_name(interface))];
+        return true;
+    });
+    NSString *key = [names componentsJoinedByString:@","];
+    BOOL first = _pathKey == nil;
+    BOOL changed = ![key isEqualToString:_pathKey];
+    _pathKey = key;
+    if (first || !changed || _handle < 0 || _paused) {
+        return;
+    }
+    NSString *kind = nw_path_uses_interface_type(path, nw_interface_type_wifi) ? @"Wi-Fi" :
+                     nw_path_uses_interface_type(path, nw_interface_type_cellular) ? @"cellular" : key;
+    SSLogM(@"WireGuard: network changed (%@): the sockets move to it", kind);
+    [self refreshEndpointLocked];
+    wgDisableSomeRoamingForBrokenMobileSemantics(_handle);
+}
+
+- (void)switchNetworkPath {
+    dispatch_async(_worker, ^{
+        if (!self->_managed || self->_handle < 0) {
+            return;
+        }
+        SSLogM(@"WireGuard: re-binding the sockets on the current network");
+        [self refreshEndpointLocked];
+        wgDisableSomeRoamingForBrokenMobileSemantics(self->_handle);
+    });
+}
+
+- (void)wakeFromPauseLocked {
+    _paused = NO;
+    if (_onSleep == 0 && !_autoReconnect) {
+        [self giveUpLocked:@"The connection was closed while the device slept."];
+        return;
+    }
+    SSLogM(@"WireGuard: awake: connecting again");
+    int fd = SRPWGFindUTUNFd();
+    int32_t handle = fd >= 0 ? wgTurnOn([self uapiWithoutKeepaliveLocked].UTF8String, fd) : -1;
+    if (handle < 0) {
+        [self giveUpLocked:@"WireGuard could not start again after sleep."];
+        return;
+    }
+    _handle = handle;
+    _reconnecting = YES;
+    _peerFresh = YES;
+    _attempts = 0;
+    [self startAttemptLocked];
 }
 
 - (void)dealloc {

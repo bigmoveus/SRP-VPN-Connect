@@ -232,6 +232,11 @@ static const NSInteger kFieldPsiphonEntry = 34;
     return [self.modal.protocolType isEqualToString:@"wireguard"] || [self.modal.protocolType isEqualToString:@"amnezia"];
 }
 
+/// WireGuard itself, without AmneziaWG
+- (BOOL)isPlainWireGuard {
+    return [self.modal.protocolType isEqualToString:@"wireguard"];
+}
+
 - (BOOL)isAether {
     return [self.modal.protocolType isEqualToString:@"aether"];
 }
@@ -819,6 +824,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         }
         return @"Public mode connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit.";
     }
+    if (section == 1 && [self isPlainWireGuard]) {
+        return @"Import a .conf file (wg-quick format) or enter the keys manually under Manual Configuration. Server and Port are filled from the Endpoint line on import; changed, they replace it. WireGuard runs over UDP.";
+    }
     if (section == 1 && [self isWireGuard]) {
         return @"Import a .conf file (wg-quick format) or enter the keys manually under Manual Configuration. Server and Port are filled from the Endpoint line on import. WireGuard runs over UDP.";
     }
@@ -883,6 +891,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             return [base stringByAppendingString:@" MASQUE H2 runs over TCP+TLS (useful where QUIC/UDP is filtered); TLS Fragmentation splits the handshake's ClientHello into smaller writes — Auto picks safe sizes and splits at the SNI, Manual sets the byte range."];
         }
         return base;
+    }
+    if (section == 4 && [self isPlainWireGuard]) {
+        return @"WireGuard counts as connected once the server answered its handshake. When nothing comes back for 30 seconds while the phone sends, the server stopped answering: Auto Reconnect starts new handshakes, 10 seconds each, and Retry Times limits them (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. On Sleep: Off closes the connection while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. WireGuard always uses the network the phone uses: when Wi-Fi appears, its packets go over Wi-Fi by themselves, so there is no Switch to Wi-Fi option.";
     }
     if (section == 4 && [self isWireGuard]) {
         return @"WireGuard is stateless over UDP: roaming, retries and sleep/wake are built into the protocol — only Log Level applies.";
@@ -989,6 +1000,10 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
                 return (self.modal.autoReconnect ? 6 : 5) - ([self waterWallOffersAutoSwitch] ? 0 : 1) +
                        (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) + (routing ? 2 : 0);
+            }
+            if ([self isPlainWireGuard]) {
+                // Auto Reconnect (+Retry Times when on), On Sleep, Log Level
+                return self.modal.autoReconnect ? 4 : 3;
             }
             if ([self isWireGuard] || [self isPsiphon]) {
                 // Log Level only — WireGuard/AmneziaWG roam and retry by
@@ -1495,6 +1510,30 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             if (routing && shifted == routingRow + 1) {
                 return [self switchCellWithTitle:@"Direct LAN Routing" on:self.modal.waterwallSmartRouting tag:kSwitchWWSmartRouting];
+            }
+            return [UITableViewCell new];
+        }
+        if ([self isPlainWireGuard]) {
+            // Auto Reconnect (+Retry Times), On Sleep, Log Level; WireGuard always follows the phone's network
+            BOOL ar = self.modal.autoReconnect;
+            NSInteger row = indexPath.row;
+            if (row == 0) {
+                return [self switchCellWithTitle:@"Auto Reconnect" on:self.modal.autoReconnect tag:kSwitchAutoReconnect];
+            }
+            if (ar && row == 1) {
+                return [self textCellWithTitle:@"Retry Times"
+                                          text:(self.modal.retryTimes > 0 ? @(self.modal.retryTimes).stringValue : nil)
+                                   placeholder:@"Unlimited"
+                                           tag:kFieldRetryTimes keyboardType:UIKeyboardTypeNumberPad secure:NO];
+            }
+            NSInteger shifted = ar ? row : row + 1;
+            if (shifted == 2) {
+                return [self segmentCellWithTitle:@"On Sleep" items:@[@"Off", @"Pause", @"Stay"]
+                                         selected:self.modal.onSleep action:@selector(onSleepChanged:) tag:kSegmentOnSleep];
+            }
+            if (shifted == 3) {
+                return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
+                                         selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
             }
             return [UITableViewCell new];
         }

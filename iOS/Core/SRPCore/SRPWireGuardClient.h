@@ -41,6 +41,29 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 /// setTunnelNetworkSettings completed. error holds a readable message.
 - (BOOL)activateWithError:(NSError **)error;
 
+/// The profile's options, for activateAndWaitForHandshake: (the WireGuard protocol; Aether and AmneziaWG keep
+/// activateWithError:). Retry Times 0 = no limit. On Sleep: 0 Off, 1 Pause, 2 Stay.
+@property (nonatomic) BOOL autoReconnect;
+@property (nonatomic) NSInteger retryTimes;
+@property (nonatomic) NSInteger onSleep;
+/// After the VPN is up: the connection broke for good (reconnects ran out, Auto Reconnect off, or On Sleep Off).
+@property (nonatomic, copy, nullable) SRPWGFailureCallback lostCallback;
+
+/// Attaches wireguard-go to the utun fd like activateWithError:, then waits for the first handshake: WireGuard
+/// answers nothing to a wrong key, so only a handshake shows the server took the phone. completion(nil) once it
+/// happened; completion(reason) when no attempt got one (one attempt of 10 s, or 1 + Retry Times with Auto
+/// Reconnect). Afterwards the client watches the session: nothing coming back for 30 s while the phone sends means
+/// the server stopped answering (Auto Reconnect tries again, else lostCallback); network changes re-bind the
+/// sockets; On Sleep Pause and Off close the device at sleep.
+- (void)activateAndWaitForHandshake:(void (^)(NSString * _Nullable failureReason))completion;
+
+/// What a network change does (the debug build's path-switch test command): re-resolve the endpoint and re-bind
+/// the sockets on the current network.
+- (void)switchNetworkPath;
+
+/// The peer's last_handshake_time_sec, rx_bytes and tx_bytes from a UAPI get (wgGetConfig).
++ (nullable NSDictionary<NSString *, NSNumber *> *)peerStateFromUAPI:(NSString *)uapi;
+
 /// Manual close (user disconnect).
 - (void)close;
 /// Synchronous close for stopTunnelWithReason:.
