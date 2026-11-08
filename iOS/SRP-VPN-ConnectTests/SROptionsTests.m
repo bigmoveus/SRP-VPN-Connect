@@ -18,6 +18,8 @@
 #import "SRPGeoIPDatabase.h"
 #import "SRPProfileLatencyTester.h"
 #import <SRPParser/PDVPNManager.h>
+#import <CommonCrypto/CommonDigest.h>
+#include "../LwIP/lwip/include/netif/ppp/srp_utf16le.h"
 
 @interface SRPGeoIPTestStore : SRPGeoIPDatabase
 @property (nonatomic, strong) NSURL *fixtureURL;
@@ -3670,6 +3672,49 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:nil]);
     XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:@"!!!"]);
     XCTAssertNil([PDVPNManager credentialsFromTunnelURIUser:[PDBase64 encode:@"no colon"]]);
+}
+
+/// MS-CHAP hashes the password as UTF-16LE (srp_utf16le.h, used by lwIP's chap_ms.c and by the SSTP crypto binding):
+/// RFC 2759's example, a Persian password with a Latin-1 letter and an emoji (reference values from Python's
+/// encode("utf-16-le") and MD4), bytes that are not UTF-8 (one character per byte, as before) and a full buffer.
+- (void)testMsChapPasswordIsHashedAsUTF16LE {
+    NSData *(^utf16)(NSData *, int) = ^NSData *(NSData *in, int room) {
+        unsigned char out[512];
+        int written = srp_utf8_to_utf16le(in.bytes, (int)in.length, out, MIN(room, (int)sizeof(out)));
+        return [NSData dataWithBytes:out length:(NSUInteger)written];
+    };
+    NSString *(^hex)(NSData *) = ^NSString *(NSData *data) {
+        NSMutableString *text = [NSMutableString new];
+        const unsigned char *bytes = data.bytes;
+        for (NSUInteger i = 0; i < data.length; i++) [text appendFormat:@"%02X", bytes[i]];
+        return text;
+    };
+    NSString *(^ntHash)(NSString *) = ^NSString *(NSString *password) {
+        NSData *unicode = utf16([password dataUsingEncoding:NSUTF8StringEncoding], 512);
+        unsigned char digest[CC_MD4_DIGEST_LENGTH];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        CC_MD4(unicode.bytes, (CC_LONG)unicode.length, digest);
+#pragma clang diagnostic pop
+        return hex([NSData dataWithBytes:digest length:sizeof(digest)]);
+    };
+    XCTAssertEqualObjects(ntHash(@"clientPass"), @"44EBBA8D5312B8D611474411F56989AE");   // RFC 2759, section 9.2
+    NSString *persian = @"پسورد-é\U0001F600";
+    XCTAssertEqualObjects(hex(utf16([persian dataUsingEncoding:NSUTF8StringEncoding], 512)), @"7E063306480631062F062D00E9003DD800DE");
+    XCTAssertEqualObjects(ntHash(persian), @"8084B844A55A83B712C19EC8B32A39A0");
+    // A lone Latin-1 byte, an overlong "/" and a cut sequence: one character per byte
+    const unsigned char raw[] = {0xE9, 0xC0, 0xAF, 0x41, 0xE2, 0x82};
+    XCTAssertEqualObjects(hex(utf16([NSData dataWithBytes:raw length:sizeof(raw)], 512)), @"E900C000AF004100E2008200");
+    // Only whole characters fit
+    XCTAssertEqualObjects(hex(utf16([@"ab\U0001F600" dataUsingEncoding:NSUTF8StringEncoding], 6)), @"61006200");
+    // Java's modified UTF-8 (the Android app's JNI) writes the emoji as two 3-byte surrogates: the same UTF-16 pair
+    const unsigned char cesu[] = {0xED, 0xA0, 0xBD, 0xED, 0xB8, 0x80};
+    XCTAssertEqualObjects(hex(utf16([NSData dataWithBytes:cesu length:sizeof(cesu)], 512)), @"3DD800DE");
+    // The second attempt after a refusal: each byte widened, as SoftEther and pppd hash it
+    unsigned char widened[16];
+    int widenedLength = srp_mschap_password_unicode("\xC3\xA9" "a", 3, widened, sizeof(widened), 1);
+    XCTAssertEqualObjects(hex([NSData dataWithBytes:widened length:(NSUInteger)widenedLength]), @"C300A9006100");
+    XCTAssertEqualObjects(hex(utf16([@"éa" dataUsingEncoding:NSUTF8StringEncoding], 512)), @"E9006100");
 }
 
 - (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {

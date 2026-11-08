@@ -35,6 +35,9 @@ class SstpClient(
     private var pathSwitching = false
     private var authFailed = false
     private var eapTls13Fallback = false
+    // Windows and FreeRADIUS hash an MS-CHAP password as UTF-16, SoftEther and pppd byte by byte: a password with
+    // characters outside ASCII that a server refused as UTF-16 gets one more attempt the other way (srp_utf16le.h)
+    private var mschapBytewise = false
     private var linkEverEstablished = false
     private var connectionEstablished = false
     private var networkReady = false
@@ -196,6 +199,7 @@ class SstpClient(
             ttlsInnerName(eap.ttlsInnerMethod), flag(eap.teapEnabled), flag(eap.identityPrivacyEnabled), eap.anonymousIdentity,
             flag(eap.eapTls13Enabled && !eapTls13Fallback), flag(eap.disableLegacyEapTls), flag(allowInsecure), flag(profile.disableLegacyOuterTls),
             profile.tlsFragMode.toString(), profile.tlsFragFirst.toString(), profile.tlsFragFollowing.toString(), flag(cellular()),
+            flag(mschapBytewise), flag(mschapRetryArmed()),
         )
         Sstp.setLog(ConnectionLog.path, profile.logLevel)
         val started = Sstp.start(fd, settings, if (profile.certificateMode) certificate?.first else null, if (profile.certificateMode) certificate?.second else null)
@@ -263,6 +267,9 @@ class SstpClient(
     }
 
     // The server refused the credentials or PPP failed before the link came up: lwIP.m's failure callback ends the VPN
+    /** A refusal now gets one more attempt with the password hashed byte by byte (not after the link was up once) */
+    private fun mschapRetryArmed() = !mschapBytewise && !linkEverEstablished && !profile.certificateMode && profile.password.any { it.code > 127 }
+
     private fun linkFailure(reason: String) {
         if (reason.isEmpty() || closed) return
         if (reason.startsWith("Authentication failed") || reason.startsWith("The EAP server")) authFailed = true
@@ -300,6 +307,12 @@ class SstpClient(
             return
         }
         val authFailure = if (pppStarted && authFail) certificateRefusal ?: authMessage.ifEmpty { "Authentication failed. The server rejected the username or password." } else null
+        if (authFailure != null && !authFailed && certificateRefusal == null && mschapRetryArmed()) {
+            mschapBytewise = true
+            ConnectionLog.m("MS-CHAP: the server refused the password hashed as UTF-16; retrying with it hashed byte by byte")
+            worker.postDelayed({ if (attempt == session) connect() }, 1000)
+            return
+        }
         if (authFailure != null && !authFailed) {
             // Do not retry: the credentials or the certificate must be fixed first
             authFailed = true

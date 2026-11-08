@@ -34,6 +34,7 @@
 #include <openssl/core_names.h>
 #include "sstp-private.h"
 #include "sstp-chap.h"
+#include "netif/ppp/srp_utf16le.h"
 
 #ifdef __SSTP_UNIT_TEST_CHAP
 #undef log_err
@@ -67,7 +68,7 @@ static int sstp_chap_hash_pass(const char *pass, int len,
     EVP_MD_CTX *ctx = &ctx_;
 #endif
     uint8_t buf[512] = {};
-    uint8_t inx;
+    int blen;
     uint8_t outb[EVP_MAX_MD_SIZE];
     unsigned int olen = sizeof(outb);
 
@@ -76,11 +77,8 @@ static int sstp_chap_hash_pass(const char *pass, int len,
         return retval;
     }
 
-    /* Convert to unicode */
-    for (inx = 0; inx < len; inx++)
-    {
-        buf[(inx << 1)] = pass[inx];
-    }
+    /* As the MS-CHAP of this attempt hashed it: its characters as UTF-16LE, or byte by byte (srp_utf16le.h) */
+    blen = srp_mschap_password_unicode(pass, len, buf, sizeof(buf), srp_mschap_bytewise_password);
     
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
     EVP_MD *digest = EVP_MD_fetch(NULL, OSSL_DIGEST_NAME_MD4, "provider=legacy");
@@ -89,7 +87,7 @@ static int sstp_chap_hash_pass(const char *pass, int len,
         /* An OpenSSL without the legacy provider (the static build of the Android app) still has the low-level MD4 */
         MD4_CTX md4;
         MD4_Init(&md4);
-        MD4_Update(&md4, buf, (len << 1));
+        MD4_Update(&md4, buf, blen);
         MD4_Final(outb, &md4);
         MD4_Init(&md4);
         MD4_Update(&md4, outb, 16);
@@ -109,7 +107,7 @@ static int sstp_chap_hash_pass(const char *pass, int len,
         {
             /* Generate the hash */
             EVP_DigestInit(ctx, digest);
-            EVP_DigestUpdate(ctx, buf, (len << 1));
+            EVP_DigestUpdate(ctx, buf, blen);
             EVP_DigestFinal(ctx, outb, &olen);
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
             EVP_MD_CTX_reset(ctx);

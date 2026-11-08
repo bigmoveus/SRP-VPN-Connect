@@ -28,6 +28,7 @@
 #include "netif/ppp/pppos.h"
 #include "netif/ppp/ppp_impl.h"
 #include "netif/ppp/eap-ttls.h"
+#include "netif/ppp/srp_utf16le.h"
 #include "lwip/dns.h"
 
 static long long __m_timeout_ms__;
@@ -76,8 +77,13 @@ static int8_t __memory__[2048];
     BOOL _connectionEstablished;  // the current SSTP connection reached ESTABLISHED
     BOOL _clientDisconnected;     // the current client's disconnect was handled
     BOOL _eapTls13Fallback;       // the server ended EAP on a TLS 1.3 offer; later attempts offer TLS 1.2
+    BOOL _passwordNonASCII;       // the password has characters outside ASCII, which MS-CHAP servers hash two ways
+    BOOL _mschapBytewise;         // a server refused it as UTF-16; later attempts hash it byte by byte (srp_utf16le.h)
     u8_t _pppLastPhase;           // the furthest PPP phase this connection reached
     NSData *_eapTlsCertPem;	/* EAP-TLS client credentials, retained for the session */
+    // lwIP keeps the pointers of these (ppp_set_auth, the anonymous identity): NUL-terminated UTF-8 kept for the session.
+    // UTF8String's buffer of a string with characters outside ASCII goes with the autorelease pool, before CHAP reads it
+    NSData *_pppUser, *_pppPassword, *_pppAnonymousIdentity;
     NSData *_eapTlsKeyPem;
 
     // OPTIONS section state
@@ -213,6 +219,24 @@ static NSString *SRPEapCertificateRefusal(ppp_pcb *pcb) {
     return nil;
 }
 
+// A string as NUL-terminated UTF-8 that stays where it is while the data lives
+static NSData *SRPCStringData(NSString *text) {
+    NSMutableData *data = [[(text ?: @"") dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
+    [data appendBytes:"" length:1];
+    return data;
+}
+
+// Windows and FreeRADIUS hash an MS-CHAP password as UTF-16, SoftEther and pppd byte by byte: a password with characters
+// outside ASCII that a server refused as UTF-16 gets one more attempt the other way (not after the link was up once)
+static BOOL SRPMschapRetryPending(lwIP *ip, ppp_pcb *pcb) {
+    BOOL certificate = NO;
+#if EAP_SUPPORT
+    certificate = pcb != NULL && pcb->settings.eap_tls_cert_pem != NULL;
+#endif
+    return ip->_passwordNonASCII && !ip->_mschapBytewise && !ip->_linkEverEstablished && !certificate &&
+           SRPEapCertificateRefusal(pcb) == nil;
+}
+
 static void netif_ppp_link_status_cb_fn(ppp_pcb *pcb, int err_code, void *ctx) {
     struct netif *pppif = ppp_netif(pcb);
     switch(err_code) {
@@ -305,6 +329,9 @@ static void netif_ppp_link_status_cb_fn(ppp_pcb *pcb, int err_code, void *ctx) {
         case PPPERR_AUTHFAIL:
             if (SRPEapTlsRefusedTls13(pcb) && !ip->_eapTls13Fallback) {
                 break;   // not the credentials: the disconnect that follows retries with TLS 1.2
+            }
+            if (SRPMschapRetryPending(ip, pcb)) {
+                break;   // the disconnect that follows retries with the password hashed byte by byte
             }
             ip->_authFailed = YES;
             reason = SRPEapCertificateRefusal(pcb) ?: SRPAuthenticationFailure(pcb);
@@ -472,6 +499,8 @@ static u32_t netif_pppos_output_cb_fn(ppp_pcb *pcb, u8_t *data, u32_t len, void 
         _clientDisconnected = NO;
         _connectionEstablished = NO;
         _eapTls13Fallback = NO;
+        _passwordNonASCII = ![sstp.password canBeConvertedToEncoding:NSASCIIStringEncoding];
+        _mschapBytewise = NO;
         _serverHost = sstp.host;
         _sstpClient = [[SSSSTPClient alloc] initWithTarget:protocol.host port:protocol.port proto:(SSProtocolTypeTCP) family:AF_INET];
         _sstpClient.delegate = self;
@@ -944,6 +973,7 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
         }
         NSString *certificateRefusal = pppStarted ? SRPEapCertificateRefusal(__ppp__) : nil;
         BOOL tls13Refused = pppStarted && SRPEapTlsRefusedTls13(__ppp__);
+        BOOL mschapRetry = pppStarted && SRPMschapRetryPending(self, __ppp__);
         // The server's own refusal (CHAP or EAP Failure) is known before the link status callback,
         // which only runs once LCP has finished terminating
         NSString *authFailure = pppStarted && __ppp__->err_code == PPPERR_AUTHFAIL
@@ -965,6 +995,14 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
             _eapTls13Fallback = YES;
             _authFailed = NO;
             SSLogM(@"EAP: the server ended the TLS handshake of a TLS 1.3 offer; retrying with TLS 1.2");
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.worker, ^{
+                [self reconnect];
+            });
+            return;
+        }
+        if (authFailure != nil && !_authFailed && mschapRetry) {
+            _mschapBytewise = YES;
+            SSLogM(@"MS-CHAP: the server refused the password hashed as UTF-16; retrying with it hashed byte by byte");
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.worker, ^{
                 [self reconnect];
             });
@@ -1105,7 +1143,10 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
             [sstp respondsToSelector:NSSelectorFromString(@"eap_config")]) {
             SSLogI(@"PPP auth: EAP requested but unsupported by lwIP PPP backend");
         }
-        ppp_set_auth(__ppp__, at, sstp.username.UTF8String, sstp.password.UTF8String);
+        srp_mschap_bytewise_password = _mschapBytewise ? 1 : 0;   // read by this attempt's MS-CHAP and crypto binding
+        _pppUser = SRPCStringData(sstp.username);
+        _pppPassword = SRPCStringData(sstp.password);
+        ppp_set_auth(__ppp__, at, _pppUser.bytes, _pppPassword.bytes);
         ppp_set_usepeerdns(__ppp__, true);
 #if EAP_SUPPORT
         __ppp__->settings.eap_mschapv2_enable = sstp.eapMschapv2Enabled ? 1 : 0;
@@ -1136,7 +1177,8 @@ static const int64_t kSSTPSendBacklogLimit = 1024 * 1024;
             __ppp__->settings.eap_allow_req = 40;
         }
         __ppp__->settings.eap_identity_privacy = sstp.eapIdentityPrivacy ? 1 : 0;
-        __ppp__->settings.eap_anonymous_identity = sstp.eapAnonymousIdentity.length > 0 ? sstp.eapAnonymousIdentity.UTF8String : "anonymous";
+        _pppAnonymousIdentity = SRPCStringData(sstp.eapAnonymousIdentity.length > 0 ? sstp.eapAnonymousIdentity : @"anonymous");
+        __ppp__->settings.eap_anonymous_identity = _pppAnonymousIdentity.bytes;
         __ppp__->settings.eap_tls13_enabled = sstp.eapTls13Enabled && !_eapTls13Fallback ? 1 : 0;
         __ppp__->settings.eap_tls_hs_started = 0;
         __ppp__->settings.eap_tls_hs_done = 0;

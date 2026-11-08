@@ -39,6 +39,7 @@
 #include "netif/ppp/pppos.h"
 #include "netif/ppp/ipcp.h"
 #include "netif/ppp/eap-ttls.h"
+#include "netif/ppp/srp_utf16le.h"
 
 #include "sstp/sstp-buff.h"
 #include "sstp/sstp-chap.h"
@@ -74,6 +75,8 @@ typedef struct {
   char host[256], sni[256], username[256], password[256], anonymous[256], ttls_inner[16];
   bool pap, chap, mschap2, eap_mschapv2, peap, peap_cb, ttls, teap, identity_privacy, eap_tls13, eap_disable_legacy;
   bool allow_insecure, disable_legacy_outer, cellular;
+  // MS-CHAP: hash the password byte by byte this attempt; a refusal now gets that retry (srp_utf16le.h, SstpClient.kt)
+  bool mschap_bytewise, mschap_retry;
   int frag_mode, frag_first, frag_following;
   int log_level;
   char *cert_pem, *key_pem;
@@ -779,8 +782,11 @@ static void link_status(ppp_pcb *pcb, int err_code, void *ctx) {
       if (tls13_refused(pcb)) {
         break;   // not the credentials: the disconnect that follows retries with TLS 1.2
       }
-      e->auth_failed = true;
       certificate_refusal(pcb, reason, sizeof(reason));
+      if (reason[0] == '\0' && e->mschap_retry) {
+        break;   // the disconnect that follows retries with the password hashed byte by byte
+      }
+      e->auth_failed = true;
       if (reason[0] == '\0') {
         snprintf(reason, sizeof(reason), "%s", authentication_failure(pcb));
       }
@@ -872,6 +878,7 @@ static void ppp_begin(engine_t *e) {
        e->pap ? "enabled" : "disabled", e->chap ? "enabled" : "disabled", e->mschap2 ? "enabled" : "disabled",
        e->eap_mschapv2 ? "enabled" : "disabled", e->peap ? "enabled" : "disabled", e->ttls ? "enabled" : "disabled",
        e->teap ? "enabled" : "disabled");
+  srp_mschap_bytewise_password = e->mschap_bytewise ? 1 : 0;   // read by this attempt's MS-CHAP and crypto binding
   ppp_set_auth(e->ppp, types, e->username, e->password);
   ppp_set_usepeerdns(e->ppp, true);
   ppp_settings *settings = &e->ppp->settings;
@@ -1255,7 +1262,7 @@ static void stop_current(void) {
 enum {
   kHost, kSni, kUser, kPassword, kPap, kChap, kMschap2, kEapMschapv2, kPeap, kPeapCb, kTtls, kTtlsInner, kTeap,
   kPrivacy, kAnonymous, kEapTls13, kEapLegacy, kInsecure, kLegacyOuter, kFragMode, kFragFirst, kFragFollowing,
-  kCellular, kSettingCount
+  kCellular, kMschapBytewise, kMschapRetry, kSettingCount
 };
 
 JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_Sstp_start(JNIEnv *env, jclass type, jint fd, jobjectArray settings,
@@ -1304,6 +1311,8 @@ JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_Sstp_start(JNIEnv *env, jclass type, 
   copy_setting(env, settings, kFragFollowing, flag, sizeof(flag));
   e->frag_following = atoi(flag);
   e->cellular = FLAG(kCellular);
+  e->mschap_bytewise = FLAG(kMschapBytewise);
+  e->mschap_retry = FLAG(kMschapRetry);
 #undef FLAG
   if (e->sni[0] == '\0') {
     snprintf(e->sni, sizeof(e->sni), "%s", e->host);

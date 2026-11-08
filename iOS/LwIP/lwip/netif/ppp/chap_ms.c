@@ -91,6 +91,10 @@
 
 #include "netif/ppp/chap-new.h"
 #include "netif/ppp/chap_ms.h"
+#include "netif/ppp/srp_utf16le.h"
+
+/* SRP: see srp_utf16le.h */
+int srp_mschap_bytewise_password = 0;
 #include "netif/ppp/pppcrypt.h"
 #include "netif/ppp/magic.h"
 #if MPPE_SUPPORT
@@ -150,7 +154,6 @@ extern void set_mppe_enc_types(int, int);
 #define MS_CHAP2_AUTHENTICATEE 0
 #define MS_CHAP2_AUTHENTICATOR 1
 
-static void	ascii2unicode (const char[], int, u_char[]);
 static void	NTPasswordHash (u_char *, int, u_char[MD4_SIGNATURE_SIZE]);
 static void	ChallengeResponse (const u_char *, const u_char *, u_char[24]);
 static void	ChallengeHash (const u_char[16], const u_char *, const char *, u_char[8]);
@@ -554,21 +557,6 @@ static void ChallengeHash(const u_char PeerChallenge[16], const u_char *rchallen
     MEMCPY(Challenge, sha1Hash, 8);
 }
 
-/*
- * Convert the ASCII version of the password to Unicode.
- * This implicitly supports 8-bit ISO8859/1 characters.
- * This gives us the little-endian representation, which
- * is assumed by all M$ CHAP RFCs.  (Unicode byte ordering
- * is machine-dependent.)
- */
-static void ascii2unicode(const char ascii[], int ascii_len, u_char unicode[]) {
-    int i;
-
-    BZERO(unicode, ascii_len * 2);
-    for (i = 0; i < ascii_len; i++)
-	unicode[i * 2] = (u_char) ascii[i];
-}
-
 static void NTPasswordHash(u_char *secret, int secret_len, u_char hash[MD4_SIGNATURE_SIZE]) {
     lwip_md4_context		md4Context;
 
@@ -585,8 +573,7 @@ static void ChapMS_NT(const u_char *rchallenge, const char *secret, int secret_l
     u_char	PasswordHash[MD4_SIGNATURE_SIZE];
 
     /* Hash the Unicode version of the secret (== password). */
-    ascii2unicode(secret, secret_len, unicodePassword);
-    NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+    NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
 
     ChallengeResponse(rchallenge, PasswordHash, NTResponse);
 }
@@ -600,8 +587,7 @@ static void ChapMS2_NT(const u_char *rchallenge, const u_char PeerChallenge[16],
     ChallengeHash(PeerChallenge, rchallenge, username, Challenge);
 
     /* Hash the Unicode version of the secret (== password). */
-    ascii2unicode(secret, secret_len, unicodePassword);
-    NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+    NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
 
     ChallengeResponse(Challenge, PasswordHash, NTResponse);
 }
@@ -697,8 +683,7 @@ static void GenerateAuthenticatorResponsePlain(
     u_char	PasswordHashHash[MD4_SIGNATURE_SIZE];
 
     /* Hash (x2) the Unicode version of the secret (== password). */
-    ascii2unicode(secret, secret_len, unicodePassword);
-    NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+    NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
     NTPasswordHash(PasswordHash, sizeof(PasswordHash),
 		   PasswordHashHash);
 
@@ -719,8 +704,7 @@ static void Set_Start_Key(ppp_pcb *pcb, const u_char *rchallenge, const char *se
     u_char	Digest[SHA1_SIGNATURE_SIZE];	/* >= MPPE_MAX_KEY_LEN */
 
     /* Hash (x2) the Unicode version of the secret (== password). */
-    ascii2unicode(secret, secret_len, unicodePassword);
-    NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+    NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
     NTPasswordHash(PasswordHash, sizeof(PasswordHash), PasswordHashHash);
 
     lwip_sha1_init(&sha1Context);
@@ -782,8 +766,7 @@ static void SetMasterKeys(ppp_pcb *pcb, const char *secret, int secret_len, u_ch
     const u_char *s;
 
     /* Hash (x2) the Unicode version of the secret (== password). */
-    ascii2unicode(secret, secret_len, unicodePassword);
-    NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+    NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
     NTPasswordHash(PasswordHash, sizeof(PasswordHash), PasswordHashHash);
 
     lwip_sha1_init(&sha1Context);
@@ -988,8 +971,7 @@ void chapms2_eap_master_keys(const char *secret, int secret_len,
 	u_char	Digest[SHA1_SIGNATURE_SIZE];
 	lwip_sha1_context	sha1Context;
 
-	ascii2unicode(secret, secret_len, unicodePassword);
-	NTPasswordHash(unicodePassword, secret_len * 2, PasswordHash);
+	NTPasswordHash(unicodePassword, srp_mschap_password_unicode(secret, secret_len, unicodePassword, sizeof(unicodePassword), srp_mschap_bytewise_password), PasswordHash);
 	NTPasswordHash(PasswordHash, sizeof(PasswordHash), PasswordHashHash);
 
 	lwip_sha1_init(&sha1Context);
