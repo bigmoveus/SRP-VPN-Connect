@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — SSH VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of an SSH VPN profile in SRP VPN Connect on iPhone and Android: server, port, host key, UDP relay, username and password, and the options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">An SSH VPN profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>SSH VPN</strong>. Fill in the fields below and tap <strong>Save</strong>. Save names the first field that is still missing instead of saving an incomplete profile: <em>Enter the server address.</em>, <em>Enter the username.</em> or <em>Enter the password.</em></p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/ssh/protocol.png" alt="Protocol screen on iPhone with SSH VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSH VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/ssh/profile-editor.png" alt="Profile editor on iPhone: Server, Port, Host Key and UDP Relay, then Username and Password" width="260" loading="lazy">
+    <figcaption>An SSH VPN profile with a host key and UDP Relay on, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>The server's DNS name, for example <code>ssh.example.com</code>, or its IPv4 address.</td></tr>
+    <tr><td>Port</td><td>The server's SSH port. Empty means 22.</td></tr>
+    <tr><td>Host Key (SHA256)</td><td>Optional. The fingerprint of the server's ED25519 host key, as <code>ssh-keygen -lf</code> prints it: the <code>SHA256:…</code> part or the whole line. With it, the app connects only to a server that shows that key; empty accepts any key. See <a href="server.html#host-key">the host key's fingerprint</a>.</td></tr>
+    <tr><td>UDP Relay (HEV)</td><td>Off by default. On: UDP goes through the SSH session to the relay on the server, which the administrator installs (<a href="server.html#relay">the UDP relay</a>). Off: everything but UDP works; DNS too.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="authentication">Authentication</h2>
+<p><strong>Username</strong> and <strong>Password</strong> of the server's user. The app logs in with the password; on a server that takes passwords only through its keyboard-interactive (PAM) login, the app answers its prompt with the same password. A password may hold any character, spaces and letters of any script included.</p>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/ssh/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, Switch to Wi-Fi When Available, On Sleep and Log Level" width="260" loading="lazy">
+    <figcaption>The options on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>Auto Reconnect (on by default): when the connection breaks, the server ends the session, or the server has not answered for 50 seconds, the app opens a new SSH session 2 seconds later, and keeps trying while the server is away. Connections that were open start again, as SSH cannot carry them over to a new session. Retry Times limits the failed attempts in a row; empty means no limit. Before the first connection, Retry Times also repeats a failed connection. A refused login, a host key that does not match, a user the server does not let forward TCP and an unavailable relay are never retried: the profile or the server must change first. Without Auto Reconnect, a VPN that was up ends with the reason, for example <em>The server closed the connection (auto reconnect is off).</em></td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>On by default: when Wi-Fi appears while the VPN is up, the app opens a new SSH session over it.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the connection while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the server and port the app connects to, the server's host key with its fingerprint, the login and the session. <strong>Expert</strong> adds the transfer counters, every 5 seconds while traffic moves. <strong>Debug</strong> adds a line for each connection through the tunnel and, on iPhone, the packet engine's own lines. No level writes the password. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>SSH: closing with reason:</code> names the reason.</td></tr>
+  </tbody>
+</table>
+<p>An SSH VPN profile has no proxy setting: the app always connects to the server directly.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/ssh/home.png" alt="Home screen on iPhone with three example SSH VPN profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>SSH VPN profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the app has logged in and the checks have passed. The row of the profile then shows the time of one request through the tunnel. If it fails, the app shows <strong>Connection Failed</strong> with a reason; <a href="troubleshooting.html">Troubleshooting</a> explains each one.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

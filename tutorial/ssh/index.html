@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSH VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="SSH VPN in SRP VPN Connect on iPhone and Android: a VPN over an ordinary OpenSSH server, how a connection works, the optional UDP relay, the server, the app's settings and the test results.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>SSH VPN</h1>
+<p class="lead">An SSH VPN profile turns an ordinary OpenSSH server into a VPN: every TCP connection of the phone travels through one SSH session to the server, which makes it to the destination. Nothing but OpenSSH has to run on the server; an optional relay on the server carries UDP as well. SRP VPN Connect does this with the same core on iPhone and Android: libssh2 1.11.1 for SSH and the packet engine of hev-socks5-tunnel.</p>
+
+<h2>How an SSH VPN connection works</h2>
+<ol>
+  <li><strong>SSH.</strong> The app opens an SSH connection to the server, on port 22 unless the profile names another, checks the server's host key when the profile has one, and logs in with the profile's password.</li>
+  <li><strong>A check.</strong> Before it calls itself connected, the app makes sure the server lets the user forward TCP connections, and, with <strong>UDP Relay</strong> on, that the relay answers.</li>
+  <li><strong>The tunnel.</strong> All of the phone's IPv4 traffic goes into the app. Each TCP connection becomes an SSH channel to its destination, which the server opens. Names are answered by the app itself with placeholder addresses, so the server looks up the real address: DNS works with or without the relay.</li>
+  <li><strong>UDP.</strong> With UDP Relay on, UDP goes through the SSH session to the relay on the server, which sends it on. Without the relay, UDP does not get through.</li>
+  <li><strong>Keeping it up.</strong> The app sends a keepalive every 15 seconds and answers the server's own. When the connection breaks, or the server has not answered for 50 seconds, Auto Reconnect opens a new SSH session; connections that were open start again, as SSH cannot carry a session over to a new one.</li>
+</ol>
+
+<h2>Where to start</h2>
+<ol>
+  <li>Set up the server: <a href="server.html">OpenSSH server</a> adds a user that may only forward TCP and installs the UDP relay.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. Our tests ran the code of commit <code>8b4eb1af</code> on both phones, and the lifecycle cases that of <code>3c4e4def</code>, which follows it; on iPhone use a TestFlight build made from <code>3c4e4def</code> or a later commit.</li>
+  <li>Add an SSH VPN profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>The server settings that matter to the app, and what each profile field does: <a href="configuration.html">Configuration Reference</a>.</li>
+  <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
+</ol>
+
+<h2>What was tested</h2>
+<p><a href="results.html">Test results</a> lists every case we ran against our OpenSSH server, with its result on an iPhone and on an Android phone: transfers in both directions and 16 connections at once, UDP through the relay and without it, password and keyboard-interactive logins and their refusals, a user the server does not let forward TCP, the host key check with each of the server's key types, other ports, a port that does not answer and wrong server names, a hardened set of algorithms and each cipher alone, a login banner, the server's keepalives on an idle VPN, the log levels, the server set up exactly as <a href="server.html">OpenSSH server</a> describes, and what happens on sleep, when the server ends the session or resets the connection, when the network path goes dead, when the phone switches networks, when the server is away for a while and when Retry Times runs out.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

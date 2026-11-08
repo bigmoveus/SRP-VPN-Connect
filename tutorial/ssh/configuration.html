@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — SSH VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="The OpenSSH server settings that matter to the app's SSH VPN profiles, what each profile field does on the wire, and the settings the app always uses.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">The server settings that change what the app's SSH VPN profiles do, what each field of a profile does on the wire, and the settings the app always uses. <a href="server.html">OpenSSH server</a> builds the server this page refers to; <a href="results.html">Test results</a> has the case behind each statement.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every server setting below was tested by changing it on our OpenSSH 9.6 test server and connecting both phones; the case names in the tables are the rows of <a href="results.html">Test results</a>. Settings this page describes without a case were left as Ubuntu sets them.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="server">Server settings (sshd_config)</h2>
+<p>sshd reads <code>/etc/ssh/sshd_config</code> and the files in <code>/etc/ssh/sshd_config.d/</code>; for each setting the first value it reads wins, and the lines under a <code>Match</code> line apply only to the users it names. After a change, <code>sshd -t</code> checks the files and <code>systemctl reload ssh</code> applies them to new connections; sessions that are open keep running.</p>
+
+<h3 id="logins">Logins and forwarding</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>PasswordAuthentication yes</code></td><td>The app logs in with the profile's <strong>Username</strong> and <strong>Password</strong>. A wrong password or a user the server does not have ends with <em>Authentication failed. Check the username and password.</em> A password may hold any character.</td><td><code>ssh-pass-download</code>, <code>ssh-wrong-password</code>, <code>ssh-wrong-user</code>, <code>ssh-special-password</code></td></tr>
+    <tr><td><code>PasswordAuthentication no</code><br><code>KbdInteractiveAuthentication yes</code></td><td>The server takes the password through its keyboard-interactive (PAM) login instead, and the app answers the prompt with the profile's password.</td><td><code>ssh-kbd-interactive-only</code></td></tr>
+    <tr><td><code>PasswordAuthentication no</code> (and no keyboard-interactive)</td><td>No way in with a password: <em>The server does not take a password for this user (it offers: publickey).</em></td><td><code>ssh-password-login-off</code></td></tr>
+    <tr><td><code>AllowTcpForwarding local</code> (or <code>yes</code>)</td><td>Needed: every connection of the phone is a TCP forwarding through the session. With <code>no</code> (or a <code>PermitOpen</code> that does not allow the destination) the app refuses to connect: <em>The server does not let this user forward TCP connections (AllowTcpForwarding or PermitOpen on the server).</em></td><td><code>ssh-pass-download</code>, <code>ssh-no-forwarding</code></td></tr>
+    <tr><td><code>ForceCommand /usr/sbin/nologin</code>, <code>PermitTTY no</code>, a <code>nologin</code> shell</td><td>No effect on the app, which never asks for a shell or a terminal.</td><td>every connect case</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="crypto">Keys, ciphers and the host key</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>Ubuntu 24.04's defaults</td><td>The app's sessions use <code>curve25519-sha256</code> for the key exchange, the server's ED25519 host key, and <code>chacha20-poly1305@openssh.com</code>, which carries its own integrity check (sshd's debug log while the iPhone connected).</td><td><code>ssh-pass-download</code></td></tr>
+    <tr><td><code>KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org</code><br><code>Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com</code><br><code>MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com</code></td><td>A hardened set: the app connects.</td><td><code>ssh-server-hardened</code></td></tr>
+    <tr><td><code>Ciphers aes256-gcm@openssh.com,aes128-gcm@openssh.com</code>, <code>Ciphers aes256-ctr,aes128-ctr</code>, <code>Ciphers chacha20-poly1305@openssh.com</code></td><td>Each alone: the app connects. Their download speeds are in <a href="results.html#server-settings">Test results</a>.</td><td><code>ssh-server-aes-gcm</code>, <code>ssh-server-aes-ctr</code>, <code>ssh-server-chacha</code></td></tr>
+    <tr><td>Host keys (<code>/etc/ssh/ssh_host_*_key</code>)</td><td>The app asks for the server's keys in OpenSSH's order: ED25519 first, then ECDSA, then RSA. A <strong>Host Key</strong> must be the fingerprint of the key the server shows: the ED25519 one on a server that has it. A fingerprint of another key ends with <em>The server's host key does not match Host Key. The server presented ED25519 SHA256:….</em></td><td><code>ssh-hostkey-ed25519</code>, <code>ssh-hostkey-ecdsa-not-shown</code>, <code>ssh-hostkey-rsa-not-shown</code>, <code>ssh-hostkey-wrong</code>, <code>ssh-hostkey-keygen-line</code></td></tr>
+    <tr><td><code>HostKeyAlgorithms ecdsa-sha2-nistp256</code>, <code>HostKeyAlgorithms rsa-sha2-512,rsa-sha2-256</code></td><td>A server that shows only that key: its fingerprint is the one to pin.</td><td><code>ssh-server-hostkey-ecdsa</code>, <code>ssh-server-hostkey-rsa</code>, <code>ssh-server-hostkey-ed25519</code></td></tr>
+    <tr><td><code>Banner /etc/issue.net</code></td><td>The text before the login; the app logs in all the same.</td><td><code>ssh-server-banner</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="ports">Ports and keepalives</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>Port 22</code></td><td>The profile's <strong>Port</strong>; empty means 22. Ubuntu 24.04 starts sshd from <code>ssh.socket</code>: after a change of <code>Port</code>, run <code>systemctl daemon-reload</code> and <code>systemctl restart ssh.socket</code>.</td><td><code>ssh-port-empty</code>, <code>ssh-port-2222</code></td></tr>
+    <tr><td><code>ClientAliveInterval 5</code><br><code>ClientAliveCountMax 2</code></td><td>The server drops a client that does not answer its keepalives. The app answers them while the session is idle, so a quiet VPN stays up.</td><td><code>ssh-server-keepalive-idle</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="relay">The UDP relay (hev-socks5-server)</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>port: 1080</code>, <code>listen-address: '127.0.0.1'</code></td><td>Where the app reaches the relay through the session; the app always uses this address and port. With <strong>UDP Relay</strong> on, the phone's UDP leaves from the server's address.</td><td><code>ssh-udp-download</code></td></tr>
+    <tr><td>The relay not running</td><td>With UDP Relay on, the app refuses to connect: <em>The UDP relay (HEV) is unavailable on the server. Turn UDP Relay off, or ask the administrator to install or start it.</em> With UDP Relay off the relay is not needed, and UDP does not get through.</td><td><code>ssh-udp-relay-stopped</code>, <code>ssh-udp-off-relay-stopped</code>, <code>ssh-udp-off-probe</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="fields">What each profile field does</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Field</th><th>On the wire</th></tr></thead>
+  <tbody>
+    <tr><td>Server, Port</td><td>The TCP connection of the SSH session; a name is looked up on the phone. A name that does not resolve, a port that refuses or does not answer, and a port where another service answers each have their own message (<a href="troubleshooting.html">Troubleshooting</a>).</td></tr>
+    <tr><td>Host Key (SHA256)</td><td>Compared with the SHA-256 of the key the server shows in the SSH handshake, before the password is sent.</td></tr>
+    <tr><td>UDP Relay (HEV)</td><td>On: before the VPN comes up the app opens a channel to the relay and checks that it answers; then each UDP flow is a channel to the relay, which carries its datagrams inside the session's TCP stream.</td></tr>
+    <tr><td>Username, Password</td><td>The SSH login, encrypted by the session.</td></tr>
+    <tr><td>Auto Reconnect, Retry Times</td><td>When the session ends or breaks, a new SSH session 2 seconds later; Retry Times limits the attempts.</td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>A new SSH session over Wi-Fi when it appears.</td></tr>
+    <tr><td>On Sleep</td><td>Pause and Off close the session while the device sleeps; Stay keeps it.</td></tr>
+    <tr><td>Log Level</td><td>What the connection log shows; no level writes the password.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="always">What the app always does</h2>
+<ul>
+  <li>Each TCP connection of the phone becomes an SSH channel (<code>direct-tcpip</code>) to its destination, opened by the server; the server looks up names, as the app answers the phone's DNS queries itself with placeholder addresses.</li>
+  <li>Only IPv4 goes through the tunnel.</li>
+  <li>The tunnel's MTU is 1400.</li>
+  <li>A keepalive every 15 seconds; a session the server has not answered for 50 seconds counts as broken.</li>
+  <li>15 seconds for the TCP connection and 20 for the SSH handshake and the login.</li>
+  <li>No proxy: the app connects to the server directly.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

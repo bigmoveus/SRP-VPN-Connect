@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — SSH VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each message of an SSH VPN profile means and what to do about it, and where to look on the OpenSSH server.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">What the app's messages for an SSH VPN profile mean, what to do about each, and where to look on the server.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Each message below is the one the app showed in the case named beside it, on the iPhone and on Android, against our OpenSSH test server; see <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="messages">Messages while connecting</h2>
+<p>The app shows these in the <em>Connection Failed</em> alert, and writes them to its log after <em>closing with reason:</em>.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Cannot find the server. Check the Server field and the network.</em></td><td>The name in <strong>Server</strong> did not resolve (<code>ssh-host-unknown</code>).</td><td>Check the name for typos, and that it resolves on the phone's network. An IPv4 address works as well as a name.</td></tr>
+    <tr><td><em>The server refused the connection on port 2223. Check the Port field.</em></td><td>The server answered, but nothing listens on that port (<code>ssh-port-closed</code>).</td><td>Check <strong>Port</strong>: the server's SSH port, 22 unless its <code>Port</code> setting says otherwise. On the server, <code>ss -tlnp | grep sshd</code> shows the ports sshd listens on.</td></tr>
+    <tr><td><em>The server did not answer on port 2222. Check the Server and Port fields and the network.</em></td><td>Nothing answered within 15 seconds: a firewall on the way drops the connection, or the address is wrong (<code>ssh-port-no-answer</code>).</td><td>Check <strong>Server</strong> and <strong>Port</strong>, and that the server's firewall lets the port in (<code>ufw status</code>).</td></tr>
+    <tr><td><em>SSH handshake failed (Failed getting banner). Check that Port is the server's SSH port.</em></td><td>Something answered on that port, but not an SSH server: in our case a web server (<code>ssh-port-other-service</code>). The words in brackets are libssh2's.</td><td>Use the server's SSH port.</td></tr>
+    <tr><td><em>The server's host key does not match Host Key. The server presented ED25519 SHA256:….</em></td><td>The fingerprint in <strong>Host Key</strong> is not the one of the key the server showed. The message names that key. We saw it for a fingerprint of the server's ECDSA or RSA key on a server that has an ED25519 key, and for a fingerprint of no key of the server (<code>ssh-hostkey-ecdsa-not-shown</code>, <code>ssh-hostkey-rsa-not-shown</code>, <code>ssh-hostkey-wrong</code>).</td><td>Read the fingerprint of the server's ED25519 key with <code>ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub</code> on the server and compare it with the one in the message. If they differ, the phone did not reach your server: do not connect. If the server's keys were made again, enter the new fingerprint.</td></tr>
+    <tr><td><em>Authentication failed. Check the username and password.</em></td><td>The server refused the login: a wrong password, or a user it does not have (<code>ssh-wrong-password</code>, <code>ssh-wrong-user</code>).</td><td>Check the Username and Password. On the server, <code>passwd &lt;user&gt;</code> sets the password again, and <code>journalctl -u ssh</code> shows <em>Failed password for</em> or <em>Invalid user</em>.</td></tr>
+    <tr><td><em>The server does not take a password for this user (it offers: publickey).</em></td><td>The server allows only key logins for the user: <code>PasswordAuthentication no</code> and no keyboard-interactive login (<code>ssh-password-login-off</code>). The methods in brackets are the ones the server offers.</td><td>The app logs in with a password. Set <code>PasswordAuthentication yes</code> for the VPN's users, as <a href="server.html#sshd">OpenSSH server</a> does in their <code>Match Group</code> block.</td></tr>
+    <tr><td><em>The server does not let this user forward TCP connections (AllowTcpForwarding or PermitOpen on the server).</em></td><td>The login worked, but the server refuses to forward TCP for the user: <code>AllowTcpForwarding no</code> (<code>ssh-no-forwarding</code>), or a <code>PermitOpen</code> that does not allow the destination. The app checks this before it calls itself connected.</td><td>Set <code>AllowTcpForwarding local</code> (or <code>yes</code>) for the user, and no <code>PermitOpen</code> line.</td></tr>
+    <tr><td><em>The UDP relay (HEV) is unavailable on the server. Turn UDP Relay off, or ask the administrator to install or start it.</em></td><td>With <strong>UDP Relay</strong> on, the app found no relay at <code>127.0.0.1:1080</code> on the server (<code>ssh-udp-relay-stopped</code>).</td><td>On the server: <code>systemctl status hev-socks5-server</code>, and <code>ss -tlnp | grep 1080</code>. Or turn UDP Relay off: everything but UDP still works.</td></tr>
+    <tr><td><em>Could not connect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)</em></td><td>With <strong>Auto Reconnect</strong> on and <strong>Retry Times</strong> set, the first connection failed that many times; the reason follows in brackets (<code>ssh-retry-before-connect</code>).</td><td>The reason in brackets says what to fix.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="later">Messages after the VPN was up</h2>
+<p>These end a VPN that was connected, when <strong>Auto Reconnect</strong> is off or out of attempts. The app keeps the reason; its log names it after <em>closing with reason:</em>. With Auto Reconnect on, the app opens a new SSH session instead, and the connections that were open start again.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means</th><th>What to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server closed the connection (auto reconnect is off).</em></td><td>The server ended the session, for example when an administrator ended the user's sessions (<code>ssh-life-server-ends-no-reconnect</code>).</td><td>Turn Auto Reconnect on: the app then logs in again.</td></tr>
+    <tr><td><em>The connection was reset (auto reconnect is off).</em></td><td>The TCP connection to the server broke (<code>ssh-life-reset-no-reconnect</code>).</td><td>Turn Auto Reconnect on.</td></tr>
+    <tr><td><em>Could not reconnect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)</em></td><td>The connection broke, and the server did not answer within the attempts that Retry Times allows (<code>ssh-life-retry-exhausted</code>).</td><td>Leave Retry Times empty to keep trying, and check the server.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> Off closed the connection when the phone slept, and Auto Reconnect is off, so nothing connected it again (<code>ssh-life-sleep-modes</code>).</td><td>Use On Sleep Pause or Stay, or turn Auto Reconnect on.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="dead-path">A connection that goes quiet</h2>
+<p>When the network path to the server dies without a reset, nothing tells the phone. The app sends a keepalive every 15 seconds and counts the session as broken at the latest when the server has answered nothing for 50 seconds; Auto Reconnect then opens a new one as soon as the server can be reached. In <code>ssh-life-silent-drop-reconnect</code> the iPhone tried a new connection 26 seconds after the path went dead, and Android 51 seconds after. An idle VPN stays up: the app answers the server's own keepalives, so even a server with a short <code>ClientAliveInterval</code> keeps the session (<code>ssh-server-keepalive-idle</code>).</p>
+
+<h2 id="udp">UDP does not work</h2>
+<ul>
+  <li><strong>UDP Relay is off.</strong> SSH carries only TCP, so without the relay UDP does not get through (<code>ssh-udp-off-probe</code>); apps that can fall back to TCP, such as browsers, still work. DNS works with or without the relay. Turn UDP Relay on, with the relay installed on the server (<a href="server.html#relay">the UDP relay</a>).</li>
+  <li><strong>Calls and games stutter.</strong> Through the relay, UDP travels inside the SSH session's TCP stream: a lost packet holds up everything behind it until it is sent again. Over a lossy network, real-time apps are only as smooth as that stream.</li>
+</ul>
+
+<h2 id="server-side">Looking at the server</h2>
+<pre data-label="Server"><code class="language-bash">journalctl -u ssh --since "10 min ago"
+ss -tnp state established '( sport = :22 )'
+systemctl status hev-socks5-server</code></pre>
+<p>The journal shows each login (<em>Accepted password for</em>, or <em>Accepted keyboard-interactive/pam for</em>), each refused one, and the reason a session ended. <code>ss</code> lists the open SSH connections with the address each comes from. <code>pkill -u &lt;user&gt;</code> ends a user's sessions.</p>
+
+<h2 id="log">The app's log</h2>
+<p>At every <strong>Log Level</strong> the log shows the server and port the app connects to, the server's host key with its fingerprint, the login, and the reason a session ended. Expert adds the transfer counters, every 5 seconds while traffic moves; Debug adds a line for each connection through the tunnel and, on iPhone, the packet engine's own lines. No level writes the password. <a href="app-setup.html#log">Setting up the app</a> says where the log is.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

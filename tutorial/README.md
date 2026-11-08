@@ -1,6 +1,6 @@
 # SRP VPN Connect documentation site
 
-A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN and SSL VPN guides. It can be served by GitHub Pages or copied to the app's website as it is.
+A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN, SSL VPN and SSH VPN guides. It can be served by GitHub Pages or copied to the app's website as it is.
 
 ## Rules for content
 
@@ -22,6 +22,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP
 | `sstp/` | SSTP section (phase 2) |
 | `softether/` | SoftEther VPN section: server, app setup, results, troubleshooting |
 | `sslvpn/` | SSL VPN section: ocserv server, app setup, configuration reference, results, troubleshooting |
+| `ssh/` | SSH VPN section: OpenSSH server and UDP relay, app setup, configuration reference, results, troubleshooting |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
 | `assets/js/site.js` | Header, sidebar, table of contents, search, theme and copy buttons |
@@ -96,6 +97,21 @@ python3 tutorial/tools/sslvpn_results.py render --evidence tutorial/evidence/ssl
 ```
 
 `extract` works as for SoftEther; `render` rewrites `sslvpn/results.html` from `tools/sslvpn-results-intro.html`. The iPhone screenshots in `assets/img/sslvpn/` come from the unit test `testSslVpnDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-sslvpn`), the Android ones in `assets/img/sslvpn/android/` from `docs_screenshots_android.py` on the emulator.
+
+## SSH VPN results and screenshots
+
+The SSH VPN runs come from the private test tools in `ssh/`: `run_profile_cases.py` on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json` (`make_ssh_cases.py`):
+
+```bash
+python3 tutorial/tools/ssh_results.py extract --cases <cases-full.json> --ios <results.json files> \
+  --android <results.json files> --replace <server IP>=<SERVER_IP> <office IP>=<OFFICE_IP> \
+  <server's ED25519 fingerprint>=SHA256:<SERVER_ED25519_KEY> \
+  --egress <server IP> --date "<day month year>" --iphone "<phone>" --android-device "<phone>" --app "<build>" \
+  --server "<server>" --output tutorial/evidence/ssh-<date>.json
+python3 tutorial/tools/ssh_results.py render --evidence tutorial/evidence/ssh-<date>.json
+```
+
+`extract` refuses to write a file that still contains a public IPv4 address, a path on the Mac or a host key fingerprint, so the server's fingerprint, which the host key cases' messages name, must be replaced too. `render` rewrites `ssh/results.html` from `tools/ssh-results-intro.html`. The iPhone screenshots in `assets/img/ssh/` come from the unit test `testSshDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-ssh`), the Android ones in `assets/img/ssh/android/` from `docs_screenshots_android.py` on the emulator.
 
 ## Checking locally
 

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenSSH Server — SSH VPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Setting up an Ubuntu OpenSSH server for SSH VPN profiles of SRP VPN Connect: a user that may only forward TCP, the host key fingerprint, and the HEV UDP relay.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>OpenSSH server</h1>
+<p class="lead">An SSH VPN profile needs no VPN software on the server: the OpenSSH server that Ubuntu already runs carries the phone's TCP connections. This page sets up a user that may only forward TCP, shows where the host key's fingerprint comes from, and installs the optional UDP relay.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>We ran these steps on our test server, Ubuntu 24.04 with OpenSSH 9.6, 2 vCPUs and 2 GB of memory, on 7 November 2026, and read every setting back from it; then both phones connected as the page's user, with the host key pinned and UDP Relay on (<code>ssh-guide-udp-download</code>). Two steps ran differently: the relay program was copied from a copy already on the server, which has the SHA-256 on this page, instead of being downloaded, and the password was set without <code>passwd</code>'s prompt. The phones' other results named on this page come from the runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu server with a public IPv4 address. Ubuntu 24.04 comes with OpenSSH 9.6.</li>
+  <li>The SSH port open to the phones, TCP 22 unless you change it. A DNS name is optional: the app connects to a name or an address, and SSH has no certificate to match a name.</li>
+</ul>
+
+<h2 id="users">1. A user for the VPN</h2>
+<p>Give the phones their own users, in a group of their own, with no shell:</p>
+<pre data-label="Server, as root"><code class="language-bash">groupadd vpnusers
+useradd -M -d /nonexistent -s /usr/sbin/nologin -g vpnusers vpnuser
+passwd vpnuser</code></pre>
+<p><code>passwd</code> asks for the password twice. In the app this is <strong>Username</strong> and <strong>Password</strong>. The app logs in with a password; it has no key login.</p>
+
+<h2 id="sshd">2. What the users may do</h2>
+<p>This file lets the group's users forward TCP connections, which is all the app does, and nothing else: no shell, no terminal, no other kind of forwarding:</p>
+<pre data-label="/etc/ssh/sshd_config.d/60-vpn.conf"><code>Match Group vpnusers
+    PasswordAuthentication yes
+    AllowTcpForwarding local
+    AllowStreamLocalForwarding no
+    AllowAgentForwarding no
+    X11Forwarding no
+    PermitTunnel no
+    PermitTTY no
+    PermitUserRC no
+    GatewayPorts no
+    ForceCommand /usr/sbin/nologin</code></pre>
+<pre data-label="Server"><code class="language-bash">sshd -t
+systemctl reload ssh</code></pre>
+<p><code>sshd -t</code> prints nothing when the file is right. <code>AllowTcpForwarding local</code> is the line the app depends on: with <code>no</code>, the app refuses to connect with <em>The server does not let this user forward TCP connections</em>. <code>PasswordAuthentication yes</code> in the group's block keeps password logins working for these users on servers whose own setting is <code>no</code>; a server that offers only keyboard-interactive (PAM) logins works too, as the app answers its password prompt. <a href="configuration.html">Configuration Reference</a> lists what each server setting does to the app.</p>
+
+<h2 id="host-key">3. The host key's fingerprint</h2>
+<p>With the fingerprint in the profile's <strong>Host Key</strong>, the app connects only to the server that has that key. Read it on the server:</p>
+<pre data-label="Server"><code class="language-bash">ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub</code></pre>
+<p>It prints a line such as <code>256 SHA256:Lp3gKqZ2u7eFv0yQm9aWcXbT1rJ5nH8sD4oE6iU2kYA root@server (ED25519)</code>; the app takes the whole line or the <code>SHA256:…</code> part alone. Use the ED25519 key: the app asks for the server's keys in the order OpenSSH's own client does, so a server with an ED25519 key shows that one, and a fingerprint of its ECDSA or RSA key does not match. It is also the fingerprint <code>ssh</code> shows the first time a computer connects to the server.</p>
+
+<h2 id="relay">4. The UDP relay (optional)</h2>
+<p>SSH forwards TCP only. With <strong>UDP Relay</strong> on, the app sends UDP through the SSH session to <a href="https://github.com/heiher/hev-socks5-server">hev-socks5-server</a> on the server, which sends it on. Without the relay, everything but UDP works: DNS too, as the app answers names itself. The app reaches the relay as <code>127.0.0.1</code> port 1080 on the server, so it must listen there; on the loopback address only, nobody outside the server can use it.</p>
+<pre data-label="Server, as root"><code class="language-bash">curl -fLo /usr/local/bin/hev-socks5-server https://github.com/heiher/hev-socks5-server/releases/download/2.13.1/hev-socks5-server-linux-x86_64
+echo "9707a6d9e6419f6474173affa9d00b25a9ec61c9f320f2d19bb14a0a5a584bc5  /usr/local/bin/hev-socks5-server" | sha256sum -c
+chmod 755 /usr/local/bin/hev-socks5-server
+useradd -r -M -d /nonexistent -s /usr/sbin/nologin hev-relay
+mkdir -p /etc/hev-socks5-server</code></pre>
+<p><code>sha256sum -c</code> prints <code>OK</code>: the file is version 2.13.1 as GitHub publishes it. Its configuration:</p>
+<pre data-label="/etc/hev-socks5-server/main.yml"><code>main:
+  workers: 1
+  port: 1080
+  listen-address: '127.0.0.1'
+misc:
+  log-level: warn</code></pre>
+<p>And a service that starts it at boot, as an unprivileged user:</p>
+<pre data-label="/etc/systemd/system/hev-socks5-server.service"><code>[Unit]
+Description=HEV UDP relay for SSH VPN profiles
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=hev-relay
+Group=hev-relay
+ExecStart=/usr/local/bin/hev-socks5-server /etc/hev-socks5-server/main.yml
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre data-label="Server"><code class="language-bash">systemctl daemon-reload
+systemctl enable --now hev-socks5-server
+ss -tlnp | grep 1080</code></pre>
+<p><code>ss</code> shows <code>hev-socks5-serv</code> listening on <code>[::ffff:127.0.0.1]:1080</code>, the loopback address 127.0.0.1 written as IPv6. With the relay stopped, a profile with UDP Relay on is refused with <em>The UDP relay (HEV) is unavailable on the server</em>, and one with it off connects as usual.</p>
+
+<h2 id="firewall">5. Firewall</h2>
+<p>Only the SSH port needs to be open; the relay stays on the loopback address. If ufw is active: <code>ufw allow 22/tcp</code>. Our server has no firewall of its own.</p>
+
+<h2 id="check">6. Check from a computer</h2>
+<p>Any computer with OpenSSH can do what the app does. This forwards a local port to the relay through the SSH session and asks a web service which address it sees:</p>
+<pre data-label="Your computer"><code class="language-bash">ssh -N -L 1080:127.0.0.1:1080 vpnuser@&lt;SERVER_IP&gt;
+curl --socks5-hostname 127.0.0.1:1080 https://api.ipify.org</code></pre>
+<p>Run <code>curl</code> in a second terminal: it prints the server's address. A user without TCP forwarding gets <em>administratively prohibited</em> from <code>ssh</code> instead. On the server, <code>journalctl -u ssh</code> shows each login, and <code>pkill -u vpnuser</code> ends a user's sessions.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>SSH VPN</strong>, the server's name or address in <strong>Server</strong>, its SSH port in <strong>Port</strong> (empty means 22), and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

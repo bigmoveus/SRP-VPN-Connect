@@ -53,5 +53,16 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'sslvpn/troubleshooting.html' }
     ]
   },
+  {
+    title: 'SSH VPN',
+    children: [
+      { title: 'Introduction', href: 'ssh/index.html' },
+      { title: 'OpenSSH Server', href: 'ssh/server.html' },
+      { title: 'Setting Up the App', href: 'ssh/app-setup.html' },
+      { title: 'Configuration Reference', href: 'ssh/configuration.html' },
+      { title: 'Test Results', href: 'ssh/results.html' },
+      { title: 'Troubleshooting', href: 'ssh/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];

@@ -1,0 +1,1207 @@
+{
+ "run": {
+  "date": "7 and 8 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the code of commit 8b4eb1af, as a Debug build on the iPhone and a debug APK on Android; the rows of the ssh-life-\u2026 and ssh-guide-\u2026 cases on both phones, and Android's ssh-server-keepalive-idle row, ran on commit 3c4e4def, which follows it; the iPhone's rows of the log cases, ssh-wrong-password and ssh-pass-download come from a Release build of 8b4eb1af's code, the kind TestFlight ships",
+  "server": "OpenSSH 9.6 on Ubuntu 24.04, with hev-socks5-server 2.13.1 as the UDP relay"
+ },
+ "summary": {
+  "cases": 49,
+  "iphone_passed": 49,
+  "iphone_run": 49,
+  "android_passed": 49,
+  "android_run": 49
+ },
+ "cases": [
+  {
+   "id": "ssh-pass-download",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server logged a password login"
+    ],
+    "download_mbps": 62.01,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.2,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-pass-full-duplex",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 76.94,
+    "upload_mbps": 44.77,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-pass-upload",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "up 70.78 Mbit/s",
+     "the server logged a password login"
+    ],
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-many-connections",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "16 downloads at once, 45 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 87.71,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 40.2,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-udp-download",
+   "settings": [
+    "UDP Relay on"
+   ],
+   "traffic": "download, 30 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query was answered, and saw the server's address"
+    ],
+    "download_mbps": 85.31,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query was answered, and saw the server's address"
+    ]
+   }
+  },
+  {
+   "id": "ssh-udp-off-probe",
+   "settings": [
+    "defaults"
+   ],
+   "traffic": "download, 20 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query got no answer"
+    ],
+    "download_mbps": 115.95,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query got no answer"
+    ]
+   }
+  },
+  {
+   "id": "ssh-udp-relay-stopped",
+   "settings": [
+    "UDP Relay on",
+    "server: the UDP relay stopped"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "message": "The UDP relay (HEV) is unavailable on the server. Turn UDP Relay off, or ask the administrator to install or start it.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server logged a password login"
+    ],
+    "message": "The UDP relay (HEV) is unavailable on the server. Turn UDP Relay off, or ask the administrator to install or start it."
+   }
+  },
+  {
+   "id": "ssh-udp-off-relay-stopped",
+   "settings": [
+    "server: the UDP relay stopped"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 105.59,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-wrong-password",
+   "settings": [
+    "wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server logged a wrong password",
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: the password"
+    ],
+    "message": "Authentication failed. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server logged a wrong password",
+     "in the log: the connect line, the reason the app closed the connection",
+     "not in the log: the password"
+    ],
+    "message": "Authentication failed. Check the username and password."
+   }
+  },
+  {
+   "id": "ssh-wrong-user",
+   "settings": [
+    "a user the server does not have"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged an unknown user"
+    ],
+    "message": "Authentication failed. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server logged an unknown user"
+    ],
+    "message": "Authentication failed. Check the username and password."
+   }
+  },
+  {
+   "id": "ssh-special-password",
+   "settings": [
+    "a user whose password has spaces, punctuation and letters outside ASCII"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 72.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-password-login-off",
+   "settings": [
+    "server: PasswordAuthentication no for the user"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server does not take a password for this user (it offers: publickey).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server does not take a password for this user (it offers: publickey)."
+   }
+  },
+  {
+   "id": "ssh-kbd-interactive-only",
+   "settings": [
+    "server: PasswordAuthentication no and KbdInteractiveAuthentication yes for the user"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a keyboard-interactive login"
+    ],
+    "download_mbps": 88.5,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.1,
+    "facts": [
+     "the server logged a keyboard-interactive login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-no-forwarding",
+   "settings": [
+    "a user the server does not let forward TCP (AllowTcpForwarding no)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "message": "The server does not let this user forward TCP connections (AllowTcpForwarding or PermitOpen on the server).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server logged a password login"
+    ],
+    "message": "The server does not let this user forward TCP connections (AllowTcpForwarding or PermitOpen on the server)."
+   }
+  },
+  {
+   "id": "ssh-hostkey-ed25519",
+   "settings": [
+    "Host Key: the fingerprint of the server's ED25519 key"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 127.07,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-hostkey-ecdsa-not-shown",
+   "settings": [
+    "Host Key: the fingerprint of the server's ECDSA key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>."
+   }
+  },
+  {
+   "id": "ssh-hostkey-rsa-not-shown",
+   "settings": [
+    "Host Key: the fingerprint of the server's RSA key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>."
+   }
+  },
+  {
+   "id": "ssh-hostkey-wrong",
+   "settings": [
+    "Host Key: a fingerprint of no key of the server"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server's host key does not match Host Key. The server presented ED25519 SHA256:<SERVER_ED25519_KEY>."
+   }
+  },
+  {
+   "id": "ssh-hostkey-keygen-line",
+   "settings": [
+    "Host Key: the whole line ssh-keygen -lf prints for the server's ED25519 key"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 128.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.9,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-port-2222",
+   "settings": [
+    "Port 2222 (the server's second SSH port)"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 94.63,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.1,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-port-empty",
+   "settings": [
+    "Port empty"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 65.15,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.1,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-port-closed",
+   "settings": [
+    "Port 2223 (nothing listens on it)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server refused the connection on port 2223. Check the Port field.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server refused the connection on port 2223. Check the Port field."
+   }
+  },
+  {
+   "id": "ssh-port-other-service",
+   "settings": [
+    "Port 2224 (a service that does not speak SSH answers it)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "SSH handshake failed (Failed getting banner). Check that Port is the server's SSH port.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "SSH handshake failed (Failed getting banner). Check that Port is the server's SSH port."
+   }
+  },
+  {
+   "id": "ssh-port-no-answer",
+   "settings": [
+    "Port 2222 (the server's second SSH port)",
+    "server: every new connection to port 2222 dropped"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "The server did not answer on port 2222. Check the Server and Port fields and the network.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer on port 2222. Check the Server and Port fields and the network."
+   }
+  },
+  {
+   "id": "ssh-host-unknown",
+   "settings": [
+    "Server is a name that does not exist"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Cannot find the server. Check the Server field and the network.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Cannot find the server. Check the Server field and the network."
+   }
+  },
+  {
+   "id": "ssh-host-name",
+   "settings": [
+    "Server is a DNS name of the server"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 107.43,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-hardened",
+   "settings": [
+    "server: KexAlgorithms curve25519-sha256 only, Ciphers chacha20-poly1305 and aes256-gcm, MACs hmac-sha2 ETM only"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 104.81,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-aes-gcm",
+   "settings": [
+    "server: Ciphers aes256-gcm and aes128-gcm only"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 112.52,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-aes-ctr",
+   "settings": [
+    "server: Ciphers aes256-ctr and aes128-ctr only"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 97.21,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-chacha",
+   "settings": [
+    "server: Ciphers chacha20-poly1305 only"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 79.63,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-hostkey-ed25519",
+   "settings": [
+    "Host Key: the fingerprint of the server's ED25519 key",
+    "server: HostKeyAlgorithms ssh-ed25519"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 108.79,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.1,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-hostkey-ecdsa",
+   "settings": [
+    "Host Key: the fingerprint of the server's ECDSA key",
+    "server: HostKeyAlgorithms ecdsa-sha2-nistp256"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 71.48,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-hostkey-rsa",
+   "settings": [
+    "Host Key: the fingerprint of the server's RSA key",
+    "server: HostKeyAlgorithms rsa-sha2-512,rsa-sha2-256"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 85.95,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-banner",
+   "settings": [
+    "server: Banner /etc/issue.net"
+   ],
+   "traffic": "download, 15 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "download_mbps": 38.97,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the server logged a password login"
+    ]
+   }
+  },
+  {
+   "id": "ssh-server-keepalive-idle",
+   "settings": [
+    "server: ClientAliveInterval 5, ClientAliveCountMax 2"
+   ],
+   "traffic": "connect, then 40 s without traffic",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login",
+     "idle for 40 s: traffic worked before and after, and the VPN stayed connected"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server logged a password login",
+     "idle for 40 s: traffic worked before and after, and the VPN stayed connected"
+    ]
+   }
+  },
+  {
+   "id": "ssh-log-normal",
+   "settings": [
+    "Log Level Normal"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server logged a password login",
+     "in the log: the connect line, the server's host key, the login line, the session line",
+     "not in the log: the transfer counters, a line for each connection, the packet engine's start line, the packet engine's own lines, the password"
+    ],
+    "download_mbps": 32.24,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the server logged a password login",
+     "in the log: the connect line, the server's host key, the login line, the session line",
+     "not in the log: the transfer counters, a line for each connection, the packet engine's start line, the packet engine's own lines, the password"
+    ]
+   }
+  },
+  {
+   "id": "ssh-log-expert",
+   "settings": [
+    "Log Level Expert"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server logged a password login",
+     "in the log: the connect line, the login line, the session line, the transfer counters",
+     "not in the log: a line for each connection, the packet engine's start line, the packet engine's own lines, the password"
+    ],
+    "download_mbps": 59.39,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login",
+     "in the log: the connect line, the login line, the session line, the transfer counters",
+     "not in the log: a line for each connection, the packet engine's start line, the packet engine's own lines, the password"
+    ]
+   }
+  },
+  {
+   "id": "ssh-log-debug",
+   "settings": [
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server logged a password login",
+     "in the log: the connect line, the session line, the transfer counters, a line for each connection, the packet engine's start line, the packet engine's own lines",
+     "not in the log: the password"
+    ],
+    "download_mbps": 56.39,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server logged a password login",
+     "in the log: the connect line, the session line, the transfer counters, a line for each connection, the packet engine's start line",
+     "not in the log: the password"
+    ]
+   }
+  },
+  {
+   "id": "ssh-retry-before-connect",
+   "settings": [
+    "Port 2222 (the server's second SSH port)",
+    "server: port 2222 refuses connections",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "message": "Could not connect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Could not connect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)"
+   }
+  },
+  {
+   "id": "ssh-life-sleep-modes",
+   "settings": [
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 4.0 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.9 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.5 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "paused at sleep, connected again at wake; transfer passed",
+     "closed at sleep, connected again at wake; transfer passed",
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-server-ends-reconnect",
+   "settings": [
+    "the server ends the session",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "connected again after 5.3 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 2.8 s after the drop; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-server-ends-no-reconnect",
+   "settings": [
+    "the server ends the session",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "ended after 5.0 s with: The server closed the connection (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The server closed the connection (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-reset-reconnect",
+   "settings": [
+    "the server resets the TCP connection",
+    "Log Level Expert",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "connected again after 5.2 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 2.8 s after the reset; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-reset-no-reconnect",
+   "settings": [
+    "the server resets the TCP connection",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "ended after 5.0 s with: The connection was reset (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The connection was reset (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-path-switch",
+   "settings": [
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "connected again after 0.9 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "moved back to Wi-Fi: 3 sessions in all; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-retry-exhausted",
+   "settings": [
+    "Port 2222 (the server's second SSH port)",
+    "the server ends the session and refuses new connections",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "ended after 5.4 s with: Could not reconnect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: Could not reconnect after 2 attempts. (The server refused the connection on port 2222. Check the Port field.)"
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-silent-drop-reconnect",
+   "settings": [
+    "Port 2222 (the server's second SSH port)",
+    "server: every packet of the session dropped, no reset, until the app tries a new connection",
+    "Log Level Expert",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login",
+     "the server saw the app's new connection attempt 26 s after the path went dead"
+    ],
+    "lifecycle": [
+     "connected again after 28.4 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "noticed the dead path after 51.0 s, connected again 54.7 s after the drop began; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ssh-life-outage-reconnect",
+   "settings": [
+    "Port 2222 (the server's second SSH port)",
+    "the server ends the session and refuses new connections for 8 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login"
+    ],
+    "lifecycle": [
+     "connected again after 10.0 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 1.4 s after the server came back, after 4 attempts; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ssh-guide-udp-download",
+   "settings": [
+    "Host Key: the fingerprint of the server's ED25519 key",
+    "UDP Relay on",
+    "the user, sshd file and UDP relay that OpenSSH server sets up"
+   ],
+   "traffic": "download, 30 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query was answered, and saw the server's address"
+    ],
+    "download_mbps": 112.79,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 10.6,
+    "facts": [
+     "the server logged a password login",
+     "the UDP DNS query was answered, and saw the server's address"
+    ]
+   }
+  }
+ ]
+}
