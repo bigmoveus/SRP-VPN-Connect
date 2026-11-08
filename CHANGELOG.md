@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The OpenVPN, SSH VPN and SSTP documentation name TestFlight build 39, the first with their code; for SSTP, the first that takes passwords with characters outside ASCII (build 36 was named before).
+
 ## 1.2.0 (39) - 2026-11-08
 
 ### Added
