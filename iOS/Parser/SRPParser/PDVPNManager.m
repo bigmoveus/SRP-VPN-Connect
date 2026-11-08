@@ -805,7 +805,9 @@ static NSString *SRPMaskedURI(NSString *uri) {
     if (([server[@"type"] isEqualToString:@"wireguard"] || [server[@"type"] isEqualToString:@"amnezia"]) && [server[@"wg_conf"] length] > 0) {
         [uri appendFormat:@"&wg_conf=%@", [server[@"wg_conf"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];
     }
-    NSLog(@"[SRP] connectDirectly: uri built (%@...), calling connect:", SRPMaskedURI([uri substringToIndex:MIN(uri.length, 60)]));
+    // Mask before shortening: a long user part would push the "@" past the cut and leave the credentials unmasked
+    NSString *maskedURI = SRPMaskedURI(uri);
+    NSLog(@"[SRP] connectDirectly: uri built (%@...), calling connect:", [maskedURI substringToIndex:MIN(maskedURI.length, 60)]);
     [self connect:uri];
     return YES;
 }
