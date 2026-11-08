@@ -4,8 +4,28 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- SSH VPN messages that say what to fix: a name that does not resolve, a port that refuses or does not answer, a service that does not speak SSH, a user the server does not let forward TCP (checked before the VPN comes up), a server that takes no password for the user (with the methods it offers), and an unavailable UDP relay.
+- SSH VPN logins through the server's keyboard-interactive (PAM) method when it offers no password method; the app answers the prompt with the profile's password.
+- SSH VPN keepalives every 15 seconds, answers to the server's own keepalives while the session is idle, and limits of 15 seconds for the TCP connection and 20 for the SSH handshake and login.
+- The SSH log in Release builds of the iPhone app, with the server's host key, the login, the reason a session ended and, at Expert, the transfer counters; no level writes the password.
+
 ### Changed
 - The SSL VPN documentation names TestFlight build 38, the first with the Path field.
+
+### Fixed
+- SSH VPN on iPhone: a download no longer ends the VPN. The packet pump kept every received packet in memory until the session ended, and iOS stopped the tunnel at its 50 MB limit within seconds.
+- SSH VPN: with UDP Relay off, the first UDP packet of an app (a QUIC connection, for example) no longer crashes the tunnel. The engine freed that packet twice.
+- SSH VPN: a connection no longer gets another connection's data. libssh2 keeps one channel open in progress per session, so two connections that opened at the same time could swap their channels. Each channel now opens on its own (a small addition to the vendored libssh2: `libssh2_channel_direct_tcpip_start` and `libssh2_channel_open_result`), so one slow destination, or a slow name lookup on the server, no longer holds up the others.
+- SSH VPN: the session no longer stalls under load. When the socket took a keepalive or an end of stream only in part, libssh2 refused every other send until the same call came again, which for those never happened. The bridge now queues what the socket cannot take yet, so libssh2's sends always go whole.
+- SSH VPN: many connections at once no longer stall. The packet channel between the tunnel and the packet engine held 512 KB, and when it was full the system refused packets instead of waiting, so the engine's TCP backed off; it now holds 4 MB. 16 downloads at once ran without errors in our tests.
+- SSH VPN: the last bytes the server sends together with its end of stream reach the app.
+- SSH VPN: the placeholder addresses the tunnel gives names no longer include its own address and its DNS server's; each session takes them from another range, and a reconnect applies the settings again, so the system forgets the old ones.
+- SSH VPN profiles reconnect. Auto Reconnect and Retry Times now open a new SSH session when the connection breaks, the server ends the session, or keepalives go unanswered for 50 seconds; without Auto Reconnect the VPN ends with the reason instead of staying up without a tunnel. Switch to Wi-Fi opens a new session over Wi-Fi when it appears, and On Sleep works as for SSL VPN.
+- An SSH profile without a port connects to port 22; it used 443.
+- SSH Host Key: the app asks for the server's keys in OpenSSH's order, so a server with an ED25519 key shows that one (libssh2 preferred ECDSA, and the ED25519 fingerprint that `ssh` shows never matched). The field also takes the whole line `ssh-keygen -lf` prints, and a mismatch names the key the server presented.
+- SSH passwords that hold ":" or characters whose base64 has a "/" (such as "?" or letters outside ASCII) reach the server as typed.
+- The SSH bridge keeps its own copy of the profile's strings; it read them after their buffers had gone.
 
 ## 1.2.0 (38) - 2026-11-07
 

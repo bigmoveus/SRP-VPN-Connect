@@ -450,6 +450,12 @@ struct _LIBSSH2_CHANNEL
     unsigned char *channel_type;
     size_t channel_type_len;
 
+    /* SRP: an open of its own, started by libssh2_channel_direct_tcpip_start
+       (0 none, 1 to send, 2 sent and waiting for the server's answer) */
+    unsigned char *srp_open_packet;
+    size_t srp_open_packet_len;
+    int srp_open_state;
+
     /* channel's program exit status */
     int exit_status;
 

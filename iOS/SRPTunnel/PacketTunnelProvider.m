@@ -434,6 +434,9 @@ static uint64_t SRPFootprintBytes(void);
 #pragma mark - SSH VPN Protocol
 
 -(void)startSSHWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
+#if !DEBUG
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
+#endif
     SRPSSHClient *ssh = [[SRPSSHClient alloc] init];
     ssh.host = v[@"address"];
     ssh.port = [v[@"port"] intValue] ?: 22;
@@ -485,6 +488,12 @@ static uint64_t SRPFootprintBytes(void);
         }
         [weakSelf.packetFlow writePackets:@[ipPacket] withProtocols:@[@(family)]];
     } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
+        if (finished) {
+            // A reconnect's settings: applying them again drops the old placeholder addresses from the DNS cache; the
+            // packet read loop already runs (one per tunnel)
+            [weakSelf setTunnelNetworkSettings:setting completionHandler:nil];
+            return;
+        }
         [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
             if (e) {
                 SSLogE(@"SSH: setTunnelNetworkSettings failed: %@", e);
@@ -495,7 +504,14 @@ static uint64_t SRPFootprintBytes(void);
             finish(nil);
         }];
     } connectedCallback:nil disconnectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SSH connection failed"}]);
+        NSError *error = [NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"SSH connection failed"}];
+        if (finished) {
+            // A connection that ends for good after it was up stops the VPN instead of leaving it without a tunnel (as SSTP)
+            [shared setObject:@{@"message": error.localizedDescription, @"date": NSDate.date} forKey:@"SRPLastError"];
+            [weakSelf cancelTunnelWithError:error];
+        } else {
+            finish(error);
+        }
     }];
 }
 
@@ -1225,7 +1241,18 @@ static void SRPLogSSTPMemoryIfHigh(void) {
     NSString *username = url.user;
     NSString *password = url.password;
     if (password == nil) {
-        NSArray *up = [[PDBase64 decode:username] componentsSeparatedByString:@":"];
+        BOOL ssh = [url.scheme isEqualToString:@"ssh"];
+        // SSH carries its user info in the URL-safe alphabet: a "/" of plain base64 would end the URL's user part
+        NSString *encoded = ssh ? [[username stringByReplacingOccurrencesOfString:@"-" withString:@"+"]
+                                   stringByReplacingOccurrencesOfString:@"_" withString:@"/"] : username;
+        NSString *decoded = [PDBase64 decode:encoded];
+        NSArray *up = [decoded componentsSeparatedByString:@":"];
+        if (ssh) {
+            // An SSH password may hold ":" and edge spaces (a user name cannot hold ":"): split at the first one only
+            NSRange colon = [decoded rangeOfString:@":"];
+            up = colon.location == NSNotFound ? @[] : @[[decoded substringToIndex:colon.location],
+                                                        [decoded substringFromIndex:NSMaxRange(colon)]];
+        }
         if (up.count != 2) {
             return nil;
         }
@@ -1233,7 +1260,7 @@ static void SRPLogSSTPMemoryIfHigh(void) {
         password = up[1];
 
         username = [username stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-        password = [password stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        if (!ssh) password = [password stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
     }
     NSMutableDictionary *body = @{@"username":username, @"password":password, @"port":url.port, @"xx":url.scheme, @"address":url.host, @"remark":remark}.mutableCopy;
     [parameters enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
@@ -1309,7 +1336,7 @@ static void SRPTunnelLogOpen(void) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
 
 #if DEBUG
-    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN), from their start methods.
+    // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo, and the SSL VPN Path (an ocserv camouflage secret), before logging
@@ -1456,8 +1483,9 @@ static void SRPTunnelLogOpen(void) {
             return;
         }
         if ([command isEqualToString:@"path-switch"]) {
-            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN), without changing the phone's network
+            // What Switch to Wi-Fi does when Wi-Fi appears (SSL VPN, SSH), without changing the phone's network
             [self.ocClient switchNetworkPath];
+            [self.sshClient switchNetworkPath];
             completionHandler(messageData);
             return;
         }

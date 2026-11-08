@@ -101,6 +101,9 @@ static NodeModel * modal = nil;
             [SRPWaterWallChainConfig isWireGuardConfiguration:[SRPWaterWallChainConfig configurationWithJSON:_waterwallConfigJSON] ?: @{}]) {
             return @"51820";
         }
+        if ([_protocolType isEqualToString:@"ssh"]) {
+            return @"22";   // the Port field's hint: SSH's own port
+        }
         return @"443";
     }
     return _port;

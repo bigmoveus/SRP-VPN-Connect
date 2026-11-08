@@ -23,8 +23,17 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <time.h>
+#include <ctype.h>
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif
 
 #include <libssh2.h>
+
+/* libssh2's own packet reader (vendored 1.11.1): with no channel asking for data it is the only way to answer the
+ * server's keepalives and to see its disconnect while the session is idle */
+extern int _libssh2_transport_read(LIBSSH2_SESSION *session);
 
 /* Engine entry points and the stream hook — all renamed to srpssh_* by the
  * prefix header (see SSH/build_engine.sh). */
@@ -37,7 +46,7 @@
 enum {
     ST_GREET = 0,   // reading the engine's SOCKS greeting
     ST_REQ,         // reading the engine's SOCKS request
-    ST_OPEN,        // opening the SSH channel (EAGAIN retry)
+    ST_OPEN,        // opening the SSH channel (each open waits on its own; see libssh2_channel_direct_tcpip_start)
     ST_HEV,         // HEV auth + FWD UDP handshake on the channel
     ST_SPLICE,      // pumping data both ways
     ST_DEAD
@@ -66,6 +75,7 @@ typedef struct SStream {
     uint8_t rbuf[65536];        // channel -> engine pending
     size_t rlen, roff;
     struct timespec born;       // stream creation time
+    unsigned long long down, up;   // bytes from the server to the engine, and back
 
     struct SStream *next;
 } SStream;
@@ -83,6 +93,25 @@ static volatile int g_failed;
 
 static SStream *g_streams;
 static pthread_mutex_t g_streams_mu = PTHREAD_MUTEX_INITIALIZER;
+
+/* channels whose close is still waiting for room on the session socket; freed as soon as it went (each could hold up
+ * to its window of the server's data meanwhile) */
+static LIBSSH2_CHANNEL *g_closing[256];
+static int g_closing_count;
+
+static void free_channel(LIBSSH2_CHANNEL *ch) {
+    libssh2_channel_close(ch);
+    if (libssh2_channel_free(ch) == LIBSSH2_ERROR_EAGAIN && g_closing_count < 256) g_closing[g_closing_count++] = ch;
+}
+
+static void retry_closing(void) {
+    int kept = 0;
+    for (int i = 0; i < g_closing_count; i++) {
+        libssh2_channel_close(g_closing[i]);
+        if (libssh2_channel_free(g_closing[i]) == LIBSSH2_ERROR_EAGAIN) g_closing[kept++] = g_closing[i];
+    }
+    g_closing_count = kept;
+}
 
 /* throughput counters (bytes moved by the bridge) */
 static unsigned long long g_bytes_up, g_bytes_down;
@@ -103,19 +132,28 @@ static void *g_cb_ctx;
 
 static char g_engine_conf[512];
 
+/* session liveness: when the socket last gave data, and how it ended */
+static volatile time_t g_last_rx;
+static volatile int g_rx_eof;           // the server closed the TCP connection
+static volatile int g_rx_errno;         // the last receive error
+static time_t g_deadline;               // connect, login and checks must finish by then
+static char g_detail[256];              // the failure detail handed to the fail callback
+static int g_flows_opened;              // channels opened for flows in this session
+
 #pragma mark - logging
 
-static void blog(const char *fmt, ...);
+static void blog(int level, const char *fmt, ...);
 static void libssh2_global_init(void);
 
-static void blog(const char *fmt, ...) {
-    if (!g_log) return;
+/// level: 0 normal (milestones, errors), 1 expert, 2 debug
+static void blog(int level, const char *fmt, ...) {
+    if (!g_log || level > g_cfg.log_level) return;
     char line[512];
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(line, sizeof(line), fmt, ap);
     va_end(ap);
-    g_log(g_log_ctx, line);
+    g_log(g_log_ctx, level, line);
 }
 
 #pragma mark - small helpers
@@ -123,6 +161,97 @@ static void blog(const char *fmt, ...) {
 static int set_nb(int fd) {
     int fl = fcntl(fd, F_GETFL, 0);
     return fcntl(fd, F_SETFL, fl | O_NONBLOCK);
+}
+
+static time_t now_sec(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec;
+}
+
+/// The process's memory as the system counts it against the extension limit (0 where unknown)
+static double footprint_mib(void) {
+#ifdef __APPLE__
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+        return (double)info.phys_footprint / (1024.0 * 1024.0);
+#endif
+    return 0;
+}
+
+/// libssh2's receive, recording when data came and how the connection ended
+static ssize_t srp_recv(libssh2_socket_t sock, void *buffer, size_t length, int flags, void **abstract) {
+    (void)abstract;
+    ssize_t n = recv(sock, buffer, length, flags);
+    if (n > 0) { g_last_rx = now_sec(); return n; }
+    if (n == 0) { g_rx_eof = 1; return 0; }
+    int err = errno;
+    if (err == EAGAIN || err == EWOULDBLOCK || err == EINTR) return -EAGAIN;
+    g_rx_errno = err;
+    return -err;
+}
+
+/* What libssh2 sent that the socket has not taken yet. libssh2 copes badly with a send cut short: every other sender then
+ * gets EAGAIN until the first one sends again with the same buffer, which its keepalive (retried only after the next
+ * interval) and channel EOF never do, so the whole session stalled under load. Here libssh2's sends always go whole, and
+ * the pump hands the rest to the socket in order; channel writes wait while too much is queued. */
+static uint8_t *g_txq;
+static size_t g_txq_len, g_txq_off, g_txq_cap;
+enum { TXQ_PAUSE = 1024 * 1024 };
+
+static size_t txq_pending(void) { return g_txq_len - g_txq_off; }
+
+/// Sends what is queued; -1 when the connection broke (errno kept in g_rx_errno for the reason).
+static int txq_flush(int sock) {
+    while (g_txq_off < g_txq_len) {
+#ifdef MSG_NOSIGNAL
+        ssize_t n = send(sock, g_txq + g_txq_off, g_txq_len - g_txq_off, MSG_NOSIGNAL);
+#else
+        ssize_t n = send(sock, g_txq + g_txq_off, g_txq_len - g_txq_off, 0);
+#endif
+        if (n > 0) { g_txq_off += (size_t)n; continue; }
+        if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) return 0;
+        g_rx_errno = n < 0 ? errno : EPIPE;
+        return -1;
+    }
+    g_txq_off = g_txq_len = 0;
+    return 0;
+}
+
+/// libssh2's send: all of it goes, now or through the queue
+static ssize_t srp_send(libssh2_socket_t sock, const void *buffer, size_t length, int flags, void **abstract) {
+    (void)abstract;
+    if (txq_flush(sock) < 0) return -g_rx_errno;
+    size_t done = 0;
+    if (txq_pending() == 0) {
+        ssize_t n = send(sock, buffer, length, flags);
+        if (n < 0) {
+            int err = errno;
+            if (err != EAGAIN && err != EWOULDBLOCK && err != EINTR) { g_rx_errno = err; return -err; }
+            n = 0;
+        }
+        done = (size_t)n;
+    }
+    if (done < length) {
+        size_t rest = length - done;
+        if (g_txq_off > 0) {
+            memmove(g_txq, g_txq + g_txq_off, txq_pending());
+            g_txq_len -= g_txq_off;
+            g_txq_off = 0;
+        }
+        if (g_txq_len + rest > g_txq_cap) {
+            size_t cap = g_txq_cap ? g_txq_cap : 65536;
+            while (cap < g_txq_len + rest) cap *= 2;
+            uint8_t *bigger = realloc(g_txq, cap);
+            if (!bigger) return -ENOMEM;
+            g_txq = bigger;
+            g_txq_cap = cap;
+        }
+        memcpy(g_txq + g_txq_len, (const uint8_t *)buffer + done, rest);
+        g_txq_len += rest;
+    }
+    return (ssize_t)length;
 }
 
 static void wake_pump(void) {
@@ -154,6 +283,7 @@ static int srpssh_hook_open(void) {
     }
     pthread_mutex_unlock(&g_pending_mu);
     wake_pump();
+    blog(2, "SSH: new flow: bridge fd %d, engine fd %d", fds[0], fds[1]);
     return fds[1];   // engine end
 }
 
@@ -174,11 +304,10 @@ static SStream *stream_new(int efd) {
 }
 
 static void stream_free(SStream *st) {
+    blog(2, "SSH: flow fd %d to %s:%d ends (state %d, eof to server %d, eof to engine %d, down %llu, up %llu)",
+         st->efd, st->dest_host, st->dest_port, st->state, st->ch_eof_sent, st->eng_eof_sent, st->down, st->up);
     if (st->efd >= 0) close(st->efd);
-    if (st->ch) {
-        libssh2_channel_close(st->ch);
-        libssh2_channel_free(st->ch);
-    }
+    if (st->ch) free_channel(st->ch);
     free(st);
 }
 
@@ -430,16 +559,18 @@ static void flush_engine_queue(SStream *st) {
 #pragma mark - splice
 
 static void splice_drive(SStream *st) {
-    /* engine -> channel */
-    if (st->wlen > 0 && st->ch) {
+    /* engine -> channel, unless the session's send queue is full */
+    int may_write = txq_pending() < TXQ_PAUSE;
+    if (st->wlen > 0 && st->ch && may_write) {
         ssize_t n = libssh2_channel_write_ex(st->ch, 0, (char *)st->wbuf, st->wlen);
         if (n > 0) {
             memmove(st->wbuf, st->wbuf + n, st->wlen - (size_t)n);
             st->wlen -= (size_t)n;
             g_bytes_up += (unsigned long long)n;
+            st->up += (unsigned long long)n;
         }
     }
-    if (st->wlen == 0 && !st->ch_eof_sent) {
+    if (st->wlen == 0 && !st->ch_eof_sent && may_write) {
         int budget = 8;   // fair scheduling: let other streams run
         while (budget-- > 0) {
             ssize_t n = read(st->efd, st->wbuf, sizeof(st->wbuf));
@@ -453,6 +584,7 @@ static void splice_drive(SStream *st) {
             if (n < 0) { st->ch_eof_sent = 1; if (st->ch) libssh2_channel_send_eof(st->ch); break; }
             ssize_t w = st->ch ? libssh2_channel_write_ex(st->ch, 0, (char *)st->wbuf, (size_t)n)
                                : (ssize_t)n;
+            if (w > 0) st->up += (unsigned long long)w;
             if (w == n) { /* fully written */ }
             else if (w >= 0 || w == LIBSSH2_ERROR_EAGAIN) {
                 size_t done = (w > 0) ? (size_t)w : 0;
@@ -460,6 +592,7 @@ static void splice_drive(SStream *st) {
                 if (done > 0) memmove(st->wbuf, st->wbuf + done, st->wlen);
                 break;  // backpressure: retry next round
             } else {
+                blog(1, "SSH: writing to %s:%d failed (%zd)", st->dest_host, st->dest_port, w);
                 st->ch_eof_sent = 1;
                 break;
             }
@@ -478,35 +611,49 @@ static void splice_drive(SStream *st) {
         while (budget-- > 0) {
             ssize_t n = libssh2_channel_read_ex(st->ch, 0, (char *)st->rbuf, sizeof(st->rbuf));
             if (n == LIBSSH2_ERROR_EAGAIN) break;
-            if (n == 0 || libssh2_channel_eof(st->ch)) {
-                st->eng_eof_sent = 1;
-                shutdown(st->efd, SHUT_WR);
+            if (n > 0) {
+                /* data first: the server's last bytes can come with its EOF */
+                g_bytes_down += (unsigned long long)n;
+                st->down += (unsigned long long)n;
+                ssize_t w = write(st->efd, st->rbuf, (size_t)n);
+                if (w == n) continue;
+                if (w >= 0 || errno == EAGAIN || errno == EINTR) {
+                    st->roff = (w > 0) ? (size_t)w : 0;
+                    st->rlen = (size_t)n;
+                    break;  // engine busy — flush with POLLOUT, then read on
+                }
+                st->eng_eof_sent = 1;   // the engine side is gone
                 break;
             }
-            if (n < 0) { st->eng_eof_sent = 1; shutdown(st->efd, SHUT_WR); break; }
-            g_bytes_down += (unsigned long long)n;
-            ssize_t w = write(st->efd, st->rbuf, (size_t)n);
-            if (w == n) continue;
-            if (w >= 0 || (w < 0 && (errno == EAGAIN || errno == EINTR))) {
-                size_t done = (w > 0) ? (size_t)w : 0;
-                st->roff = done;
-                st->rlen = (size_t)n;
-                break;  // engine busy — flush with POLLOUT
-            }
+            /* 0 = the server's EOF after all its data; < 0 = the channel failed */
+            if (n < 0) blog(1, "SSH: reading %s:%d failed (%zd)", st->dest_host, st->dest_port, n);
             st->eng_eof_sent = 1;
+            shutdown(st->efd, SHUT_WR);
             break;
         }
     }
 
-    /* fully closed both ways -> dead */
-    if ((st->ch_eof_sent && libssh2_channel_eof(st->ch)) ||
-        (st->ch && libssh2_channel_eof(st->ch) && st->eng_eof_sent))
+    /* closed both ways, and every byte from the server handed to the engine -> dead */
+    if (st->ch_eof_sent && st->eng_eof_sent && st->rlen == 0)
         st->state = ST_DEAD;
 }
 
 #pragma mark - pump loop
 
-static void pump_loop(void) {
+/// Why the session ended, from what libssh2's reader returned and what the socket said
+static const char *lost_reason(int rc) {
+    if (g_rx_eof || rc == LIBSSH2_ERROR_SOCKET_DISCONNECT) return "the server closed the connection";
+    if (g_rx_errno == ECONNRESET) return "the connection was reset";
+    if (g_rx_errno == ETIMEDOUT) return "the connection timed out";
+    return "the connection was lost";
+}
+
+/// Runs the session until it ends; returns why it ended, or NULL when srpssh_stop ended it.
+static const char *pump_loop(void) {
+    const char *why = NULL;
+    int keepalive = g_cfg.keepalive_seconds > 0 ? g_cfg.keepalive_seconds : 15;
+    libssh2_keepalive_config(g_sess, 1, (unsigned)keepalive);
+    g_last_rx = now_sec();
     while (!g_quit) {
         pthread_mutex_lock(&g_streams_mu);
         int nstreams = 0;
@@ -524,8 +671,9 @@ static void pump_loop(void) {
         short sev = 0;
         if (dirs & LIBSSH2_SESSION_BLOCK_INBOUND) sev |= POLLIN;
         if (dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND) sev |= POLLOUT;
+        if (txq_pending() > 0) sev |= POLLOUT;
         pfds[nfds].fd = g_sock;
-        pfds[nfds].events = sev ? sev : POLLIN;
+        pfds[nfds].events = sev | POLLIN;
         nfds++;
 
         int capped = 0;
@@ -549,6 +697,7 @@ static void pump_loop(void) {
         int r = poll(pfds, nfds, 100);
         if (r < 0) {
             if (errno == EINTR) continue;
+            why = "the connection was lost";
             break;
         }
 
@@ -565,8 +714,12 @@ static void pump_loop(void) {
             uint8_t tmp[64];
             (void)read(g_wake[0], tmp, sizeof(tmp));
         }
-        if (r > 0 && nfds > 1 && (pfds[1].revents & (POLLERR | POLLHUP | POLLNVAL))) {
-            blog("SSH: session socket error");
+        if (pfds[1].revents & POLLNVAL) {
+            why = "the connection was lost";
+            break;
+        }
+        if (txq_pending() > 0 && txq_flush(g_sock) < 0) {
+            why = lost_reason(0);
             break;
         }
 
@@ -576,7 +729,16 @@ static void pump_loop(void) {
             struct timespec now;
             clock_gettime(CLOCK_MONOTONIC, &now);
             if (now.tv_sec - g_last_stat.tv_sec >= 5 && (g_bytes_up || g_bytes_down)) {
-                blog("SSH: stats up=%lluKB down=%lluKB", g_bytes_up / 1024, g_bytes_down / 1024);
+                blog(1, "SSH: stats up=%lluKB down=%lluKB, %d flows, send queue %zuKB, memory %.1f MiB",
+                     g_bytes_up / 1024, g_bytes_down / 1024, nstreams, txq_pending() / 1024, footprint_mib());
+                if (g_cfg.log_level >= 2) {
+                    pthread_mutex_lock(&g_streams_mu);
+                    for (SStream *s = g_streams; s; s = s->next)
+                        blog(2, "SSH: flow fd %d %s:%d state %d down %llu up %llu to engine %zu to server %zu eof %d/%d",
+                             s->efd, s->dest_host, s->dest_port, s->state, s->down, s->up, s->rlen - s->roff, s->wlen,
+                             s->ch_eof_sent, s->eng_eof_sent);
+                    pthread_mutex_unlock(&g_streams_mu);
+                }
                 g_last_stat = now;
             }
         }
@@ -592,46 +754,32 @@ static void pump_loop(void) {
                 switch (s->state) {
             case ST_GREET:
             case ST_REQ:
-                if (socks_drive(s) < 0) dead = 1;
-                if (!dead && s->state == ST_OPEN) {
-                    s->ch = libssh2_channel_direct_tcpip_ex(g_sess, s->dest_host,
-                                                            s->dest_port,
-                                                            "127.0.0.1", 0);
-                    if (!s->ch) {
-                        int rc = libssh2_session_last_errno(g_sess);
-                        if (rc != LIBSSH2_ERROR_EAGAIN) {
-                            blog("SSH: channel open to %s:%d failed (%d)",
-                                 s->dest_host, s->dest_port, rc);
-                            dead = 1;
-                        }
-                    } else if (s->is_udp) {
-                        s->state = ST_HEV;
-                        s->hev_step = 0;
-                        s->hev_wlen = s->hev_woff = 0;
-                        s->hlen = 0;
-                    } else {
-                        static const uint8_t ok[10] = {0x05,0x00,0x00,0x01,0,0,0,0,0,0};
-                        if (queue_to_engine(s, ok, 10) == 0)
-                            s->state = ST_SPLICE;
-                        else
-                            dead = 1;
-                    }
-                }
-                break;
-            case ST_OPEN:
-                s->ch = libssh2_channel_direct_tcpip_ex(g_sess, s->dest_host,
-                                                        s->dest_port,
-                                                        "127.0.0.1", 0);
+                if (socks_drive(s) < 0) { dead = 1; break; }
+                if (s->state != ST_OPEN) break;
+                __attribute__((fallthrough));   /* open the channel at once */
+            case ST_OPEN: {
+                /* libssh2_channel_direct_tcpip_ex keeps one open per session: a second open while the first waited
+                 * for the server got the first one's channel, so one connection's data went to another's
+                 * destination; and opening one at a time let one slow destination (or the server's slow name
+                 * lookup) hold up every new connection. Each open here waits on its own. */
                 if (!s->ch) {
-                    int rc = libssh2_session_last_errno(g_sess);
-                    if (rc != LIBSSH2_ERROR_EAGAIN) {
-                        char *emsg = NULL;
-                        libssh2_session_last_error(g_sess, &emsg, NULL, 0);
-                        blog("SSH: channel open to %s:%d failed: %s",
-                             s->dest_host, s->dest_port, emsg ?: "?");
-                        dead = 1;
-                    }
-                } else if (s->is_udp) {
+                    s->ch = libssh2_channel_direct_tcpip_start(g_sess, s->dest_host, s->dest_port, "127.0.0.1", 0);
+                    if (!s->ch) { dead = 1; break; }
+                }
+                int opened = libssh2_channel_open_result(s->ch);
+                if (opened == 0) break;
+                if (opened < 0) {
+                    s->ch = NULL;   // libssh2 freed it
+                    char *emsg = NULL;
+                    libssh2_session_last_error(g_sess, &emsg, NULL, 0);
+                    blog(1, "SSH: the server could not open %s:%d: %s",
+                         s->dest_host, s->dest_port, emsg ?: "?");
+                    dead = 1;
+                    break;
+                }
+                g_flows_opened++;
+                blog(2, "SSH: flow fd %d opened %s:%d (%s)", s->efd, s->dest_host, s->dest_port, s->is_udp ? "UDP relay" : "TCP");
+                if (s->is_udp) {
                     s->state = ST_HEV;
                     s->hev_step = 0;
                     s->hev_wlen = s->hev_woff = 0;
@@ -644,10 +792,11 @@ static void pump_loop(void) {
                         dead = 1;
                 }
                 break;
+            }
             case ST_HEV: {
                 int hr = hev_handshake_drive(s);
                 if (hr < 0) {
-                    blog("SSH: HEV relay handshake failed at step %d (hlen=%zu need=%zu buf=%02x %02x eof=%d)",
+                    blog(1, "SSH: HEV relay handshake failed at step %d (hlen=%zu need=%zu buf=%02x %02x eof=%d)",
                          s->hev_step, s->hlen, s->hneed,
                          s->hlen > 0 ? s->hbuf[0] : 0, s->hlen > 1 ? s->hbuf[1] : 0,
                          s->ch ? libssh2_channel_eof(s->ch) : -1);
@@ -679,24 +828,55 @@ static void pump_loop(void) {
             }
         }
         pthread_mutex_unlock(&g_streams_mu);
+        if (g_closing_count > 0) retry_closing();
+
+        /* Packets no channel asked for — the server's keepalive requests (libssh2 answers them), window changes, the
+         * server's disconnect — would otherwise wait in the socket while the session is idle */
+        if (pfds[1].revents & (POLLIN | POLLERR | POLLHUP)) {
+            int rc;
+            do rc = _libssh2_transport_read(g_sess); while (rc > 0 && !g_quit);
+            if (rc < 0 && rc != LIBSSH2_ERROR_EAGAIN) { why = lost_reason(rc); break; }
+        }
+        /* Our keepalive: a server that answers nothing for three of them is gone (a dead network path sends no
+         * reset, and TCP alone would wait for minutes) */
+        int next = 0;
+        int krc = libssh2_keepalive_send(g_sess, &next);
+        if (krc < 0 && krc != LIBSSH2_ERROR_EAGAIN) { why = lost_reason(krc); break; }
+        if (now_sec() - g_last_rx > 3 * keepalive + 5) {
+            why = "the server did not answer for too long";
+            break;
+        }
     }
+    return g_quit ? NULL : why;
 }
 
 #pragma mark - engine thread
 
 static void *engine_main(void *arg) {
     int tun_fd = *(int *)arg;
-    blog("SSH: engine starting (tun fd %d)", tun_fd);
+    blog(2, "SSH: engine starting (tun fd %d)", tun_fd);
     int r = hev_socks5_tunnel_main_from_str((const unsigned char *)g_engine_conf,
                                             (unsigned int)strlen(g_engine_conf),
                                             tun_fd);
-    blog("SSH: engine exited (%d)", r);
+    blog(2, "SSH: engine exited (%d)", r);
     return NULL;
 }
 
 #pragma mark - public API
 
 static void *bridge_main(void *arg);
+
+/// The bridge's own copy of a config string in slot i (the previous one is wiped and freed); NULL stays NULL.
+static const char *own_string(int i, const char *s) {
+    static char *owned[8];
+    if (owned[i]) {
+        for (volatile char *p = owned[i]; *p; p++) *p = 0;   // passwords do not linger in freed memory
+        free(owned[i]);
+        owned[i] = NULL;
+    }
+    if (s) owned[i] = strdup(s);
+    return owned[i];
+}
 
 int srpssh_start(const SRPSSHBridgeConfig *cfg, int tun_fd,
                  SRPSSHLogCallback log, void *log_ctx,
@@ -706,18 +886,37 @@ int srpssh_start(const SRPSSHBridgeConfig *cfg, int tun_fd,
     pthread_once(&once, libssh2_global_init);
 
     g_cfg = *cfg;
+    // The session thread reads these for the whole session: own copies, not the caller's buffers (an NSString's
+    // UTF8String or a JNI string lives only as long as the call that made it)
+    g_cfg.host = own_string(0, cfg->host);
+    g_cfg.username = own_string(1, cfg->username);
+    g_cfg.password = own_string(2, cfg->password);
+    g_cfg.hostkey_sha256 = own_string(3, cfg->hostkey_sha256);
+    g_cfg.relay_host = own_string(4, cfg->relay_host);
+    g_cfg.relay_user = own_string(5, cfg->relay_user);
+    g_cfg.relay_pass = own_string(6, cfg->relay_pass);
+    g_cfg.tun_ipv4 = own_string(7, cfg->tun_ipv4);
     g_log = log; g_log_ctx = log_ctx;
     g_ready_cb = ready; g_fail_cb = fail; g_gone_cb = gone; g_cb_ctx = cb_ctx;
     g_quit = 0; g_ready = 0; g_failed = 0;
     g_streams = NULL; g_pending_count = 0;
+    g_closing_count = 0;
+    g_txq_len = g_txq_off = 0;
     g_bytes_up = 0; g_bytes_down = 0;
+    g_rx_eof = 0; g_rx_errno = 0; g_flows_opened = 0;
+    g_detail[0] = 0;
     clock_gettime(CLOCK_MONOTONIC, &g_last_stat);
 
     if (pipe(g_wake) != 0) return -1;
     set_nb(g_wake[0]); set_nb(g_wake[1]);
 
     /* engine config: socks upstream is placeholder — the stream hook
-     * intercepts every connection. UDP-in-TCP = HEV FWD framing. */
+     * intercepts every connection. UDP-in-TCP = HEV FWD framing. The engine
+     * writes its log to stderr, which the tunnel log collects.
+     * The names' placeholder addresses come from a /20 of 198.18.0.0/16 picked at random for each session, away from
+     * the tunnel's own address (198.18.0.1) and its DNS server (198.18.0.2), which the first names got before: an
+     * address the system still caches from an earlier session then belongs to no name instead of to another one. */
+    unsigned window = 16 * (1 + arc4random_uniform(15));
     snprintf(g_engine_conf, sizeof(g_engine_conf),
              "tunnel:\n"
              "  mtu: %d\n"
@@ -730,15 +929,15 @@ int srpssh_start(const SRPSSHBridgeConfig *cfg, int tun_fd,
              "mapdns:\n"
              "  address: 198.18.0.2\n"
              "  port: 53\n"
-             "  network: 198.18.0.0\n"
-             "  netmask: 255.255.0.0\n"
+             "  network: 198.18.%u.0\n"
+             "  netmask: 255.255.240.0\n"
              "  cache-size: 2048\n"
              "misc:\n"
              "  log-file: stderr\n"
              "  log-level: %s\n",
              cfg->mtu > 0 ? cfg->mtu : 1500,
-             cfg->tun_ipv4 ?: "198.18.0.1",
-             "debug");   // TEMP: engine debug while bring-up
+             cfg->tun_ipv4 ?: "198.18.0.1", window,
+             cfg->log_level >= 2 ? "debug" : cfg->log_level == 1 ? "warn" : "error");
 
     static int engine_tun_fd;
     engine_tun_fd = tun_fd;
@@ -755,69 +954,114 @@ int srpssh_start(const SRPSSHBridgeConfig *cfg, int tun_fd,
 void srpssh_stop(void) {
     g_quit = 1;
     wake_pump();
-    if (g_engine_thread) {
-        hev_socks5_tunnel_quit();
-        pthread_join(g_engine_thread, NULL);
-        g_engine_thread = 0;
-    }
+    // The session thread stops the engine it started, then ends: no callback comes after this
     if (g_pump_thread) pthread_join(g_pump_thread, NULL);
-    if (g_wake[0] >= 0) { close(g_wake[0]); close(g_wake[1]); g_wake[0] = g_wake[1] = -1; }
     g_pump_thread = 0;
+    if (g_wake[0] >= 0) { close(g_wake[0]); close(g_wake[1]); g_wake[0] = g_wake[1] = -1; }
 }
 
 #pragma mark - startup (pump thread)
 
-static int wait_socket(int events) {
-    struct pollfd pfd = { g_sock, (short)events, 0 };
+/// Waits until the session socket can go the way libssh2 needs; -1 on a stop or once the connect deadline passed.
+static int wait_session(void) {
+    int dirs = libssh2_session_block_directions(g_sess);
+    short events = 0;
+    if (dirs & LIBSSH2_SESSION_BLOCK_INBOUND) events |= POLLIN;
+    if (dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND) events |= POLLOUT;
+    if (txq_pending() > 0) events |= POLLOUT;
+    struct pollfd pfd = { g_sock, events ? events : POLLIN, 0 };
     for (;;) {
-        if (g_quit) return -1;
-        int r = poll(&pfd, 1, 500);
-        if (r > 0) return 0;
+        if (g_quit || now_sec() > g_deadline) return -1;
+        int r = poll(&pfd, 1, 250);
         if (r < 0 && errno != EINTR) return -1;
+        if (r <= 0) continue;
+        if (txq_pending() > 0 && txq_flush(g_sock) < 0) return -1;
+        return 0;
     }
 }
 
 /// libssh2_init wrapper for pthread_once
 static void libssh2_global_init(void) { (void)libssh2_init(0); }
 
-static int tcp_connect_server(const char *host, int port) {
+/// Connects to the SSH server, every address of the name in turn, each for up to `seconds`; a stop ends it.
+/// On failure returns -1 and sets *why to resolve, refused, timeout or unreachable.
+static int tcp_connect_server(const char *host, int port, int seconds, const char **why) {
     char portstr[8];
     snprintf(portstr, sizeof(portstr), "%d", port);
     struct addrinfo hints = {0}, *res = NULL;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(host, portstr, &hints, &res) != 0 || !res) return -1;
-    int fd = -1;
-    for (struct addrinfo *ai = res; ai; ai = ai->ai_next) {
+    if (getaddrinfo(host, portstr, &hints, &res) != 0 || !res) { *why = "resolve"; return -1; }
+    int fd = -1, refused = 0, timedout = 0;
+    for (struct addrinfo *ai = res; ai && !g_quit; ai = ai->ai_next) {
         fd = (int)socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
         if (fd < 0) continue;
-        if (connect(fd, ai->ai_addr, ai->ai_addrlen) == 0) break;
+        if (g_cfg.protect_socket) g_cfg.protect_socket(g_cfg.protect_ctx, fd);
+        set_nb(fd);
+        int r = connect(fd, ai->ai_addr, ai->ai_addrlen);
+        int err = r == 0 ? 0 : errno;
+        if (err == EINPROGRESS) {
+            struct pollfd pfd = { fd, POLLOUT, 0 };
+            err = ETIMEDOUT;
+            for (int waited = 0; !g_quit && waited < seconds * 1000; waited += 250) {
+                if (poll(&pfd, 1, 250) > 0) {
+                    socklen_t len = sizeof(err);
+                    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len) != 0) err = errno;
+                    break;
+                }
+            }
+        }
+        if (err == 0) break;
+        if (err == ECONNREFUSED) refused = 1;
+        if (err == ETIMEDOUT) timedout = 1;
         close(fd);
         fd = -1;
     }
     freeaddrinfo(res);
+    if (fd < 0) *why = refused ? "refused" : timedout ? "timeout" : "unreachable";
     return fd;
 }
 
 static int session_handshake(void) {
     int rc;
     while ((rc = libssh2_session_handshake(g_sess, g_sock)) == LIBSSH2_ERROR_EAGAIN) {
-        int dirs = libssh2_session_block_directions(g_sess);
-        if (wait_socket(dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND ? POLLOUT : POLLIN) < 0)
-            return -1;
+        if (wait_session() < 0) return -1;
     }
     return rc;
 }
 
-static int verify_hostkey(void) {
-    if (!g_cfg.hostkey_sha256 || !*g_cfg.hostkey_sha256) return 0;  // not pinned
-    const char *hash = libssh2_hostkey_hash(g_sess, LIBSSH2_HOSTKEY_HASH_SHA256);
-    if (!hash) return -1;
-    /* base64 of the raw 32-byte hash, compared with the "SHA256:..." form */
+static const char *hostkey_type_name(int type) {
+    switch (type) {
+        case LIBSSH2_HOSTKEY_TYPE_ED25519: return "ED25519";
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_256:
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_384:
+        case LIBSSH2_HOSTKEY_TYPE_ECDSA_521: return "ECDSA";
+        case LIBSSH2_HOSTKEY_TYPE_RSA: return "RSA";
+        default: return "unknown type";
+    }
+}
+
+int srpssh_pin_normalize(const char *text, char *out, unsigned long outlen) {
+    const char *p = text ? strstr(text, "SHA256:") : NULL;
+    if (!p || outlen < 8) return -1;
+    size_t n = 0;
+    for (const char *c = p; *c && n + 1 < outlen; c++) {
+        if (c - p >= 7 && !(isalnum((unsigned char)*c) || *c == '+' || *c == '/')) break;   // "=" padding, space, ")"
+        out[n++] = *c;
+    }
+    out[n] = 0;
+    return n > 7 ? 0 : -1;
+}
+
+/// The server's host key as OpenSSH prints it ("SHA256:" and the unpadded base64 of its SHA-256), into out[56]
+static int hostkey_fingerprint(char *out, int *type) {
+    size_t len = 0;
+    *type = LIBSSH2_HOSTKEY_TYPE_UNKNOWN;
+    if (!libssh2_session_hostkey(g_sess, &len, type)) return -1;
+    const unsigned char *h = (const unsigned char *)libssh2_hostkey_hash(g_sess, LIBSSH2_HOSTKEY_HASH_SHA256);
+    if (!h) return -1;
     static const char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    const unsigned char *h = (const unsigned char *)hash;
-    char out[45];
-    int o = 0;
+    int o = snprintf(out, 8, "SHA256:");
     for (int i = 0; i < 30; i += 3) {
         unsigned v = (h[i] << 16) | (h[i+1] << 8) | h[i+2];
         out[o++] = b64[v >> 18];
@@ -830,74 +1074,144 @@ static int verify_hostkey(void) {
     out[o++] = b64[(v >> 12) & 63];
     out[o++] = b64[(v >> 6) & 63];
     out[o] = 0;
-    char expect[56];
-    snprintf(expect, sizeof(expect), "SHA256:%s", out);
-    if (strcmp(expect, g_cfg.hostkey_sha256) != 0) {
-        blog("SSH: host key mismatch (got %s)", expect);
+    return 0;
+}
+
+/// Logs the server's key (it is public) and checks the pin; -1 on a mismatch, with the presented key in g_detail.
+static int verify_hostkey(void) {
+    char got[56];
+    int type;
+    if (hostkey_fingerprint(got, &type) != 0) {
+        snprintf(g_detail, sizeof(g_detail), "the server's host key could not be read");
+        return -1;
+    }
+    blog(0, "SSH: server host key %s %s", hostkey_type_name(type), got);
+    if (!g_cfg.hostkey_sha256 || !*g_cfg.hostkey_sha256) return 0;  // not pinned
+    char pin[64];
+    if (srpssh_pin_normalize(g_cfg.hostkey_sha256, pin, sizeof(pin)) != 0 || strcmp(pin, got) != 0) {
+        snprintf(g_detail, sizeof(g_detail), "%s %s", hostkey_type_name(type), got);
+        blog(0, "SSH: the host key does not match the pinned one");
         return -1;
     }
     return 0;
 }
 
+/// keyboard-interactive: every prompt (PAM asks "Password:") gets the profile's password
+static void kbd_answer(const char *name, int name_len, const char *instruction, int instruction_len,
+                       int num_prompts, const LIBSSH2_USERAUTH_KBDINT_PROMPT *prompts,
+                       LIBSSH2_USERAUTH_KBDINT_RESPONSE *responses, void **abstract) {
+    (void)name; (void)name_len; (void)instruction; (void)instruction_len; (void)prompts; (void)abstract;
+    const char *p = g_cfg.password ?: "";
+    for (int i = 0; i < num_prompts; i++) {
+        responses[i].text = strdup(p);   // libssh2 frees it
+        responses[i].length = responses[i].text ? (unsigned)strlen(p) : 0;
+    }
+}
+
+/// 0 = logged in; SRPSSH_ERR_AUTH = the server refused the user name or password; SRPSSH_ERR_AUTH_METHOD = it
+/// takes no password for this user (g_detail: what it offers); -1 = the connection failed meanwhile.
 static int userauth(void) {
     const char *u = g_cfg.username ?: "";
     const char *p = g_cfg.password ?: "";
-    int rc;
-    while ((rc = libssh2_userauth_password_ex(g_sess, u, (unsigned)strlen(u),
-                                              p, (unsigned)strlen(p), NULL))
-           == LIBSSH2_ERROR_EAGAIN) {
-        int dirs = libssh2_session_block_directions(g_sess);
-        if (wait_socket(dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND ? POLLOUT : POLLIN) < 0)
-            return -1;
+    char *methods;
+    while (!(methods = libssh2_userauth_list(g_sess, u, (unsigned)strlen(u)))) {
+        if (libssh2_userauth_authenticated(g_sess)) return 0;   // the server needs no password ("none")
+        if (libssh2_session_last_errno(g_sess) != LIBSSH2_ERROR_EAGAIN || wait_session() < 0) return -1;
     }
-    return rc;
+    int password = strstr(methods, "password") != NULL;
+    int keyboard = strstr(methods, "keyboard-interactive") != NULL;
+    if (!password && !keyboard) {
+        snprintf(g_detail, sizeof(g_detail), "%s", methods);
+        return SRPSSH_ERR_AUTH_METHOD;
+    }
+    int rc;
+    if (password) {
+        while ((rc = libssh2_userauth_password_ex(g_sess, u, (unsigned)strlen(u), p, (unsigned)strlen(p), NULL))
+               == LIBSSH2_ERROR_EAGAIN) {
+            if (wait_session() < 0) return -1;
+        }
+    } else {
+        blog(1, "SSH: logging in with keyboard-interactive (the server offers %s)", methods);
+        while ((rc = libssh2_userauth_keyboard_interactive_ex(g_sess, u, (unsigned)strlen(u), kbd_answer))
+               == LIBSSH2_ERROR_EAGAIN) {
+            if (wait_session() < 0) return -1;
+        }
+    }
+    if (rc == 0) return 0;
+    if (rc == LIBSSH2_ERROR_AUTHENTICATION_FAILED || rc == LIBSSH2_ERROR_PASSWORD_EXPIRED ||
+        rc == LIBSSH2_ERROR_PUBLICKEY_UNVERIFIED) return SRPSSH_ERR_AUTH;
+    return -1;
+}
+
+/// Opens a direct-tcpip channel; NULL with *refused set when the server answered with a refusal (not a timeout).
+static LIBSSH2_CHANNEL *open_channel(const char *host, int port, char **emsg) {
+    for (;;) {
+        LIBSSH2_CHANNEL *ch = libssh2_channel_direct_tcpip_ex(g_sess, host, port, "127.0.0.1", 0);
+        if (ch) return ch;
+        if (libssh2_session_last_errno(g_sess) != LIBSSH2_ERROR_EAGAIN) {
+            libssh2_session_last_error(g_sess, emsg, NULL, 0);
+            return NULL;
+        }
+        *emsg = NULL;
+        if (wait_session() < 0) return NULL;
+    }
+}
+
+static void close_channel(LIBSSH2_CHANNEL *ch) {
+    libssh2_channel_send_eof(ch);
+    for (int i = 0; i < 10; i++) {   // orderly close: avoid local id reuse races
+        if (libssh2_channel_close(ch) != LIBSSH2_ERROR_EAGAIN) break;
+        if (wait_session() < 0) break;
+    }
+    libssh2_channel_free(ch);
+}
+
+/// A channel to 127.0.0.1:9 on the server, where nothing listens: "connect failed" means this user may forward TCP,
+/// "administratively prohibited" means the server forbids it (AllowTcpForwarding, PermitOpen), which would leave a
+/// VPN that carries nothing. 0 = allowed, 1 = forbidden, -1 = the connection failed meanwhile.
+static int forwarding_preflight(void) {
+    char *emsg = NULL;
+    LIBSSH2_CHANNEL *ch = open_channel("127.0.0.1", 9, &emsg);
+    if (ch) { close_channel(ch); return 0; }   // something answers there: forwarding works
+    if (!emsg) return -1;
+    return strstr(emsg, "administratively prohibited") ? 1 : 0;
 }
 
 /// Open a channel to the HEV relay and prove the FWD UDP handshake works.
 static int relay_preflight(void) {
-    LIBSSH2_CHANNEL *ch = NULL;
-    for (;;) {
-        ch = libssh2_channel_direct_tcpip_ex(g_sess,
-                                             g_cfg.relay_host ?: "127.0.0.1",
-                                             g_cfg.relay_port ?: 1080,
-                                             "127.0.0.1", 0);
-        if (ch) break;
-        int rc = libssh2_session_last_errno(g_sess);
-        if (rc != LIBSSH2_ERROR_EAGAIN) return -1;
-        int dirs = libssh2_session_block_directions(g_sess);
-        if (wait_socket(dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND ? POLLOUT : POLLIN) < 0)
-            return -1;
+    char *emsg = NULL;
+    LIBSSH2_CHANNEL *ch = open_channel(g_cfg.relay_host ?: "127.0.0.1", g_cfg.relay_port ?: 1080, &emsg);
+    if (!ch) {
+        snprintf(g_detail, sizeof(g_detail), "%s", emsg ?: "no answer");
+        return -1;
     }
     SStream tmp;
     memset(&tmp, 0, sizeof(tmp));
     tmp.ch = ch;
     tmp.hev_step = 0;
     int ok = -1;
-    for (int i = 0; i < 200; i++) {   // bounded: ~100s worst case
+    for (int i = 0; i < 200; i++) {   // bounded, and by the connect deadline
         int hr = hev_handshake_drive(&tmp);
         if (hr == 1) { ok = 0; break; }
-        if (hr < 0) break;
-        int dirs = libssh2_session_block_directions(g_sess);
-        if (wait_socket(dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND ? POLLOUT : POLLIN) < 0)
-            break;
+        if (hr < 0) { snprintf(g_detail, sizeof(g_detail), "the relay refused the UDP request"); break; }
+        if (wait_session() < 0) break;
     }
-    libssh2_channel_send_eof(ch);
-    for (int i = 0; i < 10; i++) {   // orderly close: avoid local id reuse races
-        if (libssh2_channel_close(ch) != LIBSSH2_ERROR_EAGAIN) break;
-        int dirs = libssh2_session_block_directions(g_sess);
-        if (wait_socket(dirs & LIBSSH2_SESSION_BLOCK_OUTBOUND ? POLLOUT : POLLIN) < 0) break;
-    }
-    libssh2_channel_free(ch);
+    close_channel(ch);
     return ok;
 }
 
 static void *bridge_main(void *arg) {
     int engine_tun_fd = *(int *)arg;
     SRPSSHError err = SRPSSH_ERR_NONE;
-    const char *detail = NULL;
+    const char *why = NULL;
+    const char *lost = NULL;
+    // Connect, login and the checks must finish in time: a server that takes the connection and then says nothing
+    // must not hold the start
+    g_deadline = now_sec() + 15 + 20;
 
-    g_sock = tcp_connect_server(g_cfg.host, g_cfg.port);
-    if (g_sock < 0) { err = SRPSSH_ERR_CONNECT; detail = "TCP connect failed"; goto fail; }
+    g_sock = tcp_connect_server(g_cfg.host, g_cfg.port, 15, &why);
+    if (g_sock < 0) { err = SRPSSH_ERR_CONNECT; snprintf(g_detail, sizeof(g_detail), "%s", why); goto fail; }
+    g_deadline = now_sec() + 20;
 
     /* latency: no Nagle on the SSH transport; keep the session alive */
     {
@@ -912,43 +1226,66 @@ static void *bridge_main(void *arg) {
     g_sess = libssh2_session_init_ex(NULL, NULL, NULL, NULL);
     if (!g_sess) { err = SRPSSH_ERR_HANDSHAKE; goto fail; }
     libssh2_session_set_blocking(g_sess, 0);
+    libssh2_session_callback_set2(g_sess, LIBSSH2_CALLBACK_RECV, (libssh2_cb_generic *)srp_recv);
+    libssh2_session_callback_set2(g_sess, LIBSSH2_CALLBACK_SEND, (libssh2_cb_generic *)srp_send);
+    // OpenSSH's order: the key a server shows first in `ssh` (ED25519 on current servers) is the one the app checks
+    libssh2_session_method_pref(g_sess, LIBSSH2_METHOD_HOSTKEY,
+                                "ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,"
+                                "rsa-sha2-512,rsa-sha2-256,ssh-rsa");
 
-    if (session_handshake() != 0) { err = SRPSSH_ERR_HANDSHAKE; detail = "SSH handshake failed"; goto fail; }
-    if (verify_hostkey() != 0) { err = SRPSSH_ERR_HOSTKEY; detail = "SSH host key mismatch"; goto fail; }
-    if (userauth() != 0) { err = SRPSSH_ERR_AUTH; detail = "SSH authentication failed"; goto fail; }
-    blog("SSH: authenticated as %s@%s:%d", g_cfg.username, g_cfg.host, g_cfg.port);
+    if (session_handshake() != 0) {
+        err = SRPSSH_ERR_HANDSHAKE;
+        char *emsg = NULL;
+        libssh2_session_last_error(g_sess, &emsg, NULL, 0);
+        snprintf(g_detail, sizeof(g_detail), "%s", g_quit ? "" : now_sec() > g_deadline ? "timeout" : (emsg ?: ""));
+        goto fail;
+    }
+    if (verify_hostkey() != 0) { err = SRPSSH_ERR_HOSTKEY; goto fail; }
+    int auth = userauth();
+    if (auth == SRPSSH_ERR_AUTH || auth == SRPSSH_ERR_AUTH_METHOD) { err = (SRPSSHError)auth; goto fail; }
+    if (auth != 0) { err = SRPSSH_ERR_HANDSHAKE; snprintf(g_detail, sizeof(g_detail), "the login did not finish"); goto fail; }
+    blog(0, "SSH: logged in as %s", g_cfg.username);
+
+    int forwarding = forwarding_preflight();
+    if (forwarding == 1) { err = SRPSSH_ERR_FORWARDING; goto fail; }
+    if (forwarding < 0) { err = SRPSSH_ERR_HANDSHAKE; snprintf(g_detail, sizeof(g_detail), "the server stopped answering"); goto fail; }
 
     if (g_cfg.udp_enabled) {
-        if (relay_preflight() != 0) {
-            err = SRPSSH_ERR_RELAY;
-            detail = "UDP relay (HEV) unavailable or rejected the credentials";
-            goto fail;
-        }
-        blog("SSH: HEV UDP relay verified");
+        if (relay_preflight() != 0) { err = SRPSSH_ERR_RELAY; goto fail; }
+        blog(0, "SSH: UDP relay ready");
     }
 
     /* start the packet engine now that SSH is fully up */
     if (pthread_create(&g_engine_thread, NULL, engine_main, &engine_tun_fd) != 0) {
-        err = SRPSSH_ERR_HANDSHAKE; detail = "engine start failed"; goto fail;
+        g_engine_thread = 0;
+        err = SRPSSH_ERR_HANDSHAKE; snprintf(g_detail, sizeof(g_detail), "the packet engine did not start"); goto fail;
     }
 
     g_ready = 1;
     if (g_ready_cb) g_ready_cb(g_cb_ctx);
-    blog("SSH: session up");
 
-    pump_loop();
-
-    if (!g_quit && !g_failed) {
-        /* session lost unexpectedly */
-        if (g_gone_cb) g_gone_cb(g_cb_ctx);
+    lost = pump_loop();
+    if (lost) {
+        blog(0, "SSH: session ended: %s", lost);
+        if (g_gone_cb) g_gone_cb(g_cb_ctx, lost);
     }
     goto out;
 
 fail:
     g_failed = 1;
-    if (g_fail_cb) g_fail_cb(g_cb_ctx, err, detail);
+    // A stop ends a connect that is still going on: that is no failure to report
+    if (!g_quit && g_fail_cb) g_fail_cb(g_cb_ctx, err, g_detail);
 out:
-    /* tear down everything we own */
+    /* tear down everything we own: the engine first, so no flow reaches the streams freed below */
+    if (g_engine_thread) {
+        hev_socks5_tunnel_quit();
+        pthread_join(g_engine_thread, NULL);
+        g_engine_thread = 0;
+    }
+    pthread_mutex_lock(&g_pending_mu);
+    for (int i = 0; i < g_pending_count; i++) close(g_pending_fds[i]);
+    g_pending_count = 0;
+    pthread_mutex_unlock(&g_pending_mu);
     pthread_mutex_lock(&g_streams_mu);
     while (g_streams) {
         SStream *s = g_streams;
@@ -958,10 +1295,12 @@ out:
     pthread_mutex_unlock(&g_streams_mu);
 
     if (g_sess) {
-        libssh2_session_disconnect_ex(g_sess, SSH_DISCONNECT_BY_APPLICATION, "bye", "");
-        libssh2_session_free(g_sess);
+        // a lost connection gets no goodbye: its socket would only block
+        if (!lost) libssh2_session_disconnect_ex(g_sess, SSH_DISCONNECT_BY_APPLICATION, "bye", "");
+        libssh2_session_free(g_sess);   // frees the channels still closing too
         g_sess = NULL;
     }
+    g_closing_count = 0;
     if (g_sock >= 0) { close(g_sock); g_sock = -1; }
     return NULL;
 }

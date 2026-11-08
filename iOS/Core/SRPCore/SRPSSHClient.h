@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 typedef void(^SRPSSHOutputCallback)(NSData *ipPacket, int family);
 typedef void(^SRPSSHNetworkSettingsCallback)(NEPacketTunnelNetworkSettings *setting);
+/// The connection ended for good (before or after it was up), with the message the app shows.
 typedef void(^SRPSSHFailureCallback)(NSString *reason);
 typedef void(^SRPSSHConnectedCallback)(void);
 typedef void(^SRPSSHDisconnectedCallback)(void);
@@ -68,6 +69,13 @@ typedef void(^SRPSSHDisconnectedCallback)(void);
 
 - (void)pauseForSleep;
 - (void)wakeFromSleep;
+
+/// What Switch to Wi-Fi does when Wi-Fi appears: a new SSH session over the current network path (a session cannot
+/// move between paths). Used by the Debug tunnel's path-switch command.
+- (void)switchNetworkPath;
+
+/// The message the app shows for a bridge failure (SRPSSHError, its detail, the profile's port).
++ (NSString *)messageForError:(int)error detail:(nullable NSString *)detail port:(int)port;
 
 @end
 

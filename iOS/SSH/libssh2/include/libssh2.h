@@ -846,6 +846,19 @@ libssh2_channel_open_ex(LIBSSH2_SESSION *session, const char *channel_type,
                             LIBSSH2_CHANNEL_WINDOW_DEFAULT, \
                             LIBSSH2_CHANNEL_PACKET_DEFAULT, NULL, 0)
 
+/* SRP (SRP VPN Connect): direct-tcpip opens that do not wait for each other.
+   libssh2_channel_direct_tcpip_ex keeps one open in progress per session, so
+   a second open while the first waits gets the first one's channel. These
+   keep each open's state in its channel: start sends the request and returns
+   the channel at once; open_result returns 1 when the server confirmed it,
+   0 while it waits, or a negative error when the server refused it, after
+   which the channel is gone (libssh2_session_last_error says why). Use them
+   only with a non-blocking session. */
+LIBSSH2_API LIBSSH2_CHANNEL *
+libssh2_channel_direct_tcpip_start(LIBSSH2_SESSION *session, const char *host,
+                                   int port, const char *shost, int sport);
+LIBSSH2_API int libssh2_channel_open_result(LIBSSH2_CHANNEL *channel);
+
 LIBSSH2_API LIBSSH2_CHANNEL *
 libssh2_channel_direct_tcpip_ex(LIBSSH2_SESSION *session, const char *host,
                                 int port, const char *shost, int sport);

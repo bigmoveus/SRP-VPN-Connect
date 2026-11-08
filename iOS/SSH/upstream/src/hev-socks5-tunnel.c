@@ -238,6 +238,17 @@ exit:
     udp_remove (pcb);
 }
 
+/* SRP: a UDP flow of a profile without the UDP relay: its packet goes, and
+ * so does its pcb (a later packet of the flow starts a new one) */
+static void
+udp_drop_handler (void *arg, struct udp_pcb *pcb, struct pbuf *p,
+                  const ip_addr_t *addr, u16_t port)
+{
+    pbuf_free (p);
+    udp_recv (pcb, NULL, NULL);
+    udp_remove (pcb);
+}
+
 static void
 udp_recv_handler (void *arg, struct udp_pcb *pcb, struct pbuf *p,
                   const ip_addr_t *addr, u16_t port)
@@ -264,9 +275,12 @@ udp_recv_handler (void *arg, struct udp_pcb *pcb, struct pbuf *p,
     }
 
     /* SRP: when the profile has no UDP relay, drop UDP at the engine —
-     * otherwise every rejected association storms a fresh SSH channel */
+     * otherwise every rejected association storms a fresh SSH channel.
+     * This call only announces the new flow: lwIP then hands p to the new
+     * pcb's own callback (as for the DNS pcb above), so the drop happens
+     * there; freeing p here freed it twice. */
     if (!srpssh_udp_relay_enabled) {
-        pbuf_free (p);
+        udp_recv (pcb, udp_drop_handler, NULL);
         return;
     }
 

@@ -454,6 +454,186 @@ libssh2_channel_direct_tcpip_ex(LIBSSH2_SESSION *session, const char *host,
     return ptr;
 }
 
+/* SRP: see libssh2_channel_direct_tcpip_start in libssh2.h */
+static void
+srp_channel_open_discard(LIBSSH2_SESSION *session, LIBSSH2_CHANNEL *channel)
+{
+    unsigned char channel_id[4];
+    unsigned char *data;
+    size_t data_len;
+
+    _libssh2_list_remove(&channel->node);
+    /* Clear out packets meant for this channel */
+    _libssh2_htonu32(channel_id, channel->local.id);
+    while((_libssh2_packet_ask(session, SSH_MSG_CHANNEL_DATA, &data,
+                               &data_len, 1, channel_id, 4) >= 0) ||
+          (_libssh2_packet_ask(session, SSH_MSG_CHANNEL_EXTENDED_DATA, &data,
+                               &data_len, 1, channel_id, 4) >= 0)) {
+        LIBSSH2_FREE(session, data);
+    }
+    if(channel->srp_open_packet)
+        LIBSSH2_FREE(session, channel->srp_open_packet);
+    LIBSSH2_FREE(session, channel->channel_type);
+    LIBSSH2_FREE(session, channel);
+}
+
+LIBSSH2_API LIBSSH2_CHANNEL *
+libssh2_channel_direct_tcpip_start(LIBSSH2_SESSION *session, const char *host,
+                                   int port, const char *shost, int sport)
+{
+    static const char type[] = "direct-tcpip";
+    const uint32_t type_len = sizeof(type) - 1;
+    LIBSSH2_CHANNEL *channel;
+    size_t host_len, shost_len;
+    unsigned char *s;
+
+    if(!session || !host || !shost)
+        return NULL;
+    host_len = strlen(host);
+    shost_len = strlen(shost);
+
+    channel = LIBSSH2_CALLOC(session, sizeof(LIBSSH2_CHANNEL));
+    if(!channel) {
+        _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                       "Unable to allocate space for channel data");
+        return NULL;
+    }
+    channel->channel_type_len = type_len;
+    channel->channel_type = LIBSSH2_ALLOC(session, type_len);
+    /* packet_type(1) + channel_type + sender_channel(4) + window_size(4) +
+       packet_size(4) + host + port(4) + shost + sport(4); strings have a
+       4-byte length */
+    channel->srp_open_packet_len = 1 + 4 + type_len + 12 + 4 + host_len + 4 +
+                                   4 + shost_len + 4;
+    channel->srp_open_packet = LIBSSH2_ALLOC(session,
+                                             channel->srp_open_packet_len);
+    if(!channel->channel_type || !channel->srp_open_packet) {
+        _libssh2_error(session, LIBSSH2_ERROR_ALLOC,
+                       "Unable to allocate space for the channel-open request");
+        if(channel->channel_type)
+            LIBSSH2_FREE(session, channel->channel_type);
+        if(channel->srp_open_packet)
+            LIBSSH2_FREE(session, channel->srp_open_packet);
+        LIBSSH2_FREE(session, channel);
+        return NULL;
+    }
+    memcpy(channel->channel_type, type, type_len);
+
+    /* the same channel as _libssh2_channel_open makes */
+    channel->local.id = _libssh2_channel_nextid(session);
+    channel->remote.window_size = LIBSSH2_CHANNEL_WINDOW_DEFAULT;
+    channel->remote.window_size_initial = LIBSSH2_CHANNEL_WINDOW_DEFAULT;
+    channel->remote.packet_size = LIBSSH2_CHANNEL_PACKET_DEFAULT;
+    channel->session = session;
+
+    s = channel->srp_open_packet;
+    *(s++) = SSH_MSG_CHANNEL_OPEN;
+    _libssh2_store_str(&s, type, type_len);
+    _libssh2_store_u32(&s, channel->local.id);
+    _libssh2_store_u32(&s, LIBSSH2_CHANNEL_WINDOW_DEFAULT);
+    _libssh2_store_u32(&s, LIBSSH2_CHANNEL_PACKET_DEFAULT);
+    _libssh2_store_str(&s, host, host_len);
+    _libssh2_store_u32(&s, (uint32_t)port);
+    _libssh2_store_str(&s, shost, shost_len);
+    _libssh2_store_u32(&s, (uint32_t)sport);
+
+    channel->srp_open_state = 1;
+    _libssh2_list_add(&session->channels, &channel->node);
+    return channel;
+}
+
+LIBSSH2_API int
+libssh2_channel_open_result(LIBSSH2_CHANNEL *channel)
+{
+    static const unsigned char reply_codes[3] = {
+        SSH_MSG_CHANNEL_OPEN_CONFIRMATION,
+        SSH_MSG_CHANNEL_OPEN_FAILURE,
+        0
+    };
+    LIBSSH2_SESSION *session;
+    unsigned char channel_id[4];
+    unsigned char *data = NULL;
+    size_t data_len = 0;
+    int rc;
+
+    if(!channel)
+        return LIBSSH2_ERROR_BAD_USE;
+    session = channel->session;
+    if(channel->srp_open_state == 0)
+        return 1;
+
+    if(channel->srp_open_state == 1) {
+        rc = _libssh2_transport_send(session, channel->srp_open_packet,
+                                     channel->srp_open_packet_len, NULL, 0);
+        if(rc == LIBSSH2_ERROR_EAGAIN)
+            return 0;
+        if(rc) {
+            _libssh2_error(session, rc, "Unable to send channel-open request");
+            srp_channel_open_discard(session, channel);
+            return rc;
+        }
+        channel->srp_open_state = 2;
+    }
+
+    /* the server's answer names this channel; any read of the session queues
+       it */
+    _libssh2_htonu32(channel_id, channel->local.id);
+    if(_libssh2_packet_askv(session, reply_codes, &data, &data_len, 1,
+                            channel_id, 4) != 0) {
+        rc = _libssh2_transport_read(session);
+        if(rc < 0 && rc != LIBSSH2_ERROR_EAGAIN) {
+            _libssh2_error(session, rc, "Unable to read the channel-open answer");
+            srp_channel_open_discard(session, channel);
+            return rc;
+        }
+        if(_libssh2_packet_askv(session, reply_codes, &data, &data_len, 1,
+                                channel_id, 4) != 0)
+            return 0;
+    }
+
+    if(data[0] == SSH_MSG_CHANNEL_OPEN_CONFIRMATION && data_len >= 17) {
+        channel->remote.id = _libssh2_ntohu32(data + 5);
+        channel->local.window_size = _libssh2_ntohu32(data + 9);
+        channel->local.window_size_initial = _libssh2_ntohu32(data + 9);
+        channel->local.packet_size = _libssh2_ntohu32(data + 13);
+        LIBSSH2_FREE(session, data);
+        LIBSSH2_FREE(session, channel->srp_open_packet);
+        channel->srp_open_packet = NULL;
+        channel->srp_open_state = 0;
+        return 1;
+    }
+
+    rc = LIBSSH2_ERROR_CHANNEL_FAILURE;
+    if(data[0] == SSH_MSG_CHANNEL_OPEN_FAILURE && data_len >= 9) {
+        switch(_libssh2_ntohu32(data + 5)) {
+        case SSH_OPEN_ADMINISTRATIVELY_PROHIBITED:
+            _libssh2_error(session, rc,
+                           "Channel open failure (administratively prohibited)");
+            break;
+        case SSH_OPEN_CONNECT_FAILED:
+            _libssh2_error(session, rc, "Channel open failure (connect failed)");
+            break;
+        case SSH_OPEN_UNKNOWN_CHANNELTYPE:
+            _libssh2_error(session, rc,
+                           "Channel open failure (unknown channel type)");
+            break;
+        case SSH_OPEN_RESOURCE_SHORTAGE:
+            _libssh2_error(session, rc,
+                           "Channel open failure (resource shortage)");
+            break;
+        default:
+            _libssh2_error(session, rc, "Channel open failure");
+        }
+    }
+    else {
+        rc = LIBSSH2_ERROR_PROTO;
+        _libssh2_error(session, rc, "Unexpected packet size");
+    }
+    LIBSSH2_FREE(session, data);
+    srp_channel_open_discard(session, channel);
+    return rc;
+}
+
 /*
  * libssh2_channel_direct_streamlocal_ex
  *
@@ -2648,6 +2828,11 @@ int _libssh2_channel_close(LIBSSH2_CHANNEL * channel)
     LIBSSH2_SESSION *session = channel->session;
     int rc = 0;
 
+    /* SRP: an open still waiting for the server's answer has no channel on the
+       server: an EOF or close would name the server's channel 0 instead */
+    if(channel->srp_open_state)
+        channel->local.close = 1;
+
     if(channel->local.close) {
         /* Already closed, act like we sent another close,
          * even though we didn't... shhhhhh */
@@ -2828,6 +3013,16 @@ int _libssh2_channel_free(LIBSSH2_CHANNEL *channel)
                        channel->remote.id));
 
         channel->free_state = libssh2_NB_state_created;
+    }
+
+    /* SRP: an open still waiting for the server's answer has no channel on the
+       server to close yet */
+    if(channel->srp_open_state) {
+        channel->local.close = 1;
+        if(channel->srp_open_packet) {
+            LIBSSH2_FREE(session, channel->srp_open_packet);
+            channel->srp_open_packet = NULL;
+        }
     }
 
     /* Allow channel freeing even when the socket has lost its connection */

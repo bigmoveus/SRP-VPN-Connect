@@ -46,6 +46,7 @@
 #import <dispatch/data.h>
 #import <fcntl.h>
 #import <netinet/in.h>
+#import <arpa/inet.h>
 #import <sys/socket.h>
 #import <unistd.h>
 
@@ -2697,6 +2698,22 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
             }
             return NO;
         }
+        if ([environment[@"SRP_LIVE_UDP_PROBE"] boolValue]) {
+            NSLog(@"Live UDP DNS: %@", [self liveUDPDNSProbe]);
+        }
+        NSInteger idle = [environment[@"SRP_LIVE_IDLE_SECONDS"] integerValue];
+        if (idle > 0) {
+            // A session with no traffic: the server's keepalives must be answered, or it ends the session
+            BOOL before = [self waterWallLiveHTTPS204:model];
+            [NSThread sleepForTimeInterval:idle];
+            BOOL after = manager.status == YDVPNStatusConnected && [self waterWallLiveHTTPS204:model];
+            NSLog(@"Live idle: %ld seconds, HTTPS before=%d after=%d, VPN status %ld", (long)idle, before, after, (long)manager.status);
+            if (!after) {
+                if ([environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+                [self waitForLiveVPNDisconnect:manager];
+                return NO;
+            }
+        }
         for (NSUInteger downloadRound = 0; downloadRound < rounds; downloadRound++) {
             BOOL stressPassed = [environment[@"SRP_STRESS_DURATION"] doubleValue] > 0
                 ? [self performSustainedLiveStressDownloads:manager environment:environment]
@@ -2729,6 +2746,45 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     NSLog(@"Live stress finished: %lu connections, %lu download rounds per connection",
           (unsigned long)rounds, (unsigned long)rounds);
     return YES;
+}
+
+// UDP through the tunnel: OpenDNS answers myip.opendns.com with the address the query came from, so the answer is
+// the address the VPN sends UDP from. Three tries, two seconds each.
+- (NSString *)liveUDPDNSProbe {
+    NSDate *started = NSDate.date;
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) return @"no socket";
+    struct timeval timeout = {2, 0};
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    struct sockaddr_in server = {.sin_len = sizeof(server), .sin_family = AF_INET, .sin_port = htons(53)};
+    inet_pton(AF_INET, "208.67.222.222", &server.sin_addr);
+    uint8_t query[64];
+    size_t length = 0;
+    uint16_t identifier = (uint16_t)arc4random_uniform(65536);
+    const uint8_t header[12] = {identifier >> 8, identifier & 0xff, 0x01, 0x00, 0, 1, 0, 0, 0, 0, 0, 0};
+    memcpy(query, header, sizeof(header));
+    length = sizeof(header);
+    for (NSString *label in @[@"myip", @"opendns", @"com"]) {
+        query[length++] = (uint8_t)label.length;
+        memcpy(query + length, label.UTF8String, label.length);
+        length += label.length;
+    }
+    const uint8_t tail[5] = {0, 0, 1, 0, 1};   // end of name, type A, class IN
+    memcpy(query + length, tail, sizeof(tail));
+    length += sizeof(tail);
+    NSString *result = nil;
+    for (int attempt = 0; attempt < 3 && result == nil; attempt++) {
+        sendto(fd, query, length, 0, (struct sockaddr *)&server, sizeof(server));
+        uint8_t answer[512];
+        ssize_t got = recv(fd, answer, sizeof(answer), 0);
+        // the reply to this query, with an answer whose last record is an A record (4 bytes of address)
+        if (got >= 16 && answer[0] == query[0] && answer[1] == query[1] && (answer[6] << 8 | answer[7]) > 0 &&
+            answer[got - 6] == 0 && answer[got - 5] == 4) {
+            result = [NSString stringWithFormat:@"%u.%u.%u.%u", answer[got - 4], answer[got - 3], answer[got - 2], answer[got - 1]];
+        }
+    }
+    close(fd);
+    return [NSString stringWithFormat:@"%@ after %.0f ms", result ?: @"no answer", -started.timeIntervalSinceNow * 1000];
 }
 
 - (BOOL)waterWallLiveHTTPS204:(NodeModel *)model {
@@ -3417,6 +3473,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     }
     model.password = environment[@"SRP_LIVE_PASSWORD"];
     model.proxyPassword = environment[@"SRP_LIVE_PROXY_PASSWORD"];
+    // The length only: shows that a password with spaces, punctuation or other scripts arrived whole
+    NSLog(@"Live profile: password of %lu characters", (unsigned long)model.password.length);
     // Certificate login: the PKCS#12 and its passphrase come in their own variables and are imported
     // as the editor imports a file; the import is removed when the test ends
     NSString *p12Base64 = environment[@"SRP_LIVE_CERT_P12_BASE64"];
@@ -3558,6 +3616,16 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 #else
     XCTSkip(@"Sleep instrumentation requires a Debug build.");
 #endif
+}
+
+// An SSH profile without a port uses SSH's own port; other protocols keep theirs
+- (void)testSSHProfileWithoutPortUsesPort22 {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"ssh";
+    model.port = @"";
+    XCTAssertEqualObjects(model.port, @"22");
+    model.protocolType = @"sstp";
+    XCTAssertEqualObjects(model.port, @"443");
 }
 
 - (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {
@@ -5474,6 +5542,73 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     edited.authMethod = @"password";
     edited.tlsFragMode = 2;
     [editorTable reloadData];
+    [self scrollTableToEnd:editorTable];
+    shoot(nil, @"options");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+// The SSH screens of the tutorial (tutorial/ssh/app-setup.html), rendered from the real editor.
+- (void)testSshDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-ssh"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    NodeModel *(^profile)(NSString *) = ^NodeModel *(NSString *description) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"ssh" toModel:model];
+        model.desc = description;
+        model.server = @"ssh.example.com";
+        model.username = @"vpnuser";
+        model.password = @"example-password";
+        return model;
+    };
+    NodeModel *password = profile(@"Example: SSH (password)");
+    NodeModel *pinned = profile(@"Example: SSH with a pinned host key");
+    pinned.sshHostKey = @"SHA256:Lp3gKqZ2u7eFv0yQm9aWcXbT1rJ5nH8sD4oE6iU2kYA";
+    NodeModel *relay = profile(@"Example: SSH with UDP Relay on port 2222");
+    relay.port = @"2222";
+    relay.sshUdpRelay = YES;
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[password, pinned, relay]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    CreateVC *create = [self profileEditorHostForModel:pinned saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+    NodeModel *edited = [navigation.topViewController valueForKey:@"modal"];
+    edited.sshUdpRelay = YES;
+    [editorTable reloadData];
+    shoot(create, @"profile-editor");
+    [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:pinned] animated:NO];
+    shoot(nil, @"protocol");
+    [navigation popToRootViewControllerAnimated:NO];
+    // Estimated row heights leave the content size short until the last rows have been laid out once
+    NSInteger last = editorTable.numberOfSections - 1;
+    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[editorTable numberOfRowsInSection:last] - 1 inSection:last]
+                       atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
     [self scrollTableToEnd:editorTable];
     shoot(nil, @"options");
 

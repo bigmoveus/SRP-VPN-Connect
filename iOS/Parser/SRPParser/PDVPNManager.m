@@ -572,6 +572,11 @@ static NSString *SRPMaskedURI(NSString *uri) {
     
     NSString *up = [NSString stringWithFormat:@"%@:%@", server[@"username"], server[@"password"]];
     up = [PDBase64 encode:up];
+    if ([server[@"type"] isEqualToString:@"ssh"]) {
+        // URL-safe alphabet: a "/" (from "?" or a letter outside ASCII in the password) would end the URL's user
+        // part; the tunnel turns it back
+        up = [[up stringByReplacingOccurrencesOfString:@"+" withString:@"-"] stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+    }
     [uri appendFormat:@"%@", up];
     // Psiphon entries carry their own server addresses; the profile's
     // address field may be empty — keep the URI parseable regardless
