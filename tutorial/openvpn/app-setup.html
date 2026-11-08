@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — OpenVPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of an OpenVPN profile in SRP VPN Connect on iPhone and Android: importing the .ovpn file, Server and Port, stunnel, the login, and the options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">An OpenVPN profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>OpenVPN</strong>. Import the <code>.ovpn</code> file, check the fields below and tap <strong>Save</strong>. Save names the first thing that is still missing instead of saving an incomplete profile: <em>Enter the server address.</em>, <em>Import an OpenVPN profile.</em> or <em>This OpenVPN profile needs a username and password.</em></p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/protocol.png" alt="Protocol screen on iPhone with OpenVPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing OpenVPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="profile">The .ovpn profile</h2>
+<p>Tap <strong>Profile (.ovpn)</strong> and choose <strong>From Files</strong> or <strong>From URL</strong>. The app takes a profile with its certificates and keys inside it, as <code>&lt;ca&gt;</code>, <code>&lt;cert&gt;</code>, <code>&lt;key&gt;</code> and <code>&lt;tls-crypt&gt;</code> or <code>&lt;tls-auth&gt;</code> blocks; <a href="server.html#clients">the server guide</a> makes such a file. It refuses a file that does not look like a profile, and one whose certificate was damaged on the way, which happens when a profile is copied through a chat app: import the original file, or use From URL. The row then says <strong>Imported</strong>.</p>
+<p>The profile holds the phone's private key. On Android the app keeps it in its encrypted store.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/certificate-profile.png" alt="Profile editor on iPhone with an imported profile: Profile (.ovpn) Imported, Server, Port 1194 and Enable stunnel off" width="260" loading="lazy">
+    <figcaption>A profile with a certificate login, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/certificate-profile.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server</h2>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>Filled from the profile's first <code>remote</code> line when you import it. Change it to connect to another name or address; then the app uses it instead of the profile's remote lines. Left as it came, a profile with several remote lines keeps them: when the first does not answer, the app tries the next.</td></tr>
+    <tr><td>Port</td><td>Filled from the same line. Changed, it replaces the profile's port. Empty means 1194.</td></tr>
+    <tr><td>Enable stunnel (TLS)</td><td>Off by default. On: OpenVPN runs over TCP inside a TLS connection to the server's stunnel listener (<a href="server.html#stunnel">stunnel on port 443</a>); a UDP profile goes over TCP too.</td></tr>
+    <tr><td>stunnel Host</td><td>Optional; empty means Server.</td></tr>
+    <tr><td>stunnel Port</td><td>Optional; empty means 443.</td></tr>
+    <tr><td>stunnel SNI</td><td>Optional; the name the app sends in the TLS handshake and checks the certificate against. Empty means stunnel Host. A server name in SNI that differs from the host lets the connection look like one to that name, as long as the certificate is valid for it.</td></tr>
+    <tr><td>CA Certificate</td><td><strong>System Trust</strong> by default: the certificate must come from a public certificate authority, such as Let's Encrypt. Tap it to import the PEM of your own CA instead; the app then accepts only certificates that CA signed.</td></tr>
+  </tbody>
+</table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/stunnel-editor.png" alt="Profile editor on iPhone with Enable stunnel on and the stunnel Host, Port, SNI and CA Certificate rows" width="260" loading="lazy">
+    <figcaption>A profile with stunnel on, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/stunnel-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="authentication">Authentication</h2>
+<p>A profile with an <code>auth-user-pass</code> line asks for a <strong>Username</strong> and <strong>Password</strong>; the section appears only then. A profile with only a certificate needs neither. A password may hold any character, spaces and letters of any script included.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/profile-editor.png" alt="Profile editor on iPhone with a profile that asks for a username and password" width="260" loading="lazy">
+    <figcaption>A profile with a password login, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, Switch to Wi-Fi When Available, On Sleep, Log Level and TLS Fragmentation" width="260" loading="lazy">
+    <figcaption>The options of a profile with stunnel on, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>Auto Reconnect (on by default): when the connection breaks, the server restarts the session, or the server has not answered for 60 seconds (the server's <code>keepalive</code>), the app connects again, and keeps trying while the server is away. Retry Times limits the attempts in a row; empty means no limit. Before the first connection, the app tries each remote line of the profile once, and Retry Times repeats that. Without Auto Reconnect, a VPN that was up ends with the reason, for example <em>The server restarted the session (auto reconnect is off).</em> A refused login, a server certificate the profile's CA did not sign, and a server that halts the session are never retried. A phone certificate the server refuses looks like a server that does not answer (the server says nothing), so Retry Times counts those attempts too.</td></tr>
+    <tr><td>Switch to Wi-Fi When Available</td><td>On by default: when Wi-Fi appears while the VPN is up, the app moves the connection to it.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the connection while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the server, port and transport the app connects to, the settings the server pushed, the session, and why a connection ended. <strong>Expert</strong> and <strong>Debug</strong> add OpenVPN's own lines and its events. No level writes the password or a key. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>OpenVPN: closing with reason:</code> names the reason.</td></tr>
+    <tr id="fragmentation"><td>TLS Fragmentation</td><td>Only with stunnel on. It splits the first TLS messages of the stunnel connection into small TCP segments, which some networks cannot read as a TLS handshake. <strong>Off</strong> (default) sends them whole. <strong>Auto</strong> sends 43 bytes, then pieces of 256 bytes (128 on mobile data). <strong>Manual</strong> takes <strong>First Chunk</strong> and <strong>Following Chunks</strong> in bytes, 32 and 256 when empty. The pieces end with the handshake.</td></tr>
+  </tbody>
+</table>
+<p>An OpenVPN profile has no proxy setting: the app always connects to the server, or to its stunnel listener, directly.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/home.png" alt="Home screen on iPhone with three example OpenVPN profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>OpenVPN profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the server has accepted the phone and sent its settings. The row of the profile then shows the time of one request through the tunnel. If it fails, the app shows <strong>Connection Failed</strong> with a reason; <a href="troubleshooting.html">Troubleshooting</a> explains each one.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

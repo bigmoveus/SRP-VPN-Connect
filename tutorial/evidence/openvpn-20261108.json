@@ -1,0 +1,1914 @@
+{
+ "run": {
+  "date": "8 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the code of commit 48eaf2f7 on the iPhone, as a Debug build, and of cd3916be, which follows it, on Android, as a debug APK; the iPhone's rows of the ovpn-release-\u2026 cases come from a Release build of 48eaf2f7's code, the kind TestFlight ships",
+  "server": "OpenVPN 2.6.19 and stunnel 5.72 on Ubuntu 24.04"
+ },
+ "summary": {
+  "cases": 76,
+  "iphone_passed": 76,
+  "iphone_run": 76,
+  "android_passed": 65,
+  "android_run": 65
+ },
+ "cases": [
+  {
+   "id": "ovpn-udp-download",
+   "settings": [
+    "UDP profile, certificate login"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 132.85,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-udp-full-duplex",
+   "settings": [
+    "UDP profile, certificate login"
+   ],
+   "traffic": "download and upload at once, 90 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 100.13,
+    "upload_mbps": 44.34,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 10.6,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-udp-upload",
+   "settings": [
+    "UDP profile, certificate login"
+   ],
+   "traffic": "upload, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "up 125.58 Mbit/s",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.2,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-udp-many-connections",
+   "settings": [
+    "UDP profile, certificate login"
+   ],
+   "traffic": "16 downloads at once, 45 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 132.06,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 29.4,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-tcp-download",
+   "settings": [
+    "TCP profile, certificate login"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 128.8,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.1,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-tcp-full-duplex",
+   "settings": [
+    "TCP profile, certificate login"
+   ],
+   "traffic": "download and upload at once, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 111.38,
+    "upload_mbps": 18.56,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 12.5,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-download",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 159.83,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-full-duplex",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on"
+   ],
+   "traffic": "download and upload at once, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 8.16,
+    "upload_mbps": 167.36,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 17.2,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-upload",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on"
+   ],
+   "traffic": "upload, 45 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "up 185.27 Mbit/s",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 10.6,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-udp-probe",
+   "settings": [
+    "UDP profile, certificate login"
+   ],
+   "traffic": "download, 15 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "the UDP DNS query was answered, and saw the server's address"
+    ],
+    "download_mbps": 124.89,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "the UDP DNS query was answered, and saw the server's address"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pass-udp-download",
+   "settings": [
+    "UDP profile, password login"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpnuser1 directly, tunnel address 10.8.2.3, cipher AES-256-GCM"
+    ],
+    "download_mbps": 129.54,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server listed the client ovpnuser1 directly, tunnel address 10.8.2.3, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pass-tcp-download",
+   "settings": [
+    "TCP profile, password login"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpnuser1 directly, tunnel address 10.8.3.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 121.1,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server listed the client ovpnuser1 directly, tunnel address 10.8.3.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pass-stunnel-download",
+   "settings": [
+    "stunnel profile (TCP to port 8443), password login",
+    "stunnel on",
+    "stunnel Port 8443"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpnuser1 through stunnel (127.0.0.1), tunnel address 10.8.3.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 149.32,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.4,
+    "facts": [
+     "the server listed the client ovpnuser1 through stunnel (127.0.0.1), tunnel address 10.8.3.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pass-special-characters",
+   "settings": [
+    "UDP profile, password login",
+    "a user whose password has spaces, punctuation and letters outside ASCII"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpnuser2 directly, tunnel address 10.8.2.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpnuser2 directly, tunnel address 10.8.2.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pass-wrong",
+   "settings": [
+    "UDP profile, password login",
+    "wrong password"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: the username/password check failed",
+     "ended after 0.5 s"
+    ],
+    "message": "The server refused the login. Check the username and password.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server's log: the username/password check failed"
+    ],
+    "message": "The server refused the login. Check the username and password."
+   }
+  },
+  {
+   "id": "ovpn-port-field-overrides-profile",
+   "settings": [
+    "UDP profile whose remote line names port 1199 (nothing listens)",
+    "Port 1194"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-server-field-overrides-profile",
+   "settings": [
+    "UDP profile whose remote line names a host that does not exist",
+    "Server is the server's address"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-two-remotes-failover",
+   "settings": [
+    "UDP profile with two remote lines: port 1199 (nothing listens), then port 1194",
+    "Port 1199"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-udp-profile",
+   "settings": [
+    "UDP profile, certificate login",
+    "stunnel on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-host-field",
+   "settings": [
+    "TCP profile, certificate login",
+    "Server is the server's address",
+    "stunnel on",
+    "stunnel Host: the server's name (Server: its address)"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-private-ca",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "CA Certificate: the stunnel server's own CA",
+    "stunnel on port 9443 with a certificate of its own CA"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-private-no-ca",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "stunnel on port 9443 with a certificate of its own CA"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.4 s"
+    ],
+    "message": "The stunnel server's certificate is not trusted for SERVER_HOST (another name, expired, or not from a public certificate authority; import its CA Certificate if the server has its own CA).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The stunnel server's certificate is not trusted for SERVER_HOST (another name, expired, or not from a public certificate authority; import its CA Certificate if the server has its own CA)."
+   }
+  },
+  {
+   "id": "ovpn-stunnel-private-wrong-ca",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "CA Certificate: a CA that signed nothing on the server",
+    "stunnel on port 9443 with a certificate of its own CA"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.4 s"
+    ],
+    "message": "The stunnel server's certificate is not signed by the imported CA Certificate, or not issued for SERVER_HOST.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The stunnel server's certificate is not signed by the imported CA Certificate, or not issued for SERVER_HOST."
+   }
+  },
+  {
+   "id": "ovpn-stunnel-custom-sni",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "stunnel SNI cdn.example.com",
+    "CA Certificate: the stunnel server's own CA",
+    "stunnel on port 9443 whose certificate has a second name"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-sni-mismatch",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel SNI cdn.example.com"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.7 s"
+    ],
+    "message": "The stunnel server's certificate is not trusted for cdn.example.com (another name, expired, or not from a public certificate authority; import its CA Certificate if the server has its own CA).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The stunnel server's certificate is not trusted for cdn.example.com (another name, expired, or not from a public certificate authority; import its CA Certificate if the server has its own CA)."
+   }
+  },
+  {
+   "id": "ovpn-stunnel-tls12-only",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9444",
+    "server: stunnel on port 9444 with sslVersionMax = TLSv1.2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-stunnel-closed-port",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 4443",
+    "nothing listens on stunnel port 4443"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.4 s"
+    ],
+    "message": "The stunnel server SERVER_HOST:4443 refused the connection: nothing listens on that port.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The stunnel server SERVER_HOST:4443 refused the connection: nothing listens on that port."
+   }
+  },
+  {
+   "id": "ovpn-frag-off",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "TLS Fragmentation Off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 1525, 80, 78, 371, 90, 94 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 517, 64, 78, 1666, 90, 94 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-frag-auto",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 43, 256, 256, 256, 256, 256 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 43, 256, 218, 43, 21, 78 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-frag-manual",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "TLS Fragmentation Manual 10/40"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 10, 40, 40, 40, 40, 40 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 10, 40, 40, 40, 40, 40 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-frag-auto-private-ca-sni",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "stunnel SNI cdn.example.com",
+    "CA Certificate: the stunnel server's own CA",
+    "TLS Fragmentation Auto",
+    "stunnel on port 9443 whose certificate has a second name"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 43, 256, 256, 256, 256, 256 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server received the ClientHello as TCP segments of 43, 214, 43, 21, 78, 1666 \u2026 bytes",
+     "held for 6 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-frag-manual-download",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "TLS Fragmentation Manual 32/256"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ],
+    "download_mbps": 124.62,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the server listed the client ovpn-cert1 through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-revoked-certificate",
+   "settings": [
+    "UDP profile with a revoked certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: VERIFY ERROR: certificate revoked",
+     "ended after 42.4 s"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server's log: VERIFY ERROR: certificate revoked"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason."
+   }
+  },
+  {
+   "id": "ovpn-rogue-client-certificate",
+   "settings": [
+    "UDP profile with a client certificate of another CA"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: VERIFY ERROR: unable to get local issuer certificate",
+     "ended after 42.4 s"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason."
+   }
+  },
+  {
+   "id": "ovpn-wrong-server-ca",
+   "settings": [
+    "UDP profile whose CA did not sign the server's certificate"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.4 s"
+    ],
+    "message": "The server's certificate could not be verified with the profile's CA (OpenSSLContext::SSL::read_cleartext: BIO_read failed, cap=2640 status=-1: error:0A000086:SSL routines::certificate verify failed).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server's certificate could not be verified with the profile's CA (OpenSSLContext::SSL::read_cleartext: BIO_read failed, cap=2640 status=-1: error:0A000086:SSL routines::certificate verify failed)."
+   }
+  },
+  {
+   "id": "ovpn-wrong-tls-crypt-key",
+   "settings": [
+    "UDP profile with another tls-crypt key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 10.4 s"
+    ],
+    "message": "The server did not answer.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer."
+   }
+  },
+  {
+   "id": "ovpn-udp-closed-port",
+   "settings": [
+    "UDP profile whose remote line names port 1199 (nothing listens)",
+    "Port 1199"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 10.3 s"
+    ],
+    "message": "The server did not answer.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer."
+   }
+  },
+  {
+   "id": "ovpn-tcp-refused",
+   "settings": [
+    "TCP profile whose remote line names port 1199 (nothing listens)",
+    "Port 1199"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 2.4 s"
+    ],
+    "message": "The server refused the connection: no OpenVPN server answers on that port.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server refused the connection: no OpenVPN server answers on that port."
+   }
+  },
+  {
+   "id": "ovpn-unknown-host",
+   "settings": [
+    "UDP profile whose remote line names a host that does not exist",
+    "Server is a name that does not exist"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 2.4 s"
+    ],
+    "message": "The server name no-such-host.srp.invalid could not be resolved.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server name no-such-host.srp.invalid could not be resolved."
+   }
+  },
+  {
+   "id": "ovpn-garbage-profile",
+   "settings": [
+    "a file with remote and dev lines but no profile"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "Invalid OpenVPN profile: ERR_INVALID_OPTION_VAL: option_error: option 'remote' must have at least 1 arguments",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid OpenVPN profile: ERR_INVALID_OPTION_VAL: option_error: option 'remote' must have at least 1 arguments"
+   }
+  },
+  {
+   "id": "ovpn-encrypted-key",
+   "settings": [
+    "UDP profile whose private key has a passphrase"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "The profile's private key is protected with a passphrase, which this app cannot enter. Export the key without a passphrase (for example: openssl pkey -in client.key -out client-plain.key) and import the profile again.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The profile's private key is protected with a passphrase, which this app cannot enter. Export the key without a passphrase (for example: openssl pkey -in client.key -out client-plain.key) and import the profile again."
+   }
+  },
+  {
+   "id": "ovpn-static-key-profile",
+   "settings": [
+    "a static-key (secret) profile"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "This profile uses an OpenVPN static key (secret), which OpenVPN 3 does not support. Ask for a profile with certificates (TLS mode).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "This profile uses an OpenVPN static key (secret), which OpenVPN 3 does not support. Ask for a profile with certificates (TLS mode)."
+   }
+  },
+  {
+   "id": "ovpn-net30-topology",
+   "settings": [
+    "UDP profile, certificate login",
+    "server: no topology line (net30)"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 123.68,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.1,
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-cbc-tls-auth",
+   "settings": [
+    "UDP profile with tls-auth, auth SHA256, cipher AES-256-CBC",
+    "server: data-ciphers AES-256-CBC, auth SHA256, tls-auth instead of tls-crypt"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-CBC with SHA256"
+    ],
+    "download_mbps": 107.98,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-pushed-compression",
+   "settings": [
+    "UDP profile, certificate login",
+    "server: allow-compression yes, compress lz4-v2 pushed"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "ended after 2.4 s"
+    ],
+    "message": "The server pushes compression (lz4-v2), which this app does not take: compression inside a VPN can leak data (VORACLE). Turn it off on the server (remove compress/comp-lzo from its configuration).",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "message": "The server pushes compression (lz4-v2), which this app does not take: compression inside a VPN can leak data (VORACLE). Turn it off on the server (remove compress/comp-lzo from its configuration)."
+   }
+  },
+  {
+   "id": "ovpn-life-sleep-modes-udp",
+   "settings": [
+    "UDP profile, certificate login",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.3 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.4 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "paused at sleep, connected again at wake; transfer passed",
+     "closed at sleep, connected again at wake; transfer passed",
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-sleep-modes-stunnel",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.3 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.4 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.5 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-life-kick-udp",
+   "settings": [
+    "UDP profile, certificate login",
+    "the server restarts the session (client-kill)",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 5.8 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 5.2 s after the restart; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-kick-udp-no-reconnect",
+   "settings": [
+    "UDP profile, certificate login",
+    "the server restarts the session (client-kill)",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "ended after 5.0 s with: The server restarted the session (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The server restarted the session (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-kick-tcp",
+   "settings": [
+    "TCP profile, certificate login",
+    "the server restarts the session (client-kill)",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 6.1 s"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-life-stunnel-restart",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel restarts",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 5.8 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 6.3 s after stunnel restarted; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-stunnel-restart-no-reconnect",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel restarts",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "ended after 5.0 s with: The stunnel server closed the connection (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The stunnel server closed the connection (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-halt",
+   "settings": [
+    "UDP profile, certificate login",
+    "the server halts the session (client-kill HALT)",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "ended after 5.0 s with: The server ended the session."
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The server ended the session."
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-retry-exhausted-udp",
+   "settings": [
+    "UDP profile, certificate login",
+    "the server stops for 120 s",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 25.9 s with: Could not reconnect after 2 attempts. (The server did not answer)"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: Could not reconnect after 2 attempts. (The server did not answer)"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-retry-exhausted-stunnel",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "the TCP server behind stunnel stops for 120 s",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 11.0 s with: Could not reconnect after 2 attempts. (The stunnel connection broke)"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-life-outage-reconnect",
+   "settings": [
+    "UDP profile, certificate login",
+    "the server stops for 8 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 11.8 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 9.9 s after the server stopped, after 1 attempt; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-dead-path-reconnects",
+   "settings": [
+    "UDP profile, certificate login",
+    "every packet of the session dropped for 45 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 46.1 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "noticed the dead path after 60.9 s, connected again 79.3 s after the drop began; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-dead-path-no-reconnect",
+   "settings": [
+    "UDP profile, certificate login",
+    "every packet of the session dropped for 150 s",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "ended after 62.6 s with: The server stopped answering (keepalive timeout) (auto reconnect is off)."
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-life-path-switch-udp",
+   "settings": [
+    "UDP profile, certificate login",
+    "Auto Reconnect on; the connection moved to a new network path"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 1.3 s"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "moved back to Wi-Fi: 2 connections in all; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-life-path-switch-stunnel",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "Auto Reconnect on; the connection moved to a new network path"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 0.4 s"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-life-path-switch-no-reconnect",
+   "settings": [
+    "UDP profile, certificate login",
+    "Auto Reconnect off; the connection moved to a new network path"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "lifecycle": [
+     "connected again after 0.4 s"
+    ],
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-log-normal",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 112.69,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-log-expert",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 124.56,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.9,
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-log-debug",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 4 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines, packet lines (Debug build)",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 120.37,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-release-log-normal",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 80.77,
+    "through_server": true
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-release-log-expert",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 133.61,
+    "through_server": true
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-release-log-debug",
+   "settings": [
+    "UDP profile, password login",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 4 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server's log: data channel AES-256-GCM",
+     "in the log: the session line, OpenVPN's own lines",
+     "not in the log: the password, the private key, the tls-crypt key, a key passphrase"
+    ],
+    "download_mbps": 125.44,
+    "through_server": true
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-release-stunnel-private-no-ca",
+   "settings": [
+    "stunnel profile (TCP to port 443), certificate login",
+    "stunnel on",
+    "stunnel Port 9443",
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "in the log: the app's OpenVPN lines",
+     "not in the log: the password, the private key, the tls-crypt key",
+     "ended after 0.4 s"
+    ],
+    "message": "The stunnel server's certificate is not trusted for SERVER_HOST (another name, expired, or not from a public certificate authority; import its CA Certificate if the server has its own CA).",
+    "through_server": null
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-release-udp-download",
+   "settings": [
+    "a profile of the server"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "the server listed the client ovpn-cert2 directly, tunnel address 10.8.0.3, cipher AES-256-GCM",
+     "the server's log: VERIFY ERROR: certificate revoked",
+     "in the log: the app's OpenVPN lines",
+     "not in the log: the password, the private key, the tls-crypt key"
+    ],
+    "download_mbps": 138.97,
+    "through_server": true
+   },
+   "android": null
+  },
+  {
+   "id": "ovpn-guide-udp",
+   "settings": [
+    "the guide's phone1-udp.ovpn"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: phone1 connected directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 130.77,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.2,
+    "facts": [
+     "the server's log: phone1 connected directly, tunnel address 10.8.0.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-status-file",
+   "settings": [
+    "the guide's phone1-udp.ovpn"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "70 s after connecting, the status file listed phone1",
+     "the server's log: data channel AES-256-GCM",
+     "held for 80 s while the server listed the client"
+    ],
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "70 s after connecting, the status file listed phone1",
+     "the server's log: data channel AES-256-GCM",
+     "held for 80 s while the server listed the client"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-stunnel",
+   "settings": [
+    "the guide's phone1-stunnel.ovpn",
+    "stunnel on"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: phone1 connected through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 72.13,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.4,
+    "facts": [
+     "the server's log: phone1 connected through stunnel (127.0.0.1), tunnel address 10.8.1.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-pass-udp",
+   "settings": [
+    "the guide's vpnuser-udp-pass.ovpn"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: vpnuser connected directly, tunnel address 10.8.2.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 127.33,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the server's log: vpnuser connected directly, tunnel address 10.8.2.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-pass-tcp",
+   "settings": [
+    "the guide's vpnuser-tcp-pass.ovpn"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: vpnuser connected directly, tunnel address 10.8.3.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 92.0,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 7.2,
+    "facts": [
+     "the server's log: vpnuser connected directly, tunnel address 10.8.3.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-pass-stunnel",
+   "settings": [
+    "the guide's vpnuser-stunnel-pass.ovpn",
+    "stunnel on",
+    "stunnel Port 8443"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: vpnuser connected through stunnel (127.0.0.1), tunnel address 10.8.3.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ],
+    "download_mbps": 70.93,
+    "through_server": true
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.5,
+    "facts": [
+     "the server's log: vpnuser connected through stunnel (127.0.0.1), tunnel address 10.8.3.2, cipher AES-256-GCM",
+     "the server's log: data channel AES-256-GCM"
+    ]
+   }
+  },
+  {
+   "id": "ovpn-guide-revoked",
+   "settings": [
+    "the guide's phone2-udp.ovpn, phone2 revoked as part 9 says"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server's log: VERIFY ERROR: certificate revoked",
+     "ended after 42.4 s"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason.",
+    "through_server": null
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server's log: VERIFY ERROR: certificate revoked"
+    ],
+    "message": "The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason."
+   }
+  }
+ ]
+}

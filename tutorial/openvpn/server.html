@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVPN Server — OpenVPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="Setting up an OpenVPN 2.6 server on Ubuntu 24.04 for OpenVPN profiles of SRP VPN Connect: certificates with easy-rsa, UDP and TCP servers, client profiles, password login, stunnel with a Let's Encrypt certificate, and revoking a client.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>OpenVPN server</h1>
+<p class="lead">This page sets up OpenVPN 2.6, the version Ubuntu 24.04 ships, for the app: a certificate authority with easy-rsa, a UDP server, client profiles the app imports, an optional login with a username and password, and an optional stunnel listener on port 443 that carries OpenVPN inside TLS.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>We ran these steps on our test server, Ubuntu 24.04 with OpenVPN 2.6.19, easy-rsa 3.1.7, stunnel 5.72 and certbot 2.9.0, 4 vCPUs and 6 GB of memory, on 8 November 2026, as the page shows them, with our server's name in place of <code>vpn.example.com</code>; then both phones connected with the page's own profiles: <code>phone1</code> over UDP and through stunnel, <code>vpnuser</code> over UDP, TCP and stunnel, and <code>phone2</code>, revoked as part 9 says, was refused (the <code>ovpn-guide-…</code> cases in <a href="results.html">Test results</a>). Three steps ran differently: certbot used <code>--webroot</code>, as a web server holds port 80 on our server, and kept the certificate it had issued earlier that day with the same command (a renewal dry run, <code>certbot renew --dry-run</code>, succeeded); the password went to <code>openssl passwd -6 -stdin</code> instead of its prompt; and part 9 revoked <code>phone2</code>, a certificate made for it with part 5's commands, so that <code>phone1</code> stayed valid. The phones' other results named on these pages come from the runs listed in <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+  <li>An Ubuntu 24.04 server with a public IPv4 address, and root on it.</li>
+  <li>For stunnel with a Let's Encrypt certificate, a DNS name that points to the server, for example <code>vpn.example.com</code>, and port 80 reachable while the certificate is issued and renewed.</li>
+  <li>The ports the phones use open to them: UDP 1194 for the UDP server, TCP 1194 for the TCP server, TCP 443 for stunnel, and 1195 and 8443 for password logins. Each part below says which it needs.</li>
+</ul>
+
+<h2 id="install">1. Install</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt update
+apt install -y openvpn easy-rsa</code></pre>
+<p>This installs OpenVPN 2.6 and easy-rsa 3.1. stunnel and certbot come in <a href="#stunnel">part 7</a>, only if you want stunnel.</p>
+
+<h2 id="pki">2. Certificates</h2>
+<p>OpenVPN checks both ends with certificates of its own certificate authority (CA). easy-rsa makes them:</p>
+<pre data-label="Server, as root"><code class="language-bash">make-cadir /etc/openvpn/easy-rsa
+cd /etc/openvpn/easy-rsa
+export EASYRSA_BATCH=1 EASYRSA_CRL_DAYS=3650
+./easyrsa init-pki
+./easyrsa --req-cn="OpenVPN CA" build-ca nopass
+./easyrsa build-server-full server nopass
+./easyrsa gen-crl
+cp pki/crl.pem /etc/openvpn/server/crl.pem
+chmod 644 /etc/openvpn/server/crl.pem
+openvpn --genkey secret /etc/openvpn/server/tc.key</code></pre>
+<ul>
+  <li><code>nopass</code> leaves the keys without a passphrase. The server's key must start without one, and the app cannot type a passphrase for a client's key (<a href="#clients">part 5</a> makes the client's without one too).</li>
+  <li><code>gen-crl</code> makes the list of revoked certificates, which the server reads at every connection (<a href="#revoke">part 9</a>). easy-rsa makes it valid for 180 days unless <code>EASYRSA_CRL_DAYS</code> says otherwise; once it runs out, the server refuses every client. 3650 days is ten years.</li>
+  <li>The certificates easy-rsa makes for the server and the phones are valid for 825 days, a little over two years; the CA's for ten years.</li>
+  <li><code>tc.key</code> is the tls-crypt key. It encrypts and signs OpenVPN's control channel with a key the server and its clients share: a server without it in a packet stays silent, so the server does not answer port scans and the TLS handshake is hidden.</li>
+</ul>
+
+<h2 id="udp">3. The UDP server</h2>
+<pre data-label="/etc/openvpn/server/udp.conf"><code>port 1194
+proto udp
+dev tun
+topology subnet
+server 10.8.0.0 255.255.255.0
+ca /etc/openvpn/easy-rsa/pki/ca.crt
+cert /etc/openvpn/easy-rsa/pki/issued/server.crt
+key /etc/openvpn/easy-rsa/pki/private/server.key
+dh none
+tls-crypt /etc/openvpn/server/tc.key
+tls-version-min 1.2
+data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305
+keepalive 10 60
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 1.1.1.1"
+push "dhcp-option DNS 8.8.8.8"
+user nobody
+group nogroup
+persist-key
+persist-tun
+verb 3
+crl-verify /etc/openvpn/server/crl.pem
+remote-cert-tls client
+explicit-exit-notify 1</code></pre>
+<ul>
+  <li><code>server 10.8.0.0 255.255.255.0</code> gives the phones addresses in 10.8.0.0/24; <code>topology subnet</code> gives each one address and the network's netmask.</li>
+  <li><code>redirect-gateway</code> sends all of the phone's traffic through the VPN, and the two <code>dhcp-option DNS</code> lines are the name servers it uses meanwhile.</li>
+  <li><code>keepalive 10 60</code>: both ends send a ping every 10 seconds when nothing else goes, and the phone treats the server as gone after 60 seconds of silence, then connects again (<a href="app-setup.html#options">Auto Reconnect</a>).</li>
+  <li><code>explicit-exit-notify 1</code> tells the phones when the server stops or restarts, so they connect again at once instead of after 60 seconds.</li>
+  <li><code>data-ciphers</code> lists the ciphers for the traffic; the app has all three. <a href="configuration.html">Configuration Reference</a> explains what else the app takes.</li>
+</ul>
+<p>The server may forward the phones' traffic, and replace their addresses with its own on the way out. <code>ens160</code> is the name of our server's network interface; <code>ip route show default</code> prints yours after <code>dev</code>.</p>
+<pre data-label="Server, as root"><code class="language-bash">echo 'net.ipv4.ip_forward = 1' &gt; /etc/sysctl.d/60-openvpn.conf
+sysctl -p /etc/sysctl.d/60-openvpn.conf
+iptables -t nat -A POSTROUTING -s 10.8.0.0/16 -o ens160 -j MASQUERADE
+iptables -A FORWARD -i tun+ -j ACCEPT
+iptables -A FORWARD -o tun+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+apt install -y iptables-persistent
+netfilter-persistent save</code></pre>
+<p><code>iptables-persistent</code> loads the rules again at boot; when it asks whether to save the current rules, either answer is fine, as <code>netfilter-persistent save</code> saves them afterwards. Start the server:</p>
+<pre data-label="Server, as root"><code class="language-bash">systemctl enable --now openvpn-server@udp
+systemctl status openvpn-server@udp</code></pre>
+<p>The status ends with <code>Initialization Sequence Completed</code>. The name after <code>@</code> is the configuration's file name without <code>.conf</code>.</p>
+
+<h2 id="tcp">4. A TCP server (optional; stunnel needs it)</h2>
+<p>Some networks pass only TCP. A second server on TCP port 1194 takes those phones, and stunnel (<a href="#stunnel">part 7</a>) hands its connections to it. Its configuration is the UDP one with three lines changed: <code>proto tcp</code>, its own network, and no <code>explicit-exit-notify</code>, which is for UDP only:</p>
+<pre data-label="Server, as root"><code class="language-bash">sed -e 's/^proto udp$/proto tcp/' -e 's/^server 10\.8\.0\.0 /server 10.8.1.0 /' -e '/^explicit-exit-notify/d' \
+  /etc/openvpn/server/udp.conf &gt; /etc/openvpn/server/tcp.conf
+systemctl enable --now openvpn-server@tcp</code></pre>
+
+<h2 id="clients">5. A profile for each phone</h2>
+<p>Each phone gets its own certificate: OpenVPN lets one certificate be connected once, so when a second phone connects with the same certificate, the server drops the first one's session. Make the certificate:</p>
+<pre data-label="Server, as root"><code class="language-bash">cd /etc/openvpn/easy-rsa
+EASYRSA_BATCH=1 ./easyrsa build-client-full phone1 nopass</code></pre>
+<p>The app takes everything in one file, the <code>.ovpn</code> profile, with the certificates and keys inside it. This script writes one; save it as <code>/etc/openvpn/client/make-profile.sh</code> and put your server's name in <code>host=</code>:</p>
+<pre data-label="/etc/openvpn/client/make-profile.sh"><code class="language-bash">#!/bin/bash
+# make-profile.sh NAME KIND: writes /etc/openvpn/client/NAME-KIND.ovpn with everything inline.
+# KIND: udp, tcp or stunnel (certificate login: NAME is the client certificate's name), udp-pass, tcp-pass or
+# stunnel-pass (username and password: no client certificate).
+set -euo pipefail
+name=$1; kind=$2; host=vpn.example.com; pki=/etc/openvpn/easy-rsa/pki
+case $kind in
+  udp) proto=udp; port=1194 ;;      tcp) proto=tcp; port=1194 ;;      stunnel) proto=tcp; port=443 ;;
+  udp-pass) proto=udp; port=1195 ;; tcp-pass) proto=tcp; port=1195 ;; stunnel-pass) proto=tcp; port=8443 ;;
+  *) echo "unknown kind $kind" &gt;&amp;2; exit 1 ;;
+esac
+out=/etc/openvpn/client/$name-$kind.ovpn
+umask 077
+{
+  printf 'client\ndev tun\nproto %s\nremote %s %s\nnobind\npersist-key\npersist-tun\nremote-cert-tls server\nverb 3\n' "$proto" "$host" "$port"
+  case $kind in *-pass) echo auth-user-pass ;; esac
+  echo "&lt;ca&gt;"; cat $pki/ca.crt; echo "&lt;/ca&gt;"
+  case $kind in
+    *-pass) ;;
+    *) echo "&lt;cert&gt;"; openssl x509 -in "$pki/issued/$name.crt"; echo "&lt;/cert&gt;"
+       echo "&lt;key&gt;"; cat "$pki/private/$name.key"; echo "&lt;/key&gt;" ;;
+  esac
+  echo "&lt;tls-crypt&gt;"; cat /etc/openvpn/server/tc.key; echo "&lt;/tls-crypt&gt;"
+} &gt; "$out"
+echo "$out"</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 755 /etc/openvpn/client/make-profile.sh
+/etc/openvpn/client/make-profile.sh phone1 udp</code></pre>
+<p>It prints the file's name, here <code>/etc/openvpn/client/phone1-udp.ovpn</code>. The file holds the phone's private key: whoever has it can connect as that phone. Copy it to the phone and import it in the app (<a href="app-setup.html#profile">From Files</a>), then delete the copies you do not need. To import it <strong>From URL</strong> instead, serve it only over HTTPS at an address nobody can guess, and only until the phone has it.</p>
+
+<h2 id="password">6. Login with a username and password (optional)</h2>
+<p>Instead of a certificate per phone, the server can check a username and password. These users have no account on the server: a script checks their password against a file that holds only hashes of the passwords. The script:</p>
+<pre data-label="/etc/openvpn/server/check-password.sh"><code class="language-bash">#!/bin/sh
+# auth-user-pass-verify via-file: line 1 of $1 is the username, line 2 the password; users holds "name:SHA-512 crypt"
+user=$(sed -n 1p "$1"); pass=$(sed -n 2p "$1")
+hash=$(awk -F: -v u="$user" '$1 == u { sub(/^[^:]*:/, ""); print; exit }' /etc/openvpn/server/users)
+[ -n "$hash" ] || exit 1
+salt=$(printf '%s' "$hash" | cut -d'$' -f3)
+[ "$(printf '%s\n' "$pass" | openssl passwd -6 -salt "$salt" -stdin)" = "$hash" ]</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 755 /etc/openvpn/server/check-password.sh
+touch /etc/openvpn/server/users
+chown root:nogroup /etc/openvpn/server/users
+chmod 640 /etc/openvpn/server/users
+printf '%s:%s\n' vpnuser "$(openssl passwd -6)" &gt;&gt; /etc/openvpn/server/users</code></pre>
+<p><code>openssl passwd -6</code> asks for the password twice and prints its hash; repeat the last line for each user. The server for these logins runs on port 1195 beside the one for certificates; its configuration is the UDP one with its own port and network, and the login lines in place of the certificate check:</p>
+<pre data-label="Server, as root"><code class="language-bash">sed -e 's/^port 1194$/port 1195/' -e 's/^server 10\.8\.0\.0 /server 10.8.2.0 /' \
+    -e '/^crl-verify/d' -e '/^remote-cert-tls/d' /etc/openvpn/server/udp.conf &gt; /etc/openvpn/server/udp-pass.conf
+cat &gt;&gt; /etc/openvpn/server/udp-pass.conf &lt;&lt;'EOF'
+verify-client-cert none
+username-as-common-name
+script-security 2
+auth-user-pass-verify /etc/openvpn/server/check-password.sh via-file
+EOF
+systemctl enable --now openvpn-server@udp-pass
+/etc/openvpn/client/make-profile.sh vpnuser udp-pass</code></pre>
+<p>The profile has no certificate of its own and the line <code>auth-user-pass</code>, so the app asks for <strong>Username</strong> and <strong>Password</strong>. A password may hold any character, spaces and letters of any script included. For password logins over TCP, and through stunnel (<a href="#stunnel">part 7</a>), a TCP twin on port 1195:</p>
+<pre data-label="Server, as root"><code class="language-bash">sed -e 's/^proto udp$/proto tcp/' -e 's/^server 10\.8\.2\.0 /server 10.8.3.0 /' -e '/^explicit-exit-notify/d' \
+  /etc/openvpn/server/udp-pass.conf &gt; /etc/openvpn/server/tcp-pass.conf
+systemctl enable --now openvpn-server@tcp-pass
+/etc/openvpn/client/make-profile.sh vpnuser tcp-pass</code></pre>
+
+<h2 id="stunnel">7. stunnel on port 443 (optional)</h2>
+<p>stunnel wraps OpenVPN's TCP connection in ordinary TLS on port 443, where it looks like a web connection; the app's <strong>Enable stunnel</strong> switch does the other end. It needs the TCP server of <a href="#tcp">part 4</a> and a certificate for the server's name. Let's Encrypt gives one without an email address:</p>
+<pre data-label="Server, as root"><code class="language-bash">apt install -y stunnel4 certbot
+certbot certonly --standalone -d vpn.example.com --register-unsafely-without-email --agree-tos --non-interactive \
+  --deploy-hook "systemctl restart stunnel@openvpn"</code></pre>
+<p><code>--standalone</code> answers Let's Encrypt's check on port 80 itself. If a web server already uses port 80, give certbot its folder instead: <code>certonly --webroot -w /var/www/html</code> in place of <code>certonly --standalone</code>, which is how our server got its certificate. certbot renews the certificate by itself before it runs out, and <code>--deploy-hook</code> restarts stunnel after each renewal so it takes the new one. stunnel's configuration:</p>
+<pre data-label="/etc/stunnel/openvpn.conf"><code>foreground = yes
+pid =
+setuid = stunnel4
+setgid = stunnel4
+
+[openvpn]
+accept = 443
+connect = 127.0.0.1:1194
+cert = /etc/letsencrypt/live/vpn.example.com/fullchain.pem
+key = /etc/letsencrypt/live/vpn.example.com/privkey.pem
+sslVersionMin = TLSv1.2</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">systemctl enable --now stunnel@openvpn
+ss -tlnp | grep ':443 '
+/etc/openvpn/client/make-profile.sh phone1 stunnel</code></pre>
+<p><code>ss</code> shows <code>stunnel4</code> on port 443. In the app, import <code>phone1-stunnel.ovpn</code> and turn <strong>Enable stunnel (TLS)</strong> on; stunnel Host, Port and SNI may stay empty: the app then uses Server, 443 and the server's name. A certificate of your own CA works as well: import that CA in the profile's <strong>CA Certificate</strong>, and the app accepts only certificates it signed.</p>
+<p>Password logins go through stunnel to the TCP twin of <a href="#password">part 6</a>, on a port of their own. A second service in the same file:</p>
+<pre data-label="Server, as root"><code class="language-bash">cat &gt;&gt; /etc/stunnel/openvpn.conf &lt;&lt;'EOF'
+
+[openvpn-pass]
+accept = 8443
+connect = 127.0.0.1:1195
+cert = /etc/letsencrypt/live/vpn.example.com/fullchain.pem
+key = /etc/letsencrypt/live/vpn.example.com/privkey.pem
+sslVersionMin = TLSv1.2
+EOF
+systemctl restart stunnel@openvpn
+/etc/openvpn/client/make-profile.sh vpnuser stunnel-pass</code></pre>
+<p>In the app, that profile needs <strong>stunnel Port</strong> 8443.</p>
+
+<h2 id="firewall">8. Firewall</h2>
+<p>Open the ports of the parts you set up: UDP 1194 for the UDP server, UDP and TCP 1195 for password logins, TCP 1194 for the TCP server, TCP 443 and 8443 for stunnel, and TCP 80 for Let's Encrypt. If ufw is active: <code>ufw allow 1194/udp</code>, and so on for each. Our server has no firewall of its own.</p>
+
+<h2 id="revoke">9. Revoking a phone's certificate</h2>
+<pre data-label="Server, as root"><code class="language-bash">cd /etc/openvpn/easy-rsa
+EASYRSA_BATCH=1 ./easyrsa revoke phone1
+EASYRSA_BATCH=1 EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
+cp pki/crl.pem /etc/openvpn/server/crl.pem</code></pre>
+<p>The server reads the list at the next connection; no restart is needed. A phone that was connected stays until it reconnects. The server refuses the revoked certificate during the TLS handshake and says why only in its own log, <code>journalctl -u openvpn-server@udp</code>: the app waits for an answer and then reports that the server stopped answering after the TLS handshake. For a password login, delete the user's line from <code>/etc/openvpn/server/users</code>.</p>
+
+<h2 id="check">10. Check</h2>
+<pre data-label="Server, as root"><code class="language-bash">systemctl status openvpn-server@udp
+journalctl -u openvpn-server@udp -f</code></pre>
+<p>When a phone connects, the log shows <code>Peer Connection Initiated</code> with the certificate's name (or the username), then the address it got and <code>Data Channel: cipher 'AES-256-GCM'</code>. The status file <code>/run/openvpn-server/status-udp.log</code> lists the connected phones.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>OpenVPN</strong> and import the <code>.ovpn</code> file; Server and Port fill themselves in from it. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — OpenVPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="The OpenVPN and stunnel server settings that change what SRP VPN Connect's OpenVPN profiles do, what each profile field does on the wire, and what the app always does.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">The server settings that change what the app's OpenVPN profiles do, what each field of a profile does on the wire, and the settings the app always uses. <a href="server.html">OpenVPN server</a> builds the server this page refers to; <a href="results.html">Test results</a> has the case behind each statement.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Every server setting below was tested on our OpenVPN 2.6.19 and stunnel 5.72 test server, in the configuration of <a href="server.html">OpenVPN server</a> or in a second server instance that differed from it in the setting named, and both phones connected to it; the case names in the tables are the rows of <a href="results.html">Test results</a>.</p>
+</div>
+<!-- provenance:end -->
+
+<h2 id="server">OpenVPN server settings</h2>
+<p>Each server configuration is one file in <code>/etc/openvpn/server/</code>, started as <code>openvpn-server@NAME</code>. After a change, <code>systemctl restart openvpn-server@NAME</code> applies it; the phones connected to it connect again by themselves when Auto Reconnect is on.</p>
+
+<h3 id="transport">Transport and addresses</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>proto udp</code>, <code>proto tcp</code>, <code>port</code></td><td>The transport and port of the profile's <code>remote</code> line, which fill <strong>Server</strong> and <strong>Port</strong>. Both work; UDP is the usual one, TCP gets through networks that pass only TCP and is what stunnel carries.</td><td><code>ovpn-udp-download</code>, <code>ovpn-tcp-download</code></td></tr>
+    <tr><td><code>topology subnet</code></td><td>The phone gets one address and the network's netmask.</td><td><code>ovpn-udp-download</code></td></tr>
+    <tr><td>no <code>topology</code> line (net30, OpenVPN 2.6's default)</td><td>The phone gets an address and a peer address instead of a netmask; the app sets it up that way, and the VPN works.</td><td><code>ovpn-net30-topology</code></td></tr>
+    <tr><td><code>push "redirect-gateway def1 bypass-dhcp"</code></td><td>All of the phone's IPv4 traffic goes through the VPN. Without it, only the networks the server pushes with <code>route</code> do; a <code>route</code> with the gateway <code>net_gateway</code> stays outside the VPN.</td><td><code>ovpn-udp-download</code></td></tr>
+    <tr><td><code>push "dhcp-option DNS 1.1.1.1"</code></td><td>The name servers the phone uses while connected. UDP, DNS included, goes through the VPN: a DNS question to OpenDNS for the asker's own address came back with the server's address.</td><td><code>ovpn-udp-probe</code></td></tr>
+    <tr><td><code>tun-mtu</code></td><td>The tunnel's MTU on the phone (OpenVPN 2.6 pushes 1500).</td><td><code>ovpn-udp-download</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="tls">Keys, ciphers and certificates</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>tls-crypt</code></td><td>The profile's <code>&lt;tls-crypt&gt;</code> must be the server's key. With another key the server drops every packet: <em>The server did not answer.</em></td><td><code>ovpn-udp-download</code>, <code>ovpn-wrong-tls-crypt-key</code></td></tr>
+    <tr><td><code>tls-auth ta.key 0</code>, <code>auth SHA256</code></td><td>The older way of signing the control channel works too; the profile needs <code>&lt;tls-auth&gt;</code>, <code>key-direction 1</code> and the server's <code>auth</code> line.</td><td><code>ovpn-cbc-tls-auth</code></td></tr>
+    <tr><td><code>data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305</code></td><td>The phone and the server agree on AES-256-GCM (the server's log: <code>Data Channel: cipher 'AES-256-GCM'</code>).</td><td><code>ovpn-udp-download</code></td></tr>
+    <tr><td><code>data-ciphers AES-256-CBC</code></td><td>An older server with CBC only: the app connects with AES-256-CBC and the server's HMAC. BF-CBC, DES and other legacy ciphers the app does not have.</td><td><code>ovpn-cbc-tls-auth</code></td></tr>
+    <tr><td><code>compress lz4-v2</code> pushed (<code>allow-compression yes</code>)</td><td>The app refuses compression: <em>The server pushes compression (lz4-v2), which this app does not take …</em> OpenVPN 2.6 does not compress unless told to.</td><td><code>ovpn-pushed-compression</code></td></tr>
+    <tr><td><code>remote-cert-tls client</code>, <code>crl-verify</code></td><td>Each phone needs a client certificate of the server's CA that is not revoked. A revoked certificate, or one from another CA, is refused by the server in the TLS handshake: <em>The server stopped answering after the TLS handshake. …</em></td><td><code>ovpn-revoked-certificate</code>, <code>ovpn-rogue-client-certificate</code></td></tr>
+    <tr><td>The server's certificate</td><td>The profile's <code>&lt;ca&gt;</code> must have signed it, and the profile's <code>remote-cert-tls server</code> asks for a server certificate. With another CA: <em>The server's certificate could not be verified with the profile's CA (…).</em></td><td><code>ovpn-wrong-server-ca</code></td></tr>
+    <tr><td>no <code>duplicate-cn</code></td><td>One connection per certificate: when a second phone connects with the same certificate, the server drops the first one's session (its log: <code>MULTI: new connection by client 'phone1' will cause previous active sessions by this client to be dropped</code>), and the first phone's traffic stops. Give each phone its own.</td><td>The guide's server, with the iPhone connected with <code>phone1-udp.ovpn</code> when Android connected with the same file</td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="login">Username and password</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>verify-client-cert none</code>, <code>auth-user-pass-verify … via-file</code>, <code>username-as-common-name</code></td><td>Login with the profile's <strong>Username</strong> and <strong>Password</strong>, over UDP, TCP or stunnel; a password may hold any character. A wrong one: <em>The server refused the login. Check the username and password.</em></td><td><code>ovpn-pass-udp-download</code>, <code>ovpn-pass-tcp-download</code>, <code>ovpn-pass-stunnel-download</code>, <code>ovpn-pass-special-characters</code>, <code>ovpn-pass-wrong</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3 id="keepalive">Keepalives and restarts</h3>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>keepalive 10 60</code></td><td>The server pushes <code>ping 10</code> and <code>ping-restart 60</code>: the phone pings every 10 seconds and treats 60 seconds of silence as a dead path, then connects again with Auto Reconnect, or ends the VPN with <em>The server stopped answering (keepalive timeout) (auto reconnect is off).</em></td><td><code>ovpn-life-dead-path-reconnects</code>, <code>ovpn-life-dead-path-no-reconnect</code></td></tr>
+    <tr><td><code>explicit-exit-notify 1</code></td><td>When the server stops or restarts, it tells the phones, which connect again at once. An administrator's <code>client-kill</code> does the same for one phone; <code>client-kill … HALT</code> tells it to stop: <em>The server ended the session.</em></td><td><code>ovpn-life-kick-udp</code>, <code>ovpn-life-kick-udp-no-reconnect</code>, <code>ovpn-life-halt</code>, <code>ovpn-life-retry-exhausted-udp</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="stunnel">stunnel settings</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>accept = 443</code>, <code>connect = 127.0.0.1:1194</code></td><td>The profile's <strong>stunnel Port</strong> (empty means 443) and the TCP server behind stunnel. The server sees the phone as <code>127.0.0.1</code>. A port where nothing listens: <em>The stunnel server … refused the connection: nothing listens on that port.</em></td><td><code>ovpn-stunnel-download</code>, <code>ovpn-stunnel-closed-port</code></td></tr>
+    <tr><td><code>cert</code>, <code>key</code> from Let's Encrypt</td><td><strong>CA Certificate</strong> on System Trust: the app accepts it for the server's name.</td><td><code>ovpn-stunnel-download</code></td></tr>
+    <tr><td>A certificate of your own CA</td><td>Needs that CA in <strong>CA Certificate</strong>; on System Trust: <em>The stunnel server's certificate is not trusted for …</em>; with another CA imported: <em>… not signed by the imported CA Certificate …</em></td><td><code>ovpn-stunnel-private-ca</code>, <code>ovpn-stunnel-private-no-ca</code>, <code>ovpn-stunnel-private-wrong-ca</code></td></tr>
+    <tr><td>Names in the certificate</td><td><strong>stunnel SNI</strong> must be one of them: another name of the certificate works, a name it does not have is refused.</td><td><code>ovpn-stunnel-custom-sni</code>, <code>ovpn-stunnel-sni-mismatch</code></td></tr>
+    <tr><td><code>sslVersionMax = TLSv1.2</code></td><td>The app takes TLS 1.2 as well as 1.3.</td><td><code>ovpn-stunnel-tls12-only</code></td></tr>
+    <tr><td>stunnel restarting (certbot's deploy hook)</td><td>Ends the phones' connections; with Auto Reconnect they connect again.</td><td><code>ovpn-life-stunnel-restart</code>, <code>ovpn-life-stunnel-restart-no-reconnect</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="fields">What each profile field does</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Field</th><th>On the wire</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>Profile (.ovpn)</td><td>OpenVPN's settings, certificates and keys. The app runs it with OpenVPN 3 Core 3.11.7, which tells the server <code>IV_VER=3.11.7</code> and <code>IV_PLAT=ios</code> or <code>android</code>.</td><td>every case</td></tr>
+    <tr><td>Server, Port</td><td>Left as the import filled them: the profile's remote lines, in order. Changed: the app connects there instead.</td><td><code>ovpn-port-field-overrides-profile</code>, <code>ovpn-server-field-overrides-profile</code>, <code>ovpn-two-remotes-failover</code></td></tr>
+    <tr><td>Enable stunnel (TLS)</td><td>OpenVPN over TCP inside TLS to stunnel; a UDP profile is turned to TCP.</td><td><code>ovpn-stunnel-download</code>, <code>ovpn-stunnel-udp-profile</code></td></tr>
+    <tr><td>stunnel Host, Port, SNI, CA Certificate</td><td>Where the TLS connection goes, the name it sends and checks, and which CA it trusts.</td><td><code>ovpn-stunnel-host-field</code>, <code>ovpn-stunnel-private-ca</code>, <code>ovpn-stunnel-custom-sni</code></td></tr>
+    <tr><td>TLS Fragmentation</td><td>The TLS handshake to stunnel in pieces. Off: the ClientHello in one TCP segment. Auto: 43 bytes, then 256-byte pieces. Manual 10/40: 10, then 40-byte pieces (stunnel's side of the capture).</td><td><code>ovpn-frag-off</code>, <code>ovpn-frag-auto</code>, <code>ovpn-frag-manual</code>, <code>ovpn-frag-auto-private-ca-sni</code>, <code>ovpn-frag-manual-download</code></td></tr>
+    <tr><td>Username, Password</td><td>OpenVPN's <code>auth-user-pass</code> login, inside the TLS control channel.</td><td><code>ovpn-pass-udp-download</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="always">What the app always does</h2>
+<ul>
+  <li>Data-channel ciphers offered: AES-128-GCM, AES-192-GCM, AES-256-GCM, ChaCha20-Poly1305, and the AES-CBC ciphers for servers that have nothing else.</li>
+  <li>No compression, whatever the profile or the server says.</li>
+  <li>The control channel's TLS as the profile says (OpenVPN 2.6 negotiates TLS 1.3); stunnel's outer TLS 1.2 or 1.3.</li>
+  <li>The server's address stays outside the tunnel; IPv4 goes through it as the server pushes.</li>
+  <li>A profile with several remote lines: the app tries them in order when the first does not answer, before it gives up on a first connection.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

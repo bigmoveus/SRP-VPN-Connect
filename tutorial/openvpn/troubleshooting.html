@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — OpenVPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each message of an OpenVPN profile in SRP VPN Connect means and what to do about it, on iPhone and Android.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">When a connection fails, the app shows <strong>Connection Failed</strong> with one of the messages below; when a connection that was up ends, the connection log has the message in a line starting with <code>OpenVPN: closing with reason:</code>. Both apps use the same words.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Each message below was produced by a case of <a href="results.html">Test results</a>, which names the case; the server's side of each comes from the server's log in the same run.</p>
+</div>
+
+<h2 id="first">First checks</h2>
+<ul>
+  <li>Open the connection log: tap the status under the power button. Set <strong>Log Level</strong> to <strong>Expert</strong> to see OpenVPN's own lines.</li>
+  <li>On the server, <code>journalctl -u openvpn-server@udp -f</code> (or the name of your server's configuration) shows each connection, and why the server refused one.</li>
+</ul>
+
+<h2 id="profile">The profile</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>Invalid OpenVPN profile: …</em></td><td>OpenVPN cannot read the profile; the rest of the message is OpenVPN's reason, for example <em>option 'remote' must have at least 1 arguments</em>. Import the profile again from the original file.</td></tr>
+    <tr><td><em>This profile uses an OpenVPN static key (secret), which OpenVPN 3 does not support. Ask for a profile with certificates (TLS mode).</em></td><td>The profile has a <code>secret</code> key instead of certificates. The app's OpenVPN does not have that mode; the server has to give out a profile with certificates, as <a href="server.html">OpenVPN server</a> does.</td></tr>
+    <tr><td><em>The profile's private key is protected with a passphrase, which this app cannot enter. …</em></td><td>The <code>&lt;key&gt;</code> block is encrypted. Write the key without a passphrase, for example with <code>openssl pkey -in client.key -out client-plain.key</code>, and put that in the profile.</td></tr>
+    <tr><td><em>This profile requires a username and password (auth-user-pass). Enter them in the profile editor.</em></td><td>The profile asks for a login and the profile has none. Fill in <strong>Username</strong> and <strong>Password</strong>.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="server">The server</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server did not answer.</em></td><td>Nothing came back over UDP within 10 seconds. The usual reasons: the port is wrong or closed by a firewall, the server is not running, or the profile's <code>tls-crypt</code> or <code>tls-auth</code> key is not the server's: the server then drops every packet without a word. Check <strong>Server</strong> and <strong>Port</strong>, and that the profile came from this server.</td></tr>
+    <tr><td><em>The server refused the connection: no OpenVPN server answers on that port.</em></td><td>A TCP profile reached the server, but nothing listens on the port. Check <strong>Port</strong>, and that the server's TCP configuration runs.</td></tr>
+    <tr><td><em>The server name … could not be resolved.</em></td><td>The name in <strong>Server</strong> (or in the profile's remote line) does not exist in DNS. Check its spelling.</td></tr>
+    <tr><td><em>The server refused the login. Check the username and password.</em></td><td>The server's login check refused the username or the password.</td></tr>
+    <tr><td><em>The server and this app have no data-channel cipher in common (…).</em></td><td>The server's <code>data-ciphers</code> names none of the app's: AES-GCM, ChaCha20-Poly1305 and AES-CBC. Add <code>AES-256-GCM</code> to the server's <code>data-ciphers</code>.</td></tr>
+    <tr><td><em>The server's certificate could not be verified with the profile's CA (…).</em></td><td>The <code>&lt;ca&gt;</code> of the profile did not sign the server's certificate: the profile belongs to another server, or the server's certificate was made again with a new CA. Import a profile made by this server.</td></tr>
+    <tr><td><em>The server stopped answering after the TLS handshake. It may have refused the client certificate (revoked, from another CA or expired); the server's log names the reason.</em></td><td>The server checks the phone's certificate at the end of the TLS handshake and, when it refuses it, says why only in its own log, after which nothing comes back; the app reports this after about 40 seconds. The server's log names the reason, for example <code>VERIFY ERROR: … certificate revoked</code>. Make the phone a new certificate and profile (<a href="server.html#clients">part 5</a>).</td></tr>
+    <tr><td><em>The server pushes compression (lz4-v2), which this app does not take: compression inside a VPN can leak data (VORACLE). …</em></td><td>The server sends <code>compress</code> or <code>comp-lzo</code> to the app. Compression inside a VPN lets an attacker learn secrets from the size of the packets, so the app does not use it. Remove <code>compress</code> and <code>comp-lzo</code> from the server's configuration; OpenVPN 2.6 needs neither.</td></tr>
+    <tr><td><em>The server pushed a setting this app cannot use (…).</em></td><td>Another setting the server sends that the app's OpenVPN refuses; the rest of the message is OpenVPN's reason.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="stunnel">stunnel</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The stunnel server's certificate is not trusted for … (another name, expired, or not from a public certificate authority; …).</em></td><td>With <strong>CA Certificate</strong> on System Trust, the stunnel certificate must come from a public certificate authority and be valid for the name in <strong>stunnel SNI</strong> (or stunnel Host). A certificate of your own CA needs that CA imported in CA Certificate; a name in SNI the certificate does not have needs SNI empty or changed.</td></tr>
+    <tr><td><em>The stunnel server's certificate is not signed by the imported CA Certificate, or not issued for ….</em></td><td>With a CA imported, the app accepts only certificates that CA signed, for the SNI name. Import the CA that signed the server's certificate.</td></tr>
+    <tr><td><em>The stunnel server … refused the connection: nothing listens on that port.</em></td><td>Check <strong>stunnel Port</strong> (empty means 443) and that stunnel runs: <code>ss -tlnp | grep stunnel</code>.</td></tr>
+    <tr><td><em>The stunnel server … did not answer.</em>, <em>… cannot be reached from this network.</em></td><td>Check <strong>stunnel Host</strong> and the firewall in front of the server.</td></tr>
+    <tr><td><em>The stunnel server closed the connection.</em></td><td>stunnel ended the connection: it restarted (certbot does that after renewing the certificate), or OpenVPN behind it is not running: stunnel accepts the TLS connection and closes it when it cannot reach <code>127.0.0.1:1194</code>. With Auto Reconnect, the app connects again.</td></tr>
+    <tr><td><em>The TLS handshake with the stunnel server … failed (…)</em></td><td>stunnel and the app did not agree on TLS. The app speaks TLS 1.2 and 1.3; stunnel's <code>sslVersionMin</code> must allow one of them.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="lost">A connection that was up</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server restarted the session (auto reconnect is off).</em></td><td>The server restarted, or its administrator ended the session; without <strong>Auto Reconnect</strong> the VPN ends. With it, the app connects again at once.</td></tr>
+    <tr><td><em>The server ended the session.</em></td><td>The server told the app to stop (an administrator's <code>client-kill … HALT</code>). The app does not connect again on its own.</td></tr>
+    <tr><td><em>The server stopped answering (keepalive timeout) (auto reconnect is off).</em></td><td>Nothing came from the server for 60 seconds (the server's <code>keepalive</code>): the network path died. With Auto Reconnect, the app connects again once the server answers.</td></tr>
+    <tr><td><em>Could not reconnect after 2 attempts. (…)</em></td><td><strong>Retry Times</strong> ran out while the server was away; the part in brackets is the last reason. Empty Retry Times keeps trying.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off: the app closed the connection at sleep and did not connect again at wake. Choose Stay or Pause, or turn Auto Reconnect on.</td></tr>
+  </tbody>
+</table></div>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

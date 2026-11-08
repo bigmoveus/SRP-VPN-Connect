@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenVPN — SRP VPN Connect Documentation</title>
+<meta name="description" content="OpenVPN in SRP VPN Connect on iPhone and Android: .ovpn profiles over UDP, TCP or inside stunnel's TLS, how a connection works, the server, the app's settings and the test results.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>OpenVPN</h1>
+<p class="lead">An OpenVPN profile connects to an OpenVPN server with the server's own <code>.ovpn</code> file: over UDP, over TCP, or with stunnel inside an ordinary TLS connection on port 443. SRP VPN Connect does this with the same core on iPhone and Android: OpenVPN 3 Core 3.11.7.</p>
+
+<h2>How an OpenVPN connection works</h2>
+<ol>
+  <li><strong>The profile.</strong> The <code>.ovpn</code> file says where the server is and holds the certificates and keys: the server's CA, the phone's own certificate and key, and the <code>tls-crypt</code> key that hides the connection from anyone without it. A profile for a password login has no certificate of its own and asks for a username and password instead.</li>
+  <li><strong>The connection.</strong> The app connects to the server over UDP or TCP, as the profile says. With <strong>stunnel</strong> on, it opens a TLS connection to the server's stunnel listener first, which looks like a web connection on port 443, and OpenVPN runs inside it over TCP.</li>
+  <li><strong>The handshake.</strong> Both ends check each other's certificates in a TLS handshake inside OpenVPN's control channel, then agree on a cipher for the traffic, usually AES-256-GCM.</li>
+  <li><strong>The tunnel.</strong> The server gives the phone an address, its name servers and its routes, usually all of the phone's IPv4 traffic, and the app sets up the VPN with them.</li>
+  <li><strong>Keeping it up.</strong> Both ends ping each other every 10 seconds when nothing else goes. When the connection breaks, the server restarts, or nothing has come for 60 seconds, Auto Reconnect connects again.</li>
+</ol>
+
+<h2>Where to start</h2>
+<ol>
+  <li>Set up the server: <a href="server.html">OpenVPN server</a> builds an OpenVPN 2.6 server on Ubuntu 24.04 with certificates, profiles for the phones, an optional password login, and stunnel with a Let's Encrypt certificate.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. <!-- install:begin -->Our tests ran the code of commit <code>48eaf2f7</code> on the iPhone and of <code>cd3916be</code>, which follows it, on Android; on iPhone use a TestFlight build made from <code>48eaf2f7</code> or a later commit.<!-- install:end --></li>
+  <li>Add an OpenVPN profile: <a href="app-setup.html">Setting up the app</a>.</li>
+  <li>The server settings that matter to the app, and what each profile field does: <a href="configuration.html">Configuration Reference</a>.</li>
+  <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
+</ol>
+
+<h2>What was tested</h2>
+<p><a href="results.html">Test results</a> lists every case we ran against our OpenVPN server, with its result on an iPhone and on an Android phone: transfers over UDP, TCP and stunnel in both directions and 16 connections at once, UDP through the tunnel, certificate and password logins and their refusals, revoked and foreign certificates, a server of another CA, the Server and Port fields and a profile with two servers, stunnel with Let's Encrypt and with a CA of its own, other names, TLS 1.2 only and a closed port, each TLS Fragmentation mode as the server received it, damaged, static-key and passphrase-protected profiles, older servers (net30, tls-auth with AES-CBC, compression), the log levels, and what happens on sleep, when the server restarts or halts the session, when stunnel restarts, when the network path goes dead, when the phone switches networks, when the server is away for a while and when Retry Times runs out.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
