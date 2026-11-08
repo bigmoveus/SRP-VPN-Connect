@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (39) - 2026-11-08
+
 ### Added
 - SSH VPN messages that say what to fix: a name that does not resolve, a port that refuses or does not answer, a service that does not speak SSH, a user the server does not let forward TCP (checked before the VPN comes up), a server that takes no password for the user (with the methods it offers), and an unavailable UDP relay.
 - SSH VPN logins through the server's keyboard-interactive (PAM) method when it offers no password method; the app answers the prompt with the profile's password.
@@ -23,6 +25,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - Both apps' WaterWall follows upstream main at `ecdbb3947` instead of `ccb40eafd`, keeping the apps' own client changes. Upstream now negotiates TCP timestamps in its lwIP on every platform (radkesvat/WaterWall#352, merged 2026-11-07), and it renamed the KCP nodes `TcpOverUdpClient` and `TcpOverUdpServer` to `KcpClient` and `KcpServer` with no fallback, so the apps' chain builders now write `KcpClient` (Android's parity fixture regenerated from the iOS builder); the KCP wire format is unchanged and the apps still connect to official v1.5.3 servers. Two local changes upstream lacks at this commit: `ww` passes `-Wno-shorten-64-to-32` to the tunnels on Apple, as it already does for other Clang builds (upstream's iOS and macOS builds stop on size_t narrowing under `-Werror`), and PacketsToConnection's UDP startup queue uses the renamed `bufferqueueGetEntryCount`. Tested: iOS 181 and Android 16 unit tests; Raw IPv4 + KCP on an iPhone 12, 4 alternating pairs against the official v1.5.3 server (1 of 4 stalled) and upstream main's GitHub Actions build of the same commit (0 of 4), and on a Samsung Galaxy A55 (none stalled with either). Other chains were not run again.
 - OpenVPN: a server that pushes compression (lz4-v2, comp-lzo) is refused with a message instead of failing silently; compression inside a VPN can leak data (VORACLE).
 - OpenVPN: the Server and Port fields take effect. Changed, they replace the profile's remote line; as the import fills them, a profile's several remote lines are tried in order.
+- The Android app's version code is 4, for the release APK that adds SoftEther VPN, SSL VPN, SSH VPN and OpenVPN; the version name stays 1.2.0.
 
 ### Fixed
 - SSH VPN on iPhone: a download no longer ends the VPN. The packet pump kept every received packet in memory until the session ended, and iOS stopped the tunnel at its 50 MB limit within seconds.
