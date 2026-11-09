@@ -1,21 +1,19 @@
 #!/bin/bash
-# Rebuilds libaether.a from the pinned upstream commit (CluvexStudio/Aether,
-# AGPL-3.0). LTO must be OFF for the staticlib: with lto=fat the C FFI
-# symbols get internalized and the archive exports nothing.
+# Rebuilds libaether.a from our fork of Aether (github.com/bigmoveus/Aether, AGPL-3.0): upstream v2.4.0 with the
+# app's changes as commits (the Let's Encrypt YE2 pin, the logger and Tor through the C interface, the SOCKS5 request
+# log, outbound netstack packets kept when the carrier's channel is full), pinned by the commit of tag v2.4.0-srp.1.
+# LTO must be OFF for the staticlib: with lto=fat the C FFI symbols get internalized and the archive exports nothing.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PIN="d58f9d568083129ce2c767c85054021eb3ee6a38"   # v2.4.0
+PIN="d6d2ea1b891fc39c0be7eb26001cf06746322b60"   # tag v2.4.0-srp.1
 
-WORK="${WORK:-$SCRIPT_DIR/.build/upstream}"
+WORK="${WORK:-$SCRIPT_DIR/.build/fork}"
 if [ ! -d "$WORK/.git" ]; then
-    git clone https://github.com/CluvexStudio/Aether "$WORK"
+    git clone https://github.com/bigmoveus/Aether "$WORK"
 fi
 cd "$WORK"
 git fetch --depth 1 origin "$PIN" 2>/dev/null || true
-git reset --hard -q "$PIN"   # also drops leftovers of a previously applied patch set
-for p in "$SCRIPT_DIR/patches/"*.patch; do
-    [ -e "$p" ] && git apply "$p"
-done
+git reset --hard -q "$PIN"
 
 export PATH="/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:$PATH"
 rustup target add aarch64-apple-ios >/dev/null 2>&1 || true

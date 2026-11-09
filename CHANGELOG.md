@@ -7,6 +7,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Changed
 - The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
 
+### Fixed
+- Aether on iPhone over MASQUE (HTTP/3, HTTP/2 and both): uploads no longer stall the connection. The engine dropped the packets its TCP stack sent whenever the queue to the carrier was full, and that TCP, which has no congestion control, kept resending into the same full queue until every connection stalled (four 16 MB uploads over HTTP/3 never finished, or crawled at 5 Mbit/s; over HTTP/2 10 Mbit/s). The app now builds the engine from our fork (github.com/bigmoveus/Aether, tag v2.4.0-srp.1: upstream v2.4.0 with the app's earlier patches as commits and this fix), where those packets wait until the queue has room: on an iPhone 12 uploads reach 104 Mbit/s over HTTP/3 and 167 over HTTP/2.
+
 ## 1.2.0 (40) - 2026-11-09
 
 ### Added
