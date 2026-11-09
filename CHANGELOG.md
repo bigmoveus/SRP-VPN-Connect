@@ -12,6 +12,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
+- The Android app's version code is 8, for the release APK that adds Aether; the version name stays 1.2.0.
 
 ### Fixed
 - Aether's Private mode: a name looked up as the second of a session got the tunnel's own address (198.18.0.1) as its stand-in address, and connections to it were refused. The stand-in addresses now come from 198.19.0.0/16.
