@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (41) - 2026-11-10
+
 ### Added
 - The DNS resolver option for WaterWall profiles on iPhone and Android (WaterWall Configuration, DNS RESOLVER): Resolver Off, the default, leaves names to the server as before; Native, Direct and Through the VPN have WaterWall look names up before routing, with the DNS of the network the phone is on, with DNS servers of one's own outside the VPN, or with those servers through the VPN, so that GeoIP routing sees the real addresses. Addresses picks IPv4 or IPv6 first or only; DNS Servers takes 1 to 32 IPv4 or IPv6 addresses, each with an optional port. Through the VPN needs a chain that carries UDP as well as TCP, and the app says so before it saves.
 - Aether profiles have Auto Reconnect, Retry Times and On Sleep on iPhone. The app counts as connected once a test connection through the tunnel went through, sends one every 20 seconds and one at once after a change of network, and counts two failures in a row, or the end of the engine's session, as a lost session (a failed test after which 64 KB or more came back through the tunnel does not count: Tor gives a new stream up after 10 seconds on a busy circuit): Auto Reconnect then sets up a new one, 2 seconds after each failed attempt, Retry Times limits the attempts (before the first connection it adds attempts), and without Auto Reconnect the VPN ends with the reason. On Sleep Off and Pause close the session while the device sleeps; at wake Pause connects again, and Off only with Auto Reconnect. With the WireGuard transport the app's WireGuard does this with its own handshake check. There is no Switch to Wi-Fi option: Aether follows the phone's network.
