@@ -223,19 +223,21 @@ static NSString *SRPWGIntOrNil(NSInteger v) { return v > 0 ? @(v).stringValue : 
                                     placeholder:@"Optional — e.g. 1.1.1.1" tag:SRPWGFieldDNS];
         }
     }
-    switch (indexPath.row) {
-        case 0:
-            return [self fieldCellWithTitle:@"Server Public Key" text:self.model.wgPeerPublicKey
-                                placeholder:@"Required" tag:SRPWGFieldPeerPublicKey];
-        case 1:
-            return [self fieldCellWithTitle:@"Preshared Key" text:self.model.wgPresharedKey
-                                placeholder:@"Optional" tag:SRPWGFieldPresharedKey];
-        case 2:
-            return [self fieldCellWithTitle:@"AllowedIPs" text:self.model.wgAllowedIPs
-                                placeholder:@"Default: 0.0.0.0/0" tag:SRPWGFieldAllowedIPs];
-        case 3:
-            return [self fieldCellWithTitle:@"Keepalive" text:(self.model.wgKeepalive > 0 ? @(self.model.wgKeepalive).stringValue : nil)
-                                placeholder:@"Optional — seconds" tag:SRPWGFieldKeepalive];
+    if (indexPath.section == 1) {
+        switch (indexPath.row) {
+            case 0:
+                return [self fieldCellWithTitle:@"Server Public Key" text:self.model.wgPeerPublicKey
+                                    placeholder:@"Required" tag:SRPWGFieldPeerPublicKey];
+            case 1:
+                return [self fieldCellWithTitle:@"Preshared Key" text:self.model.wgPresharedKey
+                                    placeholder:@"Optional" tag:SRPWGFieldPresharedKey];
+            case 2:
+                return [self fieldCellWithTitle:@"AllowedIPs" text:self.model.wgAllowedIPs
+                                    placeholder:@"Default: 0.0.0.0/0" tag:SRPWGFieldAllowedIPs];
+            case 3:
+                return [self fieldCellWithTitle:@"Keepalive" text:(self.model.wgKeepalive > 0 ? @(self.model.wgKeepalive).stringValue : nil)
+                                    placeholder:@"Optional — seconds" tag:SRPWGFieldKeepalive];
+        }
     }
     if (indexPath.section == 2) {
         switch (indexPath.row) {

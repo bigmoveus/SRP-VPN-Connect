@@ -3950,6 +3950,51 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertFalse(model.wgRandomTrailers);
 }
 
+// AmneziaWG's Manual Configuration: every row of the four groups is its own field, and editing it sets that value
+- (void)testAmneziaWGManualConfigurationRows {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"amnezia";
+    UITableViewController *screen = [[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:model];
+    [screen loadViewIfNeeded];
+    NSArray<NSArray<NSString *> *> *expected = @[
+        @[@"Private Key", @"Public Key", @"Address", @"DNS"],
+        @[@"Server Public Key", @"Preshared Key", @"AllowedIPs", @"Keepalive"],
+        @[@"S1", @"S2", @"S3", @"S4", @"H1", @"H2", @"H3", @"H4", @"Header Protection Key", @"Random Trailers"],
+        @[@"Jc", @"Jmin", @"Jmax", @"I1", @"I2", @"I3", @"I4", @"I5", @"Content Padding", @"Rekey After Time", @"Rekey Timeout",
+          @"Reject After Time", @"Keepalive Timeout", @"Max Handshake Attempts", @"Disable Cookies"]];
+    XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], (NSInteger)expected.count);
+    for (NSUInteger section = 0; section < expected.count; section++) {
+        NSMutableArray<NSString *> *titles = [NSMutableArray new];
+        NSInteger rows = [screen tableView:screen.tableView numberOfRowsInSection:section];
+        for (NSInteger row = 0; row < rows; row++) {
+            UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:section]];
+            [titles addObject:cell.textLabel.text ?: @""];
+        }
+        XCTAssertEqualObjects(titles, expected[section], @"section %lu", (unsigned long)section);
+    }
+    // Typing into the S1 and Jc rows sets S1 and Jc, not the server's key
+    NSDictionary<NSIndexPath *, NSString *> *typed = @{[NSIndexPath indexPathForRow:0 inSection:2]: @"64",
+                                                       [NSIndexPath indexPathForRow:0 inSection:3]: @"4",
+                                                       [NSIndexPath indexPathForRow:4 inSection:2]: @"1100000000-1199999999"};
+    for (NSIndexPath *path in typed) {
+        UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:path];
+        UITextField *field = (UITextField *)cell.accessoryView;
+        XCTAssertTrue([field isKindOfClass:UITextField.class]);
+        field.text = typed[path];
+        [field sendActionsForControlEvents:UIControlEventEditingChanged];
+    }
+    XCTAssertEqual(model.wgS1, 64);
+    XCTAssertEqual(model.wgJc, 4);
+    XCTAssertEqualObjects(model.wgH1, @"1100000000-1199999999");
+    XCTAssertNil(model.wgPeerPublicKey);
+    // WireGuard's own profile: the two groups of keys only
+    NodeModel *plain = [NodeModel new];
+    plain.protocolType = @"wireguard";
+    UITableViewController *wireguard = [[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:plain];
+    [wireguard loadViewIfNeeded];
+    XCTAssertEqual([wireguard numberOfSectionsInTableView:wireguard.tableView], 2);
+}
+
 // A WireGuard profile refuses an AmneziaWG file at import, naming the protocol to use; an AmneziaWG profile takes it
 - (void)testWireGuardImportRefusesAmneziaWGFiles {
     NSString *conf = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.0.2/32\nS1 = 64\n\n"

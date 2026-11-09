@@ -31,6 +31,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - AmneziaWG: without an MTU in the file the tunnel takes 1420 less S4, so a full data packet fits a 1500-byte path; it took 1420.
 - AmneziaWG: a profile without a Port uses 51820; it used 443. The Server and Port fields take effect: changed, they replace the imported file's Endpoint.
 - WireGuard refuses a file with AmneziaWG settings, at import and at connect, naming the protocol to use; before, its engine refused it without a reason.
+- AmneziaWG on iPhone: the first four rows of each AmneziaWG group under Manual Configuration showed the server's public key, the preshared key, AllowedIPs and Keepalive instead of their own fields, so Jc, Jmin, Jmax and S1 (now S1-S4 and Jc, Jmin, Jmax, I1) could not be entered there; each row now shows and sets its own value.
 
 ## 1.2.0 (39) - 2026-11-08
 
