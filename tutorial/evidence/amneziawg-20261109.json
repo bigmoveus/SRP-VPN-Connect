@@ -1,0 +1,1459 @@
+{
+ "run": {
+  "date": "9 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the code of commit 4f52bb94 on the iPhone, as a Debug build, and of 81f7c463, which follows it, on Android, as a debug APK; the iPhone's rows of the awg-release-\u2026 cases come from a Release build of 4f52bb94's code, the kind TestFlight ships, and its awg-guide-\u2026 rows from a Debug build of f63dff1a's code",
+  "server": "AmneziaWG's kernel module from the Amnezia packages (amneziawg-dkms built from the module's tag of 6 September 2026, amneziawg-tools 3.1.20260812) on Ubuntu 24.04 with Linux 6.8"
+ },
+ "summary": {
+  "cases": 62,
+  "iphone_passed": 62,
+  "iphone_run": 62,
+  "android_passed": 57,
+  "android_run": 57
+ },
+ "cases": [
+  {
+   "id": "awg-download",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 218.89
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.0,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-upload",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "upload, 45 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "up 227.39 Mbit/s",
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-full-duplex",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "download and upload at once, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 77.28,
+    "upload_mbps": 171.74
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-many-connections",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "16 downloads at once, 45 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 8 s before it was asked"
+    ],
+    "download_mbps": 200.16
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 25.9,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-udp-probe",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "download, 15 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 9 s before it was asked",
+     "the UDP DNS query was answered, and saw the server's address"
+    ],
+    "download_mbps": 203.75
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 19 s before it was asked",
+     "the UDP DNS query was answered, and saw the server's address"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-1-0",
+   "settings": [
+    "the phone's awg1 file: AmneziaWG 1.0: S1, S2, single H1-H4; Jc, Jmin, Jmax on the phone; preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg1/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 203.84
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg1/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-1-5",
+   "settings": [
+    "the phone's awg2 file: AmneziaWG 1.5: as 1.0, with I1-I3 on the phone; preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg2/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 200.81
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.9,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg2/android1 12 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-3-0",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg3/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 191.74
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg3/android1 14 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-3-1",
+   "settings": [
+    "the phone's awg6 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, single H1-H4; preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg6/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 200.23
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg6/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-3-1-ranges",
+   "settings": [
+    "the phone's awg4 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges; preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/ios1 9 s before it was asked"
+    ],
+    "download_mbps": 11.52
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 62.5,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-gen-none",
+   "settings": [
+    "the phone's awg5 file: no obfuscation (WireGuard's own format); preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg5/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 200.98
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg5/android1 12 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-no-psk",
+   "settings": [
+    "the awg0 file of a peer without a preshared key"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/nopsk 8 s before it was asked"
+    ],
+    "download_mbps": 190.04
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/nopsk 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-no-keepalive",
+   "settings": [
+    "the phone's awg0 file without PersistentKeepalive"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 6 s before it was asked"
+    ],
+    "download_mbps": 191.83
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-no-mtu",
+   "settings": [
+    "the phone's awg0 file without MTU (the app takes 1420 - S4 = 1396)"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 192.36
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-mtu-1280",
+   "settings": [
+    "the phone's awg0 file with MTU = 1280"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 6 s before it was asked"
+    ],
+    "download_mbps": 187.51
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-endpoint-ip",
+   "settings": [
+    "the phone's awg0 file with the server's address as Endpoint"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server had a handshake with the peer awg0/ios1 2 s before it was asked",
+     "held for 6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg0/android1 3 s before it was asked",
+     "held for 6 s"
+    ]
+   }
+  },
+  {
+   "id": "awg-split-tunnel",
+   "settings": [
+    "the phone's awg0 file with AllowedIPs = 10.67.0.0/24"
+   ],
+   "traffic": "download, 15 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg0/ios1 8 s before it was asked",
+     "the UDP DNS query was answered, and saw the phone's own network"
+    ],
+    "download_mbps": 180.27
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg0/android1 19 s before it was asked",
+     "the UDP DNS query was answered, and saw the phone's own network",
+     "the server's tunnel address answered a ping: 3 packets transmitted, 3 received, 0% packet loss, time 2004ms"
+    ]
+   }
+  },
+  {
+   "id": "awg-manual-configuration",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the same values entered under Manual Configuration instead of a file"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server had a handshake with the peer awg0/ios1 1 s before it was asked",
+     "held for 6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg0/android1 2 s before it was asked",
+     "held for 6 s"
+    ]
+   }
+  },
+  {
+   "id": "awg-manual-configuration-3",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "the same values entered under Manual Configuration instead of a file"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server had a handshake with the peer awg3/ios1 1 s before it was asked",
+     "held for 6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg3/android1 2 s before it was asked",
+     "held for 6 s"
+    ]
+   }
+  },
+  {
+   "id": "awg-port-field-overrides-profile",
+   "settings": [
+    "the phone's awg0 file with Endpoint port 51839 (nothing listens)",
+    "Port 51830"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server had a handshake with the peer awg0/ios1 1 s before it was asked",
+     "held for 6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg0/android1 2 s before it was asked",
+     "held for 6 s"
+    ]
+   }
+  },
+  {
+   "id": "awg-server-field-overrides-profile",
+   "settings": [
+    "the phone's awg0 file with an Endpoint name that does not exist",
+    "Server: the server's name"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the server had a handshake with the peer awg0/ios1 1 s before it was asked",
+     "held for 6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer awg0/android1 3 s before it was asked",
+     "held for 6 s"
+    ]
+   }
+  },
+  {
+   "id": "awg-wrong-server-key",
+   "settings": [
+    "the phone's awg0 file with a server public key of nobody"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-unknown-client-key",
+   "settings": [
+    "the phone's awg0 file with a private key the server does not have"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-wrong-psk",
+   "settings": [
+    "an awg0 file whose preshared key is not the server's for its peer"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-closed-port",
+   "settings": [
+    "the phone's awg0 file with Endpoint port 51839 (nothing listens)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51839 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51839 may be closed."
+   }
+  },
+  {
+   "id": "awg-unknown-host",
+   "settings": [
+    "the phone's awg0 file with an Endpoint name that does not exist"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "The AmneziaWG endpoint no-such-host.srp.invalid could not be resolved."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The AmneziaWG endpoint no-such-host.srp.invalid could not be resolved."
+   }
+  },
+  {
+   "id": "awg-bad-key",
+   "settings": [
+    "the phone's awg0 file with a damaged private key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.5 s"
+    ],
+    "message": "Invalid AmneziaWG config: a key is not valid base64 (32 bytes)."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: a key is not valid base64 (32 bytes)."
+   }
+  },
+  {
+   "id": "awg-bad-preshared-key",
+   "settings": [
+    "the phone's awg0 file with a damaged preshared key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "Invalid AmneziaWG config: the PresharedKey is not valid base64 (32 bytes)."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: the PresharedKey is not valid base64 (32 bytes)."
+   }
+  },
+  {
+   "id": "awg-retry-before-connect",
+   "settings": [
+    "the phone's awg0 file with Endpoint port 51839 (nothing listens)",
+    "Port 51839",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 31.3 s"
+    ],
+    "message": "Could not connect after 3 attempts. (The server did not answer the AmneziaWG handshake.)"
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Could not connect after 3 attempts. (The server did not answer the AmneziaWG handshake.)"
+   }
+  },
+  {
+   "id": "awg-no-address",
+   "settings": [
+    "the phone's awg0 file without Address"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "Invalid AmneziaWG config: The config has no [Interface] Address."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: The config has no [Interface] Address."
+   }
+  },
+  {
+   "id": "awg-garbage-config",
+   "settings": [
+    "a file with [Interface] and [Peer] but no values"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "Invalid AmneziaWG config: The config has no [Interface] PrivateKey."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: The config has no [Interface] PrivateKey."
+   }
+  },
+  {
+   "id": "awg-s1-mismatch",
+   "settings": [
+    "the phone's awg0 file with S1 = 65 (the server has 64)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.2 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-h1-mismatch",
+   "settings": [
+    "the phone's awg0 file with another H1 range"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.0 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-hpk-mismatch",
+   "settings": [
+    "the phone's awg3 file with another HeaderProtectionKey"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51833 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51833 may be closed."
+   }
+  },
+  {
+   "id": "awg-hpk-missing",
+   "settings": [
+    "the phone's awg3 file without HeaderProtectionKey"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51833 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51833 may be closed."
+   }
+  },
+  {
+   "id": "awg-trailers-missing",
+   "settings": [
+    "the phone's awg6 file without RandomTrailers"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51836 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51836 may be closed."
+   }
+  },
+  {
+   "id": "awg-wireguard-file",
+   "settings": [
+    "the phone's awg0 file without any AmneziaWG setting (a WireGuard file)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.1 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   }
+  },
+  {
+   "id": "awg-invalid-h1",
+   "settings": [
+    "the phone's awg0 file with H1 = abc"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.3 s"
+    ],
+    "message": "Invalid AmneziaWG config: H1 must be a number or a range such as 1000000-1999999."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: H1 must be a number or a range such as 1000000-1999999."
+   }
+  },
+  {
+   "id": "awg-invalid-i1",
+   "settings": [
+    "the phone's awg0 file with I1 = <x 12> (no such tag)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 1.2 s"
+    ],
+    "message": "AmneziaWG refused the configuration: failed to parse I1: unknown tag <x>"
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "AmneziaWG refused the configuration: failed to parse I1: unknown tag <x>"
+   }
+  },
+  {
+   "id": "awg-invalid-header-protection-key",
+   "settings": [
+    "the phone's awg3 file with a damaged HeaderProtectionKey"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 0.4 s"
+    ],
+    "message": "Invalid AmneziaWG config: the HeaderProtectionKey is not valid base64 (32 bytes)."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "Invalid AmneziaWG config: the HeaderProtectionKey is not valid base64 (32 bytes)."
+   }
+  },
+  {
+   "id": "awg-life-sleep-modes",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.3 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.2 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "paused at sleep, connected again at wake; transfer passed",
+     "closed at sleep, connected again at wake; transfer passed",
+     "ended at wake: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "awg-life-server-restart",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the server's awg0 restarts (awg-quick)",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 16.0 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "traffic passed again 21.0 s after the restart; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "awg-life-outage-reconnect",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the server's awg0 stops for 8 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 20.4 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "traffic passed again 16.3 s after the server stopped; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "awg-life-dead-path-reconnects",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "every packet of the session dropped for 45 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 48.1 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "noticed the dead path after 32.7 s, connected again 48.5 s after the drop began; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "awg-life-server-down-no-reconnect",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the server's awg0 stops for 150 s",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 40.2 s with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended 37.9 s after the server stopped with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "awg-life-retry-exhausted",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the server's awg0 stops for 120 s",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 60.3 s with: Could not reconnect after 2 attempts. (The server did not answer the AmneziaWG handshake.)"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended 58.5 s after the server stopped with: Could not reconnect after 2 attempts. (The server did not answer the AmneziaWG handshake.)"
+    ]
+   }
+  },
+  {
+   "id": "awg-life-path-switch",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key",
+    "the connection moved to the current network"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 0.5 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "followed the network to mobile data and back to Wi-Fi (2 changes); on mobile data 5 of 5 pings to the server's tunnel address were answered; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "awg-life-s4-mismatch",
+   "settings": [
+    "the phone's awg0 file with S4 = 25 (the server has 24)",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 45.4 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected, ended 49.4 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   }
+  },
+  {
+   "id": "awg-life-h4-mismatch",
+   "settings": [
+    "the phone's awg0 file with another H4 range",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 50.5 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected, ended 49.6 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   }
+  },
+  {
+   "id": "awg-life-s4-mismatch-no-reconnect",
+   "settings": [
+    "the phone's awg0 file with S4 = 25 (the server has 24)",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 50.4 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected, ended 46.9 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+    ]
+   }
+  },
+  {
+   "id": "awg-idle-padding",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "3 minutes without traffic",
+    "Log Level Expert",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "held for 180 s",
+     "in the log: the session line",
+     "not in the log: a server counted as gone, a new handshake, an end, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "held for 180 s",
+     "in the log: the session line",
+     "not in the log: a server counted as gone, a new handshake, an end, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-idle-trailers",
+   "settings": [
+    "the phone's awg6 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, single H1-H4; preshared key",
+    "3 minutes without traffic",
+    "Log Level Expert",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "held for 180 s",
+     "in the log: the session line",
+     "not in the log: a server counted as gone, a new handshake, an end, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "held for 180 s",
+     "in the log: the session line",
+     "not in the log: a server counted as gone, a new handshake, an end, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-log-normal",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "in the log: the session line, the obfuscation line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the 30-second handshake and byte line, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 206.29
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "held for 40 s",
+     "in the log: the session line, the obfuscation line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the 30-second handshake and byte line, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-log-expert",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "in the log: the session line, the 30-second handshake and byte line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 199.5
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "held for 40 s",
+     "in the log: the session line, the 30-second handshake and byte line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-log-debug",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 4 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "in the log: the session line, AmneziaWG's own lines",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 174.31
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "in the log: the session line, AmneziaWG's own lines",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-release-log-normal",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "Release build",
+     "in the log: the session line, the obfuscation line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the 30-second handshake and byte line, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 213.96
+   },
+   "android": null
+  },
+  {
+   "id": "awg-release-log-expert",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "Release build",
+     "in the log: the session line, the 30-second handshake and byte line",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 205.39
+   },
+   "android": null
+  },
+  {
+   "id": "awg-release-log-debug",
+   "settings": [
+    "the phone's awg3 file: AmneziaWG 3.0: as 2.0, with HeaderProtectionKey and ContentPaddingAddition; the five timings and a 20-30 s keepalive on the phone; MTU 1404; preshared key",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 4 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "Release build",
+     "in the log: the session line, AmneziaWG's own lines",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 156.98
+   },
+   "android": null
+  },
+  {
+   "id": "awg-release-download",
+   "settings": [
+    "the phone's awg0 file: AmneziaWG 2.0: S1-S4, H1-H4 ranges; Jc, Jmin, Jmax and I1 on the phone; MTU 1396; preshared key"
+   ],
+   "traffic": "download, 60 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "Release build",
+     "the server had a handshake with the peer awg0/iosrel 7 s before it was asked"
+    ],
+    "download_mbps": 206.22
+   },
+   "android": null
+  },
+  {
+   "id": "awg-release-wrong-server-key",
+   "settings": [
+    "the Release build's awg0 file with a server public key of nobody",
+    "Log Level Expert"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 11.2 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
+   },
+   "android": null
+  },
+  {
+   "id": "awg-guide-udp",
+   "settings": [
+    "the guide's phone1.conf"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer phone1 25 s before it was asked"
+    ],
+    "download_mbps": 187.96
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer phone1 19 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-guide-removed",
+   "settings": [
+    "the guide's phone2.conf, phone2 removed as part 5 says"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 11.2 s"
+    ],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51820 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51820 may be closed."
+   }
+  }
+ ]
+}

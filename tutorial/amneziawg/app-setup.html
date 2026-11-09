@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setting Up the App — AmneziaWG — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every field of an AmneziaWG profile in SRP VPN Connect on iPhone and Android: importing the .conf file, the keys and obfuscation values entered by hand, Server and Port, and the options.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Setting Up the App</h1>
+<p class="lead">An AmneziaWG profile has the same fields on iPhone and Android. This page goes through them in the order the profile editor shows them.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles, example keys and example obfuscation values. What each setting did against a real server is in <a href="results.html">Test results</a>.</p>
+</div>
+
+<h2 id="add">Add a profile</h2>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>AmneziaWG VPN</strong>; Port becomes 51820. Import the phone's <code>.conf</code> file or enter its keys and the server's obfuscation values, check the fields below and tap <strong>Save</strong>. Save names the first thing that is still missing instead of saving an incomplete profile: <em>Enter the server address.</em> or <em>Import or enter an AmneziaWG configuration.</em></p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/amneziawg/protocol.png" alt="Protocol screen on iPhone with AmneziaWG VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing AmneziaWG, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="profile">The configuration</h2>
+<p>There are two ways to give the app the phone's keys and the server's obfuscation values; an imported file wins over values entered by hand.</p>
+<ul>
+  <li><strong>Import Config (.conf)</strong> opens the phone's files. The app takes a file in awg-quick format, with an <code>[Interface]</code> and a <code>[Peer]</code> section, as <a href="server.html#phones">the server guide</a> makes it, with every setting of the awg tools from AmneziaWG 1.0 to 3.1; it refuses a file without the two sections: <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em> The row then says <strong>Imported</strong>, and Server and Port fill themselves in from the file's <code>Endpoint</code> line. A WireGuard profile does not take a file with AmneziaWG settings: <em>This file has AmneziaWG settings (S1 and others). Choose AmneziaWG VPN as the protocol to use it.</em></li>
+  <li><strong>Manual Configuration</strong> takes the same values one by one, in four groups:
+    <ul>
+      <li><strong>This device</strong>: <strong>Private Key</strong> (type it, or tap <strong>Gen</strong> for a new one), <strong>Public Key</strong> worked out from it (tap it to copy it, and add it to the server as a peer), <strong>Address</strong> inside the tunnel and <strong>DNS</strong>.</li>
+      <li><strong>Server (peer)</strong>: <strong>Server Public Key</strong>, <strong>Preshared Key</strong> (optional, but it must match the server's for this phone), <strong>AllowedIPs</strong> (empty means 0.0.0.0/0) and <strong>Keepalive</strong> in seconds (empty means none). The endpoint is the profile's Server and Port.</li>
+      <li><strong>AmneziaWG: same as the server</strong>: <strong>S1</strong> to <strong>S4</strong>, <strong>H1</strong> to <strong>H4</strong> (a number or a range such as 1100000000-1199999999), <strong>Header Protection Key</strong> and <strong>Random Trailers</strong>. These must be the server's values. Leave them all empty for a server without obfuscation.</li>
+      <li><strong>AmneziaWG: this device only</strong>: <strong>Jc</strong>, <strong>Jmin</strong>, <strong>Jmax</strong>, <strong>I1</strong> to <strong>I5</strong>, <strong>Content Padding</strong>, the timings <strong>Rekey After Time</strong>, <strong>Rekey Timeout</strong>, <strong>Reject After Time</strong>, <strong>Keepalive Timeout</strong> and <strong>Max Handshake Attempts</strong>, and <strong>Disable Cookies</strong>. Each number may be a range (4-6), from which a value is picked each time; empty means the engine's default, shown as the field's hint.</li>
+    </ul>
+    With a file imported, the row says <strong>Overridden by import</strong>.</li>
+</ul>
+<p>The file, the keys and the header protection key are this phone's secrets: on iPhone the app keeps them in the Keychain, on Android in its encrypted store. <a href="configuration.html">Configuration Reference</a> explains every setting.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/amneziawg/profile-editor.png" alt="Profile editor on iPhone with an imported configuration: Import Config Imported, Server and Port 51820" width="260" loading="lazy">
+    <figcaption>A profile with an imported file, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/manual-configuration.png" alt="Manual Configuration on iPhone: Private Key with Gen, Public Key, Address, DNS, Server Public Key, Preshared Key, AllowedIPs and Keepalive" width="260" loading="lazy">
+    <figcaption>Keys entered by hand, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/manual-configuration.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/manual-obfuscation.png" alt="The group AmneziaWG: Same as the Server on iPhone: S1 to S4, H1 to H4 with ranges, Header Protection Key and Random Trailers" width="260" loading="lazy">
+    <figcaption>The values that must match the server, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/manual-obfuscation.png" alt="The same group on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/manual-device.png" alt="The group AmneziaWG: This Device Only on iPhone: Jc, Jmin, Jmax, I1 to I5, Content Padding, the timings and Disable Cookies" width="260" loading="lazy">
+    <figcaption>The phone's own values, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/manual-device.png" alt="The same group on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h2 id="server">Server and Port</h2>
+<table>
+  <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+  <tbody>
+    <tr><td>Server</td><td>The server's name or address. An import fills it from the file's <code>Endpoint</code>; changed, it replaces it.</td></tr>
+    <tr><td>Port</td><td>The server's UDP port. An import fills it from the same line; changed, it replaces the file's port. Empty means the file's port, or 51820 for values entered by hand.</td></tr>
+  </tbody>
+</table>
+<p>An AmneziaWG profile has no proxy setting: AmneziaWG runs over UDP, straight to the server.</p>
+
+<h2 id="options">Options</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/amneziawg/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, On Sleep and Log Level" width="260" loading="lazy">
+    <figcaption>The options, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<table>
+  <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>Auto Reconnect, Retry Times</td><td>The server answers nothing to a phone it does not take, so the app counts as connected only once the server answered its handshake: it waits 10 seconds for that, and Retry Times adds more attempts of 10 seconds before it gives up. While the VPN is up, nothing coming back for 30 seconds while the phone sends means the server stopped answering. Auto Reconnect (on by default) then starts new handshakes, 10 seconds each, until the server answers again; Retry Times limits them (empty means no limit). Without Auto Reconnect, the VPN ends with the reason: <em>The server stopped answering: nothing came back for 30 seconds (auto reconnect is off).</em> A server that restarts or is away for a few seconds is answered by AmneziaWG itself, without an attempt. A server that answers its handshakes but none of the traffic ends the VPN at once, with or without Auto Reconnect: a new handshake would be answered the same way.</td></tr>
+    <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps AmneziaWG running while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the server, its address and port, whether the profile has a keepalive and a preshared key, which obfuscation settings the profile has (their names, not their values) and the tunnel's MTU, the handshake, network changes, and why a connection ended. <strong>Expert</strong> adds a line every 30 seconds with the time since the last handshake and the bytes received and sent. <strong>Debug</strong> adds AmneziaWG's own lines. No level writes a key. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>AmneziaWG: closing with reason:</code> names the reason.</td></tr>
+  </tbody>
+</table>
+<p>There is no <strong>Switch to Wi-Fi When Available</strong>: AmneziaWG always uses the network the phone uses, and its packets go over Wi-Fi by themselves when it appears. On every change of network the app moves AmneziaWG's sockets to the new one.</p>
+
+<h2 id="connect">Connect and check</h2>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/amneziawg/home.png" alt="Home screen on iPhone with three example AmneziaWG profiles, each showing its server and port" width="260" loading="lazy">
+    <figcaption>AmneziaWG profiles on the home screen, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/amneziawg/android/home.png" alt="The same home screen on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>Select the profile on the home screen and tap the power button. The status changes to <strong>Connected</strong> once the server has answered the handshake. The row of the profile then shows the time of one request through the tunnel. If the server does not answer, the app shows <strong>Connection Failed</strong> with the reason; <a href="troubleshooting.html">Troubleshooting</a> explains each message.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

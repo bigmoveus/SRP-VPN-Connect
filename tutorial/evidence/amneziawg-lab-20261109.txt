@@ -1,0 +1,28 @@
+# AmneziaWG lab checks, 2026-11-09 (lab-evidence.sh on the test server): the app's engine, amneziawg-go v3.1.20260828 (its version file still says 0.0.20250522),
+# as a client in a network namespace, against the kernel module's test interfaces awg0-awg6 (settings: tutorial/tools/amneziawg_results.py, GENERATION)
+# and against amneziawg-go v3.1.20260828 as the server with the same settings.
+kernel module: 3.1.20260812 (srcversion 7EB84CCAD4C5015BF2AF6A1); tools: v3.1.20260812
+client engine: amneziawg-go 0.0.20250522
+gen awg0: 20 received, 0% packet loss
+gen awg1: 20 received, 0% packet loss
+gen awg2: 20 received, 0% packet loss
+gen awg3: 20 received, 0% packet loss
+gen awg4: 17 received, 15% packet loss
+gen awg5: 20 received, 0% packet loss
+gen awg6: 20 received, 0% packet loss
+mismatch s1 on awg0: 0 received; handshake: no
+mismatch h1 on awg0: 0 received; handshake: no
+mismatch s4 on awg0: 0 received; handshake: yes
+mismatch h4 on awg0: 0 received; handshake: yes
+mismatch no-s34 on awg0: 0 received; handshake: yes
+mismatch hpk on awg3: 0 received; handshake: no
+mismatch no-hpk on awg3: 0 received; handshake: no
+mismatch no-trailers on awg6: 0 received; handshake: no
+large ping awg0 1368 bytes: 40 received, 0% packet loss
+large ping awg3 1376 bytes: 40 received, 0% packet loss
+large ping awg6 1376 bytes: 40 received, 0% packet loss
+large ping awg4 1376 bytes: 35 received, 12.5% packet loss
+trailers awg4 1000 bytes, kernel server: 51 received, 15% packet loss
+trailers awg6 1000 bytes, kernel server: 60 received, 0% packet loss
+trailers awg4 1000 bytes, amneziawg-go server: 53 received, 11.6667% packet loss
+trailers awg6 1000 bytes, amneziawg-go server: 60 received, 0% packet loss

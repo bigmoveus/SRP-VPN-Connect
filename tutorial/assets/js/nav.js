@@ -86,5 +86,16 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'wireguard/troubleshooting.html' }
     ]
   },
+  {
+    title: 'AmneziaWG',
+    children: [
+      { title: 'Introduction', href: 'amneziawg/index.html' },
+      { title: 'AmneziaWG Server', href: 'amneziawg/server.html' },
+      { title: 'Setting Up the App', href: 'amneziawg/app-setup.html' },
+      { title: 'Configuration Reference', href: 'amneziawg/configuration.html' },
+      { title: 'Test Results', href: 'amneziawg/results.html' },
+      { title: 'Troubleshooting', href: 'amneziawg/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];

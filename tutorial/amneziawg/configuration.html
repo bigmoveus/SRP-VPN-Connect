@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — AmneziaWG — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each setting of an AmneziaWG server and each line of a phone's .conf file does for SRP VPN Connect, every generation of AmneziaWG from 1.0 to 3.1, with the test cases that show it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">What each setting of the server's <code>awg0.conf</code> and each line of a phone's <code>.conf</code> file does for the app. The cases are the rows of <a href="results.html">Test results</a> that show it, on both phones unless a row says otherwise.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The behaviour comes from the cases named in each row, run against AmneziaWG's kernel module on Ubuntu 24.04 with the server's own view of each (<code>awg show</code> and its log), from a client with the app's AmneziaWG engine on the server itself (the lab rows), and from the source code of both apps and of AmneziaWG.</p>
+</div>
+
+<h2 id="generations">The generations of AmneziaWG</h2>
+<p>AmneziaWG added settings in steps; a server and a phone that share a step's settings connect. The app takes every step's settings, and a file of any step.</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Step</th><th>Settings that must match the server</th><th>The phone's own settings</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td>1.0</td><td>S1, S2; H1 to H4 as single numbers</td><td>Jc, Jmin, Jmax</td><td><code>awg-gen-1-0</code></td></tr>
+    <tr><td>1.5</td><td>as 1.0</td><td>as 1.0, and I1 to I5</td><td><code>awg-gen-1-5</code></td></tr>
+    <tr><td>2.0</td><td>S1 to S4; H1 to H4 as ranges</td><td>Jc, Jmin, Jmax, I1 to I5</td><td><code>awg-download</code> and the other cases on awg0</td></tr>
+    <tr><td>3.0</td><td>as 2.0, and HeaderProtectionKey</td><td>as 2.0, and ContentPaddingAddition, the five timings and a PersistentKeepalive range</td><td><code>awg-gen-3-0</code></td></tr>
+    <tr><td>3.1</td><td>as 3.0, and RandomTrailers</td><td>as 3.0, and DisableCookies</td><td><code>awg-gen-3-1</code>, <code>awg-gen-3-1-ranges</code></td></tr>
+    <tr><td>none</td><td>none: WireGuard's own format</td><td>none</td><td><code>awg-gen-none</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="server">The server (awg0.conf)</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>ListenPort</code></td><td>The UDP port of the phones' <code>Endpoint</code>. A phone whose file names another port gets no answer: <em>The server did not answer the AmneziaWG handshake …</em></td><td><code>awg-download</code>, <code>awg-closed-port</code></td></tr>
+    <tr><td><code>Address</code></td><td>The server's address in the tunnel; the phones get one address each of its network.</td><td><code>awg-download</code></td></tr>
+    <tr><td><code>S1</code>, <code>S2</code></td><td>The random bytes in front of the handshake's first message and of its answer. A phone with another value gets no answer.</td><td><code>awg-download</code>, <code>awg-s1-mismatch</code></td></tr>
+    <tr><td><code>S3</code>, <code>S4</code></td><td>The random bytes in front of a cookie message and of every data packet. A phone with another S4 (or without S3 and S4) gets its handshakes answered and none of its traffic: the app ends the VPN with <em>The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's.</em></td><td><code>awg-download</code>, <code>awg-life-s4-mismatch</code>, <code>awg-life-s4-mismatch-no-reconnect</code></td></tr>
+    <tr><td><code>H1</code>, <code>H2</code></td><td>The ranges the first four bytes of the handshake's messages are drawn from (a single number in AmneziaWG 1.0). Another H1 gets no answer.</td><td><code>awg-download</code>, <code>awg-gen-1-0</code>, <code>awg-h1-mismatch</code></td></tr>
+    <tr><td><code>H3</code>, <code>H4</code></td><td>The same for cookie messages and data packets. Another H4 is answered like another S4: the handshake, none of the traffic.</td><td><code>awg-download</code>, <code>awg-life-h4-mismatch</code></td></tr>
+    <tr><td><code>HeaderProtectionKey</code></td><td>Encrypts the header fields WireGuard sends in the clear; the phone needs the same key. A phone with another key, or none, gets no answer.</td><td><code>awg-gen-3-0</code>, <code>awg-hpk-mismatch</code>, <code>awg-hpk-missing</code></td></tr>
+    <tr><td><code>RandomTrailers = on</code></td><td>Random bytes after each packet; the phone must have it too, or the server does not answer. With RandomTrailers on, data packets whose random bytes fall in the H1, H2 or H3 range are taken for handshake messages and dropped, by the kernel module and by the app's engine alike: with ranges of 100,000,001 values the iPhone's download fell from 200 to 12 Mbit/s and Android's two downloads took 62.5 s instead of 3.8 s, and in the lab 12 to 15% of the pings through the tunnel were lost, against the kernel module and against amneziawg-go as the server; with single values in H1 to H4 nothing was lost. Use single values in H1 to H4 with RandomTrailers, or leave RandomTrailers off.</td><td><code>awg-gen-3-1</code>, <code>awg-gen-3-1-ranges</code>, <code>awg-trailers-missing</code></td></tr>
+    <tr><td><code>DisableCookies = on</code></td><td>The server sends no cookie messages when it is under load. It changes nothing for a phone.</td><td><code>awg-gen-3-1</code></td></tr>
+    <tr><td><code>MTU</code></td><td>The server's tunnel MTU. With S4, data packets are S4 bytes longer: 1420 less S4 keeps a full packet within a 1500-byte path, in both directions.</td><td><code>awg-download</code></td></tr>
+    <tr><td><code>PostUp</code> forwarding and NAT</td><td>The phones reach the internet through the server, with its address: a DNS question over UDP to OpenDNS for the asker's own address came back with the server's address.</td><td><code>awg-udp-probe</code></td></tr>
+    <tr><td><code>SaveConfig = true</code></td><td><code>awg-quick save</code> keeps the phones that <code>awg set</code> added, and the obfuscation values: after a restart of <code>awg-quick@awg0</code> the server still has both.</td><td>The guide's server (<a href="server.html">AmneziaWG server</a>, its source note)</td></tr>
+    <tr><td>A <code>[Peer]</code> with <code>AllowedIPs</code> = the phone's address</td><td>One peer per phone: the server takes a handshake only from a key it has as a peer. A key it does not have gets no answer.</td><td><code>awg-download</code>, <code>awg-unknown-client-key</code>, <code>awg-guide-removed</code></td></tr>
+    <tr><td>The peer's <code>PresharedKey</code></td><td>Optional; when the server has one for a phone, the phone's file must have the same. A different one gets no answer.</td><td><code>awg-no-psk</code>, <code>awg-wrong-psk</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="file">The phone's file</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Line</th><th>What it does for the app</th><th>Cases</th></tr></thead>
+  <tbody>
+    <tr><td><code>[Interface] PrivateKey</code></td><td>The phone's key; the server must have its public key as a peer. A damaged key: <em>Invalid AmneziaWG config: a key is not valid base64 (32 bytes).</em></td><td><code>awg-unknown-client-key</code>, <code>awg-bad-key</code></td></tr>
+    <tr><td><code>Address</code></td><td>The phone's address in the tunnel. Without it: <em>Invalid AmneziaWG config: The config has no [Interface] Address.</em></td><td><code>awg-download</code>, <code>awg-no-address</code></td></tr>
+    <tr><td><code>DNS</code></td><td>The name servers the phone asks while connected, through the tunnel.</td><td><code>awg-download</code></td></tr>
+    <tr><td><code>MTU</code></td><td>The tunnel's MTU on the phone. Without one, the app takes 1420 less S4 (1420 without S4), so a full data packet fits a 1500-byte path.</td><td><code>awg-no-mtu</code>, <code>awg-mtu-1280</code></td></tr>
+    <tr><td><code>S1</code> to <code>S4</code>, <code>H1</code> to <code>H4</code>, <code>HeaderProtectionKey</code>, <code>RandomTrailers</code></td><td>The server's values (see above). S1 to S4 are whole numbers from 0 to 65535, H1 to H4 numbers or ranges up to 4294967295; another value is refused before connecting: <em>Invalid AmneziaWG config: H1 must be a number or a range such as 1000000-1999999.</em> A damaged key: <em>Invalid AmneziaWG config: the HeaderProtectionKey is not valid base64 (32 bytes).</em></td><td><code>awg-invalid-h1</code>, <code>awg-invalid-header-protection-key</code></td></tr>
+    <tr><td><code>Jc</code>, <code>Jmin</code>, <code>Jmax</code></td><td>Jc junk packets of Jmin to Jmax random bytes before every handshake; the server drops them. Keep Jmax under the path's MTU.</td><td><code>awg-download</code>, <code>awg-gen-1-0</code></td></tr>
+    <tr><td><code>I1</code> to <code>I5</code></td><td>Packets made from a pattern, sent before the junk packets: <code>&lt;b 0x…&gt;</code> bytes as written, <code>&lt;r N&gt;</code> random bytes, <code>&lt;rc N&gt;</code> random letters, <code>&lt;rd N&gt;</code> random digits, <code>&lt;t&gt;</code> the time. A pattern AmneziaWG cannot read is refused with its reason: <em>AmneziaWG refused the configuration: failed to parse I1: unknown tag &lt;x&gt;</em></td><td><code>awg-gen-1-5</code>, <code>awg-download</code>, <code>awg-invalid-i1</code></td></tr>
+    <tr><td><code>ContentPaddingAddition</code></td><td>Random bytes added inside data packets, up to the largest packet sent so far.</td><td><code>awg-gen-3-0</code>, <code>awg-idle-padding</code></td></tr>
+    <tr><td><code>RekeyAfterTime</code>, <code>RekeyTimeout</code>, <code>RejectAfterTime</code>, <code>KeepaliveTimeout</code>, <code>MaxHandshakeAttempts</code></td><td>WireGuard's timings (120, 5, 180 and 10 seconds, and 18 attempts), changed or randomized: a range picks a value each time.</td><td><code>awg-gen-3-0</code></td></tr>
+    <tr><td><code>[Peer] PublicKey</code></td><td>The server's public key (<code>server.pub</code>). Another key gets no answer.</td><td><code>awg-wrong-server-key</code></td></tr>
+    <tr><td><code>PresharedKey</code></td><td>As the server's for this phone; a damaged one: <em>Invalid AmneziaWG config: the PresharedKey is not valid base64 (32 bytes).</em></td><td><code>awg-download</code>, <code>awg-bad-preshared-key</code></td></tr>
+    <tr><td><code>Endpoint</code></td><td>The server's name or address and its port, which fill <strong>Server</strong> and <strong>Port</strong> on import; changed in the editor, they replace it. A name the app cannot look up: <em>The AmneziaWG endpoint … could not be resolved.</em> The app looks the name up for an IPv4 address.</td><td><code>awg-endpoint-ip</code>, <code>awg-port-field-overrides-profile</code>, <code>awg-server-field-overrides-profile</code>, <code>awg-unknown-host</code></td></tr>
+    <tr><td><code>AllowedIPs = 0.0.0.0/0</code></td><td>All of the phone's IPv4 traffic goes through the VPN.</td><td><code>awg-download</code>, <code>awg-udp-probe</code></td></tr>
+    <tr><td><code>AllowedIPs = 10.67.0.0/24</code></td><td>Only that network goes through the VPN, the rest the usual way.</td><td><code>awg-split-tunnel</code></td></tr>
+    <tr><td><code>PersistentKeepalive</code></td><td>A keepalive every so many seconds when nothing else goes; AmneziaWG also takes a range (20-30). Without it the VPN works the same. With padding and random trailers a keepalive is as long as a data packet; the app's check for a server that stopped answering allows for that, and idle sessions stayed up.</td><td><code>awg-download</code>, <code>awg-no-keepalive</code>, <code>awg-idle-padding</code>, <code>awg-idle-trailers</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="wireguard">WireGuard's files</h2>
+<p>An AmneziaWG profile connects with a plain WireGuard file to a server without obfuscation (<code>awg-gen-none</code>); to an AmneziaWG server such a file gets no answer (<code>awg-wireguard-file</code>). A WireGuard profile does not take a file with AmneziaWG settings: the editor refuses it at import, and a profile that has one ends with <em>This configuration has AmneziaWG settings (…): use the AmneziaWG VPN protocol for it.</em></p>
+
+<h2 id="always">What the app always does</h2>
+<ul>
+  <li>AmneziaWG over UDP, straight to the server: no proxy, no TCP.</li>
+  <li>Connected only after a handshake: up to 10 seconds per attempt (<a href="app-setup.html#options">Auto Reconnect and Retry Times</a>).</li>
+  <li>The VPN ends when the server answers two or more handshakes in 40 seconds and nothing else comes back while the phone sends.</li>
+  <li>New sockets on every change of network, and the server's name looked up again.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting — AmneziaWG — SRP VPN Connect Documentation</title>
+<meta name="description" content="What each message of an AmneziaWG profile in SRP VPN Connect means and what to do about it, on iPhone and Android.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Troubleshooting</h1>
+<p class="lead">When a connection fails, the app shows <strong>Connection Failed</strong> with one of the messages below; when a connection that was up ends, the connection log has the message in a line that starts with <code>AmneziaWG: closing with reason:</code>.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>Each message below was produced by a case of <a href="results.html">Test results</a>, on both phones, and the server's side of each comes from the server's log in the same run. The import's messages are the editor's: the apps' unit tests check that it refuses such files.</p>
+</div>
+
+<h2 id="first">First checks</h2>
+<ul>
+  <li>Open the connection log: tap the status under the power button. Its first lines name the obfuscation settings the profile has (<code>AmneziaWG: obfuscation S1 S2 S3 S4 H1 …</code>) and the tunnel's MTU. Set <strong>Log Level</strong> to <strong>Expert</strong> to see, every 30 seconds, how long ago the last handshake was and how much came and went.</li>
+  <li>On the server, <code>awg show awg0</code> lists the server's obfuscation values and each phone with its <code>latest handshake</code>. A phone without one has never reached the server with the right keys and values. Compare the values with the phone's file: S1 to S4, H1 to H4 and the header protection key must be the same.</li>
+</ul>
+
+<h2 id="silence">Why AmneziaWG says so little</h2>
+<p>An AmneziaWG server answers nothing to a handshake it cannot take: one from a key it does not know, with the wrong preshared key, for another server key, with other S1, S2, H1, H2, header protection key or random trailers, or on a port where nothing listens. To the app all of these look the same, a server that does not answer, so its message names every cause; the server's peer list, its values and the keys in the files show which one it is.</p>
+
+<h2 id="file">The configuration</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></td><td>The imported file is not an awg-quick configuration. Import the <code>.conf</code> file the server made for this phone.</td></tr>
+    <tr><td><em>This file has AmneziaWG settings (… and others). Choose AmneziaWG VPN as the protocol to use it.</em>; <em>This configuration has AmneziaWG settings (…): use the AmneziaWG VPN protocol for it.</em></td><td>An AmneziaWG file in a WireGuard profile: the editor refuses it at import, and a WireGuard profile that has one ends with the second message. Make the profile with the protocol <strong>AmneziaWG VPN</strong>.</td></tr>
+    <tr><td><em>Invalid AmneziaWG config: The config has no [Interface] PrivateKey.</em>, <em>… no [Interface] Address.</em></td><td>A line the app needs is missing from the file. Make the phone's file again (<a href="server.html#phones">add-phone.sh</a>), or enter the value under Manual Configuration.</td></tr>
+    <tr><td><em>Invalid AmneziaWG config: a key is not valid base64 (32 bytes).</em>, <em>… the PresharedKey is not valid base64 (32 bytes).</em>, <em>… the HeaderProtectionKey is not valid base64 (32 bytes).</em></td><td>A key is damaged: a key is 44 characters of base64 ending in <code>=</code>. Copy it again, without spaces or line breaks.</td></tr>
+    <tr><td><em>Invalid AmneziaWG config: H1 must be a number or a range such as 1000000-1999999.</em>, <em>… S1 must be a whole number from 0 to 65535.</em>, <em>… RandomTrailers must be on or off.</em></td><td>An obfuscation value is not one AmneziaWG takes. Copy the server's value again (<code>awg show awg0</code> prints them).</td></tr>
+    <tr><td><em>AmneziaWG refused the configuration: failed to parse I1: unknown tag &lt;x&gt;</em></td><td>AmneziaWG could not read an I1 to I5 pattern; the rest of the message is its own reason. The tags are <code>&lt;b 0x…&gt;</code>, <code>&lt;r N&gt;</code>, <code>&lt;rc N&gt;</code>, <code>&lt;rd N&gt;</code> and <code>&lt;t&gt;</code> (<a href="configuration.html#file">Configuration Reference</a>).</td></tr>
+    <tr><td><em>The AmneziaWG endpoint … could not be resolved.</em></td><td>The server's name in Server (or in the file's <code>Endpoint</code>) does not resolve. Check the name, or enter the server's address.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="connect">Connecting</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port … may be closed.</em></td><td>No answer within 10 seconds. Compare the profile's <strong>Server Public Key</strong> with the server's <code>server.pub</code>, its preshared key with the server's for this phone, and its obfuscation values with <code>awg show awg0</code>; check that <code>awg show awg0</code> lists this phone's public key (a removed phone is no longer there); check that the port is the server's <code>ListenPort</code> and open to the phone on every network it uses. A plain WireGuard file gets this message from an AmneziaWG server too.</td></tr>
+    <tr><td><em>Could not connect after 3 attempts. (The server did not answer the AmneziaWG handshake.)</em></td><td>The same, after the attempts that <strong>Retry Times</strong> adds before the first connection.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="up">A connection that was up</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
+  <tbody>
+    <tr><td><em>The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's.</em></td><td>The server took the handshake (S1, S2, H1 and H2 match) but drops every data packet: the phone's S3, S4 or H4 is not the server's. The status showed Connected for a moment; the app ends the VPN once two handshakes in 40 seconds were answered and nothing else came back while the phone sent. Copy S3, S4 and H4 from <code>awg show awg0</code>, or make the phone's file again.</td></tr>
+    <tr><td><em>The server stopped answering: nothing came back for 30 seconds (auto reconnect is off).</em></td><td>The server, or the path to it, stopped answering while the phone was sending. With <strong>Auto Reconnect</strong> on, the app tries new handshakes instead.</td></tr>
+    <tr><td><em>Could not reconnect after 2 attempts. (The server did not answer the AmneziaWG handshake.)</em></td><td>The server stopped answering and did not answer the attempts that <strong>Retry Times</strong> allows. Leave Retry Times empty to keep trying while the server is away.</td></tr>
+    <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off: the app closed AmneziaWG when the device slept and does not connect again at wake. Choose Stay or Pause, or turn Auto Reconnect on.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="slow">Slow despite a connection</h2>
+<p>With <code>RandomTrailers = on</code> and ranges in H1 to H3, some data packets are taken for handshake messages and lost, on the server and on the phone (<a href="configuration.html#server">Configuration Reference</a>); in our test the iPhone's download fell from 200 to 12 Mbit/s. The connection log says so at the start: <code>AmneziaWG: note: with RandomTrailers on and ranges in H1-H3 …</code>. Give H1 to H4 single values on the server and in the phones' files, or turn RandomTrailers off on both.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
