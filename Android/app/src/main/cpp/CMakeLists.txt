@@ -172,7 +172,38 @@ add_custom_command(OUTPUT "${WG_GO_LIB}"
             "${SRP_GO}" build -trimpath -buildvcs=false -ldflags=-buildid= -buildmode=c-shared -o "${WG_GO_LIB}" .
     COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libwg-go.h"
     WORKING_DIRECTORY "${WG_GO_DIR}"
-    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/awg.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
+    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/awg.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/netstack.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
     COMMENT "Building wireguard-go (libwg-go.so) for ${ANDROID_ABI}"
     VERBATIM)
 add_custom_target(wg-go ALL DEPENDS "${WG_GO_LIB}")
+
+# Aether: the engine of our fork (github.com/bigmoveus/Aether at the commit iOS/Aether/build_aether.sh pins), built by
+# cargo-ndk into libaether.so beside the other libraries of the ABI, and libsrpaether.so with its JNI layer (aether_jni.c)
+# and a copy of the hev packet engine of its own (the SSH engine's sources, names and settings, kept inside this library)
+find_program(SRP_CARGO cargo PATHS "$ENV{HOME}/.cargo/bin" /opt/homebrew/opt/rustup/bin)
+if(NOT SRP_CARGO)
+    message(FATAL_ERROR "Aether needs Rust (cargo, cargo-ndk and the target aarch64-linux-android) to build libaether.so")
+endif()
+set(AETHER_LIB "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libaether.so")
+add_custom_command(OUTPUT "${AETHER_LIB}"
+    COMMAND ${CMAKE_COMMAND} -E env "ANDROID_NDK_HOME=${ANDROID_NDK}"
+            bash "${CMAKE_CURRENT_SOURCE_DIR}/aether/build_aether_android.sh" "${ANDROID_ABI}" "${AETHER_LIB}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/aether/build_aether_android.sh" "${SRP_IOS_SOURCES}/Aether/build_aether.sh"
+    COMMENT "Building the Aether engine (libaether.so) for ${ANDROID_ABI}"
+    VERBATIM)
+add_custom_target(aether-engine DEPENDS "${AETHER_LIB}")
+add_library(aether SHARED IMPORTED)
+set_target_properties(aether PROPERTIES IMPORTED_LOCATION "${AETHER_LIB}" IMPORTED_SONAME libaether.so)
+add_library(srpaether_hev STATIC ${SSH_ENGINE_SOURCES})
+set_target_properties(srpaether_hev PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(srpaether_hev PRIVATE "${SSH_ROOT}/build"
+    "${SSH_UP}/src" "${SSH_UP}/src/misc" "${SSH_UP}/src/core/include" "${SSH_UP}/src/core/src"
+    "${SSH_UP}/third-part/yaml/include" "${SSH_UP}/third-part/lwip/src/include" "${SSH_UP}/third-part/lwip/src/ports/include"
+    "${SSH_UP}/third-part/hev-task-system/include" "${SSH_UP}/third-part/hev-task-system/src")
+target_compile_definitions(srpaether_hev PRIVATE ${SSH_ENGINE_DEFINITIONS})
+target_compile_options(srpaether_hev PRIVATE $<$<COMPILE_LANGUAGE:C>:-w>)
+add_library(srpaether SHARED aether_jni.c)
+add_dependencies(srpaether aether-engine)
+target_link_libraries(srpaether PRIVATE srpaether_hev srpssh_tasks aether log)
+target_link_options(srpaether PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/aether_exports.map")
+set_target_properties(srpaether PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/aether_exports.map")

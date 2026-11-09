@@ -74,6 +74,8 @@ sealed interface EditorPage {
     data object SoftEtherMethod : EditorPage
 
     data object SslVpnServerType : EditorPage
+
+    data object AetherTransport : EditorPage
 }
 
 /** Add Profile and Edit Profile. Nothing reaches the saved profile until Save. */
@@ -115,6 +117,7 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
                 EditorPage.SstpTtls -> SstpTtlsPage(draft, { draft = it }, pop)
                 EditorPage.SoftEtherMethod -> SoftEtherMethodPage(draft, { draft = it }, pop)
                 EditorPage.SslVpnServerType -> SslVpnServerTypePage(draft, { draft = it }, pop)
+                EditorPage.AetherTransport -> AetherTransportPage(draft, { draft = it }, pop)
             }
         }
     }
@@ -128,6 +131,7 @@ fun validationMessage(profile: Profile): String? {
     if (profile.isSsh) return sshValidationMessage(profile)
     if (profile.isOpenVpn) return openVpnValidationMessage(profile)
     if (profile.isWireGuard) return wireGuardValidationMessage(profile)
+    if (profile.isAether) return aetherValidationMessage(profile)
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -232,6 +236,10 @@ private fun ProfileEditPage(
         else if (draft.isPlainWireGuard && amneziaSetting != null) {
             ui.showAlert("AmneziaWG Configuration", "This file has AmneziaWG settings ($amneziaSetting and others). Choose AmneziaWG VPN as the protocol to use it.")
         }
+        // Aether's Private mode reaches the server over plain WireGuard
+        else if (draft.isAetherPrivate && amneziaSetting != null) {
+            ui.showAlert("AmneziaWG Configuration", "This file has AmneziaWG settings ($amneziaSetting and others). Aether's Private mode takes a WireGuard file.")
+        }
         else onChange(imported)
     }
 
@@ -244,7 +252,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn || trimmed.isWireGuard) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn || trimmed.isWireGuard || trimmed.isAether) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -275,6 +283,11 @@ private fun ProfileEditPage(
             }
             if (draft.isOpenVpn) {
                 OpenVpnSections(draft, onChange)
+                Spacer(Modifier.height(32.dp))
+                return@Column
+            }
+            if (draft.isAether) {
+                AetherSections(draft, onChange, push) { importFile.launch(arrayOf("*/*")) }
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
@@ -384,7 +397,9 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
                 wgContentPaddingAddition = "", wgRekeyAfterTime = "", wgRekeyTimeout = "", wgRejectAfterTime = "", wgKeepaliveTimeout = "",
                 wgMaxHandshakeAttempts = "", wgRandomTrailers = false, wgDisableCookies = false,
                 port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194"
-                       else if (type == "wireguard" || type == "amnezia") "51820" else draft.port))
+                       else if (type == "wireguard" || type == "amnezia") "51820" else if (type == "aether") "" else draft.port,
+                // A new Aether profile as the iOS editor makes it (SRPProtocolViewController applyProtocol)
+                aetherMode = "public", aetherTransport = "masque-both", aetherScan = "balanced", aetherTor = "off"))
         }
         onBack()
     }
@@ -399,6 +414,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             row { CheckRow("OpenVPN", "OpenVPN 3 — UDP/TCP, optional stunnel (TLS 1.3)", checked = draft.isOpenVpn) { choose("openvpn") } }
             row { CheckRow("WireGuard VPN", "WireGuard — fast modern UDP", checked = draft.isPlainWireGuard) { choose("wireguard") } }
             row { CheckRow("AmneziaWG VPN", "AmneziaWG — obfuscated for strict firewalls", checked = draft.isAmnezia) { choose("amnezia") } }
+            row { CheckRow("Aether VPN", "Cloudflare WARP — no server needed, automatic", checked = draft.isAether) { choose("aether") } }
         }
     }
 }

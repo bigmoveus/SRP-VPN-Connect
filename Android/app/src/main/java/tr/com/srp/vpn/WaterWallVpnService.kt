@@ -45,6 +45,25 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     private var connectRequest = 0
     private var freshNetwork = false
 
+    /** The lifecycle tests' commands (debuggable builds only, `am broadcast -a tr.com.srp.vpn.TEST --es command ...`): Aether's
+     *  session ends as if WARP or the server had closed it, or the test a network change brings runs at once */
+    private val testReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.getStringExtra("command")) {
+                "aether-drop" -> (client as? AetherClient)?.debugDropSession()
+                "path-switch" -> (client as? AetherClient)?.switchNetworkPath()
+            }
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            if (android.os.Build.VERSION.SDK_INT >= 33) registerReceiver(testReceiver, IntentFilter(ACTION_TEST), Context.RECEIVER_EXPORTED)
+            else registerReceiver(testReceiver, IntentFilter(ACTION_TEST))
+        }
+    }
+
     private val sleepReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -70,6 +89,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
 
     override fun onDestroy() {
         connectRequest++
+        runCatching { unregisterReceiver(testReceiver) }
         finishTunnel()
         super.onDestroy()
     }
@@ -88,7 +108,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             ConnectionLog.open(this)
             val profiles = ProfileStore(this).load()
             val profile = profiles.firstOrNull { it.nodeId == profileId }
-            if (profile != null && (profile.isSstp || profile.isSoftEther || profile.isOpenConnect || profile.isSsh || profile.isOpenVpn || profile.isWireGuard)) {
+            if (profile != null && (profile.isSstp || profile.isSoftEther || profile.isOpenConnect || profile.isSsh || profile.isOpenVpn || profile.isWireGuard || profile.isAether)) {
                 // Certificate login reads the PKCS#12 from the store here, off the main thread
                 val certificate = if (profile.certificateMode) CertificateStore(this).load(profile.certKey) else null
                 main.post {
@@ -140,6 +160,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         val started = if (profile.isSsh) SshClient(profile, connectivity, this)
                       else if (profile.isOpenVpn) OpenVpnClient(profile, connectivity, cellular, this)
                       else if (profile.isWireGuard) WireGuardClient(profile, connectivity, this)
+                      else if (profile.isAether) AetherClient(applicationContext, profile, connectivity, this)
                       else if (profile.isSoftEther) SoftEtherClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
                       else if (profile.isOpenConnect) SslVpnClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
                       else SstpClient(applicationContext, profile, allowInsecure, certificate, cellular, connectivity, this)
@@ -155,12 +176,13 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
             is SshClient -> started.start()
             is OpenVpnClient -> started.start()
             is WireGuardClient -> started.start()
+            is AetherClient -> started.start()
             else -> (started as SstpClient).start()
         }
     }
 
     private fun disconnect() {
-        if (client !is SstpClient && client !is SoftEtherClient && client !is SslVpnClient && client !is SshClient && client !is OpenVpnClient && client !is WireGuardClient) ConnectionLog.m("WaterWall: disconnecting")
+        if (client !is SstpClient && client !is SoftEtherClient && client !is SslVpnClient && client !is SshClient && client !is OpenVpnClient && client !is WireGuardClient && client !is AetherClient) ConnectionLog.m("WaterWall: disconnecting")
         connecting = false
         connectRequest++
         finishTunnel()
@@ -387,6 +409,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     companion object {
         const val ACTION_CONNECT = "tr.com.srp.vpn.CONNECT"
         const val ACTION_DISCONNECT = "tr.com.srp.vpn.DISCONNECT"
+        const val ACTION_TEST = "tr.com.srp.vpn.TEST"
         const val EXTRA_PROFILE = "profile"
         /** The user chose Continue on the certificate warning: this connection skips verification, the profile stays as it is. */
         const val EXTRA_ALLOW_UNTRUSTED = "allowUntrusted"

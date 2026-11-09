@@ -1,0 +1,6 @@
+{
+  global:
+    Java_tr_com_srp_vpn_AetherNative_*;
+  local:
+    *;
+};

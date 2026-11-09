@@ -67,7 +67,8 @@ class TcpPinger {
         /** Host and port of a profile that reaches its server over TCP, or null for one without a TCP server. */
         fun endpoint(profile: Profile): Pair<String, Int>? {
             // WireGuard has no TCP server (SRPProfileLatencyTester on iOS)
-            if (profile.isWireGuard) return null
+            // Aether's Public mode has no server of its own, and Private mode reaches its server over WireGuard
+            if (profile.isWireGuard || profile.isAether) return null
             var host = profile.server.trim()
             var port = profile.effectivePort.trim().toIntOrNull() ?: return null
             if (profile.isOpenVpn) {
