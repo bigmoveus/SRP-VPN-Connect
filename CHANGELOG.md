@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
+
 ## 1.2.0 (40) - 2026-11-09
 
 ### Added
