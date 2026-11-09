@@ -260,6 +260,127 @@ private fun nonnegativeIntegerString(value: Any?): Long? {
     return if (parsed in 0..65535) parsed else null
 }
 
+private val DNS_STRATEGIES = listOf("core-settings", "accept-dns-returned-order", "prefer-ipv4", "prefer-ipv6", "only-ipv4", "only-ipv6")
+
+/** BIND's inet_pton for AF_INET, as Android has it: four decimal parts up to 255, no leading zeros. */
+private fun numericIpv4(text: String): Boolean {
+    var octets = 0
+    var sawDigit = false
+    var value = 0
+    for (character in text) {
+        if (character in '0'..'9') {
+            if (sawDigit && value == 0) return false
+            value = value * 10 + (character - '0')
+            if (value > 255) return false
+            if (!sawDigit) {
+                if (++octets > 4) return false
+                sawDigit = true
+            }
+        } else if (character == '.' && sawDigit) {
+            if (octets == 4) return false
+            value = 0
+            sawDigit = false
+        } else return false
+    }
+    return octets >= 4
+}
+
+/** BIND's inet_pton for AF_INET6, as Android has it: no interface scopes. */
+private fun numericIpv6(input: String): Boolean {
+    var text = input
+    if (text.startsWith(":")) {
+        if (!text.startsWith("::")) return false
+        text = text.substring(1)
+    }
+    var bytes = 0
+    var colon = -1
+    var digits = 0
+    var index = 0
+    var token = 0
+    while (index < text.length) {
+        val character = text[index++]
+        if (character in '0'..'9' || character in 'a'..'f' || character in 'A'..'F') {
+            if (++digits > 4) return false
+            continue
+        }
+        if (character == ':') {
+            token = index
+            if (digits == 0) {
+                if (colon >= 0) return false
+                colon = bytes
+                continue
+            } else if (index == text.length) return false
+            if (bytes + 2 > 16) return false
+            bytes += 2
+            digits = 0
+            continue
+        }
+        if (character == '.' && bytes + 4 <= 16 && numericIpv4(text.substring(token))) {
+            bytes += 4
+            digits = 0
+            break
+        }
+        return false
+    }
+    if (digits > 0) {
+        if (bytes + 2 > 16) return false
+        bytes += 2
+    }
+    if (colon >= 0) {
+        if (bytes == 16) return false
+        bytes = 16
+    }
+    return bytes == 16
+}
+
+/** WaterWall's DNS server grammar (dns_policy.c): a numeric IP, IPv4:port or [IPv6]:port, at most 64 bytes. */
+private fun dnsServer(value: Any?): Boolean {
+    val endpoint = value as? String ?: return false
+    if (endpoint.isEmpty() || endpoint.utf8Size() > 64 || '\u0000' in endpoint) return false
+    val bracketed = endpoint.startsWith("[")
+    val host: String
+    var port: String? = null
+    if (bracketed) {
+        val end = endpoint.indexOf(']')
+        if (end < 0 || (end + 1 < endpoint.length && endpoint[end + 1] != ':')) return false
+        host = endpoint.substring(1, end)
+        if (end + 1 < endpoint.length) port = endpoint.substring(end + 2)
+    } else {
+        val colon = endpoint.indexOf(':')
+        if (colon >= 0 && endpoint.indexOf(':', colon + 1) < 0) {
+            host = endpoint.substring(0, colon)
+            port = endpoint.substring(colon + 1)
+        } else host = endpoint
+    }
+    if (host.isEmpty() || host.utf8Size() >= 64) return false
+    if (!(if (bracketed) numericIpv6(host) else numericIpv4(host) || numericIpv6(host))) return false
+    if (port == null) return true
+    if (port.isEmpty() || port.any { it !in '0'..'9' }) return false
+    val digits = port.trimStart('0')
+    return digits.isNotEmpty() && digits.length <= 5 && digits.toLong() <= 65535
+}
+
+/** The DNS resolver option: a flat DomainResolver setting without verbose and dns-next. */
+private fun domainResolverError(value: Any?): String? {
+    val resolver = value.asObj() ?: return "domain-resolver must be an object."
+    for (key in resolver.keys) if (key !in listOf("mode", "strategy", "servers")) return "The DNS resolver supports only mode, strategy and servers."
+    val mode = resolver["mode"] ?: "native"
+    if (mode !in listOf("native", "direct", "chain")) return "The DNS resolver mode must be native, direct or chain."
+    if (resolver["strategy"] != null && resolver["strategy"] !in DNS_STRATEGIES) return "The DNS resolver strategy is invalid."
+    val servers = resolver["servers"]
+    if (mode == "native") return if (servers == null) null else "Native DNS uses the system's DNS servers; remove the server list."
+    if (servers !is List<*> || servers.size !in 1..32) return "Direct and chain DNS need 1 to 32 DNS servers."
+    for (server in servers) {
+        if (server !is String) return "DNS servers must be strings."
+        if (!dnsServer(server)) return "$server is not a DNS server address: use an IP address, IPv4:port or [IPv6]:port."
+    }
+    return null
+}
+
+private val LEGACY_DNS_STRATEGIES = mapOf("do-not-resolve-domains" to "", "resolve-domains-with-core-settings" to "core-settings",
+    "resolve-domains-and-accept-dns-returned-order" to "accept-dns-returned-order", "resolve-domains-and-prefer-ipv4" to "prefer-ipv4",
+    "resolve-domains-and-prefer-ipv6" to "prefer-ipv6", "resolve-domains-and-use-only-ipv4" to "only-ipv4", "resolve-domains-and-use-only-ipv6" to "only-ipv6")
+
 private fun migrate(configuration: Obj): Obj {
     var migrated = configuration
     if (migrated["version"].let { isInteger(it) && longOf(it) == 2L }) {
@@ -280,6 +401,19 @@ private fun migrate(configuration: Obj): Obj {
         renamed.remove("mtu")
         val options = LinkedHashMap(nodeOptions)
         options["kcp"] = renamed
+        val result = LinkedHashMap(migrated)
+        result["node-options"] = options
+        migrated = result
+    }
+    val applicationOptions = migrated["node-options"].asObj()?.get("application").asObj()
+    val strategy = (applicationOptions?.get("domain-strategy") as? String)?.let { LEGACY_DNS_STRATEGIES[it] }
+    if (applicationOptions != null && strategy != null) {
+        // WaterWall 1.5.4 rejects domain-strategy; dns-behaviour replaces it, and not resolving is the default.
+        val renamed = LinkedHashMap(applicationOptions)
+        renamed.remove("domain-strategy")
+        if (strategy.isNotEmpty() && renamed["dns-behaviour"] == null) renamed["dns-behaviour"] = linkedMapOf("resolve" to true, "strategy" to strategy)
+        val options = LinkedHashMap(migrated["node-options"].asObj()!!)
+        if (renamed.isNotEmpty()) options["application"] = renamed else options.remove("application")
         val result = LinkedHashMap(migrated)
         result["node-options"] = options
         migrated = result
@@ -394,7 +528,7 @@ object ChainConfig {
 
     fun validationError(input: Map<String, Any?>): String? {
         val configuration = migrate(input)
-        val topKeys = setOf("version", "mode", "input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "node-options", "geoip", "bgp4", "packet-encryption")
+        val topKeys = setOf("version", "mode", "input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "node-options", "geoip", "bgp4", "packet-encryption", "domain-resolver")
         for (key in configuration.keys) if (key !in topKeys) return "Unknown configuration key: $key"
         if (configuration["version"].let { !isInteger(it) || longOf(it) != 3L }) return "Unsupported WaterWall configuration version."
         for (key in listOf("mode", "input", "application", "outer", "http", "carrier", "quic-carrier")) {
@@ -426,6 +560,11 @@ object ChainConfig {
                 }
                 if (!isPlainHttps(updateUrl)) return "geoip.update-url must use HTTPS and cannot contain embedded credentials or a fragment."
             }
+        }
+        val resolver = configuration["domain-resolver"]
+        if (resolver != null) {
+            domainResolverError(resolver)?.let { return it }
+            if (mode != "chain" || configuration["input"] != "connections") return "The DNS resolver requires Chain mode with Connections input."
         }
         if (bgp4 != null && bgp4 !is Boolean) return "BGP4 must be a boolean."
         if ((direct || wireGuard) && boolOf(bgp4)) return "BGP4 framing requires Chain mode."
@@ -491,11 +630,11 @@ object ChainConfig {
         }
         val connectionPacketKeys = listOf("mtu", "udp-idle-timeout-ms", "max-pending-bytes", "max-total-pending-bytes", "fake-dns", "mapdns", "fake_dns")
         val applicationKeys = when (application) {
-            "vmess" -> listOf("protocol", "proto", "first-payload-timeout-ms", "verbose", "domain-strategy", "security", "chunk-masking",
+            "vmess" -> listOf("protocol", "proto", "first-payload-timeout-ms", "verbose", "dns-behaviour", "security", "chunk-masking",
                 "global-padding", "authenticated-length", "encrypted-counter-policy", "send-termination", "packet-encoding")
-            "socks5" -> listOf("protocol", "proto", "verbose", "domain-strategy")
-            "http-proxy" -> listOf("verbose", "domain-strategy", "headers", "max-header-bytes", "header-timeout-ms", "connect-response-timeout-ms", "idle-timeout-ms")
-            else -> listOf("protocol", "proto", "first-payload-timeout-ms", "verbose", "domain-strategy")
+            "socks5" -> listOf("protocol", "proto", "verbose", "dns-behaviour")
+            "http-proxy" -> listOf("verbose", "dns-behaviour", "headers", "max-header-bytes", "header-timeout-ms", "connect-response-timeout-ms", "idle-timeout-ms")
+            else -> listOf("protocol", "proto", "first-payload-timeout-ms", "verbose", "dns-behaviour")
         }
         val tlsKeys = listOf("alpns", "x25519mlkem768", "fragment", "tls13-record-shaping", "ech-config-list", "ech-sni-trick", "verbose")
         val schemas = mapOf(
@@ -590,13 +729,17 @@ object ChainConfig {
             if (app[key] !is String) return "application.$key must be a string."
             if (app[key] !in applicationProtocols) return "application.$key has an unsupported protocol."
         }
-        val strategy = app["domain-strategy"]
-        if (strategy != null) {
-            if (strategy !is String) return "application.domain-strategy must be a string."
-            val strategies = listOf("do-not-resolve-domains", "resolve-domains-and-prefer-ipv4", "resolve-domains-and-prefer-ipv6",
-                "resolve-domains-with-core-settings", "resolve-domains-and-accept-dns-returned-order",
-                "resolve-domains-and-use-only-ipv4", "resolve-domains-and-use-only-ipv6")
-            if (strategy !in strategies) return "application.domain-strategy is invalid."
+        if (app["dns-behaviour"] != null) {
+            // Resolving on the phone, as domain-strategy did before WaterWall 1.5.4; the DNS resolver option covers the rest.
+            val policy = app["dns-behaviour"].asObj()
+            if (policy == null || policy["resolve"] !is Boolean) return "application.dns-behaviour needs a boolean resolve."
+            for (key in policy.keys) if (key !in listOf("resolve", "strategy")) return "application.dns-behaviour supports only resolve and strategy."
+            if (policy["strategy"] != null && (!boolOf(policy["resolve"]) || policy["strategy"] !in DNS_STRATEGIES)) {
+                return "application.dns-behaviour.strategy is invalid or needs resolve true."
+            }
+        }
+        if (resolver.asObj()?.get("mode") == "chain" && (application == "http-proxy" || (app["protocol"] ?: app["proto"] ?: "") in listOf("tcp", "connect"))) {
+            return "Chain DNS sends UDP queries through the VPN, which HTTP CONNECT and a fixed TCP protocol cannot carry."
         }
         if (app["headers"] != null) {
             stringMapError(app["headers"], "application.headers")?.let { return it }
@@ -631,7 +774,7 @@ object ChainConfig {
             if (security == "zero" && (boolOf(app["chunk-masking"]) || boolOf(app["global-padding"]) || boolOf(app["authenticated-length"]))) {
                 return "VMess zero cannot enable masking, padding or authenticated lengths."
             }
-            if (app["packet-encoding"] == "packetaddr" && (app["domain-strategy"] == null || app["domain-strategy"] == "do-not-resolve-domains")) {
+            if (app["packet-encoding"] == "packetaddr" && !boolOf(app["dns-behaviour"].asObj()?.get("resolve")) && resolver == null) {
                 return "VMess packetaddr requires local DNS resolution so the target is an IP address."
             }
         }
@@ -786,7 +929,8 @@ object ChainConfig {
                 settings.remove("mapdns")
                 settings.remove("fake_dns")
             }
-            nodes.add(node("ptc", "PacketsToConnection", settings, if (direct) "connector" else if (raw) afterInput else "router"))
+            nodes.add(node("ptc", "PacketsToConnection", settings, if (direct) "connector" else if (raw) afterInput
+                else if (configuration["domain-resolver"] != null) "resolver" else "router"))
         }
         if (direct) {
             nodes.add(node("connector", "TcpUdpConnector", mapOf("address" to "dest_context->address", "port" to "dest_context->port", "nodelay" to true)))
@@ -795,7 +939,7 @@ object ChainConfig {
                 val vmess = application == "vmess"
                 val socks = application == "socks5"
                 val httpProxy = application == "http-proxy"
-                val defaults = linkedMapOf<String, Any?>("domain-strategy" to "do-not-resolve-domains")
+                val defaults = linkedMapOf<String, Any?>()
                 if (!httpProxy) defaults["protocol"] = "dest_context->protocol"
                 if (vmess) defaults["security"] = "aes-128-gcm"
                 if (httpProxy) defaults["mode"] = "connect"
@@ -821,8 +965,13 @@ object ChainConfig {
                 val directCountries = geoIpCountries(configuration["geoip"].asObj()?.get("countries")).orEmpty()
                 val geoIpPath = options?.get("ww_geoip_db_path") as? String
                 if (directCountries.isNotEmpty() && geoIpPath.isNullOrEmpty()) return null
-                val routerSettings = linkedMapOf<String, Any?>("resolve-domains" to directCountries.isNotEmpty())
+                val resolver = configuration["domain-resolver"].asObj()
+                val routerSettings = linkedMapOf<String, Any?>()
+                // The DNS resolver in front leaves the Router only IP addresses.
+                if (directCountries.isNotEmpty() && resolver == null) routerSettings["dns-behaviour"] = mapOf("resolve" to true)
                 val rules = ArrayList<Any?>()
+                // First, so that a DNS server in a direct country or the local network is still asked through the VPN
+                if (resolver?.get("mode") == "chain") rules.add(mapOf("resolver-dns" to true, "target" to application))
                 if (boolOf(options?.get("ww_smart_routing"))) {
                     rules.add(mapOf("destination-ip" to listOf("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"), "target" to "direct-local"))
                 }
@@ -834,9 +983,10 @@ object ChainConfig {
                 }
                 if (rules.isNotEmpty()) routerSettings["rules"] = rules
                 nodes.add(node("router", "Router", routerSettings, application))
-                if (rules.isNotEmpty()) {
+                if (resolver != null) nodes.add(node("resolver", "DomainResolver", resolver, "router"))
+                if (rules.any { it.asObj()?.get("target") == "direct-local" }) {
                     nodes.add(node("direct-local", "TcpUdpConnector", mapOf("address" to "dest_context->address", "port" to "dest_context->port",
-                        "domain-strategy" to "prefer-ipv4", "nodelay" to true)))
+                        "dns-behaviour" to mapOf("resolve" to true, "strategy" to "prefer-ipv4"), "nodelay" to true)))
                 }
             } else {
                 if (packetEncryption) {

@@ -191,7 +191,7 @@ def peer_nodes(client_root, port, cert, key, cover_port):
         result.append({"name": "ptc", "type": "PacketsToConnection", "settings": {}})
     result.append({"name": "out", "type": "TcpUdpConnector", "settings": {
         "address": "dest_context->address", "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4", "nodelay": True}})
+        "dns-behaviour": {"resolve": True, "strategy": "prefer-ipv4"}, "nodelay": True}})
     connector = client_root["nodes"][-1]
     stream_outer = any(node["type"] in ("TlsClient", "RealityClient", "EncryptionClient")
                        for node in client_root["nodes"])

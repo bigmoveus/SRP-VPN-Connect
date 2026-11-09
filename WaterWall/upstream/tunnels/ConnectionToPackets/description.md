@@ -1,5 +1,5 @@
 <!--
-Documentation version: 159
+Documentation version: 162
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/ConnectionToPackets.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/ConnectionToPackets.mdx, and all files must keep the same documentation version.
 -->
 
@@ -101,7 +101,7 @@ to go.
 
 The contract is enforced at both ends:
 
-- `domain-strategy` accepts only `only-ipv4`, so an AAAA-only domain fails DNS with a name in the message instead of
+- With local resolution enabled, the effective `dns-behaviour.strategy` must be `only-ipv4`, so an AAAA-only domain fails DNS with a name in the message instead of
   resolving to an address this node then has to reject
 - a literal IPv6 `target-address` is a configuration error
 - a destination that is nonetheless IPv6 closes that one line with an explicit error
@@ -165,7 +165,7 @@ a warning, and destruction logs accumulated return/output refusal counters.
 | `target-address` | no | `dest_context->address` | IPv4 address or domain to connect to. The exact string `dest_context->address` keeps the incoming destination address. A configured address overrides only that address. Literal IPv6 is rejected. |
 | `port` | no | `dest_context->port` | Integer destination port in `1` .. `65535`, or the exact string `dest_context->port` to keep the incoming destination port. |
 | `mtu` | no | core `misc.mtu` | Raw IP MTU of the virtual netifs. Valid range `576` .. `9000`. TCP derives its send MSS from it; UDP fragments above it. An inherited core value outside the range is a configuration error, not something to round into range. Core `misc.mtu` is itself validated as a whole number in `68` .. `65535` before it is stored, so it can no longer wrap into a different MTU or into zero. |
-| `domain-strategy` | no | `only-ipv4` | `only-ipv4` is the only accepted value. Every other strategy can hand this node an address it cannot use: the two IPv6 ones directly, `prefer-ipv4` through its AAAA-only fallback, and `accept-dns-returned-order` by preferring neither family. |
+| `dns-behaviour` | no | Native lookup with `only-ipv4` | Controls local lookup and DNS transport. Enabled resolution requires `only-ipv4`, or `core-settings` when core also selects it. |
 | `tcp-connect-timeout-ms` | no | `30000` | Deadline for the active TCP open. On expiry the line is closed toward the previous node. |
 | `max-pending-bytes` | no | `262144` | Pending-data budget before connection establishment or while lwIP's send window is full. Valid range `1024` .. `67108864`. Admission also allows a fixed 1 MiB of delivery headroom; passing the combined bound sheds that flow. |
 
@@ -181,13 +181,70 @@ Example:
   "settings": {
     "source-ipv4": "10.90.0.1",
     "mtu": 1420,
-    "domain-strategy": "only-ipv4",
+    "dns-behaviour": {"resolve": true, "strategy": "only-ipv4"},
     "tcp-connect-timeout-ms": 30000,
     "max-pending-bytes": 262144
   },
   "next": "wireguard-device"
 }
 ```
+
+## DNS behaviour
+
+Resolving a hostname means looking up the IPv4 address needed to open the TCP or
+UDP flow. This node first selects its target from `target-address`, `port`, or the
+incoming destination. It performs a lookup only if the selected address is an
+unresolved hostname and local resolution is enabled. A literal IPv4 address or a
+destination already resolved to IPv4 needs no lookup. IPv6 is not supported.
+
+Without `dns-behaviour`, local resolution is enabled in `native` mode with the
+`only-ipv4` address strategy.
+
+Configure this lookup with `settings.dns-behaviour`:
+
+```json
+{
+  "dns-behaviour": {
+    "resolve": true,
+    "mode": "direct",
+    "strategy": "only-ipv4",
+    "servers": ["203.0.113.53:53"]
+  }
+}
+```
+
+The address is a documentation placeholder; replace it with your resolver.
+
+| Field | Meaning |
+| --- | --- |
+| `resolve` | Required boolean: `true` allows lookup of unresolved hostnames; `false` disables local lookup. |
+| `mode` | `native` (default when enabled), `direct`, or `chain`. |
+| `strategy` | `only-ipv4` (default), or `core-settings` when core also selects `only-ipv4`. Other strategies are rejected. |
+| `servers` | 1–32 numeric IP, IP:port or [IPv6]:port endpoints; required for direct/chain and rejected for native. |
+| `dns-next` | Nonempty DNS-entry name for chain only. |
+
+`native` uses core DNS settings and the worker's shared resolver. It is the default
+DNS transport when local resolution is enabled.
+
+`direct` sends DNS queries through a private WaterWall TCP/UDP connector to the
+servers you specify.
+
+`chain` sends DNS queries through a selected chain. Use a path with encryption,
+such as your VPN, to protect those queries; the mode alone does not encrypt them.
+The DNS path must carry both UDP queries and TCP fallback. A route or lookup
+failure does not switch to native DNS or another mode.
+
+For `chain`, set `dns-next` to the name of a separate DNS branch that supports
+both UDP and TCP. The branch must not already belong to another node. This node
+has no default DNS branch; naming this node itself is not allowed.
+
+The disabled form is exactly `"dns-behaviour": {"resolve": false}`. It rejects `mode`, `strategy`, `servers` and `dns-next`. Empty/null/non-object policies, unknown fields and numeric strategies are rejected. Strategy names use the canonical lowercase strings above. `core-settings` chooses address preference only and never changes DNS transport.
+
+With `resolve: false`, destination preparation still runs. Numeric IPv4 addresses or destinations already resolved to IPv4 work; unresolved hostnames fail through the normal line/datagram path without an OS/native DNS fallback.
+
+When enabled, the effective strategy must be `only-ipv4`; `core-settings` is accepted only when core also selects it. This node requires explicit `dns-next` in chain mode.
+
+See [DomainResolver](../../WaterWall-Docs/docs/02-noderefs/DomainResolver.mdx) for native, direct and protected-chain configuration examples and core option limits. This policy controls lookups owned by this node; it does not configure PTC fake DNS, TunDevice system DNS or every DNS source in the program.
 
 ## Destination And Protocol Selection
 
@@ -201,8 +258,9 @@ Protocol selection is deliberately identical to `TcpUdpConnector`, so both nodes
 `dest_context->...` value, to keep that part of the incoming destination context. `source-ipv4` remains the virtual
 source of emitted packets; it does not select the destination.
 
-The internal `DomainResolver` applies these settings once in its prepare hook, before DNS. A configured domain is
-resolved just like an incoming domain; the node consumes the resolved address without reapplying the settings.
+These destination settings are applied once, before any optional DNS lookup. With local resolution enabled, an
+unresolved selected hostname is looked up whether it came from configuration or the incoming destination. The node
+uses the resulting IPv4 address without applying the destination settings again.
 The destination must have an address and nonzero port before a flow can open. A plain `TcpListener` supplies the
 source TCP protocol, so fixed forwarding does not require SOCKS:
 
@@ -458,7 +516,6 @@ response limit, working-memory allowance and deadline. A malformed body returns
 `expected_empty_object` when an error response fits those bounds; a refused result
 can have an empty body. Use per-pool count refusals, shared byte refusals and port
 refusals to identify which resource needs attention before changing a limit.
-
 
 ## Composition Notes
 

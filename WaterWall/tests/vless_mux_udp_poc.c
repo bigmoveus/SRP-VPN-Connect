@@ -334,7 +334,7 @@ int main(void) {
   char nodes[32768];
   const char *router =
       bgp4 ? "{\"name\":\"router\",\"type\":\"Router\",\"settings\":{"
-             "\"resolve-domains\":false},\"next\":\"vless\"},"
+             "},\"next\":\"vless\"},"
            : "";
   const char *outer =
       bgp4 ? "{\"name\":\"bgp4\",\"type\":\"Bgp4Client\",\"settings\":{},"
@@ -371,9 +371,7 @@ int main(void) {
         "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{"
         "\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":"
         "\"%s\",\"port\":%u,"
-        "\"protocol\":\"%s\",\"verbose\":true,\"domain-strategy\":\"do-not-"
-        "resolve-"
-        "domains\"},\"next\":\"%s\"},%s"
+        "\"protocol\":\"%s\",\"verbose\":true},\"next\":\"%s\"},%s"
         "{\"name\":\"out\",\"type\":\"%s\",\"settings\":{"
         "\"address\":\"127.0.0.1\",\"port\":%u,"
         "\"nodelay\":true}}]}",

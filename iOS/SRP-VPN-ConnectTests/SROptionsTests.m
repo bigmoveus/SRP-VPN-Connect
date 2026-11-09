@@ -67,6 +67,9 @@
 
 @interface UIViewController (SRPWaterWallConfigTesting)
 - (void)applicationChanged:(NSString *)application;
+- (void)dnsModeChanged:(NSString *)mode;
+- (void)dnsStrategyChanged:(NSString *)strategy;
+- (void)commitDNSServers;
 @end
 
 @interface UIViewController (SRPWaterWallNodeOptionsTesting)
@@ -888,7 +891,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     NSDictionary *router = byName[@"router"][@"settings"];
     XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
     XCTAssertNotNil(byName[@"ptc"][@"settings"][@"fake-dns"]);
-    XCTAssertEqualObjects(router[@"resolve-domains"], @YES);
+    XCTAssertEqualObjects(router[@"dns-behaviour"], (@{@"resolve": @YES}));
     XCTAssertEqualObjects(router[@"geoip-db-path"], path);
     NSArray *rules = router[@"rules"];
     XCTAssertEqual(rules.count, 2u);
@@ -907,7 +910,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     root = [self waterWallRootForConfiguration:[SRPWaterWallChainConfig defaultConfiguration] options:nil];
     router = [self waterWallNodesByName:root[@"nodes"]][@"router"][@"settings"];
     XCTAssertNil(router[@"rules"]);
-    XCTAssertEqualObjects(router[@"resolve-domains"], @NO);
+    XCTAssertNil(router[@"dns-behaviour"]);
     configuration[@"mode"] = @"direct";
     XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
     configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
@@ -933,8 +936,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     }];
     NSDictionary *byName = [self waterWallNodesByName:root[@"nodes"]];
     NSDictionary *router = byName[@"router"][@"settings"];
-    XCTAssertEqualObjects(router[@"resolve-domains"], @YES);
-    XCTAssertEqual(CFGetTypeID((__bridge CFTypeRef)router[@"resolve-domains"]), CFBooleanGetTypeID());
+    XCTAssertEqualObjects(router[@"dns-behaviour"][@"resolve"], @YES);
+    XCTAssertEqual(CFGetTypeID((__bridge CFTypeRef)router[@"dns-behaviour"][@"resolve"]), CFBooleanGetTypeID());
     XCTAssertEqual([router[@"rules"] count], 2u);
     XCTAssertEqualObjects(router[@"rules"][0][@"destination-ip"], (@[@"geoip:ir"]));
     XCTAssertEqualObjects(router[@"rules"][1][@"destination-ip"], (@[@"geoip:us"]));
@@ -948,9 +951,118 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     root = [self waterWallRootForConfiguration:configuration options:nil];
     byName = [self waterWallNodesByName:root[@"nodes"]];
     router = byName[@"router"][@"settings"];
-    XCTAssertEqualObjects(router[@"resolve-domains"], @NO);
+    XCTAssertNil(router[@"dns-behaviour"]);
     XCTAssertNil(router[@"rules"]);
     XCTAssertNil(byName[@"direct-local"]);
+}
+
+- (void)testWaterWallDNSResolverSectionSavesTheResolver {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
+    model.server = @"server.example.com";
+    model.password = @"00000000-0000-4000-8000-000000000000";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
+    UITableViewController *screen = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
+    [screen loadViewIfNeeded];
+    NSDictionary *(^saved)(void) = ^NSDictionary *{ return [SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON]; };
+    UITableViewCell *(^cell)(NSInteger) = ^UITableViewCell *(NSInteger row) {
+        return [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:3]];
+    };
+    XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 4);
+    XCTAssertEqualObjects([screen tableView:screen.tableView titleForHeaderInSection:3], @"DNS RESOLVER");
+    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 1);
+    XCTAssertEqualObjects(cell(0).textLabel.text, @"Resolver");
+    XCTAssertEqualObjects(cell(0).detailTextLabel.text, @"Off");
+    XCTAssertNil(saved()[@"domain-resolver"]);
+
+    // Through the VPN starts with two public servers and adds Addresses and DNS Servers
+    [screen dnsModeChanged:@"chain"];
+    XCTAssertEqualObjects(saved()[@"domain-resolver"], (@{@"mode": @"chain", @"servers": @[@"1.1.1.1", @"8.8.8.8"]}));
+    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 3);
+    XCTAssertEqualObjects(cell(0).detailTextLabel.text, @"Through the VPN");
+    XCTAssertEqualObjects(cell(1).detailTextLabel.text, @"Default (IPv4 First)");
+    [screen dnsStrategyChanged:@"only-ipv4"];
+    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"strategy"], @"only-ipv4");
+    XCTAssertEqualObjects(cell(1).detailTextLabel.text, @"IPv4 Only");
+    UITextField *field = (UITextField *)cell(2).accessoryView;
+    XCTAssertEqualObjects(field.text, @"1.1.1.1, 8.8.8.8");
+    field.text = @"9.9.9.9 [2620:fe::fe]:53,\n149.112.112.112";
+    [screen commitDNSServers];
+    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"servers"], (@[@"9.9.9.9", @"[2620:fe::fe]:53", @"149.112.112.112"]));
+    // A name is no server address: the screen says why and keeps the saved list
+    field.text = @"dns.google";
+    [screen commitDNSServers];
+    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"servers"], (@[@"9.9.9.9", @"[2620:fe::fe]:53", @"149.112.112.112"]));
+    [screen dismissViewControllerAnimated:NO completion:nil];
+
+    // Native asks the phone's network and has no server list; Off takes the resolver out
+    [screen dnsModeChanged:@"native"];
+    XCTAssertEqualObjects(saved()[@"domain-resolver"], (@{@"mode": @"native", @"strategy": @"only-ipv4"}));
+    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 2);
+    [screen dnsModeChanged:@"off"];
+    XCTAssertNil(saved()[@"domain-resolver"]);
+    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 1);
+}
+
+- (void)testWaterWallDNSResolverOptionAndDNSBehaviourMigration {
+    // Profiles saved before WaterWall 1.5.4 keep their resolution under dns-behaviour, which replaced domain-strategy
+    NSDictionary *legacy = [self waterWallConfigurationWithInput:@"connections" application:@"vless" mux:NO outer:@"tls"
+                                                      nodeOptions:@{@"application": @{@"domain-strategy": @"resolve-domains-and-use-only-ipv4", @"verbose": @YES}}];
+    NSDictionary *migrated = [SRPWaterWallChainConfig configurationWithJSON:[SRPWaterWallChainConfig JSONWithConfiguration:legacy]];
+    XCTAssertEqualObjects(migrated[@"node-options"][@"application"], (@{@"dns-behaviour": @{@"resolve": @YES, @"strategy": @"only-ipv4"}, @"verbose": @YES}));
+    NSDictionary *byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:legacy options:nil][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"vless"][@"settings"][@"dns-behaviour"], (@{@"resolve": @YES, @"strategy": @"only-ipv4"}));
+    NSDictionary *plain = [self waterWallConfigurationWithInput:@"connections" application:@"vless" mux:NO outer:@"tls"
+                                                     nodeOptions:@{@"application": @{@"domain-strategy": @"do-not-resolve-domains"}}];
+    XCTAssertNil([SRPWaterWallChainConfig configurationWithJSON:[SRPWaterWallChainConfig JSONWithConfiguration:plain]][@"node-options"][@"application"]);
+    NSMutableDictionary *geoIP = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    geoIP[@"geoip"] = @{@"countries": @[@"IR"]};
+    NSString *nodes = [SRPWaterWallChainConfig nodesJSONForConfiguration:geoIP server:@"waterwall.example.com" port:443 sni:nil verifyTLS:YES
+                                                                  secret:@"00112233-4455-6677-8899-aabbccddeeff" outerSecret:nil
+                                                                 options:@{@"ww_smart_routing": @YES, @"ww_geoip_db_path": @"/tmp/GeoLite2-Country.mmdb"}];
+    XCTAssertFalse([nodes containsString:@"domain-strategy"]);
+    XCTAssertFalse([nodes containsString:@"resolve-domains"]);
+
+    // Through the VPN: the resolver sits before the Router, whose first rule sends its queries to the application
+    NSMutableDictionary *configuration = [geoIP mutableCopy];
+    configuration[@"domain-resolver"] = @{@"mode": @"chain", @"strategy": @"prefer-ipv4", @"servers": @[@"1.1.1.1", @"[2606:4700:4700::1111]:53"]};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration]);
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:[SRPWaterWallChainConfig JSONWithConfiguration:configuration]], configuration);
+    byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:@{@"ww_geoip_db_path": @"/tmp/GeoLite2-Country.mmdb"}][@"nodes"]];
+    XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"resolver");
+    XCTAssertEqualObjects(byName[@"resolver"][@"type"], @"DomainResolver");
+    XCTAssertEqualObjects(byName[@"resolver"][@"next"], @"router");
+    XCTAssertEqualObjects(byName[@"resolver"][@"settings"], configuration[@"domain-resolver"]);
+    NSDictionary *router = byName[@"router"][@"settings"];
+    XCTAssertNil(router[@"dns-behaviour"]);
+    XCTAssertEqualObjects(router[@"rules"][0], (@{@"resolver-dns": @YES, @"target": @"vless"}));
+    XCTAssertEqualObjects(router[@"rules"][1][@"destination-ip"], (@[@"geoip:ir"]));
+    // Direct DNS needs no Router rule, and nothing goes to the direct connector without routing
+    [configuration removeObjectForKey:@"geoip"];
+    configuration[@"domain-resolver"] = @{@"mode": @"direct", @"servers": @[@"9.9.9.9"]};
+    byName = [self waterWallNodesByName:[self waterWallRootForConfiguration:configuration options:nil][@"nodes"]];
+    XCTAssertNil(byName[@"router"][@"settings"][@"rules"]);
+    XCTAssertNil(byName[@"direct-local"]);
+    XCTAssertEqualObjects(byName[@"resolver"][@"settings"], configuration[@"domain-resolver"]);
+
+    for (NSDictionary *resolver in @[@{@"mode": @"native", @"servers": @[@"1.1.1.1"]}, @{@"mode": @"direct"}, @{@"mode": @"chain", @"servers": @[@"dns.google"]},
+                                     @{@"mode": @"chain", @"servers": @[@"fe80::1%en0"]}, @{@"mode": @"chain", @"servers": @[@"01.1.1.1"]},
+                                     @{@"mode": @"direct", @"servers": @[@"1.1.1.1:0"]}, @{@"mode": @"chain", @"servers": @[@"1.1.1.1"], @"dns-next": @"vless"},
+                                     @{@"mode": @"other"}, @{@"strategy": @"ipv4"}]) {
+        configuration[@"domain-resolver"] = resolver;
+        XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:configuration], @"%@", resolver);
+    }
+    NSMutableDictionary *raw = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+    raw[@"input"] = @"raw-ipv4";
+    raw[@"application"] = @"";
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:raw]);
+    raw[@"domain-resolver"] = @{@"mode": @"native"};
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:raw]);
+    NSMutableDictionary *httpProxy = [[self waterWallConfigurationWithApplication:@"http-proxy" mux:NO outer:@"tls"] mutableCopy];
+    httpProxy[@"domain-resolver"] = @{@"mode": @"chain", @"servers": @[@"1.1.1.1"]};
+    XCTAssertNotNil([SRPWaterWallChainConfig validationErrorForConfiguration:httpProxy]);
+    httpProxy[@"domain-resolver"] = @{@"mode": @"direct", @"servers": @[@"1.1.1.1"]};
+    XCTAssertNil([SRPWaterWallChainConfig validationErrorForConfiguration:httpProxy]);
 }
 
 - (void)testGeoIPDatabaseValidationAndAtomicReplacement {
@@ -1063,7 +1175,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
         @[@"quic", @"outer", @"carrier-mode", @[], @"carrier-mode"],
         @[@"tls", @"application", @"protocol", @{}, @"protocol"],
         @[@"tls", @"application", @"proto", @1, @"proto"],
-        @[@"tls", @"application", @"domain-strategy", @[], @"domain-strategy"],
+        @[@"tls", @"application", @"dns-behaviour", @[], @"dns-behaviour"],
         @[@"reality", @"outer", @"algorithm", @YES, @"algorithm"],
         @[@"reality", @"outer", @"method", @{}, @"method"],
         @[@"aead", @"outer", @"salt", @[], @"salt"],
@@ -5821,6 +5933,16 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
                                                                                      completion:^(NSSet<NSString *> *codes) {}]
                           animated:NO];
     shoot(nil, @"geoip-countries");
+    [navigation popToRootViewControllerAnimated:NO];
+
+    NodeModel *resolver = profile(@"Example: VLESS + TLS", @{@"domain-resolver": @{@"mode": @"chain", @"servers": @[@"1.1.1.1", @"8.8.8.8"]}});
+    UITableViewController *resolverScreen = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:resolver];
+    [navigation pushViewController:resolverScreen animated:NO];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.4]];
+    [self scrollTableToEnd:resolverScreen.tableView];
+    shoot(nil, @"waterwall-dns-resolver");
+    [resolverScreen tableView:resolverScreen.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3]];
+    shoot(nil, @"waterwall-dns-resolver-mode");
 
     CreateVC *realityHost = [self profileEditorHostForModel:reality saved:[NSMutableArray new]];
     shoot(realityHost, @"profile-editor-reality");

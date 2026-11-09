@@ -13,8 +13,7 @@ static bool socks5clientCreateInternalDomainResolver(tunnel_t *t, node_t *node)
         return true;
     }
 
-    ts->domain_resolver_settings = cJSON_CreateObject();
-    cJSON_AddNumberToObject(ts->domain_resolver_settings, "strategy", (double) ts->domain_strategy);
+    ts->domain_resolver_settings = dnsPolicyCreateResolverSettings(&ts->dns_policy);
 
     if (! nodeConfigureChild(&ts->domain_resolver_node,
                              nodeDomainResolverGet(),
@@ -196,67 +195,18 @@ static bool parseCredentials(socks5client_tstate_t *ts, const cJSON *settings)
     return true;
 }
 
-static bool parseDomainStrategy(socks5client_tstate_t *ts, const cJSON *settings)
+static bool parseDnsBehaviour(socks5client_tstate_t *ts, const cJSON *settings)
 {
-    const cJSON *strategy_json = cJSON_GetObjectItemCaseSensitive(settings, "domain-strategy");
-
-    ts->resolve_domains = false;
-    ts->domain_strategy = kDsInvalid;
-
-    if (strategy_json == NULL)
-    {
-        return true;
-    }
-
-    if (! cJSON_IsString(strategy_json) || strategy_json->valuestring == NULL || strategy_json->valuestring[0] == '\0')
-    {
-        LOGF("JSON Error: Socks5Client->settings->domain-strategy must be a non-empty string");
+    const dns_policy_defaults_t defaults = {
+        .resolve       = false,
+        .strategy      = kDsInvalid,
+        .core_strategy = GSTATE.domain_strategy,
+    };
+    if (! dnsPolicyParseSettings(&ts->dns_policy, settings, &defaults, "Socks5Client->settings->dns-behaviour"))
         return false;
-    }
-
-    const char *strategy = strategy_json->valuestring;
-
-    if (stricmp(strategy, "do-not-resolve-domains") == 0)
-    {
-        ts->resolve_domains = false;
-        return true;
-    }
-
-    ts->resolve_domains = true;
-
-    if (stricmp(strategy, "resolve-domains-with-core-settings") == 0)
-    {
-        ts->domain_strategy = GSTATE.domain_strategy;
-        return true;
-    }
-    if (stricmp(strategy, "resolve-domains-and-accept-dns-returned-order") == 0)
-    {
-        ts->domain_strategy = kDsInvalid;
-        return true;
-    }
-    if (stricmp(strategy, "resolve-domains-and-prefer-ipv4") == 0)
-    {
-        ts->domain_strategy = kDsPreferIpV4;
-        return true;
-    }
-    if (stricmp(strategy, "resolve-domains-and-prefer-ipv6") == 0)
-    {
-        ts->domain_strategy = kDsPreferIpV6;
-        return true;
-    }
-    if (stricmp(strategy, "resolve-domains-and-use-only-ipv4") == 0)
-    {
-        ts->domain_strategy = kDsOnlyIpV4;
-        return true;
-    }
-    if (stricmp(strategy, "resolve-domains-and-use-only-ipv6") == 0)
-    {
-        ts->domain_strategy = kDsOnlyIpV6;
-        return true;
-    }
-
-    LOGF("JSON Error: Socks5Client->settings->domain-strategy has an unsupported value");
-    return false;
+    ts->resolve_domains = ts->dns_policy.resolve;
+    ts->domain_strategy = ts->dns_policy.strategy;
+    return true;
 }
 
 tunnel_t *socks5clientTunnelCreate(node_t *node)
@@ -295,7 +245,7 @@ tunnel_t *socks5clientTunnelCreate(node_t *node)
     getBoolFromJsonObjectOrDefault(&ts->verbose, settings, "verbose", false);
 
     if (! parseTargetAddress(ts, settings) || ! parseTargetPort(ts, settings) || ! parseProtocol(ts, settings) ||
-        ! parseCredentials(ts, settings) || ! parseDomainStrategy(ts, settings))
+        ! parseCredentials(ts, settings) || ! parseDnsBehaviour(ts, settings))
     {
         socks5clientTunnelstateDestroy(ts);
         tunnelDestroy(t);

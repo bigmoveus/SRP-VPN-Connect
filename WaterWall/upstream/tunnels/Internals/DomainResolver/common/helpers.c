@@ -114,10 +114,10 @@ static void domainresolverOnDnsResolved(tunnel_t *t, line_t *l, void *userdata, 
         return;
     }
 
-    domainresolver_tstate_t   *ts        = tunnelGetState(t);
-    address_context_t         *dest_ctx  = lineGetDestinationAddressContext(l);
-    char                       domain_buf[256];
-    const char                *domain = domainresolverCopyDomainForLog(dest_ctx, domain_buf);
+    domainresolver_tstate_t *ts       = tunnelGetState(t);
+    address_context_t       *dest_ctx = lineGetDestinationAddressContext(l);
+    char                     domain_buf[256];
+    const char              *domain = domainresolverCopyDomainForLog(dest_ctx, domain_buf);
 
     if (status != ARES_SUCCESS || naddrs == 0)
     {
@@ -153,6 +153,9 @@ bool domainresolverStartResolveIfNeeded(tunnel_t *t, line_t *l, domainresolver_l
 
     *started_out = false;
 
+    if (! ts->resolve)
+        return true;
+
     if (addresscontextIsIpType(dest_ctx) || addresscontextIsDomainResolved(dest_ctx))
     {
         return true;
@@ -182,7 +185,7 @@ bool domainresolverStartResolveIfNeeded(tunnel_t *t, line_t *l, domainresolver_l
     ls->phase = kDomainResolverPhaseResolving;
 
     *started_out = true;
-    int rc       = lineResolveDomainServiceAsync(l, domain, NULL, socktype, domainresolverOnDnsResolved, t, NULL);
+    int rc       = domainresolverTunnelResolve(t, l, domain, NULL, socktype, domainresolverOnDnsResolved, t, NULL);
     if (UNLIKELY(rc != ARES_SUCCESS))
     {
         *started_out = false;
@@ -215,7 +218,7 @@ bool domainresolverQueuePayload(tunnel_t *t, line_t *l, domainresolver_lstate_t 
  * is reached through prev; this borrowed line is never destroyed here. */
 void domainresolverCloseLine(tunnel_t *t, line_t *l)
 {
-    domainresolver_lstate_t *ls = lineGetState(l, t);
+    domainresolver_lstate_t *ls       = lineGetState(l, t);
     bool                     was_open = ls->phase == kDomainResolverPhaseOpen;
     lineRef(l);
     domainresolverLinestateDestroy(t, l, ls);

@@ -21,6 +21,7 @@
 @property (nonatomic, copy) NSDictionary *configuration;
 @property (nonatomic, copy) NSString *geoIPURLDraft;
 @property (nonatomic, strong) UITextField *geoIPURLField;
+@property (nonatomic, strong) UITextField *dnsServersField;
 @property (nonatomic) BOOL geoIPUpdateInFlight;
 @property (nonatomic) NSUInteger geoIPUpdateGeneration;
 
@@ -390,8 +391,8 @@
         configuration[@"bgp4"] = @NO;
         [configuration removeObjectForKey:@"packet-encryption"];
     } else {
-        [configuration removeObjectsForKeys:@[@"input", @"application", @"mux", @"outer", @"http",
-                                               @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"geoip", @"bgp4", @"packet-encryption"]];
+        [configuration removeObjectsForKeys:@[@"input", @"application", @"mux", @"outer", @"http", @"http-version", @"obfuscator",
+                                               @"carrier", @"quic-carrier", @"geoip", @"bgp4", @"packet-encryption", @"domain-resolver"]];
     }
     [self applyConfiguration:configuration];
     [self.tableView reloadData];
@@ -404,7 +405,7 @@
     [options removeObjectsForKeys:@[@"packet", @"application", @"mux"]];
     configuration[@"node-options"] = options;
     configuration[@"input"] = raw ? @"raw-ipv4" : @"connections";
-    if (raw) [configuration removeObjectForKey:@"geoip"];
+    if (raw) [configuration removeObjectsForKeys:@[@"geoip", @"domain-resolver"]];
     else [configuration removeObjectForKey:@"packet-encryption"];
     configuration[@"application"] = raw ? @"" :
         ([configuration[@"application"] length] > 0 ? configuration[@"application"] : @"vless");
@@ -550,6 +551,103 @@
     [self.tableView reloadData];
 }
 
+- (NSString *)dnsMode {
+    NSDictionary *resolver = self.configuration[@"domain-resolver"];
+    return resolver == nil ? @"off" : resolver[@"mode"] ?: @"native";
+}
+
+- (NSArray<NSString *> *)dnsRows {
+    NSString *mode = [self dnsMode];
+    if ([mode isEqualToString:@"off"]) return @[@"dns-mode"];
+    return [mode isEqualToString:@"native"] ? @[@"dns-mode", @"dns-strategy"] : @[@"dns-mode", @"dns-strategy", @"dns-servers"];
+}
+
++ (NSArray<NSArray<NSString *> *> *)dnsModeChoices {
+    return @[@[@"off", @"Off"], @[@"native", @"Native"], @[@"direct", @"Direct"], @[@"chain", @"Through the VPN"]];
+}
+
++ (NSArray<NSArray<NSString *> *> *)dnsStrategyChoices {
+    return @[@[@"core-settings", @"Default (IPv4 First)"], @[@"prefer-ipv4", @"IPv4 First"], @[@"prefer-ipv6", @"IPv6 First"],
+             @[@"only-ipv4", @"IPv4 Only"], @[@"only-ipv6", @"IPv6 Only"], @[@"accept-dns-returned-order", @"As the Server Returns"]];
+}
+
++ (NSString *)titleForChoice:(NSString *)value in:(NSArray<NSArray<NSString *> *> *)choices {
+    for (NSArray<NSString *> *choice in choices) if ([choice[0] isEqualToString:value]) return choice[1];
+    return value;
+}
+
+- (void)dnsModeChanged:(NSString *)mode {
+    NSMutableDictionary *configuration = [self.configuration mutableCopy];
+    if ([mode isEqualToString:@"off"]) {
+        [configuration removeObjectForKey:@"domain-resolver"];
+    } else {
+        NSMutableDictionary *resolver = [self.configuration[@"domain-resolver"] mutableCopy] ?: [NSMutableDictionary new];
+        resolver[@"mode"] = mode;
+        if ([mode isEqualToString:@"native"]) [resolver removeObjectForKey:@"servers"];
+        else if ([resolver[@"servers"] count] == 0) resolver[@"servers"] = @[@"1.1.1.1", @"8.8.8.8"];
+        configuration[@"domain-resolver"] = resolver;
+    }
+    [self applyConfiguration:configuration];
+    [self.tableView reloadData];
+}
+
+- (void)dnsStrategyChanged:(NSString *)strategy {
+    NSMutableDictionary *resolver = [self.configuration[@"domain-resolver"] mutableCopy];
+    if (resolver == nil) return;
+    // The default is WaterWall's own: the core's IPv4-first setting
+    if ([strategy isEqualToString:@"core-settings"]) [resolver removeObjectForKey:@"strategy"];
+    else resolver[@"strategy"] = strategy;
+    NSMutableDictionary *configuration = [self.configuration mutableCopy];
+    configuration[@"domain-resolver"] = resolver;
+    [self applyConfiguration:configuration];
+    [self.tableView reloadData];
+}
+
+// Commas, spaces or new lines separate the servers. A list that is not allowed shows why and keeps the saved one.
+- (void)commitDNSServers {
+    NSMutableDictionary *resolver = [self.configuration[@"domain-resolver"] mutableCopy];
+    if (resolver == nil || self.dnsServersField == nil) return;
+    NSMutableArray<NSString *> *servers = [NSMutableArray new];
+    for (NSString *part in [self.dnsServersField.text componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@", \n"]]) {
+        if (part.length > 0) [servers addObject:part];
+    }
+    if ([servers isEqualToArray:resolver[@"servers"]]) return;
+    resolver[@"servers"] = servers;
+    NSMutableDictionary *configuration = [self.configuration mutableCopy];
+    configuration[@"domain-resolver"] = resolver;
+    [self applyConfiguration:configuration];
+}
+
+- (UITableViewCell *)dnsCellForRow:(NSString *)row {
+    if ([row isEqualToString:@"dns-servers"]) {
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+        cell.textLabel.text = @"DNS Servers";
+        UITextField *field = [[UITextField alloc] initWithFrame:CGRectMake(0, 0, 210, 36)];
+        field.placeholder = @"1.1.1.1, 8.8.8.8";
+        field.text = [self.configuration[@"domain-resolver"][@"servers"] componentsJoinedByString:@", "];
+        field.keyboardType = UIKeyboardTypeNumbersAndPunctuation;
+        field.autocorrectionType = UITextAutocorrectionTypeNo;
+        field.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        field.returnKeyType = UIReturnKeyDone;
+        field.textAlignment = NSTextAlignmentRight;
+        field.delegate = self;
+        field.accessibilityIdentifier = @"WWDNSServers";
+        cell.accessoryView = field;
+        self.dnsServersField = field;
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        return cell;
+    }
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:nil];
+    BOOL mode = [row isEqualToString:@"dns-mode"];
+    cell.textLabel.text = mode ? @"Resolver" : @"Addresses";
+    cell.detailTextLabel.text = mode ? [SRPWaterWallConfigViewController titleForChoice:[self dnsMode] in:[SRPWaterWallConfigViewController dnsModeChoices]] :
+        [SRPWaterWallConfigViewController titleForChoice:self.configuration[@"domain-resolver"][@"strategy"] ?: @"core-settings"
+                                                       in:[SRPWaterWallConfigViewController dnsStrategyChoices]];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    cell.accessibilityIdentifier = mode ? @"WWDNSMode" : @"WWDNSStrategy";
+    return cell;
+}
+
 - (NSArray<NSString *> *)geoIPRows {
     NSMutableArray<NSString *> *rows = [NSMutableArray arrayWithObjects:@"geoip-enabled", @"countries", nil];
     [rows addObjectsFromArray:@[@"database", @"update-url", @"upload", @"download"]];
@@ -658,6 +756,7 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
     if (textField == self.geoIPURLField) [self commitGeoIPURL];
+    else if (textField == self.dnsServersField) [self commitDNSServers];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
@@ -838,12 +937,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if ([SRPWaterWallChainConfig isWireGuardConfiguration:self.configuration]) return 1;
-    return [self isChain] && [self usesConnections] ? 3 : 2;
+    return [self isChain] && [self usesConnections] ? 4 : 2;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0) return @"CONFIGURATION";
-    return section == 1 ? @"ADVANCED NODE SETTINGS" : @"GEOIP ROUTING";
+    return section == 1 ? @"ADVANCED NODE SETTINGS" : section == 2 ? @"GEOIP ROUTING" : @"DNS RESOLVER";
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
@@ -859,15 +958,23 @@
         return @"Build the connection chain by selecting each layer independently.";
     }
     if (section == 1) return @"Optional per-node JSON objects. Leave them empty to use WaterWall defaults.";
+    if (section == 3) {
+        NSString *mode = [self dnsMode];
+        if ([mode isEqualToString:@"native"]) return @"WaterWall looks names up before routing, with the DNS of the network the phone is on, outside the VPN.";
+        if ([mode isEqualToString:@"direct"]) return @"WaterWall looks names up before routing, by asking these DNS servers directly, outside the VPN.";
+        if ([mode isEqualToString:@"chain"]) return @"WaterWall looks names up before routing, by asking these DNS servers through the VPN; the server must reach them. GeoIP routing then sees the real addresses.";
+        return @"Off: the server looks up the names the phone asks for. GeoIP routing still looks them up on the phone, with the network's DNS.";
+    }
     return @"GeoLite2 Country data by MaxMind. Uploaded and downloaded files are validated before atomic replacement. Selected-country matches use a direct TCP/UDP connector; other destinations use the proxy chain. Fake-IP resolution happens before routing.";
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) return [self configurationRows].count;
-    return section == 1 ? [self advancedLayers].count : [self geoIPRows].count;
+    return section == 1 ? [self advancedLayers].count : section == 2 ? [self geoIPRows].count : [self dnsRows].count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 3) return [self dnsCellForRow:[self dnsRows][indexPath.row]];
     if (indexPath.section == 2) return [self geoIPCellForRow:[self geoIPRows][indexPath.row]];
     if (indexPath.section == 1) {
         NSString *layer = [self advancedLayers][indexPath.row];
@@ -976,6 +1083,22 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.section == 3) {
+        NSString *row = [self dnsRows][indexPath.row];
+        if ([row isEqualToString:@"dns-servers"]) return;
+        __weak SRPWaterWallConfigViewController *weakSelf = self;
+        BOOL mode = [row isEqualToString:@"dns-mode"];
+        SRPWaterWallChoiceViewController *choice =
+            [[SRPWaterWallChoiceViewController alloc] initWithTitle:mode ? @"Resolver" : @"Addresses"
+                                                            choices:mode ? [SRPWaterWallConfigViewController dnsModeChoices] : [SRPWaterWallConfigViewController dnsStrategyChoices]
+                                                           selected:mode ? [self dnsMode] : self.configuration[@"domain-resolver"][@"strategy"] ?: @"core-settings"
+                                                         completion:^(NSString *value) {
+            if (mode) [weakSelf dnsModeChanged:value];
+            else [weakSelf dnsStrategyChanged:value];
+        }];
+        [self.navigationController pushViewController:choice animated:YES];
+        return;
+    }
     if (indexPath.section == 2) {
         NSString *row = [self geoIPRows][indexPath.row];
         if ([row isEqualToString:@"countries"]) [self beginGeoIPCountries];

@@ -24,10 +24,9 @@ void tryIncreasePipeLimit(uint64_t capacity_limit);
 uint32_t splicePipeCountLimit(uint64_t capacity_limit);
 
 /* Best-effort native Linux startup tuning: when splice is enabled, raise live
- * tcp_mem to 3:4:6 with pressure at one quarter of host RAM in system pages,
- * unless any threshold would decrease. Fixed 128 MiB socket/TCP buffer ceilings
- * apply even with splice disabled and remain independent of the RAM profile.
- * Failures never fail startup or prevent other settings. */
+ * tcp_mem to 3:4:6 with a maximum target of 15% of host RAM in system pages,
+ * rounded down to preserve the ratio, unless any threshold would decrease.
+ * Targets are independent of the RAM profile. Failures never fail startup. */
 void tryTuneTcp(bool splice_enabled);
 
 void tryEnableBbr(void);

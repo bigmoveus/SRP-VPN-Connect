@@ -59,6 +59,37 @@ import java.util.Locale
 
 private val OuterChoices = listOf("none" to "None", "tls" to "TLS", "reality" to "Reality", "aead" to "AEAD", "quic" to "QUIC", "bgp4" to "BGP4")
 private val ApplicationChoices = listOf("vless" to "VLESS", "vmess" to "VMess", "trojan" to "Trojan", "socks5" to "SOCKS5", "http-proxy" to "HTTP CONNECT")
+private val DnsModeChoices = listOf("off" to "Off", "native" to "Native", "direct" to "Direct", "chain" to "Through the VPN")
+private val DnsStrategyChoices = listOf("core-settings" to "Default (IPv4 First)", "prefer-ipv4" to "IPv4 First", "prefer-ipv6" to "IPv6 First",
+    "only-ipv4" to "IPv4 Only", "only-ipv6" to "IPv6 Only", "accept-dns-returned-order" to "As the Server Returns")
+
+private fun Map<String, Any?>.resolverOf(): LinkedHashMap<String, Any?>? {
+    @Suppress("UNCHECKED_CAST")
+    return (this["domain-resolver"] as? Map<String, Any?>)?.let { LinkedHashMap(it) }
+}
+
+private fun dnsModeOf(configuration: Map<String, Any?>): String = configuration.resolverOf()?.let { it["mode"] as? String ?: "native" } ?: "off"
+
+private fun dnsStrategyOf(configuration: Map<String, Any?>): String = configuration.resolverOf()?.get("strategy") as? String ?: "core-settings"
+
+private fun dnsServersOf(configuration: Map<String, Any?>): List<String> =
+    (configuration.resolverOf()?.get("servers") as? List<*>).orEmpty().filterIsInstance<String>()
+
+private fun changedDnsMode(configuration: Map<String, Any?>, mode: String): Map<String, Any?> {
+    val changed = LinkedHashMap(configuration)
+    if (mode == "off") return changed.apply { remove("domain-resolver") }
+    val resolver = configuration.resolverOf() ?: LinkedHashMap()
+    resolver["mode"] = mode
+    if (mode == "native") resolver.remove("servers") else if (dnsServersOf(configuration).isEmpty()) resolver["servers"] = listOf("1.1.1.1", "8.8.8.8")
+    return changed.apply { put("domain-resolver", resolver) }
+}
+
+private fun changedDnsStrategy(configuration: Map<String, Any?>, strategy: String): Map<String, Any?> {
+    val resolver = configuration.resolverOf() ?: return configuration
+    // The default is WaterWall's own: the core's IPv4-first setting
+    if (strategy == "core-settings") resolver.remove("strategy") else resolver["strategy"] = strategy
+    return LinkedHashMap(configuration).apply { put("domain-resolver", resolver) }
+}
 
 private fun Map<String, Any?>.optionsOf(): LinkedHashMap<String, Any?> {
     @Suppress("UNCHECKED_CAST")
@@ -170,6 +201,24 @@ fun WaterWallConfigPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edit
         return apply(changed)
     }
 
+    val storedServers = dnsServersOf(configuration).joinToString(", ")
+    var serversDraft by rememberSaveable(storedServers) { mutableStateOf(storedServers) }
+
+    /** Commas, spaces or new lines separate the servers. A list that is not allowed stays in the field, so that it can be corrected. */
+    fun commitServers(): Boolean {
+        val servers = serversDraft.split(',', ' ', '\n').filter { it.isNotEmpty() }
+        val resolver = configuration.resolverOf() ?: return true
+        if (servers == dnsServersOf(configuration)) return true
+        resolver["servers"] = servers
+        val changed = LinkedHashMap(configuration).apply { put("domain-resolver", resolver) }
+        val error = ChainConfig.validationError(changed)
+        if (error != null) {
+            ui.showAlert("DNS Resolver", error)
+            return false
+        }
+        return apply(changed)
+    }
+
     fun updateGeoIp(work: () -> Unit) = AppModel.updateGeoIp(work) { failure ->
         databaseInfo = database.info()
         ui.showAlert("GeoIP", failure ?: "The country database was validated and installed. Reconnect WaterWall to use the new file.")
@@ -204,7 +253,8 @@ fun WaterWallConfigPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edit
                                 "obfuscator" to false, "carrier" to "tcp", "quic-carrier" to "datagram", "bgp4" to false))
                             changed.remove("packet-encryption")
                         } else {
-                            listOf("input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "geoip", "bgp4", "packet-encryption").forEach { changed.remove(it) }
+                            listOf("input", "application", "mux", "outer", "http", "http-version", "obfuscator", "carrier", "quic-carrier", "geoip", "bgp4", "packet-encryption",
+                                "domain-resolver").forEach { changed.remove(it) }
                         }
                         apply(changed)
                     }
@@ -352,6 +402,23 @@ fun WaterWallConfigPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edit
                         }
                     }
                 }
+                val dnsMode = dnsModeOf(configuration)
+                val dnsFooter = when (dnsMode) {
+                    "native" -> "WaterWall looks names up before routing, with the DNS of the network the phone is on, outside the VPN."
+                    "direct" -> "WaterWall looks names up before routing, by asking these DNS servers directly, outside the VPN."
+                    "chain" -> "WaterWall looks names up before routing, by asking these DNS servers through the VPN; the server must reach them. GeoIP routing then sees the real addresses."
+                    else -> "Off: the server looks up the names the phone asks for. GeoIP routing still looks them up on the phone, with the network's DNS."
+                }
+                Section("DNS RESOLVER", dnsFooter) {
+                    row { ValueRow("Resolver", DnsModeChoices.first { it.first == dnsMode }.second) { push(EditorPage.Choice("dns-mode")) } }
+                    if (dnsMode != "off") {
+                        val strategy = dnsStrategyOf(configuration)
+                        row { ValueRow("Addresses", DnsStrategyChoices.firstOrNull { it.first == strategy }?.second ?: strategy) { push(EditorPage.Choice("dns-strategy")) } }
+                    }
+                    if (dnsMode == "direct" || dnsMode == "chain") {
+                        row { DnsServersRow(serversDraft, { serversDraft = it }) { commitServers() } }
+                    }
+                }
             }
             Spacer(Modifier.height(32.dp))
         }
@@ -365,7 +432,7 @@ private fun InputRow(usesConnections: Boolean, configuration: Map<String, Any?>,
         val changed = LinkedHashMap(configuration)
         changed["node-options"] = configuration.optionsOf().apply { listOf("packet", "application", "mux").forEach { remove(it) } }
         changed["input"] = if (raw) "raw-ipv4" else "connections"
-        if (raw) changed.remove("geoip") else changed.remove("packet-encryption")
+        if (raw) listOf("geoip", "domain-resolver").forEach { changed.remove(it) } else changed.remove("packet-encryption")
         changed["application"] = if (raw) "" else (configuration["application"] as? String)?.takeIf { it.isNotEmpty() } ?: "vless"
         changed["mux"] = if (raw) false else configuration["mux"] ?: false
         apply(changed)
@@ -426,27 +493,50 @@ private fun GeoIpUrlRow(text: String, inFlight: Boolean, onChange: (String) -> U
     }
 }
 
-/** The list behind the Application and Outer rows. */
+@Composable
+private fun DnsServersRow(text: String, onChange: (String) -> Unit, commit: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Label("DNS Servers")
+        Spacer(Modifier.width(12.dp))
+        InlineField(
+            text, "1.1.1.1, 8.8.8.8", false, KeyboardType.Ascii, true, TextAlign.End,
+            Modifier.weight(1f).onFocusChanged {
+                if (focused && !it.isFocused) commit()
+                focused = it.isFocused
+            },
+            "DNS Servers", commit, onChange,
+        )
+    }
+}
+
+/** The list behind the Application, Outer, Resolver and Addresses rows. */
 @Composable
 fun WaterWallChoicePage(row: String, draft: Profile, onChange: (Profile) -> Unit, onBack: () -> Unit) {
     val colors = LocalIosColors.current
     val ui = LocalUi.current
     val configuration = draft.configuration
-    val application = row == "application"
+    val (title, choices, selected) = when (row) {
+        "application" -> Triple("Application", ApplicationChoices, configuration["application"])
+        "outer" -> Triple("Outer", OuterChoices, configuration["outer"])
+        "dns-mode" -> Triple("Resolver", DnsModeChoices, dnsModeOf(configuration))
+        else -> Triple("Addresses", DnsStrategyChoices, dnsStrategyOf(configuration))
+    }
     Column(Modifier.fillMaxSize().background(colors.groupedBackground)) {
-        NavBar(if (application) "Application" else "Outer", left = { RoundBarButton(Glyph.Back, "Back", onClick = onBack) })
+        NavBar(title, left = { RoundBarButton(Glyph.Back, "Back", onClick = onBack) })
         Column(Modifier.weight(1f).navigationBarsPadding().verticalScroll(rememberScrollState())) {
             Section {
-                for ((value, title) in if (application) ApplicationChoices else OuterChoices) {
+                for ((value, name) in choices) {
                     row {
-                        CheckRow(title, checked = configuration[row] == value) {
-                            if (application) {
+                        CheckRow(name, checked = selected == value) {
+                            when (row) {
                                 // Picking the current application again keeps its UUID or password
-                                if (value != configuration["application"]) {
+                                "application" -> if (value != configuration["application"]) {
                                     applyConfiguration(changedApplication(configuration, value), draft.copy(username = "", password = ""), ui, onChange)
                                 }
-                            } else {
-                                applyConfiguration(changedOuter(configuration, value), draft, ui, onChange)
+                                "outer" -> applyConfiguration(changedOuter(configuration, value), draft, ui, onChange)
+                                "dns-mode" -> applyConfiguration(changedDnsMode(configuration, value), draft, ui, onChange)
+                                else -> applyConfiguration(changedDnsStrategy(configuration, value), draft, ui, onChange)
                             }
                             onBack()
                         }

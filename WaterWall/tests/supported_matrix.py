@@ -39,7 +39,7 @@ def advanced_specs():
     add("adv-vmess-counter-strict", "application", {"encrypted-counter-policy": "strict"})
     add("adv-vmess-no-termination", "application", {"send-termination": False})
     add("adv-vmess-packetaddr", "application", {
-        "packet-encoding": "packetaddr", "domain-strategy": "resolve-domains-and-use-only-ipv4"})
+        "packet-encoding": "packetaddr", "dns-behaviour": {"resolve": True, "strategy": "only-ipv4"}})
     add("adv-vmess-udp", "application", {"protocol": "udp"})
     # Each TCP connection reserves max-pending-bytes of the total: 32 here, the test opens about 10 at once.
     add("adv-packet-budget", "packet", {"max-pending-bytes": 8192, "max-total-pending-bytes": 262144})
@@ -79,6 +79,10 @@ def advanced_specs():
     result.append(spec("geoip-direct-country", "vless", "tls"))
     result.append(spec("geoip-default-proxy", "vless", "tls"))
     result.append(spec("geoip-multi-countries", "vless", "tls"))
+    # The DNS resolver option. SRP_TEST_DNS_SERVER names a DNS forwarder that logs who asks it (device_matrix.py checks it).
+    for mode in ("native", "direct", "chain"):
+        result.append(spec(f"dns-resolver-{mode}", "vless", "tls"))
+    result.append(spec("geoip-resolver-chain", "vless", "tls"))
     return result
 
 
@@ -120,8 +124,12 @@ def builder_input(item, port):
     if outer in ("reality", "aead"):
         entry["outerSecret"] = OUTER_SECRET
     if name.startswith("geoip-"):
-        configuration["geoip"] = {"countries": ["IR", "US", "TR"]} if name == "geoip-multi-countries" else {"countries": ["IR", "TR"] if name == "geoip-direct-country" else ["IR"]}
+        configuration["geoip"] = {"countries": ["IR", "US", "TR"]} if name == "geoip-multi-countries" else {"countries": ["IR", "TR"] if name in ("geoip-direct-country", "geoip-resolver-chain") else ["IR"]}
         entry["options"]["ww_geoip_db_path"] = str(GEO_DATABASE)
+    if name.startswith("dns-resolver-") or name == "geoip-resolver-chain":
+        mode = name.rsplit("-", 1)[1]
+        server = os.environ.get("SRP_TEST_DNS_SERVER", "9.9.9.9")
+        configuration["domain-resolver"] = {"mode": mode} if mode == "native" else {"mode": mode, "servers": [server]}
     return entry
 
 
@@ -197,10 +205,10 @@ class SupportedMatrix(Matrix):
                                                  (udp_public, "10.99.0.3"))]}, "next": "ptc"},
             {"name": "ptc", "type": "PacketsToConnection", "settings": {
                 "mtu": 1420, "max-pending-bytes": 65536, "max-total-pending-bytes": 4194304}, "next": "router"},
-            {"name": "router", "type": "Router", "settings": {"resolve-domains": False}, "next": "out"},
+            {"name": "router", "type": "Router", "settings": {}, "next": "out"},
             {"name": "out", "type": "TcpUdpConnector", "settings": {
                 "address": "dest_context->address", "port": "dest_context->port",
-                "domain-strategy": "prefer-ipv4", "nodelay": True}}
+                "dns-behaviour": {"resolve": True, "strategy": "prefer-ipv4"}, "nodelay": True}}
         ]
         for index, node in enumerate(nodes[:-1]):
             node["next"] = nodes[index + 1]["name"]

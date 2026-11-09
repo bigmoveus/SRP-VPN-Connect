@@ -160,6 +160,7 @@ add_library(ww STATIC
     net/tls_client_hello.c
     net/async_dns.c
     net/dns_strategy.c
+    net/dns_policy.c
     net/adapter.c
     net/tunnel.c
     net/line.c
@@ -1953,8 +1954,7 @@ if(NOT MSVC)
 endif()
 
 if(APPLE)
-    # SRP: PUBLIC, as the Clang branch above (AppleClang does not match it), or the tunnels' size_t narrowing
-    # stops Apple builds under ww's -Werror
+    # AppleClang consumers need the same narrowing-warning suppression as Clang consumers.
     target_compile_options(ww PUBLIC -Wno-shorten-64-to-32)
     target_compile_options(ww PRIVATE -Wno-unused-command-line-argument)
     # Disable precompiled headers on Apple platforms due to clang issues with C/C++ mixed compilation

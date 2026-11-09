@@ -638,6 +638,9 @@ class DeviceMatrix(SupportedMatrix):
         stress_log = self.remote_dir + "/https-health.log"
         # Direct mode and the GeoIP cases are meant to leave outside WaterWall; the routing check covers GeoIP.
         check_path = item[10] != "direct" and not name.startswith("geoip-") and env["TEST_RUNNER_SRP_WW_TCP_STRESS"] == "1"
+        # The DNS resolver cases: the forwarder of SRP_TEST_DNS_SERVER logs "time source name type" for each question.
+        dns_case = "domain-resolver" in result["configuration"]
+        dns_log = os.environ.get("SRP_TEST_DNS_LOG", "/tmp/srp-dns-probe/queries.log")
         try:
             self.start_remote_peer(item, client_path)
             # A running stress server skips the setup that opens its port, and Direct mode reaches it from outside.
@@ -646,6 +649,8 @@ class DeviceMatrix(SupportedMatrix):
             stress_lines = int(self.ssh(f"wc -l < {stress_log}").strip() or 0) if check_path else 0
             if name.startswith("geoip-"):
                 reference_lines = int(self.ssh(f"wc -l < {reference_log}").strip() or 0)
+            if dns_case:
+                dns_lines = int(self.ssh(f"wc -l < {dns_log}").strip() or 0)
             log = self.work / f"{name}-device.log"
             full_duplex = os.environ.get("SRP_TEST_WW_FULL_DUPLEX") == "1"
             network_transition = os.environ.get("SRP_TEST_WW_NETWORK_TRANSITION") == "1"
@@ -732,6 +737,21 @@ class DeviceMatrix(SupportedMatrix):
                 result["routing"] = {"status": "passed" if routed else "failed", "expected": expected,
                                      "direct_requests": direct, "proxied_requests": proxied,
                                      "other_requests": len(requests) - direct - proxied}
+            if dns_case:
+                # Native asks the phone network's own DNS, so the forwarder hears nothing; Direct asks it from the phone's
+                # network, outside the VPN; Chain asks it through the VPN, so the question comes from the server.
+                rows = [line.split() for line in self.ssh(f"tail -n +{dns_lines + 1} {dns_log}").splitlines()]
+                rows = [row for row in rows if len(row) >= 3]
+                sources = set(filter(None, os.environ.get("SRP_TEST_ALLOWED_SOURCE", "").split(",")))
+                outside = sum(row[1] in sources for row in rows)
+                inside = sum(row[1] in (self.host, "127.0.0.1") for row in rows)
+                asked = urlsplit(env["TEST_RUNNER_SRP_WW_STRESS_URL"]).hostname in {row[2].rstrip(".") for row in rows}
+                mode = result["configuration"]["domain-resolver"].get("mode", "native")
+                passed = (not rows if mode == "native" else
+                          outside > 0 and inside == 0 and asked if mode == "direct" else
+                          inside > 0 and outside == 0 and asked)
+                result["dns"] = {"status": "passed" if passed else "failed", "mode": mode, "questions": len(rows),
+                                 "from_phone_network": outside, "from_server": inside, "asked_for_test_host": asked}
             self.stop_remote_peer(item)
             result["teardown"] = {"passed": True}
         except Exception as error:
@@ -749,6 +769,7 @@ class DeviceMatrix(SupportedMatrix):
         result["status"] = "failed" if (result.get("error") or result["tcp"].get("status") == "failed" or
             result["udp"].get("status") == "failed" or result.get("ping", {}).get("status") == "failed" or
             result.get("routing", {}).get("status") == "failed" or result.get("path", {}).get("status") == "failed" or
+            result.get("dns", {}).get("status") == "failed" or
             not result["teardown"].get("passed", False)) else "passed"
         self.results.append(result)
         write_json(self.work / "results.json", {"summary": self.summary, "cases": self.results})

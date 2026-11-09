@@ -48,7 +48,7 @@ POOL = [True, False, 0, 1, -1, 2, 16, 68, 78, 86, 90, 255, 256, 1024, 1200, 1452
 SCHEMA = {
     "packet": ["mtu", "udp-idle-timeout-ms", "max-pending-bytes", "max-total-pending-bytes", "fake-dns", "mapdns", "fake_dns",
                "sensitive-mode", "interval-ms", "tolerance-ms", "packet-validation-level", "enabled", "unknown-key"],
-    "application": ["protocol", "proto", "first-payload-timeout-ms", "verbose", "domain-strategy", "security", "chunk-masking", "global-padding",
+    "application": ["protocol", "proto", "first-payload-timeout-ms", "verbose", "domain-strategy", "dns-behaviour", "security", "chunk-masking", "global-padding",
                     "authenticated-length", "encrypted-counter-policy", "send-termination", "packet-encoding", "headers", "max-header-bytes",
                     "header-timeout-ms", "connect-response-timeout-ms", "idle-timeout-ms", "unknown-key"],
     "mux": ["mode", "connection-duration-ms", "connection-capacity", "per-worker-connections-count", "keepalive", "ping-interval", "tolerance-ms",
@@ -70,6 +70,11 @@ NESTED = {
     ("packet", "fake-dns"): [{"enabled": False}, {"enabled": True, "address": "198.18.0.9", "port": 5353}, {"enabled": 1}, {"address": 1}, {"port": 0},
                              {"port": 65536}, {"cache-size": 262144}, {"cache-size": 262145}, {"ttl": -1}, {"other": 1}, {"netmask": "255.0.0.0"}],
     ("packet", "mapdns"): [{"enabled": True}, {"other": 1}], ("packet", "fake_dns"): [{"enabled": True}],
+    ("application", "dns-behaviour"): [{"resolve": False}, {"resolve": True}, {"resolve": True, "strategy": "prefer-ipv4"}, {"resolve": True, "strategy": "core-settings"},
+                                       {"resolve": False, "strategy": "prefer-ipv4"}, {"resolve": True, "strategy": "resolve-domains-and-prefer-ipv4"}, {"resolve": 1},
+                                       {}, {"strategy": "only-ipv6"}, {"resolve": True, "mode": "chain"}, {"resolve": True, "strategy": None}],
+    ("application", "domain-strategy"): ["do-not-resolve-domains", "resolve-domains-and-prefer-ipv4", "resolve-domains-with-core-settings",
+                                         "resolve-domains-and-accept-dns-returned-order", "resolve-domains-and-use-only-ipv6", "prefer-ipv4", None],
     ("application", "headers"): [{"X-Test": "1"}, {"Host": "x"}, {"X Bad": "1"}, {"X-Test": "a\u0001b"}, {"X-Test": "a\tb"}, {"": "1"}, {"Proxy-Connection": "x"}],
     ("outer", "alpns"): [["h2"], ["h2", "h2"], [""], ["h2", "http/1.1"], ["x" * 256], [1], "h2", []],
     ("outer", "fragment"): [
@@ -193,6 +198,26 @@ def corpus():
         for base in [chain(), chain(input="raw-ipv4", application=""), {"version": 3, "mode": "direct", "node-options": {}}]:
             for options in [{}, {"ww_geoip_db_path": "/data/GeoLite2-Country.mmdb"}, {"ww_geoip_db_path": "/data/GeoLite2-Country.mmdb", "ww_smart_routing": True}]:
                 items.append(case(dict(base, geoip=geoip), options=options))
+    # The DNS resolver option, its server grammar and what it needs from the chain.
+    servers = ["1.1.1.1", "1.1.1.1:53", "1.1.1.1:5353", "1.1.1.1:0", "1.1.1.1:65535", "1.1.1.1:65536", "1.1.1.1:00053", "1.1.1.1:", "01.1.1.1", "1.1.1",
+               "1.2.3.4.5", "256.1.1.1", "1.1.1.1 ", " 1.1.1.1", "2001:db8::53", "[2001:db8::53]:5353", "[2001:db8::53]", "[1.1.1.1]:53", "[::1]:53x", "[::1]x",
+               "::", "::1", "::ffff:1.2.3.4", "1:2:3:4:5:6:7:8", "1:2:3:4:5:6:7:8:9", "1::2::3", "12345::", "1:2:3:4:5:6:1.2.3.4", "1:2:3:4:5:6:7:1.2.3.4",
+               ":1::", "1:2:3:4:5:6:7::", "::1.2.3.4", "fe80::1%en0", "fe80::1%1", "1.01.1.1", "0.0.0.0", "00001::", "0001:0002::",
+               "::ffff:01.2.3.4", "::FFFF:1.2.3.4", "1:2:3:4:5:6:7:8::", "::1:2:3:4:5:6:7:8", "1:2:3:4:5:6:7::8", "[::1]:", "[::1]:0", "[]:53", "dns.google", "", "x" * 65, "[" + "1" * 70 + "]", "é", 1, None]
+    resolvers = [{}, {"mode": "native"}, {"mode": "native", "strategy": "prefer-ipv6"}, {"mode": "native", "servers": ["1.1.1.1"]}, {"mode": "direct"},
+                 {"mode": "chain", "servers": []}, {"mode": "chain", "servers": ["1.1.1.1"] * 33}, {"mode": "other"}, {"mode": 1}, {"strategy": "bad"},
+                 {"mode": "direct", "servers": "1.1.1.1"}, {"other": 1}, {"mode": "chain", "servers": ["1.1.1.1"], "dns-next": "x"}, 1, [],
+                 {"mode": "direct", "servers": ["9.9.9.9", "149.112.112.112:53"], "strategy": "only-ipv4"}]
+    resolvers += [{"mode": mode, "servers": [server]} for mode in ["direct", "chain"] for server in servers]
+    for resolver in resolvers:
+        items.append(case(dict(chain(), **{"domain-resolver": resolver})))
+    for resolver in [{"mode": "native"}, {"mode": "direct", "servers": ["1.1.1.1"]}, {"mode": "chain", "servers": ["1.1.1.1", "[2606:4700:4700::1111]:53"]}]:
+        for base in BASES:
+            items.append(case(dict(base, **{"domain-resolver": resolver})))
+            for options in [{"ww_smart_routing": True}, {"ww_geoip_db_path": "/data/GeoLite2-Country.mmdb", "ww_smart_routing": True}]:
+                items.append(case(dict(base, geoip={"countries": ["IR"]}, **{"domain-resolver": resolver}), options=options))
+        for settings in [{"protocol": "tcp"}, {"proto": "connect"}, {"protocol": "udp"}, {"packet-encoding": "packetaddr"}, {"security": "zero", "protocol": "tcp"}]:
+            items.append(case(dict(with_options(chain(application="vmess"), "application", settings), **{"domain-resolver": resolver})))
     # Version 2 profiles migrate.
     items.append(case({"version": 2, "mode": "chain", "input": "connections", "application": "vless", "mux": False, "outer": "tls", "node-options": {}}))
     items.append(case({"version": 2, "mode": "direct", "node-options": {}}))

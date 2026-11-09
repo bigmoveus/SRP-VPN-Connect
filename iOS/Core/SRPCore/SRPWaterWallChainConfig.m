@@ -291,6 +291,135 @@ static NSArray<NSString *> *SRPWWGeoIPCountries(id value) {
     return [countries.allObjects sortedArrayUsingSelector:@selector(compare:)];
 }
 
+static NSArray<NSString *> *SRPWWDNSStrategies(void) {
+    return @[@"core-settings", @"accept-dns-returned-order", @"prefer-ipv4", @"prefer-ipv6", @"only-ipv4", @"only-ipv6"];
+}
+
+// BIND's inet_pton, as Android and Linux have it. Apple's also takes leading zeros and interface scopes, which
+// WaterWall on Android rejects, so a profile checked here works on both.
+static BOOL SRPWWNumericIPv4(const char *text) {
+    int octets = 0, value = 0;
+    BOOL sawDigit = NO;
+    for (; *text != '\0'; text++) {
+        char character = *text;
+        if (character >= '0' && character <= '9') {
+            if (sawDigit && value == 0) return NO;
+            value = value * 10 + (character - '0');
+            if (value > 255) return NO;
+            if (!sawDigit) {
+                if (++octets > 4) return NO;
+                sawDigit = YES;
+            }
+        } else if (character == '.' && sawDigit) {
+            if (octets == 4) return NO;
+            value = 0;
+            sawDigit = NO;
+        } else {
+            return NO;
+        }
+    }
+    return octets >= 4;
+}
+
+static BOOL SRPWWNumericIPv6(const char *text) {
+    if (*text == ':' && *++text != ':') return NO;
+    int bytes = 0, colon = -1, digits = 0;
+    const char *token = text;
+    char character;
+    while ((character = *text++) != '\0') {
+        if ((character >= '0' && character <= '9') || (character >= 'a' && character <= 'f') || (character >= 'A' && character <= 'F')) {
+            if (++digits > 4) return NO;
+            continue;
+        }
+        if (character == ':') {
+            token = text;
+            if (digits == 0) {
+                if (colon >= 0) return NO;
+                colon = bytes;
+                continue;
+            }
+            if (*text == '\0' || bytes + 2 > 16) return NO;
+            bytes += 2;
+            digits = 0;
+            continue;
+        }
+        if (character == '.' && bytes + 4 <= 16 && SRPWWNumericIPv4(token)) {
+            bytes += 4;
+            digits = 0;
+            break;
+        }
+        return NO;
+    }
+    if (digits > 0) {
+        if (bytes + 2 > 16) return NO;
+        bytes += 2;
+    }
+    if (colon >= 0) {
+        if (bytes == 16) return NO;
+        bytes = 16;
+    }
+    return bytes == 16;
+}
+
+// WaterWall's DNS server grammar (dns_policy.c): a numeric IP, IPv4:port or [IPv6]:port, at most 64 bytes.
+static BOOL SRPWWDNSServer(id value) {
+    if (![value isKindOfClass:NSString.class] || [value length] == 0 || [value lengthOfBytesUsingEncoding:NSUTF8StringEncoding] > 64) return NO;
+    const char *endpoint = [value UTF8String];
+    if (strlen(endpoint) != [value lengthOfBytesUsingEncoding:NSUTF8StringEncoding]) return NO;
+    char host[64];
+    const char *port = NULL;
+    size_t length;
+    BOOL bracketed = endpoint[0] == '[';
+    if (bracketed) {
+        const char *end = strchr(endpoint, ']');
+        if (end == NULL || (end[1] != '\0' && end[1] != ':')) return NO;
+        length = (size_t)(end - endpoint - 1);
+        if (length == 0 || length >= sizeof(host)) return NO;
+        memcpy(host, endpoint + 1, length);
+        if (end[1] == ':') port = end + 2;
+    } else {
+        const char *colon = strchr(endpoint, ':');
+        if (colon != NULL && strchr(colon + 1, ':') == NULL) {
+            length = (size_t)(colon - endpoint);
+            port = colon + 1;
+        } else {
+            length = strlen(endpoint);
+        }
+        if (length == 0 || length >= sizeof(host)) return NO;
+        memcpy(host, endpoint, length);
+    }
+    host[length] = '\0';
+    if (bracketed ? !SRPWWNumericIPv6(host) : !(SRPWWNumericIPv4(host) || SRPWWNumericIPv6(host))) return NO;
+    if (port == NULL) return YES;
+    if (*port == '\0') return NO;
+    unsigned long number = 0;
+    for (; *port != '\0'; port++) {
+        if (*port < '0' || *port > '9') return NO;
+        number = number * 10 + (unsigned long)(*port - '0');
+        if (number > 65535) return NO;
+    }
+    return number > 0;
+}
+
+// The DNS resolver option: a flat DomainResolver setting without verbose and dns-next.
+static NSString *SRPWWDomainResolverError(id resolver) {
+    if (![resolver isKindOfClass:NSDictionary.class]) return @"domain-resolver must be an object.";
+    for (NSString *key in (NSDictionary *)resolver) {
+        if (![@[@"mode", @"strategy", @"servers"] containsObject:key]) return @"The DNS resolver supports only mode, strategy and servers.";
+    }
+    id mode = resolver[@"mode"] ?: @"native";
+    if (![@[@"native", @"direct", @"chain"] containsObject:mode]) return @"The DNS resolver mode must be native, direct or chain.";
+    if (resolver[@"strategy"] != nil && ![SRPWWDNSStrategies() containsObject:resolver[@"strategy"]]) return @"The DNS resolver strategy is invalid.";
+    id servers = resolver[@"servers"];
+    if ([mode isEqual:@"native"]) return servers == nil ? nil : @"Native DNS uses the system's DNS servers; remove the server list.";
+    if (![servers isKindOfClass:NSArray.class] || [servers count] < 1 || [servers count] > 32) return @"Direct and chain DNS need 1 to 32 DNS servers.";
+    for (id server in (NSArray *)servers) {
+        if (![server isKindOfClass:NSString.class]) return @"DNS servers must be strings.";
+        if (!SRPWWDNSServer(server)) return [NSString stringWithFormat:@"%@ is not a DNS server address: use an IP address, IPv4:port or [IPv6]:port.", server];
+    }
+    return nil;
+}
+
 static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (![configuration isKindOfClass:NSDictionary.class]) return configuration;
     NSDictionary *migrated = configuration;
@@ -315,6 +444,25 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         [renamed removeObjectForKey:@"mtu"];
         NSMutableDictionary *options = [nodeOptions mutableCopy];
         options[@"kcp"] = renamed;
+        NSMutableDictionary *result = [migrated mutableCopy];
+        result[@"node-options"] = options;
+        migrated = result;
+    }
+    id applicationOptions = [nodeOptions isKindOfClass:NSDictionary.class] ? migrated[@"node-options"][@"application"] : nil;
+    id legacyStrategy = [applicationOptions isKindOfClass:NSDictionary.class] ? applicationOptions[@"domain-strategy"] : nil;
+    NSDictionary *strategies = @{@"do-not-resolve-domains": @"", @"resolve-domains-with-core-settings": @"core-settings",
+                                 @"resolve-domains-and-accept-dns-returned-order": @"accept-dns-returned-order",
+                                 @"resolve-domains-and-prefer-ipv4": @"prefer-ipv4", @"resolve-domains-and-prefer-ipv6": @"prefer-ipv6",
+                                 @"resolve-domains-and-use-only-ipv4": @"only-ipv4", @"resolve-domains-and-use-only-ipv6": @"only-ipv6"};
+    if ([legacyStrategy isKindOfClass:NSString.class] && strategies[legacyStrategy] != nil) {
+        // WaterWall 1.5.4 rejects domain-strategy; dns-behaviour replaces it, and not resolving is the default.
+        NSMutableDictionary *renamed = [applicationOptions mutableCopy];
+        [renamed removeObjectForKey:@"domain-strategy"];
+        NSString *strategy = strategies[legacyStrategy];
+        if (strategy.length > 0 && renamed[@"dns-behaviour"] == nil) renamed[@"dns-behaviour"] = @{@"resolve": @YES, @"strategy": strategy};
+        NSMutableDictionary *options = [migrated[@"node-options"] mutableCopy];
+        if (renamed.count > 0) options[@"application"] = renamed;
+        else [options removeObjectForKey:@"application"];
         NSMutableDictionary *result = [migrated mutableCopy];
         result[@"node-options"] = options;
         migrated = result;
@@ -441,7 +589,8 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (![configuration isKindOfClass:NSDictionary.class]) return @"WaterWall configuration must be a JSON object.";
     configuration = SRPWWMigrateConfiguration(configuration);
     NSSet *topKeys = [NSSet setWithArray:@[@"version", @"mode", @"input", @"application", @"mux", @"outer", @"http",
-                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options", @"geoip", @"bgp4", @"packet-encryption"]];
+                                           @"http-version", @"obfuscator", @"carrier", @"quic-carrier", @"node-options", @"geoip", @"bgp4", @"packet-encryption",
+                                           @"domain-resolver"]];
     for (NSString *key in configuration) if (![topKeys containsObject:key]) return [NSString stringWithFormat:@"Unknown configuration key: %@", key];
     if (![configuration[@"version"] isEqual:@3]) return @"Unsupported WaterWall configuration version.";
     for (NSString *key in @[@"mode", @"input", @"application", @"outer", @"http", @"carrier", @"quic-carrier"]) {
@@ -483,6 +632,14 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 components.user != nil || components.password != nil || components.fragment != nil) {
                 return @"geoip.update-url must use HTTPS and cannot contain embedded credentials or a fragment.";
             }
+        }
+    }
+    id resolver = configuration[@"domain-resolver"];
+    if (resolver != nil) {
+        NSString *error = SRPWWDomainResolverError(resolver);
+        if (error != nil) return error;
+        if (![mode isEqualToString:@"chain"] || ![configuration[@"input"] isEqualToString:@"connections"]) {
+            return @"The DNS resolver requires Chain mode with Connections input.";
         }
     }
     if (configuration[@"bgp4"] != nil && !SRPWWBoolean(configuration[@"bgp4"])) return @"BGP4 must be a boolean.";
@@ -557,15 +714,15 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     }
     NSArray *connectionPacketKeys = @[@"mtu", @"udp-idle-timeout-ms", @"max-pending-bytes", @"max-total-pending-bytes",
                                       @"fake-dns", @"mapdns", @"fake_dns"];
-    NSArray *applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"domain-strategy"];
+    NSArray *applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"dns-behaviour"];
     if ([application isEqualToString:@"vmess"]) {
-        applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"domain-strategy", @"security",
+        applicationKeys = @[@"protocol", @"proto", @"first-payload-timeout-ms", @"verbose", @"dns-behaviour", @"security",
                             @"chunk-masking", @"global-padding", @"authenticated-length", @"encrypted-counter-policy",
                             @"send-termination", @"packet-encoding"];
     } else if ([application isEqualToString:@"socks5"]) {
-        applicationKeys = @[@"protocol", @"proto", @"verbose", @"domain-strategy"];
+        applicationKeys = @[@"protocol", @"proto", @"verbose", @"dns-behaviour"];
     } else if ([application isEqualToString:@"http-proxy"]) {
-        applicationKeys = @[@"verbose", @"domain-strategy", @"headers", @"max-header-bytes", @"header-timeout-ms",
+        applicationKeys = @[@"verbose", @"dns-behaviour", @"headers", @"max-header-bytes", @"header-timeout-ms",
                             @"connect-response-timeout-ms", @"idle-timeout-ms"];
     }
     NSDictionary *schemas = @{
@@ -661,13 +818,20 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         if (![app[key] isKindOfClass:NSString.class]) return [NSString stringWithFormat:@"application.%@ must be a string.", key];
         if (![applicationProtocols containsObject:app[key]]) return [NSString stringWithFormat:@"application.%@ has an unsupported protocol.", key];
     }
-    if (app[@"domain-strategy"] != nil) {
-        id strategy = app[@"domain-strategy"];
-        if (![strategy isKindOfClass:NSString.class]) return @"application.domain-strategy must be a string.";
-        NSArray *strategies = @[@"do-not-resolve-domains", @"resolve-domains-and-prefer-ipv4", @"resolve-domains-and-prefer-ipv6",
-                                @"resolve-domains-with-core-settings", @"resolve-domains-and-accept-dns-returned-order",
-                                @"resolve-domains-and-use-only-ipv4", @"resolve-domains-and-use-only-ipv6"];
-        if (![strategies containsObject:strategy]) return @"application.domain-strategy is invalid.";
+    if (app[@"dns-behaviour"] != nil) {
+        // Resolving on the phone, as domain-strategy did before WaterWall 1.5.4; the DNS resolver option covers the rest.
+        NSDictionary *policy = app[@"dns-behaviour"];
+        if (![policy isKindOfClass:NSDictionary.class] || !SRPWWBoolean(policy[@"resolve"])) return @"application.dns-behaviour needs a boolean resolve.";
+        for (NSString *key in policy) {
+            if (![@[@"resolve", @"strategy"] containsObject:key]) return @"application.dns-behaviour supports only resolve and strategy.";
+        }
+        if (policy[@"strategy"] != nil && (![policy[@"resolve"] boolValue] || ![SRPWWDNSStrategies() containsObject:policy[@"strategy"]])) {
+            return @"application.dns-behaviour.strategy is invalid or needs resolve true.";
+        }
+    }
+    if ([resolver[@"mode"] isEqual:@"chain"] && ([application isEqualToString:@"http-proxy"] ||
+        [@[@"tcp", @"connect"] containsObject:app[@"protocol"] ?: app[@"proto"] ?: @""])) {
+        return @"Chain DNS sends UDP queries through the VPN, which HTTP CONNECT and a fixed TCP protocol cannot carry.";
     }
     if (app[@"headers"] != nil) {
         NSString *error = SRPWWStringMapError(app[@"headers"], @"application.headers");
@@ -713,7 +877,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             return @"VMess zero cannot enable masking, padding or authenticated lengths.";
         }
         if ([app[@"packet-encoding"] isEqualToString:@"packetaddr"] &&
-            (!app[@"domain-strategy"] || [app[@"domain-strategy"] isEqualToString:@"do-not-resolve-domains"])) {
+            ![app[@"dns-behaviour"][@"resolve"] boolValue] && resolver == nil) {
             return @"VMess packetaddr requires local DNS resolution so the target is an IP address.";
         }
     }
@@ -899,7 +1063,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                                            @"max-total-pending-bytes": @16777216}
                                               overrides:advanced[@"packet"] required:required] mutableCopy];
         if (required[@"fake-dns"] != nil) [settings removeObjectsForKeys:@[@"mapdns", @"fake_dns"]];
-        NSString *first = direct ? @"connector" : raw ? afterInput : @"router";
+        NSString *first = direct ? @"connector" : raw ? afterInput : configuration[@"domain-resolver"] != nil ? @"resolver" : @"router";
         [nodes addObject:@{@"name": @"ptc", @"type": @"PacketsToConnection", @"settings": settings, @"next": first}];
     }
     if (direct) {
@@ -909,7 +1073,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             BOOL vmess = [application isEqualToString:@"vmess"];
             BOOL socks = [application isEqualToString:@"socks5"];
             BOOL httpProxy = [application isEqualToString:@"http-proxy"];
-            NSMutableDictionary *applicationDefaults = [@{@"domain-strategy": @"do-not-resolve-domains"} mutableCopy];
+            NSMutableDictionary *applicationDefaults = [NSMutableDictionary new];
             if (!httpProxy) applicationDefaults[@"protocol"] = @"dest_context->protocol";
             if (vmess) applicationDefaults[@"security"] = @"aes-128-gcm";
             if (httpProxy) applicationDefaults[@"mode"] = @"connect";
@@ -932,8 +1096,13 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                                @"settings": applicationSettings, @"next": mux ? @"mux" : afterApplication}];
             NSArray<NSString *> *directCountries = SRPWWGeoIPCountries(configuration[@"geoip"][@"countries"]);
             if (directCountries.count > 0 && [options[@"ww_geoip_db_path"] length] == 0) return nil;
-            NSMutableDictionary *routerSettings = [@{@"resolve-domains": directCountries.count > 0 ? @YES : @NO} mutableCopy];
+            NSDictionary *resolver = configuration[@"domain-resolver"];
+            NSMutableDictionary *routerSettings = [NSMutableDictionary new];
+            // The DNS resolver in front leaves the Router only IP addresses.
+            if (directCountries.count > 0 && resolver == nil) routerSettings[@"dns-behaviour"] = @{@"resolve": @YES};
             NSMutableArray *rules = [NSMutableArray new];
+            // First, so that a DNS server in a direct country or the local network is still asked through the VPN
+            if ([resolver[@"mode"] isEqual:@"chain"]) [rules addObject:@{@"resolver-dns": @YES, @"target": application}];
             if ([options[@"ww_smart_routing"] boolValue]) {
                 [rules addObject:@{@"destination-ip": @[@"10.0.0.0/8", @"172.16.0.0/12", @"192.168.0.0/16"], @"target": @"direct-local"}];
             }
@@ -945,8 +1114,10 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
             }
             if (rules.count > 0) routerSettings[@"rules"] = rules;
             [nodes addObject:@{@"name": @"router", @"type": @"Router", @"settings": routerSettings, @"next": application}];
-            if (rules.count > 0) {
-                [nodes addObject:@{@"name": @"direct-local", @"type": @"TcpUdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port", @"domain-strategy": @"prefer-ipv4", @"nodelay": @YES}}];
+            if (resolver != nil) [nodes addObject:@{@"name": @"resolver", @"type": @"DomainResolver", @"settings": resolver, @"next": @"router"}];
+            if ([[rules valueForKey:@"target"] containsObject:@"direct-local"]) {
+                [nodes addObject:@{@"name": @"direct-local", @"type": @"TcpUdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port",
+                                                                                                   @"dns-behaviour": @{@"resolve": @YES, @"strategy": @"prefer-ipv4"}, @"nodelay": @YES}}];
             }
         } else {
             if (packetEncryption) {

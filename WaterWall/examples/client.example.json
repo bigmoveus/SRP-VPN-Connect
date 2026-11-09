@@ -28,9 +28,7 @@
     {
       "name": "router",
       "type": "Router",
-      "settings": {
-        "resolve-domains": false
-      },
+      "settings": {},
       "next": "vless"
     },
     {
@@ -40,8 +38,7 @@
         "uuid": "00000000-0000-4000-8000-000000000000",
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "protocol": "dest_context->protocol",
-        "domain-strategy": "do-not-resolve-domains"
+        "protocol": "dest_context->protocol"
       },
       "next": "bgp4"
     },

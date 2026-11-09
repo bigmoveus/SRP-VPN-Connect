@@ -49,7 +49,7 @@
       "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {"resolve": true, "strategy": "prefer-ipv4"},
         "nodelay": true
       }
     }

@@ -6,26 +6,14 @@
 
 static bool routerLoadResolveDomains(router_tstate_t *ts, const cJSON *settings)
 {
-    ts->resolve_domains = false;
-
-    if (settings == NULL)
-    {
-        return true;
-    }
-
-    const cJSON *resolve_domains = cJSON_GetObjectItemCaseSensitive(settings, "resolve-domains");
-    if (resolve_domains == NULL)
-    {
-        return true;
-    }
-
-    if (! cJSON_IsBool(resolve_domains))
-    {
-        LOGF("JSON Error: Router->settings->resolve-domains (boolean field) : expected a boolean");
+    const dns_policy_defaults_t defaults = {
+        .resolve       = false,
+        .strategy      = GSTATE.domain_strategy,
+        .core_strategy = GSTATE.domain_strategy,
+    };
+    if (! dnsPolicyParseSettings(&ts->dns_policy, settings, &defaults, "Router->settings->dns-behaviour"))
         return false;
-    }
-
-    ts->resolve_domains = cJSON_IsTrue(resolve_domains);
+    ts->resolve_domains = ts->dns_policy.resolve;
     return true;
 }
 
@@ -38,8 +26,13 @@ static bool routerCreateInternalDomainResolver(tunnel_t *t, node_t *node)
         return true;
     }
 
-    if (! nodeConfigureChild(
-            &ts->domain_resolver_node, nodeDomainResolverGet(), node, ".domain-resolver", kNodeChildLinkNone, NULL))
+    ts->domain_resolver_settings = dnsPolicyCreateResolverSettings(&ts->dns_policy);
+    if (! nodeConfigureChild(&ts->domain_resolver_node,
+                             nodeDomainResolverGet(),
+                             node,
+                             ".domain-resolver",
+                             kNodeChildLinkNone,
+                             ts->domain_resolver_settings))
     {
         LOGF("Router: failed to configure internal DomainResolver node");
         return false;

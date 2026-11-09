@@ -1,5 +1,5 @@
 <!--
-Documentation version: 154
+Documentation version: 156
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TcpUdpConnector.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TcpUdpConnector.mdx, and all files must keep the same documentation version.
 -->
 
@@ -43,7 +43,7 @@ The previous node must set either the destination protocol or the source protoco
   "settings": {
     "address": "dest_context->address",
     "port": "dest_context->port",
-    "domain-strategy": "prefer-ipv4",
+    "dns-behaviour": {"resolve": true, "strategy": "prefer-ipv4"},
     "nodelay": true,
     "fastopen": false,
     "large-send-buffer": true,
@@ -83,11 +83,71 @@ Alternatively, use the `addresses` array supported by `TcpConnector` and `UdpCon
 
 Most options are inherited directly from `TcpConnector` and `UdpConnector`:
 
-- `domain-strategy`, `large-send-buffer`, `large-recv-buffer`, `interface`, `source-ip`, and `fwmark` are parsed by both child connectors where supported.
+- `dns-behaviour` sets one shared DNS policy for both child connectors.
+- `large-send-buffer`, `large-recv-buffer`, `interface`, `source-ip`, and `fwmark` are parsed by both child connectors where supported.
 - `nodelay` and `fastopen` apply to the internal `TcpConnector`.
 - `balance-mode` applies to the internal `UdpConnector`.
 
 See `TcpConnector` and `UdpConnector` documentation for detailed destination selection and socket behavior.
+
+## DNS behaviour
+
+Resolving a hostname means looking up its IP address before connecting or sending.
+The selected TCP or UDP connector first prepares the destination from this node's
+settings. It performs a lookup only when that destination is an unresolved
+hostname and local resolution is enabled. Literal IPs and already-resolved
+destinations need no lookup.
+
+This is the endpoint the connector will reach: the application target in a direct
+chain, or the proxy server after a proxy client. Both children use the same DNS
+policy. Without `dns-behaviour`, local resolution is enabled in `native` mode,
+using the core `dns.domain-strategy` preference.
+
+Configure this lookup with `settings.dns-behaviour`:
+
+```json
+{
+  "dns-behaviour": {
+    "resolve": true,
+    "mode": "direct",
+    "strategy": "prefer-ipv4",
+    "servers": ["203.0.113.53:53"]
+  }
+}
+```
+
+The address is a documentation placeholder; replace it with your resolver.
+
+| Field | Meaning |
+| --- | --- |
+| `resolve` | Required boolean: `true` allows lookup of unresolved hostnames; `false` disables local lookup. |
+| `mode` | `native` (default when enabled), `direct`, or `chain`. |
+| `strategy` | `core-settings`, `accept-dns-returned-order`, `prefer-ipv4`, `prefer-ipv6`, `only-ipv4`, or `only-ipv6`; omission uses this consumer's default address preference. |
+| `servers` | 1–32 numeric IP, IP:port or [IPv6]:port endpoints; required for direct/chain and rejected for native. |
+| `dns-next` | Nonempty DNS-entry name for chain only. |
+
+`native` uses core DNS settings and the worker's shared resolver. It is the default
+DNS transport when local resolution is enabled.
+
+`direct` sends DNS queries through a private WaterWall TCP/UDP connector to the
+servers you specify.
+
+`chain` sends DNS queries through a selected chain. Use a path with encryption,
+such as your VPN, to protect those queries; the mode alone does not encrypt them.
+The DNS path must carry both UDP queries and TCP fallback. A route or lookup
+failure does not switch to native DNS or another mode.
+
+For `chain`, set `dns-next` to the name of a separate DNS branch that supports
+both UDP and TCP. The branch must not already belong to another node. This node
+has no default DNS branch; naming this node itself is not allowed.
+
+The disabled form is exactly `"dns-behaviour": {"resolve": false}`. It rejects `mode`, `strategy`, `servers` and `dns-next`. Empty/null/non-object policies, unknown fields and numeric strategies are rejected. Strategy names use the canonical lowercase strings above. `core-settings` chooses address preference only and never changes DNS transport.
+
+With `resolve: false`, destination preparation still runs. Numeric or already-resolved destinations work; unresolved hostnames fail through the normal line/datagram path without an OS/native DNS fallback.
+
+Both private TCP/UDP children use one authoritative provider, channel/cache owner and DNS-branch binding. This node has no default shared DNS entry; supply `dns-next` for chain mode.
+
+See [DomainResolver](../../WaterWall-Docs/docs/02-noderefs/DomainResolver.mdx) for native, direct and protected-chain configuration examples and core option limits. This policy controls lookups owned by this node; it does not configure PTC fake DNS, TunDevice system DNS or every DNS source in the program.
 
 ## Protocol Selection
 
