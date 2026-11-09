@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aether Server — Aether — SRP VPN Connect Documentation</title>
+<meta name="description" content="Setting up a server for Aether's Private mode on Ubuntu 24.04: our Aether engine in Docker, WireGuard for the phones, a configuration file for each phone, removing a phone, and checking it.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Aether server</h1>
+<p class="lead">This page sets up a server for Aether's Private mode on Ubuntu 24.04. The server runs our Aether engine in a Docker container, which carries the phones' traffic on to Cloudflare WARP, and WireGuard, which the phones use to reach it. A phone reaches only the engine's SOCKS5 port on the server's tunnel address, so the server needs no forwarding and no NAT. Public mode needs none of this.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+<span class="callout-title">Where this page comes from</span>
+<p>We ran these steps on our test server, Ubuntu 24.04.5 with Linux 6.8, Docker 29.1.3 and wireguard-tools 1.0.20210914 from Ubuntu's packages, 12 vCPUs and 32 GB of memory, on 9 November 2026, as the page shows them, with our server's name in place of <code>vpn.example.com</code>; part 6 made <code>iphone1</code>, <code>android1</code> and <code>phone2</code>, and part 7 removed <code>phone2</code>. The round's test setup had been moved aside first. Part 1's packages were already there, and part 2 took the image from Docker's cache: it had been built with the same command that day, in about 20 minutes. The volume <code>aether-data</code> already held a WARP identity, which the engine kept. After a restart of <code>wg-quick@wg0</code> the server still had <code>iphone1</code> and <code>android1</code> (<code>SaveConfig</code>). With Docker and wg0 both stopped, starting Docker started wg0 first, and the container listened on 10.66.66.1 again. Then both phones connected with the page's own files, and <code>phone2</code>'s file was refused (cases <code>ae-guide-…</code> of <a href="results.html">Test results</a>).</p>
+</div>
+<!-- provenance:end -->
+
+<h2>What you need</h2>
+<ul>
+<li>An Ubuntu 24.04 server with a public IPv4 address, and root access to it. Its kernel has WireGuard built in.</li>
+<li>UDP port 51820 open to the phones. A DNS name for the server is optional: the phones' files can name the server or its address.</li>
+<li>The server must reach Cloudflare WARP over UDP port 443, which MASQUE on HTTP/3 uses.</li>
+</ul>
+
+<h2 id="install">1. Install</h2>
+<pre data-label="Server, as root"><code class="language-bash">apt update
+apt install -y wireguard docker.io git</code></pre>
+<p>This installs WireGuard's tools <code>wg</code> and <code>wg-quick</code>, Docker from Ubuntu's packages, and git, which Docker uses to fetch the engine's source in the next step.</p>
+
+<h2 id="image">2. The Aether engine</h2>
+<pre data-label="Server, as root"><code class="language-bash">docker build -t srp-aether:v2.4.0-srp.2 "https://github.com/bigmoveus/Aether.git#v2.4.0-srp.2"</code></pre>
+<p>Docker fetches the tag <code>v2.4.0-srp.2</code> of our fork and builds the engine, with Tor and its helpers, into the image <code>srp-aether:v2.4.0-srp.2</code>. On our server, with 12 vCPUs, the build took about 20 minutes, and the image is 34 MB.</p>
+
+<h2 id="server">3. The server's keys and wg0</h2>
+<pre data-label="Server, as root"><code class="language-bash">cd /etc/wireguard
+umask 077
+wg genkey | tee server.key | wg pubkey &gt; server.pub
+cat &gt; /etc/wireguard/wg0.conf &lt;&lt;EOF
+[Interface]
+Address = 10.66.66.1/24
+ListenPort = 51820
+PrivateKey = $(cat /etc/wireguard/server.key)
+SaveConfig = true
+EOF
+systemctl enable --now wg-quick@wg0
+wg show wg0</code></pre>
+<ul>
+<li><code>server.key</code> is the server's private key and <code>server.pub</code> its public key, which every phone's file names. <code>umask 077</code> makes the keys readable by root only.</li>
+<li><code>Address = 10.66.66.1/24</code> is the server's address inside the tunnel, and the phones get other addresses in 10.66.66.0/24. The server's address must end in <code>.1</code>: the app looks for the engine at the first address of the phone's network, for example 10.66.66.1 for a phone with 10.66.66.2.</li>
+<li><code>SaveConfig = true</code> lets <code>wg-quick save</code> write the phones that <a href="#phones">part 6</a> adds back into this file, so they come back after a restart.</li>
+<li>There are no forwarding or NAT rules: the phones' packets do not leave the server. The engine opens its own connections to WARP.</li>
+</ul>
+<p><code>wg show</code> prints the interface with its public key and <code>listening port: 51820</code>.</p>
+
+<h2 id="container">4. The Aether container</h2>
+<pre data-label="Server, as root"><code class="language-bash">mkdir -p /etc/systemd/system/docker.service.d
+cat &gt; /etc/systemd/system/docker.service.d/wg0.conf &lt;&lt;EOF
+[Unit]
+Wants=wg-quick@wg0.service
+After=wg-quick@wg0.service
+EOF
+systemctl daemon-reload
+docker run -d --name aether --restart unless-stopped \
+  -e AETHER_PROTOCOL=masque -e AETHER_SCAN=balanced -e AETHER_NOIZE=firewall -e AETHER_QUICK_RECONNECT=1 -e AETHER_TLS_VERIFY=1 \
+  -v aether-data:/data -p 10.66.66.1:1819:1819 srp-aether:v2.4.0-srp.2
+docker logs aether</code></pre>
+<ul>
+<li><code>-p 10.66.66.1:1819:1819</code> publishes the engine's SOCKS5 port on wg0's address only, so only phones connected over WireGuard reach it. Never publish it on every address: the engine takes every connection without a password, so it would be an open proxy. The engine's log warns that its listener <em>is reachable from outside this machine</em>; here, that means only from wg0.</li>
+<li>The file in <code>docker.service.d</code> starts Docker after wg0. Otherwise, after a reboot, the container could start before 10.66.66.1 exists and could not listen on it.</li>
+<li>The volume <code>aether-data</code> keeps the WARP identity the engine registers when it first starts. <code>--restart unless-stopped</code> starts the container again after a restart of Docker or of the server.</li>
+<li><code>AETHER_PROTOCOL=masque</code> makes the engine reach WARP over MASQUE, and <code>AETHER_TLS_VERIFY=1</code> makes it check the WARP edge's certificate against the pins it carries, as the apps do. The other three settings make it start without asking questions: <a href="configuration.html#server">Configuration Reference</a> explains them.</li>
+</ul>
+<p>Within seconds, the log shows <code>masque tunnel validated (end-to-end data confirmed); exposing socks5</code> and <code>socks5 server listening on 0.0.0.0:1819</code>. That is the container's own address, which Docker publishes on 10.66.66.1.</p>
+
+<h2 id="firewall">5. Firewall</h2>
+<p>Open UDP port 51820 to the phones. If ufw is active, run <code>ufw allow 51820/udp</code>. The SOCKS5 port needs no rule, because Docker publishes it on 10.66.66.1, an address that only the phones in the tunnel reach.</p>
+
+<h2 id="phones">6. A file for each phone</h2>
+<p>Each phone gets its own key pair and its own preshared key, which adds a second secret to the handshake. The script below makes them, adds the phone to <code>wg0</code>, and writes the file the app imports. Save it as <code>/etc/wireguard/add-phone.sh</code>, and put your server's name or address in <code>endpoint=</code>:</p>
+<pre data-label="/etc/wireguard/add-phone.sh"><code class="language-bash">#!/bin/bash
+# add-phone.sh NAME NUMBER: a key pair and a preshared key for the phone NAME, its peer on wg0 with the address
+# 10.66.66.NUMBER, and /etc/wireguard/clients/NAME.conf, the file the app imports in Private mode.
+set -euo pipefail
+name=$1; number=$2; endpoint=vpn.example.com:51820
+cd /etc/wireguard
+umask 077
+mkdir -p clients
+private=$(wg genkey); public=$(echo "$private" | wg pubkey); psk=$(wg genpsk)
+echo "$public" &gt; "clients/$name.pub"
+wg set wg0 peer "$public" preshared-key &lt;(echo "$psk") allowed-ips "10.66.66.$number/32"
+wg-quick save wg0
+cat &gt; "clients/$name.conf" &lt;&lt;EOF
+[Interface]
+PrivateKey = $private
+Address = 10.66.66.$number/32
+
+[Peer]
+PublicKey = $(cat server.pub)
+PresharedKey = $psk
+Endpoint = $endpoint
+AllowedIPs = 10.66.66.1/32
+PersistentKeepalive = 25
+EOF
+echo "/etc/wireguard/clients/$name.conf"</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 700 /etc/wireguard/add-phone.sh
+/etc/wireguard/add-phone.sh phone1 2</code></pre>
+<ul>
+<li>The script prints the file's name, here <code>/etc/wireguard/clients/phone1.conf</code>. The file holds the phone's private key, so whoever has it can connect as that phone. Copy it to the phone, import it in the app (<a href="app-setup.html#private">Import Config</a>), and delete the copies you do not need.</li>
+<li><code>AllowedIPs = 10.66.66.1/32</code> is all the phone needs, because it reaches only the engine. There is no <code>DNS</code> line: names are looked up through the engine too. <a href="configuration.html#file">Configuration Reference</a> explains the other lines.</li>
+<li><code>PersistentKeepalive = 25</code> makes the phone send a keepalive every 25 seconds when nothing else is sent, so routers between the phone and the server keep its path open.</li>
+<li>Give each phone its own number and its own file.</li>
+</ul>
+
+<h2 id="remove">7. Removing a phone</h2>
+<p>This script takes a phone off <code>wg0</code> at once and out of the saved configuration. Save it as <code>/etc/wireguard/remove-phone.sh</code>:</p>
+<pre data-label="/etc/wireguard/remove-phone.sh"><code class="language-bash">#!/bin/bash
+# remove-phone.sh NAME: the phone NAME off wg0 and out of wg0.conf, and its files deleted.
+set -euo pipefail
+name=$1
+cd /etc/wireguard
+wg set wg0 peer "$(cat "clients/$name.pub")" remove
+wg-quick save wg0
+rm -f "clients/$name.pub" "clients/$name.conf"</code></pre>
+<pre data-label="Server, as root"><code class="language-bash">chmod 700 /etc/wireguard/remove-phone.sh
+/etc/wireguard/remove-phone.sh phone2</code></pre>
+<p>The server answers nothing to a key it does not know, so a removed phone cannot connect. The app waits for the handshake, then reports that the server did not answer it.</p>
+
+<h2 id="check">8. Check</h2>
+<pre data-label="Server, as root"><code class="language-bash">wg show wg0
+docker logs --tail 20 aether
+curl --socks5-hostname 10.66.66.1:1819 https://www.cloudflare.com/cdn-cgi/trace</code></pre>
+<p>Each phone is a <code>peer</code> with its <code>allowed ips</code>. A phone that has connected also has an <code>endpoint</code>, a <code>latest handshake</code> and its <code>transfer</code>. The last command goes through the engine from the server itself: its answer has the line <code>warp=on</code>.</p>
+
+<h2>Connect the app</h2>
+<p>Add a profile with the protocol <strong>Aether VPN</strong>, set <strong>Server</strong> to <strong>Private</strong>, and import the phone's <code>.conf</code> file. Server and Port fill in from the file. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

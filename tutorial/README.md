@@ -1,6 +1,6 @@
 # SRP VPN Connect documentation site
 
-A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN, SSL VPN, SSH VPN, OpenVPN, WireGuard and AmneziaWG guides. It can be served by GitHub Pages or copied to the app's website as it is.
+A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP, SoftEther VPN, SSL VPN, SSH VPN, OpenVPN, WireGuard, AmneziaWG and Aether guides. It can be served by GitHub Pages or copied to the app's website as it is.
 
 ## Rules for content
 
@@ -26,6 +26,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP
 | `openvpn/` | OpenVPN section: OpenVPN 2.6 server with stunnel, app setup, configuration reference, results, troubleshooting |
 | `wireguard/` | WireGuard section: WireGuard server on Ubuntu 24.04, app setup, configuration reference, results, troubleshooting |
 | `amneziawg/` | AmneziaWG section: AmneziaWG server on Ubuntu 24.04 with our amneziawg-go fork and the awg tools from the Amnezia packages, app setup, configuration reference, results, troubleshooting |
+| `aether/` | Aether section: Public mode (Cloudflare WARP with no server) and Private mode (a server on Ubuntu 24.04 with WireGuard and our Aether engine in Docker), app setup, configuration reference, results, troubleshooting |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
 | `assets/js/site.js` | Header, sidebar, table of contents, search, theme and copy buttons |
@@ -159,6 +160,21 @@ python3 tutorial/tools/amneziawg_results.py render --evidence tutorial/evidence/
 ```
 
 `extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac; `--server-ip` is only compared with the answers of the UDP cases and is never written. `render` rewrites `amneziawg/results.html` from `tools/amneziawg-results-intro.html`. The iPhone screenshots in `assets/img/amneziawg/` come from the unit test `testAmneziaWGDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-amneziawg`), the Android ones in `assets/img/amneziawg/android/` from `docs_screenshots_android.py` on the emulator.
+
+## Aether results and screenshots
+
+The Aether runs come from the private test tools in `aether/`: `run_profile_cases.py` (through `run-ios.zsh`) on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json`, `cases-life.json` and `cases-guide.json`; Public mode connects to Cloudflare WARP, Private mode to the test server, and `guide_run.py` runs the steps of `aether/server.html` on it as the page shows them:
+
+```bash
+python3 tutorial/tools/aether_results.py extract --cases <cases-full.json> <cases-life.json> <cases-guide.json> \
+  --ios <results.json files> --android <results.json files> \
+  --replace <server IP>=<SERVER_IP> <client IP>=<CLIENT_IP> <server name>=<SERVER_HOST> \
+  --date "<day month year>" --iphone "<phone>" --android-device "<phone>" --app "<build>" --server "<server>" \
+  --output tutorial/evidence/aether-<date>.json
+python3 tutorial/tools/aether_results.py render --evidence tutorial/evidence/aether-<date>.json
+```
+
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac; the addresses the test server saw are only looked up for their network (AS number) and never written. `render` rewrites `aether/results.html` from `tools/aether-results-intro.html`. The iPhone screenshots in `assets/img/aether/` come from the unit test `testAetherDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-aether`), the Android ones in `assets/img/aether/android/` from `docs_screenshots_android.py` on the emulator.
 
 ## Checking locally
 

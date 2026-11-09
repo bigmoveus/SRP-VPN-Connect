@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Results — Aether — SRP VPN Connect Documentation</title>
+<meta name="description" content="Every Aether case we ran, in Public mode against Cloudflare WARP and in Private mode against our own server, with its result on an iPhone and on an Android phone.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Test Results</h1>
+<p class="lead">Every Aether case we ran on {date}, with its result on an iPhone and on an Android phone: {iphone_passed} of {iphone_run} cases passed on the iPhone and {android_passed} of {android_run} on Android.</p>
+
+<!-- provenance:begin -->
+<div class="callout evidence">
+  <span class="callout-title">How these tests ran</span>
+  <p>The phones were {iphone} and {android}, with {app}. Public mode connected to Cloudflare WARP from our office line. The server of Private mode was {server}.</p>
+  <ul>
+    <li><strong>Each case</strong> saved a profile with the settings in its row, connected, and moved the traffic in its row through the tunnel to a test server that logged where each request came from. Every case that moved traffic checked that the requests came from a Cloudflare address (AS13335), so they left through WARP; with Tor Only, from outside Cloudflare.</li>
+    <li><strong>Traffic.</strong> On the iPhone four 16 MiB transfers at a time ran for the time shown, as downloads, uploads or both. On Android each transfer case moved two 16 MiB downloads, two 16 MiB uploads, or both; the row shows how long that took.</li>
+    <li><strong>The server's view.</strong> In the Private cases that moved traffic, the server's WireGuard log showed the phone's handshake.</li>
+    <li><strong>Refusals.</strong> A case whose expected result is <em>refused</em> passed when the app did not connect and ended with the message shown in its row.</li>
+    <li><strong>Log levels.</strong> The cases named <code>ae-log-…</code> and <code>ae-private-log-…</code> moved 40 seconds of downloads (10 seconds at Debug), read the connection log back and checked its lines; no level may show a key or the WARP+ license. The iPhone ran them on a Release build, the kind TestFlight ships. At Debug the check looks for the engine's and the packet bridge's lines, which only that level writes.</li>
+    <li><strong>Lifecycle.</strong> The cases named <code>ae-life-…</code> checked On Sleep; a session that ends; a change of network; the server's WireGuard port dropping every packet for 40 seconds, for 70 seconds without Auto Reconnect and for 160 seconds with Retry Times 2; and the server's aether container stopped. On Android the screen was really turned off, Wi-Fi was really switched off and on again, and the session was ended with the debug build's test command.</li>
+    <li><strong>The guide's server.</strong> The cases named <code>ae-guide-…</code> ran last: the test setup was moved aside, the server was set up again with the steps of <a href="server.html">Aether server</a> as the page shows them, and the phones used the page's own files for <code>iphone1</code> and <code>android1</code> and the removed <code>phone2</code>.</li>
+  </ul>
+</div>
+<!-- provenance:end -->
+
+<h2>How to read the results</h2>
+<table>
+  <thead><tr><th>Label</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></td><td>The case did what its row expects: it connected and moved its traffic through the tunnel, or it was refused with the message shown.</td></tr>
+    <tr><td><span class="status failed">TESTED — FAILED</span></td><td>The case did not do what its row expects; the row says what happened.</td></tr>
+    <tr><td><span class="status planned">NOT VERIFIED</span></td><td>The case did not run on that phone.</td></tr>
+  </tbody>
+</table>
+<p>Speeds are averages over the whole transfer on our office line, to WARP's nearest edge. They show that traffic moved, and are not a benchmark. The Android phone was on office Wi-Fi with a slower uplink than the iPhone's.</p>
+
+<h2>Not tested in this round</h2>
+<ul>
+  <li><strong>A valid WARP+ license.</strong> The case used a key WARP does not know; binding a real one was not tried.</li>
+  <li><strong>Moving between Wi-Fi and cellular on the iPhone.</strong> The iPhone's network case makes the tunnel test the session as after a change of network, without a real one.</li>
+  <li><strong>Real sleep on the iPhone.</strong> The iPhone's On Sleep case tells the tunnel that the phone slept; the phone did not really sleep.</li>
+  <li><strong>IPv6</strong> inside the tunnel, and a server with an IPv6 address.</li>
+  <li><strong>A reboot of the server.</strong> The guide's drop-in that starts Docker after WireGuard was tested by stopping both and starting Docker, not by a reboot.</li>
+  <li><strong>Importing a file through the app's screens.</strong> The cases gave the app the file's text as an import does.</li>
+</ul>
+
+{sections}
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,1142 @@
+{
+ "run": {
+  "date": "9 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the code of commit 968a86a7 on both phones: on the iPhone a Release build, the kind TestFlight ships, and for the ae-life-… rows a Debug build, which the lifecycle test needs; on Android a debug APK, for most rows of the build just before 968a86a7, which differs only in how a test connection that fails while traffic still comes back counts (ae-tor-only, ae-both-upload, the ae-life-… and the ae-guide-… rows ran on 968a86a7 itself)",
+  "server": "our test server (Ubuntu 24.04 with Linux 6.8, 12 vCPUs): WireGuard's wg0 on UDP port 51820 with the address 10.66.66.1/24 and a peer without a preshared key, and the aether container of our fork's image v2.4.0-srp.1, whose engine is that of v2.4.0-srp.2 except for the log level of its SOCKS5 request lines; for the ae-guide-… rows, the same server set up again as Aether server shows, with v2.4.0-srp.2"
+ },
+ "summary": {
+  "cases": 43,
+  "iphone_passed": 43,
+  "iphone_run": 43,
+  "android_passed": 43,
+  "android_run": 43
+ },
+ "cases": [
+  {
+   "id": "ae-h3-download",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 105.52
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h3-upload",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 102.96 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 22.7,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-download",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/2)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 153.39
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-upload",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/2)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 174.2 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-both-download",
+   "settings": [
+    "Public",
+    "Transport Both (H3 → H2)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 99.63
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-both-upload",
+   "settings": [
+    "Public",
+    "Transport Both (H3 → H2)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 117.88 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 36.4,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-wg-download",
+   "settings": [
+    "Public",
+    "Transport WireGuard"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 186.3
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.6,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-wg-upload",
+   "settings": [
+    "Public",
+    "Transport WireGuard"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 200.45 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h3-full-duplex",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 68.95,
+    "upload_mbps": 45.96
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 24.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-scan-turbo",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "Endpoint Scan Turbo"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 104.73
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-frag-auto",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/2)",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 138.28
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.8,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-frag-manual",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/2)",
+    "TLS Fragmentation Manual, 40 to 200 bytes"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 158.79
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-warp-plus-invalid-license",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "WARP+ License: a key WARP does not know"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the WARP+ license lines, the line saying WARP refused the license, the session line",
+     "not in the log: the license key"
+    ],
+    "download_mbps": 103.5
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.8,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the WARP+ license lines, the line saying WARP refused the license, the session line",
+     "not in the log: the license key"
+    ]
+   }
+  },
+  {
+   "id": "ae-tor-reverse",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "Tor: WARP via Tor"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 142.4
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-tor-only",
+   "settings": [
+    "Public",
+    "Tor: Tor Only"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the stress server saw AS215125, not Cloudflare",
+     "Release build"
+    ],
+    "download_mbps": 6.57
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 50.6,
+    "facts": [
+     "the stress server saw AS215125, not Cloudflare"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-download",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "the server's WireGuard received the phone's handshake"
+    ],
+    "download_mbps": 107.01
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "the server's WireGuard received the phone's handshake",
+     "not in the log: the file's private key"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-upload",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 82.37 Mbit/s",
+     "Release build",
+     "the server's WireGuard received the phone's handshake"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.2,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "the server's WireGuard received the phone's handshake",
+     "not in the log: the file's private key"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-wrong-server-key",
+   "settings": [
+    "Private",
+    "the phone's file with a server public key of nobody"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 32.2 s"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed."
+   }
+  },
+  {
+   "id": "ae-private-closed-port",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Port 51829 (nothing listens)"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 32.4 s"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51829 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51829 may be closed."
+   }
+  },
+  {
+   "id": "ae-private-unknown-host",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Server: a name that does not exist"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 0.4 s"
+    ],
+    "message": "Aether private: The WireGuard endpoint nonexistent.srp.invalid could not be resolved."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: The WireGuard endpoint nonexistent.srp.invalid could not be resolved."
+   }
+  },
+  {
+   "id": "ae-private-bad-key",
+   "settings": [
+    "Private",
+    "the phone's file with a damaged private key"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 0.5 s"
+    ],
+    "message": "Aether private: Invalid WireGuard config: a key is not valid base64 (32 bytes)."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: Invalid WireGuard config: a key is not valid base64 (32 bytes)."
+   }
+  },
+  {
+   "id": "ae-private-no-address",
+   "settings": [
+    "Private",
+    "the phone's file without Address"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 0.4 s"
+    ],
+    "message": "Aether private: The config has no [Interface] Address."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: The config has no [Interface] Address."
+   }
+  },
+  {
+   "id": "ae-private-container-down",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the server's aether container stopped"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 30.6 s"
+    ],
+    "message": "Aether private: the server answers over WireGuard, but its Aether proxy (port 1819 on 10.66.66.1) refused the connection: is the aether container running?"
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Aether private: the server answers over WireGuard, but its Aether proxy (port 1819 on 10.66.66.1) refused the connection: is the aether container running?"
+   }
+  },
+  {
+   "id": "ae-private-retry-before-connect",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Port 51829 (nothing listens)",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 100.4 s"
+    ],
+    "message": "Could not connect after 3 attempts. (Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51829 may be closed.)"
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key"
+    ],
+    "message": "Could not connect after 3 attempts. (Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51829 may be closed.)"
+   }
+  },
+  {
+   "id": "ae-log-normal",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection"
+    ],
+    "download_mbps": 100.48
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-log-normal",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection, the file's private key"
+    ],
+    "download_mbps": 102.94
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.8,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection, the file's private key"
+    ]
+   }
+  },
+  {
+   "id": "ae-log-expert",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ],
+    "download_mbps": 110.19
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 47.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-log-expert",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the file's private key"
+    ],
+    "download_mbps": 110.62
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the file's private key"
+    ]
+   }
+  },
+  {
+   "id": "ae-log-debug",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ],
+    "download_mbps": 26.15
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 27.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-private-log-debug",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the packet bridge's line for each connection",
+     "not in the log: the file's private key"
+    ],
+    "download_mbps": 105.23
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the packet bridge's line for each connection",
+     "not in the log: the file's private key"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-sleep-modes",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.4 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 9.9 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 5.2 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "closed at sleep, connected again 1.4 s after wake; transfer passed",
+     "closed at sleep, connected again 1.4 s after wake; transfer passed",
+     "closed at sleep, ended at wake with: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-session-drop",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "the engine's session ended on purpose",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 8.2 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 5.2 s after the session ended; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-session-drop-no-reconnect",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "the engine's session ended on purpose",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 5.6 s with: The WARP session ended (auto reconnect is off)."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The WARP session ended (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-path-switch",
+   "settings": [
+    "Public",
+    "Transport MASQUE (HTTP/3)",
+    "a change of network (iPhone: the app's network change; Android: Wi-Fi off and on again)"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 0.4 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "followed the network to mobile data and back to Wi-Fi (3 changes, 0 new sessions); transfers passed on both"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-sleep-modes",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.3 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.4 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.4 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "closed at sleep, connected again 0.2 s after wake; transfer passed",
+     "closed at sleep, ended at wake with: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-session-drop",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the WireGuard relay ended on purpose",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 24.1 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 21.8 s after the relay ended; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-outage-reconnect",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the server's WireGuard port drops everything for 40 s",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 43.8 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "noticed after about 41.1 s, connected again 41.3 s after the block began; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-server-down-no-reconnect",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the server's WireGuard port drops everything for 70 s",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 43.7 s with: The server stopped carrying traffic: two test connections through it failed (auto reconnect is off)."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended 46.3 s after the block began with: The server stopped carrying traffic: two test connections through it failed (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-retry-exhausted",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the server's WireGuard port drops everything for 160 s",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 109.6 s with: Could not reconnect after 2 attempts. (Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed.)"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended 111.1 s after the block began with: Could not reconnect after 2 attempts. (Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed.)"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-private-container-stopped",
+   "settings": [
+    "Private",
+    "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
+    "the server's aether container stopped for 110 s",
+    "Auto Reconnect on",
+    "Retry Times 1"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 53.9 s with: Aether private: the server answers over WireGuard, but its Aether proxy (port 1819 on 10.66.66.1) refused the connection: is the aether container running?"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended 55.2 s after the container stopped with: Aether private: the server answers over WireGuard, but its Aether proxy (port 1819 on 10.66.66.1) refused the connection: is the aether container running?"
+    ]
+   }
+  },
+  {
+   "id": "ae-guide-download",
+   "settings": [
+    "Private",
+    "the guide's file for each phone (iphone1 on the iPhone, android1 on Android)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "the server's WireGuard received the phone's handshake"
+    ],
+    "download_mbps": 101.9
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 10.5,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "the server's WireGuard received the phone's handshake",
+     "not in the log: the file's private key, the file's preshared key"
+    ]
+   }
+  },
+  {
+   "id": "ae-guide-upload",
+   "settings": [
+    "Private",
+    "the guide's file for each phone (iphone1 on the iPhone, android1 on Android)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 85.69 Mbit/s",
+     "Release build",
+     "the server's WireGuard received the phone's handshake"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 72.2,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "the server's WireGuard received the phone's handshake",
+     "not in the log: the file's private key, the file's preshared key"
+    ]
+   }
+  },
+  {
+   "id": "ae-guide-removed",
+   "settings": [
+    "Private",
+    "the guide's phone2.conf, phone2 removed as part 7 says"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "Release build",
+     "ended after 32.1 s"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed."
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "not in the log: the file's private key, the file's preshared key"
+    ],
+    "message": "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed."
+   }
+  }
+ ]
+}

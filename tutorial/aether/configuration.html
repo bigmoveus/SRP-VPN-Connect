@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Reference — Aether — SRP VPN Connect Documentation</title>
+<meta name="description" content="What the Aether engine of SRP VPN Connect is, what each setting of an Aether profile and of the Private mode server does, the phone's file, routing and DNS, and what stays private.">
+<link rel="stylesheet" href="../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>Configuration Reference</h1>
+<p class="lead">What the engine is, what each setting does on the phone and on the server, the lines of a phone's file, where the phone's traffic and names go, and what the app keeps private.</p>
+
+<div class="callout evidence">
+  <span class="callout-title">Where this page comes from</span>
+  <p>The source code of both apps and of our Aether fork, the server as <a href="server.html">Aether server</a> sets it up, and the cases of <a href="results.html">Test results</a>, which the descriptions below name where they show a setting at work.</p>
+</div>
+
+<h2 id="engine">The engine</h2>
+<p>Aether is a Cloudflare WARP client by CluvexStudio (<a href="https://github.com/CluvexStudio/Aether">github.com/CluvexStudio/Aether</a>, AGPL 3.0). The apps and the server guide build our fork of it, tag <code>v2.4.0-srp.2</code> of <a href="https://github.com/bigmoveus/Aether">github.com/bigmoveus/Aether</a>: Aether 2.4.0 with these changes, each its own commit:</p>
+<ul>
+  <li>Uploads no longer stall the tunnel. Aether's network stack dropped the packets it sent whenever the queue to the MASQUE connection was full, and under an upload every connection of the tunnel backed off until nothing moved. The fork keeps them until there is room. We sent this change to Aether as <a href="https://github.com/CluvexStudio/Aether/pull/168">CluvexStudio/Aether#168</a>.</li>
+  <li>The lines that name each connection's destination are at debug level, so a server does not keep a list of every place its phones connect to.</li>
+  <li>The certificate pins of the MASQUE edges include Let's Encrypt's YE2 intermediate, which signs the certificates the edges now serve.</li>
+  <li>The apps run the engine through its C interface: there the fork installs the logger, so the log levels apply, and lets a tunnel ask for Tor.</li>
+</ul>
+
+<h2 id="public">Public mode</h2>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td>The WARP identity</td><td>On its first connection the engine registers a free WARP device and keeps its keys in the app's own storage, one for MASQUE and one for WireGuard. Later connections use them again. No account or e-mail address is involved.</td></tr>
+    <tr><td>Transport</td><td>MASQUE carries the tunnel as an HTTP <em>CONNECT-IP</em> request to a WARP edge on port 443, over HTTP/3 (QUIC) or HTTP/2 (TLS over TCP). With <strong>Both</strong>, the app falls back to HTTP/2 when no HTTP/3 edge works. <strong>WireGuard</strong> is WARP's original transport over UDP. Over MASQUE, the engine opens the tunnel only after a packet has gone through it; an edge that takes the request but carries no traffic is given up.</td></tr>
+    <tr><td>Endpoint Scan</td><td><strong>Balanced</strong> checks more of WARP's edges and takes a good one. <strong>Turbo</strong> takes the first that answers, which saves time when it works.</td></tr>
+    <tr><td>WARP+ License</td><td>At connect time the app binds the key to the WARP device in use and checks the account type. An invalid key is refused by WARP, and the connection goes on with free WARP (case <code>ae-warp-plus-invalid-license</code>).</td></tr>
+    <tr><td>Tor</td><td><strong>WARP via Tor</strong> reaches the WARP edge through Tor, over MASQUE on HTTP/2; the traffic still leaves the internet at Cloudflare. <strong>Tor Only</strong> leaves the internet at a Tor exit, without WARP. Tor needs a few seconds to half a minute more to connect: 5 to 25 seconds in our runs.</td></tr>
+    <tr><td>TLS Fragmentation</td><td>Splits the ClientHello of the HTTP/2 connection's TLS handshake, for networks that block connections by the name in it.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="server">The server's settings</h2>
+<p>The container of <a href="server.html#container">the server guide</a> gets these settings:</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><code>AETHER_PROTOCOL=masque</code></td><td>The engine reaches WARP over MASQUE. Without it, the engine asks which protocol to use.</td></tr>
+    <tr><td><code>AETHER_SCAN=balanced</code></td><td>The endpoint scan, as in the app.</td></tr>
+    <tr><td><code>AETHER_NOIZE=firewall</code></td><td>The engine's profile for disguising its QUIC traffic: <code>firewall</code> is its default for MASQUE.</td></tr>
+    <tr><td><code>AETHER_TLS_VERIFY=1</code></td><td>The engine checks the certificate of the WARP edge against the pins it carries (the apps set the same); without it the container logs <code>tls verification: disabled</code> and takes any certificate.</td></tr>
+    <tr><td><code>AETHER_QUICK_RECONNECT=1</code></td><td>After a restart the engine goes back to the last edge that worked instead of asking whether to.</td></tr>
+    <tr><td><code>-v aether-data:/data</code></td><td>The engine's WARP identity and its last working edge, kept across restarts and new images. The image sets <code>AETHER_CONFIG=/data/aether.toml</code>.</td></tr>
+    <tr><td><code>-p 10.66.66.1:1819:1819</code></td><td>The engine's SOCKS5 port, which the image sets with <code>AETHER_SOCKS=0.0.0.0:1819</code>, published on wg0's address only.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="file">The phone's file</h2>
+<p>In Private mode the app reads these lines of the file <a href="server.html#phones">add-phone.sh</a> makes:</p>
+<div class="table-scroll"><table>
+  <thead><tr><th>Line</th><th>What the app does with it</th></tr></thead>
+  <tbody>
+    <tr><td><code>PrivateKey</code></td><td>The phone's key for the WireGuard handshake.</td></tr>
+    <tr><td><code>Address</code></td><td>The phone's address inside the tunnel. It must be IPv4, and the server's address must be the first of its network: the app reaches the engine at that address, port 1819.</td></tr>
+    <tr><td><code>PublicKey</code>, <code>PresharedKey</code></td><td>The server's public key and the phone's preshared key. If either does not match, the server does not answer the handshake (cases <code>ae-private-wrong-server-key</code> and <code>ae-private-closed-port</code> show the message).</td></tr>
+    <tr><td><code>Endpoint</code></td><td>The server and its UDP port; Server and Port in the profile fill in from it and, if changed, replace it.</td></tr>
+    <tr><td><code>AllowedIPs</code></td><td>The addresses the phone may reach through WireGuard: 10.66.66.1/32, the engine, is enough.</td></tr>
+    <tr><td><code>PersistentKeepalive</code></td><td>A keepalive every 25 seconds when nothing else is sent.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="routing">Routing and DNS</h2>
+<ul>
+  <li>All of the phone's IPv4 traffic goes into the tunnel, with an MTU of 1400. The app's own connections to the WARP edge, or to your server, stay outside it.</li>
+  <li>In Public mode the phone asks 1.1.1.1 and 1.0.0.1 for names, through the tunnel.</li>
+  <li>In Private mode the app answers name lookups itself, with stand-in addresses from 198.19.0.0/16. Each connection then carries the name to your server's engine, which looks it up.</li>
+  <li>The traffic leaves the internet with a Cloudflare address (AS13335): every Public and Private case of <a href="results.html">Test results</a> checked this. With Tor Only, it leaves with a Tor exit's address.</li>
+</ul>
+
+<h2 id="privacy">What stays private</h2>
+<ul>
+  <li>The WARP+ license, the phone's file and its keys are kept in the Keychain on iPhone and in the app's encrypted store on Android. No log level writes them (cases <code>ae-warp-plus-invalid-license</code> and the <code>ae-*log*</code> cases check the logs for them).</li>
+  <li>In Private mode, WARP sees your server's identity and address, not the phone's. The server's engine writes no destinations to its log at its default level.</li>
+</ul>
+</main>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

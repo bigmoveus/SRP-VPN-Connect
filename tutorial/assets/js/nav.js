@@ -97,5 +97,16 @@ window.SITE_NAV = [
       { title: 'Troubleshooting', href: 'amneziawg/troubleshooting.html' }
     ]
   },
+  {
+    title: 'Aether',
+    children: [
+      { title: 'Introduction', href: 'aether/index.html' },
+      { title: 'Aether Server', href: 'aether/server.html' },
+      { title: 'Setting Up the App', href: 'aether/app-setup.html' },
+      { title: 'Configuration Reference', href: 'aether/configuration.html' },
+      { title: 'Test Results', href: 'aether/results.html' },
+      { title: 'Troubleshooting', href: 'aether/troubleshooting.html' }
+    ]
+  },
   { title: 'Future Protocols', href: 'future.html' }
 ];
