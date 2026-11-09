@@ -20,6 +20,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - WireGuard: the Server and Port fields take effect: changed, they replace the imported file's Endpoint.
 - The Android app's version code is 5, for the release APK that adds WireGuard; the version name stays 1.2.0.
 - The Android app's version code is 6, for the release APK that adds AmneziaWG; the version name stays 1.2.0.
+- The Android app's version code is 7, for the release APK whose AmneziaWG runs our amneziawg-go fork; the version name stays 1.2.0.
 
 - AmneziaWG: the connection log's note on RandomTrailers with ranges in H1-H3 appears only without a HeaderProtectionKey, where a server without the fix can still drop some of the phone's packets (uploads), and says so.
 ### Fixed
