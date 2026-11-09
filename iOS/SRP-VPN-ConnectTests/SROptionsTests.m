@@ -7,6 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
+#import <objc/message.h>
 #import <objc/runtime.h>
 #import "NodeModel.h"
 #import "CheckConnectData.h"
@@ -3610,6 +3611,12 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                 NSLog(@"SRP path switch test ready");
                 [self waterWallProviderCommand:@"path-switch" manager:manager];
                 resumes = YES;
+            } else if ([step isEqualToString:@"session-drop"]) {
+                // Aether: the engine's session (or Private mode's relay to the server) ends as if WARP or the server had
+                // closed it; Auto Reconnect sets up a new one, without it the VPN ends with the reason
+                NSLog(@"SRP session drop test ready");
+                [self waterWallProviderCommand:@"aether-drop" manager:manager];
+                resumes = model.autoReconnect;
             } else {
                 NSLog(@"SRP peer-failure test ready");
                 [NSThread sleepForTimeInterval:5];
@@ -3759,6 +3766,15 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     model.protocolType = @"amnezia";
     model.port = @"51821";
     XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51821\n"]);
+    // Aether's Private mode as well; Public mode carries no WireGuard file of its own to change
+    model.protocolType = @"aether";
+    model.aetherMode = @"private";
+    model.port = @"51829";
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51829\n"]);
+    model.aetherMode = @"public";
+    XCTAssertEqualObjects([model wgEffectiveConfig], model.wgConfig);
+    model.protocolType = @"amnezia";
+    model.port = @"51821";
     // Manual configuration without a Port: WireGuard's own port, as the field's hint says (AmneziaWG's too)
     for (NSString *type in @[@"wireguard", @"amnezia"]) {
         NodeModel *manual = [NodeModel new];
@@ -3819,6 +3835,83 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     NSString *amneziaFooter = [amneziaEditor tableView:amneziaEditor.tableView titleForFooterInSection:4];
     XCTAssertTrue([amneziaFooter hasPrefix:@"AmneziaWG counts as connected"]);
     XCTAssertTrue([amneziaFooter containsString:@"no Switch to Wi-Fi option"]);
+}
+
+// Aether's options in both modes: Auto Reconnect (+Retry Times), On Sleep, Log Level, and TLS Fragmentation only on the
+// public MASQUE-H2 carrier; no Switch to Wi-Fi (Aether follows the phone's network)
+- (void)testAetherOptions {
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:model];
+    model.aetherMode = @"public";
+    model.aetherTransport = @"masque";
+    model.autoReconnect = YES;
+    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level"]));
+    NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
+    XCTAssertTrue([footer hasPrefix:@"Aether connects to Cloudflare WARP"]);
+    XCTAssertTrue([footer containsString:@"no Switch to Wi-Fi option"]);
+    UISwitch *reconnect = [self optionControlTitled:@"Auto Reconnect" inEditor:editor];
+    reconnect.on = NO;
+    [reconnect sendActionsForControlEvents:UIControlEventValueChanged];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], (@[@"Auto Reconnect", @"On Sleep", @"Log Level"]));
+
+    NodeModel *h2 = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:h2];
+    h2.aetherMode = @"public";
+    h2.aetherTransport = @"masque-h2";
+    h2.autoReconnect = YES;
+    h2.tlsFragMode = 2;
+    CreateVC *h2Host = [self profileEditorHostForModel:h2 saved:[NSMutableArray new]];
+    UITableViewController *h2Editor = (UITableViewController *)[self profileEditorOfHost:h2Host];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:h2Editor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level",
+                                                                   @"TLS Fragmentation", @"Min Chunk (bytes)", @"Max Chunk (bytes)"]));
+
+    // Private mode: the same options without fragmentation (no MASQUE carrier on the phone); the footer says where it goes
+    NodeModel *private = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:private];
+    private.aetherMode = @"private";
+    private.aetherTransport = @"masque-h2";
+    private.autoReconnect = YES;
+    CreateVC *privateHost = [self profileEditorHostForModel:private saved:[NSMutableArray new]];
+    UITableViewController *privateEditor = (UITableViewController *)[self profileEditorOfHost:privateHost];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:privateEditor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level"]));
+    NSString *privateFooter = [privateEditor tableView:privateEditor.tableView titleForFooterInSection:4];
+    XCTAssertTrue([privateFooter containsString:@"the server's Aether proxy"]);
+    XCTAssertTrue([privateFooter containsString:@"Cloudflare WARP"]);
+    XCTAssertFalse([privateFooter containsString:@"not involved"]);
+    // Private mode's server: the .conf the server makes for this phone can be imported, as for WireGuard
+    NSMutableArray<NSString *> *serverRows = [NSMutableArray new];
+    NSInteger rows = [privateEditor tableView:privateEditor.tableView numberOfRowsInSection:1];
+    for (NSInteger row = 0; row < rows; row++) {
+        UITableViewCell *cell = [privateEditor tableView:privateEditor.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:1]];
+        [serverRows addObject:cell.textLabel.text ?: @""];
+    }
+    XCTAssertEqualObjects(serverRows, (@[@"Server", @"Import Config (.conf)", @"Manual Configuration", @"Server", @"Port"]));
+    XCTAssertTrue([[privateEditor tableView:privateEditor.tableView titleForFooterInSection:1] hasPrefix:@"Import the .conf file your server made"]);
+}
+
+// Aether's Retry Times: before the first connection 1 attempt, or 1 + Retry Times with Auto Reconnect; after a drop Retry
+// Times attempts (0 = no limit), one without Auto Reconnect
+- (void)testAetherAttemptBudget {
+    NSInteger (*budget)(id, SEL) = (NSInteger (*)(id, SEL))objc_msgSend;
+    SEL selector = NSSelectorFromString(@"attemptBudgetLocked");
+    SRPAetherClient *client = [SRPAetherClient new];
+    XCTAssertTrue([client respondsToSelector:selector]);
+    client.autoReconnect = YES;
+    client.retryTimes = 2;
+    XCTAssertEqual(budget(client, selector), 3);
+    client.retryTimes = 0;
+    XCTAssertEqual(budget(client, selector), 1);
+    client.autoReconnect = NO;
+    client.retryTimes = 2;
+    XCTAssertEqual(budget(client, selector), 1);
+    [client setValue:@YES forKey:@"up"];
+    XCTAssertEqual(budget(client, selector), 1);
+    client.autoReconnect = YES;
+    XCTAssertEqual(budget(client, selector), 2);
+    client.retryTimes = 0;
+    XCTAssertEqual(budget(client, selector), NSIntegerMax);
 }
 
 // AmneziaWG's settings as the engine gets them: every key of the awg tool's files (AmneziaWG 1.0 to 3.1), ranges, the header
@@ -6339,6 +6432,91 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [manualNavigation popViewControllerAnimated:NO];
     [manualNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:manual] animated:NO];
     shoot(nil, @"protocol");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+/// Renders the Aether screens with example values for the documentation site, Public and Private mode, without saving any
+/// profile. Run it with TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1, then copy tmp/srp-docs-screenshots-aether out of the app's data container.
+- (void)testAetherDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-aether"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    void (^shootOptions)(CreateVC *, NSString *) = ^(CreateVC *host, NSString *name) {
+        window.rootViewController = host;
+        [window makeKeyAndVisible];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
+        UINavigationController *navigation = (UINavigationController *)host.childViewControllers.firstObject;
+        UITableView *table = ((UITableViewController *)navigation.topViewController).tableView;
+        // Estimated row heights leave the content size short until the last rows have been laid out once
+        NSInteger last = table.numberOfSections - 1;
+        [table scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[table numberOfRowsInSection:last] - 1 inSection:last]
+                     atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
+        [self scrollTableToEnd:table];
+        shoot(nil, name);
+    };
+    // Example profiles: Public mode needs no server; Private mode with an example file (keys of 32 bytes of 1, 2 and 4)
+    NodeModel *(^profile)(NSString *) = ^NodeModel *(NSString *description) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:model];
+        model.desc = description;
+        return model;
+    };
+    NodeModel *warp = profile(@"Example: Aether (Cloudflare WARP)");
+    NodeModel *h2 = profile(@"Example: Aether over HTTP/2");
+    h2.aetherTransport = @"masque-h2";
+    h2.tlsFragMode = 1;
+    NodeModel *torOnly = profile(@"Example: Aether, Tor only");
+    torOnly.aetherTor = @"only";
+    NodeModel *mine = profile(@"Example: Aether on my server");
+    mine.aetherMode = @"private";
+    mine.server = @"vpn.example.com";
+    mine.port = @"51820";
+    mine.wgConfig = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\n\n"
+                     "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nPresharedKey = BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=\n"
+                     "Endpoint = vpn.example.com:51820\nAllowedIPs = 10.66.66.1/32\nPersistentKeepalive = 25\n";
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[warp, h2, torOnly, mine]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    CreateVC *publicHost = [self profileEditorHostForModel:warp saved:[NSMutableArray new]];
+    UINavigationController *publicNavigation = (UINavigationController *)publicHost.childViewControllers.firstObject;
+    [((UITableViewController *)publicNavigation.topViewController).tableView reloadData];
+    shoot(publicHost, @"public");
+    [publicNavigation pushViewController:[[NSClassFromString(@"SRPAetherTransportViewController") alloc] initWithNodeModel:warp] animated:NO];
+    shoot(nil, @"transport");
+    [publicNavigation popViewControllerAnimated:NO];
+    [publicNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:warp] animated:NO];
+    shoot(nil, @"protocol");
+
+    shootOptions([self profileEditorHostForModel:h2 saved:[NSMutableArray new]], @"options");
+
+    CreateVC *privateHost = [self profileEditorHostForModel:mine saved:[NSMutableArray new]];
+    shoot(privateHost, @"private");
+    shootOptions(privateHost, @"private-options");
 
     window.hidden = YES;
     [previous makeKeyWindow];

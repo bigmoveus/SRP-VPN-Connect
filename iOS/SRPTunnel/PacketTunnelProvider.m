@@ -819,6 +819,8 @@ static uint64_t SRPFootprintBytes(void);
 -(void)startAetherWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
 #if DEBUG
     [self debugTlsProbe:@"162.159.198.2"];   // raw BSD TLS probe, engine-free
+#else
+    SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
 #endif
     SRPAetherClient *ae = [[SRPAetherClient alloc] init];
     // Private mode: the user's own server runs the Aether SOCKS5 proxy; the
@@ -847,6 +849,9 @@ static uint64_t SRPFootprintBytes(void);
     ae.logLevel = [logLevel isEqualToString:@"expert"] ? 1 : [logLevel isEqualToString:@"debug"] ? 2 : 0;
     NSString *onSleep = v[@"on_sleep"];
     self.onSleepMode = [onSleep isEqualToString:@"off"] ? 0 : [onSleep isEqualToString:@"pause"] ? 1 : 2;
+    ae.autoReconnect = v[@"auto_reconnect"] ? [v[@"auto_reconnect"] boolValue] : YES;
+    ae.retryTimes = MAX(0, [v[@"retry_times"] integerValue]);
+    ae.onSleep = self.onSleepMode;
     self.aeClient = ae;
 
     __weak PacketTunnelProvider *weakSelf = self;
@@ -1376,7 +1381,7 @@ static void SRPTunnelLogOpen(void) {
 
 #if DEBUG
     // Debug builds log every protocol; Release builds only the protocols retested with it (SSTP, SoftEther, SSL VPN, SSH, OpenVPN, WireGuard,
-    // AmneziaWG), from their start methods.
+    // AmneziaWG, Aether), from their start methods.
     SRPTunnelLogOpen();
 #endif
     // Never log credentials: mask the URI userinfo, and the SSL VPN Path (an ocserv camouflage secret), before logging
@@ -1386,8 +1391,9 @@ static void SRPTunnelLogOpen(void) {
         }
         uri = [uri stringByReplacingOccurrencesOfString:@"([?&]ocpath=)[^&#]*" withString:@"$1<redacted>"
                                                 options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
-        // The OpenVPN profile holds the client's private key and the tls-crypt key; a WireGuard configuration its keys
-        uri = [uri stringByReplacingOccurrencesOfString:@"([?&](?:profile|wg_conf|wg_private_key|wg_preshared_key|wg_header_protection_key)=)[^&#]*" withString:@"$1<redacted>"
+        // The OpenVPN profile holds the client's private key and the tls-crypt key; a WireGuard configuration its keys;
+        // a WARP+ license is a secret too
+        uri = [uri stringByReplacingOccurrencesOfString:@"([?&](?:profile|wg_conf|wg_private_key|wg_preshared_key|wg_header_protection_key|ae_license)=)[^&#]*" withString:@"$1<redacted>"
                                                 options:NSRegularExpressionSearch range:NSMakeRange(0, uri.length)];
         NSRange schemeEnd = [uri rangeOfString:@"//"];
         NSRange atSign = [uri rangeOfString:@"@"];
@@ -1532,6 +1538,13 @@ static void SRPTunnelLogOpen(void) {
             [self.sshClient switchNetworkPath];
             [self.ovpnClient switchNetworkPath];
             [self.wgClient switchNetworkPath];
+            [self.aeClient switchNetworkPath];
+            completionHandler(messageData);
+            return;
+        }
+        if ([command isEqualToString:@"aether-drop"]) {
+            // The engine's session (or Private mode's relay) ends as if WARP or the server had closed it
+            [self.aeClient debugDropSession];
             completionHandler(messageData);
             return;
         }

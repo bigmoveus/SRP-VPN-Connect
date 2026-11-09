@@ -52,6 +52,14 @@ typedef void(^SRPAetherConnectedCallback)(void);
 /// used; traffic goes utun -> hev -> SOCKS5 -> WireGuard (netstack relay) ->
 /// the VPS-hosted Aether proxy -> Cloudflare WARP.
 @property (nonatomic, strong, nullable) NSString *privateConfig;
+/// Auto Reconnect: a session that stops working (the engine's session ends, or two test connections through the
+/// tunnel fail) is set up again under the same tunnel; without it the VPN ends with the reason
+@property (nonatomic) BOOL autoReconnect;
+/// Retry Times: before the first connection 1 attempt, or 1 + Retry Times with Auto Reconnect; after a drop Retry
+/// Times attempts (0 = no limit), one without Auto Reconnect (a wake from Pause)
+@property (nonatomic) NSInteger retryTimes;
+/// On Sleep: 0 = Off, 1 = Pause, 2 = Stay (the provider pauses only for Off and Pause)
+@property (nonatomic) NSInteger onSleep;
 
 - (void)startWithOutputCallback:(SRPAetherOutputCallback)output
          networkSettingsCallback:(SRPAetherNetworkSettingsCallback)settings
@@ -72,6 +80,12 @@ typedef void(^SRPAetherConnectedCallback)(void);
 
 - (void)pauseForSleep;
 - (void)wakeFromSleep;
+/// The phone's network changed: the tunnel is checked at once (the WARP WireGuard transport moves its sockets)
+- (void)switchNetworkPath;
+#if DEBUG
+/// Ends the engine's session as if WARP had closed it (the lifecycle tests)
+- (void)debugDropSession;
+#endif
 
 @end
 

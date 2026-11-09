@@ -625,6 +625,12 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     self.modal.aetherScan = seg.selectedSegmentIndex == 1 ? @"turbo" : @"balanced";
 }
 
+/// TLS Fragmentation acts on the MASQUE-H2 carrier's TLS handshake: Public mode with H2, or H3 then H2, not Tor Only
+- (BOOL)aetherOffersFragmentation {
+    return [self isAether] && ![self isAetherPrivate] && ![self.modal.aetherTor isEqualToString:@"only"] &&
+           ([self.modal.aetherTransport isEqualToString:@"masque-h2"] || [self.modal.aetherTransport isEqualToString:@"masque-both"]);
+}
+
 - (BOOL)isAetherPrivate {
     return [self isAether] && [self.modal.aetherMode isEqualToString:@"private"];
 }
@@ -795,7 +801,8 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     if (([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall]) && section == 3) {
         return CGFLOAT_MIN;
     }
-    if (([self isAether] && (section == 1 || section == 2)) ||
+    // Aether's server section keeps its footer (what Public and Private mode do); its empty section 2 has none
+    if (([self isAether] && section == 2) ||
         ([self isWaterWall] && section == 2 &&
          ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
          ![self waterWallNeedsOuterSecret]) ||
@@ -826,7 +833,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     }
     if (section == 1 && [self isAether]) {
         if ([self isAetherPrivate]) {
-            return @"Server and Port are the WireGuard endpoint of your own server. Keys, address and DNS are entered under Manual Configuration.";
+            return @"Import the .conf file your server made for this phone or enter the keys under Manual Configuration. Server and Port are the WireGuard endpoint of your own server: filled from the Endpoint line on import; changed, they replace it.";
         }
         return @"Public mode connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit.";
     }
@@ -889,11 +896,13 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"Psiphon carries TCP only; DNS is answered inside the tunnel and names are resolved by the server.";
     }
     if (section == 4 && [self isAether]) {
+        // The options: the same rules in both modes (SRPAetherClient: test connections, attempts, sleep)
+        NSString *options = @"Aether counts as connected once a test connection through the tunnel went through. When the session ends, or two test connections through it fail (one every 20 seconds, and one at once after a network change), it stopped working: Auto Reconnect sets up a new session and Retry Times limits the attempts (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. On Sleep: Off closes the session while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. Aether always uses the network the phone uses, so there is no Switch to Wi-Fi option.";
         if ([self isAetherPrivate]) {
-            return @"Private mode connects to your own WireGuard server (standard WireGuard over UDP) — the Aether engine and Cloudflare WARP are not involved. Enter the keys under Manual Configuration; the client keypair can be generated there.";
+            return [@"Private mode connects to your own server over WireGuard; the server's Aether proxy (port 1819 on the server's tunnel address) carries the traffic on to Cloudflare WARP, so the phone runs no Aether engine itself. Enter the server's WireGuard keys under Manual Configuration; the client keypair can be generated there. " stringByAppendingString:options];
         }
-        NSString *base = @"Aether connects to Cloudflare WARP automatically — no server or account is needed. The engine re-establishes the session itself on network changes; only Log Level and, where H2 is used, TLS Fragmentation apply here. Tor Only exits via the Tor network (no WARP); WARP via Tor dials the tunnel through Tor (experimental — slow to connect).";
-        if (([self.modal.aetherTransport isEqualToString:@"masque-h2"] || [self.modal.aetherTransport isEqualToString:@"masque-both"])) {
+        NSString *base = [@"Aether connects to Cloudflare WARP; no server or account is needed. Tor Only exits through the Tor network (no WARP); WARP via Tor dials the tunnel through Tor (slow to connect). " stringByAppendingString:options];
+        if ([self aetherOffersFragmentation]) {
             return [base stringByAppendingString:@" MASQUE H2 runs over TCP+TLS (useful where QUIC/UDP is filtered); TLS Fragmentation splits the handshake's ClientHello into smaller writes — Auto picks safe sizes and splits at the SNI, Manual sets the byte range."];
         }
         return base;
@@ -928,7 +937,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 return [SRPWaterWallChainConfig configurationUsesTLS:configuration] ? 5 : 3;
             }
             if ([self isAether]) {
-                if ([self isAetherPrivate]) return 4;
+                if ([self isAetherPrivate]) return 5;   // Server mode, Import, Manual, Server, Port
                 return [self.modal.aetherTor isEqualToString:@"only"] ? 2 : 5;
             }
             if ([self isOpenConnect]) {
@@ -1017,11 +1026,10 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 return 1;
             }
             if ([self isAether]) {
-                // Log Level (+ TLS Fragmentation on the MASQUE-H2 carrier);
-                // the engine keeps its own quick-reconnect, so the generic
-                // reconnect/wi-fi/sleep switches do not apply
-                BOOL fragOK = ([self.modal.aetherTransport isEqualToString:@"masque-h2"] || [self.modal.aetherTransport isEqualToString:@"masque-both"]);
-                return 1 + (fragOK ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0);
+                // Auto Reconnect (+Retry Times when on), On Sleep, Log Level (+ TLS Fragmentation on the MASQUE-H2
+                // carrier); Aether follows the phone's network, so there is no Switch to Wi-Fi
+                BOOL fragOK = [self aetherOffersFragmentation];
+                return (self.modal.autoReconnect ? 4 : 3) + (fragOK ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0);
             }
             if ([self isOpenConnect] || [self isSSH] || [self isOpenVPN]) {
                 // Auto Reconnect (+Retry Times when on), Switch to Wi-Fi,
@@ -1141,17 +1149,23 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                                          selected:torSel
                                            action:@selector(aetherTorChanged:) tag:kSegmentOnSleep + 102];
             }
+            // Private: the server's WireGuard, from the .conf file the server makes for this phone or entered by hand
             switch (indexPath.row) {
                 case 1:
-                    return [self textCellWithTitle:@"Server" text:self.modal.server placeholder:@"Required"
-                                               tag:kFieldHost keyboardType:UIKeyboardTypeURL secure:NO];
-                case 2:
-                    return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"51820"
-                                               tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
-                default: {
-                    NSString *configState = self.modal.wgPrivateKey.length > 0 ? @"Configured" : @"None";
+                    return [self valueCellWithTitle:@"Import Config (.conf)"
+                                              value:(self.modal.wgConfig.length > 0 ? @"Imported" : @"None")
+                                         disclosure:YES];
+                case 2: {
+                    NSString *configState = self.modal.wgConfig.length > 0 ? @"Overridden by import"
+                                          : (self.modal.wgPrivateKey.length > 0 ? @"Manual" : @"None");
                     return [self valueCellWithTitle:@"Manual Configuration" value:configState disclosure:YES];
                 }
+                case 3:
+                    return [self textCellWithTitle:@"Server" text:self.modal.server placeholder:@"Required"
+                                               tag:kFieldHost keyboardType:UIKeyboardTypeURL secure:NO];
+                default:
+                    return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"51820"
+                                               tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
             }
         }
         if ([self isWireGuard]) {
@@ -1542,26 +1556,51 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             return [UITableViewCell new];
         }
-        if ([self isPsiphon] || [self isAether]) {
-            // Log Level; Aether-H2 adds TLS Fragmentation below it
-            if (indexPath.row == 0) {
+        if ([self isAether]) {
+            // Auto Reconnect (+Retry Times), On Sleep, Log Level (+ TLS Fragmentation on the MASQUE-H2 carrier);
+            // Aether follows the phone's network
+            BOOL ar = self.modal.autoReconnect;
+            NSInteger row = indexPath.row;
+            if (row == 0) {
+                return [self switchCellWithTitle:@"Auto Reconnect" on:self.modal.autoReconnect tag:kSwitchAutoReconnect];
+            }
+            if (ar && row == 1) {
+                return [self textCellWithTitle:@"Retry Times"
+                                          text:(self.modal.retryTimes > 0 ? @(self.modal.retryTimes).stringValue : nil)
+                                   placeholder:@"Unlimited"
+                                           tag:kFieldRetryTimes keyboardType:UIKeyboardTypeNumberPad secure:NO];
+            }
+            NSInteger shifted = ar ? row : row + 1;
+            if (shifted == 2) {
+                return [self segmentCellWithTitle:@"On Sleep" items:@[@"Off", @"Pause", @"Stay"]
+                                         selected:self.modal.onSleep action:@selector(onSleepChanged:) tag:kSegmentOnSleep];
+            }
+            if (shifted == 3) {
                 return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
                                          selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
             }
-            BOOL fragOK = [self isAether] && ([self.modal.aetherTransport isEqualToString:@"masque-h2"] || [self.modal.aetherTransport isEqualToString:@"masque-both"]);
-            if (fragOK && indexPath.row == 1) {
+            BOOL fragOK = [self aetherOffersFragmentation];
+            if (fragOK && shifted == 4) {
                 return [self segmentCellWithTitle:@"TLS Fragmentation" items:@[@"Off", @"Auto", @"Manual"]
                                          selected:self.modal.tlsFragMode action:@selector(tlsFragChanged:) tag:kSegmentTLSFrag];
             }
-            if (fragOK && self.modal.tlsFragMode == 2 && indexPath.row == 2) {
+            if (fragOK && self.modal.tlsFragMode == 2 && shifted == 5) {
                 return [self textCellWithTitle:@"Min Chunk (bytes)"
                                           text:(self.modal.tlsFragFirst > 0 ? @(self.modal.tlsFragFirst).stringValue : nil)
                                    placeholder:@"32" tag:kFieldTLSFragFirst keyboardType:UIKeyboardTypeNumberPad secure:NO];
             }
-            if (fragOK && self.modal.tlsFragMode == 2 && indexPath.row == 3) {
+            if (fragOK && self.modal.tlsFragMode == 2 && shifted == 6) {
                 return [self textCellWithTitle:@"Max Chunk (bytes)"
                                           text:(self.modal.tlsFragFollowing > 0 ? @(self.modal.tlsFragFollowing).stringValue : nil)
                                    placeholder:@"256" tag:kFieldTLSFragFollowing keyboardType:UIKeyboardTypeNumberPad secure:NO];
+            }
+            return [UITableViewCell new];
+        }
+        if ([self isPsiphon]) {
+            // Log Level only
+            if (indexPath.row == 0) {
+                return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
+                                         selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
             }
             return [UITableViewCell new];
         }
@@ -1701,7 +1740,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             [self.navigationController pushViewController:vc animated:YES];
             return;
         }
-        if ([self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 3) {
+        if ([self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 1) {
+            [self importWGConfig];
+        } else if ([self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 2) {
             SRPWGConfigViewController *vc = [[SRPWGConfigViewController alloc] initWithNodeModel:self.modal];
             [self.navigationController pushViewController:vc animated:YES];
         }
@@ -1910,6 +1951,13 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         if ([self isPlainWireGuard] && found) {
             [self showInfoAlertWithTitle:@"AmneziaWG Configuration"
                                  message:[NSString stringWithFormat:@"This file has AmneziaWG settings (%@ and others). Choose AmneziaWG VPN as the protocol to use it.",
+                                          [text substringWithRange:[found rangeAtIndex:1]]]];
+            return;
+        }
+        // Aether's Private mode reaches the server over plain WireGuard
+        if ([self isAetherPrivate] && found) {
+            [self showInfoAlertWithTitle:@"AmneziaWG Configuration"
+                                 message:[NSString stringWithFormat:@"This file has AmneziaWG settings (%@ and others). Aether's Private mode takes a WireGuard file.",
                                           [text substringWithRange:[found rangeAtIndex:1]]]];
             return;
         }

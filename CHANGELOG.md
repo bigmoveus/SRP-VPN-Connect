@@ -4,10 +4,19 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- Aether profiles have Auto Reconnect, Retry Times and On Sleep on iPhone. The app counts as connected once a test connection through the tunnel went through, sends one every 20 seconds and one at once after a change of network, and counts two failures in a row, or the end of the engine's session, as a lost session: Auto Reconnect then sets up a new one, 2 seconds after each failed attempt, Retry Times limits the attempts (before the first connection it adds attempts), and without Auto Reconnect the VPN ends with the reason. On Sleep Off and Pause close the session while the device sleeps; at wake Pause connects again, and Off only with Auto Reconnect. With the WireGuard transport the app's WireGuard does this with its own handshake check. There is no Switch to Wi-Fi option: Aether follows the phone's network.
+- Aether's Private mode on iPhone has Import Config (.conf), Manual Configuration, Server and Port: an imported file fills Server and Port from its Endpoint, and changed, they replace it. An AmneziaWG file is refused (the server speaks plain WireGuard). The messages tell a server that never answered the WireGuard handshake from one whose Aether proxy refused the connection (is the aether container running?).
+- The Aether log in Release builds of the iPhone app: Normal has the milestones and the reason a connection ended, Expert a line for each test connection that went through (the session's age and the bytes each way), Debug the engine's own lines and one for each connection. No level writes a key or the WARP+ license.
+
 ### Changed
 - The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
 
 ### Fixed
+- Aether's Private mode: a name looked up as the second of a session got the tunnel's own address (198.18.0.1) as its stand-in address, and connections to it were refused. The stand-in addresses now come from 198.19.0.0/16.
+- The WARP+ license no longer appears in the app's log or the tunnel's log when an Aether profile connects.
+- The Aether profile editor on iPhone shows the footer under Server, which explains Public and Private mode; it was hidden.
+- Aether on iPhone builds the engine from our fork's tag v2.4.0-srp.2, which writes the destination of each SOCKS5 request only at debug level, so a Private mode server no longer keeps a list of every place its phones connect to.
 - Aether on iPhone over MASQUE (HTTP/3, HTTP/2 and both): uploads no longer stall the connection. The engine dropped the packets its TCP stack sent whenever the queue to the carrier was full, and that TCP, which has no congestion control, kept resending into the same full queue until every connection stalled (four 16 MB uploads over HTTP/3 never finished, or crawled at 5 Mbit/s; over HTTP/2 10 Mbit/s). The app now builds the engine from our fork (github.com/bigmoveus/Aether, tag v2.4.0-srp.1: upstream v2.4.0 with the app's earlier patches as commits and this fix), where those packets wait until the queue has room: on an iPhone 12 uploads reach 104 Mbit/s over HTTP/3 and 167 over HTTP/2.
 
 ## 1.2.0 (40) - 2026-11-09
