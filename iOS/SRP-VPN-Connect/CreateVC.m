@@ -12,7 +12,6 @@
 #import "SRPOCServerTypeViewController.h"
 #import "SRPProtocolViewController.h"
 #import "SRPWGConfigViewController.h"
-#import "SRPPsiphonEntriesViewController.h"
 #import "SRPWaterWallConfigViewController.h"
 #import <SRPCore/SSAuthCapabilities.h>
 #import <SRPCore/SSProtocol.h>
@@ -97,7 +96,6 @@ static const NSInteger kSegmentTLSFrag = 29;
 static const NSInteger kFieldTLSFragFirst = 31;
 static const NSInteger kFieldTLSFragFollowing = 32;
 static const NSInteger kFieldAetherLicense = 33;
-static const NSInteger kFieldPsiphonEntry = 34;
 
 @class SRPProfileEditViewController;
 
@@ -302,28 +300,6 @@ static const NSInteger kFieldPsiphonEntry = 34;
     return nil;
 }
 
-- (BOOL)isPsiphon {
-    return [self.modal.protocolType isEqualToString:@"psiphon"];
-}
-
-// Psiphon transport presets: Auto = all (tactics pick), Speed drops the
-// request-cycled meek carriers, Stealth keeps the web-like ones only
-static NSString * const kPsiProtosFast = @"OSSH,QUIC-OSSH,TLS-OSSH,SHADOWSOCKS-OSSH";
-static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTED-MEEK-OSSH,TLS-OSSH";
-
-- (NSInteger)psiTransportIndex {
-    NSString *v = self.modal.psiphonLimitProtocols;
-    if (v.length == 0) return 0;
-    if ([v isEqualToString:kPsiProtosFast]) return 1;
-    if ([v isEqualToString:kPsiProtosStealth]) return 2;
-    return 0;
-}
-
-- (void)psiphonTransportsChanged:(UISegmentedControl *)seg {
-    self.modal.psiphonLimitProtocols = seg.selectedSegmentIndex == 1 ? kPsiProtosFast
-                                   : seg.selectedSegmentIndex == 2 ? kPsiProtosStealth : nil;
-}
-
 /// OpenVPN: the imported profile asks for interactive credentials
 - (BOOL)ovpnNeedsAuth {
     // An auth-user-pass line that is not commented out
@@ -411,10 +387,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     else if ([self isWaterWall]) {
         NSString *error = [self waterWallValidationError];
         if (error != nil) return error;
-    }
-    else if ([self isPsiphon]) {
-        // Psiphon: at least one server entry is required
-        if (self.modal.psiphonServerEntry.length == 0) return @"Add a Psiphon server entry.";
     }
     else if ([self isCertificateMode]) {
         // Certificate authentication: host + an imported client certificate;
@@ -591,7 +563,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         case kFieldRetryTimes: self.modal.retryTimes = field.text.integerValue; break;
         case kFieldCustomSni: self.modal.customSni = field.text; break;
         case kFieldAetherLicense: self.modal.aetherLicense = field.text; break;
-        case kFieldPsiphonEntry: self.modal.psiphonServerEntry = field.text; break;
         case kFieldSEHostname: self.modal.hostnameOverride = field.text; break;
         case kFieldSEHub: self.modal.hubName = field.text; break;
         case kFieldSENatTHint: self.modal.seNatTHint = field.text; break;
@@ -773,10 +744,10 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 1: return @"SERVER";
-        case 2: return ([self isAether] || [self isPsiphon] || ([self isWaterWall] &&
+        case 2: return ([self isAether] || ([self isWaterWall] &&
             ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
             ![self waterWallNeedsOuterSecret])) ? nil : ([self isOpenVPN] && ![self ovpnNeedsAuth] ? nil : ([self isWireGuard] ? nil : @"AUTHENTICATION"));  // OpenVPN/WireGuard: credentials live in the imported file
-        case 3: return ([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall] || [self isPsiphon]) ? nil : @"PROXY";  // hidden where unsupported
+        case 3: return ([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall]) ? nil : @"PROXY";  // hidden where unsupported
         case 4: return @"OPTIONS";
         default: return nil;
     }
@@ -824,9 +795,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             return @"The .ovpn profile supplies the OpenVPN configuration and credentials. With stunnel on, OpenVPN runs over TCP (also for a UDP profile) inside a TLS connection to the server's stunnel listener; CA Certificate pins the CA that signs the stunnel certificate (empty = system trust).";
         }
         return @"The .ovpn profile supplies the OpenVPN configuration and credentials (client certificate or auth-user-pass). Server and Port are filled from the profile's first remote line on import; change them to connect to another address or port. Enable stunnel to wrap OpenVPN TCP in an outer TLS connection.";
-    }
-    if (section == 1 && [self isPsiphon]) {
-        return @"Psiphon connects to your own psiphond server(s) — paste the hex server entry produced by 'psiphond generate'; several entries (space- or newline-separated) rotate automatically. Transports: Auto tries everything; Speed skips the slower web-shaped carriers; Stealth keeps only web-like traffic.";
     }
     if (section == 1 && [self isWaterWall]) {
         return @"Configuration independently combines the input, application protocol, MUX and outer transport. SOCKS5 supports TCP and UDP Association directly; HTTP CONNECT supports TCP. Proxy username and password are optional as a pair. Advanced Node Settings provides per-node JSON overrides. Reality defaults to the www.cloudflare.com cover and uses a separate password. AEAD has no TLS handshake. Raw IPv4 uses PacketsToStream. TLS Server Verification validates TLS, Reality and QUIC certificates. Optional SNI must match the server's cover configuration.";
@@ -892,9 +860,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     if (section == 4 && [self isOpenVPN]) {
         return @"Auto Reconnect lets OpenVPN connect again when the connection breaks or the server stops answering its keepalives; Retry Times limits the attempts (empty = no limit). Off: the VPN disconnects with the reason. OpenVPN uses the TLS parameters negotiated with the server (tls-crypt, data-channel ciphers). With stunnel on, the outer TLS connection requires TLS 1.2 or later, and TLS Fragmentation splits its handshake.";
     }
-    if (section == 4 && [self isPsiphon]) {
-        return @"Psiphon carries TCP only; DNS is answered inside the tunnel and names are resolved by the server.";
-    }
     if (section == 4 && [self isAether]) {
         // The options: the same rules in both modes (SRPAetherClient: test connections, attempts, sleep)
         NSString *options = @"Aether counts as connected once a test connection through the tunnel went through. When the session ends, or two test connections through it fail (one every 20 seconds, and one at once after a network change), it stopped working: Auto Reconnect sets up a new session and Retry Times limits the attempts (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. On Sleep: Off closes the session while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. Aether always uses the network the phone uses, so there is no Switch to Wi-Fi option.";
@@ -927,10 +892,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     switch (section) {
         case 0: return 2; // Protocol, Description
         case 1:
-            if ([self isPsiphon]) {
-                // Server Entries + Transports
-                return 2;
-            }
             if ([self isWaterWall]) {
                 NSDictionary *configuration = [self waterWallConfiguration];
                 if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) return 5;
@@ -968,7 +929,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 return ([SRPWaterWallChainConfig configurationNeedsApplicationSecret:configuration] ? (proxy ? 2 : 1) : 0) +
                        ([self waterWallNeedsOuterSecret] ? 1 : 0);
             }
-            if ([self isAether] || [self isPsiphon]) {
+            if ([self isAether]) {
                 return 0;
             }
             if ([self isWireGuard]) {
@@ -990,8 +951,8 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             return [self isCertificateMode] ? 4 : 6;
         case 3: // PROXY: Mode (+ fields per mode)
-            if ([self isOpenConnect] || [self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isAether] || [self isWaterWall] || [self isPsiphon]) {
-                return 0;   // libopenconnect proxy support is not wired yet; SSH/OpenVPN/WireGuard/Psiphon likewise
+            if ([self isOpenConnect] || [self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isAether] || [self isWaterWall]) {
+                return 0;   // libopenconnect proxy support is not wired yet; SSH/OpenVPN/WireGuard likewise
             }
             if ([self isSoftEther]) {
                 switch (self.modal.proxyMode) {
@@ -1019,11 +980,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             if ([self isWireGuard]) {
                 // WireGuard and AmneziaWG: Auto Reconnect (+Retry Times when on), On Sleep, Log Level
                 return self.modal.autoReconnect ? 4 : 3;
-            }
-            if ([self isPsiphon]) {
-                // Log Level only — the Psiphon core redials internally;
-                // nothing else in this section acts on it.
-                return 1;
             }
             if ([self isAether]) {
                 // Auto Reconnect (+Retry Times when on), On Sleep, Log Level (+ TLS Fragmentation on the MASQUE-H2
@@ -1064,23 +1020,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                                    tag:kFieldDesc keyboardType:UIKeyboardTypeDefault secure:NO];
     }
     if (indexPath.section == 1) {
-        if ([self isPsiphon]) {
-            if (indexPath.row == 0) {
-                NSUInteger n = 0;
-                if (self.modal.psiphonServerEntry.length > 0) {
-                    for (NSString *p in [self.modal.psiphonServerEntry componentsSeparatedByCharactersInSet:
-                                         [NSCharacterSet characterSetWithCharactersInString:@" \t\r\n,"]]) {
-                        if (p.length > 0) n++;
-                    }
-                }
-                NSString *v = n > 0 ? [NSString stringWithFormat:@"%lu %@", (unsigned long)n, n == 1 ? @"entry" : @"entries"] : @"None";
-                return [self valueCellWithTitle:@"Server Entries" value:v disclosure:YES];
-            }
-            return [self segmentCellWithTitle:@"Transports"
-                                        items:@[@"Auto", @"Speed", @"Stealth"]
-                                     selected:[self psiTransportIndex]
-                                       action:@selector(psiphonTransportsChanged:) tag:kSegmentOnSleep + 104];
-        }
         if ([self isWaterWall]) {
             NSDictionary *configuration = [self waterWallConfiguration];
             if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
@@ -1596,14 +1535,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             return [UITableViewCell new];
         }
-        if ([self isPsiphon]) {
-            // Log Level only
-            if (indexPath.row == 0) {
-                return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
-                                         selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
-            }
-            return [UITableViewCell new];
-        }
         if ([self isOpenConnect] || [self isSoftEther] || [self isSSH] || [self isOpenVPN]) {
             // OPTIONS for the non-SSTP engines: Auto Reconnect (+Retry),
             // Switch to Wi-Fi, On Sleep, Log Level (+ TLS Fragmentation
@@ -1712,11 +1643,6 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     if (indexPath.section == 0 && indexPath.row == 0) {
         [self protocolTapped];
-        return;
-    }
-    if ([self isPsiphon] && indexPath.section == 1 && indexPath.row == 0) {
-        SRPPsiphonEntriesViewController *vc = [[SRPPsiphonEntriesViewController alloc] initWithNodeModel:self.modal];
-        [self.navigationController pushViewController:vc animated:YES];
         return;
     }
     if ([self isWaterWall] && indexPath.section == 1) {

@@ -6,7 +6,6 @@ build/
 .build/
 iOS/Aether/lib/
 iOS/WireGuard/lib/
-iOS/WireGuard/bridge/psiphon-tunnel-core/
 *.dSYM
 *.log
 *.crash

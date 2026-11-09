@@ -64,7 +64,7 @@ A future optional feature is **Personal Server + Aether Egress**: the iPhone ent
 | TCP, UDP, and DNS on both modes | Required acceptance criteria | Richer protocol coverage |
 | Auto / Personal mode selection | Required | Multi-profile policies |
 | Basic English/localizable user interface | Required | RTL and accessibility polish |
-| Psiphon, Tor, and protocol chaining | Out of MVP | Independent phase |
+| Tor and protocol chaining | Out of MVP | Independent phase |
 | Aether egress on a VPS | Out of MVP | Separate proof of concept |
 | Absolute kill switch / universal per-app VPN | Do not promise | Platform/entitlement research |
 
@@ -602,7 +602,7 @@ After connecting from a real iPhone, verify handshake, VPS public egress IP, HTT
 | WARP MASQUE H2 | HTTP/2 over TCP | Encapsulated UDP **only if implemented** | Inner-UDP pass + latency/HOL measurements |
 | WARP WireGuard | UDP | IP traffic: TCP and UDP | Independent UDP + DNS tests |
 | Personal WireGuard | UDP to VPS | IP traffic: TCP and UDP | Bidirectional datagrams and NAT proof |
-| Android fork Psiphon/Tor chains | Depends on chain | General UDP not supported in some documented chains | Out of MVP |
+| Android fork Tor chains | Depends on chain | General UDP not supported in some documented chains | Out of MVP |
 | VPS + Aether SOCKS5 | Local TCP listener; UDP support requires verification | Requires compatible relay/packet adapter | No assumptions without end-to-end tests |
 
 **Never equate "QUIC uses UDP" with "iPhone app UDP packets are forwarded correctly."** These are different properties at different layers.
@@ -919,7 +919,7 @@ Mandatory principles:
 - A valid cached candidate is **reverified**, not blindly trusted. Cache must be invalidated after transport/security changes, severe path changes, and reasonable TTL expiry.
 - H2 on TCP is a **fallback carrier**, not a guarantee of same latency/throughput. A developer MUST verify whether Aether's embedded H2 implementation actually carries inner UDP end-to-end through the iOS bridge; a carrier using TCP may still transport UDP application packets *if the implementation supports it*.
 - H2 TLS ClientHello fragmentation and documented noise profiles are optional **audited experiments**. Never enable as a universal default on unmeasured networks; they may introduce extra fingerprinting, latency, instability or incompatibility.
-- Nested modes (`gool`, `mim`), Psiphon/Tor, and custom transport over a personal VPS are **Phase-5+ candidates** requiring separate source, iOS runtime, security, licensing, UDP, and egress tests. They are **not** the MVP's automatic fallback promise.
+- Nested modes (`gool`, `mim`), Tor, and custom transport over a personal VPS are **Phase-5+ candidates** requiring separate source, iOS runtime, security, licensing, UDP, and egress tests. They are **not** the MVP's automatic fallback promise.
 - Standard personal WireGuard is **UDP-only as an outer transport**. It does not magically work where every needed UDP path is blocked. TCP-capable personal server fallback requires a separately deployed and audited compatible server and client transport (future ADR).
 - No option silently repurposes public Cloudflare IPs to reach a user-owned personal server; treat them as separate products/backends.
 

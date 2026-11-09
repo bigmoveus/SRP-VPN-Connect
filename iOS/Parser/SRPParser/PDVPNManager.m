@@ -582,16 +582,12 @@ static NSString *SRPMaskedURI(NSString *uri) {
     else if ([server[@"type"] isEqualToString:@"aether"]) {
         [uri appendString:@"aether://"];
     }
-    else if ([server[@"type"] isEqualToString:@"psiphon"]) {
-        [uri appendString:@"psiphon://"];
-    }
     else {
         return NO;
     }
     
     [uri appendFormat:@"%@", [PDVPNManager tunnelURIUserWithUsername:server[@"username"] password:server[@"password"]]];
-    // Psiphon entries carry their own server addresses; the profile's
-    // address field may be empty — keep the URI parseable regardless
+    // Aether's Public mode has no server address: keep the URI parseable regardless
     NSString *host = [server[@"address"] length] > 0 ? server[@"address"] : @"127.0.0.1";
     [uri appendFormat:@"@%@:%@?t=1", host, server[@"port"]];
     if (server[@"allowInsecure"]) {
@@ -796,12 +792,6 @@ static NSString *SRPMaskedURI(NSString *uri) {
     }
     if ([server[@"type"] isEqualToString:@"aether"] && [server[@"ae_tor"] length] > 0 && ![server[@"ae_tor"] isEqualToString:@"off"]) {
         [uri appendFormat:@"&ae_tor=%@", server[@"ae_tor"]];
-    }
-    if ([server[@"type"] isEqualToString:@"psiphon"] && [server[@"psi_entry"] length] > 0) {
-        [uri appendFormat:@"&psi_entry=%@", [server[@"psi_entry"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];
-    }
-    if ([server[@"type"] isEqualToString:@"psiphon"] && [server[@"psi_protos"] length] > 0) {
-        [uri appendFormat:@"&psi_protos=%@", [server[@"psi_protos"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];
     }
     if (([server[@"type"] isEqualToString:@"wireguard"] || [server[@"type"] isEqualToString:@"amnezia"]) && [server[@"wg_conf"] length] > 0) {
         [uri appendFormat:@"&wg_conf=%@", [server[@"wg_conf"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];

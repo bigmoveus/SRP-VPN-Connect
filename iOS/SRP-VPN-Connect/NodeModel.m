@@ -87,8 +87,7 @@ static NodeModel * modal = nil;
              : [_protocolType isEqualToString:@"wireguard"] ? @"WireGuard VPN"
              : [_protocolType isEqualToString:@"amnezia"] ? @"AmneziaWG VPN"
              : [_protocolType isEqualToString:@"aether"] ? @"Aether VPN"
-             : [_protocolType isEqualToString:@"waterwall"] ? @"WaterWall VPN"
-             : [_protocolType isEqualToString:@"psiphon"] ? @"Psiphon VPN" : @"SSTP VPN";
+             : [_protocolType isEqualToString:@"waterwall"] ? @"WaterWall VPN" : @"SSTP VPN";
     }
     return _nodeName;
 }

@@ -43,7 +43,7 @@
 #import "SRPProtocolViewController.h"
 #import "SRPGeoIPCountryViewController.h"
 #import "SRPAetherClient.h"
-#import "SRPPsiphonClient.h"
+#import "userNodeData.h"
 #import "SRPWaterWallClient.h"
 #import "SRPWaterWallBridge.h"
 #import <SRPParser/SRPParser.h>
@@ -1890,7 +1890,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:@"openconnect" server:@"203.0.113.6" port:@"8443"]
                                                                 port:&port], @"203.0.113.6");
     XCTAssertEqual(port, 8443);
-    for (NSString *type in @[@"wireguard", @"amnezia", @"aether", @"psiphon"]) {
+    for (NSString *type in @[@"wireguard", @"amnezia", @"aether"]) {
         XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:[self pingProfileOfType:type server:@"203.0.113.5" port:@"443"]
                                                             port:&port], @"%@", type);
     }
@@ -4129,7 +4129,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertTrue([[PDBase64 encode:@"vpnuser:?"] containsString:@"/"]);
     NSArray<NSString *> *passwords = @[@"a:b:c", @"?", @"???", @"a/b", @"  edges  ", @" p:?/ ", @"ğüşİÖç", @"пароль",
                                        @"رمز عبور", @"密码?", @">"];
-    for (NSString *type in @[@"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether", @"psiphon"]) {
+    for (NSString *type in @[@"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether"]) {
         for (NSString *password in passwords) {
             SRPTunnelURICapturingManager *manager = [SRPTunnelURICapturingManager new];
             NSDictionary *server = @{@"type": type, @"username": @"vpnuser", @"password": password, @"address": @"vpn.example.com", @"port": @"443"};
@@ -4194,20 +4194,19 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(hex(utf16([@"éa" dataUsingEncoding:NSUTF8StringEncoding], 512)), @"E9006100");
 }
 
-- (void)testPsiphonCloseCanReleaseTheProviderOnItsWorker {
-    __weak SRPPsiphonClient *weakClient;
-    @autoreleasepool {
-        SRPPsiphonClient *client = [SRPPsiphonClient new];
-        weakClient = client;
-        [client setValue:^{ (void)[client description]; } forKey:@"outputCb"];
-        [client close];
-    }
-    XCTestExpectation *released = [self expectationWithDescription:@"Psiphon closes without reentering its worker synchronously"];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 300 * NSEC_PER_MSEC), dispatch_get_main_queue(), ^{
-        XCTAssertNil(weakClient);
-        [released fulfill];
-    });
-    [self waitForExpectations:@[released] timeout:2];
+/// Psiphon is no longer in the app: a stored Psiphon profile is dropped when the list loads, and the list is saved without it
+- (void)testStoredPsiphonProfilesAreDroppedAndSavedAway {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id original = [defaults objectForKey:@"nodeArray"];
+    [defaults setObject:@[@{@"type": @"psiphon", @"desc": @"Old Psiphon", @"node_id": @"PSI-1", @"psi_entry": @"00"},
+                          @{@"type": @"sstp", @"desc": @"Kept", @"node_id": @"SSTP-1", @"address": @"vpn.example.com", @"port": @"443"}]
+                 forKey:@"nodeArray"];
+    NSArray<NodeModel *> *profiles = [userNodeData shareInstance].nodeArray;
+    NSArray *stored = [defaults objectForKey:@"nodeArray"];
+    original ? [defaults setObject:original forKey:@"nodeArray"] : [defaults removeObjectForKey:@"nodeArray"];
+    XCTAssertEqualObjects([profiles valueForKey:@"desc"], @[@"Kept"]);
+    XCTAssertEqual(stored.count, 1u);
+    XCTAssertEqualObjects(stored.firstObject[@"desc"], @"Kept");
 }
 
 - (void)testAetherCloseCanReleaseTheProviderOnItsWorker {
@@ -5224,7 +5223,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
         [titles addObject:cell.textLabel.text ?: @""];
     }
     XCTAssertEqualObjects(titles, (@[@"WaterWall VPN", @"SSTP VPN", @"SoftEther VPN", @"SSL VPN", @"SSH VPN", @"OpenVPN",
-                                     @"WireGuard VPN", @"AmneziaWG VPN", @"Aether VPN", @"Psiphon VPN"]));
+                                     @"WireGuard VPN", @"AmneziaWG VPN", @"Aether VPN"]));
 }
 
 - (void)testNewProfileStartsAsWaterWall {
@@ -5654,8 +5653,6 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
 
     NSArray<void (^)(void)> *openers = @[
         ^{ [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]]; },
-        ^{ [navigation pushViewController:[[NSClassFromString(@"SRPPsiphonEntriesViewController") alloc] initWithNodeModel:model]
-                                  animated:NO]; },
     ];
     for (void (^open)(void) in openers) {
         open();
@@ -6433,6 +6430,38 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [manualNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:manual] animated:NO];
     shoot(nil, @"protocol");
 
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+/// Renders the Protocol screen with each protocol ticked, as every guide's Setting Up the App shows it. Run it with
+/// TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1, then copy tmp/srp-docs-screenshots-protocols out of the app's data container.
+- (void)testProtocolScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-protocols"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    for (NSString *type in @[@"waterwall", @"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether"]) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:type toModel:model];
+        CreateVC *host = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        window.rootViewController = host;
+        [window makeKeyAndVisible];
+        UINavigationController *navigation = (UINavigationController *)host.childViewControllers.firstObject;
+        [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model] animated:NO];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        NSString *file = [folder stringByAppendingPathComponent:[NSString stringWithFormat:@"protocol-%@.png", type]];
+        XCTAssertTrue([png writeToFile:file atomically:YES], @"%@", type);
+    }
     window.hidden = YES;
     [previous makeKeyWindow];
 }

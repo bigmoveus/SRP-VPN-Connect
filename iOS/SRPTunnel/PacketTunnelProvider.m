@@ -18,7 +18,6 @@
 @property (nonatomic, strong) SRPOpenVPNClient *ovpnClient;  // non-nil while an OpenVPN session is active
 @property (nonatomic, strong) SRPWireGuardClient *wgClient;  // non-nil while a WireGuard session is active
 @property (nonatomic, strong) SRPAetherClient *aeClient;    // non-nil while an Aether session is active
-@property (nonatomic, strong) SRPPsiphonClient *psiClient;  // non-nil while a Psiphon session is active
 @property (nonatomic, strong) SRPWaterWallClient *wwClient;
 @property (nonatomic) NSInteger wwReadGeneration;
 @property (nonatomic) BOOL wwReadInFlight;
@@ -746,74 +745,6 @@ static uint64_t SRPFootprintBytes(void);
 }
 
 
-#pragma mark - Psiphon Protocol
-
--(void)startPsiphonWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
-    SRPPsiphonClient *psi = [[SRPPsiphonClient alloc] init];
-    psi.serverEntry = [v[@"psi_entry"] stringByRemovingPercentEncoding];
-    psi.serverIP = v[@"address"];
-    psi.limitProtocols = v[@"psi_protos"];
-    NSString *logLevel = v[@"log_level"];
-    psi.logLevel = [logLevel isEqualToString:@"expert"] ? 1 : [logLevel isEqualToString:@"debug"] ? 2 : 0;
-    NSString *onSleep = v[@"on_sleep"];
-    self.onSleepMode = [onSleep isEqualToString:@"off"] ? 0 : [onSleep isEqualToString:@"pause"] ? 1 : 2;
-    self.psiClient = psi;
-
-    __weak PacketTunnelProvider *weakSelf = self;
-    __block BOOL finished = NO;
-    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
-    void (^finish)(NSError *) = ^(NSError *e) {
-        if (finished) {
-            return;
-        }
-        finished = YES;
-        if (e) {
-            [shared setObject:@{@"message": e.localizedDescription ?: @"Psiphon connection failed",
-                                @"date": [NSDate date]} forKey:@"SRPLastError"];
-        }
-        else {
-            [shared removeObjectForKey:@"SRPLastError"];
-        }
-        [shared synchronize];
-        completionHandler(e);
-    };
-
-    // Psiphon can take a while on slow networks; the client retries once
-    // with a wiped tactics database after a failed establishment (60s each),
-    // so the budget must cover both attempts plus settings
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(200 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        finish([NSError errorWithDomain:@"SRPVPN" code:-2 userInfo:@{NSLocalizedDescriptionKey: @"Connection timed out. The server did not respond."}]);
-    });
-
-    [psi startWithOutputCallback:^(NSData *ipPacket, int family) {
-        [weakSelf.packetFlow writePackets:@[ipPacket] withProtocols:@[@(family)]];
-    } networkSettingsCallback:^(NEPacketTunnelNetworkSettings *setting) {
-        [weakSelf setTunnelNetworkSettings:setting completionHandler:^(NSError * _Nullable e) {
-            if (e) {
-                SSLogE(@"Psiphon: setTunnelNetworkSettings failed: %@", e);
-                return finish(e);
-            }
-            [weakSelf readPacketsPSI];
-            finish(nil);
-        }];
-    } connectedCallback:nil failureCallback:^(NSString *reason) {
-        finish([NSError errorWithDomain:@"SRPVPN" code:-1 userInfo:@{NSLocalizedDescriptionKey: reason ?: @"Psiphon connection failed"}]);
-    }];
-}
-
--(void)readPacketsPSI {
-    [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> * _Nonnull packets, NSArray<NSNumber *> * _Nonnull protocols) {
-        for (NSInteger i = 0; i < packets.count; i ++) {
-            int fam = protocols[i].intValue;
-            if (fam != AF_INET && fam != AF_INET6) {
-                continue;
-            }
-            [self.psiClient injectPacket:packets[i] family:fam];
-        }
-        [self readPacketsPSI];
-    }];
-}
-
 #pragma mark - Aether Protocol
 
 -(void)startAetherWithOptions:(NSDictionary *)v completionHandler:(void (^)(NSError *))completionHandler {
@@ -1459,9 +1390,6 @@ static void SRPTunnelLogOpen(void) {
     if ([scheme isEqualToString:@"aether"]) {
         return [self startAetherWithOptions:ss completionHandler:completionHandler];
     }
-    if ([scheme isEqualToString:@"psiphon"]) {
-        return [self startPsiphonWithOptions:ss completionHandler:completionHandler];
-    }
     if ([scheme isEqualToString:@"wireguard"] || [scheme isEqualToString:@"amnezia"]) {
         return [self startWireGuardWithOptions:ss completionHandler:completionHandler];
     }
@@ -1486,8 +1414,6 @@ static void SRPTunnelLogOpen(void) {
     self.wgClient = nil;
     [self.aeClient closeAndWait];   // stop the Aether engine and bridge
     self.aeClient = nil;
-    [self.psiClient closeAndWait];  // stop the Psiphon core and bridge
-    self.psiClient = nil;
     self.wwReadGeneration++;
     @synchronized (self) {
         self.wwReadRequestID++;

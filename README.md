@@ -66,10 +66,6 @@ AmneziaWG uses the AmneziaWG-go engine with the usual WireGuard profile settings
 
 Aether can use Cloudflare WARP or a private endpoint. Public WARP profiles do not require a private VPN server. Depending on the selected mode, the app supports MASQUE and WireGuard transports, endpoint scanning, a WARP+ license, Tor modes, and TLS fragmentation for H2. A WARP+ license, private endpoint, or other account credential is not included.
 
-### Psiphon VPN
-
-Psiphon uses the clientlib engine with private encoded server entries and the transports enabled by the server and core. The app does not provide a public/shared server list or a Psiphon server entry. You must supply a valid entry for a server you are authorized to use.
-
 ### WaterWall VPN
 
 WaterWall provides a general editor for building compatible client-side chains. Available building blocks include VLESS, VMess, Trojan, SOCKS5, HTTP CONNECT, TLS, Reality, AEAD, QUIC, BGP4, HTTP/WebSocket, MUX, KCP, raw IPv4, and WireGuard. The editor validates combinations and allows supported per-node overrides without requiring a separate preset for every chain. No server installation or account is included.
@@ -107,7 +103,7 @@ cd SRP-VPN-Connect
 ./iOS/Scripts/prepare.sh
 ```
 
-This builds the Aether Rust runtime, the shared Go runtime for WireGuard, AmneziaWG and Psiphon, and the WaterWall runtime. The smaller required native archives are already included. Individual engine build scripts remain in their respective directories when a full rebuild is needed.
+This builds the Aether Rust runtime, the shared Go runtime for WireGuard and AmneziaWG, and the WaterWall runtime. The smaller required native archives are already included. Individual engine build scripts remain in their respective directories when a full rebuild is needed.
 
 ### 3. Install the Xcode dependencies
 

@@ -25,6 +25,5 @@ FOUNDATION_EXPORT const unsigned char SRPCoreVersionString[];
 #import <SRPCore/SRPWireGuardClient.h>
 #import <SRPCore/SRPWGKeys.h>
 #import <SRPCore/SRPAetherClient.h>
-#import <SRPCore/SRPPsiphonClient.h>
 #import <SRPCore/SRPWaterWallClient.h>
 #import <SRPCore/SRPWaterWallChainConfig.h>

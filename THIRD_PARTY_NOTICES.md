@@ -13,7 +13,6 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | WireGuard / wireguard-go | [WireGuard](https://www.wireguard.com/) | MIT; see `Licenses/WireGuard/LICENSE` |
 | AmneziaWG-go (the iOS and Android apps build our fork [bigmoveus/amneziawg-go](https://github.com/bigmoveus/amneziawg-go), tag `v3.1.20260828-srp.1`: upstream v3.1.20260828 with a fix for transport packets taken for handshake messages with RandomTrailers) | [amnezia-vpn/amneziawg-go](https://github.com/amnezia-vpn/amneziawg-go) | MIT; see `Licenses/AmneziaWG/LICENSE` |
 | Aether (the iOS and Android apps build our fork [bigmoveus/Aether](https://github.com/bigmoveus/Aether), tag `v2.4.0-srp.2`: upstream v2.4.0 with the app's changes, among them outbound netstack packets kept instead of dropped when the carrier is busy) | [CluvexStudio/Aether](https://github.com/CluvexStudio/Aether) | AGPL 3.0; see `Licenses/Aether/LICENSE` and `Licenses/Aether/TRADEMARK.md` |
-| Psiphon clientlib | [Psiphon-Labs/psiphon-tunnel-core](https://github.com/Psiphon-Labs/psiphon-tunnel-core) | GPL 3.0; see `Licenses/Psiphon/LICENSE` |
 | WaterWall | [radkesvat/WaterWall](https://github.com/radkesvat/WaterWall) | See `WaterWall/upstream/LICENSE.txt` and the notices in its source directories |
 | BoringSSL | [BoringSSL](https://boringssl.googlesource.com/boringssl/) | See `Licenses/BoringSSL/LICENSE` |
 | OpenSSL (3.0 in the iOS SoftEther core, 3.5 in the Android one, 4.0 in the WaterWall runtime) | [OpenSSL](https://www.openssl.org/) | Apache License 2.0; see `Licenses/OpenSSL/LICENSE.txt` |
@@ -30,6 +29,6 @@ JSONCPP, LZ4, Asio, BoringSSL, OpenSSL, and other bundled dependencies retain th
 
 ## Downloaded dependencies
 
-The build scripts retrieve pinned public sources for Aether and Psiphon. Go and Rust dependencies are resolved through their module manifests. WaterWall's CMake build can also retrieve its declared public dependencies. Their licenses accompany the corresponding downloaded source trees.
+The build scripts retrieve pinned public sources for Aether. Go and Rust dependencies are resolved through their module manifests. WaterWall's CMake build can also retrieve its declared public dependencies. Their licenses accompany the corresponding downloaded source trees.
 
 Where an upstream project offers a choice of licenses, this notice does not narrow that choice. Review the upstream terms before redistributing a compiled application or a modified component.

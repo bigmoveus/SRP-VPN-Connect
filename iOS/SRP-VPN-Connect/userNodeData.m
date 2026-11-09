@@ -32,6 +32,8 @@ static userNodeData * user = nil;
             NodeModel *modal = [CheckConnectData getModalForDic:dic];
             if (modal) {
                 [t addObject:modal];
+            } else if ([dic[@"type"] isEqualToString:@"psiphon"]) {
+                migrated = YES;   // Psiphon is no longer in the app: its profiles go, and the list is saved without them
             }
             // Re-save profiles that still contain a plaintext credential or WireGuard key.
             if (dic[@"password"] != nil || dic[@"ww_outer_secret"] != nil || dic[@"wg_conf"] != nil ||

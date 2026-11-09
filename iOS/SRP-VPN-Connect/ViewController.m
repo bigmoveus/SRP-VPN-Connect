@@ -204,8 +204,6 @@
     } else if ([modal.protocolType isEqualToString:@"waterwall"]) {
         NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON];
         subtitle = [SRPWaterWallChainConfig summaryForConfiguration:configuration ?: [SRPWaterWallChainConfig defaultConfiguration]];
-    } else if ([modal.protocolType isEqualToString:@"psiphon"] && modal.server.length == 0) {
-        subtitle = @"Psiphon (own server)";
     } else {
         subtitle = [NSString stringWithFormat:@"%@:%@", modal.server, modal.port];
     }
@@ -398,8 +396,7 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
         return;
     }
     NodeModel *selNode = [NodeModel shareInstance].selectNode;
-    BOOL needsServerField = ![selNode.protocolType isEqualToString:@"psiphon"] &&
-                            !([selNode.protocolType isEqualToString:@"aether"] &&
+    BOOL needsServerField = !([selNode.protocolType isEqualToString:@"aether"] &&
                               ![selNode.aetherMode isEqualToString:@"private"]) &&
                             !([selNode.protocolType isEqualToString:@"waterwall"] &&
                               [SRPWaterWallChainConfig isDirectConfiguration:[SRPWaterWallChainConfig configurationWithJSON:selNode.waterwallConfigJSON]]);

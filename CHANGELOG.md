@@ -15,6 +15,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
 - The Android app's version code is 8, for the release APK that adds Aether; the version name stays 1.2.0.
 
+### Removed
+- Psiphon VPN is no longer in the iPhone app: its profile type, editor, Server Entries screen and tunnel engine are gone, and the shared Go runtime (libsrpwg-go.a) carries only WireGuard and AmneziaWG. Saved Psiphon profiles leave the list when it loads. The README, the third-party notices and the documentation no longer name it.
+
 ### Fixed
 - Aether's Private mode: a name looked up as the second of a session got the tunnel's own address (198.18.0.1) as its stand-in address, and connections to it were refused. The stand-in addresses now come from 198.19.0.0/16.
 - The WARP+ license no longer appears in the app's log or the tunnel's log when an Aether profile connects.

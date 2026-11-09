@@ -135,13 +135,6 @@ NS_ASSUME_NONNULL_BEGIN
 /// Lets a failing or lossy connection move to another WaterWall profile of the same server.
 @property (nonatomic,assign) BOOL waterwallAutoSwitch;
 
-/// Psiphon: "shared" (default, the bundled SRP server) or "private" (own
-/// psiphond — psiphonServerEntry carries its hex-encoded server entry)
-@property (nonatomic,copy,nullable) NSString * psiphonMode;
-@property (nonatomic,copy,nullable) NSString * psiphonServerEntry;
-/// Optional comma-separated tunnel-protocol allowlist (empty = all)
-@property (nonatomic,copy,nullable) NSString * psiphonLimitProtocols;
-
 /// SoftEther "Hostname" field: optional TLS SNI / certificate-verification
 /// hostname override (empty = use the Server field)
 @property (nonatomic,copy,nullable) NSString * hostnameOverride;

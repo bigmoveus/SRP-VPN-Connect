@@ -27,7 +27,7 @@
 }
 
 - (NSArray<NSString *> *)types {
-    return @[@"waterwall", @"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether", @"psiphon"];
+    return @[@"waterwall", @"sstp", @"softether", @"openconnect", @"ssh", @"openvpn", @"wireguard", @"amnezia", @"aether"];
 }
 
 + (NSString *)titleForType:(NSString *)type {
@@ -39,7 +39,6 @@
     if ([type isEqualToString:@"amnezia"]) return @"AmneziaWG VPN";
     if ([type isEqualToString:@"aether"]) return @"Aether VPN";
     if ([type isEqualToString:@"waterwall"]) return @"WaterWall VPN";
-    if ([type isEqualToString:@"psiphon"]) return @"Psiphon VPN";
     return @"SSTP VPN";
 }
 
@@ -52,7 +51,6 @@
     if ([type isEqualToString:@"amnezia"]) return @"AmneziaWG — obfuscated for strict firewalls";
     if ([type isEqualToString:@"aether"]) return @"Cloudflare WARP — no server needed, automatic";
     if ([type isEqualToString:@"waterwall"]) return @"VLESS, VMess, Trojan, BGP4 and packet tunnels";
-    if ([type isEqualToString:@"psiphon"]) return @"Censorship-resistant network (multi-transport)";
     return @"Microsoft SSTP over TLS";
 }
 

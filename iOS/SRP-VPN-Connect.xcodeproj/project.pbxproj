@@ -43,7 +43,6 @@
 		A024F97F532348A39D263A34 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0F89522E3FEE4DBF9A565219 /* PrivacyInfo.xcprivacy */; };
 		AA1111111111111111111102 /* liblwip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1111111111111111111101 /* liblwip.a */; };
 		B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */; };
-		E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */; };
 		A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000072 /* SRPWaterWallConfigViewController.m */; };
 		A40000000000000000000002 /* GeoIP in Resources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000001 /* GeoIP */; };
 		A40000000000000000000004 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A40000000000000000000003 /* SRPGeoIPDatabase.m */; };
@@ -236,10 +235,8 @@
 		BB0005602B70000600000001 /* SRPLogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPLogViewController.h; sourceTree = "<group>"; };
 		BB0005612B70000600000001 /* SRPLogViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPLogViewController.m; sourceTree = "<group>"; };
 		D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWGConfigViewController.m; sourceTree = "<group>"; };
-		791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPPsiphonEntriesViewController.m; sourceTree = "<group>"; };
 		E8A7C76C71B51AFB20ECAA56 /* Pods-SRP-VPN-Connect.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SRP-VPN-Connect.debug.xcconfig"; path = "Target Support Files/Pods-SRP-VPN-Connect/Pods-SRP-VPN-Connect.debug.xcconfig"; sourceTree = "<group>"; };
 		F709E90AACDD1C62994D3124 /* SRPWGConfigViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWGConfigViewController.h; sourceTree = "<group>"; };
-		8309784D3E6D4C47A45855E0 /* SRPPsiphonEntriesViewController.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPPsiphonEntriesViewController.h; sourceTree = "<group>"; };
 		A10000000000000000000072 /* SRPWaterWallConfigViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPWaterWallConfigViewController.m; sourceTree = "<group>"; };
 		A10000000000000000000073 /* SRPWaterWallConfigViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallConfigViewController.h; sourceTree = "<group>"; };
 		A20000000000000000000001 /* SRPProfileLatencyTester.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SRPProfileLatencyTester.m; sourceTree = "<group>"; };
@@ -391,8 +388,6 @@
 				8D55A659970714A0CEC13737 /* SRPProtocolViewController.m */,
 				F709E90AACDD1C62994D3124 /* SRPWGConfigViewController.h */,
 				D81773DC6B67D411988FC220 /* SRPWGConfigViewController.m */,
-				8309784D3E6D4C47A45855E0 /* SRPPsiphonEntriesViewController.h */,
-				791DA6648D1C48A2B2DBFE47 /* SRPPsiphonEntriesViewController.m */,
 				A10000000000000000000073 /* SRPWaterWallConfigViewController.h */,
 				A10000000000000000000072 /* SRPWaterWallConfigViewController.m */,
 				A40000000000000000000006 /* SRPGeoIPCountryViewController.h */,
@@ -689,7 +684,6 @@
 				6296CA7891B2B7AB6369B903 /* SRPOCServerTypeViewController.m in Sources */,
 				305C655B1A052C57C3DA16E0 /* SRPProtocolViewController.m in Sources */,
 				B5679F0523C4FA488EE2307D /* SRPWGConfigViewController.m in Sources */,
-				E0A73272A54F48BF96E54636 /* SRPPsiphonEntriesViewController.m in Sources */,
 				A10000000000000000000071 /* SRPWaterWallConfigViewController.m in Sources */,
 				A40000000000000000000008 /* SRPGeoIPCountryViewController.m in Sources */,
 			);

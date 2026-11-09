@@ -18,12 +18,10 @@
 		A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = A10000000000000000000024 /* SRPWaterWallChainConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A30000000000000000000001 /* SRPGeoIPDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000011 /* SRPGeoIPDatabase.m */; };
 		A30000000000000000000002 /* SRPGeoIPDatabase.h in Headers */ = {isa = PBXBuildFile; fileRef = A30000000000000000000012 /* SRPGeoIPDatabase.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */; };
 		59CDE2BE3FF990F4145E4C4D /* SRPOpenVPNClient.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C2735650B7713FB50B1166F /* SRPOpenVPNClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		63C7EC4805B398A761B6C717 /* SRPSSHClient.m in Sources */ = {isa = PBXBuildFile; fileRef = F880DFCD8A162EA26A588D54 /* SRPSSHClient.m */; };
 		650C3CE80462F77479D436E3 /* SRPWGKeys.h in Headers */ = {isa = PBXBuildFile; fileRef = 8FCC583E78410AF46480BD79 /* SRPWGKeys.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9625D59A007B6C1ADE67D9B3 /* SRPAetherClient.h in Headers */ = {isa = PBXBuildFile; fileRef = B1D07888133D461A0008B5A0 /* SRPAetherClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D322DD21A4484AE6B840D582 /* SRPPsiphonClient.h in Headers */ = {isa = PBXBuildFile; fileRef = DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9C0000AA2B70000100E9992E /* SSAuthCapabilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C0000AC2B70000100E9992E /* SSAuthCapabilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		9C0000AB2B70000100E9992E /* SSAuthCapabilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C0000AD2B70000100E9992E /* SSAuthCapabilities.m */; };
 		9C134B972B6B78C70045BCD4 /* crypto.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9C134B952B6B78C60045BCD4 /* crypto.xcframework */; };
@@ -123,7 +121,6 @@
 		A10000000000000000000024 /* SRPWaterWallChainConfig.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPWaterWallChainConfig.h; sourceTree = "<group>"; };
 		A30000000000000000000011 /* SRPGeoIPDatabase.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPGeoIPDatabase.m; sourceTree = "<group>"; };
 		A30000000000000000000012 /* SRPGeoIPDatabase.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPGeoIPDatabase.h; sourceTree = "<group>"; };
-		02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPPsiphonClient.m; sourceTree = "<group>"; };
 		1C193248F081DA3AE623B197 /* key.c */ = {isa = PBXFileReference; includeInIndex = 1; path = key.c; sourceTree = "<group>"; };
 		29A3B1423B25633AD7867F0D /* SRPWGKeys.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = SRPWGKeys.m; sourceTree = "<group>"; };
 		30E1B0945DE87AF7B22DB4CA /* x25519.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = x25519.h; sourceTree = "<group>"; };
@@ -204,7 +201,6 @@
 		9CD9B0922B5EA99200044F00 /* SRSIMDHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SRSIMDHelpers.m; sourceTree = "<group>"; };
 		9CD9B0932B5EA99200044F00 /* CCCodec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCCodec.h; sourceTree = "<group>"; };
 		B1D07888133D461A0008B5A0 /* SRPAetherClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPAetherClient.h; sourceTree = "<group>"; };
-		DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SRPPsiphonClient.h; sourceTree = "<group>"; };
 		BB2CBDBEED790413A9955341 /* SSFragTLSChannel.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = SSFragTLSChannel.h; sourceTree = "<group>"; };
 		CC0001022B80000100E9992E /* SSProxySupport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSProxySupport.h; sourceTree = "<group>"; };
 		CC0001032B80000100E9992E /* SSProxySupport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSProxySupport.m; sourceTree = "<group>"; };
@@ -315,8 +311,6 @@
 				A10000000000000000000023 /* SRPWaterWallChainConfig.m */,
 				A30000000000000000000012 /* SRPGeoIPDatabase.h */,
 				A30000000000000000000011 /* SRPGeoIPDatabase.m */,
-				DD15B1350F9B47049760EFD3 /* SRPPsiphonClient.h */,
-				02A3F9A7DA1444E2A64CF77D /* SRPPsiphonClient.m */,
 			);
 			path = SRPCore;
 			sourceTree = "<group>";
@@ -463,7 +457,6 @@
 				A10000000000000000000002 /* SRPWaterWallClient.h in Headers */,
 				A10000000000000000000022 /* SRPWaterWallChainConfig.h in Headers */,
 				A30000000000000000000002 /* SRPGeoIPDatabase.h in Headers */,
-				D322DD21A4484AE6B840D582 /* SRPPsiphonClient.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -582,7 +575,6 @@
 				A10000000000000000000001 /* SRPWaterWallClient.m in Sources */,
 				A10000000000000000000021 /* SRPWaterWallChainConfig.m in Sources */,
 				A30000000000000000000001 /* SRPGeoIPDatabase.m in Sources */,
-				72E07B81BC024A148872C383 /* SRPPsiphonClient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

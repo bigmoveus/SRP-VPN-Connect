@@ -112,11 +112,6 @@
         d[@"ww_smart_routing"] = @(modal.waterwallSmartRouting);
         d[@"ww_auto_switch"] = @(modal.waterwallAutoSwitch);
     }
-    if ([modal.protocolType isEqualToString:@"psiphon"]) {
-        if (modal.psiphonMode.length > 0) d[@"psi_mode"] = modal.psiphonMode;
-        if (modal.psiphonServerEntry.length > 0) d[@"psi_entry"] = modal.psiphonServerEntry;
-        if (modal.psiphonLimitProtocols.length > 0) d[@"psi_protos"] = modal.psiphonLimitProtocols;
-    }
     if ([modal.protocolType isEqualToString:@"wireguard"] || [modal.protocolType isEqualToString:@"amnezia"] || [modal.protocolType isEqualToString:@"waterwall"]) {
         d[@"wg_conf"] = [modal wgEffectiveConfig] ?: @"";
         if (modal.wgPrivateKey.length > 0) d[@"wg_private_key"] = modal.wgPrivateKey;
@@ -247,7 +242,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
 
 +(NodeModel*)getModalForDic:(NSDictionary*)selectDic {
     NSString *type = selectDic[@"type"];
-    if([type isEqualToString:@"sstp"] || [type isEqualToString:@"softether"] || [type isEqualToString:@"openconnect"] || [type isEqualToString:@"ssh"] || [type isEqualToString:@"openvpn"] || [type isEqualToString:@"wireguard"] || [type isEqualToString:@"amnezia"] || [type isEqualToString:@"aether"] || [type isEqualToString:@"waterwall"] || [type isEqualToString:@"psiphon"]) {
+    if([type isEqualToString:@"sstp"] || [type isEqualToString:@"softether"] || [type isEqualToString:@"openconnect"] || [type isEqualToString:@"ssh"] || [type isEqualToString:@"openvpn"] || [type isEqualToString:@"wireguard"] || [type isEqualToString:@"amnezia"] || [type isEqualToString:@"aether"] || [type isEqualToString:@"waterwall"]) {
         NodeModel * modal = [NodeModel new];
         modal.protocolType = type;
         modal.nodeName = [type isEqualToString:@"softether"] ? @"SoftEther VPN"
@@ -257,8 +252,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
                        : [type isEqualToString:@"wireguard"] ? @"WireGuard VPN"
                        : [type isEqualToString:@"amnezia"] ? @"AmneziaWG VPN"
                        : [type isEqualToString:@"aether"] ? @"Aether VPN"
-                       : [type isEqualToString:@"waterwall"] ? @"WaterWall VPN"
-                       : [type isEqualToString:@"psiphon"] ? @"Psiphon VPN" : @"SSTP VPN";
+                       : [type isEqualToString:@"waterwall"] ? @"WaterWall VPN" : @"SSTP VPN";
         // SoftEther-specific fields (migration-safe defaults)
         if (selectDic[@"se_auth_method"] != nil) {
             modal.seAuthMethod = selectDic[@"se_auth_method"];
@@ -337,9 +331,6 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.waterwallFakeDNS = selectDic[@"ww_fake_dns"] != nil ? [selectDic[@"ww_fake_dns"] boolValue] : YES;
         modal.waterwallSmartRouting = [selectDic[@"ww_smart_routing"] boolValue];
         modal.waterwallAutoSwitch = selectDic[@"ww_auto_switch"] != nil ? [selectDic[@"ww_auto_switch"] boolValue] : YES;
-        modal.psiphonMode = selectDic[@"psi_mode"];
-        modal.psiphonServerEntry = selectDic[@"psi_entry"];
-        modal.psiphonLimitProtocols = selectDic[@"psi_protos"];
         // H1-H4 were numbers before ranges were possible
         NSString* (^headerValue)(id) = ^NSString *(id value) {
             if ([value isKindOfClass:NSNumber.class]) return [value integerValue] > 0 ? [value stringValue] : nil;
