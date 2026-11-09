@@ -21,6 +21,8 @@ SITE = Path(__file__).resolve().parent.parent
 GROUPS = [
     ("Transfers and UDP", lambda i: re.match(r"awg-(download|upload|full-duplex|many-connections|udp-probe)$", i)),
     ("The generations of AmneziaWG", lambda i: i.startswith("awg-gen-")),
+    ("RandomTrailers with ranges in H1-H3, both directions", lambda i: i.startswith("awg-ranges-trailers")),
+    ("The same against AmneziaWG's kernel module, unchanged", lambda i: i.startswith("awg-kernel-module-")),
     ("The configuration", lambda i: re.match(r"awg-(no-psk|no-keepalive|no-mtu|mtu-1280|endpoint-ip|split-tunnel|manual-configuration)", i)),
     ("Server and Port", lambda i: re.match(r"awg-(port|server)-field", i)),
     ("Refusals and damaged files", lambda i: re.match(r"awg-(wrong|unknown|closed|bad|no-address|garbage|retry-before|wireguard-file|invalid)", i)),
@@ -40,6 +42,7 @@ GENERATION = {
     4: "AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges",
     5: "no obfuscation (WireGuard's own format)",
     6: "AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, single H1-H4",
+    7: "AmneziaWG 3.1 without header protection: as awg4, without HeaderProtectionKey",
 }
 PROFILES = {
     "keys/awg0-nopsk.conf": "the awg0 file of a peer without a preshared key",
@@ -73,6 +76,10 @@ PROFILES = {
     "keys/guide-phone2.conf": "the guide's phone2.conf, phone2 removed as part 5 says",
 }
 NOTES = {
+    "awg-kernel-module-trailers-download": "against the kernel module from the Amnezia packages, unchanged",
+    "awg-kernel-module-trailers-upload": "against the kernel module from the Amnezia packages, unchanged",
+    "awg-kernel-module-trailers-no-hpk-download": "against the kernel module from the Amnezia packages, unchanged",
+    "awg-kernel-module-trailers-no-hpk-upload": "against the kernel module from the Amnezia packages, unchanged",
     "awg-manual-configuration": "the same values entered under Manual Configuration instead of a file",
     "awg-manual-configuration-3": "the same values entered under Manual Configuration instead of a file",
     "awg-life-server-restart": "the server's awg0 restarts (awg-quick)",

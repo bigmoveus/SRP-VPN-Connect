@@ -11,7 +11,7 @@
 <body>
 <main>
 <h1>AmneziaWG</h1>
-<p class="lead">AmneziaWG is WireGuard with obfuscation: the same keys, handshake and encryption, with the packet sizes and headers that make WireGuard easy to recognize taken away. An AmneziaWG profile connects to an AmneziaWG server from a <code>.conf</code> file the server makes, or from keys and values entered by hand. SRP VPN Connect does this with the same engine on iPhone and Android: amneziawg-go, the version of 28 August 2026 (<code>v3.1.20260828</code>).</p>
+<p class="lead">AmneziaWG is WireGuard with obfuscation: the same keys, handshake and encryption, with the packet sizes and headers that make WireGuard easy to recognize taken away. An AmneziaWG profile connects to an AmneziaWG server from a <code>.conf</code> file the server makes, or from keys and values entered by hand. SRP VPN Connect does this with the same engine on iPhone and Android, and the server these pages set up runs it too: our fork of amneziawg-go (<a href="https://github.com/bigmoveus/amneziawg-go">github.com/bigmoveus/amneziawg-go</a>, tag <code>v3.1.20260828-srp.1</code>), amneziawg-go's version of 28 August 2026 with a fix for data packets taken for handshake messages (<a href="configuration.html#server">Configuration Reference</a>).</p>
 
 <h2>What AmneziaWG changes</h2>
 <p>WireGuard's packets have fixed sizes and start with a fixed type number (1 to 4), so a network can spot them at a glance. AmneziaWG changes that with settings that the server and the phone share, and some that only the phone has:</p>
@@ -32,15 +32,15 @@
 
 <h2>Where to start</h2>
 <ol>
-  <li>Set up the server: <a href="server.html">AmneziaWG server</a> installs AmneziaWG on Ubuntu 24.04 from the Amnezia packages, with obfuscation values of the server's own, forwarding and NAT, and a file for each phone.</li>
-  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. <!-- install:begin -->Our tests ran the code of commit <code>4f52bb94</code> on the iPhone and of <code>81f7c463</code>, which follows it, on Android; TestFlight build 39 and earlier do not have this code yet.<!-- install:end --></li>
+  <li>Set up the server: <a href="server.html">AmneziaWG server</a> installs our amneziawg-go fork and the <code>awg</code> tools from the Amnezia packages on Ubuntu 24.04, with obfuscation values of the server's own, forwarding and NAT, and a file for each phone.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. <!-- install:begin -->Our tests ran the code of commit <code>0a699819</code> on both phones, and on Android also the release APK of <code>8afe7ca8</code>, which follows it; TestFlight build 39 and earlier do not have this code yet.<!-- install:end --></li>
   <li>Add an AmneziaWG profile: <a href="app-setup.html">Setting up the app</a>.</li>
   <li>Every setting of the server and of a phone's file, and what it does: <a href="configuration.html">Configuration Reference</a>.</li>
   <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
 </ol>
 
 <h2>What was tested</h2>
-<p><a href="results.html">Test results</a> lists every case we ran against our AmneziaWG server, with its result on an iPhone and on an Android phone: transfers in both directions and 16 connections at once, UDP through the tunnel, each generation of AmneziaWG from 1.0 to 3.1 and a file without obfuscation, files with and without a preshared key, keepalive and MTU, keys and obfuscation values entered by hand, the Server and Port fields, obfuscation values that differ from the server's, damaged values and other refusals with their messages, sleep, a server that restarts, goes away or stops answering, Retry Times, network changes, idle sessions, the log levels, and the server as <a href="server.html">AmneziaWG server</a> sets it up.</p>
+<p><a href="results.html">Test results</a> lists every case we ran against our AmneziaWG server, with its result on an iPhone and on an Android phone: transfers in both directions and 16 connections at once, UDP through the tunnel, each generation of AmneziaWG from 1.0 to 3.1 and a file without obfuscation, RandomTrailers with ranges in both directions, with and without a header protection key and also against AmneziaWG's kernel module, files with and without a preshared key, keepalive and MTU, keys and obfuscation values entered by hand, the Server and Port fields, obfuscation values that differ from the server's, damaged values and other refusals with their messages, sleep, a server that restarts, goes away or stops answering, Retry Times, network changes, idle sessions, the log levels, and the server as <a href="server.html">AmneziaWG server</a> sets it up.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

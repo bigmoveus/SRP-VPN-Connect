@@ -11,12 +11,12 @@
 <body>
 <main>
 <h1>AmneziaWG server</h1>
-<p class="lead">This page sets up AmneziaWG on Ubuntu 24.04 for the app: the Amnezia packages (the kernel module and the <code>awg</code> tools), the server's keys and its own obfuscation values, its interface <code>awg0</code>, forwarding and NAT so the phones reach the internet through it, a configuration file for each phone that the app imports, and removing a phone again.</p>
+<p class="lead">This page sets up AmneziaWG on Ubuntu 24.04 for the app: our fork of amneziawg-go as the engine (the engine the app runs too) and the <code>awg</code> tools from the Amnezia packages, the server's keys and its own obfuscation values, its interface <code>awg0</code>, forwarding and NAT so the phones reach the internet through it, a configuration file for each phone that the app imports, and removing a phone again.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>We ran these steps on our test server, Ubuntu 24.04 with Linux 6.8, 4 vCPUs and 4 GB of memory, on 9 November 2026, as the page shows them, with our server's name in place of <code>vpn.example.com</code>; the Amnezia packages gave us the kernel module built from its tag of 6 September 2026 and amneziawg-tools 3.1.20260812. Then both phones connected with the page's <code>phone1.conf</code>, and <code>phone2</code>, removed as part 5 says, was refused (the <code>awg-guide-…</code> cases in <a href="results.html">Test results</a>). Two things ran differently: the <code>ufw</code> line of part 3 was not run, as ufw is not active on our server; and part 5 removed <code>phone2</code>, which we had added with part 4's script for that. After <code>systemctl restart awg-quick@awg0</code> the server still had <code>phone1</code> and its obfuscation values, as <code>SaveConfig = true</code> keeps them.</p>
+  <p>We ran these steps on our test server, Ubuntu 24.04 with Linux 6.8, 4 vCPUs and 4 GB of memory, on 9 November 2026, as the page shows them, with our server's name in place of <code>vpn.example.com</code>: the Amnezia packages gave us amneziawg-tools 3.1.20260812, Go fetched version 1.25.0 for the build, and the last line of part 1 printed <code>amneziawg-go v3.1.20260828-srp.1</code>. Then both phones connected with the page's <code>phone1.conf</code>, and <code>phone2</code>, removed as part 5 says, was refused (the <code>awg-guide-…</code> cases in <a href="results.html">Test results</a>). Three things ran differently: our server had the kernel module before, and moved to our fork the same morning with the same commands, after <code>apt purge amneziawg amneziawg-dkms</code> and <code>rmmod amneziawg</code> instead of a restart, so part 1 found its packages already there; the <code>ufw</code> line of part 3 was not run, as ufw is not active on our server; and part 5 removed <code>phone2</code>, which we had added with part 4's script for that. After <code>systemctl restart awg-quick@awg0</code> the server still had <code>phone1</code> and its obfuscation values, as <code>SaveConfig = true</code> keeps them.</p>
 </div>
 <!-- provenance:end -->
 
@@ -28,10 +28,21 @@
 
 <h2 id="install">1. Install</h2>
 <pre data-label="Server, as root"><code class="language-bash">apt update
-apt install -y software-properties-common linux-headers-$(uname -r)
+apt install -y software-properties-common
 add-apt-repository -y ppa:amnezia/ppa
-apt install -y amneziawg</code></pre>
-<p>The Amnezia packages bring the AmneziaWG kernel module, which DKMS builds for the running kernel (and for kernels installed later), and <code>awg</code> and <code>awg-quick</code>, the tools that configure it the way <code>wg</code> and <code>wg-quick</code> configure WireGuard. <code>awg --version</code> prints the tools' version.</p>
+apt install -y amneziawg-tools golang-go git make
+rm -rf /usr/local/src/amneziawg-go
+git clone --branch v3.1.20260828-srp.1 --depth 1 https://github.com/bigmoveus/amneziawg-go /usr/local/src/amneziawg-go
+cd /usr/local/src/amneziawg-go
+GOTOOLCHAIN=auto make
+make install
+/usr/bin/amneziawg-go --version</code></pre>
+<ul>
+  <li>The Amnezia packages bring <code>awg</code> and <code>awg-quick</code>, the tools that configure AmneziaWG the way <code>wg</code> and <code>wg-quick</code> configure WireGuard; <code>awg --version</code> prints their version.</li>
+  <li>The engine is amneziawg-go, AmneziaWG in userspace, built from our fork, <a href="https://github.com/bigmoveus/amneziawg-go">github.com/bigmoveus/amneziawg-go</a>: amneziawg-go's version of 28 August 2026 with a fix for data packets taken for handshake messages when <code>RandomTrailers</code> is on and H1 to H3 are ranges (<a href="configuration.html#server">Configuration Reference</a>). The app runs the same engine. <code>make install</code> puts it at <code>/usr/bin/amneziawg-go</code>, and <code>awg-quick</code> starts it for each interface; the last line prints <code>amneziawg-go v3.1.20260828-srp.1</code>.</li>
+  <li>Ubuntu 24.04's Go is 1.22 and amneziawg-go asks for 1.25: <code>GOTOOLCHAIN=auto</code> lets Go fetch that version for the build.</li>
+  <li>The Amnezia packages also have a kernel module, in the <code>amneziawg</code> package with <code>amneziawg-dkms</code>. <code>awg-quick</code> takes the kernel module when it is there, and the module does not have the fix. If an earlier setup installed it, remove it with <code>apt purge amneziawg amneziawg-dkms</code> and restart the server before part 2.</li>
+</ul>
 
 <h2 id="server">2. The server's keys and obfuscation values</h2>
 <pre data-label="Server, as root"><code class="language-bash">cd /etc/amnezia/amneziawg

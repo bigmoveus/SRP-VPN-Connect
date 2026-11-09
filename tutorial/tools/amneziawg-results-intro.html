@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Test Results — AmneziaWG — SRP VPN Connect Documentation</title>
-<meta name="description" content="Every AmneziaWG case we ran against AmneziaWG's kernel module on Ubuntu 24.04, with its result on an iPhone and on an Android phone.">
+<meta name="description" content="Every AmneziaWG case we ran against our amneziawg-go fork on Ubuntu 24.04, as AmneziaWG server sets it up, and the RandomTrailers cases against AmneziaWG's kernel module, with their results on an iPhone and on an Android phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
@@ -16,7 +16,7 @@
 <!-- provenance:begin -->
 <div class="callout evidence">
   <span class="callout-title">How these tests ran</span>
-  <p>The phones were {iphone} and {android}, with {app}. The server was {server}: seven interfaces like the one <a href="server.html">AmneziaWG server</a> sets up, awg0 to awg6 on UDP ports 51830 to 51836, one for each generation of AmneziaWG (the Settings column names it), with a peer of its own for each phone and for the files without a preshared key and with the wrong one.</p>
+  <p>The phones were {iphone} and {android}, with {app}. The server was {server}: eight interfaces like the one <a href="server.html">AmneziaWG server</a> sets up, awg0 to awg7 on UDP ports 51830 to 51837, one for each generation of AmneziaWG (the Settings column names it; awg7 is awg4 without a header protection key), with a peer of its own for each phone and for the files without a preshared key and with the wrong one.</p>
   <ul>
     <li><strong>Each case</strong> saved a profile with the settings in its row, connected, and moved the traffic in its row through the tunnel to a test server that runs on the AmneziaWG server itself. That test server logged where each request came from, and every case that moves traffic checked that it came from the phone's own address in the tunnel, so it went through the tunnel.</li>
     <li><strong>Traffic.</strong> On the iPhone four 16 MiB transfers at a time ran for the time shown, as downloads, uploads or both, and <code>awg-many-connections</code> ran 16 downloads at once. On Android each transfer case moved two 16 MiB downloads, two 16 MiB uploads, or both, and <code>awg-many-connections</code> 16 downloads at once; the row shows how long that took.</li>
@@ -26,6 +26,7 @@
     <li><strong>Log levels.</strong> The cases named <code>awg-log-…</code> moved 40 seconds of downloads (4 seconds at Debug) on the AmneziaWG 3.0 interface, read the connection log back and checked its lines; no level may show a key, nor the values of the file's private key, preshared key and header protection key. The cases named <code>awg-release-…</code> ran on a Release build of the iPhone app, the kind TestFlight ships.</li>
     <li><strong>Idle sessions.</strong> The cases named <code>awg-idle-…</code> held a session without traffic for 3 minutes, with padding (3.0) and with random trailers (3.1): the log must show no server counted as gone and no new handshake, and a transfer must pass before and after.</li>
     <li><strong>Lifecycle.</strong> The cases named <code>awg-life-…</code> checked On Sleep; the server's interface restarting (<code>awg-quick</code>), stopped for 8 seconds, stopped for 150 seconds without Auto Reconnect and for 120 seconds with Retry Times 2; a dead path (every packet of the session dropped, without a reset); and a change of network. On Android the screen was really turned off and Wi-Fi was really switched off and on, with pings through the tunnel to the server's tunnel address answered over mobile data in between, and a ping from the phone's shell kept traffic going while the server was away; on the iPhone the On Sleep case tells the tunnel that the phone slept, and the network case makes the tunnel move its sockets as it does when the network changes.</li>
+    <li><strong>The kernel module.</strong> The cases named <code>awg-kernel-module-…</code> ran before the server moved to our fork, against AmneziaWG's kernel module from the Amnezia packages (amneziawg-dkms built from the module's tag of 6 September 2026), unchanged: a server as AmneziaWG's own releases set it up, with the same phones and the same code.</li>
     <li><strong>The guide's server.</strong> The cases named <code>awg-guide-…</code> ran last: the test setup was taken down, the server was set up again with the steps of <a href="server.html">AmneziaWG server</a> as the page shows them, and the phones used the page's own files for <code>phone1</code> and the removed <code>phone2</code>.</li>
   </ul>
 </div>
@@ -47,7 +48,7 @@
   <li><strong>Moving between Wi-Fi and cellular on the iPhone.</strong> The iPhone's network case makes the tunnel move its sockets without a real change of network.</li>
   <li><strong>Real sleep on the iPhone.</strong> The iPhone's On Sleep case tells the tunnel that the phone slept; the phone did not really sleep.</li>
   <li><strong>IPv6 inside the tunnel, and an IPv6 endpoint.</strong> Our server has no IPv6 address.</li>
-  <li><strong>Servers other than the kernel module from the Amnezia packages</strong>, such as amneziawg-go as a server, the Amnezia app's own servers, or Amnezia Premium. Only the lab compared amneziawg-go as a server, with pings.</li>
+  <li><strong>Other servers</strong>: the Amnezia app's own servers, Amnezia Premium, and AmneziaWG's kernel module beyond the <code>awg-kernel-module-…</code> cases. amneziawg-go as Amnezia releases it, without our fix, only in the lab, with pings.</li>
   <li><strong>A real censoring network.</strong> The cases show that each setting connects and moves traffic; whether a given network's filters recognize the traffic was not tested.</li>
   <li><strong>Importing a file through the app's screens</strong> on the iPhone. The cases gave the app the file's text as an import does; the import's checks were tested in the apps' unit tests, and on Android a Release build imported a file through the system's file picker.</li>
 </ul>

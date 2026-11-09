@@ -3,15 +3,15 @@
   "date": "9 November 2026",
   "iphone": "an iPhone 12 with iOS 27.2",
   "android": "a Samsung Galaxy A55 with Android 17",
-  "app": "the code of commit 4f52bb94 on the iPhone, as a Debug build, and of 81f7c463, which follows it, on Android, as a debug APK; the iPhone's rows of the awg-release-\u2026 cases come from a Release build of 4f52bb94's code, the kind TestFlight ships, and its awg-guide-\u2026 rows from a Debug build of f63dff1a's code",
-  "server": "AmneziaWG's kernel module from the Amnezia packages (amneziawg-dkms built from the module's tag of 6 September 2026, amneziawg-tools 3.1.20260812) on Ubuntu 24.04 with Linux 6.8"
+  "app": "the code of commit 0a699819 on both phones, as a Debug build on the iPhone and as a debug APK on Android; the iPhone's awg-release-\u2026 rows come from a Release build of the same code, the kind TestFlight ships, and the awg-kernel-module-\u2026 rows on both phones from builds with the same engine made before 0a699819's change to the log note",
+  "server": "our amneziawg-go fork (github.com/bigmoveus/amneziawg-go, tag v3.1.20260828-srp.1, built as AmneziaWG server shows) with amneziawg-tools 3.1.20260812 from the Amnezia packages, on Ubuntu 24.04 with Linux 6.8"
  },
  "summary": {
-  "cases": 62,
-  "iphone_passed": 62,
-  "iphone_run": 62,
-  "android_passed": 57,
-  "android_run": 57
+  "cases": 70,
+  "iphone_passed": 70,
+  "iphone_run": 70,
+  "android_passed": 65,
+  "android_run": 65
  },
  "cases": [
   {
@@ -25,9 +25,9 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+     "the server had a handshake with the peer awg0/ios1 8 s before it was asked"
     ],
-    "download_mbps": 218.89
+    "download_mbps": 211.21
    },
    "android": {
     "status": "passed",
@@ -49,7 +49,7 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "up 227.39 Mbit/s",
+     "up 219.18 Mbit/s",
      "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
     ]
    },
@@ -58,7 +58,7 @@
     "transfer_s": 8.3,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+     "the server had a handshake with the peer awg0/android1 12 s before it was asked"
     ]
    }
   },
@@ -73,14 +73,14 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
+     "the server had a handshake with the peer awg0/ios1 8 s before it was asked"
     ],
-    "download_mbps": 77.28,
-    "upload_mbps": 171.74
+    "download_mbps": 81.19,
+    "upload_mbps": 164.51
    },
    "android": {
     "status": "passed",
-    "transfer_s": 8.3,
+    "transfer_s": 8.4,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg0/android1 13 s before it was asked"
@@ -98,13 +98,13 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 8 s before it was asked"
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
     ],
-    "download_mbps": 200.16
+    "download_mbps": 231.07
    },
    "android": {
     "status": "passed",
-    "transfer_s": 25.9,
+    "transfer_s": 20.7,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg0/android1 13 s before it was asked"
@@ -122,17 +122,17 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 9 s before it was asked",
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked",
      "the UDP DNS query was answered, and saw the server's address"
     ],
-    "download_mbps": 203.75
+    "download_mbps": 193.93
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/android1 19 s before it was asked",
+     "the server had a handshake with the peer awg0/android1 16 s before it was asked",
      "the UDP DNS query was answered, and saw the server's address"
     ]
    }
@@ -150,11 +150,11 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg1/ios1 7 s before it was asked"
     ],
-    "download_mbps": 203.84
+    "download_mbps": 190.97
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg1/android1 13 s before it was asked"
@@ -174,14 +174,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg2/ios1 7 s before it was asked"
     ],
-    "download_mbps": 200.81
+    "download_mbps": 204.0
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.9,
+    "transfer_s": 4.0,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg2/android1 12 s before it was asked"
+     "the server had a handshake with the peer awg2/android1 13 s before it was asked"
     ]
    }
   },
@@ -198,14 +198,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg3/ios1 7 s before it was asked"
     ],
-    "download_mbps": 191.74
+    "download_mbps": 198.02
    },
    "android": {
     "status": "passed",
     "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg3/android1 14 s before it was asked"
+     "the server had a handshake with the peer awg3/android1 12 s before it was asked"
     ]
    }
   },
@@ -222,11 +222,11 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg6/ios1 7 s before it was asked"
     ],
-    "download_mbps": 200.23
+    "download_mbps": 218.24
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg6/android1 13 s before it was asked"
@@ -244,16 +244,16 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg4/ios1 9 s before it was asked"
+     "the server had a handshake with the peer awg4/ios1 7 s before it was asked"
     ],
-    "download_mbps": 11.52
+    "download_mbps": 201.05
    },
    "android": {
     "status": "passed",
-    "transfer_s": 62.5,
+    "transfer_s": 4.0,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg4/android1 13 s before it was asked"
+     "the server had a handshake with the peer awg4/android1 12 s before it was asked"
     ]
    }
   },
@@ -270,14 +270,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg5/ios1 7 s before it was asked"
     ],
-    "download_mbps": 200.98
+    "download_mbps": 207.33
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg5/android1 12 s before it was asked"
+     "the server had a handshake with the peer awg5/android1 13 s before it was asked"
     ]
    }
   },
@@ -294,14 +294,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg0/nopsk 8 s before it was asked"
     ],
-    "download_mbps": 190.04
+    "download_mbps": 194.97
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 4.0,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/nopsk 13 s before it was asked"
+     "the server had a handshake with the peer awg0/nopsk 12 s before it was asked"
     ]
    }
   },
@@ -316,16 +316,16 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 6 s before it was asked"
+     "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
     ],
-    "download_mbps": 191.83
+    "download_mbps": 196.39
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+     "the server had a handshake with the peer awg0/android1 12 s before it was asked"
     ]
    }
   },
@@ -342,14 +342,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg0/ios1 7 s before it was asked"
     ],
-    "download_mbps": 192.36
+    "download_mbps": 195.67
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/android1 13 s before it was asked"
+     "the server had a handshake with the peer awg0/android1 14 s before it was asked"
     ]
    }
   },
@@ -364,13 +364,13 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer awg0/ios1 6 s before it was asked"
+     "the server had a handshake with the peer awg0/ios1 8 s before it was asked"
     ],
-    "download_mbps": 187.51
+    "download_mbps": 180.89
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer awg0/android1 13 s before it was asked"
@@ -387,7 +387,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "the server had a handshake with the peer awg0/ios1 2 s before it was asked",
+     "the server had a handshake with the peer awg0/ios1 1 s before it was asked",
      "held for 6 s"
     ]
    },
@@ -414,7 +414,7 @@
      "the server had a handshake with the peer awg0/ios1 8 s before it was asked",
      "the UDP DNS query was answered, and saw the phone's own network"
     ],
-    "download_mbps": 180.27
+    "download_mbps": 200.09
    },
    "android": {
     "status": "passed",
@@ -445,7 +445,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer awg0/android1 2 s before it was asked",
+     "the server had a handshake with the peer awg0/android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -461,7 +461,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "the server had a handshake with the peer awg3/ios1 1 s before it was asked",
+     "the server had a handshake with the peer awg3/ios1 2 s before it was asked",
      "held for 6 s"
     ]
    },
@@ -469,7 +469,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer awg3/android1 2 s before it was asked",
+     "the server had a handshake with the peer awg3/android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -493,7 +493,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer awg0/android1 2 s before it was asked",
+     "the server had a handshake with the peer awg0/android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -532,7 +532,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 11.2 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
    },
@@ -553,7 +553,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 11.2 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
    },
@@ -595,7 +595,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 11.2 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51839 may be closed."
    },
@@ -616,7 +616,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.3 s"
+     "ended after 0.4 s"
     ],
     "message": "The AmneziaWG endpoint no-such-host.srp.invalid could not be resolved."
    },
@@ -658,7 +658,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.3 s"
+     "ended after 0.4 s"
     ],
     "message": "Invalid AmneziaWG config: the PresharedKey is not valid base64 (32 bytes)."
    },
@@ -723,7 +723,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.3 s"
+     "ended after 0.5 s"
     ],
     "message": "Invalid AmneziaWG config: The config has no [Interface] PrivateKey."
    },
@@ -765,7 +765,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.0 s"
+     "ended after 11.1 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
    },
@@ -849,7 +849,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 11.2 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
    },
@@ -870,7 +870,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.3 s"
+     "ended after 0.4 s"
     ],
     "message": "Invalid AmneziaWG config: H1 must be a number or a range such as 1000000-1999999."
    },
@@ -891,7 +891,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 1.2 s"
+     "ended after 1.1 s"
     ],
     "message": "AmneziaWG refused the configuration: failed to parse I1: unknown tag <x>"
    },
@@ -935,8 +935,8 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "On Sleep Stay, Auto Reconnect on: connected again after 3.2 s",
-     "On Sleep Pause, Auto Reconnect off: connected again after 3.3 s",
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.3 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.2 s",
      "On Sleep Off, Auto Reconnect on: connected again after 3.2 s",
      "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
     ]
@@ -966,7 +966,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 16.0 s"
+     "connected again after 16.1 s"
     ]
    },
    "android": {
@@ -974,7 +974,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "traffic passed again 21.0 s after the restart; transfer passed"
+     "traffic passed again 18.8 s after the restart; transfer passed"
     ]
    }
   },
@@ -991,7 +991,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 20.4 s"
+     "connected again after 15.9 s"
     ]
    },
    "android": {
@@ -999,7 +999,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "traffic passed again 16.3 s after the server stopped; transfer passed"
+     "traffic passed again 18.8 s after the server stopped; transfer passed"
     ]
    }
   },
@@ -1016,7 +1016,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 48.1 s"
+     "connected again after 47.2 s"
     ]
    },
    "android": {
@@ -1024,7 +1024,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "noticed the dead path after 32.7 s, connected again 48.5 s after the drop began; transfer passed"
+     "noticed the dead path after 31.9 s, connected again 48.0 s after the drop began; transfer passed"
     ]
    }
   },
@@ -1041,7 +1041,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "ended after 40.2 s with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+     "ended after 35.2 s with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
     ]
    },
    "android": {
@@ -1049,7 +1049,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "ended 37.9 s after the server stopped with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+     "ended 37.8 s after the server stopped with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
     ]
    }
   },
@@ -1075,7 +1075,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "ended 58.5 s after the server stopped with: Could not reconnect after 2 attempts. (The server did not answer the AmneziaWG handshake.)"
+     "ended 56.0 s after the server stopped with: Could not reconnect after 2 attempts. (The server did not answer the AmneziaWG handshake.)"
     ]
    }
   },
@@ -1091,7 +1091,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 0.5 s"
+     "connected again after 0.2 s"
     ]
    },
    "android": {
@@ -1115,7 +1115,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "ended after 45.4 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+     "ended after 45.5 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
     ]
    },
    "android": {
@@ -1123,7 +1123,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "connected, ended 49.4 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+     "connected, ended 47.0 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
     ]
    }
   },
@@ -1147,7 +1147,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "connected, ended 49.6 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+     "connected, ended 47.0 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
     ]
    }
   },
@@ -1163,7 +1163,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "ended after 50.4 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+     "ended after 50.5 s with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
     ]
    },
    "android": {
@@ -1171,7 +1171,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "connected, ended 46.9 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
+     "connected, ended 47.1 s later with: The server answers the AmneziaWG handshake but none of the traffic: S3, S4 or H4 may differ from the server's."
     ]
    }
   },
@@ -1246,7 +1246,7 @@
      "in the log: the session line, the obfuscation line",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the 30-second handshake and byte line, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 206.29
+    "download_mbps": 194.05
    },
    "android": {
     "status": "passed",
@@ -1274,11 +1274,11 @@
      "in the log: the session line, the 30-second handshake and byte line",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 199.5
+    "download_mbps": 190.79
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "held for 40 s",
@@ -1302,15 +1302,119 @@
      "in the log: the session line, AmneziaWG's own lines",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 174.31
+    "download_mbps": 141.03
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.9,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "in the log: the session line, AmneziaWG's own lines",
+     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-ranges-trailers-download",
+   "settings": [
+    "the phone's awg4 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges; preshared key"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/ios1 8 s before it was asked",
+     "in the log: the session line, the obfuscation line",
+     "not in the log: ranges in H1-H3 and no HeaderProtectionKey, the current AmneziaWG engines drop some data packets, the file's private key, the file's preshared key, the file's header protection key"
+    ],
+    "download_mbps": 185.36
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.9,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/android1 13 s before it was asked",
+     "in the log: the session line, the obfuscation line",
+     "not in the log: ranges in H1-H3 and no HeaderProtectionKey, the current AmneziaWG engines drop some data packets, the file's private key, the file's preshared key, the file's header protection key"
+    ]
+   }
+  },
+  {
+   "id": "awg-ranges-trailers-upload",
+   "settings": [
+    "the phone's awg4 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges; preshared key"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "up 213.81 Mbit/s",
+     "the server had a handshake with the peer awg4/ios1 8 s before it was asked"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.4,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/android1 12 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-ranges-trailers-no-hpk-download",
+   "settings": [
+    "the phone's awg7 file: AmneziaWG 3.1 without header protection: as awg4, without HeaderProtectionKey; preshared key"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg7/ios1 8 s before it was asked",
+     "in the log: the session line, ranges in H1-H3 and no HeaderProtectionKey",
+     "not in the log: the current AmneziaWG engines drop some data packets, the file's private key, the file's preshared key"
+    ],
+    "download_mbps": 181.78
    },
    "android": {
     "status": "passed",
     "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "in the log: the session line, AmneziaWG's own lines",
-     "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
+     "the server had a handshake with the peer awg7/android1 13 s before it was asked",
+     "in the log: the session line, ranges in H1-H3 and no HeaderProtectionKey",
+     "not in the log: the current AmneziaWG engines drop some data packets, the file's private key, the file's preshared key"
+    ]
+   }
+  },
+  {
+   "id": "awg-ranges-trailers-no-hpk-upload",
+   "settings": [
+    "the phone's awg7 file: AmneziaWG 3.1 without header protection: as awg4, without HeaderProtectionKey; preshared key"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "up 214.78 Mbit/s",
+     "the server had a handshake with the peer awg7/ios1 7 s before it was asked"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg7/android1 13 s before it was asked"
     ]
    }
   },
@@ -1330,7 +1434,7 @@
      "in the log: the session line, the obfuscation line",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the 30-second handshake and byte line, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 213.96
+    "download_mbps": 157.52
    },
    "android": null
   },
@@ -1350,7 +1454,7 @@
      "in the log: the session line, the 30-second handshake and byte line",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, AmneziaWG's own lines, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 205.39
+    "download_mbps": 189.92
    },
    "android": null
   },
@@ -1370,7 +1474,7 @@
      "in the log: the session line, AmneziaWG's own lines",
      "not in the log: a private key line, a preshared key line, a header protection key line, the engine's private key, the engine's preshared key, the engine's header protection key, the file's private key, the file's preshared key, the file's header protection key"
     ],
-    "download_mbps": 156.98
+    "download_mbps": 142.78
    },
    "android": null
   },
@@ -1386,9 +1490,9 @@
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "Release build",
-     "the server had a handshake with the peer awg0/iosrel 7 s before it was asked"
+     "the server had a handshake with the peer awg0/iosrel 8 s before it was asked"
     ],
-    "download_mbps": 206.22
+    "download_mbps": 193.34
    },
    "android": null
   },
@@ -1404,7 +1508,7 @@
     "status": "passed",
     "facts": [
      "Release build",
-     "ended after 11.2 s"
+     "ended after 11.1 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51830 may be closed."
    },
@@ -1421,13 +1525,13 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer phone1 25 s before it was asked"
+     "the server had a handshake with the peer phone1 26 s before it was asked"
     ],
-    "download_mbps": 187.96
+    "download_mbps": 136.77
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 5.1,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer phone1 19 s before it was asked"
@@ -1444,7 +1548,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.2 s"
+     "ended after 11.0 s"
     ],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51820 may be closed."
    },
@@ -1453,6 +1557,106 @@
     "transfer_s": null,
     "facts": [],
     "message": "The server did not answer the AmneziaWG handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, its obfuscation settings (S1-S4, H1-H4, HeaderProtectionKey, RandomTrailers) may differ from this profile's, or UDP port 51820 may be closed."
+   }
+  },
+  {
+   "id": "awg-kernel-module-trailers-download",
+   "settings": [
+    "the phone's awg4 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges; preshared key",
+    "against the kernel module from the Amnezia packages, unchanged"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/ios1 8 s before it was asked"
+    ],
+    "download_mbps": 199.06
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.9,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-kernel-module-trailers-upload",
+   "settings": [
+    "the phone's awg4 file: AmneziaWG 3.1: as 3.0, with RandomTrailers and DisableCookies, H1-H4 ranges; preshared key",
+    "against the kernel module from the Amnezia packages, unchanged"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "up 220.03 Mbit/s",
+     "the server had a handshake with the peer awg4/ios1 7 s before it was asked"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.3,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg4/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-kernel-module-trailers-no-hpk-download",
+   "settings": [
+    "the phone's awg7 file: AmneziaWG 3.1 without header protection: as awg4, without HeaderProtectionKey; preshared key",
+    "against the kernel module from the Amnezia packages, unchanged"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg7/ios1 7 s before it was asked"
+    ],
+    "download_mbps": 212.17
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg7/android1 13 s before it was asked"
+    ]
+   }
+  },
+  {
+   "id": "awg-kernel-module-trailers-no-hpk-upload",
+   "settings": [
+    "the phone's awg7 file: AmneziaWG 3.1 without header protection: as awg4, without HeaderProtectionKey; preshared key",
+    "against the kernel module from the Amnezia packages, unchanged"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "up 31.02 Mbit/s",
+     "the server had a handshake with the peer awg7/ios1 7 s before it was asked"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 36.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the server had a handshake with the peer awg7/android1 13 s before it was asked"
+    ]
    }
   }
  ]

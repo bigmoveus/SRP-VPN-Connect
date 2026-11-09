@@ -25,7 +25,7 @@ A static site (HTML, CSS and JavaScript, no build step) with the WaterWall, SSTP
 | `ssh/` | SSH VPN section: OpenSSH server and UDP relay, app setup, configuration reference, results, troubleshooting |
 | `openvpn/` | OpenVPN section: OpenVPN 2.6 server with stunnel, app setup, configuration reference, results, troubleshooting |
 | `wireguard/` | WireGuard section: WireGuard server on Ubuntu 24.04, app setup, configuration reference, results, troubleshooting |
-| `amneziawg/` | AmneziaWG section: AmneziaWG server on Ubuntu 24.04 from the Amnezia packages, app setup, configuration reference, results, troubleshooting |
+| `amneziawg/` | AmneziaWG section: AmneziaWG server on Ubuntu 24.04 with our amneziawg-go fork and the awg tools from the Amnezia packages, app setup, configuration reference, results, troubleshooting |
 | `assets/css/site.css` | All styles, light and dark |
 | `assets/js/nav.js` | The navigation tree |
 | `assets/js/site.js` | Header, sidebar, table of contents, search, theme and copy buttons |
@@ -147,7 +147,7 @@ python3 tutorial/tools/wireguard_results.py render --evidence tutorial/evidence/
 
 ## AmneziaWG results and screenshots
 
-The AmneziaWG runs come from the private test tools in `amneziawg/`: `run_profile_cases.py` on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json` (`make_awg_cases.py`), against the seven test interfaces of `server-setup.sh`; `lab-evidence.sh` runs the app's engine as a client on the server itself:
+The AmneziaWG runs come from the private test tools in `amneziawg/`: `run_profile_cases.py` on the iPhone and `run_android.py` and `run_android_lifecycle.py` on the Android phone, over the cases of `cases-full.json` (`make_awg_cases.py`) and the RandomTrailers cases of `cases-fork.json`, against the eight test interfaces of `server-setup.sh` and `fork-tests-setup.sh` on our amneziawg-go fork (`fork-server-switch.sh` moved the server from the kernel module, whose four `awg-kernel-module-…` rows were run before it); `lab-evidence.sh` runs amneziawg-go as Amnezia releases it as a client on the server itself:
 
 ```bash
 python3 tutorial/tools/amneziawg_results.py extract --cases <cases-full.json> <cases-release.json> <cases-guide.json> \

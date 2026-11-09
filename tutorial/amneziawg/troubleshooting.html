@@ -62,7 +62,7 @@
 </table></div>
 
 <h2 id="slow">Slow despite a connection</h2>
-<p>With <code>RandomTrailers = on</code> and ranges in H1 to H3, some data packets are taken for handshake messages and lost, on the server and on the phone (<a href="configuration.html#server">Configuration Reference</a>); in our test the iPhone's download fell from 200 to 12 Mbit/s. The connection log says so at the start: <code>AmneziaWG: note: with RandomTrailers on and ranges in H1-H3 …</code>. Give H1 to H4 single values on the server and in the phones' files, or turn RandomTrailers off on both.</p>
+<p>Uploads are slow and downloads are not, and the connection log starts with <code>AmneziaWG: note: with RandomTrailers on, ranges in H1-H3 and no HeaderProtectionKey …</code>: the server is AmneziaWG as Amnezia releases it, which takes some of the phone's data packets for handshake messages and drops them (<a href="configuration.html#server">Configuration Reference</a>); against the kernel module in our test, the iPhone uploaded at 31 Mbit/s, and Android took 36.7 s for its uploads instead of 8.3 s. Give the server and the phones' files a HeaderProtectionKey, or single values in H1 to H4, or turn RandomTrailers off on both. A server set up as <a href="server.html">AmneziaWG server</a> shows, with our amneziawg-go fork, does not drop them.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>
