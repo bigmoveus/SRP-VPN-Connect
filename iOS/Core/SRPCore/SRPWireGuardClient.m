@@ -512,9 +512,12 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
         SSLogM(@"AmneziaWG: obfuscation %@, MTU %ld", set.count > 0 ? [set componentsJoinedByString:@" "] : @"none (WireGuard's own format)",
                (long)SRPWGEffectiveMTU(cfg, YES));
         BOOL ranges = [cfg.h1 containsString:@"-"] || [cfg.h2 containsString:@"-"] || [cfg.h3 containsString:@"-"];
-        if (cfg.randomTrailers == 1 && ranges) {
-            SSLogM(@"AmneziaWG: note: with RandomTrailers on and ranges in H1-H3, the current AmneziaWG engines drop some data packets "
-                   "as handshake messages (the wider the ranges, the more); single values in H1-H3 avoid it");
+        // The app's engine (our amneziawg-go fork) keeps these packets, and with header protection it also sends packets the
+        // server's first-match classification reads right; without it the server can still drop some of the phone's packets
+        if (cfg.randomTrailers == 1 && ranges && cfg.headerProtectionKey.length == 0) {
+            SSLogM(@"AmneziaWG: note: with RandomTrailers on, ranges in H1-H3 and no HeaderProtectionKey, the server's AmneziaWG may take "
+                   "some of the phone's data packets for handshake messages and drop them (uploads slow down); a HeaderProtectionKey "
+                   "or single values in H1-H3 avoid it");
         }
     }
     _uapi = uapi;

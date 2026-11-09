@@ -11,7 +11,7 @@ SRP VPN Connect contains and builds upon independent protocol implementations an
 | libxml2 (in the Android SSL VPN core) | [GNOME/libxml2](https://gitlab.gnome.org/GNOME/libxml2) | MIT; see `Licenses/libxml2/Copyright` |
 | OpenVPN 3 | [OpenVPN/openvpn3](https://github.com/OpenVPN/openvpn3) | AGPL 3.0 or MPL 2.0, with the linking permission described in `iOS/OpenVPN/upstream/LICENSE.md` |
 | WireGuard / wireguard-go | [WireGuard](https://www.wireguard.com/) | MIT; see `Licenses/WireGuard/LICENSE` |
-| AmneziaWG-go | [amnezia-vpn/amneziawg-go](https://github.com/amnezia-vpn/amneziawg-go) | MIT; see `Licenses/AmneziaWG/LICENSE` |
+| AmneziaWG-go (the iOS and Android apps build our fork [bigmoveus/amneziawg-go](https://github.com/bigmoveus/amneziawg-go), tag `v3.1.20260828-srp.1`: upstream v3.1.20260828 with a fix for transport packets taken for handshake messages with RandomTrailers) | [amnezia-vpn/amneziawg-go](https://github.com/amnezia-vpn/amneziawg-go) | MIT; see `Licenses/AmneziaWG/LICENSE` |
 | Aether | [CluvexStudio/Aether](https://github.com/CluvexStudio/Aether) | AGPL 3.0; see `Licenses/Aether/LICENSE` and `Licenses/Aether/TRADEMARK.md` |
 | Psiphon clientlib | [Psiphon-Labs/psiphon-tunnel-core](https://github.com/Psiphon-Labs/psiphon-tunnel-core) | GPL 3.0; see `Licenses/Psiphon/LICENSE` |
 | WaterWall | [radkesvat/WaterWall](https://github.com/radkesvat/WaterWall) | See `WaterWall/upstream/LICENSE.txt` and the notices in its source directories |

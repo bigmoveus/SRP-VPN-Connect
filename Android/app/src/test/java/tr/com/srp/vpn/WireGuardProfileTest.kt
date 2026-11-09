@@ -1,6 +1,7 @@
 package tr.com.srp.vpn
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -129,6 +130,11 @@ class WireGuardProfileTest {
         assertTrue(uapi.indexOf("random_trailers=") < uapi.indexOf("public_key="))
         assertEquals(1404, parsed.tunnelMtu(true))
         assertEquals(4L * (16 + 32 + 1404), parsed.silenceBytes(true))
+        // The note on RandomTrailers with ranges: only without a header protection key (the fork's engine covers the rest)
+        assertFalse(parsed.trailersWithRanges)
+        assertTrue(WireGuardConf.parse(text.replace(Regex("HeaderProtectionKey = .*\n"), "")).first!!.trailersWithRanges)
+        assertFalse(WireGuardConf.parse(text.replace(Regex("HeaderProtectionKey = .*\n"), "").replace(Regex("(H[12] = )(\\d+) ?- ?\\d+"), "$1$2"))
+            .first!!.trailersWithRanges)
         // WireGuard's engine gets none of them, and the same file with WireGuard is refused by name
         assertTrue("jc=" !in parsed.uapi("192.0.2.7", amnezia = false)!!)
         assertEquals("This configuration has AmneziaWG settings (Jc, Jmin, Jmax, S1, …): use the AmneziaWG VPN protocol for it.",

@@ -36,8 +36,6 @@ github.com/Psiphon-Labs/quic-go v0.0.0-20250527153145-79fe45fb83b1 h1:zD7JvZCV8g
 github.com/Psiphon-Labs/quic-go v0.0.0-20250527153145-79fe45fb83b1/go.mod h1:rONdWgPMbFjyyBai7gB1IBF4pT9r4l0GyiDst5XR1SY=
 github.com/Psiphon-Labs/utls v1.1.1-0.20260729134728-7a1fc711853d h1:htAwZYlfEn3FJXqmY2iTh/53RRfcbkBahdAjDr25UnA=
 github.com/Psiphon-Labs/utls v1.1.1-0.20260729134728-7a1fc711853d/go.mod h1:zoUi6jXnfX7ICJb9Epr8XPmhp28AnGhGz2J+bxyg7Cs=
-github.com/amnezia-vpn/amneziawg-go/v3 v3.1.20260828 h1:D8d8gGvwXcTxUIsE4z6F6vjy4/VZddu95vMNtOygh1c=
-github.com/amnezia-vpn/amneziawg-go/v3 v3.1.20260828/go.mod h1:YoPc6qcOZqD7TXZ1xpedD8Sx3aSKsxN05ZqEFmXDNHk=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/armon/go-proxyproto v0.0.0-20180202201750-5b7edb60ff5f h1:SaJ6yqg936TshyeFZqQE+N+9hYkIeL9AMr7S4voCl10=
@@ -46,6 +44,8 @@ github.com/axiomhq/hyperloglog v0.2.6 h1:sRhvvF3RIXWQgAXaTphLp4yJiX4S0IN3MWTaAgZ
 github.com/axiomhq/hyperloglog v0.2.6/go.mod h1:YjX/dQqCR/7QYX0g8mu8UZAjpIenz1FKM71UEsjFoTo=
 github.com/bifurcation/mint v0.0.0-20180306135233-198357931e61 h1:BU+NxuoaYPIvvp8NNkNlLr8aA0utGyuunf4Q3LJ0bh0=
 github.com/bifurcation/mint v0.0.0-20180306135233-198357931e61/go.mod h1:zVt7zX3K/aDCk9Tj+VM7YymsX66ERvzCJzw8rFCX2JU=
+github.com/bigmoveus/amneziawg-go/v3 v3.1.20260828-srp.1 h1:GuNAGqGKChJuoA893gFnkeOqczvXLeyb4dAftpP7qQU=
+github.com/bigmoveus/amneziawg-go/v3 v3.1.20260828-srp.1/go.mod h1:YoPc6qcOZqD7TXZ1xpedD8Sx3aSKsxN05ZqEFmXDNHk=
 github.com/bits-and-blooms/bitset v1.10.0 h1:ePXTeiPEazB5+opbv5fr8umg2R/1NlzgDsyepwsSr88=
 github.com/bits-and-blooms/bitset v1.10.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bits-and-blooms/bloom/v3 v3.6.0 h1:dTU0OVLJSoOhz9m68FTXMFfA39nR8U/nTCs1zb26mOI=

@@ -115,3 +115,5 @@ replace gitlab.com/yawning/obfs4.git => github.com/jmwample/obfs4 v0.0.0-2023072
 replace github.com/Psiphon-Labs/psiphon-tunnel-core => ./psiphon-tunnel-core
 
 replace github.com/pion/dtls/v2 => ./psiphon-tunnel-core/replace/dtls
+
+replace github.com/amnezia-vpn/amneziawg-go/v3 => github.com/bigmoveus/amneziawg-go/v3 v3.1.20260828-srp.1

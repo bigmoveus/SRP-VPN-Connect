@@ -60,7 +60,7 @@ internal data class WireGuardConf(
     val s4: Int = 0,
     /** ContentPaddingAddition or RandomTrailers: a keepalive can grow to the largest packet sent */
     val padsKeepalives: Boolean = false,
-    /** RandomTrailers on with a range in H1-H3 (the engines lose packets: see [WireGuardClient]) */
+    /** RandomTrailers on with a range in H1-H3 and no HeaderProtectionKey: the server's engine may drop some of the phone's packets */
     val trailersWithRanges: Boolean = false,
 ) {
     /** The engine's settings: the device (with AmneziaWG's for [amnezia]), then the peer as [peer] gives it. */
@@ -182,7 +182,8 @@ internal data class WireGuardConf(
                         s2 = awgValues["s2"]?.toInt() ?: 0,
                         s4 = awgValues["s4"]?.toInt() ?: 0,
                         padsKeepalives = awgValues["contentpaddingaddition"] != null || awgValues["randomtrailers"] == "true",
-                        trailersWithRanges = awgValues["randomtrailers"] == "true" && h.any { '-' in it }) to null
+                        trailersWithRanges = awgValues["randomtrailers"] == "true" && h.any { '-' in it } &&
+                            awgValues["headerprotectionkey"].isNullOrEmpty()) to null
                 }
             }
         }
@@ -469,8 +470,11 @@ class WireGuardClient(
             val set = parsed.amneziaKeys.distinct()
             ConnectionLog.m("AmneziaWG: obfuscation ${if (set.isEmpty()) "none (WireGuard's own format)" else set.joinToString(" ")}, MTU ${parsed.tunnelMtu(true)}")
             if (parsed.trailersWithRanges) {
-                ConnectionLog.m("AmneziaWG: note: with RandomTrailers on and ranges in H1-H3, the current AmneziaWG engines drop some data packets " +
-                    "as handshake messages (the wider the ranges, the more); single values in H1-H3 avoid it")
+                // The app's engine (our amneziawg-go fork) keeps these packets, and with header protection it also sends packets the
+                // server's first-match classification reads right; without it the server can still drop some of the phone's packets
+                ConnectionLog.m("AmneziaWG: note: with RandomTrailers on, ranges in H1-H3 and no HeaderProtectionKey, the server's AmneziaWG may take " +
+                    "some of the phone's data packets for handshake messages and drop them (uploads slow down); a HeaderProtectionKey " +
+                    "or single values in H1-H3 avoid it")
             }
         }
         WireGuardNative.setVerbose(logLevel >= 2)

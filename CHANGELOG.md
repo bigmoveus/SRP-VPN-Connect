@@ -21,6 +21,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The Android app's version code is 5, for the release APK that adds WireGuard; the version name stays 1.2.0.
 - The Android app's version code is 6, for the release APK that adds AmneziaWG; the version name stays 1.2.0.
 
+- AmneziaWG: the connection log's note on RandomTrailers with ranges in H1-H3 appears only without a HeaderProtectionKey, where a server without the fix can still drop some of the phone's packets (uploads), and says so.
 ### Fixed
 - WireGuard on iPhone no longer says Connected when the server never answered. A wrong server key, a key the server does not have, a wrong preshared key or a closed port now end after 10 seconds with a message naming those causes; before, the VPN showed Connected and nothing passed.
 - WireGuard: a profile without a Port uses 51820, WireGuard's own port; it used 443.
@@ -33,6 +34,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - AmneziaWG: a profile without a Port uses 51820; it used 443. The Server and Port fields take effect: changed, they replace the imported file's Endpoint.
 - WireGuard refuses a file with AmneziaWG settings, at import and at connect, naming the protocol to use; before, its engine refused it without a reason.
 - AmneziaWG on iPhone: the first four rows of each AmneziaWG group under Manual Configuration showed the server's public key, the preshared key, AllowedIPs and Keepalive instead of their own fields, so Jc, Jmin, Jmax and S1 (now S1-S4 and Jc, Jmin, Jmax, I1) could not be entered there; each row now shows and sets its own value.
+- AmneziaWG on iPhone and Android: with RandomTrailers and ranges in H1-H3, amneziawg-go dropped every data packet whose bytes at a handshake message's offset fell in that message's range (about 7% of them with ranges of 100,000,000 values, amnezia-vpn/amneziawg-go#186), in both directions, so downloads and uploads fell to a tenth or less. Both apps now build amneziawg-go from our fork (github.com/bigmoveus/amneziawg-go, tag v3.1.20260828-srp.1, upstream v3.1.20260828 and this fix): a received packet that names one of the phone's sessions is read as data, and a data packet a server would misread gets new random bytes before it goes, so a server without the fix gets the phone's packets too when the profile has a HeaderProtectionKey.
 
 ## 1.2.0 (39) - 2026-11-08
 

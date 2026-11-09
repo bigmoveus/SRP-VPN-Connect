@@ -13,3 +13,5 @@ require (
 	golang.org/x/net v0.56.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 )
+
+replace github.com/amnezia-vpn/amneziawg-go/v3 => github.com/bigmoveus/amneziawg-go/v3 v3.1.20260828-srp.1
