@@ -13,6 +13,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The WireGuard and AmneziaWG documentation name TestFlight build 40, the first with their code.
+- The documentation: every guide's iPhone screenshot of the Protocol screen no longer shows Psiphon, Future protocols no longer lists it (every protocol in the app now has its guide), and the home page says the app has the same protocols on iPhone, iPad and Android.
 - The Android app's version code is 8, for the release APK that adds Aether; the version name stays 1.2.0.
 
 ### Removed
