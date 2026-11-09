@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (40) - 2026-11-09
+
 ### Added
 - WireGuard profiles have Auto Reconnect, Retry Times and On Sleep on iPhone, with WireGuard's own meaning: a server that sends nothing back for 30 seconds while the phone sends counts as gone; Auto Reconnect then starts new handshakes of 10 seconds each, Retry Times limits them, and without Auto Reconnect the VPN ends with the reason; before the first connection Retry Times adds attempts; On Sleep Pause and Off close WireGuard while the device sleeps. There is no Switch to Wi-Fi: WireGuard follows the network the phone uses, and the app now moves its sockets on every network change.
 - The WireGuard log in Release builds of the iPhone app: the server, its address and port, whether the profile has a keepalive and a preshared key, the handshake, network changes and the reason a connection ended; Expert adds a line every 30 seconds with the time since the last handshake and the bytes; Debug adds WireGuard's own lines. No level writes a key.
@@ -22,8 +24,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 - The Android app's version code is 6, for the release APK that adds AmneziaWG; the version name stays 1.2.0.
 - The Android app's version code is 7, for the release APK whose AmneziaWG runs our amneziawg-go fork; the version name stays 1.2.0.
 - AmneziaWG documentation: the server guide installs our amneziawg-go fork (built from tag v3.1.20260828-srp.1) with the awg tools from the Amnezia packages instead of the kernel module, and the test server runs it; Test results come from a new run of every case on both phones against it (iPhone 70 of 70, Android 65 of 65), with RandomTrailers and wide H ranges in both directions, with and without a header protection key, also against the unchanged kernel module; the Configuration Reference and Troubleshooting say what the fork changes.
-
 - AmneziaWG: the connection log's note on RandomTrailers with ranges in H1-H3 appears only without a HeaderProtectionKey, where a server without the fix can still drop some of the phone's packets (uploads), and says so.
+
 ### Fixed
 - WireGuard on iPhone no longer says Connected when the server never answered. A wrong server key, a key the server does not have, a wrong preshared key or a closed port now end after 10 seconds with a message naming those causes; before, the VPN showed Connected and nothing passed.
 - WireGuard: a profile without a Port uses 51820, WireGuard's own port; it used 443.
