@@ -92,6 +92,36 @@ data class Profile(
     val wgAllowedIps: String = "",
     val wgKeepalive: Int = 0,
     val wgSecretRef: String = "",
+    // AmneziaWG's manual settings (NodeModel's wgJc … wgDisableCookies; 0 or empty = unset). S1-S4, H1-H4, the header protection key
+    // and Random Trailers must match the server; the rest is this device's own.
+    val wgJc: Int = 0,
+    val wgJmin: Int = 0,
+    val wgJmax: Int = 0,
+    val wgS1: Int = 0,
+    val wgS2: Int = 0,
+    val wgS3: Int = 0,
+    val wgS4: Int = 0,
+    /** H1-H4: a number or a range ("1100000000-1199999999") */
+    val wgH1: String = "",
+    val wgH2: String = "",
+    val wgH3: String = "",
+    val wgH4: String = "",
+    val wgI1: String = "",
+    val wgI2: String = "",
+    val wgI3: String = "",
+    val wgI4: String = "",
+    val wgI5: String = "",
+    /** A secret like the keys: kept in the SecretStore with them */
+    val wgHeaderProtectionKey: String = "",
+    /** The content padding and the timings: a number or a range ("4-6") */
+    val wgContentPaddingAddition: String = "",
+    val wgRekeyAfterTime: String = "",
+    val wgRekeyTimeout: String = "",
+    val wgRejectAfterTime: String = "",
+    val wgKeepaliveTimeout: String = "",
+    val wgMaxHandshakeAttempts: String = "",
+    val wgRandomTrailers: Boolean = false,
+    val wgDisableCookies: Boolean = false,
     // SSTP, with the defaults the iOS editor gives a new SSTP profile
     val mschap2: Boolean = true,
     val allowLegacyPapChap: Boolean = false,
@@ -148,7 +178,10 @@ data class Profile(
     val isOpenConnect get() = protocolType == "openconnect"
     val isSsh get() = protocolType == "ssh"
     val isOpenVpn get() = protocolType == "openvpn"
-    val isWireGuard get() = protocolType == "wireguard"
+    /** WireGuard or AmneziaWG: the same client, editor and options (AmneziaWG adds its obfuscation settings) */
+    val isWireGuard get() = protocolType == "wireguard" || protocolType == "amnezia"
+    val isAmnezia get() = protocolType == "amnezia"
+    val isPlainWireGuard get() = protocolType == "wireguard"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
@@ -161,7 +194,7 @@ data class Profile(
     val effectivePort: String
         get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard || (!isTlsVpn && ChainConfig.isWireGuard(configuration))) "51820" else "443" }
 
-    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else if (isWireGuard) "WireGuard VPN" else "WaterWall VPN"
+    val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else if (isAmnezia) "AmneziaWG VPN" else if (isWireGuard) "WireGuard VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
@@ -170,6 +203,17 @@ data class Profile(
         return buildString {
             append("[Interface]\nPrivateKey = $wgPrivateKey\nAddress = $wgAddress\n")
             if (wgDns.isNotEmpty()) append("DNS = $wgDns\n")
+            if (isAmnezia) {
+                listOf("Jc" to wgJc, "Jmin" to wgJmin, "Jmax" to wgJmax, "S1" to wgS1, "S2" to wgS2, "S3" to wgS3, "S4" to wgS4)
+                    .filter { it.second > 0 }.forEach { append("${it.first} = ${it.second}\n") }
+                listOf("H1" to wgH1, "H2" to wgH2, "H3" to wgH3, "H4" to wgH4, "I1" to wgI1, "I2" to wgI2, "I3" to wgI3, "I4" to wgI4,
+                    "I5" to wgI5, "HeaderProtectionKey" to wgHeaderProtectionKey, "ContentPaddingAddition" to wgContentPaddingAddition,
+                    "RekeyAfterTime" to wgRekeyAfterTime, "RekeyTimeout" to wgRekeyTimeout, "RejectAfterTime" to wgRejectAfterTime,
+                    "KeepaliveTimeout" to wgKeepaliveTimeout, "MaxHandshakeAttempts" to wgMaxHandshakeAttempts)
+                    .filter { it.second.trim().isNotEmpty() }.forEach { append("${it.first} = ${it.second.trim()}\n") }
+                if (wgRandomTrailers) append("RandomTrailers = on\n")
+                if (wgDisableCookies) append("DisableCookies = on\n")
+            }
             append("\n[Peer]\nPublicKey = $wgPeerPublicKey\n")
             if (wgPresharedKey.isNotEmpty()) append("PresharedKey = $wgPresharedKey\n")
             append("Endpoint = $server:$effectivePort\n")
@@ -249,7 +293,7 @@ class ProfileStore(context: Context) {
         val stored = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
         val profiles = stored.map { fromStored(it) }
         // Re-save profiles that still contain a plaintext credential or WireGuard key.
-        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "proxy_password", "cert_p12", "ovpn_profile").any { it in item } }) save(profiles)
+        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "wg_header_protection_key", "proxy_password", "cert_p12", "ovpn_profile").any { it in item } }) save(profiles)
         return profiles
     }
 
@@ -282,6 +326,7 @@ class ProfileStore(context: Context) {
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
         if (saved.wgPresharedKey.isNotEmpty()) keys["preshared_key"] = saved.wgPresharedKey
+        if (saved.wgHeaderProtectionKey.isNotEmpty()) keys["header_protection_key"] = saved.wgHeaderProtectionKey
         if (keys.isNotEmpty()) {
             if (saved.wgSecretRef.isEmpty()) saved = saved.copy(wgSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.wgSecretRef, Json.write(keys))
@@ -290,14 +335,28 @@ class ProfileStore(context: Context) {
             saved = saved.copy(wgSecretRef = "")
         }
         if (saved.isWireGuard) {
-            // CheckConnectData's keys for a WireGuard profile; the keys and the imported file went to the store above
-            return linkedMapOf(
-                "type" to "wireguard", "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
+            // CheckConnectData's keys for a WireGuard or AmneziaWG profile; the keys and the imported file went to the store above
+            val stored = linkedMapOf<String, Any?>(
+                "type" to saved.protocolType, "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
                 "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(),
                 "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
                 "wg_peer_public_key" to saved.wgPeerPublicKey, "wg_address" to saved.wgAddress, "wg_dns" to saved.wgDns,
                 "wg_allowed_ips" to saved.wgAllowedIps, "wg_keepalive" to saved.wgKeepalive.toLong(), "wg_secret_ref" to saved.wgSecretRef,
             )
+            if (saved.isAmnezia) {
+                // The AmneziaWG fields under CheckConnectData's keys (the header protection key went to the store with the keys)
+                listOf("wg_jc" to saved.wgJc, "wg_jmin" to saved.wgJmin, "wg_jmax" to saved.wgJmax, "wg_s1" to saved.wgS1, "wg_s2" to saved.wgS2,
+                    "wg_s3" to saved.wgS3, "wg_s4" to saved.wgS4).filter { it.second > 0 }.forEach { stored[it.first] = it.second.toLong() }
+                listOf("wg_h1" to saved.wgH1, "wg_h2" to saved.wgH2, "wg_h3" to saved.wgH3, "wg_h4" to saved.wgH4, "wg_i1" to saved.wgI1,
+                    "wg_i2" to saved.wgI2, "wg_i3" to saved.wgI3, "wg_i4" to saved.wgI4, "wg_i5" to saved.wgI5,
+                    "wg_content_padding" to saved.wgContentPaddingAddition, "wg_rekey_after_time" to saved.wgRekeyAfterTime,
+                    "wg_rekey_timeout" to saved.wgRekeyTimeout, "wg_reject_after_time" to saved.wgRejectAfterTime,
+                    "wg_keepalive_timeout" to saved.wgKeepaliveTimeout, "wg_max_handshake_attempts" to saved.wgMaxHandshakeAttempts)
+                    .filter { it.second.isNotEmpty() }.forEach { stored[it.first] = it.second }
+                if (saved.wgRandomTrailers) stored["wg_random_trailers"] = true
+                if (saved.wgDisableCookies) stored["wg_disable_cookies"] = true
+            }
+            return stored
         }
         return linkedMapOf(
             "type" to "waterwall", "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
@@ -393,6 +452,11 @@ class ProfileStore(context: Context) {
         fun text(key: String) = item[key] as? String ?: ""
         fun flag(key: String, default: Boolean) = item[key] as? Boolean ?: default
         fun number(key: String) = (item[key] as? Number)?.toInt() ?: 0
+        fun header(key: String) = when (val value = item[key]) {
+            is Number -> if (value.toLong() > 0) value.toLong().toString() else ""
+            is String -> value
+            else -> ""
+        }
         val defaults = Profile()
         val configJson = text("ww_config").takeIf { ChainConfig.configurationWithJson(it) != null && it.isNotEmpty() } ?: defaults.configJson
         // Password: prefer the store through password_key; a plaintext one moves there on the next save.
@@ -439,7 +503,33 @@ class ProfileStore(context: Context) {
             wgAllowedIps = text("wg_allowed_ips"),
             wgKeepalive = number("wg_keepalive"),
             wgSecretRef = wgRef,
-            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" || it == "openvpn" || it == "wireguard" } ?: "waterwall",
+            wgJc = number("wg_jc"),
+            wgJmin = number("wg_jmin"),
+            wgJmax = number("wg_jmax"),
+            wgS1 = number("wg_s1"),
+            wgS2 = number("wg_s2"),
+            wgS3 = number("wg_s3"),
+            wgS4 = number("wg_s4"),
+            // H1-H4 were numbers on iPhone before ranges were possible
+            wgH1 = header("wg_h1"),
+            wgH2 = header("wg_h2"),
+            wgH3 = header("wg_h3"),
+            wgH4 = header("wg_h4"),
+            wgI1 = text("wg_i1"),
+            wgI2 = text("wg_i2"),
+            wgI3 = text("wg_i3"),
+            wgI4 = text("wg_i4"),
+            wgI5 = text("wg_i5"),
+            wgHeaderProtectionKey = (wg?.get("header_protection_key") as? String) ?: text("wg_header_protection_key"),
+            wgContentPaddingAddition = text("wg_content_padding"),
+            wgRekeyAfterTime = text("wg_rekey_after_time"),
+            wgRekeyTimeout = text("wg_rekey_timeout"),
+            wgRejectAfterTime = text("wg_reject_after_time"),
+            wgKeepaliveTimeout = text("wg_keepalive_timeout"),
+            wgMaxHandshakeAttempts = text("wg_max_handshake_attempts"),
+            wgRandomTrailers = flag("wg_random_trailers", false),
+            wgDisableCookies = flag("wg_disable_cookies", false),
+            protocolType = text("type").takeIf { it == "sstp" || it == "softether" || it == "openconnect" || it == "ssh" || it == "openvpn" || it == "wireguard" || it == "amnezia" } ?: "waterwall",
             mschap2 = flag("mschap2_enable", true),
             allowLegacyPapChap = flag("allow_legacy_papchap", false),
             authMethod = text("auth_method").ifEmpty { "password" },

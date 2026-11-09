@@ -3,6 +3,7 @@ module tr.com.srp.vpn/wireguard
 go 1.26.0
 
 require (
+	github.com/amnezia-vpn/amneziawg-go/v3 v3.1.20260828
 	golang.org/x/sys v0.47.0
 	golang.zx2c4.com/wireguard v0.0.0-20261006164505-2631ce99a06f
 )

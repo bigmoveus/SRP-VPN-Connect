@@ -160,10 +160,14 @@ private fun trimmedForSave(profile: Profile): Profile {
             ovpnStunnelSni = profile.ovpnStunnelSni.trim())
     }
     if (profile.isWireGuard) {
-        // Keys, addresses and the endpoint cannot start or end with a space
+        // Keys, addresses, the endpoint and AmneziaWG's numbers and ranges cannot start or end with a space (the I1-I5 chains stay as typed)
         return profile.copy(server = profile.server.trim(), port = profile.port.trim(), wgPrivateKey = profile.wgPrivateKey.trim(),
             wgPeerPublicKey = profile.wgPeerPublicKey.trim(), wgPresharedKey = profile.wgPresharedKey.trim(), wgAddress = profile.wgAddress.trim(),
-            wgDns = profile.wgDns.trim(), wgAllowedIps = profile.wgAllowedIps.trim())
+            wgDns = profile.wgDns.trim(), wgAllowedIps = profile.wgAllowedIps.trim(), wgH1 = profile.wgH1.trim(), wgH2 = profile.wgH2.trim(),
+            wgH3 = profile.wgH3.trim(), wgH4 = profile.wgH4.trim(), wgHeaderProtectionKey = profile.wgHeaderProtectionKey.trim(),
+            wgContentPaddingAddition = profile.wgContentPaddingAddition.trim(), wgRekeyAfterTime = profile.wgRekeyAfterTime.trim(),
+            wgRekeyTimeout = profile.wgRekeyTimeout.trim(), wgRejectAfterTime = profile.wgRejectAfterTime.trim(),
+            wgKeepaliveTimeout = profile.wgKeepaliveTimeout.trim(), wgMaxHandshakeAttempts = profile.wgMaxHandshakeAttempts.trim())
     }
     if (profile.isSsh) {
         // The password stays as typed: an SSH password may begin or end with a space
@@ -222,7 +226,12 @@ private fun ProfileEditPage(
             return@rememberLauncherForActivityResult
         }
         val imported = importedWireGuard(text, draft)
+        val amneziaSetting = amneziaSettingIn(text)
         if (imported == null) ui.showAlert("Import Failed", "The file does not look like a WireGuard config (no [Interface]/[Peer] sections).")
+        // WireGuard takes none of AmneziaWG's settings: such a file needs an AmneziaWG profile
+        else if (draft.isPlainWireGuard && amneziaSetting != null) {
+            ui.showAlert("AmneziaWG Configuration", "This file has AmneziaWG settings ($amneziaSetting and others). Choose AmneziaWG VPN as the protocol to use it.")
+        }
         else onChange(imported)
     }
 
@@ -270,7 +279,7 @@ private fun ProfileEditPage(
                 return@Column
             }
             if (draft.isWireGuard) {
-                Section("SERVER", WIREGUARD_SERVER_FOOTER) {
+                Section("SERVER", if (draft.isAmnezia) AMNEZIAWG_SERVER_FOOTER else WIREGUARD_SERVER_FOOTER) {
                     row { ValueRow("Import Config (.conf)", if (draft.wgConfig.isNotEmpty()) "Imported" else "None") { importFile.launch(arrayOf("*/*")) } }
                     row { ValueRow("Manual Configuration", wireGuardConfigState(draft)) { push(EditorPage.WireGuardManual) } }
                     row { TextFieldRow("Server", draft.server, "Required", keyboardType = KeyboardType.Uri) { onChange(draft.copy(server = it)) } }
@@ -370,8 +379,12 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
         if (type != draft.protocolType) {
             // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
             onChange(draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
-                wgDns = "", wgAllowedIps = "", wgKeepalive = 0,
-                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194" else if (type == "wireguard") "51820" else draft.port))
+                wgDns = "", wgAllowedIps = "", wgKeepalive = 0, wgJc = 0, wgJmin = 0, wgJmax = 0, wgS1 = 0, wgS2 = 0, wgS3 = 0, wgS4 = 0,
+                wgH1 = "", wgH2 = "", wgH3 = "", wgH4 = "", wgI1 = "", wgI2 = "", wgI3 = "", wgI4 = "", wgI5 = "", wgHeaderProtectionKey = "",
+                wgContentPaddingAddition = "", wgRekeyAfterTime = "", wgRekeyTimeout = "", wgRejectAfterTime = "", wgKeepaliveTimeout = "",
+                wgMaxHandshakeAttempts = "", wgRandomTrailers = false, wgDisableCookies = false,
+                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194"
+                       else if (type == "wireguard" || type == "amnezia") "51820" else draft.port))
         }
         onBack()
     }
@@ -384,7 +397,8 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
             row { CheckRow("SSL VPN", "AnyConnect, F5 BIG-IP, Palo Alto GlobalProtect", checked = draft.isOpenConnect) { choose("openconnect") } }
             row { CheckRow("SSH VPN", "SSH tunnel with optional UDP relay", checked = draft.isSsh) { choose("ssh") } }
             row { CheckRow("OpenVPN", "OpenVPN 3 — UDP/TCP, optional stunnel (TLS 1.3)", checked = draft.isOpenVpn) { choose("openvpn") } }
-            row { CheckRow("WireGuard VPN", "WireGuard — fast modern UDP", checked = draft.isWireGuard) { choose("wireguard") } }
+            row { CheckRow("WireGuard VPN", "WireGuard — fast modern UDP", checked = draft.isPlainWireGuard) { choose("wireguard") } }
+            row { CheckRow("AmneziaWG VPN", "AmneziaWG — obfuscated for strict firewalls", checked = draft.isAmnezia) { choose("amnezia") } }
         }
     }
 }
@@ -440,6 +454,37 @@ private fun WireGuardManualPage(draft: Profile, onChange: (Profile) -> Unit, onB
                 row { TextFieldRow("Preshared Key", draft.wgPresharedKey, "Optional") { onChange(draft.copy(wgPresharedKey = it)) } }
                 row { TextFieldRow("AllowedIPs", draft.wgAllowedIps, "Default: 0.0.0.0/0") { onChange(draft.copy(wgAllowedIps = it)) } }
                 row { NumberRow("Keepalive", draft.wgKeepalive, "Optional — seconds") { onChange(draft.copy(wgKeepalive = it)) } }
+            }
+            if (draft.isAmnezia) {
+                Section("AMNEZIAWG: SAME AS THE SERVER", AMNEZIAWG_MATCH_FOOTER) {
+                    row { NumberRow("S1", draft.wgS1, "Init padding") { onChange(draft.copy(wgS1 = it)) } }
+                    row { NumberRow("S2", draft.wgS2, "Response padding") { onChange(draft.copy(wgS2 = it)) } }
+                    row { NumberRow("S3", draft.wgS3, "Cookie padding") { onChange(draft.copy(wgS3 = it)) } }
+                    row { NumberRow("S4", draft.wgS4, "Data padding") { onChange(draft.copy(wgS4 = it)) } }
+                    row { TextFieldRow("H1", draft.wgH1, "Init header") { onChange(draft.copy(wgH1 = it)) } }
+                    row { TextFieldRow("H2", draft.wgH2, "Response header") { onChange(draft.copy(wgH2 = it)) } }
+                    row { TextFieldRow("H3", draft.wgH3, "Cookie header") { onChange(draft.copy(wgH3 = it)) } }
+                    row { TextFieldRow("H4", draft.wgH4, "Data header") { onChange(draft.copy(wgH4 = it)) } }
+                    row { TextFieldRow("Header Protection Key", draft.wgHeaderProtectionKey, "Optional") { onChange(draft.copy(wgHeaderProtectionKey = it)) } }
+                    row { SwitchRow("Random Trailers", draft.wgRandomTrailers) { onChange(draft.copy(wgRandomTrailers = it)) } }
+                }
+                Section("AMNEZIAWG: THIS DEVICE ONLY", AMNEZIAWG_DEVICE_FOOTER) {
+                    row { NumberRow("Jc", draft.wgJc, "Junk packet count") { onChange(draft.copy(wgJc = it)) } }
+                    row { NumberRow("Jmin", draft.wgJmin, "Junk packet min size") { onChange(draft.copy(wgJmin = it)) } }
+                    row { NumberRow("Jmax", draft.wgJmax, "Junk packet max size") { onChange(draft.copy(wgJmax = it)) } }
+                    row { TextFieldRow("I1", draft.wgI1, "Optional signature chain") { onChange(draft.copy(wgI1 = it)) } }
+                    row { TextFieldRow("I2", draft.wgI2, "Optional") { onChange(draft.copy(wgI2 = it)) } }
+                    row { TextFieldRow("I3", draft.wgI3, "Optional") { onChange(draft.copy(wgI3 = it)) } }
+                    row { TextFieldRow("I4", draft.wgI4, "Optional") { onChange(draft.copy(wgI4 = it)) } }
+                    row { TextFieldRow("I5", draft.wgI5, "Optional") { onChange(draft.copy(wgI5 = it)) } }
+                    row { TextFieldRow("Content Padding", draft.wgContentPaddingAddition, "Optional — bytes") { onChange(draft.copy(wgContentPaddingAddition = it)) } }
+                    row { TextFieldRow("Rekey After Time", draft.wgRekeyAfterTime, "Default 120") { onChange(draft.copy(wgRekeyAfterTime = it)) } }
+                    row { TextFieldRow("Rekey Timeout", draft.wgRekeyTimeout, "Default 5") { onChange(draft.copy(wgRekeyTimeout = it)) } }
+                    row { TextFieldRow("Reject After Time", draft.wgRejectAfterTime, "Default 180") { onChange(draft.copy(wgRejectAfterTime = it)) } }
+                    row { TextFieldRow("Keepalive Timeout", draft.wgKeepaliveTimeout, "Default 10") { onChange(draft.copy(wgKeepaliveTimeout = it)) } }
+                    row { TextFieldRow("Max Handshake Attempts", draft.wgMaxHandshakeAttempts, "Default 18") { onChange(draft.copy(wgMaxHandshakeAttempts = it)) } }
+                    row { SwitchRow("Disable Cookies", draft.wgDisableCookies) { onChange(draft.copy(wgDisableCookies = it)) } }
+                }
             }
             Spacer(Modifier.height(32.dp))
         }

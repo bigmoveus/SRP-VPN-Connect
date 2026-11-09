@@ -3,7 +3,7 @@
 /* SPDX-License-Identifier: MIT
  *
  * WireGuard for the Android app: wireguard-go (the version the iOS app's bridge uses) on the VpnService's TUN file
- * descriptor, driven from Kotlin through jni_android.c. The app is not routed through its own VPN, so the engine's UDP
+ * descriptor, driven from Kotlin through jni_android.c; AmneziaWG (awg.go) shares everything after the start. The app is not routed through its own VPN, so the engine's UDP
  * sockets need no protect(). Log lines wait in a queue that Kotlin reads (srpWgNextLog). For the same reason the app
  * measures its Ping with probe packets: probeTUN hands the engine the packets the app submits as if they came from the
  * TUN, and gives the app the answers of its probe flows instead of the TUN (probe.go).
@@ -28,9 +28,23 @@ import (
 	"golang.zx2c4.com/wireguard/tun"
 )
 
+// engine is what both wireguard-go's and amneziawg-go's device give after the start
+type engine interface {
+	Up() error
+	IpcSet(string) error
+	IpcGet() (string, error)
+	Close()
+	BindUpdate() error
+	SendKeepalivesToPeersWithCurrentKeypair()
+}
+
+var (
+	_ engine = (*device.Device)(nil)
+)
+
 type tunnel struct {
-	device *device.Device
-	tun    *probeTUN
+	device engine
+	tun    *probeCore
 }
 
 var (
@@ -38,6 +52,8 @@ var (
 	handlesMu sync.Mutex
 	logs      = make(chan string, 1024)
 	verbose   atomic.Bool
+	// why the last start failed, for the app's message (the log line may come later through the queue)
+	lastError atomic.Pointer[string]
 )
 
 func logLine(level string, format string, args ...interface{}) {
@@ -47,46 +63,46 @@ func logLine(level string, format string, args ...interface{}) {
 	}
 }
 
-func newLogger() *device.Logger {
-	return &device.Logger{
-		Verbosef: func(format string, args ...interface{}) {
-			if verbose.Load() {
-				logLine("V ", format, args...)
-			}
-		},
-		Errorf: func(format string, args ...interface{}) { logLine("E ", format, args...) },
+func verbosef(format string, args ...interface{}) {
+	if verbose.Load() {
+		logLine("V ", format, args...)
 	}
 }
 
-//export srpWgTurnOn
-func srpWgTurnOn(settings *C.char, tunFd C.int) C.int {
-	logger := newLogger()
-	// The service keeps its descriptor (and closes it when the tunnel goes); the engine owns and closes a duplicate
-	fd, err := unix.Dup(int(tunFd))
+func errorf(format string, args ...interface{}) { logLine("E ", format, args...) }
+
+// fail logs why a start failed and keeps it for srpWgLastError
+func fail(format string, args ...interface{}) {
+	text := fmt.Sprintf(format, args...)
+	lastError.Store(&text)
+	errorf("%s", text)
+}
+
+// dupTUN: the service keeps its descriptor (and closes it when the tunnel goes); the engine owns and closes a duplicate
+func dupTUN(tunFd int) (int, bool) {
+	lastError.Store(nil)
+	fd, err := unix.Dup(tunFd)
 	if err != nil {
-		logger.Errorf("Unable to duplicate the TUN descriptor: %v", err)
-		return -1
+		fail("Unable to duplicate the TUN descriptor: %v", err)
+		return -1, false
 	}
 	if err := unix.SetNonblock(fd, true); err != nil {
-		logger.Errorf("Unable to set the TUN descriptor non-blocking: %v", err)
+		fail("Unable to set the TUN descriptor non-blocking: %v", err)
 		unix.Close(fd)
-		return -1
+		return -1, false
 	}
-	tunDevice, _, err := tun.CreateUnmonitoredTUNFromFD(fd)
-	if err != nil {
-		logger.Errorf("Unable to attach to the TUN descriptor: %v", err)
-		unix.Close(fd)
-		return -1
-	}
-	probe := newProbeTUN(tunDevice)
-	dev := device.NewDevice(probe, conn.NewStdNetBind(), logger)
-	if err := dev.IpcSet(C.GoString(settings)); err != nil {
-		logger.Errorf("Unable to set the configuration: %v", err)
+	return fd, true
+}
+
+// start applies the settings, brings the device up and gives it a handle (or -1)
+func start(dev engine, probe *probeCore, settings string) C.int {
+	if err := dev.IpcSet(settings); err != nil {
+		fail("Unable to set the configuration: %v", err)
 		dev.Close()
 		return -1
 	}
 	if err := dev.Up(); err != nil {
-		logger.Errorf("Unable to bring the device up: %v", err)
+		fail("Unable to bring the device up: %v", err)
 		dev.Close()
 		return -1
 	}
@@ -99,11 +115,39 @@ func srpWgTurnOn(settings *C.char, tunFd C.int) C.int {
 		}
 	}
 	handles[handle] = &tunnel{dev, probe}
-	logger.Verbosef("Device started")
+	verbosef("Device started")
 	return C.int(handle)
 }
 
-func deviceOf(handle C.int) *device.Device {
+//export srpWgTurnOn
+func srpWgTurnOn(settings *C.char, tunFd C.int) C.int {
+	logger := &device.Logger{Verbosef: verbosef, Errorf: errorf}
+	fd, ok := dupTUN(int(tunFd))
+	if !ok {
+		return -1
+	}
+	tunDevice, _, err := tun.CreateUnmonitoredTUNFromFD(fd)
+	if err != nil {
+		fail("Unable to attach to the TUN descriptor: %v", err)
+		unix.Close(fd)
+		return -1
+	}
+	probe := newProbeTUN(tunDevice)
+	dev := device.NewDevice(probe, conn.NewStdNetBind(), logger)
+	return start(dev, probe.probeCore, C.GoString(settings))
+}
+
+// srpWgLastError returns why the last start failed (the engine's own words), or NULL. The caller frees it.
+//
+//export srpWgLastError
+func srpWgLastError() *C.char {
+	if text := lastError.Load(); text != nil {
+		return C.CString(*text)
+	}
+	return nil
+}
+
+func deviceOf(handle C.int) engine {
 	handlesMu.Lock()
 	defer handlesMu.Unlock()
 	if t := handles[int32(handle)]; t != nil {
@@ -112,7 +156,7 @@ func deviceOf(handle C.int) *device.Device {
 	return nil
 }
 
-func probeOf(handle C.int) *probeTUN {
+func probeOf(handle C.int) *probeCore {
 	handlesMu.Lock()
 	defer handlesMu.Unlock()
 	if t := handles[int32(handle)]; t != nil {

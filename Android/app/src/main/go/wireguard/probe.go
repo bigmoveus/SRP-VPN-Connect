@@ -22,25 +22,44 @@ type probeFlow struct {
 	port     uint16
 }
 
-type probeTUN struct {
-	tun.Device
+// probeCore is the probe state of a TUN, the same for both engines' TUN interfaces (probeTUN, awgProbeTUN)
+type probeCore struct {
 	file   *os.File
 	inject chan []byte
 	probes chan []byte
 	flows  atomic.Pointer[[]probeFlow]
 }
 
-func newProbeTUN(device tun.Device) *probeTUN {
-	t := &probeTUN{Device: device, inject: make(chan []byte, 64), probes: make(chan []byte, 256)}
-	if native, ok := device.(interface{ File() *os.File }); ok {
-		t.file = native.File()
-	}
-	t.flows.Store(&[]probeFlow{})
-	return t
+func newProbeCore(file *os.File) *probeCore {
+	c := &probeCore{file: file, inject: make(chan []byte, 64), probes: make(chan []byte, 256)}
+	c.flows.Store(&[]probeFlow{})
+	return c
 }
 
-// Read gives the engine a submitted probe packet first; a submit cuts a waiting TUN read short with a deadline
+// probeTUN is wireguard-go's TUN with the probe
+type probeTUN struct {
+	tun.Device
+	*probeCore
+}
+
+func newProbeTUN(device tun.Device) *probeTUN {
+	var file *os.File
+	if native, ok := device.(interface{ File() *os.File }); ok {
+		file = native.File()
+	}
+	return &probeTUN{Device: device, probeCore: newProbeCore(file)}
+}
+
 func (t *probeTUN) Read(bufs [][]byte, sizes []int, offset int) (int, error) {
+	return t.read(t.Device.Read, bufs, sizes, offset)
+}
+
+func (t *probeTUN) Write(bufs [][]byte, offset int) (int, error) {
+	return t.write(t.Device.Write, bufs, offset)
+}
+
+// read gives the engine a submitted probe packet first; a submit cuts a waiting TUN read short with a deadline
+func (t *probeCore) read(read func([][]byte, []int, int) (int, error), bufs [][]byte, sizes []int, offset int) (int, error) {
 	for {
 		select {
 		case packet := <-t.inject:
@@ -48,7 +67,7 @@ func (t *probeTUN) Read(bufs [][]byte, sizes []int, offset int) (int, error) {
 			return 1, nil
 		default:
 		}
-		count, err := t.Device.Read(bufs, sizes, offset)
+		count, err := read(bufs, sizes, offset)
 		if err != nil && t.file != nil && errors.Is(err, os.ErrDeadlineExceeded) {
 			t.file.SetReadDeadline(time.Time{})
 			continue
@@ -57,10 +76,10 @@ func (t *probeTUN) Read(bufs [][]byte, sizes []int, offset int) (int, error) {
 	}
 }
 
-func (t *probeTUN) Write(bufs [][]byte, offset int) (int, error) {
+func (t *probeCore) write(write func([][]byte, int) (int, error), bufs [][]byte, offset int) (int, error) {
 	flows := *t.flows.Load()
 	if len(flows) == 0 {
-		return t.Device.Write(bufs, offset)
+		return write(bufs, offset)
 	}
 	pass := make([][]byte, 0, len(bufs))
 	for _, buf := range bufs {
@@ -74,7 +93,7 @@ func (t *probeTUN) Write(bufs [][]byte, offset int) (int, error) {
 		pass = append(pass, buf)
 	}
 	if len(pass) > 0 {
-		if _, err := t.Device.Write(pass, offset); err != nil {
+		if _, err := write(pass, offset); err != nil {
 			return 0, err
 		}
 	}
@@ -98,7 +117,7 @@ func isProbe(packet []byte, flows []probeFlow) bool {
 	return false
 }
 
-func (t *probeTUN) submit(packet []byte) {
+func (t *probeCore) submit(packet []byte) {
 	select {
 	case t.inject <- packet:
 		if t.file != nil {

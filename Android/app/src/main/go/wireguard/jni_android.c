@@ -15,6 +15,22 @@ JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_WireGuardNative_turnOn(JNIEnv *env, j
     return handle;
 }
 
+JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_WireGuardNative_turnOnAmnezia(JNIEnv *env, jclass c, jstring settings, jint tunFd) {
+    const char *text = (*env)->GetStringUTFChars(env, settings, NULL);
+    if (!text) return -1;
+    int handle = srpAwgTurnOn((char *)text, tunFd);
+    (*env)->ReleaseStringUTFChars(env, settings, text);
+    return handle;
+}
+
+JNIEXPORT jstring JNICALL Java_tr_com_srp_vpn_WireGuardNative_lastError(JNIEnv *env, jclass c) {
+    char *text = srpWgLastError();
+    if (!text) return NULL;
+    jstring result = (*env)->NewStringUTF(env, text);
+    srpWgFree(text);
+    return result;
+}
+
 JNIEXPORT void JNICALL Java_tr_com_srp_vpn_WireGuardNative_turnOff(JNIEnv *env, jclass c, jint handle) {
     srpWgTurnOff(handle);
 }

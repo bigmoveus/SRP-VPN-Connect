@@ -150,8 +150,8 @@ target_link_libraries(srpopenvpn PRIVATE "${SE_OPENSSL}/lib/libssl.a" "${SE_OPEN
 target_link_options(srpopenvpn PRIVATE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/openvpn_exports.map")
 set_target_properties(srpopenvpn PROPERTIES LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/openvpn_exports.map")
 
-# WireGuard: wireguard-go (the version of the iOS app's bridge, ../go/wireguard) with its JNI layer, built by Go into
-# libwg-go.so beside the other libraries of the ABI, which Gradle packages
+# WireGuard and AmneziaWG: wireguard-go and amneziawg-go (the versions of the iOS app's bridge, ../go/wireguard) with their JNI
+# layer, built by Go into one libwg-go.so (one Go runtime) beside the other libraries of the ABI, which Gradle packages
 find_program(SRP_GO go PATHS /opt/homebrew/bin /usr/local/go/bin /usr/local/bin)
 if(NOT SRP_GO)
     message(FATAL_ERROR "WireGuard needs the Go toolchain (go) to build libwg-go.so")
@@ -172,7 +172,7 @@ add_custom_command(OUTPUT "${WG_GO_LIB}"
             "${SRP_GO}" build -trimpath -buildvcs=false -ldflags=-buildid= -buildmode=c-shared -o "${WG_GO_LIB}" .
     COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libwg-go.h"
     WORKING_DIRECTORY "${WG_GO_DIR}"
-    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
+    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/awg.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
     COMMENT "Building wireguard-go (libwg-go.so) for ${ANDROID_ABI}"
     VERBATIM)
 add_custom_target(wg-go ALL DEPENDS "${WG_GO_LIB}")
