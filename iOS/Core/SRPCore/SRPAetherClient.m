@@ -33,6 +33,7 @@ extern void srpssh_hev_socks5_tunnel_quit(void);
 // session. The engine's QUIC alone notices a dead path only after 120 s.
 #define SRPAETHER_PROBE_SECONDS 20
 #define SRPAETHER_PROBE_TIMEOUT 10
+#define SRPAETHER_BUSY_BYTES (64 * 1024)   // what a working tunnel brings to the phone between two tests while it is busy
 #define SRPAETHER_RETRY_DELAY 2
 
 /// One SOCKS5 CONNECT to 1.1.1.1:443 through the tunnel's SOCKS5 port (the engine, Tor, or Private mode's relay to the
@@ -128,6 +129,7 @@ static void SRPAMemoryUsage(void) {
     NSString *_pathName;             // the network the session runs on: Wi-Fi, cellular, wired, other, none
     BOOL _socksClosed;               // the last readiness check's far end closed instead of timing out
     long long _bytesToPhone;         // through the tunnel since the first session (Expert's line)
+    long long _bytesAtLastProbe;     // _bytesToPhone at the last test connection (a busy tunnel's failed test is not counted)
     long long _bytesFromPhone;
     CFAbsoluteTime _sessionStart;
 }
@@ -411,6 +413,7 @@ static void SRPAMemoryUsage(void) {
 - (void)startProbeLocked {
     if (_probeTimer || _closed) return;
     _probeFailures = 0;
+    _bytesAtLastProbe = _bytesToPhone;
     _probeTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
     dispatch_source_set_timer(_probeTimer, dispatch_time(DISPATCH_TIME_NOW, (int64_t)SRPAETHER_PROBE_SECONDS * NSEC_PER_SEC),
                               (uint64_t)SRPAETHER_PROBE_SECONDS * NSEC_PER_SEC, NSEC_PER_SEC);
@@ -444,6 +447,15 @@ static void SRPAMemoryUsage(void) {
 
 - (void)probeResult:(BOOL)ok {
     if (_closed || _paused || !_probeTimer) return;
+    long long cameBack = _bytesToPhone - _bytesAtLastProbe;
+    _bytesAtLastProbe = _bytesToPhone;
+    if (!ok && cameBack >= SRPAETHER_BUSY_BYTES) {
+        // A busy tunnel can fail a test connection (Tor gives a new stream up after 10 seconds on a full circuit);
+        // one that brought this much to the phone since the last test still carries traffic
+        SSLogM(@"Aether: a test connection through the tunnel failed, but %lld KB came through it since the last one: not counted",
+               cameBack / 1024);
+        return;
+    }
     if (ok) {
         if (_probeFailures > 0) SSLogM(@"Aether: the test connection passes again");
         _probeFailures = 0;
