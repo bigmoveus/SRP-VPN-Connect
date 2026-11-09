@@ -104,8 +104,8 @@ static NodeModel * modal = nil;
         if ([_protocolType isEqualToString:@"ssh"]) {
             return @"22";   // the Port field's hint: SSH's own port
         }
-        if ([_protocolType isEqualToString:@"wireguard"]) {
-            return @"51820";   // the Port field's hint: WireGuard's own port
+        if ([_protocolType isEqualToString:@"wireguard"] || [_protocolType isEqualToString:@"amnezia"]) {
+            return @"51820";   // the Port field's hint: WireGuard's own port (AmneziaWG's servers take it too)
         }
         return @"443";
     }
@@ -122,7 +122,11 @@ static NodeModel * modal = nil;
 -(void)clearWireGuardSettings {
     _wgConfig = _wgPrivateKey = _wgPeerPublicKey = _wgPresharedKey = _wgAddress = _wgDNS = _wgAllowedIPs = nil;
     _wgI1 = _wgI2 = _wgI3 = _wgI4 = _wgI5 = nil;
-    _wgKeepalive = _wgJc = _wgJmin = _wgJmax = _wgS1 = _wgS2 = _wgS3 = _wgS4 = _wgH1 = _wgH2 = _wgH3 = _wgH4 = 0;
+    _wgH1 = _wgH2 = _wgH3 = _wgH4 = nil;
+    _wgHeaderProtectionKey = _wgContentPaddingAddition = _wgRekeyAfterTime = _wgRekeyTimeout = _wgRejectAfterTime = nil;
+    _wgKeepaliveTimeout = _wgMaxHandshakeAttempts = nil;
+    _wgRandomTrailers = _wgDisableCookies = NO;
+    _wgKeepalive = _wgJc = _wgJmin = _wgJmax = _wgS1 = _wgS2 = _wgS3 = _wgS4 = 0;
 }
 
 /// An imported WireGuard config with the editor's Server and Port as its Endpoint: the import fills them from the
@@ -153,7 +157,8 @@ static NodeModel * modal = nil;
 
 -(NSString*)wgEffectiveConfig {
     if (_wgConfig.length > 0) {
-        return [_protocolType isEqualToString:@"wireguard"] ? [self wgConfigWithEndpointFromFields:_wgConfig] : _wgConfig;
+        BOOL fields = [_protocolType isEqualToString:@"wireguard"] || [_protocolType isEqualToString:@"amnezia"];
+        return fields ? [self wgConfigWithEndpointFromFields:_wgConfig] : _wgConfig;
     }
     if (_wgPrivateKey.length == 0 || _wgPeerPublicKey.length == 0 ||
         _wgAddress.length == 0 || self.server.length == 0) {
@@ -174,15 +179,19 @@ static NodeModel * modal = nil;
         if (_wgS2 > 0)   [c appendFormat:@"S2 = %ld\n", (long)_wgS2];
         if (_wgS3 > 0)   [c appendFormat:@"S3 = %ld\n", (long)_wgS3];
         if (_wgS4 > 0)   [c appendFormat:@"S4 = %ld\n", (long)_wgS4];
-        if (_wgH1 > 0)   [c appendFormat:@"H1 = %ld\n", (long)_wgH1];
-        if (_wgH2 > 0)   [c appendFormat:@"H2 = %ld\n", (long)_wgH2];
-        if (_wgH3 > 0)   [c appendFormat:@"H3 = %ld\n", (long)_wgH3];
-        if (_wgH4 > 0)   [c appendFormat:@"H4 = %ld\n", (long)_wgH4];
-        if (_wgI1.length > 0) [c appendFormat:@"I1 = %@\n", _wgI1];
-        if (_wgI2.length > 0) [c appendFormat:@"I2 = %@\n", _wgI2];
-        if (_wgI3.length > 0) [c appendFormat:@"I3 = %@\n", _wgI3];
-        if (_wgI4.length > 0) [c appendFormat:@"I4 = %@\n", _wgI4];
-        if (_wgI5.length > 0) [c appendFormat:@"I5 = %@\n", _wgI5];
+        NSCharacterSet *space = NSCharacterSet.whitespaceAndNewlineCharacterSet;
+        NSArray<NSArray *> *texts = @[@[@"H1", _wgH1 ?: @""], @[@"H2", _wgH2 ?: @""], @[@"H3", _wgH3 ?: @""], @[@"H4", _wgH4 ?: @""],
+            @[@"I1", _wgI1 ?: @""], @[@"I2", _wgI2 ?: @""], @[@"I3", _wgI3 ?: @""], @[@"I4", _wgI4 ?: @""], @[@"I5", _wgI5 ?: @""],
+            @[@"HeaderProtectionKey", _wgHeaderProtectionKey ?: @""], @[@"ContentPaddingAddition", _wgContentPaddingAddition ?: @""],
+            @[@"RekeyAfterTime", _wgRekeyAfterTime ?: @""], @[@"RekeyTimeout", _wgRekeyTimeout ?: @""],
+            @[@"RejectAfterTime", _wgRejectAfterTime ?: @""], @[@"KeepaliveTimeout", _wgKeepaliveTimeout ?: @""],
+            @[@"MaxHandshakeAttempts", _wgMaxHandshakeAttempts ?: @""]];
+        for (NSArray *entry in texts) {
+            NSString *value = [entry[1] stringByTrimmingCharactersInSet:space];
+            if (value.length > 0) [c appendFormat:@"%@ = %@\n", entry[0], value];
+        }
+        if (_wgRandomTrailers) [c appendString:@"RandomTrailers = on\n"];
+        if (_wgDisableCookies) [c appendString:@"DisableCookies = on\n"];
     }
     [c appendString:@"\n[Peer]\n"];
     [c appendFormat:@"PublicKey = %@\n", _wgPeerPublicKey];

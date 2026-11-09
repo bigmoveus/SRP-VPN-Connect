@@ -27,8 +27,9 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 /// 0 = normal (errors), 1 = expert, 2 = debug (verbose protocol log)
 @property (nonatomic) NSInteger logLevel;
 
-/// AmneziaWG mode: uses the amneziawg-go engine (awg* symbols) and honors the
-/// obfuscation keys (Jc/Jmin/Jmax/S1/S2/H1-H4) in the config's [Interface].
+/// AmneziaWG mode: uses the amneziawg-go engine (awg* symbols) and honors the obfuscation keys in the config's [Interface]
+/// (Jc, Jmin, Jmax, S1-S4, H1-H4, I1-I5, HeaderProtectionKey, ContentPaddingAddition, the timings, RandomTrailers,
+/// DisableCookies). WireGuard refuses a config that has any of them.
 @property (nonatomic) BOOL amnezia;
 
 /// Parses the config, resolves the endpoint and hands the network settings
@@ -41,8 +42,8 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 /// setTunnelNetworkSettings completed. error holds a readable message.
 - (BOOL)activateWithError:(NSError **)error;
 
-/// The profile's options, for activateAndWaitForHandshake: (the WireGuard protocol; Aether and AmneziaWG keep
-/// activateWithError:). Retry Times 0 = no limit. On Sleep: 0 Off, 1 Pause, 2 Stay.
+/// The profile's options, for activateAndWaitForHandshake: (WireGuard and AmneziaWG; Aether keeps activateWithError:).
+/// Retry Times 0 = no limit. On Sleep: 0 Off, 1 Pause, 2 Stay.
 @property (nonatomic) BOOL autoReconnect;
 @property (nonatomic) NSInteger retryTimes;
 @property (nonatomic) NSInteger onSleep;
@@ -63,6 +64,11 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 
 /// The peer's last_handshake_time_sec, rx_bytes and tx_bytes from a UAPI get (wgGetConfig).
 + (nullable NSDictionary<NSString *, NSNumber *> *)peerStateFromUAPI:(NSString *)uapi;
+
+/// What the client derives from a config (for tests): @"uapi" (the engine's settings), @"mtu" (the tunnel's) and
+/// @"silenceBytes" (the sent bytes that mean more than keepalives); nil with errorOut set as the connect would fail.
++ (nullable NSDictionary<NSString *, id> *)engineSettingsFromConfig:(NSString *)configText amnezia:(BOOL)amnezia
+                                                              error:(NSString * _Nullable * _Nullable)errorOut;
 
 /// Manual close (user disconnect).
 - (void)close;

@@ -78,13 +78,21 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,copy,nullable) NSString * wgAllowedIPs;   // default 0.0.0.0/0
 @property (nonatomic,assign) NSInteger wgKeepalive;            // seconds, 0 = off
 
-/// AmneziaWG obfuscation ([Interface] extras; 0 = unset). Only meaningful
-/// when protocolType is "amnezia"; must match the server.
+/// AmneziaWG obfuscation ([Interface] extras; 0 / empty = unset). Only meaningful when protocolType is "amnezia".
+/// S1-S4, H1-H4, the header protection key and RandomTrailers must match the server; the rest is this device's own.
 @property (nonatomic,assign) NSInteger wgJc, wgJmin, wgJmax;
 @property (nonatomic,assign) NSInteger wgS1, wgS2, wgS3, wgS4;
-@property (nonatomic,assign) NSInteger wgH1, wgH2, wgH3, wgH4;
+/// Message headers: a number or a range ("1100000000-1199999999")
+@property (nonatomic,copy,nullable) NSString * wgH1, * wgH2, * wgH3, * wgH4;
 /// Junk-packet signature chains (verbatim strings, e.g. "<b 0x6d792e2e>")
 @property (nonatomic,copy,nullable) NSString * wgI1, * wgI2, * wgI3, * wgI4, * wgI5;
+/// AmneziaWG 3: the header protection key (base64; a secret, kept in the Keychain like the private key)
+@property (nonatomic,copy,nullable) NSString * wgHeaderProtectionKey;
+/// AmneziaWG 3: the content padding and the timings, each a number or a range ("4-6")
+@property (nonatomic,copy,nullable) NSString * wgContentPaddingAddition, * wgRekeyAfterTime, * wgRekeyTimeout,
+                                               * wgRejectAfterTime, * wgKeepaliveTimeout, * wgMaxHandshakeAttempts;
+/// AmneziaWG 3.1: random trailers on every packet (must match the server) and no cookie replies under load
+@property (nonatomic,assign) BOOL wgRandomTrailers, wgDisableCookies;
 
 /// The imported .conf if present, otherwise a wg-quick config generated
 /// from the manual fields; nil when neither is complete.

@@ -3581,6 +3581,9 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     }
     @try {
         BOOL sleepModes = [step isEqualToString:@"sleep-modes"];
+        // A server that answers the handshake but none of the traffic (AmneziaWG with other S3, S4 or H4): no HTTPS answer
+        // to wait for; the phone keeps trying until the VPN ends with its reason
+        BOOL handshakeOnly = [step isEqualToString:@"handshake-only"];
         // {On Sleep, Auto Reconnect}, each in its own VPN session; the other steps use the profile as given
         NSArray<NSArray<NSNumber *> *> *items = sleepModes ? @[@[@2, @YES], @[@1, @NO], @[@0, @YES], @[@0, @NO]] : @[@[]];
         for (NSArray<NSNumber *> *item in items) {
@@ -3594,7 +3597,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
             NSString *error = nil;
             XCTAssertTrue([self waitForLiveVPNConnection:manager server:[CheckConnectData checkConnectParmer:model] error:&error], @"%@", error);
             if (manager.status != YDVPNStatusConnected) return;
-            XCTAssertTrue([self waterWallLiveHTTPS204:model]);
+            if (!handshakeOnly) XCTAssertTrue([self waterWallLiveHTTPS204:model]);
             NSDate *broken = NSDate.date;
             BOOL resumes;
             if (sleepModes) {
@@ -3623,7 +3626,13 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                 NSTimeInterval limit = [step isEqualToString:@"retry-exhausted"] ? 30 + 10.0 * MAX(1, model.retryTimes) : 30;
                 // A dead path is noticed only when keepalives go unanswered: the case says how long that may take
                 if ([environment[@"SRP_LIFECYCLE_END_SECONDS"] doubleValue] > 0) limit = [environment[@"SRP_LIFECYCLE_END_SECONDS"] doubleValue];
-                BOOL ended = [self waitForLiveVPNDisconnectedStatus:manager timeout:limit];
+                NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:limit];
+                while (handshakeOnly && manager.status != YDVPNStatusDisconnected && deadline.timeIntervalSinceNow > 0) {
+                    BOOL answered = [self waterWallLiveHTTPS204:model];
+                    NSLog(@"Live handshake-only: HTTPS answered=%d after %.1f seconds", answered, -broken.timeIntervalSinceNow);
+                    [self waitForLiveVPNDisconnectedStatus:manager timeout:2];
+                }
+                BOOL ended = [self waitForLiveVPNDisconnectedStatus:manager timeout:MAX(0, deadline.timeIntervalSinceNow)];
                 NSString *message = [self liveLastErrorSince:broken];
                 NSLog(@"Live %@: disconnected=%d after %.1f seconds, error: %@", label, ended, -broken.timeIntervalSinceNow, message);
                 XCTAssertTrue(ended, @"%@", label);
@@ -3729,8 +3738,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNil([SRPWireGuardClient peerStateFromUAPI:@"private_key=0011\nlisten_port=51000\nerrno=0\n"]);
 }
 
-// WireGuard: the editor's Server and Port replace an imported config's Endpoint (the import fills them from it);
-// AmneziaWG keeps its file as it is
+// WireGuard and AmneziaWG: the editor's Server and Port replace an imported config's Endpoint (the import fills them from it)
 - (void)testWireGuardServerAndPortReplaceTheImportedEndpoint {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"wireguard";
@@ -3750,15 +3758,17 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51820\n"]);
     model.protocolType = @"amnezia";
     model.port = @"51821";
-    XCTAssertEqualObjects([model wgEffectiveConfig], model.wgConfig);
-    // Manual configuration without a Port: WireGuard's own port, as the field's hint says
-    NodeModel *manual = [NodeModel new];
-    manual.protocolType = @"wireguard";
-    manual.server = @"vpn.example.com";
-    manual.wgPrivateKey = @"a";
-    manual.wgPeerPublicKey = @"b";
-    manual.wgAddress = @"10.66.66.2/32";
-    XCTAssertTrue([[manual wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51820\n"]);
+    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51821\n"]);
+    // Manual configuration without a Port: WireGuard's own port, as the field's hint says (AmneziaWG's too)
+    for (NSString *type in @[@"wireguard", @"amnezia"]) {
+        NodeModel *manual = [NodeModel new];
+        manual.protocolType = type;
+        manual.server = @"vpn.example.com";
+        manual.wgPrivateKey = @"a";
+        manual.wgPeerPublicKey = @"b";
+        manual.wgAddress = @"10.66.66.2/32";
+        XCTAssertTrue([[manual wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51820\n"], @"%@", type);
+    }
 }
 
 // WireGuard's import (Import Config (.conf) ends in handleImportedText:mode: "wg"): Server and Port from the Endpoint line, a
@@ -3784,8 +3794,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 #pragma clang diagnostic pop
 }
 
-// WireGuard's options: Auto Reconnect (+Retry Times), On Sleep and Log Level; no Switch to Wi-Fi (WireGuard follows the
-// phone's network by itself). AmneziaWG keeps Log Level only.
+// WireGuard's and AmneziaWG's options: Auto Reconnect (+Retry Times), On Sleep and Log Level; no Switch to Wi-Fi (both follow
+// the phone's network by themselves)
 - (void)testWireGuardOptions {
     NodeModel *model = [NodeModel new];
     [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"wireguard" toModel:model];
@@ -3802,8 +3812,166 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 
     NodeModel *amnezia = [NodeModel new];
     [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"amnezia" toModel:amnezia];
+    amnezia.autoReconnect = YES;
     CreateVC *other = [self profileEditorHostForModel:amnezia saved:[NSMutableArray new]];
-    XCTAssertEqualObjects([self optionTitlesOfEditor:(UITableViewController *)[self profileEditorOfHost:other]], (@[@"Log Level"]));
+    UITableViewController *amneziaEditor = (UITableViewController *)[self profileEditorOfHost:other];
+    XCTAssertEqualObjects([self optionTitlesOfEditor:amneziaEditor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level"]));
+    NSString *amneziaFooter = [amneziaEditor tableView:amneziaEditor.tableView titleForFooterInSection:4];
+    XCTAssertTrue([amneziaFooter hasPrefix:@"AmneziaWG counts as connected"]);
+    XCTAssertTrue([amneziaFooter containsString:@"no Switch to Wi-Fi option"]);
+}
+
+// AmneziaWG's settings as the engine gets them: every key of the awg tool's files (AmneziaWG 1.0 to 3.1), ranges, the header
+// protection key in hex, on/off booleans, a keepalive range; the MTU without one in the file, and the silence check's bound
+- (void)testAmneziaWGEngineSettings {
+    NSString *keys = @"PrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.3.2/32\n";
+    NSString *peer = @"\n[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = 192.0.2.7:51833\nAllowedIPs = 0.0.0.0/0\n";
+    NSString *conf = [NSString stringWithFormat:@"[Interface]\n%@Jc = 4\njmin = 40\nJmax = 120\nS1 = 48\nS2 = 40\nS3 = 28\nS4 = 16\n"
+        "H1 = 2100000000-2199999999\nH2 = 2200000000 - 2299999999\nH3 = 2300000000\nH4 = 2400000000-2499999999\n"
+        "I1 = <b 0xc700000001><r 8><rc 8><t><rd 4>\nHeaderProtectionKey = AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=\n"
+        "ContentPaddingAddition = 8-64\nRekeyAfterTime = 110-125\nRekeyTimeout = 4-6\nRejectAfterTime = 170-185\n"
+        "KeepaliveTimeout = 9-11\nMaxHandshakeAttempts = 18-22\nRandomTrailers = on\nDisableCookies = 1\n%@PersistentKeepalive = 20-30\n",
+        keys, peer];
+    NSString *error = nil;
+    NSDictionary *settings = [SRPWireGuardClient engineSettingsFromConfig:conf amnezia:YES error:&error];
+    XCTAssertNil(error);
+    NSString *uapi = settings[@"uapi"];
+    for (NSString *line in @[@"jc=4", @"jmin=40", @"jmax=120", @"s1=48", @"s2=40", @"s3=28", @"s4=16", @"h1=2100000000-2199999999",
+                             @"h2=2200000000-2299999999", @"h3=2300000000", @"h4=2400000000-2499999999", @"i1=<b 0xc700000001><r 8><rc 8><t><rd 4>",
+                             [@"header_protection_key=" stringByPaddingToLength:22 + 64 withString:@"03" startingAtIndex:0],
+                             @"content_padding_addition=8-64", @"rekey_after_time=110-125", @"rekey_timeout=4-6", @"reject_after_time=170-185",
+                             @"keepalive_timeout=9-11", @"max_handshake_attempts=18-22", @"random_trailers=true", @"disable_cookies=true",
+                             @"endpoint=192.0.2.7:51833", @"persistent_keepalive_interval=20-30"]) {
+        XCTAssertTrue([uapi containsString:[line stringByAppendingString:@"\n"]], @"%@", line);
+    }
+    // The device's settings come before the peer's
+    XCTAssertLessThan([uapi rangeOfString:@"random_trailers="].location, [uapi rangeOfString:@"public_key="].location);
+    XCTAssertEqualObjects(settings[@"mtu"], @1404, @"1420 less S4 without an MTU in the file");
+    // Keepalives can grow to S4 + 32 + MTU with padding and trailers: 30 s hold two at a 20-second interval, one passive, one more
+    XCTAssertEqualObjects(settings[@"silenceBytes"], @(4 * (16 + 32 + 1404)));
+    // An MTU in the file wins; without padding a keepalive is S4 + 32 bytes and the bound stays WireGuard's
+    NSString *plain = [NSString stringWithFormat:@"[Interface]\n%@MTU = 1380\nS1 = 64\nS2 = 58\nS3 = 30\nS4 = 24\n%@PersistentKeepalive = 25\n", keys, peer];
+    NSDictionary *simple = [SRPWireGuardClient engineSettingsFromConfig:plain amnezia:YES error:&error];
+    XCTAssertEqualObjects(simple[@"mtu"], @1380);
+    XCTAssertEqualObjects(simple[@"silenceBytes"], @296);
+    XCTAssertTrue([simple[@"uapi"] containsString:@"persistent_keepalive_interval=25\n"]);
+    // WireGuard's own file in an AmneziaWG profile: no obfuscation, WireGuard's MTU and bound
+    NSString *wireguard = [NSString stringWithFormat:@"[Interface]\n%@%@PersistentKeepalive = off\n", keys, peer];
+    NSDictionary *none = [SRPWireGuardClient engineSettingsFromConfig:wireguard amnezia:YES error:&error];
+    XCTAssertEqualObjects(none[@"mtu"], @1420);
+    XCTAssertFalse([none[@"uapi"] containsString:@"persistent_keepalive_interval"]);
+    XCTAssertFalse([none[@"uapi"] containsString:@"s1="]);
+}
+
+// What AmneziaWG refuses before connecting, with the setting named; WireGuard refuses AmneziaWG's files
+- (void)testAmneziaWGRefusesInvalidSettings {
+    NSString *head = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.0.2/32\n";
+    NSString *peer = @"\n[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = 192.0.2.7:51830\nAllowedIPs = 0.0.0.0/0\n";
+    NSDictionary<NSString *, NSString *> *cases = @{
+        @"S1 = 70000": @"S1 must be a whole number from 0 to 65535.",
+        @"Jc = -1": @"Jc must be a whole number from 0 to 65535.",
+        @"H1 = abc": @"H1 must be a number or a range such as 1000000-1999999.",
+        @"H2 = 300-200": @"H2 must be a number or a range such as 1000000-1999999.",
+        @"H3 = 4294967296": @"H3 must be a number or a range such as 1000000-1999999.",
+        @"RekeyTimeout = 1-2-3": @"RekeyTimeout must be a number or a range such as 10-20.",
+        @"ContentPaddingAddition = 70000": @"ContentPaddingAddition must be a number or a range such as 10-20.",
+        @"RandomTrailers = maybe": @"RandomTrailers must be on or off.",
+        @"HeaderProtectionKey = not-a-key": @"the HeaderProtectionKey is not valid base64 (32 bytes).",
+    };
+    for (NSString *line in cases) {
+        NSString *error = nil;
+        NSString *conf = [NSString stringWithFormat:@"%@%@\n%@", head, line, peer];
+        XCTAssertNil([SRPWireGuardClient engineSettingsFromConfig:conf amnezia:YES error:&error], @"%@", line);
+        XCTAssertEqualObjects(error, cases[line], @"%@", line);
+    }
+    NSString *error = nil;
+    NSString *awg = [NSString stringWithFormat:@"%@Jc = 4\nS1 = 48\nH1 = 2100000000-2199999999\n%@", head, peer];
+    XCTAssertNil([SRPWireGuardClient engineSettingsFromConfig:awg amnezia:NO error:&error]);
+    XCTAssertEqualObjects(error, @"This configuration has AmneziaWG settings (Jc, S1, H1): use the AmneziaWG VPN protocol for it.");
+    NSString *range = [NSString stringWithFormat:@"%@%@PersistentKeepalive = 20-30\n", head, peer];
+    XCTAssertNil([SRPWireGuardClient engineSettingsFromConfig:range amnezia:NO error:&error]);
+    XCTAssertTrue([error containsString:@"a PersistentKeepalive range"]);
+    XCTAssertNotNil([SRPWireGuardClient engineSettingsFromConfig:range amnezia:YES error:&error]);
+}
+
+// AmneziaWG's manual configuration: the AmneziaWG 3 fields and header ranges in the generated file; saved with the header
+// protection key in the Keychain; older profiles' numeric headers read back as text
+- (void)testAmneziaWGManualFieldsAndStorage {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"amnezia";
+    model.server = @"vpn.example.com";
+    model.wgPrivateKey = @"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=";
+    model.wgPeerPublicKey = @"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=";
+    model.wgAddress = @"10.67.0.2/32";
+    model.wgS1 = 64;
+    model.wgS4 = 24;
+    model.wgH1 = @"1100000000-1199999999";
+    model.wgH4 = @" 1400000000 ";
+    model.wgHeaderProtectionKey = @"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=";
+    model.wgContentPaddingAddition = @"8-64";
+    model.wgRekeyTimeout = @"4-6";
+    model.wgMaxHandshakeAttempts = @"18-22";
+    model.wgRandomTrailers = YES;
+    NSString *effective = [model wgEffectiveConfig];
+    for (NSString *line in @[@"S1 = 64", @"S4 = 24", @"H1 = 1100000000-1199999999", @"H4 = 1400000000",
+                             @"HeaderProtectionKey = AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=", @"ContentPaddingAddition = 8-64",
+                             @"RekeyTimeout = 4-6", @"MaxHandshakeAttempts = 18-22", @"RandomTrailers = on", @"Endpoint = vpn.example.com:51820"]) {
+        XCTAssertTrue([effective containsString:[line stringByAppendingString:@"\n"]], @"%@", line);
+    }
+    XCTAssertFalse([effective containsString:@"DisableCookies"]);
+    NSString *error = nil;
+    XCTAssertNotNil([SRPWireGuardClient engineSettingsFromConfig:[effective stringByReplacingOccurrencesOfString:@"vpn.example.com" withString:@"192.0.2.7"]
+                                                         amnezia:YES error:&error], @"%@", error);
+    NSDictionary *stored = [CheckConnectData storedParametersForProfile:model];
+    @try {
+        XCTAssertNil(stored[@"wg_header_protection_key"]);
+        XCTAssertFalse([[stored description] containsString:@"AwMDAwMD"], @"The header protection key stays in the Keychain");
+        XCTAssertEqualObjects(stored[@"wg_h1"], @"1100000000-1199999999");
+        NodeModel *loaded = [CheckConnectData getModalForDic:stored];
+        XCTAssertEqualObjects(loaded.wgHeaderProtectionKey, model.wgHeaderProtectionKey);
+        XCTAssertEqualObjects(loaded.wgH1, @"1100000000-1199999999");
+        XCTAssertEqualObjects(loaded.wgContentPaddingAddition, @"8-64");
+        XCTAssertEqualObjects(loaded.wgMaxHandshakeAttempts, @"18-22");
+        XCTAssertTrue(loaded.wgRandomTrailers);
+        XCTAssertFalse(loaded.wgDisableCookies);
+        XCTAssertEqualObjects([loaded wgEffectiveConfig], effective);
+        NSMutableDictionary *older = [stored mutableCopy];
+        older[@"wg_h2"] = @1200000000;
+        older[@"wg_h3"] = @0;
+        NodeModel *old = [CheckConnectData getModalForDic:older];
+        XCTAssertEqualObjects(old.wgH2, @"1200000000");
+        XCTAssertNil(old.wgH3);
+    } @finally {
+        if (model.wgSecretRef.length > 0) [SRPKeychain deletePasswordForKey:model.wgSecretRef];
+    }
+    [model clearWireGuardSettings];
+    XCTAssertNil(model.wgH1);
+    XCTAssertNil(model.wgHeaderProtectionKey);
+    XCTAssertFalse(model.wgRandomTrailers);
+}
+
+// A WireGuard profile refuses an AmneziaWG file at import, naming the protocol to use; an AmneziaWG profile takes it
+- (void)testWireGuardImportRefusesAmneziaWGFiles {
+    NSString *conf = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.0.2/32\nS1 = 64\n\n"
+                      "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = vpn.example.com:51830\nAllowedIPs = 0.0.0.0/0\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+    SEL import = NSSelectorFromString(@"handleImportedText:mode:");
+    for (NSString *type in @[@"wireguard", @"amnezia"]) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:type toModel:model];
+        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        UIViewController *editor = [self profileEditorOfHost:create];
+        NodeModel *edited = [editor valueForKey:@"modal"];
+        [editor performSelector:import withObject:conf withObject:@"wg"];
+        if ([type isEqualToString:@"wireguard"]) {
+            XCTAssertNil(edited.wgConfig);
+        } else {
+            XCTAssertEqualObjects(edited.wgConfig, conf);
+            XCTAssertEqualObjects(edited.port, @"51830");
+        }
+    }
+#pragma clang diagnostic pop
 }
 
 // An SSH profile without a port uses SSH's own port; other protocols keep theirs
@@ -6022,6 +6190,107 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     shoot(manualHost, @"manual-profile");
     [manualNavigation pushViewController:[[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:manual] animated:NO];
     shoot(nil, @"manual-configuration");
+    [manualNavigation popViewControllerAnimated:NO];
+    [manualNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:manual] animated:NO];
+    shoot(nil, @"protocol");
+
+    window.hidden = YES;
+    [previous makeKeyWindow];
+}
+
+// The AmneziaWG screens of the tutorial (tutorial/amneziawg/app-setup.html), rendered from the real editor with example profiles.
+- (void)testAmneziaWGDocumentationScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
+              @"Set SRP_DOCS_SCREENSHOTS=1 to render the documentation screenshots.");
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots-amneziawg"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+    window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+    void (^shoot)(UIViewController *, NSString *) = ^(UIViewController *root, NSString *name) {
+        if (root != nil) {
+            window.rootViewController = root;
+            [window makeKeyAndVisible];
+        }
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithBounds:window.bounds];
+        NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
+        }];
+        XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
+    };
+    // Example profiles with example keys (32 bytes of 1, 2, 3 and 4) and example obfuscation values
+    NodeModel *(^profile)(NSString *, NSString *) = ^NodeModel *(NSString *description, NSString *port) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"amnezia" toModel:model];
+        model.desc = description;
+        model.server = @"vpn.example.com";
+        model.port = port;
+        return model;
+    };
+    NodeModel *imported = profile(@"Example: AmneziaWG (imported file)", @"51820");
+    imported.wgConfig = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.0.2/32\nDNS = 1.1.1.1\nJc = 4\n"
+                         "Jmin = 40\nJmax = 120\nS1 = 64\nS2 = 58\nS3 = 30\nS4 = 24\nH1 = 1100000000-1199999999\nH2 = 1200000000-1299999999\n"
+                         "H3 = 1300000000-1399999999\nH4 = 1400000000-1499999999\nMTU = 1396\n\n"
+                         "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = vpn.example.com:51820\nAllowedIPs = 0.0.0.0/0\n";
+    NodeModel *manual = profile(@"Example: AmneziaWG (keys entered)", @"51820");
+    manual.wgPrivateKey = @"AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=";
+    manual.wgAddress = @"10.67.0.3/32";
+    manual.wgDNS = @"1.1.1.1, 8.8.8.8";
+    manual.wgPeerPublicKey = @"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=";
+    manual.wgPresharedKey = @"BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=";
+    manual.wgKeepalive = 25;
+    manual.wgJc = 4;
+    manual.wgJmin = 40;
+    manual.wgJmax = 120;
+    manual.wgS1 = 64;
+    manual.wgS2 = 58;
+    manual.wgS3 = 30;
+    manual.wgS4 = 24;
+    manual.wgH1 = @"1100000000-1199999999";
+    manual.wgH2 = @"1200000000-1299999999";
+    manual.wgH3 = @"1300000000-1399999999";
+    manual.wgH4 = @"1400000000-1499999999";
+    manual.wgI1 = @"<b 0xc700000001><r 8><t>";
+    NodeModel *other = profile(@"Example: AmneziaWG on another port", @"51833");
+    other.wgConfig = [imported.wgConfig stringByReplacingOccurrencesOfString:@":51820" withString:@":51833"];
+
+    UIViewController *home = [NSClassFromString(@"ViewController") new];
+    [home loadViewIfNeeded];
+    [home setValue:[NSMutableArray arrayWithArray:@[imported, manual, other]] forKey:@"nodaArray"];
+    [[home valueForKey:@"homeTableview"] reloadData];
+    shoot(home, @"home");
+
+    CreateVC *create = [self profileEditorHostForModel:imported saved:[NSMutableArray new]];
+    UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+    UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
+    [editorTable reloadData];
+    shoot(create, @"profile-editor");
+    // Estimated row heights leave the content size short until the last rows have been laid out once
+    NSInteger last = editorTable.numberOfSections - 1;
+    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:[editorTable numberOfRowsInSection:last] - 1 inSection:last]
+                       atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
+    [self scrollTableToEnd:editorTable];
+    shoot(nil, @"options");
+
+    CreateVC *manualHost = [self profileEditorHostForModel:manual saved:[NSMutableArray new]];
+    UINavigationController *manualNavigation = (UINavigationController *)manualHost.childViewControllers.firstObject;
+    shoot(manualHost, @"manual-profile");
+    UITableViewController *fields = [[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:manual];
+    [manualNavigation pushViewController:fields animated:NO];
+    shoot(nil, @"manual-configuration");
+    // The two AmneziaWG sections: what must match the server, and this device's own
+    for (NSArray *page in @[@[@2, @"manual-obfuscation"], @[@3, @"manual-device"]]) {
+        [fields.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:[page[0] integerValue]]
+                                atScrollPosition:UITableViewScrollPositionTop animated:NO];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.3]];
+        [fields.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:[page[0] integerValue]]
+                                atScrollPosition:UITableViewScrollPositionTop animated:NO];
+        shoot(nil, page[1]);
+    }
     [manualNavigation popViewControllerAnimated:NO];
     [manualNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:manual] animated:NO];
     shoot(nil, @"protocol");

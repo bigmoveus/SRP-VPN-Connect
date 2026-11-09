@@ -138,10 +138,18 @@
         if (modal.wgI3.length > 0) d[@"wg_i3"] = modal.wgI3;
         if (modal.wgI4.length > 0) d[@"wg_i4"] = modal.wgI4;
         if (modal.wgI5.length > 0) d[@"wg_i5"] = modal.wgI5;
-        if (modal.wgH1 > 0) d[@"wg_h1"] = @(modal.wgH1);
-        if (modal.wgH2 > 0) d[@"wg_h2"] = @(modal.wgH2);
-        if (modal.wgH3 > 0) d[@"wg_h3"] = @(modal.wgH3);
-        if (modal.wgH4 > 0) d[@"wg_h4"] = @(modal.wgH4);
+        if (modal.wgH1.length > 0) d[@"wg_h1"] = modal.wgH1;
+        if (modal.wgH2.length > 0) d[@"wg_h2"] = modal.wgH2;
+        if (modal.wgH3.length > 0) d[@"wg_h3"] = modal.wgH3;
+        if (modal.wgH4.length > 0) d[@"wg_h4"] = modal.wgH4;
+        if (modal.wgContentPaddingAddition.length > 0) d[@"wg_content_padding"] = modal.wgContentPaddingAddition;
+        if (modal.wgRekeyAfterTime.length > 0) d[@"wg_rekey_after_time"] = modal.wgRekeyAfterTime;
+        if (modal.wgRekeyTimeout.length > 0) d[@"wg_rekey_timeout"] = modal.wgRekeyTimeout;
+        if (modal.wgRejectAfterTime.length > 0) d[@"wg_reject_after_time"] = modal.wgRejectAfterTime;
+        if (modal.wgKeepaliveTimeout.length > 0) d[@"wg_keepalive_timeout"] = modal.wgKeepaliveTimeout;
+        if (modal.wgMaxHandshakeAttempts.length > 0) d[@"wg_max_handshake_attempts"] = modal.wgMaxHandshakeAttempts;
+        if (modal.wgRandomTrailers) d[@"wg_random_trailers"] = @YES;
+        if (modal.wgDisableCookies) d[@"wg_disable_cookies"] = @YES;
     }
     if (modal.passwordKey.length > 0) {
         d[@"password_key"] = modal.passwordKey;
@@ -332,10 +340,23 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.psiphonMode = selectDic[@"psi_mode"];
         modal.psiphonServerEntry = selectDic[@"psi_entry"];
         modal.psiphonLimitProtocols = selectDic[@"psi_protos"];
-        modal.wgH1 = [selectDic[@"wg_h1"] integerValue];
-        modal.wgH2 = [selectDic[@"wg_h2"] integerValue];
-        modal.wgH3 = [selectDic[@"wg_h3"] integerValue];
-        modal.wgH4 = [selectDic[@"wg_h4"] integerValue];
+        // H1-H4 were numbers before ranges were possible
+        NSString* (^headerValue)(id) = ^NSString *(id value) {
+            if ([value isKindOfClass:NSNumber.class]) return [value integerValue] > 0 ? [value stringValue] : nil;
+            return [value isKindOfClass:NSString.class] && [value length] > 0 ? value : nil;
+        };
+        modal.wgH1 = headerValue(selectDic[@"wg_h1"]);
+        modal.wgH2 = headerValue(selectDic[@"wg_h2"]);
+        modal.wgH3 = headerValue(selectDic[@"wg_h3"]);
+        modal.wgH4 = headerValue(selectDic[@"wg_h4"]);
+        modal.wgContentPaddingAddition = selectDic[@"wg_content_padding"];
+        modal.wgRekeyAfterTime = selectDic[@"wg_rekey_after_time"];
+        modal.wgRekeyTimeout = selectDic[@"wg_rekey_timeout"];
+        modal.wgRejectAfterTime = selectDic[@"wg_reject_after_time"];
+        modal.wgKeepaliveTimeout = selectDic[@"wg_keepalive_timeout"];
+        modal.wgMaxHandshakeAttempts = selectDic[@"wg_max_handshake_attempts"];
+        modal.wgRandomTrailers = [selectDic[@"wg_random_trailers"] boolValue];
+        modal.wgDisableCookies = [selectDic[@"wg_disable_cookies"] boolValue];
         modal.desc = selectDic[@"desc"];
         // Stable identity; legacy profiles without one get a fresh id (migration
         // persists it on the next save).
@@ -432,6 +453,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
             modal.wgConfig = wireGuard[@"conf"];
             modal.wgPrivateKey = wireGuard[@"private_key"];
             modal.wgPresharedKey = wireGuard[@"preshared_key"];
+            modal.wgHeaderProtectionKey = wireGuard[@"header_protection_key"];
         } else if (modal.wgConfig.length > 0) {
             NSString *saved = modal.wgConfig;
             modal.wgConfig = nil;
@@ -454,6 +476,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         if (modal.wgConfig.length > 0) keys[@"conf"] = modal.wgConfig;
         if (modal.wgPrivateKey.length > 0) keys[@"private_key"] = modal.wgPrivateKey;
         if (modal.wgPresharedKey.length > 0) keys[@"preshared_key"] = modal.wgPresharedKey;
+        if (modal.wgHeaderProtectionKey.length > 0) keys[@"header_protection_key"] = modal.wgHeaderProtectionKey;
     }
     if (keys.count > 0) {
         if (modal.wgSecretRef.length == 0) modal.wgSecretRef = NSUUID.UUID.UUIDString;

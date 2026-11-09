@@ -19,6 +19,10 @@ typedef NS_ENUM(NSInteger, SRPWGField) {
     SRPWGFieldS1, SRPWGFieldS2, SRPWGFieldS3, SRPWGFieldS4,
     SRPWGFieldH1, SRPWGFieldH2, SRPWGFieldH3, SRPWGFieldH4,
     SRPWGFieldI1, SRPWGFieldI2, SRPWGFieldI3, SRPWGFieldI4, SRPWGFieldI5,
+    SRPWGFieldHeaderProtectionKey, SRPWGFieldContentPadding,
+    SRPWGFieldRekeyAfterTime, SRPWGFieldRekeyTimeout, SRPWGFieldRejectAfterTime, SRPWGFieldKeepaliveTimeout,
+    SRPWGFieldMaxHandshakeAttempts,
+    SRPWGSwitchRandomTrailers, SRPWGSwitchDisableCookies,
 };
 
 @interface SRPWGConfigViewController () <UITextFieldDelegate>
@@ -127,10 +131,10 @@ typedef NS_ENUM(NSInteger, SRPWGField) {
         case SRPWGFieldJmax: self.model.wgJmax = field.text.integerValue; break;
         case SRPWGFieldS1: self.model.wgS1 = field.text.integerValue; break;
         case SRPWGFieldS2: self.model.wgS2 = field.text.integerValue; break;
-        case SRPWGFieldH1: self.model.wgH1 = field.text.integerValue; break;
-        case SRPWGFieldH2: self.model.wgH2 = field.text.integerValue; break;
-        case SRPWGFieldH3: self.model.wgH3 = field.text.integerValue; break;
-        case SRPWGFieldH4: self.model.wgH4 = field.text.integerValue; break;
+        case SRPWGFieldH1: self.model.wgH1 = field.text; break;
+        case SRPWGFieldH2: self.model.wgH2 = field.text; break;
+        case SRPWGFieldH3: self.model.wgH3 = field.text; break;
+        case SRPWGFieldH4: self.model.wgH4 = field.text; break;
         case SRPWGFieldS3: self.model.wgS3 = field.text.integerValue; break;
         case SRPWGFieldS4: self.model.wgS4 = field.text.integerValue; break;
         case SRPWGFieldI1: self.model.wgI1 = field.text; break;
@@ -138,8 +142,32 @@ typedef NS_ENUM(NSInteger, SRPWGField) {
         case SRPWGFieldI3: self.model.wgI3 = field.text; break;
         case SRPWGFieldI4: self.model.wgI4 = field.text; break;
         case SRPWGFieldI5: self.model.wgI5 = field.text; break;
+        case SRPWGFieldHeaderProtectionKey: self.model.wgHeaderProtectionKey = field.text; break;
+        case SRPWGFieldContentPadding: self.model.wgContentPaddingAddition = field.text; break;
+        case SRPWGFieldRekeyAfterTime: self.model.wgRekeyAfterTime = field.text; break;
+        case SRPWGFieldRekeyTimeout: self.model.wgRekeyTimeout = field.text; break;
+        case SRPWGFieldRejectAfterTime: self.model.wgRejectAfterTime = field.text; break;
+        case SRPWGFieldKeepaliveTimeout: self.model.wgKeepaliveTimeout = field.text; break;
+        case SRPWGFieldMaxHandshakeAttempts: self.model.wgMaxHandshakeAttempts = field.text; break;
         default: break;
     }
+}
+
+- (UITableViewCell *)switchCellWithTitle:(NSString *)title on:(BOOL)on tag:(NSInteger)tag {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    cell.textLabel.text = title;
+    UISwitch *control = [UISwitch new];
+    control.on = on;
+    control.tag = tag;
+    [control addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
+    cell.accessoryView = control;
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    return cell;
+}
+
+- (void)switchChanged:(UISwitch *)control {
+    if (control.tag == SRPWGSwitchRandomTrailers) self.model.wgRandomTrailers = control.isOn;
+    if (control.tag == SRPWGSwitchDisableCookies) self.model.wgDisableCookies = control.isOn;
 }
 
 #pragma mark - table view
@@ -151,18 +179,22 @@ static NSString *SRPWGIntOrNil(NSInteger v) { return v > 0 ? @(v).stringValue : 
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return [self isAmnezia] ? 3 : 2;
+    return [self isAmnezia] ? 4 : 2;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0) return @"THIS DEVICE";
     if (section == 1) return @"SERVER (PEER)";
-    return @"AMNEZIAWG OBFUSCATION";
+    if (section == 2) return @"AMNEZIAWG: SAME AS THE SERVER";
+    return @"AMNEZIAWG: THIS DEVICE ONLY";
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if (section == 2) {
-        return @"These values must match the server exactly. Leave empty only if the server runs without obfuscation.";
+        return @"These must be the server's values. With another S1, S2, H1, H2, Header Protection Key or Random Trailers the server does not answer; with another S3, S4 or H4 the handshake works but no traffic does. H1-H4 take a number or a range such as 1100000000-1199999999. Leave all empty for a server without obfuscation.";
+    }
+    if (section == 3) {
+        return @"This device's own, not needed on the server: Jc junk packets of Jmin to Jmax bytes and the I1-I5 chains go before every handshake; Content Padding adds bytes to data packets; the timings are seconds (Max Handshake Attempts a count). Each takes a number or a range such as 4-6, picked anew each time.";
     }
     if (section == 1) {
         return @"The endpoint (host:port) comes from the Server and Port fields of the profile. AllowedIPs 0.0.0.0/0 routes everything through the tunnel.";
@@ -171,7 +203,8 @@ static NSString *SRPWGIntOrNil(NSInteger v) { return v > 0 ? @(v).stringValue : 
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 2) return 16;  // Jc, Jmin, Jmax, S1-S4, H1-H4, I1-I5
+    if (section == 2) return 10;  // S1-S4, H1-H4, Header Protection Key, Random Trailers
+    if (section == 3) return 15;  // Jc, Jmin, Jmax, I1-I5, Content Padding, five timings, Disable Cookies
     return 4;
 }
 
@@ -206,22 +239,42 @@ static NSString *SRPWGIntOrNil(NSInteger v) { return v > 0 ? @(v).stringValue : 
     }
     if (indexPath.section == 2) {
         switch (indexPath.row) {
+            case 0: return [self fieldCellWithTitle:@"S1" text:SRPWGIntOrNil(self.model.wgS1) placeholder:@"Init padding" tag:SRPWGFieldS1];
+            case 1: return [self fieldCellWithTitle:@"S2" text:SRPWGIntOrNil(self.model.wgS2) placeholder:@"Response padding" tag:SRPWGFieldS2];
+            case 2: return [self fieldCellWithTitle:@"S3" text:SRPWGIntOrNil(self.model.wgS3) placeholder:@"Cookie padding" tag:SRPWGFieldS3];
+            case 3: return [self fieldCellWithTitle:@"S4" text:SRPWGIntOrNil(self.model.wgS4) placeholder:@"Data padding" tag:SRPWGFieldS4];
+            case 4: return [self fieldCellWithTitle:@"H1" text:self.model.wgH1 placeholder:@"Init header" tag:SRPWGFieldH1];
+            case 5: return [self fieldCellWithTitle:@"H2" text:self.model.wgH2 placeholder:@"Response header" tag:SRPWGFieldH2];
+            case 6: return [self fieldCellWithTitle:@"H3" text:self.model.wgH3 placeholder:@"Cookie header" tag:SRPWGFieldH3];
+            case 7: return [self fieldCellWithTitle:@"H4" text:self.model.wgH4 placeholder:@"Data header" tag:SRPWGFieldH4];
+            case 8: return [self fieldCellWithTitle:@"Header Protection Key" text:self.model.wgHeaderProtectionKey placeholder:@"Optional"
+                                                tag:SRPWGFieldHeaderProtectionKey];
+            case 9: return [self switchCellWithTitle:@"Random Trailers" on:self.model.wgRandomTrailers tag:SRPWGSwitchRandomTrailers];
+        }
+    }
+    if (indexPath.section == 3) {
+        switch (indexPath.row) {
             case 0: return [self fieldCellWithTitle:@"Jc" text:SRPWGIntOrNil(self.model.wgJc) placeholder:@"Junk packet count" tag:SRPWGFieldJc];
             case 1: return [self fieldCellWithTitle:@"Jmin" text:SRPWGIntOrNil(self.model.wgJmin) placeholder:@"Junk packet min size" tag:SRPWGFieldJmin];
             case 2: return [self fieldCellWithTitle:@"Jmax" text:SRPWGIntOrNil(self.model.wgJmax) placeholder:@"Junk packet max size" tag:SRPWGFieldJmax];
-            case 3: return [self fieldCellWithTitle:@"S1" text:SRPWGIntOrNil(self.model.wgS1) placeholder:@"Init junk padding" tag:SRPWGFieldS1];
-            case 4: return [self fieldCellWithTitle:@"S2" text:SRPWGIntOrNil(self.model.wgS2) placeholder:@"Response junk padding" tag:SRPWGFieldS2];
-            case 5: return [self fieldCellWithTitle:@"S3" text:SRPWGIntOrNil(self.model.wgS3) placeholder:@"Cookie junk padding" tag:SRPWGFieldS3];
-            case 6: return [self fieldCellWithTitle:@"S4" text:SRPWGIntOrNil(self.model.wgS4) placeholder:@"Transport junk padding" tag:SRPWGFieldS4];
-            case 7: return [self fieldCellWithTitle:@"H1" text:SRPWGIntOrNil(self.model.wgH1) placeholder:@"Init header type" tag:SRPWGFieldH1];
-            case 8: return [self fieldCellWithTitle:@"H2" text:SRPWGIntOrNil(self.model.wgH2) placeholder:@"Response header type" tag:SRPWGFieldH2];
-            case 9: return [self fieldCellWithTitle:@"H3" text:SRPWGIntOrNil(self.model.wgH3) placeholder:@"Cookie header type" tag:SRPWGFieldH3];
-            case 10: return [self fieldCellWithTitle:@"H4" text:SRPWGIntOrNil(self.model.wgH4) placeholder:@"Data header type" tag:SRPWGFieldH4];
-            case 11: return [self fieldCellWithTitle:@"I1" text:self.model.wgI1 placeholder:@"Optional signature chain" tag:SRPWGFieldI1];
-            case 12: return [self fieldCellWithTitle:@"I2" text:self.model.wgI2 placeholder:@"Optional" tag:SRPWGFieldI2];
-            case 13: return [self fieldCellWithTitle:@"I3" text:self.model.wgI3 placeholder:@"Optional" tag:SRPWGFieldI3];
-            case 14: return [self fieldCellWithTitle:@"I4" text:self.model.wgI4 placeholder:@"Optional" tag:SRPWGFieldI4];
-            case 15: return [self fieldCellWithTitle:@"I5" text:self.model.wgI5 placeholder:@"Optional" tag:SRPWGFieldI5];
+            case 3: return [self fieldCellWithTitle:@"I1" text:self.model.wgI1 placeholder:@"Optional signature chain" tag:SRPWGFieldI1];
+            case 4: return [self fieldCellWithTitle:@"I2" text:self.model.wgI2 placeholder:@"Optional" tag:SRPWGFieldI2];
+            case 5: return [self fieldCellWithTitle:@"I3" text:self.model.wgI3 placeholder:@"Optional" tag:SRPWGFieldI3];
+            case 6: return [self fieldCellWithTitle:@"I4" text:self.model.wgI4 placeholder:@"Optional" tag:SRPWGFieldI4];
+            case 7: return [self fieldCellWithTitle:@"I5" text:self.model.wgI5 placeholder:@"Optional" tag:SRPWGFieldI5];
+            case 8: return [self fieldCellWithTitle:@"Content Padding" text:self.model.wgContentPaddingAddition placeholder:@"Optional — bytes"
+                                                tag:SRPWGFieldContentPadding];
+            case 9: return [self fieldCellWithTitle:@"Rekey After Time" text:self.model.wgRekeyAfterTime placeholder:@"Default 120"
+                                                tag:SRPWGFieldRekeyAfterTime];
+            case 10: return [self fieldCellWithTitle:@"Rekey Timeout" text:self.model.wgRekeyTimeout placeholder:@"Default 5"
+                                                 tag:SRPWGFieldRekeyTimeout];
+            case 11: return [self fieldCellWithTitle:@"Reject After Time" text:self.model.wgRejectAfterTime placeholder:@"Default 180"
+                                                 tag:SRPWGFieldRejectAfterTime];
+            case 12: return [self fieldCellWithTitle:@"Keepalive Timeout" text:self.model.wgKeepaliveTimeout placeholder:@"Default 10"
+                                                 tag:SRPWGFieldKeepaliveTimeout];
+            case 13: return [self fieldCellWithTitle:@"Max Handshake Attempts" text:self.model.wgMaxHandshakeAttempts placeholder:@"Default 18"
+                                                 tag:SRPWGFieldMaxHandshakeAttempts];
+            case 14: return [self switchCellWithTitle:@"Disable Cookies" on:self.model.wgDisableCookies tag:SRPWGSwitchDisableCookies];
         }
     }
     return [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];

@@ -237,6 +237,10 @@ static const NSInteger kFieldPsiphonEntry = 34;
     return [self.modal.protocolType isEqualToString:@"wireguard"];
 }
 
+- (BOOL)isAmnezia {
+    return [self.modal.protocolType isEqualToString:@"amnezia"];
+}
+
 - (BOOL)isAether {
     return [self.modal.protocolType isEqualToString:@"aether"];
 }
@@ -392,7 +396,9 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     else if ([self isWireGuard]) {
         // WireGuard: server + a config — imported .conf or complete manual entry
         if (!hasServer) return @"Enter the server address.";
-        if ([self.modal wgEffectiveConfig].length == 0) return @"Import or enter a WireGuard configuration.";
+        if ([self.modal wgEffectiveConfig].length == 0) {
+            return [self isAmnezia] ? @"Import or enter an AmneziaWG configuration." : @"Import or enter a WireGuard configuration.";
+        }
     }
     else if ([self isAether]) {
         // Private: own WireGuard server — a complete config is required.
@@ -828,7 +834,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"Import a .conf file (wg-quick format) or enter the keys manually under Manual Configuration. Server and Port are filled from the Endpoint line on import; changed, they replace it. WireGuard runs over UDP.";
     }
     if (section == 1 && [self isWireGuard]) {
-        return @"Import a .conf file (wg-quick format) or enter the keys manually under Manual Configuration. Server and Port are filled from the Endpoint line on import. WireGuard runs over UDP.";
+        return @"Import a .conf file (the awg-quick format of AmneziaWG servers, or WireGuard's own) or enter the keys and the obfuscation settings under Manual Configuration. Server and Port are filled from the Endpoint line on import; changed, they replace it. AmneziaWG runs over UDP.";
     }
     if (section == 1 && [self isSoftEther]) {
         return @"Hostname overrides the TLS server name (SNI) and certificate verification; the TCP destination stays the Server field. When Hostname differs from the server certificate name, turn off TLS Server Verification.";
@@ -896,7 +902,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
         return @"WireGuard counts as connected once the server answered its handshake. When nothing comes back for 30 seconds while the phone sends, the server stopped answering: Auto Reconnect starts new handshakes, 10 seconds each, and Retry Times limits them (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. On Sleep: Off closes the connection while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. WireGuard always uses the network the phone uses: when Wi-Fi appears, its packets go over Wi-Fi by themselves, so there is no Switch to Wi-Fi option.";
     }
     if (section == 4 && [self isWireGuard]) {
-        return @"WireGuard is stateless over UDP: roaming, retries and sleep/wake are built into the protocol — only Log Level applies.";
+        return @"AmneziaWG counts as connected once the server answered its handshake. When nothing comes back for 30 seconds while the phone sends, the server stopped answering: Auto Reconnect starts new handshakes, 10 seconds each, and Retry Times limits them (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. When the server answers its handshakes but none of the traffic (S3, S4 or H4 differ from the server's), the VPN disconnects with that reason. On Sleep: Off closes the connection while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. AmneziaWG always uses the network the phone uses: when Wi-Fi appears, its packets go over Wi-Fi by themselves, so there is no Switch to Wi-Fi option.";
     }
     if (section == 4) {
         NSString *base = @"Disable TLS 1.0 & 1.1 applies to the outer SSTP connection only; the EAP tunnel versions are configured in EAP Configuration. Custom SNI is sent in the TLS ClientHello and used for certificate verification; the TCP destination stays the Host field. TLS Fragmentation splits the handshake's outgoing bytes into smaller TCP writes (the TLS stream itself is unchanged) — experimental, may help on networks with DPI. Auto picks the chunking from the access network; Manual sets the write sizes by hand.";
@@ -1001,14 +1007,13 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
                 return (self.modal.autoReconnect ? 6 : 5) - ([self waterWallOffersAutoSwitch] ? 0 : 1) +
                        (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) + (routing ? 2 : 0);
             }
-            if ([self isPlainWireGuard]) {
-                // Auto Reconnect (+Retry Times when on), On Sleep, Log Level
+            if ([self isWireGuard]) {
+                // WireGuard and AmneziaWG: Auto Reconnect (+Retry Times when on), On Sleep, Log Level
                 return self.modal.autoReconnect ? 4 : 3;
             }
-            if ([self isWireGuard] || [self isPsiphon]) {
-                // Log Level only — WireGuard/AmneziaWG roam and retry by
-                // design (stateless UDP), and the Psiphon core redials
-                // internally; nothing else in this section acts on them.
+            if ([self isPsiphon]) {
+                // Log Level only — the Psiphon core redials internally;
+                // nothing else in this section acts on it.
                 return 1;
             }
             if ([self isAether]) {
@@ -1513,8 +1518,8 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             return [UITableViewCell new];
         }
-        if ([self isPlainWireGuard]) {
-            // Auto Reconnect (+Retry Times), On Sleep, Log Level; WireGuard always follows the phone's network
+        if ([self isWireGuard]) {
+            // Auto Reconnect (+Retry Times), On Sleep, Log Level; WireGuard and AmneziaWG always follow the phone's network
             BOOL ar = self.modal.autoReconnect;
             NSInteger row = indexPath.row;
             if (row == 0) {
@@ -1537,7 +1542,7 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
             }
             return [UITableViewCell new];
         }
-        if ([self isWireGuard] || [self isPsiphon] || [self isAether]) {
+        if ([self isPsiphon] || [self isAether]) {
             // Log Level; Aether-H2 adds TLS Fragmentation below it
             if (indexPath.row == 0) {
                 return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
@@ -1895,6 +1900,17 @@ static NSString * const kPsiProtosStealth = @"UNFRONTED-MEEK-HTTPS-OSSH,UNFRONTE
     else if ([mode isEqualToString:@"wg"]) {
         if (![text containsString:@"[Interface]"] || ![text containsString:@"[Peer]"]) {
             [self showInfoAlertWithTitle:@"Import Failed" message:@"The file does not look like a WireGuard config (no [Interface]/[Peer] sections)."];
+            return;
+        }
+        // WireGuard takes none of AmneziaWG's settings: such a file needs an AmneziaWG profile
+        NSRegularExpression *amneziaKey = [NSRegularExpression regularExpressionWithPattern:
+            @"^[ \\t]*(Jc|Jmin|Jmax|S[1-4]|H[1-4]|I[1-5]|HeaderProtectionKey|ContentPaddingAddition|RekeyAfterTime|RekeyTimeout|RejectAfterTime|KeepaliveTimeout|MaxHandshakeAttempts|RandomTrailers|DisableCookies)[ \\t]*="
+            options:NSRegularExpressionAnchorsMatchLines | NSRegularExpressionCaseInsensitive error:nil];
+        NSTextCheckingResult *found = [amneziaKey firstMatchInString:text options:0 range:NSMakeRange(0, text.length)];
+        if ([self isPlainWireGuard] && found) {
+            [self showInfoAlertWithTitle:@"AmneziaWG Configuration"
+                                 message:[NSString stringWithFormat:@"This file has AmneziaWG settings (%@ and others). Choose AmneziaWG VPN as the protocol to use it.",
+                                          [text substringWithRange:[found rangeAtIndex:1]]]];
             return;
         }
         self.modal.wgConfig = text;
