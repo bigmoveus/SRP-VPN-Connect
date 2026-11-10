@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turns the Android test runs into the results on waterwall/android.html.
 
-  extract  reads the results.json of a production run and a lifecycle run and writes a sanitized evidence file
+  extract  reads the results.json of a production run, a lifecycle run and optionally a release APK run, and writes a sanitized evidence file
   render   writes the block between android:begin and android:end from that evidence file
 """
 import argparse
@@ -43,6 +43,12 @@ def extract(args):
                             "checks": len(checks), "checks_passed": sum(case["passed"] for case in checks),
                             "skipped": [item["file"] for item in production.get("skipped", [])]},
                 "chains": chains, "checks": checks}
+    if args.release:
+        # run_release.py: the signed release APK on the same phone; a later file's run of a chain replaces an earlier one
+        files = [json.loads(Path(path).read_text()) for path in args.release]
+        runs = {case["id"]: case for data in files for case in data["results"]}
+        evidence["release"] = {"version": files[0]["package"].get("version"), "build": args.release_build, "debuggable": files[0]["package"].get("debuggable_flag"),
+                               "chains": [{"id": case["id"], "passed": case["passed"]} for case in runs.values()]}
     text = json.dumps(evidence, indent=1)
     found = PUBLIC_IPV4.findall(text)
     if found:
@@ -54,6 +60,8 @@ def render(args):
     evidence = json.loads(Path(args.evidence).read_text())
     summary = evidence["summary"]
     rows = []
+    chain_of = {case["id"]: case.get("configuration") for case in evidence["chains"]}
+    file_of = {case["id"]: case.get("server_file") for case in evidence["chains"]}
     for case in sorted(evidence["chains"], key=lambda item: item["id"]):
         title = html.escape(title_of({**case, "kind": "production", "sni": case["id"].endswith("typed-sni")}))
         rows.append(f'<tr><td><a href="scenarios/{case["id"]}.html">{title}</a></td><td>{VERIFIED if case["passed"] else FAILED}</td>'
@@ -66,9 +74,16 @@ def render(args):
              '<table><thead><tr><th>Chain</th><th>Result</th><th>To Connected</th><th>Two downloads and two uploads at once, 16 MiB each</th></tr></thead><tbody>\n'
              + "\n".join(rows) + '\n</tbody></table>\n'
              '<h3 id="android-checks">Everything around the connection</h3>\n'
-             '<p>Each of these ran on the phone and on the emulator, except the always-on check, which ran on the emulator because the test drives Android\'s own settings screen. '
-             'On the phone, the network check moved between its real Wi-Fi and cellular connections and the sleep checks turned its screen off.</p>\n'
+             '<p>Each of these ran on the phone. The network check moved between its real Wi-Fi and cellular connections, and the sleep checks turned its screen off.</p>\n'
              '<table><thead><tr><th>What we checked</th><th>Result</th></tr></thead><tbody>\n' + "\n".join(checks) + '\n</tbody></table>\n')
+    release = evidence.get("release")
+    if release:
+        rows = [f'<tr><td><a href="scenarios/{case["id"]}.html">{html.escape(title_of({**case, "configuration": chain_of[case["id"]], "server_file": file_of[case["id"]], "kind": "production", "sni": case["id"].endswith("typed-sni")}))}</a></td>'
+                f'<td>{VERIFIED if case["passed"] else FAILED}</td></tr>' for case in sorted(release["chains"], key=lambda item: item["id"])]
+        block += (f'<h3 id="android-release">The release APK</h3>\n'
+                  f'<p>The signed release APK {html.escape(release["version"])} ({release.get("build", "")}), the one we hand out, made each profile through the app\'s screens, as a person would, '
+                  f'and connected to {len(rows)} of these chains with the same transfers. <strong>{sum(case["passed"] for case in release["chains"])} of {len(rows)}</strong> passed.</p>\n'
+                  '<table><thead><tr><th>Chain</th><th>Result</th></tr></thead><tbody>\n' + "\n".join(rows) + '\n</tbody></table>\n')
     page = SITE / "waterwall" / "android.html"
     text = page.read_text()
     updated, count = re.subn(r"(<!-- android:begin -->\n).*?(<!-- android:end -->)", lambda m: m[1] + block + m[2], text, flags=re.S)
@@ -83,6 +98,8 @@ def main():
     one = commands.add_parser("extract")
     for name in ("production", "lifecycle"):
         one.add_argument(f"--{name}", required=True, nargs="+")
+    one.add_argument("--release", nargs="+", help="results.json of run_release.py runs of the signed release APK")
+    one.add_argument("--release-build", help="the release APK's version code, such as 9")
     for name in ("server-host", "date", "head", "output"):
         one.add_argument(f"--{name}", required=True)
     two = commands.add_parser("render")

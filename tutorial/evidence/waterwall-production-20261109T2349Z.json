@@ -1,13 +1,13 @@
 {
  "run": {
-  "start_utc": "2026-11-05T18:50:48Z",
-  "end_utc": "2026-11-05T20:12:18Z",
-  "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e",
-  "peer_sha256": "8b726bf0594d1f58b3dd99c76cf791dac74e8098a023828b5eff15a82b29f79e"
+  "start_utc": "2026-11-09T23:49:12Z",
+  "end_utc": "2026-11-10T01:02:46Z",
+  "head": "e44cf11df99e974019f07b4ba10f47dc641df741",
+  "peer_sha256": "38631081bd10347d840a9f068a349fd028aede57889f0ac77df441f9fe88bbaf"
  },
  "summary": {
-  "executed": 45,
-  "passed": 43,
+  "executed": 41,
+  "passed": 41,
   "skipped": [
    {
     "file": "direct.json",
@@ -92,7 +92,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -105,7 +104,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.2
+     "duration_s": 104.15
     },
     "udp": {
      "status": "not-run",
@@ -122,20 +121,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:50:55",
-    "finished": "2026-11-05 21:52:32",
-    "sustained": "Sustained full-duplex: 91.73 seconds, downloaded=2701131776, uploaded=754974720, download_requests=161, upload_requests=45, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:49:19",
+    "finished": "2026-11-10 02:50:56",
+    "sustained": "Sustained full-duplex: 92.45 seconds, downloaded=1677721600, uploaded=1811939328, download_requests=100, upload_requests=108, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.73,
+     "seconds": 92.45,
      "errors": [],
-     "downloaded": 2701131776,
-     "uploaded": 754974720,
-     "download_requests": 161,
-     "upload_requests": 45,
+     "downloaded": 1677721600,
+     "uploaded": 1811939328,
+     "download_requests": 100,
+     "upload_requests": 108,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -143,12 +143,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.73,
+      "seconds": 92.45,
       "errors": [],
-      "downloaded": 2701131776,
-      "uploaded": 754974720,
-      "download_requests": 161,
-      "upload_requests": 45,
+      "downloaded": 1677721600,
+      "uploaded": 1811939328,
+      "download_requests": 100,
+      "upload_requests": 108,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -156,11 +156,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 329 ms",
-     "Ping: 173 ms"
+     "Ping: 299 ms",
+     "Ping: 269 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 18:52:30 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:50:55 +0000\"; reason = 1; }"
    }
   },
   {
@@ -236,7 +236,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -249,7 +248,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.21
+     "duration_s": 103.59
     },
     "udp": {
      "status": "not-run",
@@ -266,20 +265,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:52:40",
-    "finished": "2026-11-05 21:54:15",
-    "sustained": "Sustained full-duplex: 91.76 seconds, downloaded=2684354560, uploaded=754974720, download_requests=160, upload_requests=45, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:51:04",
+    "finished": "2026-11-10 02:52:41",
+    "sustained": "Sustained full-duplex: 92.63 seconds, downloaded=1644167168, uploaded=1929379840, download_requests=98, upload_requests=115, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.76,
+     "seconds": 92.63,
      "errors": [],
-     "downloaded": 2684354560,
-     "uploaded": 754974720,
-     "download_requests": 160,
-     "upload_requests": 45,
+     "downloaded": 1644167168,
+     "uploaded": 1929379840,
+     "download_requests": 98,
+     "upload_requests": 115,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -287,12 +287,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.76,
+      "seconds": 92.63,
       "errors": [],
-      "downloaded": 2684354560,
-      "uploaded": 754974720,
-      "download_requests": 160,
-      "upload_requests": 45,
+      "downloaded": 1644167168,
+      "uploaded": 1929379840,
+      "download_requests": 98,
+      "upload_requests": 115,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -300,11 +300,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 186 ms",
-     "Ping: 306 ms"
+     "Ping: 201 ms",
+     "Ping: 153 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 18:54:14 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:52:39 +0000\"; reason = 1; }"
    }
   },
   {
@@ -390,7 +390,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -403,7 +402,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 108.63
+     "duration_s": 106.34
     },
     "udp": {
      "status": "not-run",
@@ -420,20 +419,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:54:23",
-    "finished": "2026-11-05 21:56:04",
-    "sustained": "Sustained full-duplex: 96.55 seconds, downloaded=1543503872, uploaded=570425344, download_requests=92, upload_requests=34, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:52:48",
+    "finished": "2026-11-10 02:54:27",
+    "sustained": "Sustained full-duplex: 95.20 seconds, downloaded=1275068416, uploaded=637534208, download_requests=76, upload_requests=38, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 96.55,
+     "seconds": 95.2,
      "errors": [],
-     "downloaded": 1543503872,
-     "uploaded": 570425344,
-     "download_requests": 92,
-     "upload_requests": 34,
+     "downloaded": 1275068416,
+     "uploaded": 637534208,
+     "download_requests": 76,
+     "upload_requests": 38,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -441,12 +441,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 96.55,
+      "seconds": 95.2,
       "errors": [],
-      "downloaded": 1543503872,
-      "uploaded": 570425344,
-      "download_requests": 92,
-      "upload_requests": 34,
+      "downloaded": 1275068416,
+      "uploaded": 637534208,
+      "download_requests": 76,
+      "upload_requests": 38,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -454,11 +454,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 200 ms",
-     "Ping: 189 ms"
+     "Ping: 169 ms",
+     "Ping: 192 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 18:56:02 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:54:26 +0000\"; reason = 1; }"
    }
   },
   {
@@ -544,7 +544,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -557,7 +556,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 108.26
+     "duration_s": 104.19
     },
     "udp": {
      "status": "not-run",
@@ -574,20 +573,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:56:12",
-    "finished": "2026-11-05 21:57:52",
-    "sustained": "Sustained full-duplex: 95.98 seconds, downloaded=1610612736, uploaded=704643072, download_requests=96, upload_requests=42, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:54:35",
+    "finished": "2026-11-10 02:56:11",
+    "sustained": "Sustained full-duplex: 92.68 seconds, downloaded=1275068416, uploaded=603979776, download_requests=76, upload_requests=36, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.98,
+     "seconds": 92.68,
      "errors": [],
-     "downloaded": 1610612736,
-     "uploaded": 704643072,
-     "download_requests": 96,
-     "upload_requests": 42,
+     "downloaded": 1275068416,
+     "uploaded": 603979776,
+     "download_requests": 76,
+     "upload_requests": 36,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -595,12 +595,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.98,
+      "seconds": 92.68,
       "errors": [],
-      "downloaded": 1610612736,
-      "uploaded": 704643072,
-      "download_requests": 96,
-      "upload_requests": 42,
+      "downloaded": 1275068416,
+      "uploaded": 603979776,
+      "download_requests": 76,
+      "upload_requests": 36,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -608,11 +608,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 534 ms",
-     "Ping: 257 ms"
+     "Ping: 171 ms",
+     "Ping: 131 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 18:57:51 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:56:10 +0000\"; reason = 1; }"
    }
   },
   {
@@ -685,7 +685,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -707,7 +706,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.02
+     "duration_s": 104.44
     },
     "udp": {
      "status": "not-run",
@@ -724,20 +723,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:58:01",
-    "finished": "2026-11-05 21:59:38",
-    "sustained": "Sustained full-duplex: 92.38 seconds, downloaded=1946157056, uploaded=1526726656, download_requests=116, upload_requests=91, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:56:20",
+    "finished": "2026-11-10 02:57:57",
+    "sustained": "Sustained full-duplex: 93.24 seconds, downloaded=1560281088, uploaded=1946157056, download_requests=93, upload_requests=116, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.38,
+     "seconds": 93.24,
      "errors": [],
-     "downloaded": 1946157056,
-     "uploaded": 1526726656,
-     "download_requests": 116,
-     "upload_requests": 91,
+     "downloaded": 1560281088,
+     "uploaded": 1946157056,
+     "download_requests": 93,
+     "upload_requests": 116,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -745,12 +745,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.38,
+      "seconds": 93.24,
       "errors": [],
-      "downloaded": 1946157056,
-      "uploaded": 1526726656,
-      "download_requests": 116,
-      "upload_requests": 91,
+      "downloaded": 1560281088,
+      "uploaded": 1946157056,
+      "download_requests": 93,
+      "upload_requests": 116,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -758,11 +758,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 231 ms",
-     "Ping: 200 ms"
+     "Ping: 196 ms",
+     "Ping: 158 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 18:59:36 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:57:56 +0000\"; reason = 1; }"
    }
   },
   {
@@ -835,7 +835,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -857,7 +856,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.89
+     "duration_s": 104.87
     },
     "udp": {
      "status": "not-run",
@@ -874,20 +873,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 21:59:45",
-    "finished": "2026-11-05 22:01:22",
-    "sustained": "Sustained full-duplex: 92.83 seconds, downloaded=2449473536, uploaded=973078528, download_requests=146, upload_requests=58, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:58:05",
+    "finished": "2026-11-10 02:59:42",
+    "sustained": "Sustained full-duplex: 93.45 seconds, downloaded=1644167168, uploaded=1828716544, download_requests=98, upload_requests=109, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.83,
+     "seconds": 93.45,
      "errors": [],
-     "downloaded": 2449473536,
-     "uploaded": 973078528,
-     "download_requests": 146,
-     "upload_requests": 58,
+     "downloaded": 1644167168,
+     "uploaded": 1828716544,
+     "download_requests": 98,
+     "upload_requests": 109,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -895,12 +895,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.83,
+      "seconds": 93.45,
       "errors": [],
-      "downloaded": 2449473536,
-      "uploaded": 973078528,
-      "download_requests": 146,
-      "upload_requests": 58,
+      "downloaded": 1644167168,
+      "uploaded": 1828716544,
+      "download_requests": 98,
+      "upload_requests": 109,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -908,11 +908,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 244 ms",
-     "Ping: 207 ms"
+     "Ping: 188 ms",
+     "Ping: 218 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:01:21 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-09 23:59:41 +0000\"; reason = 1; }"
    }
   },
   {
@@ -985,7 +985,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -1007,7 +1006,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.21
+     "duration_s": 103.54
     },
     "udp": {
      "status": "not-run",
@@ -1024,20 +1023,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:01:29",
-    "finished": "2026-11-05 22:03:06",
-    "sustained": "Sustained full-duplex: 92.84 seconds, downloaded=2550136832, uploaded=822083584, download_requests=152, upload_requests=49, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 02:59:50",
+    "finished": "2026-11-10 03:01:26",
+    "sustained": "Sustained full-duplex: 91.91 seconds, downloaded=1526726656, uploaded=1845493760, download_requests=91, upload_requests=110, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.84,
+     "seconds": 91.91,
      "errors": [],
-     "downloaded": 2550136832,
-     "uploaded": 822083584,
-     "download_requests": 152,
-     "upload_requests": 49,
+     "downloaded": 1526726656,
+     "uploaded": 1845493760,
+     "download_requests": 91,
+     "upload_requests": 110,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1045,12 +1045,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.84,
+      "seconds": 91.91,
       "errors": [],
-      "downloaded": 2550136832,
-      "uploaded": 822083584,
-      "download_requests": 152,
-      "upload_requests": 49,
+      "downloaded": 1526726656,
+      "uploaded": 1845493760,
+      "download_requests": 91,
+      "upload_requests": 110,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1058,11 +1058,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 269 ms",
-     "Ping: 212 ms"
+     "Ping: 223 ms",
+     "Ping: 170 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:03:05 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:01:25 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1145,7 +1145,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -1167,7 +1166,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.78
+     "duration_s": 105.79
     },
     "udp": {
      "status": "not-run",
@@ -1184,20 +1183,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:03:14",
-    "finished": "2026-11-05 22:04:53",
-    "sustained": "Sustained full-duplex: 95.29 seconds, downloaded=1358954496, uploaded=503316480, download_requests=81, upload_requests=30, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:01:34",
+    "finished": "2026-11-10 03:03:12",
+    "sustained": "Sustained full-duplex: 94.11 seconds, downloaded=1392508928, uploaded=1342177280, download_requests=83, upload_requests=80, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.29,
+     "seconds": 94.11,
      "errors": [],
-     "downloaded": 1358954496,
-     "uploaded": 503316480,
-     "download_requests": 81,
-     "upload_requests": 30,
+     "downloaded": 1392508928,
+     "uploaded": 1342177280,
+     "download_requests": 83,
+     "upload_requests": 80,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1205,12 +1205,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.29,
+      "seconds": 94.11,
       "errors": [],
-      "downloaded": 1358954496,
-      "uploaded": 503316480,
-      "download_requests": 81,
-      "upload_requests": 30,
+      "downloaded": 1392508928,
+      "uploaded": 1342177280,
+      "download_requests": 83,
+      "upload_requests": 80,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1218,11 +1218,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 188 ms",
-     "Ping: 141 ms"
+     "Ping: 162 ms",
+     "Ping: 149 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:04:52 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:03:11 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1305,7 +1305,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -1327,7 +1326,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 108.59
+     "duration_s": 104.87
     },
     "udp": {
      "status": "not-run",
@@ -1344,20 +1343,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:05:01",
-    "finished": "2026-11-05 22:06:43",
-    "sustained": "Sustained full-duplex: 97.63 seconds, downloaded=1275068416, uploaded=436207616, download_requests=76, upload_requests=26, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:03:20",
+    "finished": "2026-11-10 03:04:58",
+    "sustained": "Sustained full-duplex: 93.76 seconds, downloaded=1409286144, uploaded=1358954496, download_requests=84, upload_requests=81, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 97.63,
+     "seconds": 93.76,
      "errors": [],
-     "downloaded": 1275068416,
-     "uploaded": 436207616,
-     "download_requests": 76,
-     "upload_requests": 26,
+     "downloaded": 1409286144,
+     "uploaded": 1358954496,
+     "download_requests": 84,
+     "upload_requests": 81,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1365,12 +1365,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 97.63,
+      "seconds": 93.76,
       "errors": [],
-      "downloaded": 1275068416,
-      "uploaded": 436207616,
-      "download_requests": 76,
-      "upload_requests": 26,
+      "downloaded": 1409286144,
+      "uploaded": 1358954496,
+      "download_requests": 84,
+      "upload_requests": 81,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1378,11 +1378,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 179 ms",
-     "Ping: 178 ms"
+     "Ping: 159 ms",
+     "Ping: 196 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:06:42 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:04:56 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1454,7 +1454,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -1467,7 +1466,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.14
+     "duration_s": 104.0
     },
     "udp": {
      "status": "not-run",
@@ -1484,20 +1483,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:06:51",
-    "finished": "2026-11-05 22:08:28",
-    "sustained": "Sustained full-duplex: 92.84 seconds, downloaded=2533359616, uploaded=905969664, download_requests=151, upload_requests=54, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:05:06",
+    "finished": "2026-11-10 03:06:43",
+    "sustained": "Sustained full-duplex: 93.04 seconds, downloaded=1610612736, uploaded=1862270976, download_requests=96, upload_requests=111, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.84,
+     "seconds": 93.04,
      "errors": [],
-     "downloaded": 2533359616,
-     "uploaded": 905969664,
-     "download_requests": 151,
-     "upload_requests": 54,
+     "downloaded": 1610612736,
+     "uploaded": 1862270976,
+     "download_requests": 96,
+     "upload_requests": 111,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1505,12 +1505,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.84,
+      "seconds": 93.04,
       "errors": [],
-      "downloaded": 2533359616,
-      "uploaded": 905969664,
-      "download_requests": 151,
-      "upload_requests": 54,
+      "downloaded": 1610612736,
+      "uploaded": 1862270976,
+      "download_requests": 96,
+      "upload_requests": 111,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1518,11 +1518,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 199 ms",
-     "Ping: 139 ms"
+     "Ping: 209 ms",
+     "Ping: 129 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:08:26 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:06:41 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1604,7 +1604,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -1617,7 +1616,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.13
+     "duration_s": 103.9
     },
     "udp": {
      "status": "not-run",
@@ -1634,20 +1633,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:08:35",
-    "finished": "2026-11-05 22:10:13",
-    "sustained": "Sustained full-duplex: 94.19 seconds, downloaded=1509949440, uploaded=654311424, download_requests=90, upload_requests=39, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:06:50",
+    "finished": "2026-11-10 03:08:27",
+    "sustained": "Sustained full-duplex: 92.88 seconds, downloaded=1526726656, uploaded=1543503872, download_requests=91, upload_requests=92, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.19,
+     "seconds": 92.88,
      "errors": [],
-     "downloaded": 1509949440,
-     "uploaded": 654311424,
-     "download_requests": 90,
-     "upload_requests": 39,
+     "downloaded": 1526726656,
+     "uploaded": 1543503872,
+     "download_requests": 91,
+     "upload_requests": 92,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1655,12 +1655,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.19,
+      "seconds": 92.88,
       "errors": [],
-      "downloaded": 1509949440,
-      "uploaded": 654311424,
-      "download_requests": 90,
-      "upload_requests": 39,
+      "downloaded": 1526726656,
+      "uploaded": 1543503872,
+      "download_requests": 91,
+      "upload_requests": 92,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1668,11 +1668,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 187 ms",
-     "Ping: 138 ms"
+     "Ping: 172 ms",
+     "Ping: 122 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:10:12 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:08:25 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1744,7 +1744,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -1757,7 +1756,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.46
+     "duration_s": 103.76
     },
     "udp": {
      "status": "not-run",
@@ -1774,20 +1773,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:10:21",
-    "finished": "2026-11-05 22:11:57",
-    "sustained": "Sustained full-duplex: 92.46 seconds, downloaded=2516582400, uploaded=872415232, download_requests=150, upload_requests=52, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:08:34",
+    "finished": "2026-11-10 03:10:11",
+    "sustained": "Sustained full-duplex: 92.67 seconds, downloaded=1493172224, uploaded=1946157056, download_requests=89, upload_requests=116, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.46,
+     "seconds": 92.67,
      "errors": [],
-     "downloaded": 2516582400,
-     "uploaded": 872415232,
-     "download_requests": 150,
-     "upload_requests": 52,
+     "downloaded": 1493172224,
+     "uploaded": 1946157056,
+     "download_requests": 89,
+     "upload_requests": 116,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1795,12 +1795,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.46,
+      "seconds": 92.67,
       "errors": [],
-      "downloaded": 2516582400,
-      "uploaded": 872415232,
-      "download_requests": 150,
-      "upload_requests": 52,
+      "downloaded": 1493172224,
+      "uploaded": 1946157056,
+      "download_requests": 89,
+      "upload_requests": 116,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1808,11 +1808,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 189 ms",
-     "Ping: 239 ms"
+     "Ping: 176 ms",
+     "Ping: 204 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:11:56 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:10:10 +0000\"; reason = 1; }"
    }
   },
   {
@@ -1894,7 +1894,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -1907,7 +1906,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.62
+     "duration_s": 110.11
     },
     "udp": {
      "status": "not-run",
@@ -1924,20 +1923,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:12:05",
-    "finished": "2026-11-05 22:13:44",
-    "sustained": "Sustained full-duplex: 94.80 seconds, downloaded=1409286144, uploaded=520093696, download_requests=84, upload_requests=31, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:10:19",
+    "finished": "2026-11-10 03:12:02",
+    "sustained": "Sustained full-duplex: 98.84 seconds, downloaded=1342177280, uploaded=1207959552, download_requests=80, upload_requests=72, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.8,
+     "seconds": 98.84,
      "errors": [],
-     "downloaded": 1409286144,
-     "uploaded": 520093696,
-     "download_requests": 84,
-     "upload_requests": 31,
+     "downloaded": 1342177280,
+     "uploaded": 1207959552,
+     "download_requests": 80,
+     "upload_requests": 72,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -1945,12 +1945,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.8,
+      "seconds": 98.84,
       "errors": [],
-      "downloaded": 1409286144,
-      "uploaded": 520093696,
-      "download_requests": 84,
-      "upload_requests": 31,
+      "downloaded": 1342177280,
+      "uploaded": 1207959552,
+      "download_requests": 80,
+      "upload_requests": 72,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -1958,11 +1958,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 278 ms",
-     "Ping: 167 ms"
+     "Ping: 166 ms",
+     "Ping: 140 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:13:43 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:12:00 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2044,7 +2044,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2057,7 +2056,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.25
+     "duration_s": 104.77
     },
     "udp": {
      "status": "not-run",
@@ -2074,20 +2073,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:13:52",
-    "finished": "2026-11-05 22:15:32",
-    "sustained": "Sustained full-duplex: 95.21 seconds, downloaded=1778384896, uploaded=385875968, download_requests=106, upload_requests=23, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:12:10",
+    "finished": "2026-11-10 03:13:48",
+    "sustained": "Sustained full-duplex: 93.64 seconds, downloaded=1560281088, uploaded=738197504, download_requests=93, upload_requests=44, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.21,
+     "seconds": 93.64,
      "errors": [],
-     "downloaded": 1778384896,
-     "uploaded": 385875968,
-     "download_requests": 106,
-     "upload_requests": 23,
+     "downloaded": 1560281088,
+     "uploaded": 738197504,
+     "download_requests": 93,
+     "upload_requests": 44,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2095,12 +2095,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.21,
+      "seconds": 93.64,
       "errors": [],
-      "downloaded": 1778384896,
-      "uploaded": 385875968,
-      "download_requests": 106,
-      "upload_requests": 23,
+      "downloaded": 1560281088,
+      "uploaded": 738197504,
+      "download_requests": 93,
+      "upload_requests": 44,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2108,11 +2108,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 217 ms",
-     "Ping: 258 ms"
+     "Ping: 227 ms",
+     "Ping: 148 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:15:30 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:13:46 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2200,7 +2200,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2213,7 +2212,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.31
+     "duration_s": 104.65
     },
     "udp": {
      "status": "not-run",
@@ -2230,20 +2229,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:15:39",
-    "finished": "2026-11-05 22:17:19",
-    "sustained": "Sustained full-duplex: 95.43 seconds, downloaded=1711276032, uploaded=385875968, download_requests=102, upload_requests=23, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:13:56",
+    "finished": "2026-11-10 03:15:33",
+    "sustained": "Sustained full-duplex: 93.26 seconds, downloaded=1895825408, uploaded=469762048, download_requests=113, upload_requests=28, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.43,
+     "seconds": 93.26,
      "errors": [],
-     "downloaded": 1711276032,
-     "uploaded": 385875968,
-     "download_requests": 102,
-     "upload_requests": 23,
+     "downloaded": 1895825408,
+     "uploaded": 469762048,
+     "download_requests": 113,
+     "upload_requests": 28,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2251,12 +2251,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.43,
+      "seconds": 93.26,
       "errors": [],
-      "downloaded": 1711276032,
-      "uploaded": 385875968,
-      "download_requests": 102,
-      "upload_requests": 23,
+      "downloaded": 1895825408,
+      "uploaded": 469762048,
+      "download_requests": 113,
+      "upload_requests": 28,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2264,11 +2264,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 230 ms",
-     "Ping: 163 ms"
+     "Ping: 337 ms",
+     "Ping: 133 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:17:18 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:15:32 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2346,7 +2346,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2359,7 +2358,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.0
+     "duration_s": 104.38
     },
     "udp": {
      "status": "not-run",
@@ -2376,20 +2375,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:17:27",
-    "finished": "2026-11-05 22:19:05",
-    "sustained": "Sustained full-duplex: 94.01 seconds, downloaded=1946157056, uploaded=402653184, download_requests=116, upload_requests=24, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:15:41",
+    "finished": "2026-11-10 03:17:19",
+    "sustained": "Sustained full-duplex: 93.35 seconds, downloaded=1660944384, uploaded=671088640, download_requests=99, upload_requests=40, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.01,
+     "seconds": 93.35,
      "errors": [],
-     "downloaded": 1946157056,
-     "uploaded": 402653184,
-     "download_requests": 116,
-     "upload_requests": 24,
+     "downloaded": 1660944384,
+     "uploaded": 671088640,
+     "download_requests": 99,
+     "upload_requests": 40,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2397,12 +2397,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.01,
+      "seconds": 93.35,
       "errors": [],
-      "downloaded": 1946157056,
-      "uploaded": 402653184,
-      "download_requests": 116,
-      "upload_requests": 24,
+      "downloaded": 1660944384,
+      "uploaded": 671088640,
+      "download_requests": 99,
+      "upload_requests": 40,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2410,11 +2410,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 195 ms",
-     "Ping: 165 ms"
+     "Ping: 304 ms",
+     "Ping: 168 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:19:04 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:17:17 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2482,7 +2482,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2495,7 +2494,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.31
+     "duration_s": 103.51
     },
     "udp": {
      "status": "not-run",
@@ -2512,20 +2511,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:19:13",
-    "finished": "2026-11-05 22:20:51",
-    "sustained": "Sustained full-duplex: 93.46 seconds, downloaded=805306368, uploaded=1375731712, download_requests=48, upload_requests=82, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:17:26",
+    "finished": "2026-11-10 03:19:03",
+    "sustained": "Sustained full-duplex: 92.41 seconds, downloaded=738197504, uploaded=1426063360, download_requests=44, upload_requests=85, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.46,
+     "seconds": 92.41,
      "errors": [],
-     "downloaded": 805306368,
-     "uploaded": 1375731712,
-     "download_requests": 48,
-     "upload_requests": 82,
+     "downloaded": 738197504,
+     "uploaded": 1426063360,
+     "download_requests": 44,
+     "upload_requests": 85,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2533,12 +2533,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.46,
+      "seconds": 92.41,
       "errors": [],
-      "downloaded": 805306368,
-      "uploaded": 1375731712,
-      "download_requests": 48,
-      "upload_requests": 82,
+      "downloaded": 738197504,
+      "uploaded": 1426063360,
+      "download_requests": 44,
+      "upload_requests": 85,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2546,11 +2546,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 378 ms",
-     "Ping: 255 ms"
+     "Ping: 471 ms",
+     "Ping: 141 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:20:49 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:19:01 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2618,7 +2618,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2631,7 +2630,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.45
+     "duration_s": 102.88
     },
     "udp": {
      "status": "not-run",
@@ -2648,20 +2647,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:20:58",
-    "finished": "2026-11-05 22:22:35",
-    "sustained": "Sustained full-duplex: 92.59 seconds, downloaded=872415232, uploaded=1291845632, download_requests=52, upload_requests=77, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:19:10",
+    "finished": "2026-11-10 03:20:46",
+    "sustained": "Sustained full-duplex: 92.04 seconds, downloaded=687865856, uploaded=1409286144, download_requests=41, upload_requests=84, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.59,
+     "seconds": 92.04,
      "errors": [],
-     "downloaded": 872415232,
-     "uploaded": 1291845632,
-     "download_requests": 52,
-     "upload_requests": 77,
+     "downloaded": 687865856,
+     "uploaded": 1409286144,
+     "download_requests": 41,
+     "upload_requests": 84,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2669,12 +2669,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.59,
+      "seconds": 92.04,
       "errors": [],
-      "downloaded": 872415232,
-      "uploaded": 1291845632,
-      "download_requests": 52,
-      "upload_requests": 77,
+      "downloaded": 687865856,
+      "uploaded": 1409286144,
+      "download_requests": 41,
+      "upload_requests": 84,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2682,11 +2682,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 253 ms",
-     "Ping: 198 ms"
+     "Ping: 210 ms",
+     "Ping: 154 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:22:34 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:20:45 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2760,7 +2760,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -2773,7 +2772,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 110.16
+     "duration_s": 109.21
     },
     "udp": {
      "status": "not-run",
@@ -2790,20 +2789,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:22:43",
-    "finished": "2026-11-05 22:24:26",
-    "sustained": "Sustained full-duplex: 98.52 seconds, downloaded=201326592, uploaded=285212672, download_requests=12, upload_requests=17, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:20:54",
+    "finished": "2026-11-10 03:22:36",
+    "sustained": "Sustained full-duplex: 98.01 seconds, downloaded=469762048, uploaded=838860800, download_requests=28, upload_requests=50, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 98.52,
+     "seconds": 98.01,
      "errors": [],
-     "downloaded": 201326592,
-     "uploaded": 285212672,
-     "download_requests": 12,
-     "upload_requests": 17,
+     "downloaded": 469762048,
+     "uploaded": 838860800,
+     "download_requests": 28,
+     "upload_requests": 50,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -2811,12 +2811,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 98.52,
+      "seconds": 98.01,
       "errors": [],
-      "downloaded": 201326592,
-      "uploaded": 285212672,
-      "download_requests": 12,
-      "upload_requests": 17,
+      "downloaded": 469762048,
+      "uploaded": 838860800,
+      "download_requests": 28,
+      "upload_requests": 50,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -2824,11 +2824,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 202 ms",
-     "Ping: 173 ms"
+     "Ping: 187 ms",
+     "Ping: 135 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:24:24 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:22:35 +0000\"; reason = 1; }"
    }
   },
   {
@@ -2901,7 +2901,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.87
+     "duration_s": 107.08
     },
     "udp": {
      "status": "not-run",
@@ -2918,19 +2918,20 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:24:34",
-    "finished": "2026-11-05 22:26:13",
-    "sustained": "Sustained full-duplex: 93.80 seconds, downloaded=922746880, uploaded=620756992, download_requests=55, upload_requests=37, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:22:45",
+    "finished": "2026-11-10 03:24:25",
+    "sustained": "Sustained full-duplex: 94.72 seconds, downloaded=805306368, uploaded=620756992, download_requests=48, upload_requests=37, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.8,
+     "seconds": 94.72,
      "errors": [],
-     "downloaded": 922746880,
+     "downloaded": 805306368,
      "uploaded": 620756992,
-     "download_requests": 55,
+     "download_requests": 48,
      "upload_requests": 37,
      "finished": "8/8",
      "timeouts": 0,
@@ -2939,11 +2940,11 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.8,
+      "seconds": 94.72,
       "errors": [],
-      "downloaded": 922746880,
+      "downloaded": 805306368,
       "uploaded": 620756992,
-      "download_requests": 55,
+      "download_requests": 48,
       "upload_requests": 37,
       "finished": "8/8",
       "timeouts": 0,
@@ -2952,11 +2953,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 186 ms",
-     "Ping: 138 ms"
+     "Ping: 395 ms",
+     "Ping: 221 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:26:12 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:24:23 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3016,7 +3017,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3029,7 +3029,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.14
+     "duration_s": 103.83
     },
     "udp": {
      "status": "not-run",
@@ -3046,20 +3046,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:26:21",
-    "finished": "2026-11-05 22:27:58",
-    "sustained": "Sustained full-duplex: 93.05 seconds, downloaded=2264924160, uploaded=989855744, download_requests=135, upload_requests=59, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:24:32",
+    "finished": "2026-11-10 03:26:09",
+    "sustained": "Sustained full-duplex: 92.61 seconds, downloaded=1979711488, uploaded=1275068416, download_requests=118, upload_requests=76, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.05,
+     "seconds": 92.61,
      "errors": [],
-     "downloaded": 2264924160,
-     "uploaded": 989855744,
-     "download_requests": 135,
-     "upload_requests": 59,
+     "downloaded": 1979711488,
+     "uploaded": 1275068416,
+     "download_requests": 118,
+     "upload_requests": 76,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3067,12 +3068,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.05,
+      "seconds": 92.61,
       "errors": [],
-      "downloaded": 2264924160,
-      "uploaded": 989855744,
-      "download_requests": 135,
-      "upload_requests": 59,
+      "downloaded": 1979711488,
+      "uploaded": 1275068416,
+      "download_requests": 118,
+      "upload_requests": 76,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3080,11 +3081,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 214 ms",
-     "Ping: 145 ms"
+     "Ping: 259 ms",
+     "Ping: 136 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:27:56 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:26:08 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3174,7 +3175,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3187,7 +3187,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.98
+     "duration_s": 103.55
     },
     "udp": {
      "status": "not-run",
@@ -3204,20 +3204,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:28:05",
-    "finished": "2026-11-05 22:29:42",
-    "sustained": "Sustained full-duplex: 92.75 seconds, downloaded=2533359616, uploaded=855638016, download_requests=151, upload_requests=51, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:26:16",
+    "finished": "2026-11-10 03:27:53",
+    "sustained": "Sustained full-duplex: 92.52 seconds, downloaded=1795162112, uploaded=1459617792, download_requests=107, upload_requests=87, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.75,
+     "seconds": 92.52,
      "errors": [],
-     "downloaded": 2533359616,
-     "uploaded": 855638016,
-     "download_requests": 151,
-     "upload_requests": 51,
+     "downloaded": 1795162112,
+     "uploaded": 1459617792,
+     "download_requests": 107,
+     "upload_requests": 87,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3225,12 +3226,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.75,
+      "seconds": 92.52,
       "errors": [],
-      "downloaded": 2533359616,
-      "uploaded": 855638016,
-      "download_requests": 151,
-      "upload_requests": 51,
+      "downloaded": 1795162112,
+      "uploaded": 1459617792,
+      "download_requests": 107,
+      "upload_requests": 87,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3238,11 +3239,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 223 ms",
-     "Ping: 209 ms"
+     "Ping: 195 ms",
+     "Ping: 152 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:29:41 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:27:51 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3333,7 +3334,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3346,7 +3346,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.59
+     "duration_s": 103.24
     },
     "udp": {
      "status": "not-run",
@@ -3363,20 +3363,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:29:50",
-    "finished": "2026-11-05 22:31:26",
-    "sustained": "Sustained full-duplex: 92.04 seconds, downloaded=2449473536, uploaded=855638016, download_requests=146, upload_requests=51, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:28:00",
+    "finished": "2026-11-10 03:29:37",
+    "sustained": "Sustained full-duplex: 92.22 seconds, downloaded=1879048192, uploaded=1459617792, download_requests=112, upload_requests=87, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.04,
+     "seconds": 92.22,
      "errors": [],
-     "downloaded": 2449473536,
-     "uploaded": 855638016,
-     "download_requests": 146,
-     "upload_requests": 51,
+     "downloaded": 1879048192,
+     "uploaded": 1459617792,
+     "download_requests": 112,
+     "upload_requests": 87,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3384,12 +3385,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.04,
+      "seconds": 92.22,
       "errors": [],
-      "downloaded": 2449473536,
-      "uploaded": 855638016,
-      "download_requests": 146,
-      "upload_requests": 51,
+      "downloaded": 1879048192,
+      "uploaded": 1459617792,
+      "download_requests": 112,
+      "upload_requests": 87,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3397,11 +3398,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 193 ms",
-     "Ping: 174 ms"
+     "Ping: 213 ms",
+     "Ping: 221 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:31:24 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:29:35 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3491,7 +3492,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3504,7 +3504,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.8
+     "duration_s": 104.23
     },
     "udp": {
      "status": "not-run",
@@ -3521,20 +3521,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:31:34",
-    "finished": "2026-11-05 22:33:12",
-    "sustained": "Sustained full-duplex: 93.55 seconds, downloaded=2868903936, uploaded=536870912, download_requests=171, upload_requests=32, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:29:44",
+    "finished": "2026-11-10 03:31:21",
+    "sustained": "Sustained full-duplex: 93.03 seconds, downloaded=2566914048, uploaded=603979776, download_requests=153, upload_requests=36, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.55,
+     "seconds": 93.03,
      "errors": [],
-     "downloaded": 2868903936,
-     "uploaded": 536870912,
-     "download_requests": 171,
-     "upload_requests": 32,
+     "downloaded": 2566914048,
+     "uploaded": 603979776,
+     "download_requests": 153,
+     "upload_requests": 36,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3542,12 +3543,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.55,
+      "seconds": 93.03,
       "errors": [],
-      "downloaded": 2868903936,
-      "uploaded": 536870912,
-      "download_requests": 171,
-      "upload_requests": 32,
+      "downloaded": 2566914048,
+      "uploaded": 603979776,
+      "download_requests": 153,
+      "upload_requests": 36,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3555,11 +3556,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 183 ms",
-     "Ping: 221 ms"
+     "Ping: 186 ms",
+     "Ping: 174 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:33:10 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:31:20 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3634,7 +3635,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3647,7 +3647,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.69
+     "duration_s": 102.88
     },
     "udp": {
      "status": "not-run",
@@ -3664,20 +3664,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:33:19",
-    "finished": "2026-11-05 22:34:56",
-    "sustained": "Sustained full-duplex: 92.65 seconds, downloaded=2399141888, uploaded=956301312, download_requests=143, upload_requests=57, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:31:29",
+    "finished": "2026-11-10 03:33:05",
+    "sustained": "Sustained full-duplex: 92.00 seconds, downloaded=1962934272, uploaded=1560281088, download_requests=117, upload_requests=93, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.65,
+     "seconds": 92.0,
      "errors": [],
-     "downloaded": 2399141888,
-     "uploaded": 956301312,
-     "download_requests": 143,
-     "upload_requests": 57,
+     "downloaded": 1962934272,
+     "uploaded": 1560281088,
+     "download_requests": 117,
+     "upload_requests": 93,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3685,12 +3686,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.65,
+      "seconds": 92.0,
       "errors": [],
-      "downloaded": 2399141888,
-      "uploaded": 956301312,
-      "download_requests": 143,
-      "upload_requests": 57,
+      "downloaded": 1962934272,
+      "uploaded": 1560281088,
+      "download_requests": 117,
+      "upload_requests": 93,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3698,11 +3699,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 171 ms",
-     "Ping: 196 ms"
+     "Ping: 264 ms",
+     "Ping: 134 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:34:54 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:33:03 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3787,7 +3788,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3800,7 +3800,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.3
+     "duration_s": 103.95
     },
     "udp": {
      "status": "not-run",
@@ -3817,20 +3817,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:35:03",
-    "finished": "2026-11-05 22:36:39",
-    "sustained": "Sustained full-duplex: 92.43 seconds, downloaded=2130706432, uploaded=922746880, download_requests=127, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:33:13",
+    "finished": "2026-11-10 03:34:49",
+    "sustained": "Sustained full-duplex: 92.96 seconds, downloaded=1543503872, uploaded=1946157056, download_requests=92, upload_requests=116, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.43,
+     "seconds": 92.96,
      "errors": [],
-     "downloaded": 2130706432,
-     "uploaded": 922746880,
-     "download_requests": 127,
-     "upload_requests": 55,
+     "downloaded": 1543503872,
+     "uploaded": 1946157056,
+     "download_requests": 92,
+     "upload_requests": 116,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -3838,12 +3839,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.43,
+      "seconds": 92.96,
       "errors": [],
-      "downloaded": 2130706432,
-      "uploaded": 922746880,
-      "download_requests": 127,
-      "upload_requests": 55,
+      "downloaded": 1543503872,
+      "uploaded": 1946157056,
+      "download_requests": 92,
+      "upload_requests": 116,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -3852,10 +3853,10 @@
     "udp_phases": [],
     "https_checks": [
      "Ping: 181 ms",
-     "Ping: 165 ms"
+     "Ping: 223 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:36:38 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:34:48 +0000\"; reason = 1; }"
    }
   },
   {
@@ -3954,7 +3955,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -3967,7 +3967,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.01
+     "duration_s": 104.62
     },
     "udp": {
      "status": "not-run",
@@ -3984,20 +3984,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:36:47",
-    "finished": "2026-11-05 22:38:24",
-    "sustained": "Sustained full-duplex: 92.44 seconds, downloaded=2348810240, uploaded=922746880, download_requests=140, upload_requests=55, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:34:57",
+    "finished": "2026-11-10 03:36:34",
+    "sustained": "Sustained full-duplex: 93.57 seconds, downloaded=1711276032, uploaded=1744830464, download_requests=102, upload_requests=104, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.44,
+     "seconds": 93.57,
      "errors": [],
-     "downloaded": 2348810240,
-     "uploaded": 922746880,
-     "download_requests": 140,
-     "upload_requests": 55,
+     "downloaded": 1711276032,
+     "uploaded": 1744830464,
+     "download_requests": 102,
+     "upload_requests": 104,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4005,12 +4006,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.44,
+      "seconds": 93.57,
       "errors": [],
-      "downloaded": 2348810240,
-      "uploaded": 922746880,
-      "download_requests": 140,
-      "upload_requests": 55,
+      "downloaded": 1711276032,
+      "uploaded": 1744830464,
+      "download_requests": 102,
+      "upload_requests": 104,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -4018,286 +4019,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 229 ms",
-     "Ping: 253 ms"
+     "Ping: 295 ms",
+     "Ping: 206 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:38:22 +0000\"; reason = 1; }"
-   }
-  },
-  {
-   "id": "prod-additional-vless-kcp",
-   "kind": "production",
-   "why": "Production configuration additional-vless-kcp.json",
-   "sni": null,
-   "server_file": "additional-vless-kcp.json",
-   "configuration": {
-    "version": 3,
-    "mode": "chain",
-    "input": "connections",
-    "application": "vless",
-    "mux": false,
-    "outer": "none",
-    "http": "off",
-    "http-version": 1,
-    "obfuscator": false,
-    "carrier": "kcp",
-    "quic-carrier": "datagram",
-    "node-options": {}
-   },
-   "client": null,
-   "server": {
-    "peer": {
-     "name": "additional-vless-kcp",
-     "author": "SRP",
-     "config-version": 1,
-     "core-minimum-version": 0,
-     "nodes": [
-      {
-       "name": "public-in",
-       "type": "UdpListener",
-       "settings": {
-        "address": "0.0.0.0",
-        "port": 18468
-       },
-       "next": "kcp"
-      },
-      {
-       "name": "kcp",
-       "type": "TcpOverUdpServer",
-       "settings": {
-        "fec": false
-       },
-       "next": "vless"
-      },
-      {
-       "name": "vless",
-       "type": "VlessServer",
-       "settings": {
-        "uuid": "<UUID>",
-        "connect": true,
-        "udp": true,
-        "verbose": true
-       },
-       "next": "outbound"
-      },
-      {
-       "name": "outbound",
-       "type": "TcpUdpConnector",
-       "settings": {
-        "address": "dest_context->address",
-        "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
-        "nodelay": true
-       }
-      }
-     ]
-    },
-    "core": null,
-    "cover": null
-   },
-   "result": {
-    "status": "passed",
-    "tcp": {
-     "status": "passed",
-     "duration_s": 104.98
-    },
-    "udp": {
-     "status": "not-run",
-     "reason": "This run measured TCP only"
-    },
-    "ping": null,
-    "routing": null,
-    "path": {
-     "status": "passed",
-     "addresses": [
-      "<SERVER_IP>"
-     ]
-    },
-    "teardown": {
-     "passed": true
-    },
-    "lifecycle": null
-   },
-   "device": {
-    "started": "2026-11-05 22:38:31",
-    "finished": "2026-11-05 22:40:09",
-    "sustained": "Sustained full-duplex: 93.72 seconds, downloaded=687865856, uploaded=671088640, download_requests=41, upload_requests=40, errors=( ), finished=8/8, timeouts=0, VPN status=2",
-    "measured": {
-     "mode": "full-duplex",
-     "seconds": 93.72,
-     "errors": [],
-     "downloaded": 687865856,
-     "uploaded": 671088640,
-     "download_requests": 41,
-     "upload_requests": 40,
-     "finished": "8/8",
-     "timeouts": 0,
-     "status": 2
-    },
-    "phases": [
-     {
-      "mode": "full-duplex",
-      "seconds": 93.72,
-      "errors": [],
-      "downloaded": 687865856,
-      "uploaded": 671088640,
-      "download_requests": 41,
-      "upload_requests": 40,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     }
-    ],
-    "udp_phases": [],
-    "https_checks": [
-     "Ping: 410 ms",
-     "Ping: 366 ms"
-    ],
-    "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:40:08 +0000\"; reason = 1; }"
-   }
-  },
-  {
-   "id": "prod-additional-vless-obf-kcp",
-   "kind": "production",
-   "why": "Production configuration additional-vless-obf-kcp.json",
-   "sni": null,
-   "server_file": "additional-vless-obf-kcp.json",
-   "configuration": {
-    "version": 3,
-    "mode": "chain",
-    "input": "connections",
-    "application": "vless",
-    "mux": false,
-    "outer": "none",
-    "http": "off",
-    "http-version": 1,
-    "obfuscator": true,
-    "carrier": "kcp",
-    "quic-carrier": "datagram",
-    "node-options": {}
-   },
-   "client": null,
-   "server": {
-    "peer": {
-     "name": "additional-vless-obf-kcp",
-     "author": "SRP",
-     "config-version": 1,
-     "core-minimum-version": 0,
-     "nodes": [
-      {
-       "name": "public-in",
-       "type": "UdpListener",
-       "settings": {
-        "address": "0.0.0.0",
-        "port": 18469
-       },
-       "next": "kcp"
-      },
-      {
-       "name": "kcp",
-       "type": "TcpOverUdpServer",
-       "settings": {
-        "fec": false
-       },
-       "next": "obfuscator"
-      },
-      {
-       "name": "obfuscator",
-       "type": "ObfuscatorServer",
-       "settings": {
-        "method": "xor",
-        "xor_key": 90
-       },
-       "next": "vless"
-      },
-      {
-       "name": "vless",
-       "type": "VlessServer",
-       "settings": {
-        "uuid": "<UUID>",
-        "connect": true,
-        "udp": true,
-        "verbose": true
-       },
-       "next": "outbound"
-      },
-      {
-       "name": "outbound",
-       "type": "TcpUdpConnector",
-       "settings": {
-        "address": "dest_context->address",
-        "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
-        "nodelay": true
-       }
-      }
-     ]
-    },
-    "core": null,
-    "cover": null
-   },
-   "result": {
-    "status": "passed",
-    "tcp": {
-     "status": "passed",
-     "duration_s": 109.89
-    },
-    "udp": {
-     "status": "not-run",
-     "reason": "This run measured TCP only"
-    },
-    "ping": null,
-    "routing": null,
-    "path": {
-     "status": "passed",
-     "addresses": [
-      "<SERVER_IP>"
-     ]
-    },
-    "teardown": {
-     "passed": true
-    },
-    "lifecycle": null
-   },
-   "device": {
-    "started": "2026-11-05 22:40:17",
-    "finished": "2026-11-05 22:41:59",
-    "sustained": "Sustained full-duplex: 97.32 seconds, downloaded=671088640, uploaded=671088640, download_requests=40, upload_requests=40, errors=( ), finished=8/8, timeouts=0, VPN status=2",
-    "measured": {
-     "mode": "full-duplex",
-     "seconds": 97.32,
-     "errors": [],
-     "downloaded": 671088640,
-     "uploaded": 671088640,
-     "download_requests": 40,
-     "upload_requests": 40,
-     "finished": "8/8",
-     "timeouts": 0,
-     "status": 2
-    },
-    "phases": [
-     {
-      "mode": "full-duplex",
-      "seconds": 97.32,
-      "errors": [],
-      "downloaded": 671088640,
-      "uploaded": 671088640,
-      "download_requests": 40,
-      "upload_requests": 40,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     }
-    ],
-    "udp_phases": [],
-    "https_checks": [
-     "Ping: 1059 ms",
-     "Ping: 365 ms"
-    ],
-    "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:41:58 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:36:33 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4368,7 +4094,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -4381,7 +4106,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 102.99
+     "duration_s": 103.69
     },
     "udp": {
      "status": "not-run",
@@ -4398,20 +4123,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:42:07",
-    "finished": "2026-11-05 22:43:43",
-    "sustained": "Sustained full-duplex: 91.99 seconds, downloaded=1375731712, uploaded=1056964608, download_requests=82, upload_requests=63, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:37:35",
+    "finished": "2026-11-10 03:39:11",
+    "sustained": "Sustained full-duplex: 92.90 seconds, downloaded=1358954496, uploaded=1560281088, download_requests=81, upload_requests=93, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 91.99,
+     "seconds": 92.9,
      "errors": [],
-     "downloaded": 1375731712,
-     "uploaded": 1056964608,
-     "download_requests": 82,
-     "upload_requests": 63,
+     "downloaded": 1358954496,
+     "uploaded": 1560281088,
+     "download_requests": 81,
+     "upload_requests": 93,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4419,12 +4145,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 91.99,
+      "seconds": 92.9,
       "errors": [],
-      "downloaded": 1375731712,
-      "uploaded": 1056964608,
-      "download_requests": 82,
-      "upload_requests": 63,
+      "downloaded": 1358954496,
+      "uploaded": 1560281088,
+      "download_requests": 81,
+      "upload_requests": 93,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -4432,11 +4158,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 280 ms",
-     "Ping: 272 ms"
+     "Ping: 188 ms",
+     "Ping: 148 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:43:42 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:39:10 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4517,7 +4243,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -4530,7 +4255,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.28
+     "duration_s": 105.11
     },
     "udp": {
      "status": "not-run",
@@ -4547,20 +4272,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:43:51",
-    "finished": "2026-11-05 22:45:30",
-    "sustained": "Sustained full-duplex: 94.97 seconds, downloaded=788529152, uploaded=939524096, download_requests=47, upload_requests=56, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:39:19",
+    "finished": "2026-11-10 03:40:57",
+    "sustained": "Sustained full-duplex: 93.80 seconds, downloaded=939524096, uploaded=1644167168, download_requests=56, upload_requests=98, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.97,
+     "seconds": 93.8,
      "errors": [],
-     "downloaded": 788529152,
-     "uploaded": 939524096,
-     "download_requests": 47,
-     "upload_requests": 56,
+     "downloaded": 939524096,
+     "uploaded": 1644167168,
+     "download_requests": 56,
+     "upload_requests": 98,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4568,12 +4294,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.97,
+      "seconds": 93.8,
       "errors": [],
-      "downloaded": 788529152,
-      "uploaded": 939524096,
-      "download_requests": 47,
-      "upload_requests": 56,
+      "downloaded": 939524096,
+      "uploaded": 1644167168,
+      "download_requests": 56,
+      "upload_requests": 98,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -4581,11 +4307,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 249 ms",
-     "Ping: 177 ms"
+     "Ping: 185 ms",
+     "Ping: 195 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:45:28 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:40:55 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4681,7 +4407,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -4694,7 +4419,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 106.71
+     "duration_s": 104.61
     },
     "udp": {
      "status": "not-run",
@@ -4711,20 +4436,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:45:38",
-    "finished": "2026-11-05 22:47:17",
-    "sustained": "Sustained full-duplex: 95.28 seconds, downloaded=1811939328, uploaded=402653184, download_requests=108, upload_requests=24, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:41:05",
+    "finished": "2026-11-10 03:42:43",
+    "sustained": "Sustained full-duplex: 93.58 seconds, downloaded=1342177280, uploaded=1023410176, download_requests=80, upload_requests=61, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.28,
+     "seconds": 93.58,
      "errors": [],
-     "downloaded": 1811939328,
-     "uploaded": 402653184,
-     "download_requests": 108,
-     "upload_requests": 24,
+     "downloaded": 1342177280,
+     "uploaded": 1023410176,
+     "download_requests": 80,
+     "upload_requests": 61,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4732,12 +4458,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.28,
+      "seconds": 93.58,
       "errors": [],
-      "downloaded": 1811939328,
-      "uploaded": 402653184,
-      "download_requests": 108,
-      "upload_requests": 24,
+      "downloaded": 1342177280,
+      "uploaded": 1023410176,
+      "download_requests": 80,
+      "upload_requests": 61,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -4745,11 +4471,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 227 ms",
-     "Ping: 202 ms"
+     "Ping: 243 ms",
+     "Ping: 230 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:47:16 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:42:41 +0000\"; reason = 1; }"
    }
   },
   {
@@ -4815,7 +4541,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -4828,7 +4553,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.26
+     "duration_s": 104.53
     },
     "udp": {
      "status": "not-run",
@@ -4845,20 +4570,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:47:26",
-    "finished": "2026-11-05 22:49:04",
-    "sustained": "Sustained full-duplex: 94.42 seconds, downloaded=1744830464, uploaded=402653184, download_requests=104, upload_requests=24, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:42:51",
+    "finished": "2026-11-10 03:44:28",
+    "sustained": "Sustained full-duplex: 93.79 seconds, downloaded=956301312, uploaded=1258291200, download_requests=57, upload_requests=75, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.42,
+     "seconds": 93.79,
      "errors": [],
-     "downloaded": 1744830464,
-     "uploaded": 402653184,
-     "download_requests": 104,
-     "upload_requests": 24,
+     "downloaded": 956301312,
+     "uploaded": 1258291200,
+     "download_requests": 57,
+     "upload_requests": 75,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -4866,12 +4592,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.42,
+      "seconds": 93.79,
       "errors": [],
-      "downloaded": 1744830464,
-      "uploaded": 402653184,
-      "download_requests": 104,
-      "upload_requests": 24,
+      "downloaded": 956301312,
+      "uploaded": 1258291200,
+      "download_requests": 57,
+      "upload_requests": 75,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -4879,192 +4605,12 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 220 ms",
-     "Ping: 161 ms"
+     "Ping: 221 ms",
+     "Ping: 164 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:49:03 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:44:27 +0000\"; reason = 1; }"
    }
-  },
-  {
-   "id": "prod-additional-rawip-kcp",
-   "kind": "production",
-   "why": "Production configuration additional-rawip-kcp.json",
-   "sni": null,
-   "server_file": "additional-rawip-kcp.json",
-   "configuration": {
-    "version": 3,
-    "mode": "chain",
-    "input": "raw-ipv4",
-    "application": "",
-    "mux": false,
-    "outer": "none",
-    "http": "off",
-    "http-version": 1,
-    "obfuscator": false,
-    "carrier": "kcp",
-    "quic-carrier": "datagram",
-    "node-options": {}
-   },
-   "client": null,
-   "server": {
-    "peer": {
-     "name": "additional-rawip-kcp",
-     "author": "SRP",
-     "config-version": 1,
-     "core-minimum-version": 0,
-     "nodes": [
-      {
-       "name": "public-in",
-       "type": "UdpListener",
-       "settings": {
-        "address": "0.0.0.0",
-        "port": 18474
-       },
-       "next": "kcp"
-      },
-      {
-       "name": "kcp",
-       "type": "TcpOverUdpServer",
-       "settings": {
-        "fec": false
-       },
-       "next": "stream-in"
-      },
-      {
-       "name": "stream-in",
-       "type": "StreamToPackets",
-       "settings": {
-        "packet-validation-level": "hard"
-       },
-       "next": "packet-out"
-      },
-      {
-       "name": "packet-out",
-       "type": "PacketsToConnection",
-       "settings": {
-        "mtu": 1420,
-        "max-pending-bytes": 1048576
-       },
-       "next": "outbound"
-      },
-      {
-       "name": "outbound",
-       "type": "TcpUdpConnector",
-       "settings": {
-        "address": "dest_context->address",
-        "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
-        "nodelay": true
-       }
-      }
-     ]
-    },
-    "core": null,
-    "cover": null
-   },
-   "result": {
-    "status": "failed",
-    "tcp": {
-     "status": "failed",
-     "duration_s": 222.46
-    },
-    "udp": {
-     "status": "not-run",
-     "reason": "This run measured TCP only"
-    },
-    "ping": null,
-    "routing": null,
-    "path": {
-     "status": "passed",
-     "addresses": [
-      "<SERVER_IP>"
-     ]
-    },
-    "teardown": {
-     "passed": true
-    },
-    "lifecycle": null
-   },
-   "device": {
-    "started": "2026-11-05 22:49:13",
-    "finished": "2026-11-05 22:52:48",
-    "sustained": "Sustained full-duplex: 210.44 seconds, downloaded=671088640, uploaded=201326592, download_requests=40, upload_requests=12, errors=( ), finished=7/8, timeouts=0, VPN status=2",
-    "measured": {
-     "mode": "full-duplex",
-     "seconds": 210.44,
-     "errors": [],
-     "downloaded": 671088640,
-     "uploaded": 201326592,
-     "download_requests": 40,
-     "upload_requests": 12,
-     "finished": "7/8",
-     "timeouts": 0,
-     "status": 2
-    },
-    "phases": [
-     {
-      "mode": "full-duplex",
-      "seconds": 210.44,
-      "errors": [],
-      "downloaded": 671088640,
-      "uploaded": 201326592,
-      "download_requests": 40,
-      "upload_requests": 12,
-      "finished": "7/8",
-      "timeouts": 0,
-      "status": 2
-     }
-    ],
-    "udp_phases": [],
-    "https_checks": [
-     "Ping: 210 ms",
-     "Ping: 282 ms"
-    ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : Asynchronous wait failed: Exceeded timeout of 210 seconds, with unfulfilled expectations: \"Sustained parallel live downloads and verified uploads\".",
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:52:46 +0000\"; reason = 1; }"
-   },
-   "later_rounds": [
-    {
-     "round": 2,
-     "status": "failed",
-     "measured": {
-      "mode": "full-duplex",
-      "seconds": 210.46,
-      "errors": [],
-      "downloaded": 637534208,
-      "uploaded": 234881024,
-      "download_requests": 38,
-      "upload_requests": 14,
-      "finished": "7/8",
-      "timeouts": 0,
-      "status": 2
-     },
-     "start_utc": "2026-11-06T00:32:30Z",
-     "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e"
-    },
-    {
-     "round": 3,
-     "status": "passed",
-     "measured": {
-      "mode": "full-duplex",
-      "seconds": 99.1,
-      "errors": [],
-      "downloaded": 671088640,
-      "uploaded": 201326592,
-      "download_requests": 40,
-      "upload_requests": 12,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     },
-     "start_utc": "2026-11-06T00:36:46Z",
-     "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e"
-    }
-   ]
   },
   {
    "id": "prod-additional-vmess-tls",
@@ -5139,7 +4685,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -5152,7 +4697,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.6
+     "duration_s": 103.89
     },
     "udp": {
      "status": "not-run",
@@ -5169,20 +4714,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:52:56",
-    "finished": "2026-11-05 22:54:33",
-    "sustained": "Sustained full-duplex: 92.39 seconds, downloaded=1392508928, uploaded=1392508928, download_requests=83, upload_requests=83, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:45:03",
+    "finished": "2026-11-10 03:46:40",
+    "sustained": "Sustained full-duplex: 93.04 seconds, downloaded=1174405120, uploaded=1610612736, download_requests=70, upload_requests=96, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.39,
+     "seconds": 93.04,
      "errors": [],
-     "downloaded": 1392508928,
-     "uploaded": 1392508928,
-     "download_requests": 83,
-     "upload_requests": 83,
+     "downloaded": 1174405120,
+     "uploaded": 1610612736,
+     "download_requests": 70,
+     "upload_requests": 96,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5190,12 +4736,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.39,
+      "seconds": 93.04,
       "errors": [],
-      "downloaded": 1392508928,
-      "uploaded": 1392508928,
-      "download_requests": 83,
-      "upload_requests": 83,
+      "downloaded": 1174405120,
+      "uploaded": 1610612736,
+      "download_requests": 70,
+      "upload_requests": 96,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -5203,11 +4749,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 312 ms",
-     "Ping: 165 ms"
+     "Ping: 245 ms",
+     "Ping: 211 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:54:32 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:46:39 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5293,7 +4839,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -5306,7 +4851,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 110.61
+     "duration_s": 103.65
     },
     "udp": {
      "status": "not-run",
@@ -5323,20 +4868,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:54:41",
-    "finished": "2026-11-05 22:56:24",
-    "sustained": "Sustained full-duplex: 99.53 seconds, downloaded=1258291200, uploaded=419430400, download_requests=75, upload_requests=25, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:46:48",
+    "finished": "2026-11-10 03:48:24",
+    "sustained": "Sustained full-duplex: 92.67 seconds, downloaded=1291845632, uploaded=1728053248, download_requests=77, upload_requests=103, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 99.53,
+     "seconds": 92.67,
      "errors": [],
-     "downloaded": 1258291200,
-     "uploaded": 419430400,
-     "download_requests": 75,
-     "upload_requests": 25,
+     "downloaded": 1291845632,
+     "uploaded": 1728053248,
+     "download_requests": 77,
+     "upload_requests": 103,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5344,12 +4890,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 99.53,
+      "seconds": 92.67,
       "errors": [],
-      "downloaded": 1258291200,
-      "uploaded": 419430400,
-      "download_requests": 75,
-      "upload_requests": 25,
+      "downloaded": 1291845632,
+      "uploaded": 1728053248,
+      "download_requests": 77,
+      "upload_requests": 103,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -5357,11 +4903,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 174 ms",
-     "Ping: 227 ms"
+     "Ping: 160 ms",
+     "Ping: 134 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:56:23 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:48:23 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5452,7 +4998,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -5465,7 +5010,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.55
+     "duration_s": 102.85
     },
     "udp": {
      "status": "not-run",
@@ -5482,20 +5027,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 22:56:32",
-    "finished": "2026-11-05 22:58:08",
-    "sustained": "Sustained full-duplex: 92.40 seconds, downloaded=1459617792, uploaded=1258291200, download_requests=87, upload_requests=75, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:48:32",
+    "finished": "2026-11-10 03:50:07",
+    "sustained": "Sustained full-duplex: 91.90 seconds, downloaded=1124073472, uploaded=1560281088, download_requests=67, upload_requests=93, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.4,
+     "seconds": 91.9,
      "errors": [],
-     "downloaded": 1459617792,
-     "uploaded": 1258291200,
-     "download_requests": 87,
-     "upload_requests": 75,
+     "downloaded": 1124073472,
+     "uploaded": 1560281088,
+     "download_requests": 67,
+     "upload_requests": 93,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5503,12 +5049,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.4,
+      "seconds": 91.9,
       "errors": [],
-      "downloaded": 1459617792,
-      "uploaded": 1258291200,
-      "download_requests": 87,
-      "upload_requests": 75,
+      "downloaded": 1124073472,
+      "uploaded": 1560281088,
+      "download_requests": 67,
+      "upload_requests": 93,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -5516,11 +5062,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 540 ms",
-     "Ping: 181 ms"
+     "Ping: 249 ms",
+     "Ping: 167 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:58:07 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:50:06 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5610,202 +5156,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
-        "nodelay": true
-       }
-      }
-     ]
-    },
-    "core": null,
-    "cover": null
-   },
-   "result": {
-    "status": "failed",
-    "tcp": {
-     "status": "failed",
-     "duration_s": 104.6
-    },
-    "udp": {
-     "status": "not-run",
-     "reason": "This run measured TCP only"
-    },
-    "ping": null,
-    "routing": null,
-    "path": {
-     "status": "passed",
-     "addresses": [
-      "<SERVER_IP>"
-     ]
-    },
-    "teardown": {
-     "passed": true
-    },
-    "lifecycle": null
-   },
-   "device": {
-    "started": "2026-11-05 22:58:16",
-    "finished": "2026-11-05 22:59:53",
-    "sustained": "Sustained full-duplex: 93.10 seconds, downloaded=1811939328, uploaded=805306368, download_requests=109, upload_requests=48, errors=( \"The network connection was lost.\" ), finished=8/8, timeouts=0, VPN status=2",
-    "measured": {
-     "mode": "full-duplex",
-     "seconds": 93.1,
-     "errors": [
-      "The network connection was lost."
-     ],
-     "downloaded": 1811939328,
-     "uploaded": 805306368,
-     "download_requests": 109,
-     "upload_requests": 48,
-     "finished": "8/8",
-     "timeouts": 0,
-     "status": 2
-    },
-    "phases": [
-     {
-      "mode": "full-duplex",
-      "seconds": 93.1,
-      "errors": [
-       "The network connection was lost."
-      ],
-      "downloaded": 1811939328,
-      "uploaded": 805306368,
-      "download_requests": 109,
-      "upload_requests": 48,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     }
-    ],
-    "udp_phases": [],
-    "https_checks": [
-     "Ping: 229 ms",
-     "Ping: 144 ms"
-    ],
-    "failures": [
-     "-[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed"
-    ],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 19:59:52 +0000\"; reason = 1; }"
-   },
-   "later_rounds": [
-    {
-     "round": 2,
-     "status": "passed",
-     "measured": {
-      "mode": "full-duplex",
-      "seconds": 92.66,
-      "errors": [],
-      "downloaded": 1728053248,
-      "uploaded": 872415232,
-      "download_requests": 103,
-      "upload_requests": 52,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     },
-     "start_utc": "2026-11-06T00:25:33Z",
-     "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e"
-    },
-    {
-     "round": 3,
-     "status": "passed",
-     "measured": {
-      "mode": "full-duplex",
-      "seconds": 93.87,
-      "errors": [],
-      "downloaded": 1694498816,
-      "uploaded": 905969664,
-      "download_requests": 101,
-      "upload_requests": 54,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     },
-     "start_utc": "2026-11-06T00:27:51Z",
-     "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e"
-    },
-    {
-     "round": 4,
-     "status": "passed",
-     "measured": {
-      "mode": "full-duplex",
-      "seconds": 93.87,
-      "errors": [],
-      "downloaded": 1728053248,
-      "uploaded": 889192448,
-      "download_requests": 103,
-      "upload_requests": 53,
-      "finished": "8/8",
-      "timeouts": 0,
-      "status": 2
-     },
-     "start_utc": "2026-11-06T00:30:10Z",
-     "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e"
-    }
-   ]
-  },
-  {
-   "id": "prod-additional-vmess-kcp",
-   "kind": "production",
-   "why": "Production configuration additional-vmess-kcp.json",
-   "sni": null,
-   "server_file": "additional-vmess-kcp.json",
-   "configuration": {
-    "version": 3,
-    "mode": "chain",
-    "input": "connections",
-    "application": "vmess",
-    "mux": false,
-    "outer": "none",
-    "http": "off",
-    "http-version": 1,
-    "obfuscator": false,
-    "carrier": "kcp",
-    "quic-carrier": "datagram",
-    "node-options": {}
-   },
-   "client": null,
-   "server": {
-    "peer": {
-     "name": "additional-vmess-kcp",
-     "author": "SRP",
-     "config-version": 1,
-     "core-minimum-version": 0,
-     "nodes": [
-      {
-       "name": "public-in",
-       "type": "UdpListener",
-       "settings": {
-        "address": "0.0.0.0",
-        "port": 18479
-       },
-       "next": "kcp"
-      },
-      {
-       "name": "kcp",
-       "type": "TcpOverUdpServer",
-       "settings": {
-        "fec": false
-       },
-       "next": "vmess"
-      },
-      {
-       "name": "vmess",
-       "type": "VmessServer",
-       "settings": {
-        "uuid": "<UUID>",
-        "connect": true,
-        "udp": true,
-        "verbose": true
-       },
-       "next": "outbound"
-      },
-      {
-       "name": "outbound",
-       "type": "TcpUdpConnector",
-       "settings": {
-        "address": "dest_context->address",
-        "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -5818,7 +5168,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 108.9
+     "duration_s": 105.32
     },
     "udp": {
      "status": "not-run",
@@ -5835,20 +5185,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:00:01",
-    "finished": "2026-11-05 23:01:43",
-    "sustained": "Sustained full-duplex: 97.70 seconds, downloaded=671088640, uploaded=671088640, download_requests=40, upload_requests=40, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:50:15",
+    "finished": "2026-11-10 03:51:53",
+    "sustained": "Sustained full-duplex: 94.13 seconds, downloaded=1912602624, uploaded=771751936, download_requests=114, upload_requests=46, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 97.7,
+     "seconds": 94.13,
      "errors": [],
-     "downloaded": 671088640,
-     "uploaded": 671088640,
-     "download_requests": 40,
-     "upload_requests": 40,
+     "downloaded": 1912602624,
+     "uploaded": 771751936,
+     "download_requests": 114,
+     "upload_requests": 46,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5856,12 +5207,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 97.7,
+      "seconds": 94.13,
       "errors": [],
-      "downloaded": 671088640,
-      "uploaded": 671088640,
-      "download_requests": 40,
-      "upload_requests": 40,
+      "downloaded": 1912602624,
+      "uploaded": 771751936,
+      "download_requests": 114,
+      "upload_requests": 46,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -5869,11 +5220,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 222 ms",
-     "Ping: 282 ms"
+     "Ping: 228 ms",
+     "Ping: 244 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:01:41 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:51:52 +0000\"; reason = 1; }"
    }
   },
   {
@@ -5944,7 +5295,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -5957,7 +5307,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.46
+     "duration_s": 103.11
     },
     "udp": {
      "status": "not-run",
@@ -5974,20 +5324,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:01:51",
-    "finished": "2026-11-05 23:03:28",
-    "sustained": "Sustained full-duplex: 92.96 seconds, downloaded=855638016, uploaded=1174405120, download_requests=51, upload_requests=70, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:52:27",
+    "finished": "2026-11-10 03:54:03",
+    "sustained": "Sustained full-duplex: 91.32 seconds, downloaded=805306368, uploaded=1157627904, download_requests=48, upload_requests=69, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.96,
+     "seconds": 91.32,
      "errors": [],
-     "downloaded": 855638016,
-     "uploaded": 1174405120,
-     "download_requests": 51,
-     "upload_requests": 70,
+     "downloaded": 805306368,
+     "uploaded": 1157627904,
+     "download_requests": 48,
+     "upload_requests": 69,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -5995,12 +5346,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.96,
+      "seconds": 91.32,
       "errors": [],
-      "downloaded": 855638016,
-      "uploaded": 1174405120,
-      "download_requests": 51,
-      "upload_requests": 70,
+      "downloaded": 805306368,
+      "uploaded": 1157627904,
+      "download_requests": 48,
+      "upload_requests": 69,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6008,11 +5359,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 240 ms",
-     "Ping: 187 ms"
+     "Ping: 183 ms",
+     "Ping: 141 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:03:26 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:54:02 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6093,7 +5444,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -6106,7 +5456,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 105.95
+     "duration_s": 104.48
     },
     "udp": {
      "status": "not-run",
@@ -6123,20 +5473,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:03:35",
-    "finished": "2026-11-05 23:05:14",
-    "sustained": "Sustained full-duplex: 94.70 seconds, downloaded=872415232, uploaded=620756992, download_requests=52, upload_requests=37, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:54:11",
+    "finished": "2026-11-10 03:55:48",
+    "sustained": "Sustained full-duplex: 93.26 seconds, downloaded=939524096, uploaded=1140850688, download_requests=56, upload_requests=68, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 94.7,
+     "seconds": 93.26,
      "errors": [],
-     "downloaded": 872415232,
-     "uploaded": 620756992,
-     "download_requests": 52,
-     "upload_requests": 37,
+     "downloaded": 939524096,
+     "uploaded": 1140850688,
+     "download_requests": 56,
+     "upload_requests": 68,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6144,12 +5495,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 94.7,
+      "seconds": 93.26,
       "errors": [],
-      "downloaded": 872415232,
-      "uploaded": 620756992,
-      "download_requests": 52,
-      "upload_requests": 37,
+      "downloaded": 939524096,
+      "uploaded": 1140850688,
+      "download_requests": 56,
+      "upload_requests": 68,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6157,11 +5508,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 218 ms",
-     "Ping: 253 ms"
+     "Ping: 171 ms",
+     "Ping: 141 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:05:13 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:55:46 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6260,7 +5611,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -6273,7 +5623,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.26
+     "duration_s": 103.29
     },
     "udp": {
      "status": "not-run",
@@ -6290,20 +5640,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:05:22",
-    "finished": "2026-11-05 23:06:59",
-    "sustained": "Sustained full-duplex: 92.64 seconds, downloaded=1560281088, uploaded=1157627904, download_requests=93, upload_requests=69, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:55:56",
+    "finished": "2026-11-10 03:57:32",
+    "sustained": "Sustained full-duplex: 92.08 seconds, downloaded=1157627904, uploaded=1593835520, download_requests=69, upload_requests=95, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.64,
+     "seconds": 92.08,
      "errors": [],
-     "downloaded": 1560281088,
-     "uploaded": 1157627904,
-     "download_requests": 93,
-     "upload_requests": 69,
+     "downloaded": 1157627904,
+     "uploaded": 1593835520,
+     "download_requests": 69,
+     "upload_requests": 95,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6311,12 +5662,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.64,
+      "seconds": 92.08,
       "errors": [],
-      "downloaded": 1560281088,
-      "uploaded": 1157627904,
-      "download_requests": 93,
-      "upload_requests": 69,
+      "downloaded": 1157627904,
+      "uploaded": 1593835520,
+      "download_requests": 69,
+      "upload_requests": 95,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6324,11 +5675,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 252 ms",
-     "Ping: 266 ms"
+     "Ping: 226 ms",
+     "Ping: 194 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:06:57 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:57:30 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6401,7 +5752,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       },
@@ -6423,7 +5773,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 104.35
+     "duration_s": 103.72
     },
     "udp": {
      "status": "not-run",
@@ -6440,20 +5790,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:07:06",
-    "finished": "2026-11-05 23:08:44",
-    "sustained": "Sustained full-duplex: 93.02 seconds, downloaded=1006632960, uploaded=1258291200, download_requests=60, upload_requests=75, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:57:39",
+    "finished": "2026-11-10 03:59:16",
+    "sustained": "Sustained full-duplex: 93.01 seconds, downloaded=939524096, uploaded=1325400064, download_requests=56, upload_requests=79, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 93.02,
+     "seconds": 93.01,
      "errors": [],
-     "downloaded": 1006632960,
-     "uploaded": 1258291200,
-     "download_requests": 60,
-     "upload_requests": 75,
+     "downloaded": 939524096,
+     "uploaded": 1325400064,
+     "download_requests": 56,
+     "upload_requests": 79,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6461,12 +5812,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 93.02,
+      "seconds": 93.01,
       "errors": [],
-      "downloaded": 1006632960,
-      "uploaded": 1258291200,
-      "download_requests": 60,
-      "upload_requests": 75,
+      "downloaded": 939524096,
+      "uploaded": 1325400064,
+      "download_requests": 56,
+      "upload_requests": 79,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6474,11 +5825,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 244 ms",
-     "Ping: 210 ms"
+     "Ping: 238 ms",
+     "Ping: 158 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:08:42 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 00:59:15 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6550,7 +5901,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -6563,7 +5913,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 103.8
+     "duration_s": 102.39
     },
     "udp": {
      "status": "not-run",
@@ -6580,20 +5930,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:08:51",
-    "finished": "2026-11-05 23:10:28",
-    "sustained": "Sustained full-duplex: 92.61 seconds, downloaded=1073741824, uploaded=1224736768, download_requests=64, upload_requests=73, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 03:59:24",
+    "finished": "2026-11-10 04:00:59",
+    "sustained": "Sustained full-duplex: 91.52 seconds, downloaded=939524096, uploaded=1308622848, download_requests=56, upload_requests=78, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 92.61,
+     "seconds": 91.52,
      "errors": [],
-     "downloaded": 1073741824,
-     "uploaded": 1224736768,
-     "download_requests": 64,
-     "upload_requests": 73,
+     "downloaded": 939524096,
+     "uploaded": 1308622848,
+     "download_requests": 56,
+     "upload_requests": 78,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6601,12 +5952,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 92.61,
+      "seconds": 91.52,
       "errors": [],
-      "downloaded": 1073741824,
-      "uploaded": 1224736768,
-      "download_requests": 64,
-      "upload_requests": 73,
+      "downloaded": 939524096,
+      "uploaded": 1308622848,
+      "download_requests": 56,
+      "upload_requests": 78,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6614,11 +5965,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 200 ms",
-     "Ping: 281 ms"
+     "Ping: 221 ms",
+     "Ping: 128 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:10:26 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 01:00:58 +0000\"; reason = 1; }"
    }
   },
   {
@@ -6694,7 +6045,6 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
        }
       }
@@ -6707,7 +6057,7 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 107.89
+     "duration_s": 104.47
     },
     "udp": {
      "status": "not-run",
@@ -6724,20 +6074,21 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:10:36",
-    "finished": "2026-11-05 23:12:17",
-    "sustained": "Sustained full-duplex: 95.78 seconds, downloaded=1895825408, uploaded=352321536, download_requests=113, upload_requests=21, errors=( ), finished=8/8, timeouts=0, VPN status=2",
+    "started": "2026-11-10 04:01:07",
+    "finished": "2026-11-10 04:02:44",
+    "sustained": "Sustained full-duplex: 93.12 seconds, downloaded=1728053248, uploaded=587202560, download_requests=103, upload_requests=35, errors=( ), finished=8/8, timeouts=0, VPN status=2",
     "measured": {
      "mode": "full-duplex",
-     "seconds": 95.78,
+     "seconds": 93.12,
      "errors": [],
-     "downloaded": 1895825408,
-     "uploaded": 352321536,
-     "download_requests": 113,
-     "upload_requests": 21,
+     "downloaded": 1728053248,
+     "uploaded": 587202560,
+     "download_requests": 103,
+     "upload_requests": 35,
      "finished": "8/8",
      "timeouts": 0,
      "status": 2
@@ -6745,12 +6096,12 @@
     "phases": [
      {
       "mode": "full-duplex",
-      "seconds": 95.78,
+      "seconds": 93.12,
       "errors": [],
-      "downloaded": 1895825408,
-      "uploaded": 352321536,
-      "download_requests": 113,
-      "upload_requests": 21,
+      "downloaded": 1728053248,
+      "uploaded": 587202560,
+      "download_requests": 103,
+      "upload_requests": 35,
       "finished": "8/8",
       "timeouts": 0,
       "status": 2
@@ -6758,11 +6109,11 @@
     ],
     "udp_phases": [],
     "https_checks": [
-     "Ping: 356 ms",
-     "Ping: 238 ms"
+     "Ping: 208 ms",
+     "Ping: 142 ms"
     ],
     "failures": [],
-    "last_error": "(null); stop reason: { date = \"2026-11-05 20:12:15 +0000\"; reason = 1; }"
+    "last_error": "(null); stop reason: { date = \"2026-11-10 01:02:43 +0000\"; reason = 1; }"
    }
   }
  ]

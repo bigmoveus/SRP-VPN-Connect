@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>Every screen title, label, default value and message below was read from the app's source code at commit <code>a03a8bc2</code> (3 November 2026), the code used for our tests. Labels are quoted exactly as the app shows them.</p>
+  <p>Every screen title, label, default value and message below was read from the app's source code at commit <code>e44cf11d</code>, TestFlight build 41, the code used for our tests. Labels are quoted exactly as the app shows them.</p>
   <p>The screenshots were taken from that code on our test iPhone 12 on 3 November 2026, each next to the same screen of the Android app at commit <code>0fc837e3</code> on the Android emulator. The profiles in them hold example values (<code>server.example.com</code>, a dummy UUID) instead of real ones, and no ping results are shown because none were measured for these example profiles.</p>
 </div>
 
@@ -45,7 +45,7 @@
   <thead><tr><th>Control</th><th>What it does</th></tr></thead>
   <tbody>
     <tr><td>Power button</td><td>Connects the selected profile. While connecting or connected, it disconnects. The status line reads <strong>Disconnected</strong>, <strong>Connecting…</strong> or <strong>Connected</strong>.</td></tr>
-    <tr><td>Status text</td><td>Tap it to open the app's log, the first place to look when a connection fails.</td></tr>
+    <tr><td>Status text</td><td>Tap it to open the app's log, the first place to look when a connection fails. On iPhone, TestFlight and App Store builds keep no log of a WaterWall connection; the Android app does.</td></tr>
     <tr><td><strong>+</strong> (plus)</td><td>Adds a new profile. New profiles start as WaterWall.</td></tr>
     <tr><td>Pencil (edit)</td><td>Edits the selected profile. Disconnect first: while connected, the app shows <em>Disconnect the VPN before editing this profile</em>. With no profile selected it shows <em>Select a profile first (or add one with +)</em>.</td></tr>
     <tr><td>Question mark</td><td>Opens the app's website.</td></tr>
@@ -80,7 +80,7 @@
 </div>
 
 <h2>Choosing WaterWall</h2>
-<p>The <strong>Protocol</strong> screen lists every protocol in the app. WaterWall is first: <strong>WaterWall VPN</strong>, with the subtitle <em>VLESS, VMess, Trojan, BGP4 and packet tunnels</em>. On Android it is the only one so far.</p>
+<p>The <strong>Protocol</strong> screen lists every protocol in the app, the same nine on iPhone and Android. WaterWall is first: <strong>WaterWall VPN</strong>, with the subtitle <em>VLESS, VMess, Trojan, BGP4 and packet tunnels</em>.</p>
 <div class="shots">
   <figure>
     <img src="../assets/img/waterwall/protocol.png" alt="Protocol screen on iPhone with WaterWall VPN ticked at the top of the list" width="260" loading="lazy">
@@ -181,7 +181,7 @@
 <p>Direct mode needs no server, so it is saved without these checks.</p>
 
 <h2 id="configuration-screen">The WaterWall configuration screen</h2>
-<p>Tapping <strong>Configuration</strong> opens a screen titled <strong>WaterWall</strong>. It has up to three sections: <strong>CONFIGURATION</strong>, <strong>ADVANCED NODE SETTINGS</strong> and <strong>GEOIP ROUTING</strong>. Each change is checked at once; if a combination is not allowed, an alert explains why and the change is not made.</p>
+<p>Tapping <strong>Configuration</strong> opens a screen titled <strong>WaterWall</strong>. It has up to four sections: <strong>CONFIGURATION</strong>, <strong>ADVANCED NODE SETTINGS</strong>, <strong>GEOIP ROUTING</strong> and <strong>DNS RESOLVER</strong>. Each change is checked at once; if a combination is not allowed, an alert explains why and the change is not made.</p>
 <div class="shots">
   <figure>
     <img src="../assets/img/waterwall/waterwall.png" alt="WaterWall screen on iPhone with Mode, Input, Application, MUX, Obfuscator, HTTP, BGP4 Framing, Outer and Carrier rows" width="260" loading="lazy">
@@ -210,7 +210,7 @@
     <tr><td><strong>Direct</strong></td><td>Sends traffic straight to the internet through WaterWall, with no server. It is meant for diagnostics: it shows whether the phone side of WaterWall works.</td></tr>
   </tbody>
 </table>
-<p>Changing the mode clears the advanced node settings. Choosing Chain resets every layer to its default; the other modes remove the chain and GeoIP settings.</p>
+<p>Changing the mode clears the advanced node settings. Choosing Chain resets every layer to its default; the other modes remove the chain, GeoIP and DNS resolver settings.</p>
 
 <h3>The layers of a chain</h3>
 <p>In Chain mode you pick each layer separately. Traffic passes through them in the order of this table, from the phone towards the server.</p>
@@ -241,7 +241,7 @@
   <li><strong>Outer QUIC</strong> turns HTTP and MUX off and sets Carrier to TCP. QUIC Carrier becomes Stream for HTTP CONNECT and Datagram otherwise.</li>
   <li><strong>QUIC Carrier Datagram</strong> turns MUX off.</li>
   <li>Turning <strong>BGP4 Framing</strong> off while Outer is BGP4 sets Outer to None.</li>
-  <li><strong>Raw IPv4</strong> removes the application, MUX and GeoIP settings.</li>
+  <li><strong>Raw IPv4</strong> removes the application, MUX, GeoIP and DNS resolver settings.</li>
 </ul>
 
 <h3>Combinations that are not allowed</h3>
@@ -320,6 +320,38 @@
 </div>
 <p>A new database is checked before it replaces the old one; if the check fails, the old one stays. Files must be MaxMind Country databases no larger than 128 MB. After a successful update the app says <em>Reconnect WaterWall to use the new file.</em> Country data is GeoLite2 by MaxMind.</p>
 
+<h3 id="dns-resolver">DNS RESOLVER</h3>
+<p>Shown in Chain mode with Connections input, under GeoIP Routing. It decides who looks up the names of the sites the phone opens: the server, as before, or WaterWall on the phone before routing, so that GeoIP routing sees real addresses and the server gets an address instead of a name. It needs <strong>Remote DNS (Fake IP)</strong>, which is on by default: with it off, the phone looks names up itself, and WaterWall gets only addresses. The note under the section says what the chosen Resolver does.</p>
+<table>
+  <thead><tr><th>Row</th><th>What it does</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Resolver</strong></td><td>Opens a list: <strong>Off</strong>, the default, leaves names to the server; GeoIP routing still looks them up on the phone, with the network's DNS. <strong>Native</strong> asks the DNS of the network the phone is on, outside the VPN. <strong>Direct</strong> asks the DNS servers below straight from the phone, outside the VPN. <strong>Through the VPN</strong> asks them through the VPN, so the server must reach them.</td></tr>
+    <tr><td><strong>Addresses</strong></td><td>Shown unless Resolver is Off: <em>Default (IPv4 First)</em>, <em>IPv4 First</em>, <em>IPv6 First</em>, <em>IPv4 Only</em>, <em>IPv6 Only</em> or <em>As the Server Returns</em>, for a name with both kinds of address.</td></tr>
+    <tr><td><strong>DNS Servers</strong></td><td>Shown for Direct and Through the VPN. It starts with <code>1.1.1.1, 8.8.8.8</code>. Up to 32 addresses, separated by commas or spaces; a port goes after an IPv4 address as <code>1.1.1.1:5353</code>, or after an IPv6 address in brackets as <code>[2606:4700:4700::1111]:53</code>. The list is checked and saved when you finish typing.</td></tr>
+  </tbody>
+</table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-dns-resolver.png" alt="Lower part of the WaterWall screen on iPhone with the DNS Resolver section: Resolver Through the VPN, Addresses Default (IPv4 First) and DNS Servers 1.1.1.1, 8.8.8.8" width="260" loading="lazy">
+    <figcaption>The DNS RESOLVER section with Through the VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-dns-resolver-mode.png" alt="Resolver list on iPhone with Off, Native, Direct and Through the VPN, Through the VPN ticked" width="260" loading="lazy">
+    <figcaption>The list behind the Resolver row, on iPhone.</figcaption>
+  </figure>
+</div>
+<p>On Android the section has the same rows and the same lists.</p>
+<p>A change that is not allowed is refused at once with one of these messages, and the saved list stays:</p>
+<table>
+  <thead><tr><th>Message</th><th>What to fix</th></tr></thead>
+  <tbody>
+    <tr><td><em>&lt;entry&gt; is not a DNS server address: use an IP address, IPv4:port or [IPv6]:port.</em></td><td>A name such as <code>dns.google</code>, an IPv6 scope such as <code>%en0</code>, a leading zero, or port 0.</td></tr>
+    <tr><td><em>Direct and chain DNS need 1 to 32 DNS servers.</em></td><td>The list is empty or longer than 32.</td></tr>
+    <tr><td><em>Chain DNS sends UDP queries through the VPN, which HTTP CONNECT and a fixed TCP protocol cannot carry.</em></td><td>Through the VPN with HTTP CONNECT, or with <code>protocol</code> <code>tcp</code> or <code>connect</code> in the application's settings: choose Direct or Native, or another application.</td></tr>
+  </tbody>
+</table>
+<p>What the app puts in the chain for each Resolver is in the <a href="configuration.html#dns-resolver">Configuration Reference</a>.</p>
+
 <h2 id="wireguard-mode">WireGuard mode</h2>
 <p>In WireGuard mode the SERVER section has:</p>
 <ul>
@@ -383,9 +415,9 @@
     <tr><td><strong>Auto Switch</strong></td><td>On</td><td>Shown in Chain mode. Uses your other WaterWall Chain profiles <em>for the same server</em> (up to 8, matched by the Server field) as fallbacks. Each reconnect tries the next one. When the network loses many packets, it moves to a profile with the other carrier (TCP or UDP).</td></tr>
     <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>On</td><td>Restarts the connection on Wi-Fi as soon as Wi-Fi appears, and on cellular when Wi-Fi is lost. This is also what returns Auto Switch to the profile you chose.</td></tr>
     <tr><td><strong>On Sleep</strong></td><td>Stay</td><td><em>Stay</em> keeps the connection open while the phone sleeps. <em>Pause</em> closes it and always reconnects on wake. <em>Off</em> closes it; on wake it reconnects only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em> On Android, the phone sleeping means the screen going off, and waking means the screen coming on.</td></tr>
-    <tr><td><strong>Log Level</strong></td><td>Normal</td><td>How much the app and WaterWall write to their logs: Normal, Expert or Debug.</td></tr>
+    <tr><td><strong>Log Level</strong></td><td>Normal</td><td>How much the app and WaterWall write to their logs: Normal, Expert or Debug. On iPhone it matters only in Debug builds made for testing, because TestFlight and App Store builds keep no log of a WaterWall connection.</td></tr>
     <tr><td><strong>TLS Fragmentation</strong></td><td>Off</td><td>Shown for Chain with Outer TLS or Reality. Splits the first TLS message (the ClientHello) into small pieces, which can get past some filters. Auto uses a 32-byte first piece and 256-byte pieces after it. Manual adds <strong>First Chunk (bytes)</strong> (hint 32) and <strong>Following Chunks (bytes)</strong> (hint 256) for your own sizes.</td></tr>
-    <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for Chain with Connections input. The phone gets placeholder addresses for names, and the server looks up the real names. When off, the phone asks 1.1.1.1 and 1.0.0.1 itself.</td></tr>
+    <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for Chain with Connections input. The phone gets placeholder addresses for names, and the server looks up the real names, or WaterWall on the phone when the <a href="#dns-resolver">DNS RESOLVER</a> is on. When off, the phone asks 1.1.1.1 and 1.0.0.1 itself, and the DNS resolver has no names to look up.</td></tr>
     <tr><td><strong>Direct LAN Routing</strong></td><td>Off</td><td>Shown for Chain with Connections input. Sends private addresses (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) directly instead of through the server, so you can still reach devices on your local network.</td></tr>
   </tbody>
 </table>

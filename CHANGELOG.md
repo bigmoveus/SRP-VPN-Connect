@@ -6,6 +6,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The server guides of SSTP (Windows Server, MikroTik and SoftEther), SoftEther, SSL VPN, SSH, OpenVPN, WireGuard, AmneziaWG and Aether end with setting up the app on the phone, step by step for iPhone and Android, and a check that the phone is connected; every app setup page explains the optional Description row.
+- The WaterWall documentation describes the official WaterWall 1.5.42 server, TestFlight build 41 and the Android APK 1.2.0 (9): every scenario page has new iPhone results against 1.5.42 (168 pages; four new ones for the DNS resolver show where its questions went), the Android page has the results of the 45 chains, the 46 checks and 15 chains with the signed release APK, the UI guide and the Configuration Reference describe the DNS RESOLVER section and `dns-behaviour`, Installation says how to move a server from 1.5.3 to the names 1.5.4 and later accept, and Troubleshooting explains the `FATAL` lines an old file gives. Two Troubleshooting entries that held only for 1.5.3 are gone. The scenario generator shows the DNS check and the resolver and GeoIP rows, and the Android results generator the release APK's chains.
 
 ### Fixed
 - An iPhone unit test of the BGP4 chain still expected the Router's `resolve-domains` setting that WaterWall 1.5.4 and later refuse; it now checks that the Router has no `dns-behaviour`, so it does not resolve. Only the test changed.

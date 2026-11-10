@@ -1,8 +1,8 @@
 {
   "device-matrix": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.3, test copy on the test server, port 4097",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.42, test copy on the test server, port 4097",
     "inventory_gaps": "TLS verification off with a self-signed certificate; local Reality cover; TCP only; one 90 s round",
-    "server_version": "1.5.3, the official release, unchanged",
+    "server_version": "1.5.42, the official release, unchanged",
     "setup": [
       [
         "Phone",
@@ -10,7 +10,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0 (build 34), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after {head} change only the documentation, the build number and the change log"
+        "SRP VPN Connect 1.2.0 (build 41), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log"
       ],
       [
         "Server machine",
@@ -18,11 +18,11 @@
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.3 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case"
+        "The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case"
       ],
       [
         "Server DNS lookups",
-        "5 tries, WaterWall 1.5.3's default; the test copy's core.json does not set it"
+        "5 tries, WaterWall 1.5.42's default; the test copy's core.json does not set it"
       ],
       [
         "Server port",
@@ -95,9 +95,9 @@
     ]
   },
   "lifecycle": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Debug; official WaterWall 1.5.3, test copy on the test server, port 4097",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Debug; official WaterWall 1.5.42, test copy on the test server, port 4097",
     "inventory_gaps": "Sleep and WaterWall failures simulated with Debug-only tunnel commands; one run",
-    "server_version": "1.5.3, the official release, unchanged",
+    "server_version": "1.5.42, the official release, unchanged",
     "setup": [
       [
         "Phone",
@@ -105,15 +105,15 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0 (build 34), a Debug build of commit {head}, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after {head} change only the documentation, the build number and the change log"
+        "SRP VPN Connect 1.2.0 (build 41), a Debug build of commit {head}, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log"
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.3 release program, unchanged, the same program as our permanent service, run as a test copy on port 4097"
+        "The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a test copy on port 4097"
       ],
       [
         "Server DNS lookups",
-        "5 tries, WaterWall 1.5.3's default; the test copy's core.json does not set it"
+        "5 tries, WaterWall 1.5.42's default; the test copy's core.json does not set it"
       ],
       [
         "Traffic",
@@ -220,9 +220,9 @@
     }
   },
   "production": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service with the official WaterWall 1.5.3, Let's Encrypt, verification on",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; waterwall.service with the official WaterWall 1.5.42, Let's Encrypt, verification on",
     "inventory_gaps": "TCP only; one 90 s round",
-    "server_version": "1.5.3, the official release, unchanged",
+    "server_version": "1.5.42, the official release, unchanged",
     "setup": [
       [
         "Phone",
@@ -230,7 +230,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0 (build 34), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after {head} change only the documentation, the build number and the change log"
+        "SRP VPN Connect 1.2.0 (build 41), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log"
       ],
       [
         "Server machine",
@@ -238,11 +238,11 @@
       ],
       [
         "Server program",
-        "Our permanent waterwall.service: the official WaterWall 1.5.3 release program, unchanged, installed as described in Installation, with /etc/waterwall/core.json"
+        "Our permanent waterwall.service: the official WaterWall 1.5.42 release program, unchanged, installed as described in Installation, with /etc/waterwall/core.json"
       ],
       [
         "Server DNS lookups",
-        "5 tries, WaterWall 1.5.3's default; /etc/waterwall/core.json does not set it"
+        "5 tries, WaterWall 1.5.42's default; /etc/waterwall/core.json does not set it"
       ],
       [
         "Server port",
@@ -316,9 +316,9 @@
     ]
   },
   "download": {
-    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.3, test copy, port 4097; downloads, UDP echo, GeoIP routing from the reference server log",
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.42, test copy, port 4097; downloads, UDP echo, GeoIP routing from the reference server log",
     "inventory_gaps": "TLS verification off with a self-signed certificate; UDP is an echo check, not a throughput test; one 90 s round",
-    "server_version": "1.5.3, the official release, unchanged",
+    "server_version": "1.5.42, the official release, unchanged",
     "setup": [
       [
         "Phone",
@@ -326,7 +326,7 @@
       ],
       [
         "App",
-        "SRP VPN Connect 1.2.0 (build 34), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after {head} change only the documentation, the build number and the change log"
+        "SRP VPN Connect 1.2.0 (build 41), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log"
       ],
       [
         "Server machine",
@@ -334,11 +334,11 @@
       ],
       [
         "Server program",
-        "The official WaterWall 1.5.3 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case"
+        "The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case"
       ],
       [
         "Server DNS lookups",
-        "5 tries, WaterWall 1.5.3's default; the test copy's core.json does not set it"
+        "5 tries, WaterWall 1.5.42's default; the test copy's core.json does not set it"
       ],
       [
         "Server port",
@@ -412,6 +412,112 @@
     "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads of 16 MiB at the same time, over and over. The GeoIP cases downloaded from the reference server on port 28480; the others from the HTTPS test server.</li><li>On chains that carry UDP, it then sent small UDP datagrams to the echo server for 90 seconds, at least 10 a second, and waited for each one to come back.</li><li>It ran the HTTPS check again and disconnected.</li><li>For the GeoIP cases, the harness then read the reference server's log, which records the address each download came from: our office address means the download went straight from the phone, the server's own address means it went through WaterWall.</li></ol><p>A case passes only if the VPN stayed connected, the downloads ran the full 90 seconds with no errors or timeouts, both HTTPS checks succeeded, every UDP datagram came back, and every GeoIP download went the expected way.</p>",
     "gaps": [
       "TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.",
+      "The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.",
+      "Each case ran once, with one phone on one network."
+    ]
+  },
+  "dns-resolver": {
+    "inventory_environment": "iPhone 12 iOS 27.2, app {head} Release; official WaterWall 1.5.42, test copy, port 4097; DNS questions from the DNS test server's log, downloads, UDP echo",
+    "inventory_gaps": "TLS verification off with a self-signed certificate; the DNS check counts askers, not answers; one 90 s round",
+    "server_version": "1.5.42, the official release, unchanged",
+    "setup": [
+      [
+        "Phone",
+        "iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi"
+      ],
+      [
+        "App",
+        "SRP VPN Connect 1.2.0 (build 41), a Release build of commit {head}, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log"
+      ],
+      [
+        "Server machine",
+        "Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM"
+      ],
+      [
+        "Server program",
+        "The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case"
+      ],
+      [
+        "Server DNS lookups",
+        "5 tries, WaterWall 1.5.42's default; the test copy's core.json does not set it"
+      ],
+      [
+        "Server port",
+        "4097, opened in the firewall only for our office address while the case ran"
+      ],
+      [
+        "Traffic",
+        "An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server's private address 10.44.0.1, because iOS sends traffic for the server's own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address"
+      ],
+      [
+        "Network",
+        "Our office broadband line, over the public internet"
+      ],
+      [
+        "UDP echo",
+        "A UDP echo server on the same machine, port 28481. The GeoIP case, whose UDP leaves outside the tunnel, used the test harness's own echo on port 28482 instead, opened in the firewall only for our office address while the case ran"
+      ],
+      [
+        "DNS test server",
+        "A DNS forwarder on the same machine, UDP port 28453, that answers each question by asking 8.8.8.8 and logs the address each question came from. The profile's DNS Servers row named it; it was opened in the firewall only for our office address while the cases ran"
+      ],
+      [
+        "GeoIP reference",
+        "An HTTPS server on the same machine, port 28480, that logs the address each download comes from"
+      ]
+    ],
+    "topology": "iPhone 12 with SRP VPN Connect\n      |\n      |  Wi-Fi, office broadband, internet\n      v\nTest server <SERVER_IP>\n  WaterWall test copy, port 4097           the chain under test\n      |\n      |  inside the same machine\n      v\n  HTTPS test server, port 28483            download file\n  UDP echo server, port 28481              UDP check\n  HTTPS reference server, port 28480       GeoIP case\n  DNS test server, UDP port 28453          where the resolver's questions come from\n\nWith GeoIP direct routing, downloads from the reference server go straight from the phone\nto port 28480, without WaterWall.",
+    "server_intro": "The test harness wrote this file for the case and started our WaterWall program with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.",
+    "profile": [
+      [
+        "Server",
+        "<SERVER_IP>, the test server's address"
+      ],
+      [
+        "Port",
+        "4097"
+      ],
+      [
+        "SNI (optional)",
+        "localhost, for chains with TLS, Reality or QUIC"
+      ],
+      [
+        "TLS Server Verification",
+        "Off, because the test certificate is self-signed"
+      ],
+      [
+        "UUID or Password",
+        "<UUID>, a test value"
+      ],
+      [
+        "Reality or AEAD Password",
+        "<OUTER_PASSWORD>, a test value, when the chain uses one"
+      ],
+      [
+        "Auto Reconnect",
+        "Off, so that a reconnect cannot hide a failure"
+      ],
+      [
+        "On Sleep",
+        "Stay"
+      ],
+      [
+        "Log Level",
+        "Normal"
+      ],
+      [
+        "Remote DNS (Fake IP)",
+        "On"
+      ],
+      [
+        "Direct LAN Routing",
+        "On"
+      ]
+    ],
+    "procedure": "<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads of 16 MiB at the same time, over and over. They used the test server's name, so each new connection made the DNS resolver look it up. The GeoIP case downloaded from the reference server on port 28480; the others from the HTTPS test server.</li><li>It then sent small UDP datagrams to the echo server for 90 seconds, at least 10 a second, and waited for each one to come back.</li><li>It ran the HTTPS check again and disconnected.</li><li>The harness then read the DNS test server's log for the time of the case: Native must leave no question there, Direct must leave questions from our office address only, and Through the VPN questions from the WaterWall server only. For Direct and Through the VPN, the test server's name must be among them. For the GeoIP case it also read the reference server's log, as in the GeoIP routing cases.</li></ol><p>A case passes only if the VPN stayed connected, the downloads ran the full 90 seconds with no errors or timeouts, both HTTPS checks succeeded, every UDP datagram came back, the DNS questions came from where the resolver's setting sends them, and, for the GeoIP case, every download went straight from the phone. The cases without GeoIP were also checked to arrive through the tunnel.</p>",
+    "gaps": [
+      "TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.",
+      "The DNS check counts where the questions came from; it does not check the answers, which 8.8.8.8 gave.",
       "The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.",
       "Each case ran once, with one phone on one network."
     ]

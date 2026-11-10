@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VLESS + TLS with the DNS resolver Direct — WaterWall Scenarios — SRP VPN Connect Documentation</title>
+<meta name="description" content="The DNS resolver looks up the name of each connection on the phone before routing. Direct asks the listed DNS server straight from the phone, outside the VPN, so our DNS test server must hear the questions from the phone&#x27;s network.">
+<link rel="stylesheet" href="../../assets/css/site.css">
+<script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<main>
+<h1>VLESS + TLS with the DNS resolver Direct</h1>
+<p class="lead">The DNS resolver looks up the name of each connection on the phone before routing. Direct asks the listed DNS server straight from the phone, outside the VPN, so our DNS test server must hear the questions from the phone&#x27;s network.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
+<h2>Result</h2>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>96 seconds</td></tr><tr><th>Downloaded</th><td>2,030 MB (169 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>121 downloads of 16 MiB; 4/4 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>DNS questions</th><td>passed: our DNS test server got 10, 10 from the phone&#x27;s network and 0 from the WaterWall server; the test site&#x27;s name was among them</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 223 ms; Ping: 133 ms</td></tr><tr><th>UDP</th><td>passed: 900 datagrams sent and 900 echoed back in 95 seconds; round trip 44 ms on average, 603 ms at most</td></tr></tbody></table>
+<h2>Test setup</h2>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 41), a Release build of commit e69cb668, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.42&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr><tr><th>UDP echo</th><td>A UDP echo server on the same machine, port 28481. The GeoIP case, whose UDP leaves outside the tunnel, used the test harness&#x27;s own echo on port 28482 instead, opened in the firewall only for our office address while the case ran</td></tr><tr><th>DNS test server</th><td>A DNS forwarder on the same machine, UDP port 28453, that answers each question by asking 8.8.8.8 and logs the address each question came from. The profile&#x27;s DNS Servers row named it; it was opened in the firewall only for our office address while the cases ran</td></tr><tr><th>GeoIP reference</th><td>An HTTPS server on the same machine, port 28480, that logs the address each download comes from</td></tr></tbody></table>
+<pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
+      |
+      |  Wi-Fi, office broadband, internet
+      v
+Test server &lt;SERVER_IP&gt;
+  WaterWall test copy, port 4097           the chain under test
+      |
+      |  inside the same machine
+      v
+  HTTPS test server, port 28483            download file
+  UDP echo server, port 28481              UDP check
+  HTTPS reference server, port 28480       GeoIP case
+  DNS test server, UDP port 28453          where the resolver&#x27;s questions come from
+
+With GeoIP direct routing, downloads from the reference server go straight from the phone
+to port 28480, without WaterWall.</code></pre>
+<h2>Server configuration</h2>
+<p>The test harness wrote this file for the case and started our WaterWall program with it. It is shown as it ran; only the server address, the UUID and the passwords are replaced with placeholders. The certificate files are a self-signed test certificate made for the run. On your own server, use your own port, certificate and secrets, as described in Installation.</p>
+<pre data-label="Server chain (peer.json)"><code class="language-json">{
+  &quot;name&quot;: &quot;dns-resolver-direct-peer&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;name&quot;: &quot;listener&quot;,
+      &quot;type&quot;: &quot;TcpListener&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;&lt;SERVER_IP&gt;&quot;,
+        &quot;port&quot;: 4097
+      },
+      &quot;next&quot;: &quot;tls&quot;
+    },
+    {
+      &quot;name&quot;: &quot;tls&quot;,
+      &quot;type&quot;: &quot;TlsServer&quot;,
+      &quot;settings&quot;: {
+        &quot;cert-file&quot;: &quot;/tmp/srp-device-matrix/cert.pem&quot;,
+        &quot;key-file&quot;: &quot;/tmp/srp-device-matrix/key.pem&quot;,
+        &quot;verbose&quot;: true,
+        &quot;select-alpns&quot;: [
+          &quot;http/1.1&quot;
+        ]
+      },
+      &quot;next&quot;: &quot;vless&quot;
+    },
+    {
+      &quot;name&quot;: &quot;vless&quot;,
+      &quot;type&quot;: &quot;VlessServer&quot;,
+      &quot;settings&quot;: {
+        &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;,
+        &quot;verbose&quot;: true
+      },
+      &quot;next&quot;: &quot;out&quot;
+    },
+    {
+      &quot;name&quot;: &quot;out&quot;,
+      &quot;type&quot;: &quot;TcpUdpConnector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;dns-behaviour&quot;: {
+          &quot;resolve&quot;: true,
+          &quot;strategy&quot;: &quot;prefer-ipv4&quot;
+        },
+        &quot;nodelay&quot;: true
+      }
+    }
+  ]
+}</code></pre>
+<details><summary>The test copy's core.json</summary><pre data-label="core.json"><code class="language-json">{
+  &quot;misc&quot;: {
+    &quot;workers&quot;: 1,
+    &quot;ram-profile&quot;: &quot;minimal&quot;,
+    &quot;splice&quot;: false,
+    &quot;try-enabling-bbr&quot;: false,
+    &quot;tcp-tune&quot;: false
+  },
+  &quot;configs&quot;: [
+    &quot;/tmp/srp-device-matrix/peer.json&quot;
+  ]
+}</code></pre></details>
+<h2>App settings</h2>
+<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
+<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Connections</td></tr><tr><td><strong>Application</strong></td><td>VLESS</td></tr><tr><td><strong>MUX</strong></td><td>Off</td></tr><tr><td><strong>Obfuscator</strong></td><td>Off</td></tr><tr><td><strong>HTTP</strong></td><td>Off</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>TLS</td></tr><tr><td><strong>Carrier</strong></td><td>TCP</td></tr><tr><td><strong>Resolver</strong></td><td>Direct</td></tr><tr><td><strong>Addresses</strong></td><td>Default (IPv4 First)</td></tr><tr><td><strong>DNS Servers</strong></td><td>&lt;SERVER_IP&gt;:28453</td></tr></tbody></table>
+<p>In the profile editor:</p>
+<table><tbody><tr><th>Server</th><td>&lt;SERVER_IP&gt;, the test server&#x27;s address</td></tr><tr><th>Port</th><td>4097</td></tr><tr><th>SNI (optional)</th><td>localhost, for chains with TLS, Reality or QUIC</td></tr><tr><th>TLS Server Verification</th><td>Off, because the test certificate is self-signed</td></tr><tr><th>UUID or Password</th><td>&lt;UUID&gt;, a test value</td></tr><tr><th>Reality or AEAD Password</th><td>&lt;OUTER_PASSWORD&gt;, a test value, when the chain uses one</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
+<details><summary>The client chain the app built (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
+  &quot;name&quot;: &quot;VLESS + TLS&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;settings&quot;: {},
+      &quot;name&quot;: &quot;ne&quot;,
+      &quot;type&quot;: &quot;NEPacketDevice&quot;,
+      &quot;next&quot;: &quot;ptc&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;max-total-pending-bytes&quot;: 16777216,
+        &quot;mtu&quot;: 1420,
+        &quot;fake-dns&quot;: {
+          &quot;address&quot;: &quot;198.18.0.2&quot;,
+          &quot;netmask&quot;: &quot;255.192.0.0&quot;,
+          &quot;enabled&quot;: true,
+          &quot;port&quot;: 53,
+          &quot;ttl&quot;: 60,
+          &quot;cache-size&quot;: 10000,
+          &quot;network&quot;: &quot;100.64.0.0&quot;
+        },
+        &quot;max-pending-bytes&quot;: 65536
+      },
+      &quot;name&quot;: &quot;ptc&quot;,
+      &quot;type&quot;: &quot;PacketsToConnection&quot;,
+      &quot;next&quot;: &quot;resolver&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;protocol&quot;: &quot;dest_context-&gt;protocol&quot;,
+        &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;
+      },
+      &quot;name&quot;: &quot;vless&quot;,
+      &quot;type&quot;: &quot;VlessClient&quot;,
+      &quot;next&quot;: &quot;tls&quot;
+    },
+    {
+      &quot;settings&quot;: {},
+      &quot;name&quot;: &quot;router&quot;,
+      &quot;type&quot;: &quot;Router&quot;,
+      &quot;next&quot;: &quot;vless&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;mode&quot;: &quot;direct&quot;,
+        &quot;servers&quot;: [
+          &quot;&lt;SERVER_IP&gt;:28453&quot;
+        ]
+      },
+      &quot;name&quot;: &quot;resolver&quot;,
+      &quot;type&quot;: &quot;DomainResolver&quot;,
+      &quot;next&quot;: &quot;router&quot;
+    },
+    {
+      &quot;settings&quot;: {
+        &quot;sni&quot;: &quot;localhost&quot;,
+        &quot;verify&quot;: false,
+        &quot;alpns&quot;: [
+          &quot;http/1.1&quot;
+        ]
+      },
+      &quot;name&quot;: &quot;tls&quot;,
+      &quot;type&quot;: &quot;TlsClient&quot;,
+      &quot;next&quot;: &quot;connector&quot;
+    },
+    {
+      &quot;name&quot;: &quot;connector&quot;,
+      &quot;type&quot;: &quot;TcpUdpConnector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;127.0.0.1&quot;,
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: 4097
+      }
+    }
+  ]
+}</code></pre></details>
+<h2>How it was tested</h2>
+<ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads of 16 MiB at the same time, over and over. They used the test server's name, so each new connection made the DNS resolver look it up. The GeoIP case downloaded from the reference server on port 28480; the others from the HTTPS test server.</li><li>It then sent small UDP datagrams to the echo server for 90 seconds, at least 10 a second, and waited for each one to come back.</li><li>It ran the HTTPS check again and disconnected.</li><li>The harness then read the DNS test server's log for the time of the case: Native must leave no question there, Direct must leave questions from our office address only, and Through the VPN questions from the WaterWall server only. For Direct and Through the VPN, the test server's name must be among them. For the GeoIP case it also read the reference server's log, as in the GeoIP routing cases.</li></ol><p>A case passes only if the VPN stayed connected, the downloads ran the full 90 seconds with no errors or timeouts, both HTTPS checks succeeded, every UDP datagram came back, the DNS questions came from where the resolver's setting sends them, and, for the GeoIP case, every download went straight from the phone. The cases without GeoIP were also checked to arrive through the tunnel.</p>
+<h2>Gaps and limits</h2>
+<ul><li>TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.</li><li>The DNS check counts where the questions came from; it does not check the answers, which 8.8.8.8 gave.</li><li>The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.</li><li>Each case ran once, with one phone on one network.</li></ul>
+<h2>Evidence</h2>
+<table><tbody><tr><th>Test case</th><td>dns-resolver-direct</td></tr><tr><th>Run</th><td>2026-11-10T10:21:58Z to 2026-11-10T10:31:55Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-10 13:25:46 to 2026-11-10 13:27:25 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit e69cb668</td></tr><tr><th>Server program</th><td>WaterWall 1.5.42, the official release, unchanged, SHA-256 38631081bd10347d…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-dns-resolver-20261110T1021Z.json">waterwall-dns-resolver-20261110T1021Z.json</a></td></tr></tbody></table>
+</main>
+<script src="../../assets/js/nav.js"></script>
+<script src="../../assets/js/site.js"></script>
+</body>
+</html>

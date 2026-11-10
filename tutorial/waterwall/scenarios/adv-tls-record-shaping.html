@@ -12,11 +12,11 @@
 <main>
 <h1>VMess + TLS with outer tls13-record-shaping = {&quot;scope&quot;: {&quot;first-application-records&quot;: 2}, &quot;outcomes&quot;: [{&quot;probability&quot;: 100, &quot;padding-bytes&quot;: 64}]}</h1>
 <p class="lead">This case keeps a normal chain and changes one advanced node setting, to check that the setting works.</p>
-<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 5 November 2026 on the current app build against WaterWall 1.5.3, the official release, unchanged.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
-<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>93 seconds</td></tr><tr><th>Downloaded</th><td>1,141 MB (98 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>1,611 MB (139 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>68 downloads and 96 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 224 ms; Ping: 198 ms</td></tr><tr><th>UDP</th><td>not-applicable: The full-duplex test exercises TCP only</td></tr></tbody></table>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>93 seconds</td></tr><tr><th>Downloaded</th><td>1,409 MB (121 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>1,091 MB (94 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>84 downloads and 65 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 578 ms; Ping: 142 ms</td></tr><tr><th>UDP</th><td>not-applicable: The full-duplex test exercises TCP only</td></tr></tbody></table>
 <h2>Test setup</h2>
-<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 34), a Release build of commit c87f4927, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after c87f4927 change only the documentation, the build number and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.3 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.3&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 41), a Release build of commit e69cb668, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.42&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
 <pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
       |
       |  Wi-Fi, office broadband, internet
@@ -69,7 +69,10 @@ Test server &lt;SERVER_IP&gt;
       &quot;settings&quot;: {
         &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
         &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
-        &quot;domain-strategy&quot;: &quot;prefer-ipv4&quot;,
+        &quot;dns-behaviour&quot;: {
+          &quot;resolve&quot;: true,
+          &quot;strategy&quot;: &quot;prefer-ipv4&quot;
+        },
         &quot;nodelay&quot;: true
       }
     }
@@ -139,10 +142,9 @@ Test server &lt;SERVER_IP&gt;
     {
       &quot;settings&quot;: {
         &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
-        &quot;domain-strategy&quot;: &quot;do-not-resolve-domains&quot;,
         &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
-        &quot;security&quot;: &quot;aes-128-gcm&quot;,
         &quot;protocol&quot;: &quot;dest_context-&gt;protocol&quot;,
+        &quot;security&quot;: &quot;aes-128-gcm&quot;,
         &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;
       },
       &quot;name&quot;: &quot;vmess&quot;,
@@ -150,9 +152,7 @@ Test server &lt;SERVER_IP&gt;
       &quot;next&quot;: &quot;tls&quot;
     },
     {
-      &quot;settings&quot;: {
-        &quot;resolve-domains&quot;: false
-      },
+      &quot;settings&quot;: {},
       &quot;name&quot;: &quot;router&quot;,
       &quot;type&quot;: &quot;Router&quot;,
       &quot;next&quot;: &quot;vmess&quot;
@@ -196,7 +196,7 @@ Test server &lt;SERVER_IP&gt;
 <h2>Gaps and limits</h2>
 <ul><li>TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.</li><li>For Reality, the cover site was a second TLS server on the test machine itself, not a public website.</li><li>The test measured TCP traffic. The UDP row in the result says whether UDP was tested; in this run it was not.</li><li>Each case ran once, for about 90 seconds, with one phone on one network.</li><li>The test copy of WaterWall used the harness&#x27;s own small core.json with one worker, not our production core.json.</li></ul>
 <h2>Evidence</h2>
-<table><tbody><tr><th>Test case</th><td>adv-tls-record-shaping</td></tr><tr><th>Why it was selected</th><td>advanced/special</td></tr><tr><th>Run</th><td>2026-11-05T20:50:38Z to 2026-11-06T00:20:48Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-06 03:01:50 to 2026-11-06 03:03:27 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit c87f4927</td></tr><tr><th>Server program</th><td>WaterWall 1.5.3, the official release, unchanged, SHA-256 8b726bf0594d1f58…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-matrix-20261105T2050Z.json">waterwall-matrix-20261105T2050Z.json</a></td></tr></tbody></table>
+<table><tbody><tr><th>Test case</th><td>adv-tls-record-shaping</td></tr><tr><th>Why it was selected</th><td>advanced/special</td></tr><tr><th>Run</th><td>2026-11-10T11:39:10Z to 2026-11-10T15:17:28Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-10 17:57:55 to 2026-11-10 17:59:35 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit e69cb668</td></tr><tr><th>Server program</th><td>WaterWall 1.5.42, the official release, unchanged, SHA-256 38631081bd10347d…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-matrix-20261110T1139Z.json">waterwall-matrix-20261110T1139Z.json</a></td></tr></tbody></table>
 </main>
 <script src="../../assets/js/nav.js"></script>
 <script src="../../assets/js/site.js"></script>

@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file below was read from our test server on 3 November 2026. The app side was read from the app's source code at commit <code>a03a8bc2</code>. The Android app builds the same chains; a test compares the two builders on the same configurations, see <a href="android.html">Android</a>. Which combinations actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
+  <p>The server file below was read from our test server on 10 November 2026, after its move to WaterWall 1.5.42. The app side was read from the app's source code at commit <code>e44cf11d</code>, TestFlight build 41. The Android app builds the same chains; a test compares the two builders on the same configurations, see <a href="android.html">Android</a>. Which combinations actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
 </div>
 
 <h2>Server configuration files</h2>
@@ -87,7 +87,6 @@ systemctl status waterwall.service --no-pager</code></pre>
       "settings": {
         "address": "dest_context-&gt;address",
         "port": "dest_context-&gt;port",
-        "domain-strategy": "prefer-ipv4",
         "nodelay": true
       }
     }
@@ -122,7 +121,7 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>Outer Reality</td><td><code>RealityClient</code></td><td><code>RealityServer</code></td><td><code>password</code>, <code>algorithm</code> <code>chacha20-poly1305</code>, <code>salt</code> <code>waterwall-reality</code>, <code>kdf-iterations</code> <code>12000</code></td></tr>
     <tr><td>Outer AEAD</td><td><code>EncryptionClient</code></td><td><code>EncryptionServer</code></td><td><code>password</code>, <code>algorithm</code> <code>chacha20-poly1305</code>, <code>salt</code> <code>waterwall-aead</code>, <code>kdf-iterations</code> <code>12000</code>, <code>max-frame-size</code> <code>16356</code></td></tr>
     <tr><td>Outer QUIC</td><td><code>QuicClient</code></td><td><code>QuicServer</code></td><td><code>protocol</code> <code>h3</code>, <code>carrier-mode</code> (<code>datagram</code> or <code>stream</code>)</td></tr>
-    <tr><td>Carrier KCP</td><td><code>TcpOverUdpClient</code></td><td><code>TcpOverUdpServer</code></td><td>—</td></tr>
+    <tr><td>Carrier KCP</td><td><code>KcpClient</code></td><td><code>KcpServer</code></td><td>—</td></tr>
     <tr><td>Input Raw IPv4</td><td><code>PacketsToStream</code></td><td><code>StreamToPackets</code>, then <code>PacketsToConnection</code></td><td>—</td></tr>
     <tr><td>Packet Encryption</td><td><code>EncryptionClient</code> in packet mode</td><td><code>EncryptionServer</code> in packet mode, between <code>StreamToPackets</code> and <code>PacketsToConnection</code></td><td><code>password</code>, <code>packet-mode</code> <code>true</code>, <code>algorithm</code> <code>xchacha20-poly1305</code>, <code>salt</code> <code>waterwall-packet</code>, <code>kdf-iterations</code> <code>12000</code></td></tr>
   </tbody>
@@ -150,7 +149,7 @@ systemctl status waterwall.service --no-pager</code></pre>
     { "name": "stream-in", "type": "StreamToPackets", "settings": { "packet-validation-level": "hard" }, "next": "packet-crypto" },
     { "name": "packet-crypto", "type": "EncryptionServer", "settings": { "packet-mode": true, "algorithm": "xchacha20-poly1305", "password": "a-long-random-password", "salt": "waterwall-packet", "kdf-iterations": 12000 }, "next": "packet-out" },
     { "name": "packet-out", "type": "PacketsToConnection", "settings": { "mtu": 1420, "max-pending-bytes": 1048576 }, "next": "outbound" },
-    { "name": "outbound", "type": "TcpUdpConnector", "settings": { "address": "dest_context-&gt;address", "port": "dest_context-&gt;port", "domain-strategy": "prefer-ipv4", "nodelay": true } }
+    { "name": "outbound", "type": "TcpUdpConnector", "settings": { "address": "dest_context-&gt;address", "port": "dest_context-&gt;port", "nodelay": true } }
   ]
 }</code></pre>
 <p>The IP and TCP or UDP headers stay visible inside the chain and only TCP and UDP pass, so ping does not work through it. The app does not offer it together with Reality or AEAD, which encrypt the whole stream and use the same password field in the app.</p>
@@ -160,13 +159,13 @@ systemctl status waterwall.service --no-pager</code></pre>
 <table>
   <thead><tr><th>Mode and input</th><th>Client chain, in order</th></tr></thead>
   <tbody>
-    <tr><td>Chain, Connections</td><td>packet device → <code>PacketsToConnection</code> → <code>Router</code> → application → MUX → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
+    <tr><td>Chain, Connections</td><td>packet device → <code>PacketsToConnection</code> → <code>DomainResolver</code> (only with the <a href="#dns-resolver">DNS resolver</a> on) → <code>Router</code> → application → MUX → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
     <tr><td>Chain, Raw IPv4</td><td>packet device → Packet Encryption → <code>PacketsToStream</code> → Obfuscator → HTTP → BGP4 framing → outer → KCP → connector</td></tr>
     <tr><td>Direct</td><td>packet device → <code>PacketsToConnection</code> → <code>TcpUdpConnector</code> to each destination</td></tr>
-    <tr><td>WireGuard</td><td>The app's WireGuard client; see <a href="ui-guide.html#wireguard-mode">WireGuard mode</a>.</td></tr>
+    <tr><td>WireGuard</td><td>packet device → <code>WireGuardDevice</code> → <code>UdpStatelessSocket</code>: WaterWall's own WireGuard, not the app's WireGuard protocol; see <a href="ui-guide.html#wireguard-mode">WireGuard mode</a>.</td></tr>
   </tbody>
 </table>
-<p>Layers you did not choose are left out. The last node, the connector, is <code>UdpConnector</code> for KCP and QUIC Datagram, <code>TcpUdpConnector</code> for SOCKS5 and for plain VLESS, VMess or Trojan over TLS, and <code>TcpConnector</code> otherwise.</p>
+<p>Layers you did not choose are left out. The last node, the connector, is <code>UdpConnector</code> for KCP and QUIC Datagram, <code>TcpUdpConnector</code> for SOCKS5 and for VLESS, VMess or Trojan over TLS without MUX, an HTTP layer or a fixed <code>protocol</code> in the application's settings, and <code>TcpConnector</code> otherwise.</p>
 
 <h3>Settings the app always uses</h3>
 <table>
@@ -177,9 +176,24 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>Log level</td><td><code>WARN</code>, <code>INFO</code> or <code>DEBUG</code> for the Normal, Expert and Debug log levels</td></tr>
     <tr><td>Remote DNS (Fake IP) when on</td><td>DNS answers from 198.18.0.2 port 53, placeholder addresses from 100.64.0.0/10, a cache of 10000 names, TTL 60 seconds</td></tr>
     <tr><td>Direct LAN Routing when on</td><td>10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 go to a direct connector</td></tr>
-    <tr><td>GeoIP routing</td><td>Selected countries go to a direct connector; the router then resolves names to match them</td></tr>
+    <tr><td>GeoIP routing</td><td>Selected countries go to a direct connector. With the DNS resolver off, the router looks names up itself to match them, with the phone's network DNS</td></tr>
+    <tr><td>DNS resolver</td><td>Off; see <a href="#dns-resolver">the DNS resolver</a></td></tr>
+    <tr><td><code>splice</code>, <code>tcp-tune</code>, <code>try-enabling-bbr</code></td><td>Off: a phone's kernel settings are not WaterWall's to change</td></tr>
   </tbody>
 </table>
+
+<h3 id="dns-resolver">The DNS resolver</h3>
+<p>The <a href="ui-guide.html#dns-resolver">DNS RESOLVER</a> section of a Chain profile with Connections input puts WaterWall's <code>DomainResolver</code> node between <code>PacketsToConnection</code> and the router. It looks up the name of each connection on the phone before routing, so the router and GeoIP see real addresses and the server gets an address instead of a name. The names come from Remote DNS (Fake IP): with it off, the phone looks names up itself, connections arrive with addresses, and the node passes them on unchanged. The profile keeps it as <code>domain-resolver</code>, which becomes the node's settings unchanged.</p>
+<table>
+  <thead><tr><th>Resolver</th><th>Node settings</th><th>Where the questions go</th></tr></thead>
+  <tbody>
+    <tr><td>Off (default)</td><td>no node</td><td>The server looks up the names the phone asks for. GeoIP still looks them up on the phone, as above.</td></tr>
+    <tr><td>Native</td><td><code>{"mode": "native"}</code></td><td>The DNS of the network the phone is on, outside the VPN.</td></tr>
+    <tr><td>Direct</td><td><code>{"mode": "direct", "servers": [...]}</code></td><td>The DNS servers you list, straight from the phone, outside the VPN.</td></tr>
+    <tr><td>Through the VPN</td><td><code>{"mode": "chain", "servers": [...]}</code></td><td>The DNS servers you list, through the VPN: the router's first rule, <code>{"resolver-dns": true, "target": &lt;application&gt;}</code>, sends the resolver's own questions to the application, even to a server in a GeoIP country or the local network. The server must allow UDP and reach those DNS servers.</td></tr>
+  </tbody>
+</table>
+<p><strong>Addresses</strong> sets <code>strategy</code>: <code>prefer-ipv4</code>, <code>prefer-ipv6</code>, <code>only-ipv4</code>, <code>only-ipv6</code> or <code>accept-dns-returned-order</code>; the default, <em>Default (IPv4 First)</em>, leaves it out, so WaterWall's own default applies. <strong>DNS Servers</strong> takes 1 to 32 addresses, separated by commas, spaces or new lines: an IPv4 or IPv6 address, or <code>IPv4:port</code> or <code>[IPv6]:port</code>; without a port, 53. A name, an IPv6 scope such as <code>%en0</code>, a leading zero or port 0 is refused. Through the VPN needs an application that carries UDP: not HTTP CONNECT, and not a fixed TCP <code>protocol</code> in the application's settings. Raw IPv4 input, Direct and WireGuard have no DNS resolver.</p>
 
 <h2 id="advanced">Advanced node settings</h2>
 <p>These are the keys each <a href="ui-guide.html#advanced-node-settings">ADVANCED NODE SETTINGS</a> editor accepts. Any other key is refused with <em>Unsupported &lt;layer&gt; setting: &lt;key&gt;</em>. A setting you enter replaces the app's default for that key, except the values in the next box.</p>
@@ -212,7 +226,7 @@ systemctl status waterwall.service --no-pager</code></pre>
   <thead><tr><th>Key</th><th>App default</th><th>Allowed</th></tr></thead>
   <tbody>
     <tr><td><code>protocol</code> (or <code>proto</code>)</td><td><code>dest_context-&gt;protocol</code> (follow each connection)</td><td><code>tcp</code>, <code>connect</code>, <code>udp</code>, <code>udp-associate</code>, <code>dest_context-&gt;protocol</code>, <code>line-&gt;dest_ctx-&gt;protocol</code></td></tr>
-    <tr><td><code>domain-strategy</code></td><td><code>do-not-resolve-domains</code></td><td><code>do-not-resolve-domains</code>, <code>resolve-domains-and-prefer-ipv4</code>, <code>resolve-domains-and-prefer-ipv6</code>, <code>resolve-domains-with-core-settings</code>, <code>resolve-domains-and-accept-dns-returned-order</code>, <code>resolve-domains-and-use-only-ipv4</code>, <code>resolve-domains-and-use-only-ipv6</code></td></tr>
+    <tr><td><code>dns-behaviour</code></td><td>not set: the application sends names to the server</td><td><code>{"resolve": false}</code>, or <code>{"resolve": true}</code> with an optional <code>strategy</code>: <code>core-settings</code>, <code>prefer-ipv4</code>, <code>prefer-ipv6</code>, <code>only-ipv4</code>, <code>only-ipv6</code>, <code>accept-dns-returned-order</code>. No other key. A profile saved with the older <code>domain-strategy</code> moves to it by itself: <code>do-not-resolve-domains</code> is dropped, and each <code>resolve-domains-…</code> value becomes <code>{"resolve": true, "strategy": …}</code>.</td></tr>
     <tr><td><code>first-payload-timeout-ms</code></td><td>WaterWall's default</td><td>0 or more</td></tr>
     <tr><td><code>verbose</code></td><td>WaterWall's default</td><td><code>true</code> or <code>false</code></td></tr>
   </tbody>
@@ -224,10 +238,10 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td><code>security</code></td><td><code>aes-128-gcm</code> (app default), <code>chacha20-poly1305</code>, <code>auto</code>, <code>none</code>, <code>zero</code>. <code>zero</code> works with a fixed TCP <code>protocol</code> only.</td></tr>
     <tr><td><code>chunk-masking</code>, <code>global-padding</code>, <code>authenticated-length</code>, <code>send-termination</code></td><td><code>true</code> or <code>false</code>. Padding needs masking; authenticated length needs encryption (not <code>none</code> or <code>zero</code>).</td></tr>
     <tr><td><code>encrypted-counter-policy</code></td><td><code>wrap</code> or <code>strict</code></td></tr>
-    <tr><td><code>packet-encoding</code></td><td><code>none</code> or <code>packetaddr</code>. <code>packetaddr</code> needs a <code>domain-strategy</code> that resolves names.</td></tr>
+    <tr><td><code>packet-encoding</code></td><td><code>none</code> or <code>packetaddr</code>. <code>packetaddr</code> needs names looked up on the phone: <code>dns-behaviour</code> with <code>resolve</code> <code>true</code>, or the DNS resolver.</td></tr>
   </tbody>
 </table>
-<p><strong>SOCKS5</strong> accepts only <code>protocol</code>, <code>proto</code>, <code>verbose</code> and <code>domain-strategy</code>. <strong>HTTP CONNECT</strong> accepts <code>verbose</code>, <code>domain-strategy</code>, <code>headers</code> (extra request headers; <code>Host</code>, <code>Proxy-Authorization</code>, <code>Content-Length</code>, <code>Transfer-Encoding</code>, <code>Connection</code>, <code>Proxy-Connection</code>, <code>Keep-Alive</code>, <code>TE</code>, <code>Trailer</code>, <code>Upgrade</code> and <code>Expect</code> are reserved), <code>max-header-bytes</code> (1024 to 65536), <code>header-timeout-ms</code>, <code>connect-response-timeout-ms</code> and <code>idle-timeout-ms</code>.</p>
+<p><strong>SOCKS5</strong> accepts only <code>protocol</code>, <code>proto</code>, <code>verbose</code> and <code>dns-behaviour</code>. <strong>HTTP CONNECT</strong> accepts <code>verbose</code>, <code>dns-behaviour</code>, <code>headers</code> (extra request headers; <code>Host</code>, <code>Proxy-Authorization</code>, <code>Content-Length</code>, <code>Transfer-Encoding</code>, <code>Connection</code>, <code>Proxy-Connection</code>, <code>Keep-Alive</code>, <code>TE</code>, <code>Trailer</code>, <code>Upgrade</code> and <code>Expect</code> are reserved), <code>max-header-bytes</code> (1024 to 65536), <code>header-timeout-ms</code>, <code>connect-response-timeout-ms</code> and <code>idle-timeout-ms</code>.</p>
 
 <h3>MUX</h3>
 <table>

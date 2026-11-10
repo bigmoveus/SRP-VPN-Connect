@@ -136,7 +136,7 @@ def extract(args):
                     "kind": "lifecycle",
                     "step": step["step"],
                     "chain_case": case["id"],
-                    "configuration": case.get("configuration"),
+                    "configuration": sanitize.data(case.get("configuration")),
                     "client": None,
                     "server": {},
                     "result": sanitize.data({"status": step["status"], "duration_s": step.get("duration_s"),
@@ -155,10 +155,10 @@ def extract(args):
                 "why": why.get(case["id"]) or case.get("why", ""),
                 "sni": case.get("sni"),
                 "server_file": case.get("server_file"),
-                "configuration": case.get("configuration"),
+                "configuration": sanitize.data(case.get("configuration")),  # the DNS cases name the test server
                 "client": sanitize.data(json.loads(client.read_text())) if client.is_file() else None,
                 "server": {"peer": load("peer"), "core": load("core"), "cover": load("cover")},
-                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "routing", "path", "teardown", "lifecycle")}),
+                "result": sanitize.data({k: round_.get(k) for k in ("status", "tcp", "udp", "ping", "routing", "path", "teardown", "lifecycle", "dns")}),
                 "device": device_details(folder / f"{case['id']}-device.log", sanitize),
             }
             if entry["result"].get("tcp", {}) and entry["result"]["tcp"].get("error"):
@@ -194,7 +194,8 @@ APPS = {"vless": "VLESS", "vmess": "VMess", "trojan": "Trojan", "socks5": "SOCKS
 OUTERS = {"tls": "TLS", "reality": "Reality", "aead": "AEAD", "bgp4": "BGP4"}
 GROUPS = [("production", "Production server"), ("tls", "TLS"), ("reality", "Reality"), ("aead", "AEAD"), ("quic", "QUIC"),
           ("none", "No outer layer"), ("bgp4", "BGP4"), ("raw", "Raw IPv4"), ("modes", "Direct and WireGuard"),
-          ("advanced", "Advanced settings"), ("download", "UDP and GeoIP routing"), ("lifecycle", "Connection lifecycle")]
+          ("advanced", "Advanced settings"), ("dns", "DNS resolver"), ("download", "UDP and GeoIP routing"), ("lifecycle", "Connection lifecycle")]
+RESOLVERS = {"native": "Native", "direct": "Direct", "chain": "Through the VPN"}
 LABELS = {"verified": "VERIFIED — TESTED SUCCESSFULLY", "failed": "TESTED — FAILED",
           "partial": "TESTED — PARTIALLY WORKING", "not-verified": "NOT VERIFIED"}
 
@@ -242,6 +243,9 @@ def title_of(case):
     countries = (c.get("geoip") or {}).get("countries") or (["IR"] if (c.get("geoip") or {}).get("iran-direct") else [])
     if countries:
         title += " with GeoIP direct routing for " + ", ".join(countries)
+    resolver = c.get("domain-resolver")
+    if resolver:
+        title += (" and" if countries else " with") + " the DNS resolver " + RESOLVERS.get(resolver.get("mode"), resolver.get("mode", "?"))
     return title + suffix_of(case)
 
 
@@ -256,6 +260,8 @@ def suffix_of(case):
 def group_of(case):
     if case["kind"] in ("lifecycle", "production", "download"):
         return case["kind"]
+    if (case.get("configuration") or {}).get("domain-resolver"):
+        return "dns"
     if case["id"].startswith("adv-") or case["id"].startswith("geoip-"):
         return "advanced"
     c = case.get("configuration") or {}
@@ -275,11 +281,16 @@ def traffic_of(case):
     return tcp.get("duration_s") or 0, tcp.get("bytes") or 0, tcp.get("upload_bytes") or 0
 
 
+def downloads_only(case):
+    """A download run, or a case whose test ran only downloads, such as the DNS resolver cases."""
+    return case["kind"] == "download" or ((case.get("device") or {}).get("measured") or {}).get("mode") == "download"
+
+
 def status_of(case):
     if case["result"].get("status") == "passed" and all(r["status"] == "passed" for r in case.get("later_rounds", [])):
         return "verified"
     _, down, up = traffic_of(case)
-    moved = down > 0 if case["kind"] == "download" else down > 0 and up > 0
+    moved = down > 0 if downloads_only(case) else down > 0 and up > 0
     return "partial" if moved else "failed"
 
 
@@ -305,6 +316,14 @@ PURPOSE = {
 def purpose_of(case):
     c = case.get("configuration") or {}
     group = group_of(case)
+    mode = (c.get("domain-resolver") or {}).get("mode")
+    if mode:
+        where = {"native": "Native asks the DNS of the phone's own network, outside the VPN, so our DNS test server must hear none of the questions.",
+                 "direct": "Direct asks the listed DNS server straight from the phone, outside the VPN, so our DNS test server must hear the questions from the phone's network.",
+                 "chain": "Through the VPN asks the listed DNS server through the VPN, so our DNS test server must hear the questions from the WaterWall server."}[mode]
+        geoip = (" GeoIP routing for the chosen countries stays on, and the downloads from our server, which is in Turkey (TR), must go straight from the phone."
+                 if (c.get("geoip") or {}).get("countries") else "")
+        return "The DNS resolver looks up the name of each connection on the phone before routing. " + where + geoip
     if case["id"].startswith("geoip-"):
         return ("GeoIP routing sends traffic for the countries you choose straight to the internet and everything else "
                 "through the server. This case checks which way the downloads from our server, which is in Turkey (TR), went.")
@@ -359,6 +378,15 @@ def settings_rows(case):
             rows.append(("QUIC Carrier", "Stream" if c.get("quic-carrier") == "stream" else "Datagram"))
         else:
             rows.append(("Carrier", "KCP" if c.get("carrier") == "kcp" else "TCP"))
+    countries = (c.get("geoip") or {}).get("countries")
+    if countries:
+        rows += [("GeoIP Routing", "On"), ("Countries", ", ".join(countries))]
+    resolver = c.get("domain-resolver")
+    if resolver:
+        rows.append(("Resolver", RESOLVERS.get(resolver.get("mode"), resolver.get("mode"))))
+        rows.append(("Addresses", resolver.get("strategy") or "Default (IPv4 First)"))
+        if resolver.get("servers"):
+            rows.append(("DNS Servers", ", ".join(resolver["servers"])))
     return rows
 
 
@@ -387,10 +415,10 @@ def render_case(case, env, run):
     if seconds:
         rows += [("Test length", f"{seconds:.0f} seconds"),
                  ("Downloaded", f"{megabytes(down)} ({rate(down, seconds)} on average)")]
-        if case["kind"] != "download":
+        if not downloads_only(case):
             rows.append(("Uploaded", f"{megabytes(up)} ({rate(up, seconds)} on average)"))
     if numbers:
-        uploads = "" if case["kind"] == "download" else f" and {numbers.get('upload_requests', '—')} uploads"
+        uploads = "" if downloads_only(case) else f" and {numbers.get('upload_requests', '—')} uploads"
         rows.append(("Transfers", f"{numbers.get('download_requests', '—')} downloads{uploads} of 16 MiB; "
                                   f"{numbers.get('finished', '—')} streams finished at the end"))
         rows.append(("Errors", "; ".join(numbers.get("errors") or []) or "none"))
@@ -401,6 +429,11 @@ def render_case(case, env, run):
         rows.append(("GeoIP routing", f"{routing.get('status', '—')}: expected {expected}; the reference server saw "
                                       f"{routing.get('direct_requests', 0)} downloads from the phone's own address and "
                                       f"{routing.get('proxied_requests', 0)} through WaterWall"))
+    dns = result.get("dns") or {}
+    if dns:
+        rows.append(("DNS questions", f"{dns.get('status')}: our DNS test server got {dns.get('questions', 0)}, "
+                                      f"{dns.get('from_phone_network', 0)} from the phone's network and {dns.get('from_server', 0)} from the WaterWall server"
+                                      + ("; the test site's name was among them" if dns.get("asked_for_test_host") else "")))
     path = result.get("path") or {}
     if path:
         if path.get("addresses"):

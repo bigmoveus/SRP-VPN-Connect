@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Installation — WaterWall — SRP VPN Connect Documentation</title>
-<meta name="description" content="Install a WaterWall 1.5.3 server on Ubuntu the way our test server is set up, and install SRP VPN Connect from TestFlight or build it for Android.">
+<meta name="description" content="Install a WaterWall 1.5.42 server on Ubuntu the way our test server is set up, and install SRP VPN Connect from TestFlight or build it for Android.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
@@ -15,8 +15,8 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>Every file, path, version and setting below was read from our test server on 5 November 2026: the official program and its checksum, the service unit, <code>core.json</code>, the firewall rules and the certificate renewal hook.</p>
-  <p>The shell history of the original installation was not kept. The commands below produce that same recorded result, but they are not a transcript of what was typed back then. We ran the commands of steps 1 to 3 on our test server on 5 November 2026; the other commands were not run again.</p>
+  <p>Every file, path, version and setting below was read from our test server on 9 November 2026, after it moved to WaterWall 1.5.42: the official program and its checksum, the service unit, <code>core.json</code>, the NAT scripts, the firewall rules and the certificate renewal hook.</p>
+  <p>The shell history of the original installation was not kept. The commands below produce that same recorded result, but they are not a transcript of what was typed back then. We ran the commands of steps 1 to 3 on our test server on 9 November 2026; the other commands were not run again.</p>
 </div>
 
 <h2>What you will end up with</h2>
@@ -36,11 +36,11 @@
 <p>Run every command in this section on the server, as root, over SSH.</p>
 
 <h3 id="server-program">1. Download the official WaterWall program</h3>
-<p>Our server runs the official <a href="https://github.com/radkesvat/WaterWall/releases/tag/v1.5.3">WaterWall 1.5.3 release</a> for 64-bit Linux, unchanged. <strong>Every test result on this site was measured against this exact program.</strong> The checksum below is the one GitHub publishes for this file.</p>
-<pre data-label="Server"><code class="language-bash">mkdir -p /opt/waterwall/staging-1.5.3
-cd /opt/waterwall/staging-1.5.3
-curl -fLO https://github.com/radkesvat/WaterWall/releases/download/v1.5.3/Waterwall-linux-gcc-x64.zip
-echo "0d646a219076e6d418925829183e9aadd4a6df3f67294d77554fa3f1721bdf22  Waterwall-linux-gcc-x64.zip" | sha256sum -c -
+<p>Our server runs the official <a href="https://github.com/radkesvat/WaterWall/releases/tag/v1.5.42">WaterWall 1.5.42 release</a> for 64-bit Linux, unchanged. <strong>Every test result on this site was measured against this exact program.</strong> The checksum below is the one GitHub publishes for this file.</p>
+<pre data-label="Server"><code class="language-bash">mkdir -p /opt/waterwall/staging-1.5.42
+cd /opt/waterwall/staging-1.5.42
+curl -fLO https://github.com/radkesvat/WaterWall/releases/download/v1.5.42/Waterwall-linux-gcc-x64.zip
+echo "66248cb9f285880ddc7ff0f376516d0b5456d6586bffe91503e62469e71f1e8c  Waterwall-linux-gcc-x64.zip" | sha256sum -c -
 apt-get install -y unzip
 unzip -o Waterwall-linux-gcc-x64.zip -d unpacked
 chmod 755 unpacked/Waterwall</code></pre>
@@ -50,7 +50,7 @@ chmod 755 unpacked/Waterwall</code></pre>
 sha256sum unpacked/Waterwall</code></pre>
 <div class="callout verify">
   <span class="callout-title">Check</span>
-  It prints <code>Waterwall version 1.5.3</code>, and the SHA-256 is <code>8b726bf0594d1f58b3dd99c76cf791dac74e8098a023828b5eff15a82b29f79e</code>, the same as on our server.
+  It prints <code>Waterwall version 1.5.42</code>, and the SHA-256 is <code>38631081bd10347d840a9f068a349fd028aede57889f0ac77df441f9fe88bbaf</code>, the same as on our server.
 </div>
 
 <h3>3. Install the program</h3>
@@ -170,7 +170,7 @@ systemctl status waterwall.service</code></pre>
 </div>
 
 <h2>Upgrading WaterWall</h2>
-<p>Each time our server changes its program, the previous program, <code>core.json</code> and the firewall rules are first copied to a backup folder such as <code>/opt/waterwall/backup-before-1.5.3-20261105/</code>. To upgrade:</p>
+<p>Each time our server changes its program, the previous program, <code>core.json</code> and the firewall rules are first copied to a backup folder such as <code>/opt/waterwall/backup-before-1.5.42-20261110/</code>. To upgrade:</p>
 <ol>
   <li>Download and check the new release as in steps 1 and 2.</li>
   <li>Copy the old program and <code>core.json</code> into a backup folder.</li>
@@ -178,14 +178,29 @@ systemctl status waterwall.service</code></pre>
   <li>Run <code>systemctl restart waterwall.service</code>.</li>
 </ol>
 <p>To go back, copy the backup program over <code>/opt/waterwall/Waterwall</code> and restart.</p>
-<p>Keep the server and the app on the same WaterWall version. KCP chains in particular need both on 1.5.3, because its KCP packets have a new format.</p>
+<p>Keep the server and the app on the same WaterWall version. Every test result on this site was measured with WaterWall 1.5.42 on both.</p>
+
+<h3 id="upgrade-from-1-5-3">Upgrading from 1.5.3</h3>
+<p>WaterWall 1.5.4 and later refuse names that 1.5.3 configuration files could use. One such name in any configuration file stops the whole program at start, with a <code>FATAL</code> line that names it (see <a href="troubleshooting.html">Troubleshooting</a>), so change every configuration file before you install the new program. Our server's files needed the first two changes:</p>
+<table>
+  <thead><tr><th>In 1.5.3</th><th>From 1.5.4</th></tr></thead>
+  <tbody>
+    <tr><td><code>"type": "TcpOverUdpServer"</code></td><td><code>"type": "KcpServer"</code>; its settings, such as <code>fec</code>, stay as they are. The client node is now <code>KcpClient</code>.</td></tr>
+    <tr><td><code>"domain-strategy"</code> in a node's settings, for example <code>"domain-strategy": "prefer-ipv4"</code> on <code>TcpUdpConnector</code> or <code>TcpConnector</code></td><td>Remove it. Without it a connector still looks names up, with <code>dns.domain-strategy</code> from <code>core.json</code>; to set it on the node, use <code>"dns-behaviour": {"resolve": true, "strategy": "prefer-ipv4"}</code>.</td></tr>
+    <tr><td><code>"resolve-domains"</code></td><td>Use <code>dns-behaviour</code> as above; <code>{"resolve": false}</code> turns lookups off.</td></tr>
+  </tbody>
+</table>
+<p><code>dns.domain-strategy</code> in <code>core.json</code> stays valid. With these changes all 45 configuration files of our server loaded, each on the port it had before.</p>
+<p>1.5.3 raised the kernel's socket buffer limits to 128 MiB each time it started, and its TCP memory limits to 37.5% of the RAM. 1.5.42 no longer touches the socket buffers, and raises the TCP memory limits to 15% of the RAM (on Linux, while <code>splice</code> and <code>tcp-tune</code> are on, as they are by default); it never lowers a limit. What 1.5.3 raised stays until the next reboot. To put the kernel's defaults back without one, as we did on our server, run this before you start 1.5.42:</p>
+<pre data-label="Server"><code class="language-bash">sysctl -w net.core.rmem_max=212992 net.core.wmem_max=212992
+sysctl -w "net.ipv4.tcp_rmem=4096 131072 6291456" "net.ipv4.tcp_wmem=4096 16384 4194304"</code></pre>
 
 <h2 id="install-the-app">Install the app</h2>
 <h3>iPhone or iPad</h3>
 <p>SRP VPN Connect is distributed as a public TestFlight beta. You do not need a developer account.</p>
 <div class="callout tip">
-  <span class="callout-title">Use build 34 or later</span>
-  Build 34 contains WaterWall 1.5.3, the same as our server. If TestFlight still shows build 33, update the app: build 33 has WaterWall 1.5.2, and its KCP chains cannot work with a 1.5.3 server, because 1.5.3 changed the format of KCP's packets.
+  <span class="callout-title">Use build 41 or later</span>
+  Build 41 contains WaterWall 1.5.42, the same as our server, and the DNS Resolver option. Earlier builds have a WaterWall from before 1.5.4 and were not tested with a 1.5.42 server: if TestFlight still shows one, update the app.
 </div>
 <ol>
   <li>On your iPhone or iPad, install <strong>TestFlight</strong> from the App Store.</li>

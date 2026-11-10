@@ -12,11 +12,11 @@
 <main>
 <h1>WireGuard mode (downloads and UDP)</h1>
 <p class="lead">WireGuard mode connects the app&#x27;s WireGuard client to a WireGuard server run by WaterWall.</p>
-<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 5 November 2026 on the current app build against WaterWall 1.5.3, the official release, unchanged.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
-<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>92 seconds</td></tr><tr><th>Downloaded</th><td>1,745 MB (152 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>104 downloads of 16 MiB; 4/4 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 126 ms; Ping: 120 ms</td></tr><tr><th>UDP</th><td>passed: 900 datagrams sent and 900 echoed back in 90 seconds; round trip 27 ms on average, 86 ms at most</td></tr></tbody></table>
+<table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>121 seconds</td></tr><tr><th>Downloaded</th><td>1,493 MB (99 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>89 downloads of 16 MiB; 4/4 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 154 ms; Ping: 120 ms</td></tr><tr><th>UDP</th><td>passed: 900 datagrams sent and 900 echoed back in 121 seconds; round trip 24 ms on average, 113 ms at most</td></tr></tbody></table>
 <h2>Test setup</h2>
-<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 34), a Release build of commit c87f4927, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after c87f4927 change only the documentation, the build number and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.3 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.3&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr><tr><th>UDP echo</th><td>A UDP echo server on the same machine, port 28481. The Direct and GeoIP cases, whose UDP leaves outside the tunnel, used the test harness&#x27;s own echo on port 28482 instead, opened in the firewall only for our office address while the case ran; native WireGuard used an echo bound to the private address 10.44.0.1 on port 28482, so that its answers come from that address</td></tr><tr><th>GeoIP reference</th><td>An HTTPS server on the same machine, port 28480, that logs the address each download comes from</td></tr></tbody></table>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 41), a Release build of commit e69cb668, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>The official WaterWall 1.5.42 release program, unchanged, the same program as our permanent service, run as a separate test copy for each case</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.42&#x27;s default; the test copy&#x27;s core.json does not set it</td></tr><tr><th>Server port</th><td>4097, opened in the firewall only for our office address while the case ran</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr><tr><th>UDP echo</th><td>A UDP echo server on the same machine, port 28481. The Direct and GeoIP cases, whose UDP leaves outside the tunnel, used the test harness&#x27;s own echo on port 28482 instead, opened in the firewall only for our office address while the case ran; native WireGuard used an echo bound to the private address 10.44.0.1 on port 28482, so that its answers come from that address</td></tr><tr><th>GeoIP reference</th><td>An HTTPS server on the same machine, port 28480, that logs the address each download comes from</td></tr></tbody></table>
 <pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
       |
       |  Wi-Fi, office broadband, internet
@@ -55,13 +55,13 @@ to port 28480, without WaterWall.</code></pre>
         &quot;privatekey&quot;: &quot;&lt;PRIVATEKEY&gt;&quot;,
         &quot;peers&quot;: [
           {
-            &quot;publickey&quot;: &quot;dWFZ7p5yUZ0W67sflvXGtIrMHdggAH5rtoqXQPbyVWA=&quot;,
+            &quot;publickey&quot;: &quot;OEsJSv3ZzK+hpz8kck16CrrVKwvZGuzV8T+OGna0el4=&quot;,
             &quot;allowedips&quot;: &quot;10.99.0.2/32&quot;,
             &quot;endpoint&quot;: &quot;127.0.0.1:9&quot;,
             &quot;persistentkeepalive&quot;: 0
           },
           {
-            &quot;publickey&quot;: &quot;zh5hXtn2LPmY86chHmoR41sin7WtWENkGZVRUiv1fkY=&quot;,
+            &quot;publickey&quot;: &quot;q/W/bnR1xnagemhwztf0FBENmrgca3CvToPyV0YU3zw=&quot;,
             &quot;allowedips&quot;: &quot;10.99.0.3/32&quot;,
             &quot;endpoint&quot;: &quot;127.0.0.1:9&quot;,
             &quot;persistentkeepalive&quot;: 0
@@ -83,9 +83,7 @@ to port 28480, without WaterWall.</code></pre>
     {
       &quot;name&quot;: &quot;router&quot;,
       &quot;type&quot;: &quot;Router&quot;,
-      &quot;settings&quot;: {
-        &quot;resolve-domains&quot;: false
-      },
+      &quot;settings&quot;: {},
       &quot;next&quot;: &quot;out&quot;
     },
     {
@@ -94,7 +92,10 @@ to port 28480, without WaterWall.</code></pre>
       &quot;settings&quot;: {
         &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
         &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
-        &quot;domain-strategy&quot;: &quot;prefer-ipv4&quot;,
+        &quot;dns-behaviour&quot;: {
+          &quot;resolve&quot;: true,
+          &quot;strategy&quot;: &quot;prefer-ipv4&quot;
+        },
         &quot;nodelay&quot;: true
       }
     }
@@ -136,7 +137,7 @@ to port 28480, without WaterWall.</code></pre>
           {
             &quot;persistentkeepalive&quot;: 0,
             &quot;endpoint&quot;: &quot;127.0.0.1:4097&quot;,
-            &quot;publickey&quot;: &quot;NXf1tmgX20Tmjbq2vZIcLw/rA4eH0Ik16AluDnHQInk=&quot;,
+            &quot;publickey&quot;: &quot;agTG1UGbDrVMcEGntxi21pC+R1ifzra9SwtLWqeN9h8=&quot;,
             &quot;allowedips&quot;: &quot;0.0.0.0/0&quot;
           }
         ],
@@ -158,7 +159,7 @@ to port 28480, without WaterWall.</code></pre>
 <h2>Gaps and limits</h2>
 <ul><li>TLS Server Verification was off and the SNI was localhost, because the test server used a self-signed certificate made for the run.</li><li>The UDP check sends small datagrams and waits for each echo; it shows that UDP works through the chain, not how fast it is.</li><li>Each case ran once, with one phone on one network.</li></ul>
 <h2>Evidence</h2>
-<table><tbody><tr><th>Test case</th><td>wireguard-native-download</td></tr><tr><th>Why it was selected</th><td>advanced/special</td></tr><tr><th>Run</th><td>2026-11-05T20:47:30Z to 2026-11-05T20:50:35Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-05 23:48:43 to 2026-11-05 23:50:19 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit c87f4927</td></tr><tr><th>Server program</th><td>WaterWall 1.5.3, the official release, unchanged, SHA-256 8b726bf0594d1f58…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-download-20261105T2047Z.json">waterwall-download-20261105T2047Z.json</a></td></tr></tbody></table>
+<table><tbody><tr><th>Test case</th><td>wireguard-native-download</td></tr><tr><th>Why it was selected</th><td>advanced/special</td></tr><tr><th>Run</th><td>2026-11-10T11:35:11Z to 2026-11-10T11:39:06Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-10 14:36:43 to 2026-11-10 14:38:49 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit e69cb668</td></tr><tr><th>Server program</th><td>WaterWall 1.5.42, the official release, unchanged, SHA-256 38631081bd10347d…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-download-20261110T1135Z.json">waterwall-download-20261110T1135Z.json</a></td></tr></tbody></table>
 </main>
 <script src="../../assets/js/nav.js"></script>
 <script src="../../assets/js/site.js"></script>

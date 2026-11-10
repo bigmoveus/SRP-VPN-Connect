@@ -12,16 +12,15 @@
 <main>
 <h1>Raw IPv4 + KCP (additional-rawip-kcp.json)</h1>
 <p class="lead">Raw IPv4 sends whole IP packets as one stream instead of separate connections. In this case KCP carries it over UDP.</p>
-<p><span class="status partial">TESTED — PARTIALLY WORKING</span> &nbsp;Tested on 5 November 2026 on the current app build against WaterWall 1.5.3, the official release, unchanged.</p>
+<p><span class="status partial">TESTED — PARTIALLY WORKING</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
-<table><tbody><tr><th>Outcome</th><td>Failed: traffic moved, but not every check succeeded.</td></tr><tr><th>Runs</th><td>1 of 3 passed; the numbers on this page are from the first run</td></tr><tr><th>Test length</th><td>210 seconds</td></tr><tr><th>Downloaded</th><td>671 MB (26 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>201 MB (8 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>40 downloads and 12 uploads of 16 MiB; 7/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 210 ms; Ping: 282 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
+<table><tbody><tr><th>Outcome</th><td>Failed: traffic moved, but not every check succeeded.</td></tr><tr><th>Runs</th><td>1 of 2 passed; the numbers on this page are from the first run</td></tr><tr><th>Test length</th><td>101 seconds</td></tr><tr><th>Downloaded</th><td>369 MB (29 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>101 MB (8 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>22 downloads and 7 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>The network connection was lost.</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 852 ms; Ping: 232 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
 <h3>What the test reported</h3>
-<pre data-label="Lines from the test log"><code class="language-bash">Sustained full-duplex: 210.44 seconds, downloaded=671088640, uploaded=201326592, download_requests=40, upload_requests=12, errors=( ), finished=7/8, timeouts=0, VPN status=2
--[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : Asynchronous wait failed: Exceeded timeout of 210 seconds, with unfulfilled expectations: &quot;Sustained parallel live downloads and verified uploads&quot;.
+<pre data-label="Lines from the test log"><code class="language-bash">Sustained full-duplex: 101.02 seconds, downloaded=369098752, uploaded=100663296, download_requests=22, upload_requests=7, errors=( &quot;The network connection was lost.&quot; ), finished=8/8, timeouts=0, VPN status=2
 -[SROptionsTests testWaterWallLiveFullDuplexWhenConfigured] : (([self performSustainedLiveFullDuplex:manager environment:environment]) is true) failed
-(null); stop reason: { date = &quot;2026-11-05 19:52:46 +0000&quot;; reason = 1; }</code></pre>
+(null); stop reason: { date = &quot;2026-11-10 09:26:46 +0000&quot;; reason = 1; }</code></pre>
 <h2>Test setup</h2>
-<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 34), a Release build of commit c87f4927, installed by Xcode for the test. TestFlight build 34 is commit c26aedad; the two commits after c87f4927 change only the documentation, the build number and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>Our permanent waterwall.service: the official WaterWall 1.5.3 release program, unchanged, installed as described in Installation, with /etc/waterwall/core.json</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.3&#x27;s default; /etc/waterwall/core.json does not set it</td></tr><tr><th>Server port</th><td>The configuration&#x27;s own port, open to the internet</td></tr><tr><th>Certificate</th><td>Let&#x27;s Encrypt ECDSA certificate for &lt;SERVER_HOST&gt;</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
+<table><tbody><tr><th>Phone</th><td>iPhone 12 with iOS 27.2 (build 24B119), on Wi-Fi</td></tr><tr><th>App</th><td>SRP VPN Connect 1.2.0 (build 41), a Release build of commit f4425e02, installed by Xcode for the test. TestFlight build 41 is commit e44cf11d, with the same app code: the commits after it change only the tests and the change log</td></tr><tr><th>Server machine</th><td>Ubuntu 24.04.5 LTS, VMware virtual machine with 2 vCPUs and 2 GB RAM</td></tr><tr><th>Server program</th><td>Our permanent waterwall.service: the official WaterWall 1.5.42 release program, unchanged, installed as described in Installation, with /etc/waterwall/core.json</td></tr><tr><th>Server DNS lookups</th><td>5 tries, WaterWall 1.5.42&#x27;s default; /etc/waterwall/core.json does not set it</td></tr><tr><th>Server port</th><td>The configuration&#x27;s own port, open to the internet</td></tr><tr><th>Certificate</th><td>Let&#x27;s Encrypt ECDSA certificate for &lt;SERVER_HOST&gt;</td></tr><tr><th>Traffic</th><td>An HTTPS test server on the same machine, port 28483, that serves a 16 MiB file and checks each upload. On Raw IPv4 and native WireGuard chains the phone reaches it at the server&#x27;s private address 10.44.0.1, because iOS sends traffic for the server&#x27;s own public address outside the tunnel; the test then trusts its certificate by comparing it with a copy, since the name in it is not that address</td></tr><tr><th>Network</th><td>Our office broadband line, over the public internet</td></tr></tbody></table>
 <pre data-label="Illustration — not a capture of a real network"><code>iPhone 12 with SRP VPN Connect
       |
       |  Wi-Fi, office broadband, internet
@@ -51,7 +50,7 @@
     },
     {
       &quot;name&quot;: &quot;kcp&quot;,
-      &quot;type&quot;: &quot;TcpOverUdpServer&quot;,
+      &quot;type&quot;: &quot;KcpServer&quot;,
       &quot;settings&quot;: {
         &quot;fec&quot;: false
       },
@@ -80,7 +79,6 @@
       &quot;settings&quot;: {
         &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
         &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
-        &quot;domain-strategy&quot;: &quot;prefer-ipv4&quot;,
         &quot;nodelay&quot;: true
       }
     }
@@ -96,7 +94,7 @@
 <h2>Gaps and limits</h2>
 <ul><li>Each case ran once, for about 90 seconds, with one phone on one network.</li><li>The test measured TCP traffic only; UDP was not tested.</li></ul>
 <h2>Evidence</h2>
-<table><tbody><tr><th>Test case</th><td>prod-additional-rawip-kcp</td></tr><tr><th>Why it was selected</th><td>Production configuration additional-rawip-kcp.json</td></tr><tr><th>Run</th><td>2026-11-05T18:50:48Z to 2026-11-05T20:12:18Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-05 22:49:13 to 2026-11-05 22:52:48 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit c87f4927</td></tr><tr><th>Server program</th><td>WaterWall 1.5.3, the official release, unchanged, SHA-256 8b726bf0594d1f58…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-production-20261105T1850Z.json">waterwall-production-20261105T1850Z.json</a></td></tr></tbody></table>
+<table><tbody><tr><th>Test case</th><td>prod-additional-rawip-kcp</td></tr><tr><th>Why it was selected</th><td>Production configuration additional-rawip-kcp.json</td></tr><tr><th>Run</th><td>2026-11-10T09:20:51Z to 2026-11-10T09:28:40Z (UTC)</td></tr><tr><th>Case log times</th><td>2026-11-10 12:24:55 to 2026-11-10 12:26:48 (phone time, UTC+3)</td></tr><tr><th>App source</th><td>commit f4425e02</td></tr><tr><th>Server program</th><td>WaterWall 1.5.42, the official release, unchanged, SHA-256 38631081bd10347d…</td></tr><tr><th>Evidence file</th><td><a href="../../evidence/waterwall-production-20261110T0920Z.json">waterwall-production-20261110T0920Z.json</a></td></tr></tbody></table>
 </main>
 <script src="../../assets/js/nav.js"></script>
 <script src="../../assets/js/site.js"></script>

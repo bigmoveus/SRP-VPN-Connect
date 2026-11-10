@@ -1,9 +1,9 @@
 {
  "run": {
-  "start_utc": "2026-11-05T20:22:27Z",
-  "end_utc": "2026-11-05T20:39:56Z",
-  "head": "c87f4927ac162ab5bc6ce313a19cee520c80c84e",
-  "peer_sha256": "8b726bf0594d1f58b3dd99c76cf791dac74e8098a023828b5eff15a82b29f79e"
+  "start_utc": "2026-11-10T11:08:42Z",
+  "end_utc": "2026-11-10T11:26:40Z",
+  "head": "e69cb668f5989aa8f94fe697629ee69cbc3ff64f",
+  "peer_sha256": "38631081bd10347d840a9f068a349fd028aede57889f0ac77df441f9fe88bbaf"
  },
  "summary": {
   "identified": 8,
@@ -77,7 +77,6 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
        "protocol": "dest_context->protocol",
        "uuid": "<UUID>"
@@ -87,9 +86,7 @@
       "next": "tls"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "vless"
@@ -158,7 +155,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -182,28 +182,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.18,
-     "bytes": 2919235584,
-     "requests": 174,
+     "duration_s": 92.07,
+     "bytes": 2046820352,
+     "requests": 122,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 90.67,
+     "duration_s": 91.94,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 28.439,
-     "average_jitter_ms": 12.16,
-     "max_rtt_ms": 170.312,
+     "average_rtt_ms": 38.432,
+     "average_jitter_ms": 21.199,
+     "max_rtt_ms": 302.042,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      234.0,
-      175.0
+      191.0,
+      234.0
      ]
     },
     "routing": null,
@@ -216,18 +216,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:23:47",
-    "finished": "2026-11-05 23:25:22",
-    "sustained": "Sustained stress: 91.18 seconds, 2919235584 bytes, 174 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:10:24",
+    "finished": "2026-11-10 14:11:59",
+    "sustained": "Sustained stress: 92.07 seconds, 2046820352 bytes, 122 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.18,
-     "downloaded": 2919235584,
+     "seconds": 92.07,
+     "downloaded": 2046820352,
      "uploaded": 0,
-     "download_requests": 174,
+     "download_requests": 122,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -235,25 +236,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.18,
-      "downloaded": 2919235584,
+      "seconds": 92.07,
+      "downloaded": 2046820352,
       "uploaded": 0,
-      "download_requests": 174,
+      "download_requests": 122,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 90.67 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.439, jitter_ms=12.160, max_rtt_ms=170.312, retries=0"
+     "Sustained UDP: 91.94 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.432, jitter_ms=21.199, max_rtt_ms=302.042, retries=0"
     ],
     "https_checks": [
-     "Ping: 234 ms",
-     "Ping: 175 ms"
+     "Ping: 191 ms",
+     "Ping: 234 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 90.67 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.439, jitter_ms=12.160, max_rtt_ms=170.312, retries=0"
+    "udp": "Sustained UDP: 91.94 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.432, jitter_ms=21.199, max_rtt_ms=302.042, retries=0"
    }
   },
   {
@@ -307,7 +308,6 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
        "protocol": "dest_context->protocol",
        "uuid": "<UUID>"
@@ -317,9 +317,7 @@
       "next": "obfuscator"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "vless"
@@ -408,7 +406,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -432,28 +433,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.36,
-     "bytes": 2969567232,
-     "requests": 177,
+     "duration_s": 92.25,
+     "bytes": 2181038080,
+     "requests": 130,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 90.81,
+     "duration_s": 91.24,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 27.823,
-     "average_jitter_ms": 11.597,
-     "max_rtt_ms": 197.588,
+     "average_rtt_ms": 36.137,
+     "average_jitter_ms": 18.617,
+     "max_rtt_ms": 184.28,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      189.0,
-      187.0
+      203.0,
+      145.0
      ]
     },
     "routing": null,
@@ -466,18 +467,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:25:49",
-    "finished": "2026-11-05 23:27:24",
-    "sustained": "Sustained stress: 91.36 seconds, 2969567232 bytes, 177 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:12:27",
+    "finished": "2026-11-10 14:14:02",
+    "sustained": "Sustained stress: 92.25 seconds, 2181038080 bytes, 130 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.36,
-     "downloaded": 2969567232,
+     "seconds": 92.25,
+     "downloaded": 2181038080,
      "uploaded": 0,
-     "download_requests": 177,
+     "download_requests": 130,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -485,25 +487,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.36,
-      "downloaded": 2969567232,
+      "seconds": 92.25,
+      "downloaded": 2181038080,
       "uploaded": 0,
-      "download_requests": 177,
+      "download_requests": 130,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 90.81 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.823, jitter_ms=11.597, max_rtt_ms=197.588, retries=0"
+     "Sustained UDP: 91.24 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=36.137, jitter_ms=18.617, max_rtt_ms=184.280, retries=0"
     ],
     "https_checks": [
-     "Ping: 189 ms",
-     "Ping: 187 ms"
+     "Ping: 203 ms",
+     "Ping: 145 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 90.81 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.823, jitter_ms=11.597, max_rtt_ms=197.588, retries=0"
+    "udp": "Sustained UDP: 91.24 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=36.137, jitter_ms=18.617, max_rtt_ms=184.280, retries=0"
    }
   },
   {
@@ -557,10 +559,9 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
-       "security": "aes-128-gcm",
        "protocol": "dest_context->protocol",
+       "security": "aes-128-gcm",
        "uuid": "<UUID>"
       },
       "name": "vmess",
@@ -568,9 +569,7 @@
       "next": "tls"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "vmess"
@@ -639,7 +638,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -663,28 +665,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.42,
-     "bytes": 2365587456,
-     "requests": 141,
+     "duration_s": 92.23,
+     "bytes": 2063597568,
+     "requests": 123,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 90.84,
+     "duration_s": 91.16,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 27.751,
-     "average_jitter_ms": 8.955,
-     "max_rtt_ms": 191.683,
+     "average_rtt_ms": 38.274,
+     "average_jitter_ms": 18.397,
+     "max_rtt_ms": 167.38,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      191.0,
-      155.0
+      138.0,
+      131.0
      ]
     },
     "routing": null,
@@ -697,18 +699,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:27:51",
-    "finished": "2026-11-05 23:29:26",
-    "sustained": "Sustained stress: 91.42 seconds, 2365587456 bytes, 141 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:14:30",
+    "finished": "2026-11-10 14:16:05",
+    "sustained": "Sustained stress: 92.23 seconds, 2063597568 bytes, 123 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.42,
-     "downloaded": 2365587456,
+     "seconds": 92.23,
+     "downloaded": 2063597568,
      "uploaded": 0,
-     "download_requests": 141,
+     "download_requests": 123,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -716,25 +719,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.42,
-      "downloaded": 2365587456,
+      "seconds": 92.23,
+      "downloaded": 2063597568,
       "uploaded": 0,
-      "download_requests": 141,
+      "download_requests": 123,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 90.84 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.751, jitter_ms=8.955, max_rtt_ms=191.683, retries=0"
+     "Sustained UDP: 91.16 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.274, jitter_ms=18.397, max_rtt_ms=167.380, retries=0"
     ],
     "https_checks": [
-     "Ping: 191 ms",
-     "Ping: 155 ms"
+     "Ping: 138 ms",
+     "Ping: 131 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 90.84 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=27.751, jitter_ms=8.955, max_rtt_ms=191.683, retries=0"
+    "udp": "Sustained UDP: 91.16 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.274, jitter_ms=18.397, max_rtt_ms=167.380, retries=0"
    }
   },
   {
@@ -788,7 +791,6 @@
      {
       "settings": {
        "password": "<UUID>",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
        "protocol": "dest_context->protocol",
        "port": "dest_context->port"
@@ -798,9 +800,7 @@
       "next": "tls"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "trojan"
@@ -868,7 +868,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -892,28 +895,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.69,
-     "bytes": 3053453312,
-     "requests": 182,
+     "duration_s": 92.36,
+     "bytes": 2164260864,
+     "requests": 129,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 91.02,
+     "duration_s": 91.97,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 28.25,
-     "average_jitter_ms": 12.912,
-     "max_rtt_ms": 268.87,
+     "average_rtt_ms": 39.701,
+     "average_jitter_ms": 22.61,
+     "max_rtt_ms": 257.621,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
       192.0,
-      139.0
+      134.0
      ]
     },
     "routing": null,
@@ -926,18 +929,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:29:54",
-    "finished": "2026-11-05 23:31:28",
-    "sustained": "Sustained stress: 91.69 seconds, 3053453312 bytes, 182 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:16:32",
+    "finished": "2026-11-10 14:18:07",
+    "sustained": "Sustained stress: 92.36 seconds, 2164260864 bytes, 129 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.69,
-     "downloaded": 3053453312,
+     "seconds": 92.36,
+     "downloaded": 2164260864,
      "uploaded": 0,
-     "download_requests": 182,
+     "download_requests": 129,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -945,25 +949,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.69,
-      "downloaded": 3053453312,
+      "seconds": 92.36,
+      "downloaded": 2164260864,
       "uploaded": 0,
-      "download_requests": 182,
+      "download_requests": 129,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 91.02 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.250, jitter_ms=12.912, max_rtt_ms=268.870, retries=0"
+     "Sustained UDP: 91.97 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=39.701, jitter_ms=22.610, max_rtt_ms=257.621, retries=0"
     ],
     "https_checks": [
      "Ping: 192 ms",
-     "Ping: 139 ms"
+     "Ping: 134 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 91.02 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.250, jitter_ms=12.912, max_rtt_ms=268.870, retries=0"
+    "udp": "Sustained UDP: 91.97 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=39.701, jitter_ms=22.610, max_rtt_ms=257.621, retries=0"
    }
   },
   {
@@ -1017,7 +1021,6 @@
      {
       "settings": {
        "address": "dest_context->address",
-       "domain-strategy": "do-not-resolve-domains",
        "protocol": "dest_context->protocol",
        "port": "dest_context->port"
       },
@@ -1026,9 +1029,7 @@
       "next": "connector"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "socks5"
@@ -1074,7 +1075,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -1098,28 +1102,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 95.73,
-     "bytes": 3019898880,
-     "requests": 180,
+     "duration_s": 93.1,
+     "bytes": 2231369728,
+     "requests": 133,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 95.56,
+     "duration_s": 90.85,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 18.672,
-     "average_jitter_ms": 8.397,
-     "max_rtt_ms": 95.605,
+     "average_rtt_ms": 22.343,
+     "average_jitter_ms": 12.103,
+     "max_rtt_ms": 135.508,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      205.0,
-      147.0
+      184.0,
+      136.0
      ]
     },
     "routing": null,
@@ -1132,18 +1136,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:31:56",
-    "finished": "2026-11-05 23:33:34",
-    "sustained": "Sustained stress: 95.73 seconds, 3019898880 bytes, 180 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:18:34",
+    "finished": "2026-11-10 14:20:10",
+    "sustained": "Sustained stress: 93.10 seconds, 2231369728 bytes, 133 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 95.73,
-     "downloaded": 3019898880,
+     "seconds": 93.1,
+     "downloaded": 2231369728,
      "uploaded": 0,
-     "download_requests": 180,
+     "download_requests": 133,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -1151,25 +1156,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 95.73,
-      "downloaded": 3019898880,
+      "seconds": 93.1,
+      "downloaded": 2231369728,
       "uploaded": 0,
-      "download_requests": 180,
+      "download_requests": 133,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 95.56 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=18.672, jitter_ms=8.397, max_rtt_ms=95.605, retries=1"
+     "Sustained UDP: 90.85 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=22.343, jitter_ms=12.103, max_rtt_ms=135.508, retries=0"
     ],
     "https_checks": [
-     "Ping: 205 ms",
-     "Ping: 147 ms"
+     "Ping: 184 ms",
+     "Ping: 136 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 95.56 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=18.672, jitter_ms=8.397, max_rtt_ms=95.605, retries=1"
+    "udp": "Sustained UDP: 90.85 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=22.343, jitter_ms=12.103, max_rtt_ms=135.508, retries=0"
    }
   },
   {
@@ -1227,10 +1232,9 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
-       "security": "aes-128-gcm",
        "protocol": "udp",
+       "security": "aes-128-gcm",
        "uuid": "<UUID>"
       },
       "name": "vmess",
@@ -1238,9 +1242,7 @@
       "next": "connector"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "vmess"
@@ -1285,7 +1287,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -1313,13 +1318,13 @@
     },
     "udp": {
      "status": "passed",
-     "duration_s": 92.29,
+     "duration_s": 92.05,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 10.394,
-     "average_jitter_ms": 6.431,
-     "max_rtt_ms": 229.556,
+     "average_rtt_ms": 9.977,
+     "average_jitter_ms": 6.164,
+     "max_rtt_ms": 244.77,
      "error": ""
     },
     "ping": {
@@ -1331,15 +1336,16 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:34:00",
-    "finished": "2026-11-05 23:35:36",
-    "sustained": "Sustained stress: 92.49 seconds, 0 bytes, 0 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:20:37",
+    "finished": "2026-11-10 14:22:12",
+    "sustained": "Sustained stress: 92.24 seconds, 0 bytes, 0 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 92.49,
+     "seconds": 92.24,
      "downloaded": 0,
      "uploaded": 0,
      "download_requests": 0,
@@ -1350,7 +1356,7 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 92.49,
+      "seconds": 92.24,
       "downloaded": 0,
       "uploaded": 0,
       "download_requests": 0,
@@ -1360,14 +1366,14 @@
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 92.29 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=10.394, jitter_ms=6.431, max_rtt_ms=229.556, retries=0"
+     "Sustained UDP: 92.05 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=9.977, jitter_ms=6.164, max_rtt_ms=244.770, retries=0"
     ],
     "https_checks": [],
     "failures": [
      "-[SROptionsTests testWaterWallLiveConnectionAndThroughputWhenConfigured] : Failed due to unwaited expectation 'Sustained parallel live downloads'."
     ],
     "last_error": null,
-    "udp": "Sustained UDP: 92.29 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=10.394, jitter_ms=6.431, max_rtt_ms=229.556, retries=0"
+    "udp": "Sustained UDP: 92.05 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=9.977, jitter_ms=6.164, max_rtt_ms=244.770, retries=0"
    }
   },
   {
@@ -1427,10 +1433,9 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
-       "security": "aes-128-gcm",
        "protocol": "dest_context->protocol",
+       "security": "aes-128-gcm",
        "uuid": "<UUID>"
       },
       "name": "vmess",
@@ -1438,9 +1443,7 @@
       "next": "tls"
      },
      {
-      "settings": {
-       "resolve-domains": false
-      },
+      "settings": {},
       "name": "router",
       "type": "Router",
       "next": "vmess"
@@ -1509,7 +1512,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -1533,28 +1539,28 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.78,
-     "bytes": 2415919104,
-     "requests": 144,
+     "duration_s": 96.27,
+     "bytes": 1828716544,
+     "requests": 109,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 90.68,
+     "duration_s": 96.1,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 28.807,
-     "average_jitter_ms": 9.111,
-     "max_rtt_ms": 104.753,
+     "average_rtt_ms": 47.161,
+     "average_jitter_ms": 31.105,
+     "max_rtt_ms": 1342.796,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      181.0,
-      149.0
+      208.0,
+      214.0
      ]
     },
     "routing": null,
@@ -1567,18 +1573,19 @@
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:36:02",
-    "finished": "2026-11-05 23:37:37",
-    "sustained": "Sustained stress: 91.78 seconds, 2415919104 bytes, 144 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:22:40",
+    "finished": "2026-11-10 14:24:19",
+    "sustained": "Sustained stress: 96.27 seconds, 1828716544 bytes, 109 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.78,
-     "downloaded": 2415919104,
+     "seconds": 96.27,
+     "downloaded": 1828716544,
      "uploaded": 0,
-     "download_requests": 144,
+     "download_requests": 109,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -1586,25 +1593,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.78,
-      "downloaded": 2415919104,
+      "seconds": 96.27,
+      "downloaded": 1828716544,
       "uploaded": 0,
-      "download_requests": 144,
+      "download_requests": 109,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 90.68 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.807, jitter_ms=9.111, max_rtt_ms=104.753, retries=0"
+     "Sustained UDP: 96.10 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=47.161, jitter_ms=31.105, max_rtt_ms=1342.796, retries=0"
     ],
     "https_checks": [
-     "Ping: 181 ms",
-     "Ping: 149 ms"
+     "Ping: 208 ms",
+     "Ping: 214 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 90.68 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=28.807, jitter_ms=9.111, max_rtt_ms=104.753, retries=0"
+    "udp": "Sustained UDP: 96.10 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=47.161, jitter_ms=31.105, max_rtt_ms=1342.796, retries=0"
    }
   },
   {
@@ -1663,7 +1670,6 @@
      {
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "do-not-resolve-domains",
        "address": "dest_context->address",
        "protocol": "dest_context->protocol",
        "uuid": "<UUID>"
@@ -1674,8 +1680,7 @@
      },
      {
       "settings": {
-       "resolve-domains": true,
-       "geoip-db-path": "WaterWall/GeoIP/GeoLite2-Country.mmdb",
+       "geoip-db-path": "<LOCAL_PATH> VPN Connect Tests/app-ww1542/WaterWall/GeoIP/GeoLite2-Country.mmdb",
        "rules": [
         {
          "target": "direct-local",
@@ -1683,7 +1688,10 @@
           "geoip:ir"
          ]
         }
-       ]
+       ],
+       "dns-behaviour": {
+        "resolve": true
+       }
       },
       "name": "router",
       "type": "Router",
@@ -1694,7 +1702,10 @@
       "type": "TcpUdpConnector",
       "settings": {
        "port": "dest_context->port",
-       "domain-strategy": "prefer-ipv4",
+       "dns-behaviour": {
+        "resolve": true,
+        "strategy": "prefer-ipv4"
+       },
        "nodelay": true,
        "address": "dest_context->address"
       }
@@ -1763,7 +1774,10 @@
        "settings": {
         "address": "dest_context->address",
         "port": "dest_context->port",
-        "domain-strategy": "prefer-ipv4",
+        "dns-behaviour": {
+         "resolve": true,
+         "strategy": "prefer-ipv4"
+        },
         "nodelay": true
        }
       }
@@ -1787,53 +1801,54 @@
     "status": "passed",
     "tcp": {
      "status": "passed",
-     "duration_s": 91.44,
-     "bytes": 3019898880,
-     "requests": 180,
+     "duration_s": 92.55,
+     "bytes": 2063597568,
+     "requests": 123,
      "timeouts": 0,
      "error": ""
     },
     "udp": {
      "status": "passed",
-     "duration_s": 90.68,
+     "duration_s": 92.38,
      "sent": 900,
      "received": 900,
      "timeouts": 0,
-     "average_rtt_ms": 29.751,
-     "average_jitter_ms": 12.671,
-     "max_rtt_ms": 193.373,
+     "average_rtt_ms": 38.189,
+     "average_jitter_ms": 21.483,
+     "max_rtt_ms": 490.211,
      "error": ""
     },
     "ping": {
      "status": "passed",
      "samples_ms": [
-      221.0,
-      159.0
+      157.0,
+      132.0
      ]
     },
     "routing": {
      "status": "passed",
      "expected": "proxied",
      "direct_requests": 0,
-     "proxied_requests": 180,
+     "proxied_requests": 123,
      "other_requests": 0
     },
     "path": null,
     "teardown": {
      "passed": true
     },
-    "lifecycle": null
+    "lifecycle": null,
+    "dns": null
    },
    "device": {
-    "started": "2026-11-05 23:38:05",
-    "finished": "2026-11-05 23:39:39",
-    "sustained": "Sustained stress: 91.44 seconds, 3019898880 bytes, 180 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
+    "started": "2026-11-10 14:24:47",
+    "finished": "2026-11-10 14:26:23",
+    "sustained": "Sustained stress: 92.55 seconds, 2063597568 bytes, 123 requests, errors: ( ), VPN status: 2, finished: 4/4, timeouts: 0",
     "measured": {
      "mode": "download",
-     "seconds": 91.44,
-     "downloaded": 3019898880,
+     "seconds": 92.55,
+     "downloaded": 2063597568,
      "uploaded": 0,
-     "download_requests": 180,
+     "download_requests": 123,
      "errors": [],
      "finished": "4/4",
      "timeouts": 0
@@ -1841,25 +1856,25 @@
     "phases": [
      {
       "mode": "download",
-      "seconds": 91.44,
-      "downloaded": 3019898880,
+      "seconds": 92.55,
+      "downloaded": 2063597568,
       "uploaded": 0,
-      "download_requests": 180,
+      "download_requests": 123,
       "errors": [],
       "finished": "4/4",
       "timeouts": 0
      }
     ],
     "udp_phases": [
-     "Sustained UDP: 90.68 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=29.751, jitter_ms=12.671, max_rtt_ms=193.373, retries=0"
+     "Sustained UDP: 92.38 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.189, jitter_ms=21.483, max_rtt_ms=490.211, retries=0"
     ],
     "https_checks": [
-     "Ping: 221 ms",
-     "Ping: 159 ms"
+     "Ping: 157 ms",
+     "Ping: 132 ms"
     ],
     "failures": [],
     "last_error": null,
-    "udp": "Sustained UDP: 90.68 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=29.751, jitter_ms=12.671, max_rtt_ms=193.373, retries=0"
+    "udp": "Sustained UDP: 92.38 seconds, sent=900, received=900, errors=0, timeouts=0, passed=1, rtt_ms=38.189, jitter_ms=21.483, max_rtt_ms=490.211, retries=0"
    }
   }
  ]
