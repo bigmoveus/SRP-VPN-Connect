@@ -355,7 +355,7 @@
 <h2 id="wireguard-mode">WireGuard mode</h2>
 <p>In WireGuard mode the SERVER section has:</p>
 <ul>
-  <li><strong>Import Config (.conf)</strong>: picks a WireGuard file from the Files app, or on Android from the system's file picker. Server and Port are filled from its <code>Endpoint</code> line. A wrong file shows <strong>Import Failed</strong> with <em>The file could not be read as UTF-8 text.</em> or <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></li>
+  <li><strong>Import Config (.conf)</strong>: picks a WireGuard file from the Files app, or on Android from the system's file picker. Server and Port are filled from its <code>Endpoint</code> line, and WaterWall connects to that <code>Endpoint</code>: changing Server or Port afterwards does not change it. A wrong file shows <strong>Import Failed</strong> with <em>The file could not be read as UTF-8 text.</em> or <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></li>
   <li><strong>Manual Configuration</strong>: enter the keys yourself, as below.</li>
   <li><strong>Server</strong> and <strong>Port</strong>.</li>
 </ul>

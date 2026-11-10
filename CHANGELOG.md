@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WaterWall UI guide says that WireGuard mode connects to the Endpoint of an imported file, which changing Server or Port does not change (both apps).
+
 ## 1.2.0 (42) - 2026-11-10
 
 ### Changed
