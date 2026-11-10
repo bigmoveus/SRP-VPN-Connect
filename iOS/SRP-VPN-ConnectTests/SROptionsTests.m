@@ -2098,7 +2098,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(byName[@"ptc"][@"next"], @"router");
     XCTAssertEqualObjects(byName[@"ptc"][@"settings"][@"fake-dns"][@"enabled"], @YES);
     XCTAssertEqualObjects(byName[@"ptc"][@"settings"][@"fake-dns"][@"address"], @"198.18.0.2");
-    XCTAssertEqualObjects(byName[@"router"][@"settings"][@"resolve-domains"], @NO);
+    XCTAssertNil(byName[@"router"][@"settings"][@"dns-behaviour"]);  // without it WaterWall 1.5.4 and later do not resolve
     XCTAssertEqualObjects(byName[@"router"][@"next"], @"vless");
     XCTAssertEqualObjects(byName[@"vless"][@"next"], @"bgp4");
     XCTAssertEqualObjects(byName[@"bgp4"][@"type"], @"Bgp4Client");

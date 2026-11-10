@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Fixed
+- An iPhone unit test of the BGP4 chain still expected the Router's `resolve-domains` setting that WaterWall 1.5.4 and later refuse; it now checks that the Router has no `dns-behaviour`, so it does not resolve. Only the test changed.
+
 ## 1.2.0 (41) - 2026-11-10
 
 ### Added
