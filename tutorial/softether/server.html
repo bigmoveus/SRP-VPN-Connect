@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SoftEther VPN Server — SoftEther — SRP VPN Connect Documentation</title>
-<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu from the command line for the SoftEther VPN protocol, with every login method the app offers.">
+<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu from the command line for the SoftEther VPN protocol, with every login method the app offers, and setting up the app on the phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>SoftEther VPN Server</h1>
-<p class="lead">This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up from the command line for the app's SoftEther profiles: a Virtual Hub with SecureNAT, users for every login method the app offers, a trusted certificate, and the server side of UDP acceleration and NAT traversal.</p>
+<p class="lead">This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up from the command line for the app's SoftEther profiles: a Virtual Hub with SecureNAT, users for every login method the app offers, a trusted certificate, and the server side of UDP acceleration and NAT traversal. Its last part sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -173,8 +173,60 @@ SessionList
 SessionGet &lt;SESSION_NAME&gt;</code></pre>
 <p>While a phone is connected, <code>SessionList</code> shows its session, and <code>SessionGet</code> its number of TCP connections, UDP acceleration and underlying protocol. With the server's VoIP / QoS function on, the default, a session uses at least two TCP connections even when the profile asks for one. The server's own log files are in <code>/opt/vpnserver/server_log/</code>, each hub's in <code>/opt/vpnserver/security_log/</code>.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>SoftEther VPN</strong>, the server's name in <strong>Server</strong>, 443 in <strong>Port</strong>, the hub in <strong>Virtual Hub</strong>, and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">9. Set up the app on the phone</h2>
+<p>First install the app on the phone: see <a href="../waterwall/installation.html#install-the-app">Install the app on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>. A SoftEther VPN profile has the same fields on iPhone and Android, so the steps below are the same on both; only the permission the system asks for at the first connection differs.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, then tap <strong>Protocol</strong> and choose <strong>SoftEther VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Server</strong>: your domain, <code>&lt;SERVER_HOST&gt;</code>, the name of the certificate from part 4. Use the name, not the IP address, so that the certificate check matches.</li>
+  <li><strong>Port</strong>: <code>443</code>; empty means 443 as well. The server's other ports from part 2, 992 and 5555, work too.</li>
+  <li><strong>Hostname</strong>: leave it empty; the app then checks the certificate against <strong>Server</strong>. Leave <strong>TLS Server Verification</strong> on.</li>
+  <li><strong>Virtual Hub</strong>: <code>DEFAULT</code>, the hub of part 6 that holds the users of part 7; empty means <code>DEFAULT</code> as well. For the second hub of part 6, enter <code>TEST-HUB</code>; it has its own users, made as in part 7 after <code>Hub TEST-HUB</code>.</li>
+  <li>Leave <strong>Connections</strong> at 1, and <strong>Enable UDP Acceleration</strong> and <strong>Enable NAT Traversal (NAT-T)</strong> off.</li>
+  <li><strong>Method</strong>: leave it at <strong>Standard Password</strong>, for the password user of part 7.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the user you made in part 7. <strong>Password</strong>: <code>&lt;PASSWORD&gt;</code>, the password you gave it with <code>UserPasswordSet</code>.</li>
+  <li>Leave <strong>Proxy</strong> at <strong>None</strong> and everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/softether/protocol.png" alt="Protocol screen on iPhone with SoftEther VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SoftEther VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/profile-editor.png" alt="Profile editor on iPhone: Protocol SoftEther VPN, Server vpn.example.com, Port 443, TLS Server Verification on, Virtual Hub DEFAULT, Connections 1, UDP acceleration and NAT traversal off" width="260" loading="lazy">
+    <figcaption>A SoftEther VPN profile on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/softether/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>The other users of part 7 need their own <strong>Method</strong>. For them, set these instead of the method, username and password above:</p>
+<ul>
+  <li><a href="#anonymous">Anonymous</a>: <strong>Method</strong> Anonymous and <strong>Username</strong> <code>guest</code>; there is no password.</li>
+  <li><a href="#radius">RADIUS</a>: <strong>Method</strong> RADIUS / NT Domain, <strong>Username</strong> <code>radiususer</code> and <strong>Password</strong> <code>&lt;RADIUS_USER_PASSWORD&gt;</code>, the password you put in FreeRADIUS.</li>
+  <li><a href="#certificates">Signed certificate</a>: <strong>Method</strong> Certificate and <strong>Username</strong> <code>certuser</code>. Then tap <strong>Certificate</strong>, then <strong>Import</strong>, choose <code>certuser.p12</code>, and type the file's passphrase when the app asks for it.</li>
+  <li><a href="#certificates">Individual certificate</a>: the same with <code>certuser2</code> and <code>certuser2.p12</code>.</li>
+</ul>
+<p>To use the UDP acceleration of part 8, turn on <strong>Enable UDP Acceleration</strong>: the app and the server then also exchange the VPN's packets over UDP. Turn on <strong>Enable NAT Traversal (NAT-T)</strong> only when the phone cannot reach the server over TCP: the app then reaches it over UDP through the NAT-T servers of SoftEther Corporation, which receive the connection's details. Leave <strong>NAT-T Hint</strong>, which then appears, empty; it is for several VPN servers that share one public address.</p>
+
+<h3>Connect</h3>
+<ol>
+  <li>Tap the profile to select it, then tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the hub has given the phone an address, which SecureNAT of part 6 hands out from 192.168.30.10 on. The row of the profile then shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  While the phone is connected, run the commands of <a href="#check">Check the server</a> in <code>vpncmd</code>. After <code>Hub DEFAULT</code>, <code>SessionList</code> shows the phone's session. <code>SessionGet &lt;SESSION_NAME&gt;</code> shows its TCP connections, at least two with the server's VoIP / QoS function on, and <code>UDP Acceleration is Active | Yes</code> when <strong>Enable UDP Acceleration</strong> is on. If the app shows <strong>Connection Failed</strong> instead, tap the status under the power button to open the log; <a href="troubleshooting.html">Troubleshooting</a> explains each reason.
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

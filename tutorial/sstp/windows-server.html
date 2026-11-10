@@ -129,15 +129,79 @@ Get-VpnAuthProtocol
 Get-NetFirewallRule -DisplayName "Secure Socket Tunneling Protocol (SSTP-In)" | Format-Table DisplayName, Enabled, Action</code></pre>
 <p>On our servers <code>VpnStatus</code> is <em>Installed</em>, <code>AuthenticationType</code> is <em>Windows</em> on 2019 and 2022 and <em>ExternalRadius</em> on 2025, and the firewall rule <em>Secure Socket Tunneling Protocol (SSTP-In)</em>, which RRAS turns on, allows TCP 443. RRAS logs refused logins in the System event log under the source <em>RemoteAccess</em> (events 20255 and 20269, which name the user and the reason); Network Policy Server's own decisions are Security events 6272 to 6274.</p>
 
+<h2 id="client">8. Set up the app on the phone</h2>
+<p>Install SRP VPN Connect first, <a href="../waterwall/installation.html#install-the-app">on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>. An SSTP profile has the same fields on both, so the steps below are the same, except for the permission the first connection asks for.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, tap <strong>Protocol</strong> and choose <strong>SSTP VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Host</strong>: the server's DNS name, <code>&lt;SERVER_HOST&gt;</code>, which the certificate from step 2 is for. Use the name, not the IP address: the app checks the certificate against Host.</li>
+  <li><strong>Port</strong>: <code>443</code>, which the firewall rule <em>Secure Socket Tunneling Protocol (SSTP-In)</em> allows (<a href="#check">Check the server</a>). An empty Port means 443 too.</li>
+  <li><strong>Allow Untrusted Certificate</strong>: leave it off. For a certificate the phone does not trust, see step 2.</li>
+  <li><strong>Method</strong>: <strong>Password</strong>, the default.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the account you made in step 6. <strong>Password</strong>: the password you typed for it there.</li>
+  <li>Leave <strong>Enable MS-CHAPv2</strong> on and <strong>Enable PAP / CHAP (Less Secure)</strong> off: after step 3, RRAS accepts MS-CHAPv2 and EAP only.</li>
+  <li>Leave everything under <strong>Proxy</strong> and <strong>Options</strong> as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/protocol.png" alt="Protocol screen on iPhone with SSTP VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSTP VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/profile-editor.png" alt="SSTP profile editor on iPhone with Host, Port, Allow Untrusted Certificate and the authentication fields" width="260" loading="lazy">
+    <figcaption>The top of an SSTP profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same profile on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/eap-configuration.png" alt="EAP Configuration screen on iPhone" width="260" loading="lazy">
+    <figcaption>EAP Configuration, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/eap-configuration.png" alt="The same screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+</div>
+<p>To log in with EAP-MSCHAPv2 or PEAP, which step 7 sets up, change the authentication before you tap <strong>Save</strong>:</p>
+<ul>
+  <li>Turn off <strong>Enable MS-CHAPv2</strong>, so that the profile offers EAP only: the app offers every method that is on, and the server picks one.</li>
+  <li>Tap <strong>EAP Configuration</strong> and turn on <strong>Enable EAP-MSCHAPv2</strong> or <strong>Enable PEAP</strong>. With PEAP, <strong>Require Crypto Binding</strong> may be on: Network Policy Server sends PEAP's crypto binding.</li>
+  <li>Make sure <strong>Enable Identity Privacy</strong> is off: RRAS with local accounts refuses its outer identity <code>anonymous</code>.</li>
+  <li>Leave <strong>Enable TLS 1.3</strong> as it is. Network Policy Server has no TLS 1.3 inside EAP, and the app tries again with TLS 1.2 by itself.</li>
+</ul>
+<p>On a server set up as in <a href="#radius">Windows Server 2025 with FreeRADIUS</a>, the users and the EAP methods are those of the FreeRADIUS server:</p>
+<ul>
+  <li><strong>Username</strong> and <strong>Password</strong>: a user of the FreeRADIUS server (<a href="freeradius.html#users">FreeRADIUS, step 3</a>), such as <code>vpnuser</code> with its <code>&lt;PASSWORD&gt;</code>.</li>
+  <li>With <strong>Enable MS-CHAPv2</strong> off, EAP-MSCHAPv2, PEAP and EAP-TTLS (<strong>EAP-TTLS Method</strong> set to <strong>PAP</strong>, <strong>CHAP</strong>, <strong>EAP</strong> or <strong>MSCHAPv2</strong>) work; PEAP also with <strong>Enable Identity Privacy</strong> on. <strong>Require Crypto Binding</strong> must be off: PEAP from FreeRADIUS sends no crypto binding.</li>
+  <li>For certificate login, turn off <strong>Enable MS-CHAPv2</strong>, set <strong>Method</strong> to <strong>Certificate</strong>, tap <strong>Certificate</strong>, then <strong>Import</strong>, and choose the .p12 or .pfx file that holds your client certificate and its private key; the app asks for the file's passphrase. <strong>Username</strong> is optional. The certificate must chain to the CA in FreeRADIUS's <code>ca_file</code> (<a href="freeradius.html#eap-tls">FreeRADIUS, step 5</a>).</li>
+</ul>
+
+<h3>Connect</h3>
+<ol>
+  <li>On the home screen, select the profile and tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has assigned the phone an address, and the profile's row shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p>Tap the status under the power button to open the log. It shows the addresses the server gave, among them the phone's address from the range of step 3 (on our server 10.79.0.2). If the app shows <strong>Connection Failed</strong> instead, <a href="troubleshooting.html">Troubleshooting</a> explains its reason, and RRAS logs the refused login with the user and the reason in the server's System event log, under the source <em>RemoteAccess</em> (<a href="#check">Check the server</a>).</p>
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
+
 <h2 id="undo">Remove the VPN configuration</h2>
 <pre data-label="PowerShell"><code class="language-powershell">Uninstall-RemoteAccess -VpnType Vpn -Force
 netsh routing ip nat delete interface name="&lt;PUBLIC_ADAPTER&gt;"
 netsh routing ip nat delete interface name="Internal"
 netsh routing ip nat uninstall</code></pre>
 <p><code>Uninstall-RemoteAccess</code> alone left the NAT settings of step 4 in place on our server, so the last three commands remove them.</p>
-
-<h2>Connect the app</h2>
-<p>In the app, add a profile with the protocol <strong>SSTP VPN</strong>, the server's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The default settings use MS-CHAPv2. For PEAP or EAP-MSCHAPv2, turn them on in <strong>EAP Configuration</strong> under <strong>Authentication</strong>; <a href="app-setup.html">Setting up the app</a> describes every field. Leave <strong>Identity Privacy</strong> off for these servers: RRAS with local accounts refuses its outer identity <code>anonymous</code>.</p>
 
 <h2 id="console">About the Routing and Remote Access console</h2>
 <p>On our servers the Routing and Remote Access console could not show the server's settings, so this page uses PowerShell for RRAS. The reason is the <strong>Remote Access Connection Manager</strong> service (<code>RasMan</code>); see <a href="troubleshooting.html#windows-console">Troubleshooting</a>.</p>

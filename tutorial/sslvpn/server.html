@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ocserv (AnyConnect Server) — SSL VPN — SRP VPN Connect Documentation</title>
-<meta name="description" content="Install and set up ocserv, the AnyConnect-compatible OpenConnect server, on Ubuntu for the app's SSL VPN profiles: certificate, password and certificate users, split tunnel, NAT.">
+<meta name="description" content="Install and set up ocserv, the AnyConnect-compatible OpenConnect server, on Ubuntu for the app's SSL VPN profiles: certificate, password and certificate users, split tunnel, NAT, and setting up the app on the phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>ocserv (AnyConnect server)</h1>
-<p class="lead">ocserv, the OpenConnect server, speaks the AnyConnect protocol that the app's SSL VPN profiles use with <strong>Server Type</strong> AnyConnect. This page installs it on Ubuntu and sets it up for every way the app logs in: a trusted certificate, password users, certificate users, a split-tunnel group, and the forwarding that takes the phones' traffic to the internet.</p>
+<p class="lead">ocserv, the OpenConnect server, speaks the AnyConnect protocol that the app's SSL VPN profiles use with <strong>Server Type</strong> AnyConnect. This page installs it on Ubuntu and sets it up for every way the app logs in: a trusted certificate, password users, certificate users, a split-tunnel group, and the forwarding that takes the phones' traffic to the internet. Its last part sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -138,8 +138,57 @@ occtl show user vpnuser</code></pre>
 <h2 id="ban">Wrong passwords block the address for a while</h2>
 <p>ocserv scores each address: points for every connection and more for every wrong password. An address whose score passes <code>max-ban-score</code> (80 above) is refused until its score is reset, <code>ban-reset-time</code> seconds later. While it is blocked the app cannot tell this from a server it cannot reach; see <a href="troubleshooting.html">Troubleshooting</a>. <code>occtl show ip bans</code> lists the blocked addresses, and <code>occtl unban ip &lt;ADDRESS&gt;</code> lets one in again. Keep the ban on for a server on the internet; set <code>max-ban-score = 0</code> only for testing.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>SSL VPN</strong>, <strong>Server Type</strong> AnyConnect, the server's name in <strong>Server</strong>, 443 in <strong>Port</strong>, and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">9. Set up the app on the phone</h2>
+<p>First install the app on the phone: see <a href="../waterwall/installation.html#install-the-app">Install the app on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>. An SSL VPN profile has the same fields on iPhone and Android, so the steps below are the same on both; only the permission the system asks for at the first connection differs.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, then tap <strong>Protocol</strong> and choose <strong>SSL VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Server Type</strong>: leave it at <strong>AnyConnect</strong>, the type for ocserv.</li>
+  <li><strong>Server</strong>: your domain, <code>&lt;SERVER_HOST&gt;</code>, the name of the certificate from part 2. Use the name, not the IP address, so that the certificate check matches.</li>
+  <li><strong>Port</strong>: <code>443</code>, the <code>tcp-port</code> of part 3; empty means 443 as well.</li>
+  <li><strong>Path</strong>: leave it empty. It is for an ocserv with <code>camouflage</code>, which the file of part 3 does not turn on.</li>
+  <li><strong>TLS Server Verification</strong>: leave it on.</li>
+  <li><strong>Method</strong>: leave it at <strong>Password</strong>.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the user you made in part 4. <strong>Password</strong>: the password you gave <code>ocpasswd</code> for it.</li>
+  <li>Leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sslvpn/protocol.png" alt="Protocol screen on iPhone with SSL VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSL VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/profile-editor.png" alt="Profile editor on iPhone: Server Type, Server, Port, Path and TLS Server Verification, then Method, Username and Password" width="260" loading="lazy">
+    <figcaption>A new SSL VPN profile on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sslvpn/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+<p>The other users of this page log in this way:</p>
+<ul>
+  <li><a href="#certificates">Certificate user</a> of part 5: set <strong>Method</strong> to <strong>Certificate</strong>, tap <strong>Certificate</strong>, then <strong>Import</strong>, choose <code>vpnuser.p12</code>, and type the file's passphrase when the app asks for it. Keep <code>vpnuser</code> in <strong>Username</strong>: ocserv takes the user from the certificate, so the field does not change who logs in.</li>
+  <li><a href="#split">Split-tunnel user</a> of part 6: <strong>Username</strong> <code>splituser</code> and, in <strong>Password</strong>, the password you gave <code>ocpasswd</code> for it. Only the ranges of its group then go through the tunnel.</li>
+</ul>
+
+<h3>Connect</h3>
+<ol>
+  <li>Tap the profile to select it, then tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has given the phone its address from 10.83.0.0/24, the range of part 3. The row of the profile then shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  While the phone is connected, run <code>occtl show user vpnuser</code> on the server, as in <a href="#start">part 8</a>. It shows the phone's tunnel address, its routes and DNS servers, the TLS suite, and under <code>DTLS cipher</code> whether the data travels over DTLS (UDP). If the app shows <strong>Connection Failed</strong> instead, tap the status under the power button to open the log; <a href="troubleshooting.html">Troubleshooting</a> explains each reason. After wrong passwords, ocserv may refuse the phone's address for a while; see <a href="#ban">Wrong passwords block the address for a while</a>.
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

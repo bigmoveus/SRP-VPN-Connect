@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WireGuard Server — WireGuard — SRP VPN Connect Documentation</title>
-<meta name="description" content="Setting up WireGuard on Ubuntu 24.04 for WireGuard profiles of SRP VPN Connect: the server's keys and wg0, forwarding and NAT, a configuration file for each phone, removing a phone, and checking it.">
+<meta name="description" content="Setting up WireGuard on Ubuntu 24.04 for WireGuard profiles of SRP VPN Connect: the server's keys and wg0, forwarding and NAT, a configuration file for each phone, removing a phone, checking it, and setting up the app on the phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>WireGuard server</h1>
-<p class="lead">This page sets up WireGuard on Ubuntu 24.04 for the app: the server's keys and its interface <code>wg0</code>, forwarding and NAT so the phones reach the internet through it, a configuration file for each phone that the app imports, and removing a phone again.</p>
+<p class="lead">This page sets up WireGuard on Ubuntu 24.04 for the app: the server's keys and its interface <code>wg0</code>, forwarding and NAT so the phones reach the internet through it, a configuration file for each phone that the app imports, and removing a phone again. Its last part sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -114,8 +114,57 @@ rm -f "clients/$name.pub" "clients/$name.conf"</code></pre>
 <pre data-label="Server, as root"><code class="language-bash">wg show wg0</code></pre>
 <p>Each phone is a <code>peer</code> with its <code>allowed ips</code>. A phone that connected has an <code>endpoint</code> (the address it came from), a <code>latest handshake</code> (WireGuard renews it every 2 minutes while traffic flows) and its <code>transfer</code>.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>WireGuard VPN</strong> and import the phone's <code>.conf</code> file; Server and Port fill themselves in from it. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">7. Set up the app on the phone</h2>
+<p>A WireGuard profile has the same fields on iPhone and Android; where the two phones differ, the steps say so. Install the app first: on iPhone from TestFlight (<a href="../waterwall/installation.html#install-the-app">Installation</a>), on Android by building it from the source (<a href="../waterwall/installation.html#install-the-app-android">Installation</a>). <a href="index.html#where-to-start">Where to start</a> says which build to use.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>Copy <code>/etc/wireguard/clients/phone1.conf</code>, the file <a href="#phones">part 4</a> made, to the phone.</li>
+  <li>On the home screen, tap <strong>+</strong>.</li>
+  <li>Tap <strong>Protocol</strong> and choose <strong>WireGuard VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li>Tap <strong>Import Config (.conf)</strong>. It opens the phone's files: choose <code>phone1.conf</code>. The row then says <strong>Imported</strong>, and <strong>Server</strong> and <strong>Port</strong> fill themselves in from the file's <code>Endpoint</code> line: the name or address you put in <code>endpoint=</code>, and 51820. The file also brings the phone's keys, so leave <strong>Manual Configuration</strong> as it is: its row says <strong>Overridden by import</strong>.</li>
+  <li>Leave everything under <a href="app-setup.html#options">Options</a> as it is, and tap <strong>Save</strong>.</li>
+  <li>Delete the copies of <code>phone1.conf</code> you do not need, as part 4 says: the app keeps the file, on iPhone in the Keychain and on Android in its encrypted store.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/wireguard/protocol.png" alt="Protocol screen on iPhone with WireGuard VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing WireGuard, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/profile-editor.png" alt="Profile editor on iPhone with an imported configuration: Import Config Imported, Server and Port 51820" width="260" loading="lazy">
+    <figcaption>A profile with an imported file, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, On Sleep and Log Level" width="260" loading="lazy">
+    <figcaption>The options, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/wireguard/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h3>Connect</h3>
+<ol>
+  <li>Select the profile on the home screen and tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has answered the handshake, and the row of the profile then shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  On the server, run <code>wg show wg0</code> as in <a href="#check">part 6</a>: the peer whose <code>allowed ips</code> are 10.66.66.2/32, the address part 4 gave <code>phone1</code>, now has an <code>endpoint</code>, a <code>latest handshake</code> and its <code>transfer</code>. If the app shows <strong>Connection Failed</strong> instead, tap the status under the power button to open the log, and see <a href="troubleshooting.html">Troubleshooting</a>, which explains each message.
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

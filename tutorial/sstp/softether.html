@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SoftEther VPN Server — SSTP — SRP VPN Connect Documentation</title>
-<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu as an SSTP server from the command line, the way our test server is set up.">
+<meta name="description" content="Build and set up SoftEther VPN Server 4.44 on Ubuntu as an SSTP server from the command line, the way our test server is set up, and connect SRP VPN Connect to it.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>SoftEther VPN Server</h1>
-<p class="lead">SoftEther VPN Server can answer SSTP clients next to its own protocol. This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up for SSTP from the command line, the way our test server is set up.</p>
+<p class="lead">SoftEther VPN Server can answer SSTP clients next to its own protocol. This page builds SoftEther VPN Server 4.44 on Ubuntu and sets it up for SSTP from the command line, the way our test server is set up. Its part 8 sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -136,7 +136,7 @@ dnsmasq --interface=tap_soft --bind-interfaces --port=0 --pid-file=/run/srp-dnsm
 RadiusServerSet 127.0.0.1:1812 /SECRET:&lt;RADIUS_SECRET&gt; /RETRY_INTERVAL:500
 UserCreate radiususer /GROUP:none /REALNAME:none /NOTE:none
 UserRadiusSet radiususer /ALIAS:none</code></pre>
-<p>A RADIUS user logged in with MS-CHAPv2 and with PAP; a wrong password ended with the app's authentication message. Version 4.44 takes the port as part of the address; it has no separate port option.</p>
+<p>The RADIUS server must know the user too: on FreeRADIUS, add a line for <code>radiususer</code> with its own password as for <code>vpnuser</code> in <a href="freeradius.html#users">FreeRADIUS, step 3</a>. A RADIUS user logged in with MS-CHAPv2 and with PAP; a wrong password ended with the app's authentication message. Version 4.44 takes the port as part of the address; it has no separate port option.</p>
 
 <h2 id="check">Check the server</h2>
 <pre data-label="vpncmd"><code>SstpGet
@@ -145,8 +145,51 @@ SessionList
 UserList</code></pre>
 <p>While a phone is connected, <code>SessionList</code> shows its session in the hub. The server's own log files are in <code>/opt/vpnserver/server_log/</code>.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>SSTP VPN</strong>, the server's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The defaults work with this server. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">8. Set up the app on the phone</h2>
+<p>Install SRP VPN Connect first, <a href="../waterwall/installation.html#install-the-app">on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>. An SSTP profile has the same fields on both, so the steps below are the same, except for the permission the first connection asks for.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, tap <strong>Protocol</strong> and choose <strong>SSTP VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Host</strong>: the server's DNS name, <code>&lt;SERVER_HOST&gt;</code>, which the certificate from step 4 is for. Use the name, not the IP address: the app checks the certificate against Host.</li>
+  <li><strong>Port</strong>: <code>443</code>, the port SSTP uses (step 2). An empty Port means 443 too.</li>
+  <li><strong>Allow Untrusted Certificate</strong>: leave it off.</li>
+  <li><strong>Method</strong>: <strong>Password</strong>, the default.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the user you made in step 6. <strong>Password</strong>: the <code>&lt;PASSWORD&gt;</code> you set for it there. The RADIUS user <code>radiususer</code> (<a href="#radius">RADIUS</a>) logs in the same way, with its password on the RADIUS server.</li>
+  <li>Leave <strong>Enable MS-CHAPv2</strong> on and <strong>Enable PAP / CHAP (Less Secure)</strong> off. SoftEther's PPP for SSTP has no EAP (step 6): a profile that offers only EAP methods is refused.</li>
+  <li>Leave everything under <strong>Proxy</strong> and <strong>Options</strong> as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/protocol.png" alt="Protocol screen on iPhone with SSTP VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSTP VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/profile-editor.png" alt="SSTP profile editor on iPhone with Host, Port, Allow Untrusted Certificate and the authentication fields" width="260" loading="lazy">
+    <figcaption>The top of an SSTP profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same profile on Android.</figcaption>
+  </figure>
+</div>
+
+<h3>Connect</h3>
+<ol>
+  <li>On the home screen, select the profile and tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has assigned the phone an address, and the profile's row shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p>In <code>vpncmd</code>, <code>Hub DEFAULT</code> and then <code>SessionList</code> show the phone's session in the hub, as in <a href="#check">Check the server</a>. If the app shows <strong>Connection Failed</strong> instead, tap the status under the power button to read the log, and see <a href="troubleshooting.html">Troubleshooting</a>.</p>
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

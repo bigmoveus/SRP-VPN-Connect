@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The server guides of SSTP (Windows Server, MikroTik and SoftEther), SoftEther, SSL VPN, SSH, OpenVPN, WireGuard, AmneziaWG and Aether end with setting up the app on the phone, step by step for iPhone and Android, and a check that the phone is connected; every app setup page explains the optional Description row.
+
 ### Fixed
 - An iPhone unit test of the BGP4 chain still expected the Router's `resolve-domains` setting that WaterWall 1.5.4 and later refuse; it now checks that the Router has no `dns-behaviour`, so it does not resolve. Only the test changed.
 - The Mac unit-test target builds again: the DNS RESOLVER screen test, which uses UIKit, now builds for iPhone only. The device tests write their chains with that target, so it had stopped them. Only the test changed.

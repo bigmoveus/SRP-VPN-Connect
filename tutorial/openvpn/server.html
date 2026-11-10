@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenVPN Server — OpenVPN — SRP VPN Connect Documentation</title>
-<meta name="description" content="Setting up an OpenVPN 2.6 server on Ubuntu 24.04 for OpenVPN profiles of SRP VPN Connect: certificates with easy-rsa, UDP and TCP servers, client profiles, password login, stunnel with a Let's Encrypt certificate, and revoking a client.">
+<meta name="description" content="Setting up an OpenVPN 2.6 server on Ubuntu 24.04 for OpenVPN profiles of SRP VPN Connect: certificates with easy-rsa, UDP and TCP servers, client profiles, password login, stunnel with a Let's Encrypt certificate, revoking a client, and setting up the app on the phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>OpenVPN server</h1>
-<p class="lead">This page sets up OpenVPN 2.6, the version Ubuntu 24.04 ships, for the app: a certificate authority with easy-rsa, a UDP server, client profiles the app imports, an optional login with a username and password, and an optional stunnel listener on port 443 that carries OpenVPN inside TLS.</p>
+<p class="lead">This page sets up OpenVPN 2.6, the version Ubuntu 24.04 ships, for the app: a certificate authority with easy-rsa, a UDP server, client profiles the app imports, an optional login with a username and password, and an optional stunnel listener on port 443 that carries OpenVPN inside TLS. Its last part sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -168,7 +168,7 @@ systemctl enable --now openvpn-server@tcp-pass
 /etc/openvpn/client/make-profile.sh vpnuser tcp-pass</code></pre>
 
 <h2 id="stunnel">7. stunnel on port 443 (optional)</h2>
-<p>stunnel wraps OpenVPN's TCP connection in ordinary TLS on port 443, where it looks like a web connection; the app's <strong>Enable stunnel</strong> switch does the other end. It needs the TCP server of <a href="#tcp">part 4</a> and a certificate for the server's name. Let's Encrypt gives one without an email address:</p>
+<p>stunnel wraps OpenVPN's TCP connection in ordinary TLS on port 443, where it looks like a web connection; the app's <strong>Enable stunnel (TLS)</strong> switch does the other end. It needs the TCP server of <a href="#tcp">part 4</a> and a certificate for the server's name. Let's Encrypt gives one without an email address:</p>
 <pre data-label="Server, as root"><code class="language-bash">apt install -y stunnel4 certbot
 certbot certonly --standalone -d vpn.example.com --register-unsafely-without-email --agree-tos --non-interactive \
   --deploy-hook "systemctl restart stunnel@openvpn"</code></pre>
@@ -206,8 +206,9 @@ systemctl restart stunnel@openvpn
 <p>Open the ports of the parts you set up: UDP 1194 for the UDP server, UDP and TCP 1195 for password logins, TCP 1194 for the TCP server, TCP 443 and 8443 for stunnel, and TCP 80 for Let's Encrypt. If ufw is active: <code>ufw allow 1194/udp</code>, and so on for each. Our server has no firewall of its own.</p>
 
 <h2 id="revoke">9. Revoking a phone's certificate</h2>
+<p>The example takes the access of <code>phone2</code>, a second phone made as in part 5:</p>
 <pre data-label="Server, as root"><code class="language-bash">cd /etc/openvpn/easy-rsa
-EASYRSA_BATCH=1 ./easyrsa revoke phone1
+EASYRSA_BATCH=1 ./easyrsa revoke phone2
 EASYRSA_BATCH=1 EASYRSA_CRL_DAYS=3650 ./easyrsa gen-crl
 cp pki/crl.pem /etc/openvpn/server/crl.pem</code></pre>
 <p>The server reads the list at the next connection; no restart is needed. A phone that was connected stays until it reconnects. The server refuses the revoked certificate during the TLS handshake and says why only in its own log, <code>journalctl -u openvpn-server@udp</code>: the app waits for an answer and then reports that the server stopped answering after the TLS handshake. For a password login, delete the user's line from <code>/etc/openvpn/server/users</code>.</p>
@@ -217,8 +218,63 @@ cp pki/crl.pem /etc/openvpn/server/crl.pem</code></pre>
 journalctl -u openvpn-server@udp -f</code></pre>
 <p>When a phone connects, the log shows <code>Peer Connection Initiated</code> with the certificate's name (or the username), then the address it got and <code>Data Channel: cipher 'AES-256-GCM'</code>. The status file <code>/run/openvpn-server/status-udp.log</code> lists the connected phones.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>OpenVPN</strong> and import the <code>.ovpn</code> file; Server and Port fill themselves in from it. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">11. Set up the app on the phone</h2>
+<p>Install SRP VPN Connect first: <a href="../waterwall/installation.html#install-the-app">on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>, each in its own way. An OpenVPN profile has the same fields on both, so the steps in the app are the same on iPhone and Android; only the permission at the first connection differs.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>Copy <code>/etc/openvpn/client/phone1-udp.ovpn</code>, the profile from part 5, to the phone. Copy the file itself: through a chat app its certificate can be damaged on the way, and the app then refuses it. <strong>From Files</strong> below opens the phone's own file picker, the one of the Files app on iPhone and the system's on Android, so put the file where that picker finds it.</li>
+  <li>On the home screen, tap <strong>+</strong>, tap <strong>Protocol</strong> and choose <strong>OpenVPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li>Tap <strong>Profile (.ovpn)</strong>, choose <strong>From Files</strong> and pick <code>phone1-udp.ovpn</code>. The row then says <strong>Imported</strong>. To use <strong>From URL</strong> instead, serve the file only over HTTPS, at an address nobody can guess, and only until the phone has it. Then delete the copies you do not need: the file holds the phone's private key.</li>
+  <li><strong>Server</strong> and <strong>Port</strong> fill themselves in from the profile's <code>remote</code> line: the name you put in <code>host=</code> in part 5, and <code>1194</code>. Leave them as they are.</li>
+  <li>Leave <strong>Enable stunnel (TLS)</strong> off. A profile with only a certificate needs no <strong>Username</strong> or <strong>Password</strong>.</li>
+  <li>Leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<p>Each optional part makes its own profile. Copy and import that file instead of <code>phone1-udp.ovpn</code>, and change only this:</p>
+<ul>
+  <li>A password login (part 6): <code>vpnuser-udp-pass.ovpn</code>, or <code>vpnuser-tcp-pass.ovpn</code> over TCP; <strong>Port</strong> fills in as <code>1195</code>. The profile has the line <code>auth-user-pass</code>, so <strong>Username</strong> and <strong>Password</strong> appear: enter <code>vpnuser</code> and the password you gave <code>openssl passwd -6</code>.</li>
+  <li>stunnel (part 7): <code>phone1-stunnel.ovpn</code>. Turn <strong>Enable stunnel (TLS)</strong> on and leave <strong>stunnel Host</strong>, <strong>stunnel Port</strong> and <strong>stunnel SNI</strong> empty: the app then uses Server, 443 and the server's name. Leave <strong>CA Certificate</strong> on <strong>System Trust</strong>, which accepts the Let's Encrypt certificate; with a certificate of your own CA, import that CA there.</li>
+  <li>A password login through stunnel (part 7): <code>vpnuser-stunnel-pass.ovpn</code>, with stunnel on as above, <strong>stunnel Port</strong> <code>8443</code>, and <code>vpnuser</code> and its password as for part 6.</li>
+</ul>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/openvpn/protocol.png" alt="Protocol screen on iPhone with OpenVPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing OpenVPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/certificate-profile.png" alt="Profile editor on iPhone with an imported profile: Profile (.ovpn) Imported, Server, Port 1194 and Enable stunnel off" width="260" loading="lazy">
+    <figcaption>A profile with a certificate login, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/certificate-profile.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/profile-editor.png" alt="Profile editor on iPhone with a profile that asks for a username and password" width="260" loading="lazy">
+    <figcaption>A profile with a password login, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/openvpn/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h3>Connect</h3>
+<ol>
+  <li>On the home screen, tap the profile to select it, then tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has accepted the phone and sent its settings, and the row of the profile shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  On the server, <code>journalctl -u openvpn-server@udp -f</code> from part 10 shows <code>Peer Connection Initiated</code> with <code>phone1</code>, then the address the phone got and <code>Data Channel: cipher 'AES-256-GCM'</code>. For the other profiles, put the configuration they reach after the <code>@</code>: <code>tcp</code> behind stunnel, <code>udp-pass</code> or <code>tcp-pass</code> for password logins, which show <code>vpnuser</code>. If the app shows <strong>Connection Failed</strong> instead, <a href="troubleshooting.html">Troubleshooting</a> explains its reason; tap the status under the power button to open the log.
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenSSH Server — SSH VPN — SRP VPN Connect Documentation</title>
-<meta name="description" content="Setting up an Ubuntu OpenSSH server for SSH VPN profiles of SRP VPN Connect: a user that may only forward TCP, the host key fingerprint, and the HEV UDP relay.">
+<meta name="description" content="Setting up an Ubuntu OpenSSH server for SSH VPN profiles of SRP VPN Connect: a user that may only forward TCP, the host key fingerprint, the HEV UDP relay, and setting up the app on the phone.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>OpenSSH server</h1>
-<p class="lead">An SSH VPN profile needs no VPN software on the server: the OpenSSH server that Ubuntu already runs carries the phone's TCP connections. This page sets up a user that may only forward TCP, shows where the host key's fingerprint comes from, and installs the optional UDP relay.</p>
+<p class="lead">An SSH VPN profile needs no VPN software on the server: the OpenSSH server that Ubuntu already runs carries the phone's TCP connections. This page sets up a user that may only forward TCP, shows where the host key's fingerprint comes from, and installs the optional UDP relay. Its last part sets up the profile in the app, on iPhone and on Android.</p>
 
 <!-- provenance:begin -->
 <div class="callout evidence">
@@ -102,8 +102,58 @@ ss -tlnp | grep 1080</code></pre>
 curl --socks5-hostname 127.0.0.1:1080 https://api.ipify.org</code></pre>
 <p>Run <code>curl</code> in a second terminal: it prints the server's address. A user without TCP forwarding gets <em>administratively prohibited</em> from <code>ssh</code> instead. On the server, <code>journalctl -u ssh</code> shows each login, and <code>pkill -u vpnuser</code> ends a user's sessions.</p>
 
-<h2>Connect the app</h2>
-<p>Add a profile with the protocol <strong>SSH VPN</strong>, the server's name or address in <strong>Server</strong>, its SSH port in <strong>Port</strong> (empty means 22), and the user's name and password. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">7. Set up the app on the phone</h2>
+<p>Install SRP VPN Connect first: <a href="../waterwall/installation.html#install-the-app">on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>, each in its own way. An SSH VPN profile has the same fields on both, so the steps below are the same on iPhone and Android; only the permission at the first connection differs.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, tap <strong>Protocol</strong> and choose <strong>SSH VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Server</strong>: the server's address, <code>&lt;SERVER_IP&gt;</code>, or its DNS name if it has one.</li>
+  <li><strong>Port</strong>: <code>22</code>, or the server's SSH port if you changed it.</li>
+  <li><strong>Host Key (SHA256)</strong>: the fingerprint from part 3, the <code>SHA256:…</code> part of the line <code>ssh-keygen -lf</code> printed, or the whole line. With it, the app connects only to the server that has that key.</li>
+  <li>Optional: if you installed the relay in part 4, turn <strong>UDP Relay (HEV)</strong> on. Left off, everything but UDP works, DNS too.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the user from part 1. <strong>Password</strong>: the password you gave <code>passwd</code> in part 1.</li>
+  <li>Leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/ssh/protocol.png" alt="Protocol screen on iPhone with SSH VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSH VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/profile-editor.png" alt="Profile editor on iPhone: Server, Port, Host Key and UDP Relay, then Username and Password" width="260" loading="lazy">
+    <figcaption>An SSH VPN profile with a host key and UDP Relay on, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/options.png" alt="Options section on iPhone: Auto Reconnect, Retry Times, Switch to Wi-Fi When Available, On Sleep and Log Level" width="260" loading="lazy">
+    <figcaption>The options on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/ssh/android/options.png" alt="The same options on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
+</div>
+
+<h3>Connect</h3>
+<ol>
+  <li>On the home screen, tap the profile to select it, then tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the app has logged in and the checks have passed, and the row of the profile shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  On the server, <code>journalctl -u ssh</code> from part 6 shows the phone's login, a line with <em>Accepted password for</em>. If the app shows <strong>Connection Failed</strong> instead, <a href="troubleshooting.html">Troubleshooting</a> explains its reason; tap the status under the power button to open the log.
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

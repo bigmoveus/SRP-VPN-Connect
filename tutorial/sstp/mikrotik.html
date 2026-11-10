@@ -109,8 +109,52 @@
 /log print where topics~"sstp|ppp"</code></pre>
 <p>While a phone is connected, <code>/ppp active print</code> lists its user, the service <code>sstp</code> and the address it got from the pool. RouterOS logs the SSTP and PPP steps under the topics <code>sstp</code> and <code>ppp</code>; to keep more of them, add a logging rule such as <code>/system logging add topics=sstp action=memory</code>.</p>
 
-<h2>Connect the app</h2>
-<p>In the app, add a profile with the protocol <strong>SSTP VPN</strong>, the router's name in <strong>Host</strong>, 443 in <strong>Port</strong>, and the user's name and password. The default settings match the router above. <a href="app-setup.html">Setting up the app</a> describes every field.</p>
+<h2 id="client">6. Set up the app on the phone</h2>
+<p>Install SRP VPN Connect first, <a href="../waterwall/installation.html#install-the-app">on iPhone</a> or <a href="../waterwall/installation.html#install-the-app-android">on Android</a>. An SSTP profile has the same fields on both, so the steps below are the same, except for the permission the first connection asks for.</p>
+
+<h3>Create the profile</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>, tap <strong>Protocol</strong> and choose <strong>SSTP VPN</strong>.</li>
+  <li><strong>Description</strong>: optional, the profile's name on the home screen. When it is empty, the home screen shows the server's name or address.</li>
+  <li><strong>Host</strong>: the router's DNS name, <code>&lt;SERVER_HOST&gt;</code>, which the certificate from step 1 is for. Use the name, not the IP address: the app checks the certificate against Host.</li>
+  <li><strong>Port</strong>: <code>443</code>, the <code>port</code> that the check of step 4 prints. An empty Port means 443 too.</li>
+  <li><strong>Allow Untrusted Certificate</strong>: leave it off. For a certificate the phone does not trust, see step 1.</li>
+  <li><strong>Method</strong>: <strong>Password</strong>, the default.</li>
+  <li><strong>Username</strong>: <code>vpnuser</code>, the PPP secret you made in step 3. <strong>Password</strong>: its <code>&lt;PASSWORD&gt;</code>. A user of the RADIUS server (<a href="#radius">RADIUS</a>) logs in the same way, with its own name and password; a name that is also a PPP secret on the router logs in with the router's password.</li>
+  <li>Leave <strong>Enable MS-CHAPv2</strong> on and <strong>Enable PAP / CHAP (Less Secure)</strong> off: the router accepts MS-CHAPv2 (<code>authentication=mschap2</code>, step 4). RouterOS's SSTP server has no EAP, so <strong>EAP Configuration</strong> and certificate login do not apply to it.</li>
+  <li>Leave everything under <strong>Proxy</strong> and <strong>Options</strong> as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<p>If you set the router's <code>authentication</code> to <code>pap</code> or <code>chap</code> instead (step 4), turn on <strong>Enable PAP / CHAP (Less Secure)</strong>.</p>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/sstp/protocol.png" alt="Protocol screen on iPhone with SSTP VPN ticked" width="260" loading="lazy">
+    <figcaption>Choosing SSTP VPN, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/protocol.png" alt="The same Protocol screen on Android" width="260" loading="lazy">
+    <figcaption>The same screen on Android.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/profile-editor.png" alt="SSTP profile editor on iPhone with Host, Port, Allow Untrusted Certificate and the authentication fields" width="260" loading="lazy">
+    <figcaption>The top of an SSTP profile, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/sstp/android/profile-editor.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same profile on Android.</figcaption>
+  </figure>
+</div>
+
+<h3>Connect</h3>
+<ol>
+  <li>On the home screen, select the profile and tap the power button.</li>
+  <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
+  <li>The status changes to <strong>Connected</strong> once the server has assigned the phone an address, and the profile's row shows the time of one request through the tunnel.</li>
+</ol>
+<div class="callout verify">
+  <span class="callout-title">Check</span>
+  <p>On the router, <code>/ppp active print</code> lists <code>vpnuser</code> with the service <code>sstp</code> and an address from <code>sstp-pool</code>, as in <a href="#check">Check the server</a>. If the app shows <strong>Connection Failed</strong> instead, tap the status under the power button to read the log, and see <a href="troubleshooting.html">Troubleshooting</a>.</p>
+</div>
+<p><a href="app-setup.html">Setting up the app</a> describes every field.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>
