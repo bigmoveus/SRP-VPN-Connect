@@ -326,7 +326,7 @@
     return [self.configuration[@"node-options"] mutableCopy] ?: [NSMutableDictionary new];
 }
 
-- (void)applyConfiguration:(NSDictionary *)configuration {
+- (BOOL)applyConfiguration:(NSDictionary *)configuration {
     NSString *validationError = [SRPWaterWallChainConfig validationErrorForConfiguration:configuration];
     NSString *json = validationError == nil ? [SRPWaterWallChainConfig JSONWithConfiguration:configuration] : nil;
     if (validationError != nil || json.length == 0) {
@@ -335,10 +335,11 @@
                                                                 preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
         [self presentViewController:alert animated:YES completion:nil];
-        return;
+        return NO;
     }
     self.configuration = [SRPWaterWallChainConfig configurationWithJSON:json] ?: configuration;
     self.model.waterwallConfigJSON = json;
+    return YES;
 }
 
 - (UITableViewCell *)segmentedCellWithTitle:(NSString *)title
@@ -421,8 +422,6 @@
     NSMutableDictionary *options = [self mutableNodeOptions];
     [options removeObjectForKey:@"application"];
     configuration[@"application"] = application;
-    self.model.username = nil;
-    self.model.password = nil;
     if ([application isEqualToString:@"socks5"]) {
         configuration[@"mux"] = @NO;
         configuration[@"outer"] = @"none";
@@ -438,7 +437,11 @@
         [options removeObjectsForKeys:@[@"mux", @"http", @"kcp"]];
     }
     configuration[@"node-options"] = options;
-    [self applyConfiguration:configuration];
+    // The new application needs its own UUID or password; a change the screen refuses keeps the current ones
+    if ([self applyConfiguration:configuration]) {
+        self.model.username = nil;
+        self.model.password = nil;
+    }
     [self.tableView reloadData];
 }
 

@@ -5693,7 +5693,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     }
 }
 
-- (void)testPickingTheCurrentWaterWallApplicationKeepsItsSecret {
+- (void)testWaterWallApplicationKeepsItsSecretUnlessItChanges {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
     model.password = @"00112233-4455-6677-8899-aabbccddeeff";
@@ -5704,6 +5704,13 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [waterWall applicationChanged:@"trojan"];
     XCTAssertNil(model.password);
     XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"application"], @"trojan");
+    // A change the screen refuses keeps the application and its password: Through the VPN cannot run over HTTP CONNECT
+    model.password = @"trojan-password";
+    [waterWall dnsModeChanged:@"chain"];
+    [waterWall applicationChanged:@"http-proxy"];
+    [waterWall dismissViewControllerAnimated:NO completion:nil];
+    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"application"], @"trojan");
+    XCTAssertEqualObjects(model.password, @"trojan-password");
 }
 
 - (void)testWaterWallAutoSwitchOnlyForChainMode {
