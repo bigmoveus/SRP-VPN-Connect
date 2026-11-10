@@ -956,6 +956,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNil(byName[@"direct-local"]);
 }
 
+#if TARGET_OS_IPHONE  // the screen is UIKit; the Mac test target builds this file too
 - (void)testWaterWallDNSResolverSectionSavesTheResolver {
     NodeModel *model = [NodeModel new];
     [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
@@ -1003,6 +1004,7 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNil(saved()[@"domain-resolver"]);
     XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 1);
 }
+#endif
 
 - (void)testWaterWallDNSResolverOptionAndDNSBehaviourMigration {
     // Profiles saved before WaterWall 1.5.4 keep their resolution under dns-behaviour, which replaced domain-strategy
