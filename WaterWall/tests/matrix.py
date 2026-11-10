@@ -116,7 +116,7 @@ def peer_nodes(client_root, port, cert, key, cover_port):
     result = []
     for node in main_chain(client_root["nodes"]):
         kind = node["type"]
-        if kind in ("NEPacketDevice", "PacketsToConnection", "Router"):
+        if kind in ("NEPacketDevice", "PacketsToConnection", "DomainResolver", "Router"):  # client-only nodes
             continue
         settings = {}
         server_type = None

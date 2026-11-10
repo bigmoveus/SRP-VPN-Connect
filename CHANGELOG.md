@@ -7,6 +7,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Fixed
 - An iPhone unit test of the BGP4 chain still expected the Router's `resolve-domains` setting that WaterWall 1.5.4 and later refuse; it now checks that the Router has no `dns-behaviour`, so it does not resolve. Only the test changed.
 - The Mac unit-test target builds again: the DNS RESOLVER screen test, which uses UIKit, now builds for iPhone only. The device tests write their chains with that target, so it had stopped them. Only the test changed.
+- The device tests of the DNS resolver option run: the test server's side of a chain had no counterpart for the client's DomainResolver node and stopped each case before it started. DomainResolver, like the Router, now has none. Only the test tools changed.
 
 ## 1.2.0 (41) - 2026-11-10
 
