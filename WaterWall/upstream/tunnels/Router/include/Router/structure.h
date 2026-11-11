@@ -79,6 +79,7 @@ typedef struct router_lstate_s
     bool           replaying;      // selected Init and its initial FIFO are still running
     bool           datagram_input; // exact incoming transport, retained across branch context rewrites
     bool           pending_pause;  // receiver Pause waiting for the selected branch's Init
+    bool           return_name;    // SRP client: the internal resolver looked the name up only for the rules
 } router_lstate_t;
 
 // Connection facts handed to matcher modules. Carries the line (for routing

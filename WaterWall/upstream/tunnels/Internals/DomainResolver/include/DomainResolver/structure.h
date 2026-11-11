@@ -64,6 +64,7 @@ typedef struct domainresolver_lstate_s
     bool                   read_pause_sent; // Receiver pressure forwarded to next after Init.
     bool                   source_paused;   // Combined DNS/backlog and next-side pressure sent to prev.
     domainresolver_phase_t phase;
+    bool                   resolved_here; // SRP client: this resolver looked the name up (domainresolverLineResolvedHere)
 } domainresolver_lstate_t;
 
 enum

@@ -79,9 +79,24 @@ static void routerAppendDatagramSniffView(router_lstate_t *ls, const sbuf_t *buf
     sbufConcatNoCheck(ls->pending, buf);
 }
 
+/* SRP VPN Connect client change: the Router looked the name up only to match its rules. The chosen path gets the name
+ * again: a proxy sends it to its server, which looks it up there (the phone network's DNS can answer a filtered name
+ * with a wrong address), and a connector looks it up with its own DNS settings. */
+static void routerReturnResolvedName(line_t *l)
+{
+    address_context_t *dest = lineGetDestinationAddressContext(l);
+    if (dest->domain == NULL || dest->domain_len == 0)
+        return;
+    dest->type_ip         = kCCTypeDomain;
+    dest->domain_resolved = false;
+    memoryZero(&dest->ip_address, sizeof(dest->ip_address));
+}
+
 void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, tunnel_t *target, sbuf_t *first)
 {
     lineRef(l);
+    if (ls->return_name)
+        routerReturnResolvedName(l);
 
     ls->target    = target;
     ls->route     = target != NULL ? kRouterRouteTarget : kRouterRouteDefault;

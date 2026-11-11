@@ -1,5 +1,7 @@
 #include "structure.h"
 
+#include "DomainResolver/interface.h"
+
 #include "loggers/network_logger.h"
 
 void routerTunnelUpStreamInit(tunnel_t *t, line_t *l)
@@ -8,6 +10,8 @@ void routerTunnelUpStreamInit(tunnel_t *t, line_t *l)
     router_lstate_t *ls = lineGetState(l, t);
 
     routerLinestateInitialize(ls);
+    // SRP client: remembered now, because the resolver's line state lasts only through this Init
+    ls->return_name = ts->domain_resolver_tunnel != NULL && domainresolverLineResolvedHere(ts->domain_resolver_tunnel, l);
     const address_context_t *dest = lineGetDestinationAddressContext(l);
     ls->datagram_input            = dest->proto_udp && ! dest->proto_tcp && ! dest->proto_icmp && ! dest->proto_packet;
     addresscontextClearDetectedProtocols(lineGetDestinationAddressContext(l));

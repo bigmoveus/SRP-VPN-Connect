@@ -15,6 +15,12 @@ void domainresolverTunnelUseLineStrategy(tunnel_t *t, bool enabled)
     ts->use_line_strategy       = enabled;
 }
 
+bool domainresolverLineResolvedHere(tunnel_t *t, line_t *l)
+{
+    const domainresolver_lstate_t *ls = lineGetState(l, t);
+    return ls->resolved_here;
+}
+
 void domainresolverTunnelAllowMissingDestination(tunnel_t *t, bool enabled)
 {
     domainresolver_tstate_t *ts   = tunnelGetState(t);

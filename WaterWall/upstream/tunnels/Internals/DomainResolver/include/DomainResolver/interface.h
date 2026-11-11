@@ -16,6 +16,8 @@ WW_EXPORT void   domainresolverTunnelSetPrepareHook(tunnel_t *t, tunnel_t *owner
                                                     domainresolver_prepare_fn             prepare,
                                                     domainresolver_user_lstate_destroy_fn destroy);
 WW_EXPORT void  *domainresolverTunnelGetUserLineState(tunnel_t *t, line_t *l);
+/* SRP client: true when this resolver looked the line's destination name up itself. Valid during next Init. */
+WW_EXPORT bool   domainresolverLineResolvedHere(tunnel_t *t, line_t *l);
 
 /* Call after the embedding owner's topology is assembled, before indexing.
  * A NULL shared entry requires a separately bound dns-next for chain mode. */

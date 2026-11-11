@@ -7,6 +7,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Changed
 - The WaterWall UI guide says that WireGuard mode connects to the Endpoint of an imported file, which changing Server or Port does not change (both apps).
 
+### Fixed
+- WaterWall with GeoIP routing sends the server the name of every site that does not go direct, as without GeoIP: the phone now looks the name up only to choose between direct and the VPN. Before, the server got the address the phone's network DNS had given, so where that DNS answers filtered sites with a wrong address, as in Iran, those sites did not open through the VPN while the direct ones did. Both apps, in the shared WaterWall (Router and DomainResolver).
+
 ## 1.2.0 (42) - 2026-11-10
 
 ### Changed

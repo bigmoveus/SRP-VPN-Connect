@@ -176,7 +176,7 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>Log level</td><td><code>WARN</code>, <code>INFO</code> or <code>DEBUG</code> for the Normal, Expert and Debug log levels</td></tr>
     <tr><td>Remote DNS (Fake IP) when on</td><td>DNS answers from 198.18.0.2 port 53, placeholder addresses from 100.64.0.0/10, a cache of 10000 names, TTL 60 seconds</td></tr>
     <tr><td>Direct LAN Routing when on</td><td>10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 go to a direct connector</td></tr>
-    <tr><td>GeoIP routing</td><td>Selected countries go to a direct connector. With the DNS resolver off, the router looks names up itself to match them, with the phone's network DNS</td></tr>
+    <tr><td>GeoIP routing</td><td>Selected countries go to a direct connector. With the DNS resolver off, the router looks names up itself to match them, with the phone's network DNS, and uses the answer only for that choice: a connection that goes through the VPN still carries the site's name, which the server looks up</td></tr>
     <tr><td>DNS resolver</td><td>Off; see <a href="#dns-resolver">the DNS resolver</a></td></tr>
     <tr><td><code>splice</code>, <code>tcp-tune</code>, <code>try-enabling-bbr</code></td><td>Off: a phone's kernel settings are not WaterWall's to change</td></tr>
   </tbody>
@@ -187,7 +187,7 @@ systemctl status waterwall.service --no-pager</code></pre>
 <table>
   <thead><tr><th>Resolver</th><th>Node settings</th><th>Where the questions go</th></tr></thead>
   <tbody>
-    <tr><td>Off (default)</td><td>no node</td><td>The server looks up the names the phone asks for. GeoIP still looks them up on the phone, as above.</td></tr>
+    <tr><td>Off (default)</td><td>no node</td><td>The server looks up the names the phone asks for. GeoIP still looks them up on the phone to choose the way, as above.</td></tr>
     <tr><td>Native</td><td><code>{"mode": "native"}</code></td><td>The DNS of the network the phone is on, outside the VPN.</td></tr>
     <tr><td>Direct</td><td><code>{"mode": "direct", "servers": [...]}</code></td><td>The DNS servers you list, straight from the phone, outside the VPN.</td></tr>
     <tr><td>Through the VPN</td><td><code>{"mode": "chain", "servers": [...]}</code></td><td>The DNS servers you list, through the VPN: the router's first rule, <code>{"resolver-dns": true, "target": &lt;application&gt;}</code>, sends the resolver's own questions to the application, even to a server in a GeoIP country or the local network. The server must allow UDP and reach those DNS servers.</td></tr>

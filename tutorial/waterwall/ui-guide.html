@@ -325,7 +325,7 @@
 <table>
   <thead><tr><th>Row</th><th>What it does</th></tr></thead>
   <tbody>
-    <tr><td><strong>Resolver</strong></td><td>Opens a list: <strong>Off</strong>, the default, leaves names to the server; GeoIP routing still looks them up on the phone, with the network's DNS. <strong>Native</strong> asks the DNS of the network the phone is on, outside the VPN. <strong>Direct</strong> asks the DNS servers below straight from the phone, outside the VPN. <strong>Through the VPN</strong> asks them through the VPN, so the server must reach them.</td></tr>
+    <tr><td><strong>Resolver</strong></td><td>Opens a list: <strong>Off</strong>, the default, leaves names to the server; GeoIP routing still looks them up on the phone, with the network's DNS, but only to choose between direct and the VPN. <strong>Native</strong> asks the DNS of the network the phone is on, outside the VPN. <strong>Direct</strong> asks the DNS servers below straight from the phone, outside the VPN. <strong>Through the VPN</strong> asks them through the VPN, so the server must reach them.</td></tr>
     <tr><td><strong>Addresses</strong></td><td>Shown unless Resolver is Off: <em>Default (IPv4 First)</em>, <em>IPv4 First</em>, <em>IPv6 First</em>, <em>IPv4 Only</em>, <em>IPv6 Only</em> or <em>As the Server Returns</em>, for a name with both kinds of address.</td></tr>
     <tr><td><strong>DNS Servers</strong></td><td>Shown for Direct and Through the VPN. It starts with <code>1.1.1.1, 8.8.8.8</code>. Up to 32 addresses, separated by commas or spaces; a port goes after an IPv4 address as <code>1.1.1.1:5353</code>, or after an IPv6 address in brackets as <code>[2606:4700:4700::1111]:53</code>. The list is checked and saved when you finish typing.</td></tr>
   </tbody>

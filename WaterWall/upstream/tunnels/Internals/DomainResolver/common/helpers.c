@@ -142,6 +142,7 @@ static void domainresolverOnDnsResolved(tunnel_t *t, line_t *l, void *userdata, 
         return;
     }
 
+    ls->resolved_here = true;
     domainresolverLogResolved(domain, dest_ctx);
     domainresolverOpenPath(t, l);
 }
