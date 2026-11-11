@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WaterWall installation guide asks for TestFlight build 43 or later and APK 1.2.0 (10) or later, and the requirements name both with the GeoIP routing they add.
+
 ## 1.2.0 (43) - 2026-11-11
 
 ### Changed
