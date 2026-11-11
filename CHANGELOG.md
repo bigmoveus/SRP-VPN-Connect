@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (43) - 2026-11-11
+
 ### Changed
 - The Android app's version code is 10, for the release APK with the GeoIP fix; the version name stays 1.2.0.
 - The WaterWall UI guide says that WireGuard mode connects to the Endpoint of an imported file, which changing Server or Port does not change (both apps).
