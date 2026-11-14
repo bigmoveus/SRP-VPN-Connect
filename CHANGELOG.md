@@ -4,16 +4,19 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- Device tests of Aether's Retry Times on both phones, which Private mode's cases had covered before: every attempt fails before the first connection, and after a session that was up. On Android Wi-Fi and mobile data are really switched off; a third Android case makes a phone's first connection ever without a network. On iPhone, whose network cannot be switched off from outside, the Debug build has a test switch (`SRPDebugAetherUnreachable` in the app group's settings) that leaves the search for a WARP endpoint without an answer. Release builds do not contain the switch; only the Debug build and the tests changed.
+
 ### Changed
 - The WaterWall installation guide asks for TestFlight build 43 or later and APK 1.2.0 (10) or later, and the requirements name both with the GeoIP routing they add.
 - The first footer of the Aether editor starts with "Aether connects to Cloudflare WARP automatically."; on Android the rows above it have no SERVER header any more, as on iPhone. An Aether profile without a Description shows Aether VPN on the home screen, whatever its Server field still held (both apps). The README describes Aether without a private endpoint.
 - On Android, an Aether profile that an older build saved is saved again when the list loads, so WireGuard keys it had kept from Private mode leave the encrypted store.
 
-### Fixed
-- The iPhone app keeps an Aether profile's WARP+ license in the Keychain, as the Aether guide says and as the Android app keeps it in its encrypted store. It was saved with the profile list in the app's settings. A license saved that way moves to the Keychain when the list loads, and it leaves the Keychain when the license is cleared or the profile is deleted.
-
 ### Removed
 - Aether's Private mode is no longer in the iPhone and Android apps. It reached the user's own server over plain WireGuard, which a WireGuard profile does as well; an Aether profile now always connects to Cloudflare WARP itself, or goes out through Tor. The Aether editor has no Server row (Public (WARP), Private) any more, nor Import Config, Manual Configuration, Server and Port, and the mode's connection messages and its WireGuard relay are gone from both apps' code. Saved Private profiles leave the list when it loads, with their keys in the Keychain (iPhone) or the encrypted store (Android); on iPhone, a VPN configuration that was saved for Private mode does not start any more. The relay is gone from the shared Go runtime of WireGuard and AmneziaWG as well (`api-netstack.go` of the iPhone bridge, `netstack.go` and its JNI calls on Android), so the runtime no longer carries gVisor's network stack: libsrpwg-go.a for iPhone went from 8.2 MB to 4.4 MB and libwg-go.so in the APK from 7.1 MB to 3.8 MB. wireguard-go, our amneziawg-go fork and the golang.org/x modules in it are at the versions they had.
+
+### Fixed
+- The iPhone app keeps an Aether profile's WARP+ license in the Keychain, as the Aether guide says and as the Android app keeps it in its encrypted store. It was saved with the profile list in the app's settings. A license saved that way moves to the Keychain when the list loads, and it leaves the Keychain when the license is cleared or the profile is deleted.
 
 ## 1.2.0 (43) - 2026-11-11
 

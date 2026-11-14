@@ -508,6 +508,14 @@ static NSString *SRPAetherPathName(nw_path_t path) {
 }
 
 - (NSString *)findEndpointLockedUsingH2:(BOOL)h2 {
+#if DEBUG
+    // The device tests' switch for Retry Times (in the app group's settings): no WARP endpoint answers, as on a network
+    // that blocks WARP, so every attempt fails
+    if ([[[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"] boolForKey:@"SRPDebugAetherUnreachable"]) {
+        SSLogM(@"Aether: debug: no WARP endpoint answers");
+        return nil;
+    }
+#endif
     if ([_torMode isEqualToString:@"reverse"]) {
         _endpointIP = @"162.159.198.2";
         return @"162.159.198.2:443";

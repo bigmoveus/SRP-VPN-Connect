@@ -3632,9 +3632,18 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     return model;
 }
 
+/// Aether's Retry Times cases: the Debug build's switch that leaves WARP without an endpoint that answers. A case that
+/// does not ask for it clears it, as the end of every case does, so a run that was stopped leaves nothing behind.
+- (void)setLiveAetherUnreachable:(BOOL)on {
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    on ? [shared setBool:YES forKey:@"SRPDebugAetherUnreachable"] : [shared removeObjectForKey:@"SRPDebugAetherUnreachable"];
+}
+
 - (void)testProfileLiveConnectionAndThroughputWhenConfigured {
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
     if (![environment[@"SRP_PROFILE_LIVE_TEST"] isEqualToString:@"1"]) return;
+    [self setLiveAetherUnreachable:[environment[@"SRP_AETHER_UNREACHABLE"] boolValue]];
+    [self addTeardownBlock:^{ [self setLiveAetherUnreachable:NO]; }];
     PDVPNManager *manager = PDVPNManager.sharedManager;
     if (manager.status == YDVPNStatusConnected || manager.status == YDVPNStatusConnecting ||
         manager.status == YDVPNStatusDisconnecting) {
@@ -3682,7 +3691,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 
 // Recovery of any protocol: SRP_LIFECYCLE_STEP is sleep-modes, peer-drop, retry-exhausted or path-switch (SSL VPN).
 // peer-drop and retry-exhausted log a marker on which the harness breaks the server side (ends the session, stops the
-// server); path-switch logs one before it moves the session to the network path again.
+// server); path-switch logs one before it moves the session to the network path again. Aether has no server to break:
+// with SRP_AETHER_UNREACHABLE=1 its retry-exhausted takes WARP's endpoints away and ends the session itself.
 - (void)testProfileLiveLifecycleWhenConfigured {
 #if DEBUG
     NSDictionary *environment = NSProcessInfo.processInfo.environment;
@@ -3693,6 +3703,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     if (manager.status != YDVPNStatusDisconnected) {
         XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
     }
+    [self setLiveAetherUnreachable:NO];
+    [self addTeardownBlock:^{ [self setLiveAetherUnreachable:NO]; }];
     @try {
         BOOL sleepModes = [step isEqualToString:@"sleep-modes"];
         // A server that answers the handshake but none of the traffic (AmneziaWG with other S3, S4 or H4): no HTTPS answer
@@ -3732,6 +3744,12 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                 resumes = model.autoReconnect;
             } else {
                 NSLog(@"SRP peer-failure test ready");
+                if ([environment[@"SRP_AETHER_UNREACHABLE"] boolValue]) {
+                    // Aether's retry-exhausted: from here no WARP endpoint answers, and the session ends as if WARP had
+                    // closed it, so Auto Reconnect's attempts all fail
+                    [self setLiveAetherUnreachable:YES];
+                    [self waterWallProviderCommand:@"aether-drop" manager:manager];
+                }
                 [NSThread sleepForTimeInterval:5];
                 resumes = [step isEqualToString:@"peer-drop"] && model.autoReconnect;
             }
