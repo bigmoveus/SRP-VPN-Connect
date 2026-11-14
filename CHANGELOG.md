@@ -4,12 +4,13 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
-## 1.2.0 (44) - 2026-11-14
+## 1.2.0 (46) - 2026-11-14
 
 ### Added
 - Device tests of Aether's Retry Times on both phones, which Private mode's cases had covered before: every attempt fails before the first connection, and after a session that was up. On Android Wi-Fi and mobile data are really switched off; a third Android case makes a phone's first connection ever without a network. On iPhone, whose network cannot be switched off from outside, the Debug build has a test switch (`SRPDebugAetherUnreachable` in the app group's settings) that leaves the search for a WARP endpoint without an answer. Release builds do not contain the switch; only the Debug build and the tests changed.
 
 ### Changed
+- The build number is 46: App Store Connect already holds builds 44 and 45, which were not made from this repository's main branch.
 - The Android app's version code is 11, for the release APK without Aether's Private mode; the version name stays 1.2.0.
 - The WaterWall installation guide asks for TestFlight build 43 or later and APK 1.2.0 (10) or later, and the requirements name both with the GeoIP routing they add.
 - The first footer of the Aether editor starts with "Aether connects to Cloudflare WARP automatically."; on Android the rows above it have no SERVER header any more, as on iPhone. An Aether profile without a Description shows Aether VPN on the home screen, whatever its Server field still held (both apps). The README describes Aether without a private endpoint.
