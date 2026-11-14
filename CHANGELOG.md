@@ -4,6 +4,8 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+## 1.2.0 (44) - 2026-11-14
+
 ### Added
 - Device tests of Aether's Retry Times on both phones, which Private mode's cases had covered before: every attempt fails before the first connection, and after a session that was up. On Android Wi-Fi and mobile data are really switched off; a third Android case makes a phone's first connection ever without a network. On iPhone, whose network cannot be switched off from outside, the Debug build has a test switch (`SRPDebugAetherUnreachable` in the app group's settings) that leaves the search for a WARP endpoint without an answer. Release builds do not contain the switch; only the Debug build and the tests changed.
 
