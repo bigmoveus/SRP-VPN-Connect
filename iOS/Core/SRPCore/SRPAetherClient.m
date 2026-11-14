@@ -64,11 +64,6 @@ static BOOL SRPAetherSocksProbe(int port, int timeoutSec) {
     return ok;
 }
 
-// wireguard-go netstack relay (WireGuard bridge, srpwg_* symbols)
-// shortcut: unused since Aether's Private mode went; remove with the next rebuild of the Go runtime
-extern int32_t srpwgNetstackStart(const char *uapi, const char *ifAddr, const char *listenAddr, const char *targetAddr);
-extern void srpwgNetstackStop(int32_t handle);
-
 #if DEBUG
 #import <os/proc.h>
 #import <mach/task.h>

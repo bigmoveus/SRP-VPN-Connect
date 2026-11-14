@@ -92,22 +92,3 @@ JNIEXPORT jbyteArray JNICALL Java_tr_com_srp_vpn_WireGuardNative_nextProbe(JNIEn
     if (result) (*env)->SetByteArrayRegion(env, result, 0, length, (const jbyte *)buffer);
     return result;
 }
-
-// Aether's Private mode (netstack.go): a WireGuard relay on a userspace TUN to the proxy on the user's server
-JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_WireGuardNative_netstackStart(JNIEnv *env, jclass c, jstring uapi, jstring ifAddr,
-                                                                         jstring listen, jstring target) {
-    const char *u = (*env)->GetStringUTFChars(env, uapi, NULL);
-    const char *a = (*env)->GetStringUTFChars(env, ifAddr, NULL);
-    const char *l = (*env)->GetStringUTFChars(env, listen, NULL);
-    const char *t = (*env)->GetStringUTFChars(env, target, NULL);
-    int handle = srpWgNetstackStart((char *)u, (char *)a, (char *)l, (char *)t);
-    (*env)->ReleaseStringUTFChars(env, uapi, u);
-    (*env)->ReleaseStringUTFChars(env, ifAddr, a);
-    (*env)->ReleaseStringUTFChars(env, listen, l);
-    (*env)->ReleaseStringUTFChars(env, target, t);
-    return handle;
-}
-
-JNIEXPORT void JNICALL Java_tr_com_srp_vpn_WireGuardNative_netstackStop(JNIEnv *env, jclass c, jint handle) {
-    srpWgNetstackStop(handle);
-}

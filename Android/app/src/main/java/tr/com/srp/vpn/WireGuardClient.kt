@@ -36,10 +36,6 @@ internal object WireGuardNative {
     @JvmStatic external fun setProbeFlows(handle: Int, flows: IntArray)
     @JvmStatic external fun submit(handle: Int, packet: ByteArray)
     @JvmStatic external fun nextProbe(handle: Int, timeoutMs: Int): ByteArray?
-
-    // shortcut: unused since Aether's Private mode went; remove with the next rebuild of the Go runtime
-    @JvmStatic external fun netstackStart(uapi: String, ifAddr: String, listen: String, target: String): Int
-    @JvmStatic external fun netstackStop(handle: Int)
 }
 
 /** A wg-quick configuration, read as SRPWireGuardClient.m reads it (with AmneziaWG's settings, which WireGuard itself refuses). */

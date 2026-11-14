@@ -172,7 +172,7 @@ add_custom_command(OUTPUT "${WG_GO_LIB}"
             "${SRP_GO}" build -trimpath -buildvcs=false -ldflags=-buildid= -buildmode=c-shared -o "${WG_GO_LIB}" .
     COMMAND ${CMAKE_COMMAND} -E remove "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libwg-go.h"
     WORKING_DIRECTORY "${WG_GO_DIR}"
-    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/awg.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/netstack.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
+    DEPENDS "${WG_GO_DIR}/api.go" "${WG_GO_DIR}/awg.go" "${WG_GO_DIR}/probe.go" "${WG_GO_DIR}/jni_android.c" "${WG_GO_DIR}/go.mod" "${WG_GO_DIR}/go.sum"
     COMMENT "Building wireguard-go (libwg-go.so) for ${ANDROID_ABI}"
     VERBATIM)
 add_custom_target(wg-go ALL DEPENDS "${WG_GO_LIB}")
