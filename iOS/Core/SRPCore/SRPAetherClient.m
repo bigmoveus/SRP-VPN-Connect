@@ -28,7 +28,6 @@ extern int srpssh_hev_socks5_tunnel_main_from_str(const unsigned char *conf, uns
 extern void srpssh_hev_socks5_tunnel_quit(void);
 
 #define SRPAETHER_SOCKS_PORT 1819
-#define SRPAETHER_RELAY_PORT 18191
 // A test connection through the tunnel every 20 s (at once after a network change); two failures in a row end the
 // session. The engine's QUIC alone notices a dead path only after 120 s.
 #define SRPAETHER_PROBE_SECONDS 20
@@ -36,8 +35,8 @@ extern void srpssh_hev_socks5_tunnel_quit(void);
 #define SRPAETHER_BUSY_BYTES (64 * 1024)   // what a working tunnel brings to the phone between two tests while it is busy
 #define SRPAETHER_RETRY_DELAY 2
 
-/// One SOCKS5 CONNECT to 1.1.1.1:443 through the tunnel's SOCKS5 port (the engine, Tor, or Private mode's relay to the
-/// server's Aether proxy): YES when the far end answered it, which only a working session gives.
+/// One SOCKS5 CONNECT to 1.1.1.1:443 through the tunnel's SOCKS5 port (the engine or Tor): YES when the far end
+/// answered it, which only a working session gives.
 static BOOL SRPAetherSocksProbe(int port, int timeoutSec) {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return NO;
@@ -66,16 +65,9 @@ static BOOL SRPAetherSocksProbe(int port, int timeoutSec) {
 }
 
 // wireguard-go netstack relay (WireGuard bridge, srpwg_* symbols)
+// shortcut: unused since Aether's Private mode went; remove with the next rebuild of the Go runtime
 extern int32_t srpwgNetstackStart(const char *uapi, const char *ifAddr, const char *listenAddr, const char *targetAddr);
 extern void srpwgNetstackStop(int32_t handle);
-extern void wgSetLogger(void *ctx, void *fn);
-
-static void SRPAetherWGLog(void *ctx, int level, const char *msg) {
-    (void)ctx;
-    if (!msg) return;
-    if (level == 0 && !SSLogEnabled(SSLogLevelDebug)) return;
-    SSLogM(@"[wg-ns] %s", msg);
-}
 
 #if DEBUG
 #import <os/proc.h>
@@ -109,11 +101,10 @@ static void SRPAMemoryUsage(void) {
     dispatch_block_t _injectionCompletion;
     NSString *_endpointIP;
     int _tunFd;             // our end of the hev channel
-    int _socksPort;         // hev's SOCKS5 upstream (engine or WG relay)
-    BOOL _privateMode;      // WG->Aether-proxy chain (mapdns, no engine)
+    int _socksPort;         // hev's SOCKS5 upstream (the engine's)
+    BOOL _mappedDNS;        // Tor Only: hev answers DNS itself with stand-in addresses (no UDP through Tor)
     uint64_t _identityId;
     uint64_t _tunnelJobId;
-    int32_t _nsHandle;      // netstack WireGuard relay (private mode)
     NSThread *_hevThread;
     BOOL _closed;
     BOOL _up;
@@ -127,7 +118,6 @@ static void SRPAMemoryUsage(void) {
     NSInteger _probeFailures;
     nw_path_monitor_t _pathMonitor;
     NSString *_pathName;             // the network the session runs on: Wi-Fi, cellular, wired, other, none
-    BOOL _socksClosed;               // the last readiness check's far end closed instead of timing out
     long long _bytesToPhone;         // through the tunnel since the first session (Expert's line)
     long long _bytesAtLastProbe;     // _bytesToPhone at the last test connection (a busy tunnel's failed test is not counted)
     long long _bytesFromPhone;
@@ -145,7 +135,6 @@ static void SRPAMemoryUsage(void) {
         _transport = @"masque";
         _scanProfile = @"balanced";
         _tunFd = -1;
-        _nsHandle = -1;
         _socksPort = SRPAETHER_SOCKS_PORT;
     }
     return self;
@@ -237,10 +226,6 @@ static void SRPAMemoryUsage(void) {
     _attempts++;
     if (_attempts > 1 || _up) {
         SSLogM(@"Aether: connection attempt %ld", (long)_attempts);
-    }
-    if (_privateConfig.length > 0) {
-        [self startPrivateLocked];
-        return;
     }
     if ([_torMode isEqualToString:@"only"]) {
         [self startTorOnlyLocked];
@@ -363,8 +348,8 @@ static void SRPAMemoryUsage(void) {
     if (_failureCb) _failureCb(message);
 }
 
-/// Ends the session under the tunnel (the engine's job, or Private mode's WireGuard relay) and its checks; the packet
-/// bridge and the tunnel's settings stay, so the next session takes over the same tunnel
+/// Ends the session under the tunnel (the engine's job) and its checks; the packet bridge and the tunnel's settings
+/// stay, so the next session takes over the same tunnel
 - (void)stopSessionLocked {
     [self stopProbeLocked];
     if (_monitorTimer) {
@@ -372,10 +357,6 @@ static void SRPAMemoryUsage(void) {
         _monitorTimer = nil;
     }
     [self stopTunnelAttemptLocked];
-    if (_nsHandle >= 0) {
-        srpwgNetstackStop(_nsHandle);
-        _nsHandle = -1;
-    }
 }
 
 /// A working session stopped working: Auto Reconnect sets up a new one, otherwise the VPN ends with the reason
@@ -466,10 +447,9 @@ static void SRPAMemoryUsage(void) {
     _probeFailures++;
     SSLogM(@"Aether: a test connection through the tunnel failed (%ld in a row)", (long)_probeFailures);
     if (_probeFailures >= 2) {
-        [self sessionLostLocked:_privateMode && _privateConfig.length > 0
-            ? @"The server stopped carrying traffic: two test connections through it failed"
-            : [_torMode isEqualToString:@"only"] ? @"Tor stopped carrying traffic: two test connections through it failed"
-                                                 : @"Cloudflare WARP stopped carrying traffic: two test connections through it failed"];
+        [self sessionLostLocked:[_torMode isEqualToString:@"only"]
+            ? @"Tor stopped carrying traffic: two test connections through it failed"
+            : @"Cloudflare WARP stopped carrying traffic: two test connections through it failed"];
         return;
     }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), _worker, ^{ [self probeLocked]; });
@@ -639,7 +619,7 @@ static NSString *SRPAetherPathName(nw_path_t path) {
 /// WARP. Tor carries TCP only, so DNS goes through hev's mapped-DNS (fake
 /// 198.18.x.x addresses; connections carry the hostname, Tor resolves it).
 - (void)startTorOnlyLocked {
-    _privateMode = YES;   // reuse the mapped-DNS hev layout and settings
+    _mappedDNS = YES;
     NSString *torDir = [_identityDir stringByAppendingPathComponent:@"tor"];
     [[NSFileManager defaultManager] createDirectoryAtPath:torDir
                               withIntermediateDirectories:YES attributes:nil error:nil];
@@ -670,61 +650,6 @@ static NSString *SRPAetherPathName(nw_path_t path) {
     SSLogM(@"Aether: session established (tor-only)");
 }
 
-/// Private mode: own server per Docs/Aether_VPS_Personal_Deployment_Guide —
-/// the device runs no engine. utun -> hev -> SOCKS5 -> loopback relay ->
-/// WireGuard (netstack, no real utun) -> Aether SOCKS5 on the VPS -> WARP.
-- (void)startPrivateLocked {
-    _privateMode = YES;
-    NSString *parseError = nil;
-    NSDictionary *params = [SRPWireGuardClient netstackParametersFromConfig:_privateConfig error:&parseError];
-    if (!params) {
-        _failureCb([NSString stringWithFormat:@"Aether private: %@", parseError ?: @"invalid WireGuard config"]);
-        return;
-    }
-    _endpointIP = params[@"endpointIP"];
-
-    // The VPS-hosted Aether proxy listens on the server's tunnel address —
-    // per the guide, <wg-subnet>.1:1819 derived from the client's address.
-    NSString *clientAddr = params[@"address"];
-    NSArray *octets = [clientAddr componentsSeparatedByString:@"."];
-    if (octets.count != 4) {
-        _failureCb(@"Aether private: the interface address must be IPv4");
-        return;
-    }
-    NSString *target = [NSString stringWithFormat:@"%@.%@.%@.1:%d",
-                        octets[0], octets[1], octets[2], SRPAETHER_SOCKS_PORT];
-
-    wgSetLogger(NULL, SRPAetherWGLog);
-    _socksPort = SRPAETHER_RELAY_PORT;
-    NSString *listen = [NSString stringWithFormat:@"127.0.0.1:%d", SRPAETHER_RELAY_PORT];
-    _nsHandle = srpwgNetstackStart([params[@"uapi"] UTF8String], clientAddr.UTF8String,
-                                   listen.UTF8String, target.UTF8String);
-    if (_nsHandle < 0) {
-        if (_failureCb) _failureCb(@"Aether private: the WireGuard relay failed to start");
-        return;
-    }
-    SSLogM(@"Aether private: WG relay up — %@ via %@", target, _endpointIP);
-
-    // End-to-end readiness: relay + WG handshake + the server's Aether proxy. Through a WireGuard that gets no handshake
-    // the relay's connection to the proxy never completes (a timeout); a server that answers but has no proxy on the
-    // port refuses it at once, and the relay closes the test connection
-    if (![self waitSocksReadyLocked:30]) {
-        NSString *port = [[params[@"uapi"] componentsSeparatedByString:@"\n"] filteredArrayUsingPredicate:
-                          [NSPredicate predicateWithFormat:@"SELF BEGINSWITH 'endpoint='"]].firstObject;
-        port = [port componentsSeparatedByString:@":"].lastObject ?: @"51820";
-        [self attemptFailedLocked:_socksClosed
-            ? [NSString stringWithFormat:@"Aether private: the server answers over WireGuard, but its Aether proxy (port %d on %@) refused the connection: is the aether container running?", SRPAETHER_SOCKS_PORT, [target componentsSeparatedByString:@":"].firstObject]
-            : [NSString stringWithFormat:@"Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port %@ may be closed.", port]];
-        return;
-    }
-    if (![self sessionWorksLocked:_endpointIP]) {
-        [self stopSessionLocked];
-        if (_failureCb) _failureCb(@"Aether: the packet bridge failed to start");
-        return;
-    }
-    SSLogM(@"Aether: session established (private)");
-}
-
 - (BOOL)startHevLocked {
     int fds[2];
     if (socketpair(AF_UNIX, SOCK_DGRAM, 0, fds) != 0) return NO;
@@ -742,12 +667,12 @@ static NSString *SRPAetherPathName(nw_path_t path) {
     // read() — that would seize the worker queue and freeze injectPacket.
     fcntl(fds[0], F_SETFL, O_NONBLOCK);
 
-    // Private mode: the relay is TCP-only, so UDP cannot ride the SOCKS5
+    // Tor Only: Tor carries TCP only, so UDP cannot ride the SOCKS5
     // link — DNS is answered locally by hev's mapped-DNS instead (fake IPs;
-    // connections then carry the hostname, and the VPS Aether proxy resolves
-    // it), exactly like the SSH VPN path.
+    // connections then carry the hostname, and Tor resolves it), exactly
+    // like the SSH VPN path.
     NSString *conf;
-    if (_privateMode) {
+    if (_mappedDNS) {
         conf = [NSString stringWithFormat:
             @"tunnel:\n"
             @"  mtu: 1400\n"
@@ -834,7 +759,7 @@ static NSString *SRPAetherPathName(nw_path_t path) {
     NSString *remote = endpointIP.length > 0 ? endpointIP : @"162.159.192.1";
     NEPacketTunnelNetworkSettings *settings =
         [[NEPacketTunnelNetworkSettings alloc] initWithTunnelRemoteAddress:remote];
-    if (_privateMode) {
+    if (_mappedDNS) {
         // Mapped-DNS layout (same as the SSH bridge): 198.18.0.2 answers DNS
         // locally with fake 198.18.x.x addresses; connections carry the name.
         NEIPv4Settings *v4 = [[NEIPv4Settings alloc] initWithAddresses:@[@"198.18.0.1"]
@@ -1095,12 +1020,8 @@ static NSString *SRPAetherPathName(nw_path_t path) {
             offset += (NSUInteger)n;
             continue;
         }
-        // The far end closed (or reset) the connection: an answer of its own, as Private mode's relay closes it at once when the
-        // server refused the proxy port; a timeout is the other way to fail
-        if (n == 0 || errno == ECONNRESET || errno == EPIPE) {
-            _socksClosed = YES;
-            return NO;
-        }
+        // The far end closed (or reset) the connection: an answer of its own; a timeout is the other way to fail
+        if (n == 0 || errno == ECONNRESET || errno == EPIPE) return NO;
         if (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) return NO;
         if ([[NSDate date] compare:deadline] == NSOrderedDescending) return NO;
         usleep(100000);
@@ -1109,7 +1030,6 @@ static NSString *SRPAetherPathName(nw_path_t path) {
 }
 
 - (BOOL)waitSocksReadyLocked:(NSInteger)timeoutSec {
-    _socksClosed = NO;
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:timeoutSec];
     int fd = -1;
     BOOL greeted = NO;
@@ -1142,7 +1062,6 @@ static NSString *SRPAetherPathName(nw_path_t path) {
             const uint8_t hello[3] = {0x05, 0x01, 0x00};
             uint8_t reply[2] = {0};
             ssize_t sent = write(fd, hello, sizeof(hello));
-            if (sent < 0 && (errno == EPIPE || errno == ECONNRESET)) _socksClosed = YES;
             if (sent != sizeof(hello) ||
                 ![self readExactLocked:fd buffer:reply length:sizeof(reply) timeoutSec:10] ||
                 reply[0] != 0x05 || reply[1] != 0x00) {
@@ -1204,10 +1123,6 @@ next_attempt:
     _injectionCompletion = nil;
     [_wgClient closeAndWait];
     _wgClient = nil;
-    if (_nsHandle >= 0) {
-        srpwgNetstackStop(_nsHandle);
-        _nsHandle = -1;
-    }
     [self stopTunnelAttemptLocked];
     srpssh_hev_socks5_tunnel_quit();
     if (_readSource) {
@@ -1274,10 +1189,6 @@ next_attempt:
         if (self->_tunnelJobId != 0) {
             SSLogM(@"Aether: debug: ending the engine's session");
             aether_job_cancel(self->_tunnelJobId);
-        } else if (self->_nsHandle >= 0) {
-            SSLogM(@"Aether: debug: ending the WireGuard relay");
-            srpwgNetstackStop(self->_nsHandle);
-            self->_nsHandle = -1;
         }
     });
 }

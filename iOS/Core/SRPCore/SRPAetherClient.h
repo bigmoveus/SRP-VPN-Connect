@@ -48,10 +48,6 @@ typedef void(^SRPAetherConnectedCallback)(void);
 @property (nonatomic) NSInteger fragMode;
 @property (nonatomic) NSInteger fragMin;
 @property (nonatomic) NSInteger fragMax;
-/// Private mode: wg-quick config of the user's own server. The engine is not
-/// used; traffic goes utun -> hev -> SOCKS5 -> WireGuard (netstack relay) ->
-/// the VPS-hosted Aether proxy -> Cloudflare WARP.
-@property (nonatomic, strong, nullable) NSString *privateConfig;
 /// Auto Reconnect: a session that stops working (the engine's session ends, or two test connections through the
 /// tunnel fail) is set up again under the same tunnel; without it the VPN ends with the reason
 @property (nonatomic) BOOL autoReconnect;

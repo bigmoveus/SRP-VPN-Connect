@@ -253,10 +253,11 @@ private fun ProfileRow(profile: Profile, status: VpnState.Status, open: OpenSwip
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Label(profile.desc.ifEmpty { profile.server.ifEmpty { profile.nodeName } }, IosText.headline, maxLines = 1)
+                // Aether has no server: without a description its row shows the protocol's name
+                Label(profile.desc.ifEmpty { if (profile.isAether) profile.nodeName else profile.server.ifEmpty { profile.nodeName } }, IosText.headline, maxLines = 1)
                 // iOS's home row: the chain summary for WaterWall, the server and port for SSTP
-                Label(if (profile.isAether && !profile.isAetherPrivate) "Cloudflare WARP"
-                      else if (profile.isTlsVpn || profile.isSsh || profile.isOpenVpn || profile.isWireGuard || profile.isAetherPrivate) "${profile.server}:${profile.effectivePort}"
+                Label(if (profile.isAether) "Cloudflare WARP"
+                      else if (profile.isTlsVpn || profile.isSsh || profile.isOpenVpn || profile.isWireGuard) "${profile.server}:${profile.effectivePort}"
                       else ChainConfig.summary(profile.configuration), IosText.subheadline, colors.secondaryLabel, maxLines = 1)
             }
             Spacer(Modifier.width(8.dp))

@@ -377,12 +377,7 @@ static const NSInteger kFieldAetherLicense = 33;
         }
     }
     else if ([self isAether]) {
-        // Private: own WireGuard server — a complete config is required.
-        // Public: zero-config (Cloudflare WARP) — nothing is required.
-        if ([self isAetherPrivate]) {
-            if (!hasServer) return @"Enter the server address.";
-            if ([self.modal wgEffectiveConfig].length == 0) return @"Import or enter a WireGuard configuration.";
-        }
+        // Zero-config (Cloudflare WARP) — nothing is required.
     }
     else if ([self isWaterWall]) {
         NSString *error = [self waterWallValidationError];
@@ -596,22 +591,10 @@ static const NSInteger kFieldAetherLicense = 33;
     self.modal.aetherScan = seg.selectedSegmentIndex == 1 ? @"turbo" : @"balanced";
 }
 
-/// TLS Fragmentation acts on the MASQUE-H2 carrier's TLS handshake: Public mode with H2, or H3 then H2, not Tor Only
+/// TLS Fragmentation acts on the MASQUE-H2 carrier's TLS handshake: H2, or H3 then H2, not Tor Only
 - (BOOL)aetherOffersFragmentation {
-    return [self isAether] && ![self isAetherPrivate] && ![self.modal.aetherTor isEqualToString:@"only"] &&
+    return [self isAether] && ![self.modal.aetherTor isEqualToString:@"only"] &&
            ([self.modal.aetherTransport isEqualToString:@"masque-h2"] || [self.modal.aetherTransport isEqualToString:@"masque-both"]);
-}
-
-- (BOOL)isAetherPrivate {
-    return [self isAether] && [self.modal.aetherMode isEqualToString:@"private"];
-}
-
-- (void)aetherModeChanged:(UISegmentedControl *)seg {
-    self.modal.aetherMode = seg.selectedSegmentIndex == 1 ? @"private" : @"public";
-    if ([self isAetherPrivate] && self.modal.port.length == 0) {
-        self.modal.port = @"51820";
-    }
-    [self.tableView reloadData];
 }
 
 - (void)aetherTorChanged:(UISegmentedControl *)seg {
@@ -772,7 +755,7 @@ static const NSInteger kFieldAetherLicense = 33;
     if (([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall]) && section == 3) {
         return CGFLOAT_MIN;
     }
-    // Aether's server section keeps its footer (what Public and Private mode do); its empty section 2 has none
+    // Aether's server section keeps its footer (what its rows do); its empty section 2 has none
     if (([self isAether] && section == 2) ||
         ([self isWaterWall] && section == 2 &&
          ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
@@ -800,10 +783,7 @@ static const NSInteger kFieldAetherLicense = 33;
         return @"Configuration independently combines the input, application protocol, MUX and outer transport. SOCKS5 supports TCP and UDP Association directly; HTTP CONNECT supports TCP. Proxy username and password are optional as a pair. Advanced Node Settings provides per-node JSON overrides. Reality defaults to the www.cloudflare.com cover and uses a separate password. AEAD has no TLS handshake. Raw IPv4 uses PacketsToStream. TLS Server Verification validates TLS, Reality and QUIC certificates. Optional SNI must match the server's cover configuration.";
     }
     if (section == 1 && [self isAether]) {
-        if ([self isAetherPrivate]) {
-            return @"Import the .conf file your server made for this phone or enter the keys under Manual Configuration. Server and Port are the WireGuard endpoint of your own server: filled from the Endpoint line on import; changed, they replace it.";
-        }
-        return @"Public mode connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit.";
+        return @"Aether connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit.";
     }
     if (section == 1 && [self isPlainWireGuard]) {
         return @"Import a .conf file (wg-quick format) or enter the keys manually under Manual Configuration. Server and Port are filled from the Endpoint line on import; changed, they replace it. WireGuard runs over UDP.";
@@ -861,11 +841,8 @@ static const NSInteger kFieldAetherLicense = 33;
         return @"Auto Reconnect lets OpenVPN connect again when the connection breaks or the server stops answering its keepalives; Retry Times limits the attempts (empty = no limit). Off: the VPN disconnects with the reason. OpenVPN uses the TLS parameters negotiated with the server (tls-crypt, data-channel ciphers). With stunnel on, the outer TLS connection requires TLS 1.2 or later, and TLS Fragmentation splits its handshake.";
     }
     if (section == 4 && [self isAether]) {
-        // The options: the same rules in both modes (SRPAetherClient: test connections, attempts, sleep)
+        // The options' rules (SRPAetherClient: test connections, attempts, sleep)
         NSString *options = @"Aether counts as connected once a test connection through the tunnel went through. When the session ends, or two test connections through it fail (one every 20 seconds, and one at once after a network change), it stopped working: Auto Reconnect sets up a new session and Retry Times limits the attempts (empty = no limit); before the first connection, Retry Times adds attempts. Off: the VPN disconnects with the reason. On Sleep: Off closes the session while the device sleeps and connects again at wake only with Auto Reconnect; Pause closes it and connects again at wake; Stay keeps it. Aether always uses the network the phone uses, so there is no Switch to Wi-Fi option.";
-        if ([self isAetherPrivate]) {
-            return [@"Private mode connects to your own server over WireGuard; the server's Aether proxy (port 1819 on the server's tunnel address) carries the traffic on to Cloudflare WARP, so the phone runs no Aether engine itself. Enter the server's WireGuard keys under Manual Configuration; the client keypair can be generated there. " stringByAppendingString:options];
-        }
         NSString *base = [@"Aether connects to Cloudflare WARP; no server or account is needed. Tor Only exits through the Tor network (no WARP); WARP via Tor dials the tunnel through Tor (slow to connect). " stringByAppendingString:options];
         if ([self aetherOffersFragmentation]) {
             return [base stringByAppendingString:@" MASQUE H2 runs over TCP+TLS (useful where QUIC/UDP is filtered); TLS Fragmentation splits the handshake's ClientHello into smaller writes — Auto picks safe sizes and splits at the SNI, Manual sets the byte range."];
@@ -898,8 +875,8 @@ static const NSInteger kFieldAetherLicense = 33;
                 return [SRPWaterWallChainConfig configurationUsesTLS:configuration] ? 5 : 3;
             }
             if ([self isAether]) {
-                if ([self isAetherPrivate]) return 5;   // Server mode, Import, Manual, Server, Port
-                return [self.modal.aetherTor isEqualToString:@"only"] ? 2 : 5;
+                // Transport, Endpoint Scan, WARP+ License, Tor; Tor Only keeps the Tor row alone
+                return [self.modal.aetherTor isEqualToString:@"only"] ? 1 : 4;
             }
             if ([self isOpenConnect]) {
                 return 5;   // Server Type, Server, Port, Path, TLS Server Verification
@@ -1058,54 +1035,28 @@ static const NSInteger kFieldAetherLicense = 33;
             }
         }
         if ([self isAether]) {
-            if (indexPath.row == 0) {
-                return [self segmentCellWithTitle:@"Server"
-                                            items:@[@"Public (WARP)", @"Private"]
-                                         selected:[self isAetherPrivate] ? 1 : 0
-                                           action:@selector(aetherModeChanged:) tag:kSegmentOnSleep + 101];
+            BOOL torOnly = [self.modal.aetherTor isEqualToString:@"only"];
+            if (indexPath.row == 0 && !torOnly) {
+                return [self valueCellWithTitle:@"Transport"
+                                          value:[SRPAetherTransportViewController titleForTransport:self.modal.aetherTransport]
+                                     disclosure:YES];
             }
-            if (![self isAetherPrivate]) {
-                BOOL torOnly = [self.modal.aetherTor isEqualToString:@"only"];
-                if (indexPath.row == 1 && !torOnly) {
-                    return [self valueCellWithTitle:@"Transport"
-                                              value:[SRPAetherTransportViewController titleForTransport:self.modal.aetherTransport]
-                                         disclosure:YES];
-                }
-                if (indexPath.row == 2 && !torOnly) {
-                    return [self segmentCellWithTitle:@"Endpoint Scan"
-                                                items:@[@"Balanced", @"Turbo"]
-                                             selected:[self.modal.aetherScan isEqualToString:@"turbo"] ? 1 : 0
-                                               action:@selector(aetherScanChanged:) tag:kSegmentOnSleep + 105];
-                }
-                if (indexPath.row == 3 && !torOnly) {
-                    return [self textCellWithTitle:@"WARP+ License" text:self.modal.aetherLicense placeholder:@"Optional"
-                                               tag:kFieldAetherLicense keyboardType:UIKeyboardTypeASCIICapable secure:NO];
-                }
-                NSInteger torSel = [self.modal.aetherTor isEqualToString:@"only"] ? 2
-                                 : [self.modal.aetherTor isEqualToString:@"reverse"] ? 1 : 0;
-                return [self segmentCellWithTitle:@"Tor"
-                                            items:@[@"Off", @"WARP via Tor", @"Tor Only"]
-                                         selected:torSel
-                                           action:@selector(aetherTorChanged:) tag:kSegmentOnSleep + 102];
+            if (indexPath.row == 1 && !torOnly) {
+                return [self segmentCellWithTitle:@"Endpoint Scan"
+                                            items:@[@"Balanced", @"Turbo"]
+                                         selected:[self.modal.aetherScan isEqualToString:@"turbo"] ? 1 : 0
+                                           action:@selector(aetherScanChanged:) tag:kSegmentOnSleep + 105];
             }
-            // Private: the server's WireGuard, from the .conf file the server makes for this phone or entered by hand
-            switch (indexPath.row) {
-                case 1:
-                    return [self valueCellWithTitle:@"Import Config (.conf)"
-                                              value:(self.modal.wgConfig.length > 0 ? @"Imported" : @"None")
-                                         disclosure:YES];
-                case 2: {
-                    NSString *configState = self.modal.wgConfig.length > 0 ? @"Overridden by import"
-                                          : (self.modal.wgPrivateKey.length > 0 ? @"Manual" : @"None");
-                    return [self valueCellWithTitle:@"Manual Configuration" value:configState disclosure:YES];
-                }
-                case 3:
-                    return [self textCellWithTitle:@"Server" text:self.modal.server placeholder:@"Required"
-                                               tag:kFieldHost keyboardType:UIKeyboardTypeURL secure:NO];
-                default:
-                    return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"51820"
-                                               tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
+            if (indexPath.row == 2 && !torOnly) {
+                return [self textCellWithTitle:@"WARP+ License" text:self.modal.aetherLicense placeholder:@"Optional"
+                                           tag:kFieldAetherLicense keyboardType:UIKeyboardTypeASCIICapable secure:NO];
             }
+            NSInteger torSel = [self.modal.aetherTor isEqualToString:@"only"] ? 2
+                             : [self.modal.aetherTor isEqualToString:@"reverse"] ? 1 : 0;
+            return [self segmentCellWithTitle:@"Tor"
+                                        items:@[@"Off", @"WARP via Tor", @"Tor Only"]
+                                     selected:torSel
+                                       action:@selector(aetherTorChanged:) tag:kSegmentOnSleep + 102];
         }
         if ([self isWireGuard]) {
             NSString *configState = self.modal.wgConfig.length > 0 ? @"Imported"
@@ -1660,16 +1611,8 @@ static const NSInteger kFieldAetherLicense = 33;
         return;
     }
     if ([self isAether]) {
-        if (![self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 1 &&
-            ![self.modal.aetherTor isEqualToString:@"only"]) {
+        if (indexPath.section == 1 && indexPath.row == 0 && ![self.modal.aetherTor isEqualToString:@"only"]) {
             SRPAetherTransportViewController *vc = [[SRPAetherTransportViewController alloc] initWithNodeModel:self.modal];
-            [self.navigationController pushViewController:vc animated:YES];
-            return;
-        }
-        if ([self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 1) {
-            [self importWGConfig];
-        } else if ([self isAetherPrivate] && indexPath.section == 1 && indexPath.row == 2) {
-            SRPWGConfigViewController *vc = [[SRPWGConfigViewController alloc] initWithNodeModel:self.modal];
             [self.navigationController pushViewController:vc animated:YES];
         }
         return;
@@ -1877,13 +1820,6 @@ static const NSInteger kFieldAetherLicense = 33;
         if ([self isPlainWireGuard] && found) {
             [self showInfoAlertWithTitle:@"AmneziaWG Configuration"
                                  message:[NSString stringWithFormat:@"This file has AmneziaWG settings (%@ and others). Choose AmneziaWG VPN as the protocol to use it.",
-                                          [text substringWithRange:[found rangeAtIndex:1]]]];
-            return;
-        }
-        // Aether's Private mode reaches the server over plain WireGuard
-        if ([self isAetherPrivate] && found) {
-            [self showInfoAlertWithTitle:@"AmneziaWG Configuration"
-                                 message:[NSString stringWithFormat:@"This file has AmneziaWG settings (%@ and others). Aether's Private mode takes a WireGuard file.",
                                           [text substringWithRange:[found rangeAtIndex:1]]]];
             return;
         }

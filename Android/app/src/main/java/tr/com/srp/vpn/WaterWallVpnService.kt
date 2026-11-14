@@ -46,7 +46,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
     private var freshNetwork = false
 
     /** The lifecycle tests' commands (debuggable builds only, `am broadcast -a tr.com.srp.vpn.TEST --es command ...`): Aether's
-     *  session ends as if WARP or the server had closed it, or the test a network change brings runs at once */
+     *  session ends as if WARP had closed it, or the test a network change brings runs at once */
     private val testReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.getStringExtra("command")) {

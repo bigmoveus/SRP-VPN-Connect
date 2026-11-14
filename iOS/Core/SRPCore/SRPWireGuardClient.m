@@ -1118,48 +1118,4 @@ static const CFAbsoluteTime SRPWGHandshakeOnlySeconds = 40;
     [self closeAndWait];
 }
 
-+ (NSDictionary<NSString *, NSString *> *)netstackParametersFromConfig:(NSString *)configText
-                                                                 error:(NSString **)errorOut {
-    SRPWGConfig *cfg = SRPWGParseConfig(configText, errorOut);
-    if (!cfg) return nil;
-    NSString *endpointIP = SRPWGResolveIPv4(cfg.endpointHost);
-    if (!endpointIP) {
-        if (errorOut) *errorOut = [NSString stringWithFormat:@"The WireGuard endpoint %@ could not be resolved.", cfg.endpointHost];
-        return nil;
-    }
-    NSString *privHex = SRPWGBase64ToHex(cfg.privateKey);
-    NSString *pubHex = SRPWGBase64ToHex(cfg.peerPublicKey);
-    if (!privHex || !pubHex) {
-        if (errorOut) *errorOut = @"Invalid WireGuard config: a key is not valid base64 (32 bytes).";
-        return nil;
-    }
-    // Plain-WireGuard UAPI (the netstack engine does not take Amnezia keys)
-    NSMutableString *uapi = [NSMutableString new];
-    [uapi appendFormat:@"private_key=%@\n", privHex];
-    [uapi appendString:@"listen_port=0\n"];
-    [uapi appendString:@"replace_peers=true\n"];
-    [uapi appendFormat:@"public_key=%@\n", pubHex];
-    if (cfg.presharedKey.length > 0) {
-        NSString *pskHex = SRPWGBase64ToHex(cfg.presharedKey);
-        if (!pskHex) {
-            if (errorOut) *errorOut = @"Invalid WireGuard config: the PresharedKey is not valid base64 (32 bytes).";
-            return nil;
-        }
-        [uapi appendFormat:@"preshared_key=%@\n", pskHex];
-    }
-    [uapi appendFormat:@"endpoint=%@:%ld\n", endpointIP, (long)cfg.endpointPort];
-    for (NSString *ip in cfg.allowedIPs) [uapi appendFormat:@"allowed_ip=%@\n", ip];
-    if (cfg.keepalive > 0) [uapi appendFormat:@"persistent_keepalive_interval=%ld\n", (long)cfg.keepalive];
-    NSString *addr = nil;
-    for (NSString *a in cfg.addresses) {
-        NSString *host = [[a componentsSeparatedByString:@"/"] firstObject];
-        if ([host containsString:@"."]) { addr = host; break; }
-    }
-    if (addr.length == 0) {
-        if (errorOut) *errorOut = @"The WireGuard config has no interface IPv4 address.";
-        return nil;
-    }
-    return @{@"uapi": uapi, @"endpointIP": endpointIP, @"address": addr};
-}
-
 @end

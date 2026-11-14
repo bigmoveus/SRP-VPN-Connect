@@ -30,7 +30,12 @@ static userNodeData * user = nil;
     if([[NSUserDefaults standardUserDefaults] objectForKey:@"nodeArray"]) {
         for(NSDictionary *dic in [[NSUserDefaults standardUserDefaults] objectForKey:@"nodeArray"]) {
             NodeModel *modal = [CheckConnectData getModalForDic:dic];
-            if (modal) {
+            if ([dic[@"type"] isEqualToString:@"aether"] && [dic[@"ae_mode"] isEqualToString:@"private"]) {
+                // Aether's Private mode is no longer in the app: its profiles go with their Keychain entries, and the
+                // list is saved without them
+                [CheckConnectData deleteStoredSecretsOfProfile:modal];
+                migrated = YES;
+            } else if (modal) {
                 [t addObject:modal];
             } else if ([dic[@"type"] isEqualToString:@"psiphon"]) {
                 migrated = YES;   // Psiphon is no longer in the app: its profiles go, and the list is saved without them

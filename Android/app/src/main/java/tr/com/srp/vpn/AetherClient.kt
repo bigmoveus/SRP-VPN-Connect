@@ -11,8 +11,6 @@ import android.os.HandlerThread
 import android.os.SystemClock
 import org.json.JSONObject
 import java.io.File
-import java.net.Inet4Address
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -56,9 +54,8 @@ internal object AetherNative {
 
 /**
  * Aether (SRPAetherClient.m and the Aether start of PacketTunnelProvider.m): Cloudflare WARP through the engine of our fork
- * (MASQUE over HTTP/3 or HTTP/2, or WARP's WireGuard through [WireGuardClient]), Tor through it, or Private mode: WireGuard to
- * the user's server (a relay in libwg-go.so) and that server's Aether proxy to WARP. hev carries the phone's traffic from the
- * TUN to the engine's (or the relay's) SOCKS5 port. Connected once a test connection through the tunnel went through; a test
+ * (MASQUE over HTTP/3 or HTTP/2, or WARP's WireGuard through [WireGuardClient]), or Tor through it. hev carries the phone's
+ * traffic from the TUN to the engine's SOCKS5 port. Connected once a test connection through the tunnel went through; a test
  * connection every 20 seconds (and one at once after a network change) notices a session that stopped working, and Auto
  * Reconnect and Retry Times set up a new one, as on iPhone.
  */
@@ -72,8 +69,7 @@ class AetherClient(
     private val retryTimes = profile.retryTimes.coerceAtLeast(0)
     private val onSleep = profile.onSleep
     private val logLevel = profile.logLevel
-    private val privateMode = profile.isAetherPrivate
-    private val torMode = if (privateMode) "off" else profile.aetherTor
+    private val torMode = profile.aetherTor
     private var transport = profile.aetherTransport
     private val identityDir = File(context.filesDir, "aether")
     private val lastGood = context.getSharedPreferences("aether", Context.MODE_PRIVATE)
@@ -86,9 +82,6 @@ class AetherClient(
     private var attempts = 0
     private var identityId = 0L
     private var tunnelJob = 0L
-    private var relay = -1
-    private var socksPort = SOCKS_PORT
-    private var socksClosed = false
     private var probeFailures = 0
     private var bytesAtLastProbe = 0L   // hev's bytes to the phone at the last test connection
     private var probing = false
@@ -111,7 +104,7 @@ class AetherClient(
             AetherNative.setenv("ARTI_FS_DISABLE_PERMISSION_CHECKS", "true")
             listOf("AETHER_UPSTREAM", "AETHER_MASQUE_HTTP2", "AETHER_MASQUE_H2_FRAGMENT", "AETHER_MASQUE_H2_FRAGMENT_SIZE",
                 "AETHER_MASQUE_H2_FRAGMENT_SNI").forEach { AetherNative.setenv(it, null) }
-            ConnectionLog.m("Aether: ${if (privateMode) "private mode via ${profile.server.trim()}" else "transport=$transport scan=${profile.aetherScan} tor=$torMode fragMode=${profile.tlsFragMode}"}")
+            ConnectionLog.m("Aether: transport=$transport scan=${profile.aetherScan} tor=$torMode fragMode=${profile.tlsFragMode}")
             ConnectionLog.m("Aether: auto reconnect ${if (autoReconnect) "on" else "off"}, retry times ${if (retryTimes > 0) "$retryTimes" else "no limit"}, " +
                 "on sleep ${listOf("off", "pause", "stay")[onSleep.coerceIn(0, 2)]}")
             startPathMonitor()
@@ -155,10 +148,9 @@ class AetherClient(
         }
     }
 
-    /** One HTTP request to 1.1.1.1 through the engine's (or the relay's) SOCKS5 port: this app stays outside its own tunnel */
+    /** One HTTP request to 1.1.1.1 through the engine's SOCKS5 port: this app stays outside its own tunnel */
     override fun measurePing(result: (Long) -> Unit) {
         wgClient?.let { it.measurePing(result); return }
-        val port = socksPort
         if (closed || !up) {
             result(-1)
             return
@@ -168,7 +160,7 @@ class AetherClient(
             val value = runCatching {
                 Socket().use { socket ->
                     socket.soTimeout = PING_TIMEOUT_MS
-                    socket.connect(InetSocketAddress("127.0.0.1", port), PING_TIMEOUT_MS)
+                    socket.connect(InetSocketAddress("127.0.0.1", SOCKS_PORT), PING_TIMEOUT_MS)
                     val output = socket.getOutputStream()
                     val input = socket.getInputStream()
                     output.write(byteArrayOf(5, 1, 0))
@@ -241,11 +233,7 @@ class AetherClient(
         if (closed || paused) return
         attempts++
         if (attempts > 1 || up) ConnectionLog.m("Aether: connection attempt $attempts")
-        when {
-            privateMode -> startPrivate()
-            torMode == "only" -> startTorOnly()
-            else -> startWarp()
-        }
+        if (torMode == "only") startTorOnly() else startWarp()
     }
 
     /** Retry Times: before the first connection 1 attempt, or 1 + Retry Times with Auto Reconnect; after a drop Retry Times
@@ -287,7 +275,7 @@ class AetherClient(
         if (!up) {
             val conf = hevConfig()
             var started = -1
-            val problem = host.applyTunnelSettings(if (privateMode || torMode == "only") MAPPED_DNS_SETTINGS else WARP_SETTINGS) { fd ->
+            val problem = host.applyTunnelSettings(if (torMode == "only") MAPPED_DNS_SETTINGS else WARP_SETTINGS) { fd ->
                 started = AetherNative.hevStart(conf, fd)
             }
             if (problem != null || started != 0) {
@@ -307,7 +295,7 @@ class AetherClient(
         return true
     }
 
-    /** Ends the session under the tunnel (the engine's job, or the relay to the user's server) and its checks */
+    /** Ends the session under the tunnel (the engine's job) and its checks */
     private fun stopSession() {
         generation++
         probeFailures = 0
@@ -318,10 +306,6 @@ class AetherClient(
             val deadline = SystemClock.elapsedRealtime() + 15000
             while (call(AetherNative.JOB_POLL, job).optString("state") != "done" && SystemClock.elapsedRealtime() < deadline) Thread.sleep(100)
             call(AetherNative.JOB_FREE, job)
-        }
-        if (relay >= 0) {
-            WireGuardNative.netstackStop(relay)
-            relay = -1
         }
     }
 
@@ -418,7 +402,6 @@ class AetherClient(
         if (torMode == "reverse") payload.put("tor", "reverse")
         tunnelJob = startJob(AetherNative.TUNNEL_START, identityId, payload.toString())
         if (tunnelJob == 0L) return false
-        socksPort = SOCKS_PORT
         if (!waitSocksReady(if (torMode == "reverse") 180 else 60)) return false
         if (!sessionWorks("MASQUE ${if (h2) "H2" else "H3"}")) return false
         return true
@@ -433,7 +416,6 @@ class AetherClient(
             attemptFailed("Aether: the Tor job did not start")
             return
         }
-        socksPort = SOCKS_PORT
         ConnectionLog.m("Aether: tor-only — bootstrapping Tor (can take a minute on first run)")
         if (!waitSocksReady(180)) {
             attemptFailed("Aether: Tor did not come up in time")
@@ -464,79 +446,17 @@ class AetherClient(
         client.start()
     }
 
-    // --- Private mode -------------------------------------------------------------------------------------------------
-
-    private fun startPrivate() {
-        val text = profile.wgEffectiveConfig()
-        if (text.isNullOrEmpty()) {
-            fail("Aether private mode needs a WireGuard configuration (Server, Port and the keys under Manual Configuration).")
-            return
-        }
-        val (conf, error) = WireGuardConf.parse(text)
-        if (conf == null) {
-            fail("Aether private: ${error ?: "invalid WireGuard config"}")
-            return
-        }
-        val address = conf.addresses.map { it.substringBefore('/') }.firstOrNull { ProbePackets.ipv4(it) != null }
-        if (address == null) {
-            fail("Aether private: the interface address must be IPv4")
-            return
-        }
-        val endpointIp = runCatching { InetAddress.getAllByName(conf.endpointHost).firstOrNull { it is Inet4Address }?.hostAddress }.getOrNull()
-        if (endpointIp == null) {
-            attemptFailed("Aether private: The WireGuard endpoint ${conf.endpointHost} could not be resolved.")
-            return
-        }
-        // The same checks and words as the iPhone's (SRPWireGuardClient netstackParametersFromConfig)
-        if (WireGuardConf.base64ToHex(conf.privateKey) == null || WireGuardConf.base64ToHex(conf.peerPublicKey) == null) {
-            fail("Aether private: Invalid WireGuard config: a key is not valid base64 (32 bytes).")
-            return
-        }
-        if (conf.presharedKey.isNotEmpty() && WireGuardConf.base64ToHex(conf.presharedKey) == null) {
-            fail("Aether private: Invalid WireGuard config: the PresharedKey is not valid base64 (32 bytes).")
-            return
-        }
-        val uapi = conf.uapi(endpointIp)
-        if (uapi == null) {
-            fail("Aether private: invalid WireGuard config")
-            return
-        }
-        val target = address.substringBeforeLast('.') + ".1:$SOCKS_PORT"
-        relayLogThread
-        relay = WireGuardNative.netstackStart(uapi, address, "127.0.0.1:$RELAY_PORT", target)
-        if (relay < 0) {
-            fail("Aether private: the WireGuard relay failed to start")
-            return
-        }
-        socksPort = RELAY_PORT
-        ConnectionLog.m("Aether private: WG relay up — $target via $endpointIp")
-        // Through a WireGuard that gets no handshake the relay's connection to the proxy never completes (a timeout); a server
-        // that answers but has no proxy on the port refuses it at once, and the relay closes the test connection
-        if (!waitSocksReady(30)) {
-            attemptFailed(if (socksClosed) "Aether private: the server answers over WireGuard, but its Aether proxy (port $SOCKS_PORT on " +
-                "${target.substringBefore(':')}) refused the connection: is the aether container running?"
-                else "Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may " +
-                "not match, the server may not have this profile's public key as a peer, or UDP port ${conf.endpointPort} may be closed.")
-            return
-        }
-        sessionWorks("private")
-    }
-
     /** End-to-end readiness: test connections through the SOCKS5 port until one goes through, the job ends or time runs out */
     private fun waitSocksReady(timeoutSec: Int): Boolean {
-        socksClosed = false
         val deadline = SystemClock.elapsedRealtime() + timeoutSec * 1000L
         while (!closed && !closing) {
             if (tunnelJob != 0L && call(AetherNative.JOB_POLL, tunnelJob).optString("state") == "done") {
                 ConnectionLog.m("Aether: tunnel ended while waiting for SOCKS5")
                 return false
             }
-            when (AetherNative.socksProbe(socksPort, 10)) {
-                1 -> {
-                    ConnectionLog.m("Aether: socks5 end-to-end connect test succeeded")
-                    return true
-                }
-                0 -> socksClosed = true
+            if (AetherNative.socksProbe(SOCKS_PORT, 10) == 1) {
+                ConnectionLog.m("Aether: socks5 end-to-end connect test succeeded")
+                return true
             }
             if (SystemClock.elapsedRealtime() > deadline) return false
             Thread.sleep(300)
@@ -581,10 +501,9 @@ class AetherClient(
         if (probing || closed || paused || !up) return
         probing = true
         val number = generation
-        val port = socksPort
         val timeout = if (torMode == "off") PROBE_TIMEOUT_S else 30
         Thread({
-            val ok = AetherNative.socksProbe(port, timeout) == 1
+            val ok = AetherNative.socksProbe(SOCKS_PORT, timeout) == 1
             worker.post {
                 probing = false
                 if (number == generation) probeResult(ok)
@@ -616,11 +535,8 @@ class AetherClient(
         probeFailures++
         ConnectionLog.m("Aether: a test connection through the tunnel failed ($probeFailures in a row)")
         if (probeFailures >= 2) {
-            sessionLost(when {
-                privateMode -> "The server stopped carrying traffic: two test connections through it failed"
-                torMode == "only" -> "Tor stopped carrying traffic: two test connections through it failed"
-                else -> "Cloudflare WARP stopped carrying traffic: two test connections through it failed"
-            })
+            sessionLost(if (torMode == "only") "Tor stopped carrying traffic: two test connections through it failed"
+                else "Cloudflare WARP stopped carrying traffic: two test connections through it failed")
             return
         }
         val number = generation
@@ -676,16 +592,12 @@ class AetherClient(
         worker.post { networkChanged(pathName ?: "other") }
     }
 
-    /** Ends the engine's session (or the relay) as if WARP or the server had closed it: the lifecycle tests */
+    /** Ends the engine's session as if WARP had closed it: the lifecycle tests */
     fun debugDropSession() {
         worker.post {
             if (tunnelJob != 0L) {
                 ConnectionLog.m("Aether: debug: ending the engine's session")
                 call(AetherNative.JOB_CANCEL, tunnelJob)
-            } else if (relay >= 0) {
-                ConnectionLog.m("Aether: debug: ending the WireGuard relay")
-                WireGuardNative.netstackStop(relay)
-                relay = -1
             }
         }
     }
@@ -750,15 +662,15 @@ class AetherClient(
 
     private fun hevConfig(): String {
         val level = if (logLevel >= 2) "debug" else "warn"   // hev names every connection's destination at info
-        return if (privateMode || torMode == "only") {
-            // Private mode and Tor carry TCP only: DNS is answered by hev's mapped DNS (fake addresses; connections carry the name).
+        return if (torMode == "only") {
+            // Tor carries TCP only: DNS is answered by hev's mapped DNS (fake addresses; connections carry the name).
             // The fake addresses come from 198.19.0.0/16: hev hands them out from the network's first address on, and from
             // 198.18.0.0/16 the second name got 198.18.0.1, the tunnel's own address, which Android keeps local (refused)
-            "tunnel:\n  mtu: 1400\n  ipv4: 198.18.0.1\nsocks5:\n  port: $socksPort\n  address: '127.0.0.1'\n  udp: 'tcp'\n  pipeline: true\n" +
+            "tunnel:\n  mtu: 1400\n  ipv4: 198.18.0.1\nsocks5:\n  port: $SOCKS_PORT\n  address: '127.0.0.1'\n  udp: 'tcp'\n  pipeline: true\n" +
                 "mapdns:\n  address: 198.18.0.2\n  port: 53\n  network: 198.19.0.0\n  netmask: 255.255.0.0\n  cache-size: 2048\n" +
                 "misc:\n  log-file: stderr\n  log-level: $level\n"
         } else {
-            "tunnel:\n  mtu: 1400\n  ipv4: 10.89.0.1\nsocks5:\n  port: $socksPort\n  address: '127.0.0.1'\n  udp: 'udp'\n  pipeline: true\n" +
+            "tunnel:\n  mtu: 1400\n  ipv4: 10.89.0.1\nsocks5:\n  port: $SOCKS_PORT\n  address: '127.0.0.1'\n  udp: 'udp'\n  pipeline: true\n" +
                 "misc:\n  log-file: stderr\n  log-level: $level\n"
         }
     }
@@ -810,28 +722,14 @@ class AetherClient(
             }
         }
 
-        /** Private mode's relay lines (libwg-go.so's queue); a WireGuard session of this process reads the same queue */
-        private val relayLogThread by lazy {
-            Thread({
-                while (true) {
-                    val line = WireGuardNative.nextLog(1000) ?: continue
-                    ConnectionLog.m("[wg-ns] ${line.substring(2)}")
-                }
-            }, "srp.aether.relay").apply {
-                isDaemon = true
-                start()
-            }
-        }
-
         private const val SOCKS_PORT = 1819
-        private const val RELAY_PORT = 18191
         private const val PROBE_SECONDS = 20
         private const val PROBE_TIMEOUT_S = 10
         private const val BUSY_BYTES = 64 * 1024L   // what a working tunnel brings to the phone between two tests while it is busy
         private const val RETRY_DELAY_S = 2
         private const val PING_TIMEOUT_MS = 15000
 
-        // The engine's tunnel address and DNS through WARP, or the mapped-DNS layout of Private mode and Tor (SRPAetherClient buildSettings)
+        // The engine's tunnel address and DNS through WARP, or the mapped-DNS layout of Tor Only (SRPAetherClient buildSettings)
         private val WARP_SETTINGS = TunnelSettings("10.89.0.1", listOf("1.1.1.1", "1.0.0.1"), listOf("0.0.0.0" to 0), 1400)
         private val MAPPED_DNS_SETTINGS = TunnelSettings("198.18.0.1", listOf("198.18.0.2"), listOf("0.0.0.0" to 0), 1400, addressPrefix = 32)
 

@@ -107,15 +107,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// Endpoint scan mode: "balanced" (default) or "turbo"
 @property (nonatomic,copy,nullable) NSString * aetherScan;
 
-/// Aether server mode: "public" (default, Cloudflare WARP) or "private"
-/// (own WireGuard server — the wg* manual fields carry the configuration)
-@property (nonatomic,copy,nullable) NSString * aetherMode;
-
-/// Aether public mode: optional WARP+ license key, bound to the device
+/// Aether: optional WARP+ license key, bound to the device
 /// registration at connect time (empty = free WARP)
 @property (nonatomic,copy,nullable) NSString * aetherLicense;
 
-/// Aether public mode Tor routing: "off" (default), "reverse" (the MASQUE
+/// Aether Tor routing: "off" (default), "reverse" (the MASQUE
 /// tunnel is dialled through the Tor network — hides WARP from the ISP), or
 /// "only" (pure Tor exit, no WARP)
 @property (nonatomic,copy,nullable) NSString * aetherTor;

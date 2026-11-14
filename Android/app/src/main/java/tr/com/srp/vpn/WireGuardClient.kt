@@ -37,10 +37,8 @@ internal object WireGuardNative {
     @JvmStatic external fun submit(handle: Int, packet: ByteArray)
     @JvmStatic external fun nextProbe(handle: Int, timeoutMs: Int): ByteArray?
 
-    /** Aether's Private mode (netstack.go): a WireGuard relay on a userspace TUN from 127.0.0.1 [listen] to [target] on the
-     *  user's server; a handle, negative when it did not start */
+    // shortcut: unused since Aether's Private mode went; remove with the next rebuild of the Go runtime
     @JvmStatic external fun netstackStart(uapi: String, ifAddr: String, listen: String, target: String): Int
-
     @JvmStatic external fun netstackStop(handle: Int)
 }
 

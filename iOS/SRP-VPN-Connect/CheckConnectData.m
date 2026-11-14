@@ -79,20 +79,8 @@
     if ([modal.protocolType isEqualToString:@"aether"]) {
         if (modal.aetherTransport.length > 0) d[@"ae_transport"] = modal.aetherTransport;
         if (modal.aetherScan.length > 0) d[@"ae_scan"] = modal.aetherScan;
-        if (modal.aetherMode.length > 0) d[@"ae_mode"] = modal.aetherMode;
         if (modal.aetherLicense.length > 0) d[@"ae_license"] = modal.aetherLicense;
         if (modal.aetherTor.length > 0) d[@"ae_tor"] = modal.aetherTor;
-        // Private mode reuses the WireGuard manual fields
-        if ([modal.aetherMode isEqualToString:@"private"]) {
-            d[@"wg_conf"] = [modal wgEffectiveConfig] ?: @"";
-            if (modal.wgPrivateKey.length > 0) d[@"wg_private_key"] = modal.wgPrivateKey;
-            if (modal.wgPeerPublicKey.length > 0) d[@"wg_peer_public_key"] = modal.wgPeerPublicKey;
-            if (modal.wgPresharedKey.length > 0) d[@"wg_preshared_key"] = modal.wgPresharedKey;
-            if (modal.wgAddress.length > 0) d[@"wg_address"] = modal.wgAddress;
-            if (modal.wgDNS.length > 0) d[@"wg_dns"] = modal.wgDNS;
-            if (modal.wgAllowedIPs.length > 0) d[@"wg_allowed_ips"] = modal.wgAllowedIPs;
-            if (modal.wgKeepalive > 0) d[@"wg_keepalive"] = @(modal.wgKeepalive);
-        }
     }
     if ([modal.protocolType isEqualToString:@"waterwall"]) {
         if ((modal.waterwallConfigJSON.length == 0 || [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON] == nil)) {
@@ -311,7 +299,6 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.wgI5 = selectDic[@"wg_i5"];
         modal.aetherTransport = selectDic[@"ae_transport"];
         modal.aetherScan = selectDic[@"ae_scan"];
-        modal.aetherMode = selectDic[@"ae_mode"];
         modal.aetherLicense = selectDic[@"ae_license"];
         modal.aetherTor = selectDic[@"ae_tor"];
         modal.waterwallPreset = selectDic[@"ww_preset"];

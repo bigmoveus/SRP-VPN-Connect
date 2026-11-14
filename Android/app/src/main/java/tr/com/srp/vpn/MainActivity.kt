@@ -138,7 +138,7 @@ private fun App() {
                         send(WaterWallVpnService.ACTION_DISCONNECT)
                     } else {
                         val selected = AppModel.selected
-                        // Aether's Public mode has no server (Cloudflare WARP); its Private mode reports a missing server itself
+                        // Aether has no server (Cloudflare WARP)
                         if (selected == null || (selected.server.isEmpty() && !selected.isAether && (selected.isTlsVpn || !ChainConfig.isDirect(selected.configuration)))) {
                             ui.showToast("Add a profile first (tap +)")
                         } else if (selected.isTlsVpn && !selected.allowInsecure) {

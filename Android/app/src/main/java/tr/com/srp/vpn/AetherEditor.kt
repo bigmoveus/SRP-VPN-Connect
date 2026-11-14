@@ -8,14 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 
 /** The Aether protocol's parts of the profile editor, in the iOS editor's words (CreateVC, isAether). */
-internal const val AETHER_PUBLIC_FOOTER =
-    "Public mode connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 " +
+internal const val AETHER_FOOTER =
+    "Aether connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 " +
         "first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is " +
         "the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit."
-
-internal const val AETHER_PRIVATE_FOOTER =
-    "Import the .conf file your server made for this phone or enter the keys under Manual Configuration. Server and Port are the WireGuard " +
-        "endpoint of your own server: filled from the Endpoint line on import; changed, they replace it."
 
 internal const val AETHER_OPTIONS_FOOTER =
     "Aether counts as connected once a test connection through the tunnel went through. When the session ends, or two test connections " +
@@ -25,14 +21,9 @@ internal const val AETHER_OPTIONS_FOOTER =
         "Reconnect; Pause closes it and connects again at wake; Stay keeps it. Aether always uses the network the phone uses, so there is no " +
         "Switch to Wi-Fi option."
 
-internal const val AETHER_PUBLIC_OPTIONS_LEAD =
+internal const val AETHER_OPTIONS_LEAD =
     "Aether connects to Cloudflare WARP; no server or account is needed. Tor Only exits through the Tor network (no WARP); WARP via Tor " +
         "dials the tunnel through Tor (slow to connect). "
-
-internal const val AETHER_PRIVATE_OPTIONS_LEAD =
-    "Private mode connects to your own server over WireGuard; the server's Aether proxy (port 1819 on the server's tunnel address) carries " +
-        "the traffic on to Cloudflare WARP, so the phone runs no Aether engine itself. Enter the server's WireGuard keys under Manual " +
-        "Configuration; the client keypair can be generated there. "
 
 internal const val AETHER_FRAGMENT_NOTE =
     " MASQUE H2 runs over TCP+TLS (useful where QUIC/UDP is filtered); TLS Fragmentation splits the handshake's ClientHello into smaller " +
@@ -47,54 +38,33 @@ private val AETHER_TRANSPORTS = listOf(
 
 internal fun aetherTransportTitle(transport: String) = AETHER_TRANSPORTS.firstOrNull { it.first == transport }?.second ?: "MASQUE (HTTP/3)"
 
-/** TLS Fragmentation acts on the MASQUE-H2 carrier's TLS handshake: Public mode with H2, or H3 then H2, not Tor Only */
+/** TLS Fragmentation acts on the MASQUE-H2 carrier's TLS handshake: with H2, or H3 then H2, not Tor Only */
 internal fun aetherOffersFragmentation(profile: Profile) =
-    profile.isAether && !profile.isAetherPrivate && profile.aetherTor != "only" &&
+    profile.isAether && profile.aetherTor != "only" &&
         (profile.aetherTransport == "masque-h2" || profile.aetherTransport == "masque-both")
 
-/** The first problem of an Aether profile about to be saved (CreateVC validationMessage): Public mode needs nothing */
-internal fun aetherValidationMessage(profile: Profile): String? {
-    if (!profile.isAetherPrivate) return null
-    if (profile.server.isEmpty()) return "Enter the server address."
-    if (profile.wgEffectiveConfig().isNullOrEmpty()) return "Import or enter a WireGuard configuration."
-    return null
-}
-
 @Composable
-internal fun AetherSections(draft: Profile, onChange: (Profile) -> Unit, push: (EditorPage) -> Unit, importConfig: () -> Unit) {
-    val private = draft.isAetherPrivate
-    Section("SERVER", if (private) AETHER_PRIVATE_FOOTER else AETHER_PUBLIC_FOOTER) {
-        row {
-            SegmentRow("Server", listOf("Public (WARP)", "Private"), if (private) 1 else 0) {
-                onChange(draft.copy(aetherMode = if (it == 1) "private" else "public", port = if (it == 1) draft.port.ifEmpty { "51820" } else draft.port))
-            }
-        }
-        if (private) {
-            row { ValueRow("Import Config (.conf)", if (draft.wgConfig.isNotEmpty()) "Imported" else "None") { importConfig() } }
-            row { ValueRow("Manual Configuration", wireGuardConfigState(draft)) { push(EditorPage.WireGuardManual) } }
-            row { TextFieldRow("Server", draft.server, "Required", keyboardType = KeyboardType.Uri) { onChange(draft.copy(server = it)) } }
-            row { TextFieldRow("Port", draft.port, "51820", keyboardType = KeyboardType.Number) { onChange(draft.copy(port = it)) } }
-        } else {
-            val torOnly = draft.aetherTor == "only"
-            if (!torOnly) {
-                row { ValueRow("Transport", aetherTransportTitle(draft.aetherTransport)) { push(EditorPage.AetherTransport) } }
-                row {
-                    SegmentRow("Endpoint Scan", listOf("Balanced", "Turbo"), if (draft.aetherScan == "turbo") 1 else 0) {
-                        onChange(draft.copy(aetherScan = if (it == 1) "turbo" else "balanced"))
-                    }
-                }
-                row { TextFieldRow("WARP+ License", draft.aetherLicense, "Optional", keyboardType = KeyboardType.Ascii) { onChange(draft.copy(aetherLicense = it)) } }
-            }
+internal fun AetherSections(draft: Profile, onChange: (Profile) -> Unit, push: (EditorPage) -> Unit) {
+    // No header: the rows name no server (CreateVC hides this section's header for Aether)
+    Section(footer = AETHER_FOOTER) {
+        val torOnly = draft.aetherTor == "only"
+        if (!torOnly) {
+            row { ValueRow("Transport", aetherTransportTitle(draft.aetherTransport)) { push(EditorPage.AetherTransport) } }
             row {
-                SegmentRow("Tor", listOf("Off", "WARP via Tor", "Tor Only"), when (draft.aetherTor) { "only" -> 2; "reverse" -> 1; else -> 0 }) {
-                    onChange(draft.copy(aetherTor = when (it) { 2 -> "only"; 1 -> "reverse"; else -> "off" }))
+                SegmentRow("Endpoint Scan", listOf("Balanced", "Turbo"), if (draft.aetherScan == "turbo") 1 else 0) {
+                    onChange(draft.copy(aetherScan = if (it == 1) "turbo" else "balanced"))
                 }
+            }
+            row { TextFieldRow("WARP+ License", draft.aetherLicense, "Optional", keyboardType = KeyboardType.Ascii) { onChange(draft.copy(aetherLicense = it)) } }
+        }
+        row {
+            SegmentRow("Tor", listOf("Off", "WARP via Tor", "Tor Only"), when (draft.aetherTor) { "only" -> 2; "reverse" -> 1; else -> 0 }) {
+                onChange(draft.copy(aetherTor = when (it) { 2 -> "only"; 1 -> "reverse"; else -> "off" }))
             }
         }
     }
     val fragment = aetherOffersFragmentation(draft)
-    val footer = (if (private) AETHER_PRIVATE_OPTIONS_LEAD else AETHER_PUBLIC_OPTIONS_LEAD) + AETHER_OPTIONS_FOOTER +
-        if (fragment) AETHER_FRAGMENT_NOTE else ""
+    val footer = AETHER_OPTIONS_LEAD + AETHER_OPTIONS_FOOTER + if (fragment) AETHER_FRAGMENT_NOTE else ""
     Section("OPTIONS", footer) {
         row { SwitchRow("Auto Reconnect", draft.autoReconnect) { onChange(draft.copy(autoReconnect = it)) } }
         if (draft.autoReconnect) {

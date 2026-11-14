@@ -587,7 +587,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
     }
     
     [uri appendFormat:@"%@", [PDVPNManager tunnelURIUserWithUsername:server[@"username"] password:server[@"password"]]];
-    // Aether's Public mode has no server address: keep the URI parseable regardless
+    // Aether has no server address: keep the URI parseable regardless
     NSString *host = [server[@"address"] length] > 0 ? server[@"address"] : @"127.0.0.1";
     [uri appendFormat:@"@%@:%@?t=1", host, server[@"port"]];
     if (server[@"allowInsecure"]) {
@@ -783,9 +783,6 @@ static NSString *SRPMaskedURI(NSString *uri) {
     }
     if ([server[@"type"] isEqualToString:@"aether"] && [server[@"ae_scan"] length] > 0) {
         [uri appendFormat:@"&ae_scan=%@", server[@"ae_scan"]];
-    }
-    if ([server[@"type"] isEqualToString:@"aether"] && [server[@"ae_mode"] isEqualToString:@"private"] && [server[@"wg_conf"] length] > 0) {
-        [uri appendFormat:@"&ae_mode=private&wg_conf=%@", [server[@"wg_conf"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];
     }
     if ([server[@"type"] isEqualToString:@"aether"] && [server[@"ae_license"] length] > 0) {
         [uri appendFormat:@"&ae_license=%@", [server[@"ae_license"] stringByAddingPercentEncodingWithAllowedCharacters:querySafe]];

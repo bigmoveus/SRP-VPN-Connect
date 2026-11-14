@@ -196,10 +196,11 @@
         node = [[HomeProtocolView alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:strID];
     }
     NodeModel * modal = [self.nodaArray objectAtIndex:indexPath.row];
+    // Aether has no server: without a description its row shows the protocol's name
     NSString *title = modal.desc.length > 0 ? modal.desc
-                    : (modal.server.length > 0 ? modal.server : modal.nodeName);
+                    : (modal.server.length > 0 && ![modal.protocolType isEqualToString:@"aether"] ? modal.server : modal.nodeName);
     NSString *subtitle;
-    if ([modal.protocolType isEqualToString:@"aether"] && ![modal.aetherMode isEqualToString:@"private"]) {
+    if ([modal.protocolType isEqualToString:@"aether"]) {
         subtitle = @"Cloudflare WARP";
     } else if ([modal.protocolType isEqualToString:@"waterwall"]) {
         NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON];
@@ -396,8 +397,7 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
         return;
     }
     NodeModel *selNode = [NodeModel shareInstance].selectNode;
-    BOOL needsServerField = !([selNode.protocolType isEqualToString:@"aether"] &&
-                              ![selNode.aetherMode isEqualToString:@"private"]) &&
+    BOOL needsServerField = ![selNode.protocolType isEqualToString:@"aether"] &&
                             !([selNode.protocolType isEqualToString:@"waterwall"] &&
                               [SRPWaterWallChainConfig isDirectConfiguration:[SRPWaterWallChainConfig configurationWithJSON:selNode.waterwallConfigJSON]]);
     if(needsServerField && selNode.server.length==0) {

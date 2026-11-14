@@ -754,15 +754,6 @@ static uint64_t SRPFootprintBytes(void);
     SRPTunnelLogOpen();   // Release builds too (startTunnelWithOptions says which protocols)
 #endif
     SRPAetherClient *ae = [[SRPAetherClient alloc] init];
-    // Private mode: the user's own server runs the Aether SOCKS5 proxy; the
-    // device chains hev -> WireGuard (netstack relay) -> that proxy -> WARP
-    if ([v[@"ae_mode"] isEqualToString:@"private"]) {
-        ae.privateConfig = [v[@"wg_conf"] stringByRemovingPercentEncoding];
-        if (ae.privateConfig.length == 0) {
-            completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: @"Aether private mode needs a WireGuard configuration (Server, Port and the keys under Manual Configuration)."}]);
-            return;
-        }
-    }
     // The engine keeps its identity/last-good endpoint in the shared
     // app-group container so a reconnect reuses them
     NSURL *container = [[NSFileManager defaultManager]
@@ -1387,7 +1378,8 @@ static void SRPTunnelLogOpen(void) {
     if ([scheme isEqualToString:@"openvpn"]) {
         return [self startOpenVPNWithOptions:ss completionHandler:completionHandler];
     }
-    if ([scheme isEqualToString:@"aether"]) {
+    // A configuration saved for Aether's Private mode must not go to WARP directly: it ends below as an unknown one
+    if ([scheme isEqualToString:@"aether"] && ![ss[@"ae_mode"] isEqualToString:@"private"]) {
         return [self startAetherWithOptions:ss completionHandler:completionHandler];
     }
     if ([scheme isEqualToString:@"wireguard"] || [scheme isEqualToString:@"amnezia"]) {
@@ -1469,7 +1461,7 @@ static void SRPTunnelLogOpen(void) {
             return;
         }
         if ([command isEqualToString:@"aether-drop"]) {
-            // The engine's session (or Private mode's relay) ends as if WARP or the server had closed it
+            // The engine's session ends as if WARP had closed it
             [self.aeClient debugDropSession];
             completionHandler(messageData);
             return;

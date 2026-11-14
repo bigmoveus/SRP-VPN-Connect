@@ -3568,7 +3568,6 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     model.desc = @"Aether live test";
     model.server = @"public";
     model.port = @"443";
-    model.aetherMode = @"public";
     model.aetherTransport = environment[@"SRP_AETHER_TRANSPORT"] ?: @"masque";
     model.aetherScan = environment[@"SRP_AETHER_SCAN"] ?: @"balanced";
     model.tlsFragMode = [environment[@"SRP_AETHER_TLS_FRAG"] integerValue];
@@ -3726,8 +3725,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                 [self waterWallProviderCommand:@"path-switch" manager:manager];
                 resumes = YES;
             } else if ([step isEqualToString:@"session-drop"]) {
-                // Aether: the engine's session (or Private mode's relay to the server) ends as if WARP or the server had
-                // closed it; Auto Reconnect sets up a new one, without it the VPN ends with the reason
+                // Aether: the engine's session ends as if WARP had closed it; Auto Reconnect sets up a new one, without
+                // it the VPN ends with the reason
                 NSLog(@"SRP session drop test ready");
                 [self waterWallProviderCommand:@"aether-drop" manager:manager];
                 resumes = model.autoReconnect;
@@ -3880,15 +3879,6 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     model.protocolType = @"amnezia";
     model.port = @"51821";
     XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51821\n"]);
-    // Aether's Private mode as well; Public mode carries no WireGuard file of its own to change
-    model.protocolType = @"aether";
-    model.aetherMode = @"private";
-    model.port = @"51829";
-    XCTAssertTrue([[model wgEffectiveConfig] containsString:@"\nEndpoint = vpn.example.com:51829\n"]);
-    model.aetherMode = @"public";
-    XCTAssertEqualObjects([model wgEffectiveConfig], model.wgConfig);
-    model.protocolType = @"amnezia";
-    model.port = @"51821";
     // Manual configuration without a Port: WireGuard's own port, as the field's hint says (AmneziaWG's too)
     for (NSString *type in @[@"wireguard", @"amnezia"]) {
         NodeModel *manual = [NodeModel new];
@@ -3951,12 +3941,11 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertTrue([amneziaFooter containsString:@"no Switch to Wi-Fi option"]);
 }
 
-// Aether's options in both modes: Auto Reconnect (+Retry Times), On Sleep, Log Level, and TLS Fragmentation only on the
-// public MASQUE-H2 carrier; no Switch to Wi-Fi (Aether follows the phone's network)
+// Aether's options: Auto Reconnect (+Retry Times), On Sleep, Log Level, and TLS Fragmentation only on the MASQUE-H2
+// carrier; no Switch to Wi-Fi (Aether follows the phone's network). Its server rows: no Public or Private choice
 - (void)testAetherOptions {
     NodeModel *model = [NodeModel new];
     [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:model];
-    model.aetherMode = @"public";
     model.aetherTransport = @"masque";
     model.autoReconnect = YES;
     CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
@@ -3972,7 +3961,6 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
 
     NodeModel *h2 = [NodeModel new];
     [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:h2];
-    h2.aetherMode = @"public";
     h2.aetherTransport = @"masque-h2";
     h2.autoReconnect = YES;
     h2.tlsFragMode = 2;
@@ -3981,28 +3969,22 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects([self optionTitlesOfEditor:h2Editor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level",
                                                                    @"TLS Fragmentation", @"Min Chunk (bytes)", @"Max Chunk (bytes)"]));
 
-    // Private mode: the same options without fragmentation (no MASQUE carrier on the phone); the footer says where it goes
-    NodeModel *private = [NodeModel new];
-    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:private];
-    private.aetherMode = @"private";
-    private.aetherTransport = @"masque-h2";
-    private.autoReconnect = YES;
-    CreateVC *privateHost = [self profileEditorHostForModel:private saved:[NSMutableArray new]];
-    UITableViewController *privateEditor = (UITableViewController *)[self profileEditorOfHost:privateHost];
-    XCTAssertEqualObjects([self optionTitlesOfEditor:privateEditor], (@[@"Auto Reconnect", @"Retry Times", @"On Sleep", @"Log Level"]));
-    NSString *privateFooter = [privateEditor tableView:privateEditor.tableView titleForFooterInSection:4];
-    XCTAssertTrue([privateFooter containsString:@"the server's Aether proxy"]);
-    XCTAssertTrue([privateFooter containsString:@"Cloudflare WARP"]);
-    XCTAssertFalse([privateFooter containsString:@"not involved"]);
-    // Private mode's server: the .conf the server makes for this phone can be imported, as for WireGuard
-    NSMutableArray<NSString *> *serverRows = [NSMutableArray new];
-    NSInteger rows = [privateEditor tableView:privateEditor.tableView numberOfRowsInSection:1];
-    for (NSInteger row = 0; row < rows; row++) {
-        UITableViewCell *cell = [privateEditor tableView:privateEditor.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:1]];
-        [serverRows addObject:cell.textLabel.text ?: @""];
-    }
-    XCTAssertEqualObjects(serverRows, (@[@"Server", @"Import Config (.conf)", @"Manual Configuration", @"Server", @"Port"]));
-    XCTAssertTrue([[privateEditor tableView:privateEditor.tableView titleForFooterInSection:1] hasPrefix:@"Import the .conf file your server made"]);
+    // The server rows: what WARP takes, the first one opening the Transport screen; Tor Only keeps the Tor row alone
+    NSArray<NSString *> *(^serverRows)(void) = ^NSArray<NSString *> *{
+        NSMutableArray<NSString *> *titles = [NSMutableArray new];
+        NSInteger rows = [h2Editor tableView:h2Editor.tableView numberOfRowsInSection:1];
+        for (NSInteger row = 0; row < rows; row++) {
+            UITableViewCell *cell = [h2Editor tableView:h2Editor.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:1]];
+            [titles addObject:cell.textLabel.text ?: @""];
+        }
+        return titles;
+    };
+    XCTAssertEqualObjects(serverRows(), (@[@"Transport", @"Endpoint Scan", @"WARP+ License", @"Tor"]));
+    XCTAssertTrue([[h2Editor tableView:h2Editor.tableView titleForFooterInSection:1] hasPrefix:@"Aether connects to Cloudflare WARP"]);
+    [h2Editor tableView:h2Editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    XCTAssertEqualObjects(NSStringFromClass(h2Editor.navigationController.topViewController.class), @"SRPAetherTransportViewController");
+    ((NodeModel *)[h2Editor valueForKey:@"modal"]).aetherTor = @"only";
+    XCTAssertEqualObjects(serverRows(), @[@"Tor"]);
 }
 
 // Aether's Retry Times: before the first connection 1 attempt, or 1 + Retry Times with Auto Reconnect; after a drop Retry
@@ -4321,6 +4303,30 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects([profiles valueForKey:@"desc"], @[@"Kept"]);
     XCTAssertEqual(stored.count, 1u);
     XCTAssertEqualObjects(stored.firstObject[@"desc"], @"Kept");
+}
+
+/// Aether's Private mode is no longer in the app: a stored Private profile is dropped when the list loads, with its
+/// Keychain entry, and the list is saved without it; the profile that stays loses the mode it was saved with
+- (void)testStoredAetherPrivateProfilesAreDroppedAndSavedAway {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id original = [defaults objectForKey:@"nodeArray"];
+    NSString *keys = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    XCTAssertTrue([SRPKeychain setPassword:@"{\"private_key\":\"cHJpdmF0ZQ==\"}" forKey:keys]);
+    [defaults setObject:@[@{@"type": @"aether", @"desc": @"Old Private", @"node_id": @"AE-1", @"ae_mode": @"private",
+                            @"address": @"vpn.example.com", @"port": @"51820", @"wg_secret_ref": keys},
+                          @{@"type": @"aether", @"desc": @"Kept", @"node_id": @"AE-2", @"ae_mode": @"public",
+                            @"ae_transport": @"masque-h2"}]
+                 forKey:@"nodeArray"];
+    NSArray<NodeModel *> *profiles = [userNodeData shareInstance].nodeArray;
+    NSArray *stored = [defaults objectForKey:@"nodeArray"];
+    original ? [defaults setObject:original forKey:@"nodeArray"] : [defaults removeObjectForKey:@"nodeArray"];
+    XCTAssertEqualObjects([profiles valueForKey:@"desc"], @[@"Kept"]);
+    XCTAssertEqual(stored.count, 1u);
+    XCTAssertEqualObjects(stored.firstObject[@"desc"], @"Kept");
+    XCTAssertEqualObjects(stored.firstObject[@"ae_transport"], @"masque-h2");
+    XCTAssertNil(stored.firstObject[@"ae_mode"]);
+    XCTAssertNil([SRPKeychain passwordForKey:keys], @"The dropped profile leaves nothing in the Keychain");
+    [SRPKeychain deletePasswordForKey:keys];
 }
 
 - (void)testAetherCloseCanReleaseTheProviderOnItsWorker {
@@ -6597,7 +6603,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [previous makeKeyWindow];
 }
 
-/// Renders the Aether screens with example values for the documentation site, Public and Private mode, without saving any
+/// Renders the Aether screens with example values for the documentation site, without saving any
 /// profile. Run it with TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1, then copy tmp/srp-docs-screenshots-aether out of the app's data container.
 - (void)testAetherDocumentationScreenshotsWhenRequested {
     XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_DOCS_SCREENSHOTS"].length == 0,
@@ -6635,7 +6641,7 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
         [self scrollTableToEnd:table];
         shoot(nil, name);
     };
-    // Example profiles: Public mode needs no server; Private mode with an example file (keys of 32 bytes of 1, 2 and 4)
+    // Example profiles: Aether needs no server
     NodeModel *(^profile)(NSString *) = ^NodeModel *(NSString *description) {
         NodeModel *model = [NodeModel new];
         [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:model];
@@ -6648,17 +6654,10 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     h2.tlsFragMode = 1;
     NodeModel *torOnly = profile(@"Example: Aether, Tor only");
     torOnly.aetherTor = @"only";
-    NodeModel *mine = profile(@"Example: Aether on my server");
-    mine.aetherMode = @"private";
-    mine.server = @"vpn.example.com";
-    mine.port = @"51820";
-    mine.wgConfig = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\n\n"
-                     "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nPresharedKey = BAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ=\n"
-                     "Endpoint = vpn.example.com:51820\nAllowedIPs = 10.66.66.1/32\nPersistentKeepalive = 25\n";
 
     UIViewController *home = [NSClassFromString(@"ViewController") new];
     [home loadViewIfNeeded];
-    [home setValue:[NSMutableArray arrayWithArray:@[warp, h2, torOnly, mine]] forKey:@"nodaArray"];
+    [home setValue:[NSMutableArray arrayWithArray:@[warp, h2, torOnly]] forKey:@"nodaArray"];
     [[home valueForKey:@"homeTableview"] reloadData];
     shoot(home, @"home");
 
@@ -6673,10 +6672,6 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     shoot(nil, @"protocol");
 
     shootOptions([self profileEditorHostForModel:h2 saved:[NSMutableArray new]], @"options");
-
-    CreateVC *privateHost = [self profileEditorHostForModel:mine saved:[NSMutableArray new]];
-    shoot(privateHost, @"private");
-    shootOptions(privateHost, @"private-options");
 
     window.hidden = YES;
     [previous makeKeyWindow];

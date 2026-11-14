@@ -172,8 +172,7 @@ data class Profile(
     val ovpnStunnelSni: String = "",
     /** PEM of the CA that signs the stunnel certificate; empty = the system's trust */
     val ovpnStunnelCa: String = "",
-    // Aether (NodeModel's aether* fields): "public" (Cloudflare WARP) or "private" (the user's server, the wg* fields)
-    val aetherMode: String = "public",
+    // Aether (NodeModel's aether* fields)
     /** "masque" (HTTP/3), "masque-h2", "masque-both" (HTTP/3, then HTTP/2) or "wg" (WARP over WireGuard) */
     val aetherTransport: String = "masque",
     /** The endpoint scan: "balanced" or "turbo" */
@@ -194,8 +193,6 @@ data class Profile(
     val isAmnezia get() = protocolType == "amnezia"
     val isPlainWireGuard get() = protocolType == "wireguard"
     val isAether get() = protocolType == "aether"
-    /** Aether through the user's own server: WireGuard to it, then its Aether proxy to Cloudflare WARP */
-    val isAetherPrivate get() = isAether && aetherMode == "private"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
@@ -206,14 +203,14 @@ data class Profile(
 
     /** An empty port means 443, 22 for SSH, 1194 for OpenVPN, or 51820 in WireGuard mode. */
     val effectivePort: String
-        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard || isAetherPrivate || (!isTlsVpn && !isAether && ChainConfig.isWireGuard(configuration))) "51820" else "443" }
+        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard || (!isTlsVpn && !isAether && ChainConfig.isWireGuard(configuration))) "51820" else "443" }
 
     val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else if (isAmnezia) "AmneziaWG VPN" else if (isWireGuard) "WireGuard VPN" else if (isAether) "Aether VPN" else "WaterWall VPN"
 
     /** The imported config, or one generated from the manual fields. */
     fun wgEffectiveConfig(): String? {
-        // The editor's Server and Port replace the file's Endpoint (WireGuard, AmneziaWG and Aether's Private mode)
-        if (wgConfig.isNotEmpty()) return if (isWireGuard || isAetherPrivate) wgConfigWithEndpointFromFields(wgConfig) else wgConfig
+        // The editor's Server and Port replace the file's Endpoint (WireGuard and AmneziaWG)
+        if (wgConfig.isNotEmpty()) return if (isWireGuard) wgConfigWithEndpointFromFields(wgConfig) else wgConfig
         if (wgPrivateKey.isEmpty() || wgPeerPublicKey.isEmpty() || wgAddress.isEmpty() || server.isEmpty()) return null
         return buildString {
             append("[Interface]\nPrivateKey = $wgPrivateKey\nAddress = $wgAddress\n")
@@ -305,10 +302,14 @@ class ProfileStore(context: Context) {
     private val certificates = CertificateStore(context)
 
     fun load(): List<Profile> {
-        val stored = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+        val all = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
+        // Aether's Private mode (the user's own server) is gone: a profile of it cannot connect any more and leaves with its secrets
+        val (removed, stored) = all.partition { it["type"] == "aether" && it["ae_mode"] == "private" }
+        removed.forEach { deleteSecrets(fromStored(it)) }
         val profiles = stored.map { fromStored(it) }
-        // Re-save profiles that still contain a plaintext credential or WireGuard key.
-        if (stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "wg_header_protection_key", "proxy_password", "cert_p12", "ovpn_profile", "ae_license").any { it in item } }) save(profiles)
+        // Re-save profiles that still contain a plaintext credential or WireGuard key, and an Aether profile an older build saved
+        // (it wrote "ae_mode"): the save takes the WireGuard keys such a profile kept from Private mode out of the store.
+        if (removed.isNotEmpty() || stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "wg_header_protection_key", "proxy_password", "cert_p12", "ovpn_profile", "ae_license", "ae_mode").any { it in item } }) save(profiles)
         return profiles
     }
 
@@ -338,6 +339,27 @@ class ProfileStore(context: Context) {
             secrets.set(saved.outerSecretRef, saved.outerSecret)
         }
         if (saved.isTlsVpn || saved.isSsh || saved.isOpenVpn) return sstpStored(saved)
+        if (saved.isAether) {
+            // Aether has no WireGuard keys: what a profile moved from WireGuard, or saved by an older build, left in the store goes
+            if (saved.wgSecretRef.isNotEmpty()) secrets.delete(saved.wgSecretRef)
+            // CheckConnectData's keys for an Aether profile; the WARP+ license goes to the store
+            if (saved.aetherLicense.isNotEmpty()) {
+                if (saved.aetherLicenseRef.isEmpty()) saved = saved.copy(aetherLicenseRef = UUID.randomUUID().toString())
+                secrets.set(saved.aetherLicenseRef, saved.aetherLicense)
+            } else if (saved.aetherLicenseRef.isNotEmpty() && secrets.get(saved.aetherLicenseRef) != null) {
+                secrets.delete(saved.aetherLicenseRef)
+                saved = saved.copy(aetherLicenseRef = "")
+            }
+            val stored = linkedMapOf<String, Any?>(
+                "type" to "aether", "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
+                "ae_transport" to saved.aetherTransport, "ae_scan" to saved.aetherScan, "ae_tor" to saved.aetherTor,
+                "tls_frag" to saved.tlsFragMode.toLong(), "tls_frag_first" to saved.tlsFragFirst.toLong(), "tls_frag_following" to saved.tlsFragFollowing.toLong(),
+                "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(),
+                "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
+            )
+            if (saved.aetherLicenseRef.isNotEmpty()) stored["ae_license_ref"] = saved.aetherLicenseRef
+            return stored
+        }
         val keys = LinkedHashMap<String, Any?>()
         if (saved.wgConfig.isNotEmpty()) keys["conf"] = saved.wgConfig
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
@@ -349,28 +371,6 @@ class ProfileStore(context: Context) {
         } else if (saved.wgSecretRef.isNotEmpty() && secrets.get(saved.wgSecretRef) != null) {
             secrets.delete(saved.wgSecretRef)
             saved = saved.copy(wgSecretRef = "")
-        }
-        if (saved.isAether) {
-            // CheckConnectData's keys for an Aether profile; Private mode's keys and imported file went to the store above, and the
-            // WARP+ license goes there too
-            if (saved.aetherLicense.isNotEmpty()) {
-                if (saved.aetherLicenseRef.isEmpty()) saved = saved.copy(aetherLicenseRef = UUID.randomUUID().toString())
-                secrets.set(saved.aetherLicenseRef, saved.aetherLicense)
-            } else if (saved.aetherLicenseRef.isNotEmpty() && secrets.get(saved.aetherLicenseRef) != null) {
-                secrets.delete(saved.aetherLicenseRef)
-                saved = saved.copy(aetherLicenseRef = "")
-            }
-            val stored = linkedMapOf<String, Any?>(
-                "type" to "aether", "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
-                "ae_mode" to saved.aetherMode, "ae_transport" to saved.aetherTransport, "ae_scan" to saved.aetherScan, "ae_tor" to saved.aetherTor,
-                "tls_frag" to saved.tlsFragMode.toLong(), "tls_frag_first" to saved.tlsFragFirst.toLong(), "tls_frag_following" to saved.tlsFragFollowing.toLong(),
-                "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(),
-                "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
-                "wg_peer_public_key" to saved.wgPeerPublicKey, "wg_address" to saved.wgAddress, "wg_dns" to saved.wgDns,
-                "wg_allowed_ips" to saved.wgAllowedIps, "wg_keepalive" to saved.wgKeepalive.toLong(), "wg_secret_ref" to saved.wgSecretRef,
-            )
-            if (saved.aetherLicenseRef.isNotEmpty()) stored["ae_license_ref"] = saved.aetherLicenseRef
-            return stored
         }
         if (saved.isWireGuard) {
             // CheckConnectData's keys for a WireGuard or AmneziaWG profile; the keys and the imported file went to the store above
@@ -603,7 +603,6 @@ class ProfileStore(context: Context) {
             ovpnStunnelPort = text("stunnel_port"),
             ovpnStunnelSni = text("stunnel_sni"),
             ovpnStunnelCa = text("stunnel_ca"),
-            aetherMode = text("ae_mode").takeIf { it == "private" } ?: "public",
             aetherTransport = text("ae_transport").takeIf { it in setOf("masque-h2", "masque-both", "wg") } ?: "masque",
             aetherScan = text("ae_scan").takeIf { it == "turbo" } ?: "balanced",
             aetherTor = text("ae_tor").takeIf { it == "reverse" || it == "only" } ?: "off",

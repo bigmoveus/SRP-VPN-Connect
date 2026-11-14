@@ -64,7 +64,7 @@ AmneziaWG uses the AmneziaWG-go engine with the usual WireGuard profile settings
 
 ### Aether VPN
 
-Aether can use Cloudflare WARP or a private endpoint. Public WARP profiles do not require a private VPN server. Depending on the selected mode, the app supports MASQUE and WireGuard transports, endpoint scanning, a WARP+ license, Tor modes, and TLS fragmentation for H2. A WARP+ license, private endpoint, or other account credential is not included.
+Aether connects to Cloudflare WARP; it needs no VPN server of your own. The app supports MASQUE and WireGuard transports, endpoint scanning, a WARP+ license, Tor modes, and TLS fragmentation for H2. A WARP+ license or other account credential is not included.
 
 ### WaterWall VPN
 

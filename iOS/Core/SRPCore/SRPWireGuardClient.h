@@ -79,14 +79,6 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 - (void)pauseForSleep;
 - (void)wakeFromSleep;
 
-/// Parses a wg-quick config into engine parameters for the netstack mode
-/// (userspace WireGuard without a real utun — Aether "Private" mode).
-/// Returns @{ @"uapi": UAPI string, @"endpointIP": resolved peer IPv4,
-///             @"address": first interface IPv4 (no mask) } or nil with
-/// errorOut set.
-+ (nullable NSDictionary<NSString *, NSString *> *)netstackParametersFromConfig:(NSString *)configText
-                                                                          error:(NSString * _Nullable * _Nullable)errorOut;
-
 @end
 
 NS_ASSUME_NONNULL_END

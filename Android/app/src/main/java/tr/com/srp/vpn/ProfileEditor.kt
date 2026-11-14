@@ -131,7 +131,8 @@ fun validationMessage(profile: Profile): String? {
     if (profile.isSsh) return sshValidationMessage(profile)
     if (profile.isOpenVpn) return openVpnValidationMessage(profile)
     if (profile.isWireGuard) return wireGuardValidationMessage(profile)
-    if (profile.isAether) return aetherValidationMessage(profile)
+    // Aether needs nothing entered: it connects to Cloudflare WARP by itself
+    if (profile.isAether) return null
     val configuration = profile.configuration
     ChainConfig.validationError(configuration)?.let { return it }
     if (ChainConfig.isDirect(configuration)) return null
@@ -236,10 +237,6 @@ private fun ProfileEditPage(
         else if (draft.isPlainWireGuard && amneziaSetting != null) {
             ui.showAlert("AmneziaWG Configuration", "This file has AmneziaWG settings ($amneziaSetting and others). Choose AmneziaWG VPN as the protocol to use it.")
         }
-        // Aether's Private mode reaches the server over plain WireGuard
-        else if (draft.isAetherPrivate && amneziaSetting != null) {
-            ui.showAlert("AmneziaWG Configuration", "This file has AmneziaWG settings ($amneziaSetting and others). Aether's Private mode takes a WireGuard file.")
-        }
         else onChange(imported)
     }
 
@@ -252,7 +249,7 @@ private fun ProfileEditPage(
                     val trimmed = trimmedForSave(draft)
                     onChange(trimmed)
                     val message = validationMessage(trimmed)
-                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn || trimmed.isWireGuard || trimmed.isAether) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
+                    if (message != null) ui.showAlert(if (trimmed.isTlsVpn || trimmed.isOpenVpn || trimmed.isWireGuard) "Profile Incomplete" else "Invalid WaterWall Configuration", message) else onSave(trimmed)
                 }
             },
         )
@@ -287,7 +284,7 @@ private fun ProfileEditPage(
                 return@Column
             }
             if (draft.isAether) {
-                AetherSections(draft, onChange, push) { importFile.launch(arrayOf("*/*")) }
+                AetherSections(draft, onChange, push)
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
@@ -399,7 +396,7 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
                 port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194"
                        else if (type == "wireguard" || type == "amnezia") "51820" else if (type == "aether") "" else draft.port,
                 // A new Aether profile as the iOS editor makes it (SRPProtocolViewController applyProtocol)
-                aetherMode = "public", aetherTransport = "masque-both", aetherScan = "balanced", aetherTor = "off"))
+                aetherTransport = "masque-both", aetherScan = "balanced", aetherTor = "off"))
         }
         onBack()
     }

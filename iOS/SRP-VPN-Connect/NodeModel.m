@@ -156,9 +156,8 @@ static NodeModel * modal = nil;
 
 -(NSString*)wgEffectiveConfig {
     if (_wgConfig.length > 0) {
-        // The editor's Server and Port replace the file's Endpoint for WireGuard, AmneziaWG and Aether's Private mode
-        BOOL fields = [_protocolType isEqualToString:@"wireguard"] || [_protocolType isEqualToString:@"amnezia"] ||
-                      ([_protocolType isEqualToString:@"aether"] && [_aetherMode isEqualToString:@"private"]);
+        // The editor's Server and Port replace the file's Endpoint for WireGuard and AmneziaWG
+        BOOL fields = [_protocolType isEqualToString:@"wireguard"] || [_protocolType isEqualToString:@"amnezia"];
         return fields ? [self wgConfigWithEndpointFromFields:_wgConfig] : _wgConfig;
     }
     if (_wgPrivateKey.length == 0 || _wgPeerPublicKey.length == 0 ||

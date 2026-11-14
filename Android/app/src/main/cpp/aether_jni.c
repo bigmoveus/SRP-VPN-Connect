@@ -218,7 +218,7 @@ static int read_full(int fd, uint8_t *buffer, size_t length) {
     size_t got = 0;
     while (got < length) {
         ssize_t n = recv(fd, buffer + got, length - got, 0);
-        // the far end closed or reset it (Private mode's relay, when the server refused the proxy port); else a timeout or an error
+        // the far end closed or reset it; else a timeout or an error
         if (n == 0 || (n < 0 && (errno == ECONNRESET || errno == EPIPE))) return 0;
         if (n < 0) return -1;
         got += (size_t)n;
@@ -227,7 +227,7 @@ static int read_full(int fd, uint8_t *buffer, size_t length) {
 }
 
 // One SOCKS5 CONNECT to 1.1.1.1:443 through 127.0.0.1:port: 1 when it went through, 0 when the far end closed the
-// connection (Private mode: the server refused its proxy port), -1 on a timeout or another error
+// connection, -1 on a timeout or another error
 JNIEXPORT jint JNICALL Java_tr_com_srp_vpn_AetherNative_socksProbe(JNIEnv *env, jclass c, jint port, jint timeoutSec) {
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) return -1;
