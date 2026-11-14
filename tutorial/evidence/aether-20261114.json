@@ -1,0 +1,629 @@
+{
+ "run": {
+  "date": "14 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2",
+  "android": "a Samsung Galaxy A55 with Android 17",
+  "app": "the code of commit 80f12f3d on both phones: on the iPhone a Release build, the kind TestFlight ships, and for the ae-life-… rows a Debug build, which the lifecycle test needs (the two Retry Times rows on a Debug build of eb3c0467, which adds only their test switch); on Android a debug APK"
+ },
+ "summary": {
+  "cases": 25,
+  "iphone_passed": 24,
+  "iphone_run": 24,
+  "android_passed": 25,
+  "android_run": 25
+ },
+ "cases": [
+  {
+   "id": "ae-h3-download",
+   "settings": [
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 100.98
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h3-upload",
+   "settings": [
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 89.14 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 23.7,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-download",
+   "settings": [
+    "Transport MASQUE (HTTP/2)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 132.56
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-upload",
+   "settings": [
+    "Transport MASQUE (HTTP/2)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 130.19 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 9.3,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-both-download",
+   "settings": [
+    "Transport Both (H3 → H2)"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 95.9
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.8,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-both-upload",
+   "settings": [
+    "Transport Both (H3 → H2)"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 83.76 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 30.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-wg-download",
+   "settings": [
+    "Transport WireGuard"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 153.02
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.8,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-wg-upload",
+   "settings": [
+    "Transport WireGuard"
+   ],
+   "traffic": "upload, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "up 145.01 Mbit/s",
+     "Release build"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 8.2,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h3-full-duplex",
+   "settings": [
+    "Transport MASQUE (HTTP/3)"
+   ],
+   "traffic": "download and upload at once, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 62.29,
+    "upload_mbps": 43.97
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 24.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-scan-turbo",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "Endpoint Scan Turbo"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 99.73
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-frag-auto",
+   "settings": [
+    "Transport MASQUE (HTTP/2)",
+    "TLS Fragmentation Auto"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 145.8
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-h2-frag-manual",
+   "settings": [
+    "Transport MASQUE (HTTP/2)",
+    "TLS Fragmentation Manual, 40 to 200 bytes"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 146.57
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-warp-plus-invalid-license",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "WARP+ License: a key WARP does not know"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the WARP+ license lines, the line saying WARP refused the license, the session line",
+     "not in the log: the license key"
+    ],
+    "download_mbps": 96.73
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 6.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the WARP+ license lines, the line saying WARP refused the license, the session line",
+     "not in the log: the license key"
+    ]
+   }
+  },
+  {
+   "id": "ae-tor-reverse",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "Tor: WARP via Tor"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build"
+    ],
+    "download_mbps": 132.69
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it"
+    ]
+   }
+  },
+  {
+   "id": "ae-tor-only",
+   "settings": [
+    "Tor: Tor Only"
+   ],
+   "traffic": "download, 30 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the stress server saw AS215125, not Cloudflare",
+     "Release build"
+    ],
+    "download_mbps": 6.79
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 44.8,
+    "facts": [
+     "the stress server saw AS60729, not Cloudflare"
+    ]
+   }
+  },
+  {
+   "id": "ae-log-normal",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Normal"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection"
+    ],
+    "download_mbps": 100.16
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 4.9,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the options line",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection, the Expert line of each test connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-log-expert",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Expert"
+   ],
+   "traffic": "download, 40 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ],
+    "download_mbps": 82.91
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 5.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the session line, the Expert line of each test connection",
+     "not in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-log-debug",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "Log Level Debug"
+   ],
+   "traffic": "download, 10 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "Release build",
+     "in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ],
+    "download_mbps": 25.26
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 16.0,
+    "facts": [
+     "the traffic left the internet at Cloudflare (AS13335), as the stress server saw it",
+     "in the log: the engine's line for each connection, the packet bridge's line for each connection"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-sleep-modes",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "On Sleep Stay, Pause and Off, and Off with Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.4 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 5.2 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 5.2 s",
+     "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "stayed connected through 10 s of sleep; transfer after wake passed",
+     "closed at sleep, connected again 1.4 s after wake; transfer passed",
+     "closed at sleep, connected again 1.4 s after wake; transfer passed",
+     "closed at sleep, ended at wake with: The connection was closed while the device slept."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-session-drop",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "the engine's session ended on purpose",
+    "Auto Reconnect on"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 7.6 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "connected again 8.7 s after the session ended; transfer passed"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-session-drop-no-reconnect",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "the engine's session ended on purpose",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 5.7 s with: The WARP session ended (auto reconnect is off)."
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "ended with: The WARP session ended (auto reconnect is off)."
+    ]
+   }
+  },
+  {
+   "id": "ae-life-path-switch",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "a change of network (iPhone: the app's network change; Android: Wi-Fi off and on again)"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "connected again after 0.4 s"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "followed the network to mobile data and back to Wi-Fi (3 changes, 1 new sessions); transfers passed on both"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-retry-before-connect",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "no WARP endpoint answers (iPhone: the Debug build's test switch; Android: Wi-Fi and mobile data off)",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "ended after 4.9 s"
+    ],
+    "message": "Could not connect after 3 attempts. (Aether: no reachable MASQUE endpoint or the tunnel data-plane did not come up)"
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "refused after 14.2 s with: Could not connect after 3 attempts. (Aether: no reachable MASQUE endpoint or the tunnel data-plane did not come up)"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-retry-exhausted",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "connected, then no WARP endpoint answers (iPhone: the Debug build's test switch; Android: Wi-Fi and mobile data off)",
+    "Auto Reconnect on",
+    "Retry Times 2"
+   ],
+   "traffic": "connect only",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [],
+    "lifecycle": [
+     "ended after 7.8 s with: Could not reconnect after 2 attempts. (Aether: no reachable MASQUE endpoint or the tunnel data-plane did not come up)"
+    ]
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "the engine's session ended; ended 22.7 s after the network went away with: Could not reconnect after 2 attempts. (Aether: no reachable MASQUE endpoint or the tunnel data-plane did not come up)"
+    ]
+   }
+  },
+  {
+   "id": "ae-life-first-connection-without-network",
+   "settings": [
+    "Transport MASQUE (HTTP/3)",
+    "the phone's first connection ever, with Wi-Fi and mobile data off",
+    "Auto Reconnect off"
+   ],
+   "traffic": "connect only",
+   "expect": "fail",
+   "iphone": null,
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [],
+    "lifecycle": [
+     "refused after 13.7 s with: Aether: identity provisioning failed (network unreachable?)"
+    ]
+   }
+  }
+ ]
+}

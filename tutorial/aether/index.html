@@ -4,44 +4,38 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Aether — SRP VPN Connect Documentation</title>
-<meta name="description" content="Aether profiles in SRP VPN Connect: Cloudflare WARP straight from the phone, or through your own server; how a connection works, where to start, and what was tested on iPhone and Android.">
+<meta name="description" content="Aether profiles in SRP VPN Connect: Cloudflare WARP straight from the phone, with no server and no account; how a connection works, where to start, and what was tested on iPhone and Android.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 <main>
 <h1>Aether</h1>
-<p class="lead">Aether connects to Cloudflare WARP, Cloudflare's free VPN service. In <strong>Public</strong> mode the phone needs no server and no account. In <strong>Private</strong> mode the phone connects to your own server over WireGuard, and the server carries its traffic on to WARP. SRP VPN Connect runs the Aether engine on iPhone and Android, and the server these pages set up runs it too. That engine is our fork of Aether (<a href="https://github.com/bigmoveus/Aether">github.com/bigmoveus/Aether</a>, tag <code>v2.4.0-srp.2</code>): Aether 2.4.0 with the app's changes (<a href="configuration.html#engine">Configuration Reference</a>).</p>
+<p class="lead">Aether connects to Cloudflare WARP, Cloudflare's free VPN service. The phone needs no server and no account. SRP VPN Connect runs the Aether engine on iPhone and Android. That engine is our fork of Aether (<a href="https://github.com/bigmoveus/Aether">github.com/bigmoveus/Aether</a>, tag <code>v2.4.0-srp.2</code>): Aether 2.4.0 with the app's changes (<a href="configuration.html#engine">Configuration Reference</a>).</p>
 
-<h2>The two modes</h2>
-<ul>
-  <li><strong>Public</strong>: the phone runs the engine. It registers a free WARP identity once and keeps it. It finds a WARP endpoint that answers and opens the tunnel to it. The phone's traffic leaves the internet at Cloudflare, with a Cloudflare address. The tunnel runs over MASQUE on HTTP/3 (QUIC over UDP), over MASQUE on HTTP/2 (TCP and TLS, where UDP is blocked), or over WARP's WireGuard. A WARP+ license and Tor are optional.</li>
-  <li><strong>Private</strong>: the phone runs no engine. It connects to your server over WireGuard and reaches only one address there: the SOCKS5 port of the Aether engine in a Docker container, on the server's tunnel address. The engine carries the phone's traffic on to WARP. The phone only talks to your server, and the WARP identity is the server's.</li>
-</ul>
+<h2>What Aether does</h2>
+<p>The phone runs the engine. It registers a free WARP identity once and keeps it. It finds a WARP endpoint that answers and opens the tunnel to it. The phone's traffic leaves the internet at Cloudflare, with a Cloudflare address. The tunnel runs over MASQUE on HTTP/3 (QUIC over UDP), over MASQUE on HTTP/2 (TCP and TLS, where UDP is blocked), or over WARP's WireGuard. A WARP+ license and Tor are optional.</p>
 
 <h2>How an Aether connection works</h2>
 <ol>
-  <li><strong>The tunnel to WARP.</strong> In Public mode the engine on the phone opens it. In Private mode the phone first makes its WireGuard handshake with your server, whose engine keeps its own tunnel to WARP.</li>
-  <li><strong>The phone's traffic.</strong> The app takes the phone's packets and sends each connection through the engine's SOCKS5 port: the engine's on the phone in Public mode, the server's through WireGuard in Private mode. Names are looked up through it as well.</li>
+  <li><strong>The tunnel to WARP.</strong> The engine on the phone opens it.</li>
+  <li><strong>The phone's traffic.</strong> The app takes the phone's packets and sends each connection through the engine's SOCKS5 port on the phone. Names are looked up through it as well.</li>
   <li><strong>The test connection.</strong> The app counts as connected once a test connection through the tunnel went through. It sends one every 20 seconds, and one at once when the phone changes network. Two failed in a row mean the tunnel stopped carrying traffic, unless traffic still came back through it in the meantime. Auto Reconnect then sets up a new session, or the VPN ends with the reason.</li>
 </ol>
 
 <h2>Where to start</h2>
 <ol>
-  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. <!-- install:begin -->Our tests ran the code of commit <code>968a86a7</code> on both phones; on Android most cases ran on the build just before it, which differs only in how a test connection that fails while traffic still comes back is counted. A TestFlight build with this code is not out yet.<!-- install:end --></li>
-  <li>For Public mode, add an Aether profile and connect: <a href="app-setup.html">Setting up the app</a>. Nothing else is needed.</li>
-  <li>For Private mode, set up your server first: <a href="server.html">Aether server</a> installs WireGuard and our Aether engine in Docker on Ubuntu 24.04, and makes a file for each phone.</li>
-  <li>Every setting of the profile and of the server, and what it does: <a href="configuration.html">Configuration Reference</a>.</li>
+  <li>Install the app: on iPhone from TestFlight, on Android by building it from the source; see <a href="../waterwall/installation.html">Installation</a>. <!-- install:begin -->Our tests ran the code of commit <code>80f12f3d</code> on both phones; the iPhone's two Retry Times cases ran on a Debug build of <code>eb3c0467</code>, which adds only their test switch. On iPhone use TestFlight build 46 (commit <code>a77a689a</code>) or later, the first with this code; on Android, APK 1.2.0 (11) or later.<!-- install:end --></li>
+  <li>Add an Aether profile and connect: <a href="app-setup.html">Setting up the app</a>. Nothing else is needed.</li>
+  <li>Every setting of the profile, and what it does: <a href="configuration.html">Configuration Reference</a>.</li>
   <li>If it does not connect: <a href="troubleshooting.html">Troubleshooting</a>.</li>
 </ol>
 
 <h2>What was tested</h2>
 <p><a href="results.html">Test results</a> lists every case we ran on an iPhone and on an Android phone:</p>
 <ul>
-  <li>In Public mode: downloads and uploads over MASQUE on HTTP/3, on HTTP/2 and both, and over WARP's WireGuard; both directions at once; the Turbo endpoint scan; TLS Fragmentation; an invalid WARP+ license; WARP through Tor; and Tor only.</li>
-  <li>In Private mode, against our server: downloads and uploads; a wrong server key; a closed port; an unknown server name; damaged files; and the server's Aether container stopped.</li>
-  <li>For the connection itself: sleep in each On Sleep mode; a session that ends; network changes; a server that is away for a while or for good; Retry Times; and the log levels.</li>
-  <li>The server as <a href="server.html">Aether server</a> sets it up.</li>
+  <li>Downloads and uploads over MASQUE on HTTP/3, on HTTP/2 and both, and over WARP's WireGuard; both directions at once; the Turbo endpoint scan; TLS Fragmentation; an invalid WARP+ license; WARP through Tor; and Tor only.</li>
+  <li>For the connection itself: sleep in each On Sleep mode; a session that ends, with Auto Reconnect and without; a change of network; Retry Times when WARP cannot be reached; and the log levels.</li>
 </ul>
 </main>
 <script src="../assets/js/nav.js"></script>

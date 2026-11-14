@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Setting Up the App — Aether — SRP VPN Connect Documentation</title>
-<meta name="description" content="Every field of an Aether profile in SRP VPN Connect on iPhone and Android: Public and Private mode, Transport, Endpoint Scan, WARP+ License, Tor, the server's file, and the options.">
+<meta name="description" content="Every field of an Aether profile in SRP VPN Connect on iPhone and Android: Transport, Endpoint Scan, WARP+ License, Tor, and the options.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
@@ -15,11 +15,11 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles and example keys. What each setting did in real connections is in <a href="results.html">Test results</a>.</p>
+  <p>The fields, defaults, footers and messages were read from the source code of both apps, and the screenshots were taken from them with example profiles. What each setting did in real connections is in <a href="results.html">Test results</a>.</p>
 </div>
 
 <h2 id="add">Add a profile</h2>
-<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>Aether VPN</strong> (<em>Cloudflare WARP — no server needed, automatic</em>). A new Aether profile is in Public mode with the transport <strong>Both (H3 → H2)</strong>, the endpoint scan <strong>Balanced</strong> and Tor <strong>Off</strong>; it can be saved as it is. In Private mode, Save names the first thing still missing instead of saving an incomplete profile: <em>Enter the server address.</em> or <em>Import or enter a WireGuard configuration.</em> <strong>Description</strong>, under Protocol, is optional: the profile's name on the home screen, which otherwise shows the server's name or address in Private mode, and <strong>Aether VPN</strong> in Public mode.</p>
+<p>Tap <strong>+</strong> on the home screen, tap <strong>Protocol</strong> and choose <strong>Aether VPN</strong> (<em>Cloudflare WARP — no server needed, automatic</em>). A new Aether profile has the transport <strong>Both (H3 → H2)</strong>, the endpoint scan <strong>Balanced</strong> and Tor <strong>Off</strong>; it can be saved as it is. <strong>Description</strong>, under Protocol, is optional: the profile's name on the home screen, which otherwise shows <strong>Aether VPN</strong>.</p>
 <div class="shots">
   <figure>
     <img src="../assets/img/aether/protocol.png" alt="Protocol screen on iPhone with Aether VPN ticked" width="260" loading="lazy">
@@ -31,8 +31,8 @@
   </figure>
 </div>
 
-<h2 id="public">Public mode</h2>
-<p><strong>Server</strong> chooses the mode: <strong>Public (WARP)</strong> or <strong>Private</strong>. In Public mode the phone needs nothing else; these rows choose how it reaches WARP:</p>
+<h2 id="connection">The connection</h2>
+<p>The phone needs no server, no account and no keys. These rows choose how it reaches WARP:</p>
 <div class="table-scroll"><table>
   <thead><tr><th>Field</th><th>What it does</th></tr></thead>
   <tbody>
@@ -44,11 +44,11 @@
 </table></div>
 <div class="shots">
   <figure>
-    <img src="../assets/img/aether/public.png" alt="Profile editor on iPhone in Public mode: Server Public (WARP), Transport Both (H3 → H2), Endpoint Scan Balanced, WARP+ License Optional, Tor Off" width="260" loading="lazy">
-    <figcaption>A profile in Public mode, on iPhone.</figcaption>
+    <img src="../assets/img/aether/editor.png" alt="Profile editor on iPhone: Transport Both (H3 → H2), Endpoint Scan Balanced, WARP+ License Optional, Tor Off" width="260" loading="lazy">
+    <figcaption>An Aether profile, on iPhone.</figcaption>
   </figure>
   <figure>
-    <img src="../assets/img/aether/android/public.png" alt="The same profile on Android" width="260" loading="lazy">
+    <img src="../assets/img/aether/android/editor.png" alt="The same profile on Android" width="260" loading="lazy">
     <figcaption>The same on Android.</figcaption>
   </figure>
   <figure>
@@ -57,25 +57,6 @@
   </figure>
   <figure>
     <img src="../assets/img/aether/android/transport.png" alt="The same screen on Android" width="260" loading="lazy">
-    <figcaption>The same on Android.</figcaption>
-  </figure>
-</div>
-
-<h2 id="private">Private mode</h2>
-<p>In Private mode the profile is the phone's WireGuard connection to <a href="server.html">your server</a>. There are two ways to give it the phone's keys, and an imported file wins over keys entered by hand:</p>
-<ul>
-  <li><strong>Import Config (.conf)</strong> opens the phone's files. The app takes a file in wg-quick format, as <a href="server.html#phones">the server guide</a> makes it. It refuses a file without an <code>[Interface]</code> and a <code>[Peer]</code> section: <em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em> It also refuses an AmneziaWG file, because the server speaks plain WireGuard: <em>This file has AmneziaWG settings (… and others). Aether's Private mode takes a WireGuard file.</em> After an import, the row says <strong>Imported</strong>, and Server and Port fill in from the file's <code>Endpoint</code> line.</li>
-  <li><strong>Manual Configuration</strong> takes the same values one by one, as for a WireGuard profile: the phone's <strong>Private Key</strong> (or <strong>Gen</strong> for a new one, whose public key you add to the server), its <strong>Address</strong>, and the server's <strong>Public Key</strong>, <strong>Preshared Key</strong> and the others.</li>
-  <li><strong>Server</strong> and <strong>Port</strong> are your server's name or address and its WireGuard port. An import fills them in from the file; if you change them, your values replace the file's.</li>
-</ul>
-<p>The phone's address must be IPv4. The app reaches the engine at the first address of that address's network, port 1819: 10.66.66.1:1819 for a phone with 10.66.66.2, as the server guide sets it up. The file and the keys are this phone's secrets: on iPhone the app keeps them in the Keychain, on Android in its encrypted store.</p>
-<div class="shots">
-  <figure>
-    <img src="../assets/img/aether/private.png" alt="Profile editor on iPhone in Private mode with an imported file: Import Config Imported, Manual Configuration Overridden by import, Server vpn.example.com, Port 51820" width="260" loading="lazy">
-    <figcaption>A profile in Private mode, on iPhone.</figcaption>
-  </figure>
-  <figure>
-    <img src="../assets/img/aether/android/private.png" alt="The same profile on Android" width="260" loading="lazy">
     <figcaption>The same on Android.</figcaption>
   </figure>
 </div>
@@ -90,22 +71,14 @@
     <img src="../assets/img/aether/android/options.png" alt="The same options on Android" width="260" loading="lazy">
     <figcaption>The same on Android.</figcaption>
   </figure>
-  <figure>
-    <img src="../assets/img/aether/private-options.png" alt="Options section on iPhone in Private mode, with its footer" width="260" loading="lazy">
-    <figcaption>The options in Private mode, on iPhone.</figcaption>
-  </figure>
-  <figure>
-    <img src="../assets/img/aether/android/private-options.png" alt="The same on Android" width="260" loading="lazy">
-    <figcaption>The same on Android.</figcaption>
-  </figure>
 </div>
 <div class="table-scroll"><table>
   <thead><tr><th>Option</th><th>What it does</th></tr></thead>
   <tbody>
     <tr><td>Auto Reconnect, Retry Times</td><td>The app counts as connected once a test connection through the tunnel went through. It sends one every 20 seconds, and one at once after a change of network. When the session ends, or two test connections in a row fail, the tunnel has stopped working. A test connection that fails while the tunnel is busy does not count: one after which at least 64 KB came back through the tunnel since the previous test. Auto Reconnect (on by default) then sets up a new session, 2 seconds after each failed attempt; Retry Times limits the attempts (empty means no limit). Before the first connection, the app makes one attempt, plus Retry Times more with Auto Reconnect. Without Auto Reconnect, the VPN ends with the reason. With the WireGuard transport, the app's WireGuard does this with its own handshake check, as for a WireGuard profile.</td></tr>
     <tr><td>On Sleep</td><td><strong>Stay</strong> (default) keeps the session while the device sleeps. <strong>Pause</strong> closes it and connects again on wake. <strong>Off</strong> closes it; on wake it connects again only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em></td></tr>
-    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the mode and transport, the options, the endpoint, the session, network changes, and why a connection ended. <strong>Expert</strong> adds a line for each test connection that went through, with the session's age and the bytes that went each way. <strong>Debug</strong> adds the engine's own lines and one for each connection through the tunnel. No level writes a key or the WARP+ license. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>Aether: closing with reason:</code> says why.</td></tr>
-    <tr><td>TLS Fragmentation</td><td>Only in Public mode with MASQUE on HTTP/2, or both, and not with Tor Only. It splits the ClientHello of the TLS handshake into smaller writes. <strong>Auto</strong> picks safe sizes and splits at the server name; <strong>Manual</strong> sets the range with <strong>Min Chunk</strong> and <strong>Max Chunk</strong> (bytes, 32 and 256 when empty).</td></tr>
+    <tr id="log"><td>Log Level</td><td>How much the connection log shows. <strong>Normal</strong>: the milestones: the transport, the options, the endpoint, the session, network changes, and why a connection ended. <strong>Expert</strong> adds a line for each test connection that went through, with the session's age and the bytes that went each way. <strong>Debug</strong> adds the engine's own lines and one for each connection through the tunnel. No level writes a key or the WARP+ license. Tap the status under the power button to open the log. When the app gives up on a connection, a line starting with <code>Aether: closing with reason:</code> says why.</td></tr>
+    <tr><td>TLS Fragmentation</td><td>Only with MASQUE on HTTP/2, or both, and not with Tor Only. It splits the ClientHello of the TLS handshake into smaller writes. <strong>Auto</strong> picks safe sizes and splits at the server name; <strong>Manual</strong> sets the range with <strong>Min Chunk</strong> and <strong>Max Chunk</strong> (bytes, 32 and 256 when empty).</td></tr>
   </tbody>
 </table></div>
 <p>There is no <strong>Switch to Wi-Fi When Available</strong>: Aether always uses the network the phone uses, and after each change of network the app tests the session at once.</p>
@@ -113,7 +86,7 @@
 <h2 id="connect">Connect and check</h2>
 <div class="shots">
   <figure>
-    <img src="../assets/img/aether/home.png" alt="Home screen on iPhone with four example Aether profiles: three show Cloudflare WARP, the one in Private mode shows its server and port" width="260" loading="lazy">
+    <img src="../assets/img/aether/home.png" alt="Home screen on iPhone with three example Aether profiles, each showing Cloudflare WARP" width="260" loading="lazy">
     <figcaption>Aether profiles on the home screen, on iPhone.</figcaption>
   </figure>
   <figure>
@@ -121,7 +94,7 @@
     <figcaption>The same on Android.</figcaption>
   </figure>
 </div>
-<p>On the home screen a profile in Public mode shows <strong>Cloudflare WARP</strong> and one in Private mode its server and port. Select the profile and tap the power button. The status changes to <strong>Connected</strong> once the first test connection through the tunnel has gone through: within seconds over MASQUE, and in up to about half a minute with Tor in our runs. The row of the profile then shows the time of one request through the tunnel. If the app cannot connect, it shows <strong>Connection Failed</strong> with the reason; <a href="troubleshooting.html">Troubleshooting</a> explains each message.</p>
+<p>On the home screen an Aether profile shows <strong>Cloudflare WARP</strong>. Select the profile and tap the power button. The status changes to <strong>Connected</strong> once the first test connection through the tunnel has gone through: within seconds over MASQUE, and in up to about half a minute with Tor in our runs. The row of the profile then shows the time of one request through the tunnel. If the app cannot connect, it shows <strong>Connection Failed</strong> with the reason; <a href="troubleshooting.html">Troubleshooting</a> explains each message.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

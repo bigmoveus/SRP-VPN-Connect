@@ -20,56 +20,36 @@ from waterwall_scenarios import LOCAL_PATH, PUBLIC_IPV4  # noqa: E402
 
 SITE = Path(__file__).resolve().parent.parent
 GROUPS = [
-    ("Public mode: transports and transfers", lambda i: re.match(r"ae-(h3|h2|both|wg)-(download|upload|full-duplex)$|ae-scan-|ae-h2-frag-", i)),
+    ("Transports and transfers", lambda i: re.match(r"ae-(h3|h2|both|wg)-(download|upload|full-duplex)$|ae-scan-|ae-h2-frag-", i)),
     ("WARP+ and Tor", lambda i: re.match(r"ae-(warp-plus|tor)-", i)),
-    ("Private mode", lambda i: re.match(r"ae-private-(download|upload)$", i)),
-    ("Refusals and damaged files", lambda i: re.match(r"ae-private-(wrong|closed|unknown|bad|no-address|container|retry)", i)),
-    ("Log levels", lambda i: re.match(r"ae-(private-)?log-|ae-release-", i)),
-    ("Sleep, a session that ends, network changes, a server that goes away and Retry Times", lambda i: "-life-" in i),
-    ("The server as the guide sets it up", lambda i: i.startswith("ae-guide")),
+    ("Log levels", lambda i: re.match(r"ae-log-|ae-release-", i)),
+    ("Sleep, a session that ends, network changes and Retry Times", lambda i: "-life-" in i),
 ]
 TRAFFIC = {"download": "download", "upload": "upload", "full-duplex": "download and upload at once", "none": "connect only"}
 TRANSPORTS = {"masque": "MASQUE (HTTP/3)", "masque-h2": "MASQUE (HTTP/2)", "masque-both": "Both (H3 → H2)", "wg": "WireGuard"}
-PROFILES = {
-    "keys/private-client1.conf": "the phone's file from our server (AllowedIPs 10.66.66.0/24, keepalive 25 s, no preshared key)",
-    "keys/private-wrong-server-key.conf": "the phone's file with a server public key of nobody",
-    "keys/private-bad-key.conf": "the phone's file with a damaged private key",
-    "keys/private-no-address.conf": "the phone's file without Address",
-    "keys/guide-iphone1.conf": "the guide's file for each phone (iphone1 on the iPhone, android1 on Android)",
-    "keys/guide-phone2.conf": "the guide's phone2.conf, phone2 removed as part 7 says",
-}
+UNREACHABLE = "(iPhone: the Debug build's test switch; Android: Wi-Fi and mobile data off)"
 NOTES = {
-    "ae-private-closed-port": "Port 51829 (nothing listens)",
-    "ae-private-unknown-host": "Server: a name that does not exist",
-    "ae-private-container-down": "the server's aether container stopped",
-    "ae-private-retry-before-connect": "Port 51829 (nothing listens)",
     "ae-life-session-drop": "the engine's session ended on purpose",
     "ae-life-session-drop-no-reconnect": "the engine's session ended on purpose",
-    "ae-life-private-session-drop": "the WireGuard relay ended on purpose",
-    "ae-life-private-outage-reconnect": "the server's WireGuard port drops everything for 40 s",
-    "ae-life-private-server-down-no-reconnect": "the server's WireGuard port drops everything for 70 s",
-    "ae-life-private-retry-exhausted": "the server's WireGuard port drops everything for 160 s",
-    "ae-life-private-container-stopped": "the server's aether container stopped for 110 s",
+    "ae-life-retry-before-connect": "no WARP endpoint answers " + UNREACHABLE,
+    "ae-life-retry-exhausted": "connected, then no WARP endpoint answers " + UNREACHABLE,
+    "ae-life-first-connection-without-network": "the phone's first connection ever, with Wi-Fi and mobile data off",
 }
 LOG_WORDS = {"Aether: session established": "the session line", "Aether: auto reconnect on": "the options line",
              "test connection passed": "the Expert line of each test connection",
              "Aether: test connection passed; session up": "the Expert line of each test connection",
              "[srp] client cmd": "the engine's line for each connection", "socks5 client tcp": "the packet bridge's line for each connection",
              "socks5 client": "the packet bridge's line for each connection", "WARP+ license": "the WARP+ license lines",
-             "continuing with free WARP": "the line saying WARP refused the license", "00000000-00000000-00000000": "the license key",
-             "the PrivateKey value": "the file's private key", "the PresharedKey value": "the file's preshared key"}
+             "continuing with free WARP": "the line saying WARP refused the license", "00000000-00000000-00000000": "the license key"}
 # the Android lifecycle tool names its cases android-life-*; they stand beside the iPhone's ae-life-* rows
 LIFE = {"ae-life-sleep-modes": ["android-life-sleep-stay", "android-life-sleep-pause", "android-life-sleep-off-reconnects",
                                 "android-life-sleep-off-ends"],
         "ae-life-session-drop": ["android-life-session-drop"],
         "ae-life-session-drop-no-reconnect": ["android-life-session-drop-no-reconnect"],
         "ae-life-path-switch": ["android-life-wifi-switch"],
-        "ae-life-private-sleep-modes": ["android-life-private-sleep-pause", "android-life-private-sleep-off-ends"],
-        "ae-life-private-session-drop": ["android-life-private-session-drop"],
-        "ae-life-private-outage-reconnect": ["android-life-private-outage-reconnect"],
-        "ae-life-private-server-down-no-reconnect": ["android-life-private-server-down-no-reconnect"],
-        "ae-life-private-retry-exhausted": ["android-life-private-retry-exhausted"],
-        "ae-life-private-container-stopped": ["android-life-private-container-stopped"]}
+        "ae-life-retry-before-connect": ["android-life-retry-before-connect"],
+        "ae-life-retry-exhausted": ["android-life-retry-exhausted"],
+        "ae-life-first-connection-without-network": ["android-life-first-connection-without-network"]}
 ASNS = {}
 
 
@@ -85,27 +65,24 @@ def asn_of(address):
 def settings_of(case):
     """What the case sets, in the profile editor's words."""
     profile, cid = case["profile"], case["id"]
-    if profile.get("aetherMode") == "private":
-        items = ["Private", PROFILES.get(case.get("profile_file", ""), "a file of the server")]
+    items = []
+    if profile.get("aetherTor") == "only":
+        items.append("Tor: Tor Only")
     else:
-        items = ["Public"]
-        if profile.get("aetherTor") == "only":
-            items.append("Tor: Tor Only")
-        else:
-            items.append("Transport " + TRANSPORTS[profile.get("aetherTransport", "masque-both")])
-            if profile.get("aetherScan") == "turbo":
-                items.append("Endpoint Scan Turbo")
-            if profile.get("aetherTor") == "reverse":
-                items.append("Tor: WARP via Tor")
-            if profile.get("aetherLicense"):
-                items.append("WARP+ License: a key WARP does not know")
-            if profile.get("tlsFragMode") == 1:
-                items.append("TLS Fragmentation Auto")
-            elif profile.get("tlsFragMode") == 2:
-                items.append(f"TLS Fragmentation Manual, {profile.get('tlsFragFirst')} to {profile.get('tlsFragFollowing')} bytes")
+        items.append("Transport " + TRANSPORTS[profile.get("aetherTransport", "masque-both")])
+        if profile.get("aetherScan") == "turbo":
+            items.append("Endpoint Scan Turbo")
+        if profile.get("aetherTor") == "reverse":
+            items.append("Tor: WARP via Tor")
+        if profile.get("aetherLicense"):
+            items.append("WARP+ License: a key WARP does not know")
+        if profile.get("tlsFragMode") == 1:
+            items.append("TLS Fragmentation Auto")
+        elif profile.get("tlsFragMode") == 2:
+            items.append(f"TLS Fragmentation Manual, {profile.get('tlsFragFirst')} to {profile.get('tlsFragFollowing')} bytes")
     if cid in NOTES:
         items.append(NOTES[cid])
-    if cid.startswith(("ae-log", "ae-private-log", "ae-release")):
+    if cid.startswith(("ae-log", "ae-release")):
         items.append("Log Level " + ["Normal", "Expert", "Debug"][profile.get("logLevel", 1)])
     if "-life-" in cid:
         if "sleep-modes" in cid:
@@ -150,10 +127,7 @@ def source_fact(asns):
 
 
 def facts_of(result):
-    facts = ["Release build"] if result.get("configuration") == "Release" else []
-    if (result.get("server_check") or {}).get("Receiving handshake initiation from peer"):
-        facts.append("the server's WireGuard received the phone's handshake")
-    return facts + log_facts(result)
+    return (["Release build"] if result.get("configuration") == "Release" else []) + log_facts(result)
 
 
 def ios_result(case, result, clean):
@@ -172,7 +146,7 @@ def ios_result(case, result, clean):
         entry["facts"].append(f"ended after {result['expected_failure']['seconds']} s")
     if result.get("lifecycle"):
         entry["lifecycle"] = [clean.text(lifecycle_words(": ".join(item))).replace("the server was stopped: ", "")
-                              .replace("path-switch: ", "").replace("session-drop: ", "") for item in result["lifecycle"]]
+                              .replace("path-switch: ", "").replace("session-drop: ", "").replace("retry-exhausted: ", "") for item in result["lifecycle"]]
     asns = result.get("source_asns")
     if asns is None and result.get("stress_sources") and case.get("expect") != "fail":
         asns = sorted({asn_of(address) for address in result["stress_sources"]})
@@ -220,7 +194,7 @@ def extract(args):
         out.append({"id": case["id"], "settings": settings_of(case), "traffic": traffic_of(case),
                     "expect": case.get("expect", "connect"), "iphone": ios_result(case, ios.get(case["id"]), clean),
                     "android": android_result(case, droid, clean)})
-    evidence = {"run": {"date": args.date, "iphone": args.iphone, "android": args.android_device, "app": args.app, "server": args.server},
+    evidence = {"run": {"date": args.date, "iphone": args.iphone, "android": args.android_device, "app": args.app},
                 "summary": {"cases": len(out),
                             "iphone_passed": sum(1 for case in out if case["iphone"] and case["iphone"]["status"] == "passed"),
                             "iphone_run": sum(1 for case in out if case["iphone"]),
@@ -275,7 +249,6 @@ def main():
     one.add_argument("--iphone", required=True)
     one.add_argument("--android-device", required=True)
     one.add_argument("--app", required=True)
-    one.add_argument("--server", required=True)
     one.add_argument("--output", required=True)
     two = sub.add_parser("render")
     two.add_argument("--evidence", required=True)

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Troubleshooting — Aether — SRP VPN Connect Documentation</title>
-<meta name="description" content="What each message of an Aether profile in SRP VPN Connect means and what to do about it, in Public and Private mode, on iPhone and Android.">
+<meta name="description" content="What each message of an Aether profile in SRP VPN Connect means and what to do about it, on iPhone and Android.">
 <link rel="stylesheet" href="../assets/css/site.css">
 <script>try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
@@ -15,44 +15,21 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>Each connection message below was produced by a case of <a href="results.html">Test results</a>, and the server's side of each comes from the server's log in the same run. The import's messages are the editor's, read from the source code of both apps.</p>
+  <p>The messages were read from the code of both apps, and the cases of <a href="results.html">Test results</a> produced them: the two about Retry Times with WARP out of reach, the one about the first connection on a phone without a network, the one about sleep, and <em>The WARP session ended (auto reconnect is off).</em> The first message is also the reason in brackets of the Retry Times cases.</p>
 </div>
 
 <h2 id="first">First checks</h2>
 <ul>
-  <li>Open the connection log: tap the status under the power button. Its first lines name the mode, the transport, the endpoint scan and the options. Set <strong>Log Level</strong> to <strong>Expert</strong> to see a line for each test connection that went through, with the session's age and the bytes that went each way.</li>
-  <li>In Private mode, on the server: <code>wg show wg0</code> lists each phone with its <code>latest handshake</code>; a phone without one has never reached the server with the right keys. <code>docker logs --tail 20 aether</code> shows whether the engine has its tunnel to WARP, and the <code>curl</code> of <a href="server.html#check">the server guide's check</a> tests it from the server itself.</li>
+  <li>Open the connection log: tap the status under the power button. Its first lines name the transport, the endpoint scan and the options. Set <strong>Log Level</strong> to <strong>Expert</strong> to see a line for each test connection that went through, with the session's age and the bytes that went each way.</li>
 </ul>
 
-<h2 id="public">Public mode</h2>
+<h2 id="connection">Connection messages</h2>
 <div class="table-scroll"><table>
   <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
   <tbody>
     <tr><td><em>Aether: no reachable MASQUE endpoint or the tunnel data-plane did not come up</em></td><td>No WARP edge carried traffic. In our Android run with <strong>Turbo</strong>, the first edge that answered took the request but carried no traffic. The app makes one attempt before the first connection, so connect again, set Retry Times, or use <strong>Balanced</strong>, which compares more edges. If it keeps happening, the network may block MASQUE: try <strong>MASQUE (HTTP/2)</strong>, with TLS Fragmentation if needed.</td></tr>
+    <tr><td><em>Aether: identity provisioning failed (network unreachable?)</em></td><td>The phone's first Aether connection registers it with WARP at Cloudflare, and that request did not go through; in our case the phone had no network. Once a connection has worked, the phone keeps its WARP identity and connects without registering again.</td></tr>
     <tr><td><em>The WARP session ended (auto reconnect is off).</em></td><td>The engine's tunnel to WARP ended while the VPN was up. With Auto Reconnect on, the app sets up a new session instead.</td></tr>
-  </tbody>
-</table></div>
-
-<h2 id="private">Private mode</h2>
-<p>A WireGuard server answers nothing to a handshake it cannot take: one from a key it does not know, with the wrong preshared key, for another server key, or on a port where nothing listens. To the app all of these look the same, so its message names every cause; <code>wg show wg0</code> and the keys in the file show which one it is.</p>
-<div class="table-scroll"><table>
-  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
-  <tbody>
-    <tr><td><em>Aether private: the server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51820 may be closed.</em></td><td>No answer to the handshake within 30 seconds. Check that the file is this phone's and still on the server (a <a href="server.html#remove">removed phone</a> gets this message), that the server's public key in it is the server's, and that the server's UDP port is open and is the one in the profile.</td></tr>
-    <tr><td><em>Aether private: the server answers over WireGuard, but its Aether proxy (port 1819 on 10.66.66.1) refused the connection: is the aether container running?</em></td><td>WireGuard works, but nothing listens on the engine's port. Start the container (<code>docker start aether</code>) and check its log; <a href="server.html#container">the server guide</a> publishes the port on wg0's address.</td></tr>
-    <tr><td><em>Aether private: The WireGuard endpoint … could not be resolved.</em></td><td>The server's name in Server (or in the file's <code>Endpoint</code>) does not resolve. Check the name, or enter the server's address.</td></tr>
-    <tr><td><em>Aether private: Invalid WireGuard config: a key is not valid base64 (32 bytes).</em></td><td>A key in the file is damaged: a key is 44 characters of base64 ending in <code>=</code>. Copy it again, without spaces or line breaks, or make the phone's file again.</td></tr>
-    <tr><td><em>Aether private: The config has no [Interface] Address.</em></td><td>A line the app needs is missing from the file. Make the phone's file again with <a href="server.html#phones">add-phone.sh</a>.</td></tr>
-    <tr><td><em>The server stopped carrying traffic: two test connections through it failed (auto reconnect is off).</em></td><td>The connection was up, then two test connections in a row failed: the server, its WireGuard port or the path to it went away. With Auto Reconnect on, the app connects again once the server is back.</td></tr>
-  </tbody>
-</table></div>
-
-<h2 id="file">The phone's file</h2>
-<div class="table-scroll"><table>
-  <thead><tr><th>Message</th><th>What it means and what to do</th></tr></thead>
-  <tbody>
-    <tr><td><em>The file does not look like a WireGuard config (no [Interface]/[Peer] sections).</em></td><td>The imported file is not a wg-quick configuration. Import the <code>.conf</code> file the server made for this phone.</td></tr>
-    <tr><td><em>This file has AmneziaWG settings (… and others). Aether's Private mode takes a WireGuard file.</em></td><td>An AmneziaWG file: the server of Private mode speaks plain WireGuard. Import the file <a href="server.html#phones">add-phone.sh</a> made.</td></tr>
   </tbody>
 </table></div>
 

@@ -101,7 +101,6 @@ window.SITE_NAV = [
     title: 'Aether',
     children: [
       { title: 'Introduction', href: 'aether/index.html' },
-      { title: 'Aether Server', href: 'aether/server.html' },
       { title: 'Setting Up the App', href: 'aether/app-setup.html' },
       { title: 'Configuration Reference', href: 'aether/configuration.html' },
       { title: 'Test Results', href: 'aether/results.html' },

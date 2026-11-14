@@ -6723,14 +6723,14 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [[home valueForKey:@"homeTableview"] reloadData];
     shoot(home, @"home");
 
-    CreateVC *publicHost = [self profileEditorHostForModel:warp saved:[NSMutableArray new]];
-    UINavigationController *publicNavigation = (UINavigationController *)publicHost.childViewControllers.firstObject;
-    [((UITableViewController *)publicNavigation.topViewController).tableView reloadData];
-    shoot(publicHost, @"public");
-    [publicNavigation pushViewController:[[NSClassFromString(@"SRPAetherTransportViewController") alloc] initWithNodeModel:warp] animated:NO];
+    CreateVC *editorHost = [self profileEditorHostForModel:warp saved:[NSMutableArray new]];
+    UINavigationController *editorNavigation = (UINavigationController *)editorHost.childViewControllers.firstObject;
+    [((UITableViewController *)editorNavigation.topViewController).tableView reloadData];
+    shoot(editorHost, @"editor");
+    [editorNavigation pushViewController:[[NSClassFromString(@"SRPAetherTransportViewController") alloc] initWithNodeModel:warp] animated:NO];
     shoot(nil, @"transport");
-    [publicNavigation popViewControllerAnimated:NO];
-    [publicNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:warp] animated:NO];
+    [editorNavigation popViewControllerAnimated:NO];
+    [editorNavigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:warp] animated:NO];
     shoot(nil, @"protocol");
 
     shootOptions([self profileEditorHostForModel:h2 saved:[NSMutableArray new]], @"options");
