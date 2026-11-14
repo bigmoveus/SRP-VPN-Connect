@@ -5,6 +5,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ## Unreleased
 
 ### Changed
+- The evidence inventory has the counts of the WireGuard and AmneziaWG cases that ran again on both phones on 14 November 2026, on the Go runtime of build 46 and APK 1.2.0 (11).
 - The Aether guide's Android screenshots are in the light theme, as the other guides' Android screenshots are.
 - The Aether documentation describes Aether as TestFlight build 46 and the Android APK 1.2.0 (11) have it: Cloudflare WARP without a server, with no Private mode and no server guide. Setting Up the App has new screenshots of the editor and the home screen from both phones. Test results has the 25 cases of 14 November 2026 (24 of 24 on the iPhone, 25 of 25 on Android), among them Retry Times with WARP out of reach and, on Android, a first connection without a network. Troubleshooting explains *Aether: identity provisioning failed (network unreachable?)*, and the Configuration Reference says how Tor Only looks names up. The WireGuard and AmneziaWG cases ran again on the iPhone on the Go runtime of build 46; the evidence inventory has their counts.
 
