@@ -299,7 +299,10 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.wgI5 = selectDic[@"wg_i5"];
         modal.aetherTransport = selectDic[@"ae_transport"];
         modal.aetherScan = selectDic[@"ae_scan"];
+        // The WARP+ license comes from the Keychain; older saves kept it in the profile
         modal.aetherLicense = selectDic[@"ae_license"];
+        modal.aetherLicenseRef = selectDic[@"ae_license_ref"];
+        if (modal.aetherLicenseRef.length > 0) modal.aetherLicense = [SRPKeychain passwordForKey:modal.aetherLicenseRef];
         modal.aetherTor = selectDic[@"ae_tor"];
         modal.waterwallPreset = selectDic[@"ww_preset"];
         modal.waterwallConfigJSON = selectDic[@"ww_config"];
@@ -447,7 +450,7 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
     NSMutableDictionary *d = [[self checkConnectParmer:modal] mutableCopy];
     BOOL wireGuard = d[@"wg_conf"] != nil;
     // Never persist plaintext credentials — they live in the Keychain.
-    [d removeObjectsForKeys:@[@"password", @"ww_outer_secret", @"wg_conf", @"wg_private_key", @"wg_preshared_key"]];
+    [d removeObjectsForKeys:@[@"password", @"ww_outer_secret", @"wg_conf", @"wg_private_key", @"wg_preshared_key", @"ae_license"]];
     NSMutableDictionary *keys = [NSMutableDictionary new];
     if (wireGuard) {
         // wg_conf above is the effective config; only an imported one is kept, so manual fields stay editable
@@ -465,12 +468,21 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         [SRPKeychain deletePasswordForKey:modal.wgSecretRef];
         modal.wgSecretRef = nil;
     }
+    // An Aether profile's WARP+ license: the Keychain has it, the list only its key
+    if ([modal.protocolType isEqualToString:@"aether"] && modal.aetherLicense.length > 0) {
+        if (modal.aetherLicenseRef.length == 0) modal.aetherLicenseRef = NSUUID.UUID.UUIDString;
+        [SRPKeychain setPassword:modal.aetherLicense forKey:modal.aetherLicenseRef];
+        d[@"ae_license_ref"] = modal.aetherLicenseRef;
+    } else if (modal.aetherLicenseRef.length > 0) {
+        [SRPKeychain deletePasswordForKey:modal.aetherLicenseRef];
+        modal.aetherLicenseRef = nil;
+    }
     return d;
 }
 
 +(void)deleteStoredSecretsOfProfile:(NodeModel*)modal {
     for (NSString *key in @[modal.passwordKey ?: @"", modal.waterwallSecretRef ?: @"", modal.waterwallOuterSecretRef ?: @"",
-                            modal.proxyPasswordRef ?: @"", modal.wgSecretRef ?: @""]) {
+                            modal.proxyPasswordRef ?: @"", modal.wgSecretRef ?: @"", modal.aetherLicenseRef ?: @""]) {
         if (key.length > 0) [SRPKeychain deletePasswordForKey:key];
     }
 }

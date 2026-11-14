@@ -40,9 +40,9 @@ static userNodeData * user = nil;
             } else if ([dic[@"type"] isEqualToString:@"psiphon"]) {
                 migrated = YES;   // Psiphon is no longer in the app: its profiles go, and the list is saved without them
             }
-            // Re-save profiles that still contain a plaintext credential or WireGuard key.
+            // Re-save profiles that still contain a plaintext credential, WireGuard key or WARP+ license.
             if (dic[@"password"] != nil || dic[@"ww_outer_secret"] != nil || dic[@"wg_conf"] != nil ||
-                dic[@"wg_private_key"] != nil || dic[@"wg_preshared_key"] != nil) {
+                dic[@"wg_private_key"] != nil || dic[@"wg_preshared_key"] != nil || dic[@"ae_license"] != nil) {
                 migrated = YES;
             }
         }

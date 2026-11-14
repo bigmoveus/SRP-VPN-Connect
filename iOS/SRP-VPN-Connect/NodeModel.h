@@ -110,6 +110,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// Aether: optional WARP+ license key, bound to the device
 /// registration at connect time (empty = free WARP)
 @property (nonatomic,copy,nullable) NSString * aetherLicense;
+/// Keychain key of the WARP+ license: the profile list holds only this key, never the license
+@property (nonatomic,copy,nullable) NSString * aetherLicenseRef;
 
 /// Aether Tor routing: "off" (default), "reverse" (the MASQUE
 /// tunnel is dialled through the Tor network — hides WARP from the ISP), or

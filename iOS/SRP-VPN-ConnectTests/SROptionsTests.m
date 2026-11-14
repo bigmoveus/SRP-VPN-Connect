@@ -4329,6 +4329,50 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     [SRPKeychain deletePasswordForKey:keys];
 }
 
+/// The WARP+ license is a credential: the list keeps only its Keychain key, a license an older build saved with the
+/// profile moves to the Keychain when the list loads, and the entry leaves with the license or with the profile
+- (void)testAetherLicenseIsKeptInTheKeychain {
+    NSString *license = @"00000000-00000000-00000000";
+    NodeModel *model = [NodeModel new];
+    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"aether" toModel:model];
+    model.aetherLicense = license;
+    NSDictionary *stored = [CheckConnectData storedParametersForProfile:model];
+    NSString *ref = stored[@"ae_license_ref"];
+    @try {
+        XCTAssertNil(stored[@"ae_license"], @"The list never holds the license itself");
+        XCTAssertGreaterThan(ref.length, 0u);
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:ref], license);
+        XCTAssertEqualObjects([CheckConnectData getModalForDic:stored].aetherLicense, license);
+        XCTAssertEqualObjects([CheckConnectData checkConnectParmer:model][@"ae_license"], license, @"Connecting still gets it");
+        // Cleared in the editor: the Keychain entry goes with it
+        model.aetherLicense = @"";
+        XCTAssertNil([CheckConnectData storedParametersForProfile:model][@"ae_license_ref"]);
+        XCTAssertNil([SRPKeychain passwordForKey:ref]);
+    } @finally {
+        if (ref.length > 0) [SRPKeychain deletePasswordForKey:ref];
+    }
+
+    // A list an older build saved, with the license in it: loading moves it to the Keychain and saves the list again
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id original = [defaults objectForKey:@"nodeArray"];
+    [defaults setObject:@[@{@"type": @"aether", @"desc": @"Older", @"node_id": @"AE-3", @"ae_license": license}] forKey:@"nodeArray"];
+    NSArray<NodeModel *> *profiles = [userNodeData shareInstance].nodeArray;
+    NSDictionary *saved = [defaults arrayForKey:@"nodeArray"].firstObject;
+    original ? [defaults setObject:original forKey:@"nodeArray"] : [defaults removeObjectForKey:@"nodeArray"];
+    NSString *moved = saved[@"ae_license_ref"];
+    @try {
+        XCTAssertEqualObjects(profiles.firstObject.aetherLicense, license);
+        XCTAssertNil(saved[@"ae_license"]);
+        XCTAssertGreaterThan(moved.length, 0u);
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:moved], license);
+        // Deleting the profile takes the entry along
+        [CheckConnectData deleteStoredSecretsOfProfile:profiles.firstObject];
+        XCTAssertNil([SRPKeychain passwordForKey:moved]);
+    } @finally {
+        if (moved.length > 0) [SRPKeychain deletePasswordForKey:moved];
+    }
+}
+
 - (void)testAetherCloseCanReleaseTheProviderOnItsWorker {
     __weak SRPAetherClient *weakClient;
     @autoreleasepool {
