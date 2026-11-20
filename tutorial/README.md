@@ -56,7 +56,7 @@ python3 tutorial/tools/waterwall_scenarios.py render --environment tutorial/tool
   --intro tutorial/tools/scenarios-intro.html --evidence tutorial/evidence/*.json
 ```
 
-`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac that ran the tests. `render` rewrites `waterwall/scenarios/` and the block between `scenarios:begin` and `scenarios:end` in `nav.js`.
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac that ran the tests. `render` rewrites `waterwall/scenarios/` and the block between `scenarios:begin` and `scenarios:end` in `nav.js`. Each page's profile is the iPhone app's own conversion of the case's former form settings into its node chain: `render` compiles `tools/profile_chain.m` with the real `iOS/Core/SRPCore/SRPWaterWallChainConfig.m` (it needs `clang` from the Xcode command line tools) and leaves out the cases of the former WireGuard mode, which the app now runs as WireGuard profiles.
 
 A case that runs again goes into a new evidence file named after the run's start time in UTC, such as `waterwall-matrix-20261103T0623Z.json`. Remove that case from the older file, so each page shows only the latest result, and count only the cases that stay in that file's `summary`. A case run in several rounds keeps the first round's details and lists the others under `later_rounds`. A run under different conditions gets its own profile in `scenario-environments.json`, which names a `base` profile and only what differs.
 

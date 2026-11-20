@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The app settings are the ones used when we tested this exact file with the app on 3 November 2026, with the server's Let's Encrypt certificate and TLS Server Verification on. The result is at the end of this page.</p>
+  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The profile file is the one we imported into the app on 20 November 2026 and connected to this exact server file, with the server's Let's Encrypt certificate and the certificate check on. The result is at the end of this page.</p>
 </div>
 
 <div class="callout prereq">
@@ -109,20 +109,29 @@ ss -ltnp | grep 18443</code></pre>
 
 <h2>In the app</h2>
 
-<h3>4. Create the profile</h3>
-<ol>
-  <li>On the home screen, tap <strong>+</strong>. A new profile starts as <strong>WaterWall VPN</strong> with the chain VLESS + TLS and port 443.</li>
-  <li><strong>Description</strong>: a name you like, for example <em>My server</em>.</li>
-  <li><strong>Server</strong>: your domain, <code>&lt;SERVER_HOST&gt;</code>. Use the domain, not the IP address, so that the certificate check matches.</li>
-  <li><strong>Port</strong>: <code>18443</code>.</li>
-  <li><strong>SNI (optional)</strong>: leave it empty. The app then sends the Server field, which is the name on your certificate.</li>
-  <li><strong>TLS Server Verification</strong>: leave it on.</li>
-  <li><strong>UUID</strong>, under AUTHENTICATION: the UUID from step 1.</li>
-  <li>Leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
-</ol>
-<p>You do not need to open <strong>Configuration</strong>: the default chain already matches the server file. Each screen is described in the <a href="ui-guide.html">UI &amp; Profile Guide</a>.</p>
+<h3>4. Write the profile file</h3>
+<p>The profile is the client half of the same chain, as a WaterWall file. Save this as <code>my-server.json</code>, with your domain in both places and the UUID from step 1:</p>
+<pre data-label="my-server.json"><code class="language-json">{
+  "name": "My server",
+  "nodes": [
+    { "name": "input", "type": "HintConnectionIN", "settings": {}, "next": "vless" },
+    { "name": "vless", "type": "VlessClient", "settings": { "uuid": "&lt;UUID&gt;", "address": "dest_context-&gt;address", "port": "dest_context-&gt;port", "protocol": "dest_context-&gt;protocol" }, "next": "tls" },
+    { "name": "tls", "type": "TlsClient", "settings": { "sni": "&lt;SERVER_HOST&gt;", "verify": true }, "next": "uplink" },
+    { "name": "uplink", "type": "TcpConnector", "settings": { "address": "&lt;SERVER_HOST&gt;", "port": 18443, "nodelay": true } }
+  ]
+}</code></pre>
+<p>Use the domain, not the IP address, so that the certificate check matches. The first node is the input hint: the app puts the phone's traffic there when it connects. The <code>dest_context-&gt;…</code> values make VLESS send each connection's own destination and protocol, TCP or UDP, to the server; WaterWall refuses a <code>VlessClient</code> without <code>address</code> and <code>port</code>. Put the file where the phone can open it: on iPhone in the Files app (On My iPhone or iCloud Drive), on Android in Downloads.</p>
 
-<h3>5. Connect</h3>
+<h3>5. Import it</h3>
+<ol>
+  <li>On the home screen, tap <strong>+</strong>. A new profile starts as <strong>WaterWall VPN</strong>, with only its input hint.</li>
+  <li><strong>Description</strong>: a name you like, for example <em>My server</em>.</li>
+  <li>Tap <strong>WaterWall</strong>, then <strong>Import JSON…</strong>, <strong>Choose File</strong>, pick <code>my-server.json</code>, and tap <strong>Import</strong>. The chain shows <code>HintConnectionIN</code>, <code>VlessClient</code>, <code>TlsClient</code> and <code>TcpConnector</code>, the last one marked End.</li>
+  <li>Go back, leave everything under OPTIONS as it is, and tap <strong>Save</strong>.</li>
+</ol>
+<p>Each screen is described in the <a href="ui-guide.html">UI &amp; Profile Guide</a>.</p>
+
+<h3>6. Connect</h3>
 <ol>
   <li>Tap the profile to select it, then tap the power button.</li>
   <li>The first time, the system asks for permission: iOS asks whether the app may add a VPN configuration, and Android shows a <strong>Connection request</strong>. Allow it.</li>
@@ -136,7 +145,7 @@ ss -ltnp | grep 18443</code></pre>
 <h2>Our result</h2>
 <!-- result:begin -->
 <p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></p>
-<p>On 3 November 2026 we connected the current app build to this server file on our production server, with its Let's Encrypt certificate and TLS Server Verification on. For 93 seconds the phone downloaded and uploaded at the same time: 1,309 MB down and 2,131 MB up (113 and 183 Mbit/s on average on our office line), with no errors and no timeouts. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result.</p>
+<p>On 20 November 2026 we imported this profile, with our server's domain, port and UUID, into the app at commit <code>501cc02e</code> and connected it to this server file on our production server, with its Let's Encrypt certificate and <code>verify</code> on. For 64 seconds the phone downloaded and uploaded at the same time: 537 MB down and 1,158 MB up (67 and 146 Mbit/s on average on our office line), with no errors, and every request reached the server through the tunnel. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result of this chain from the app's earlier settings.</p>
 <!-- result:end -->
 <p>The Android app connected to the same server file in the same way, on our test phone, and passed two downloads and two uploads at once; see <a href="android.html#android-tested">Android</a>.</p>
 

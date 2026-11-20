@@ -25,13 +25,19 @@
 <p>The official WaterWall 1.5.42 release on the server, and the iPhone and Android apps, which contain their own WaterWall built from 1.5.42. Results with other server programs are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
 
 <h3>Do I need a domain name and a certificate?</h3>
-<p>For chains with Outer <strong>TLS</strong> or <strong>QUIC</strong>, yes: the server needs a certificate, and with TLS Server Verification on (the default) it must be valid for the name the app sends. Our server uses a free Let's Encrypt certificate. Outer <strong>Reality</strong> and <strong>AEAD</strong> do not use a certificate of your own.</p>
+<p>For chains with <code>TlsClient</code> or <code>QuicClient</code>, yes: the server needs a certificate, and with <code>verify</code> on it must be valid for the client's <code>sni</code>. Our server uses a free Let's Encrypt certificate. <code>RealityClient</code> and <code>EncryptionClient</code> chains do not use a certificate of your own.</p>
 
 <h3>Which chain should I start with?</h3>
-<p><a href="getting-started.html">Getting Started</a> walks through VLESS + TLS, the app's default chain, step by step.</p>
+<p><a href="getting-started.html">Getting Started</a> walks through VLESS over TLS step by step, with the server file and the profile file to import.</p>
 
 <h3>Can I import a <code>vless://</code> link or a QR code?</h3>
-<p>No. The tested build has no import or export for WaterWall profiles: you enter each profile by hand. The only imports are a WireGuard <code>.conf</code> file in WireGuard mode and a GeoIP country database.</p>
+<p>No. A WaterWall profile comes in as a plain WaterWall JSON file, with <a href="ui-guide.html#import">Import JSON</a>, or is built node by node. There are no share links, QR codes or export.</p>
+
+<h3>Where are the server, UUID and SNI fields?</h3>
+<p>In the chain: the server's <code>address</code> and <code>port</code> are settings of the connector node, the UUID of <code>VlessClient</code>, the SNI of <code>TlsClient</code>. Open the profile, tap <strong>WaterWall</strong>, open the node and tap <strong>Edit node</strong>. A profile saved by an earlier version of the app was turned into its chain the first time the app read it; see <a href="ui-guide.html#converted">Profiles saved by earlier versions</a>.</p>
+
+<h3>Can apps on the phone use WaterWall as a proxy instead of a VPN?</h3>
+<p>Yes. In Settings → <a href="ui-guide.html#input">WaterWall Input</a>, choose Local SOCKS5 proxy (<code>127.0.0.1:1080</code>) or Local HTTP proxy (<code>127.0.0.1:8080</code>) and connect: only apps set to use that proxy go through WaterWall, and the VPN carries nothing else. A profile that starts with <code>HintPacketIN</code> needs System VPN (TUN).</p>
 
 <h3>Can I use the app with an Xray or V2Ray server?</h3>
 <p>We only tested the app with WaterWall servers, so that is not verified. Note that WaterWall's MUX is its own format and is not V2Ray's Mux.Cool or XUDP.</p>
@@ -42,7 +48,7 @@
 <p>No delay has been measured for that profile yet. Pull the list down to ping every profile, or swipe a row to the right and tap <strong>Ping</strong>. See <a href="ui-guide.html#how-ping-is-measured">How ping is measured</a>.</p>
 
 <h3>Why can't the app ping my KCP or QUIC profile?</h3>
-<p>The ping before connecting measures a TCP handshake, and KCP, QUIC Datagram, Direct and WireGuard profiles do not reach the server over TCP. The app says so instead of showing a result. Connect to the profile to see its delay.</p>
+<p>The ping before connecting measures a TCP handshake, and a chain that ends in <code>UdpConnector</code> or <code>UdpStatelessSocket</code>, such as KCP or QUIC Datagram, does not reach the server over TCP; nor does a chain without a fixed server address. The app says so instead of showing a result. Connect to the profile to see its delay.</p>
 
 <h3>Where can I see what went wrong?</h3>
 <p>Tap the status text under the power button to open the app's log. Set <strong>Log Level</strong> to Expert or Debug in the profile's OPTIONS for more detail, then connect again.</p>
@@ -51,36 +57,36 @@
 <p>No. The WaterWall tunnel carries IPv4 only. On Android, apps also get no IPv6 route while the VPN is up, so IPv6 traffic does not leave outside the tunnel.</p>
 
 <h3>Does traffic to the server itself go through the tunnel?</h3>
-<p>On iPhone, with Raw IPv4 input or WireGuard, no. The app keeps the server's own address out of the tunnel, so a speed test or a site on that same address goes straight there over your normal network, and shows that network's speed. With Connections input and Remote DNS (Fake IP) on, it goes through the tunnel. On Android it always goes through the tunnel.</p>
+<p>On iPhone, with a <code>HintPacketIN</code> chain, no. The app keeps the addresses of the chain's connectors out of the tunnel, so a speed test or a site on that same address goes straight there over your normal network, and shows that network's speed. With a <code>HintConnectionIN</code> chain and Remote DNS (Fake IP) on, it goes through the tunnel. On Android it always goes through the tunnel.</p>
 
 <h3>Does the app support Fake TCP (<code>FakeTcpHeaderClient</code>)?</h3>
 <p>No, and a phone cannot run it without root. Fake TCP sends IP packets with a made-up TCP header directly onto the network, which needs a raw socket. iOS refuses a raw socket both in the app and in its VPN extension, and Android refuses it to an ordinary app: in our test each attempt ended with <code>Operation not permitted</code> or <code>Permission denied</code>. A VPN tunnel's packets only reach the phone's own system, so they cannot replace this.</p>
 
 <h3>What is Packet Encryption, and when should I use it?</h3>
-<p>It is WaterWall's packet mode encryption for Raw IPv4 chains: each packet's TCP or UDP payload is encrypted separately with XChaCha20-Poly1305, adding 40 bytes per packet. The IP and TCP or UDP headers stay readable to anyone who can see inside the chain, and only TCP and UDP pass, so ping (ICMP) does not work through it. It helps when the chain has no other encryption, such as Outer None or BGP4. If you can choose, Outer AEAD or TLS hide the whole stream. See the <a href="configuration.html#packet-encryption">Configuration Reference</a>.</p>
+<p>It is WaterWall's packet mode encryption for Raw IPv4 chains, an <code>EncryptionClient</code> with <code>packet-mode</code> right after the <code>HintPacketIN</code> hint: each packet's TCP or UDP payload is encrypted separately with XChaCha20-Poly1305, adding 40 bytes per packet. The IP and TCP or UDP headers stay readable to anyone who can see inside the chain, and only TCP and UDP pass, so ping (ICMP) does not work through it. It helps when the chain has no other encryption. If you can choose, a stream <code>EncryptionClient</code> or <code>TlsClient</code> hides the whole stream. See the <a href="configuration.html#packet-encryption">Configuration Reference</a>.</p>
 
 <h3>Is the Obfuscator a kind of encryption?</h3>
-<p>No. It scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD, QUIC or VMess for encryption.</p>
+<p>No. <code>ObfuscatorClient</code> scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD (<code>EncryptionClient</code>), QUIC or VMess for encryption.</p>
 
 <h3>What does Remote DNS (Fake IP) do?</h3>
-<p>When an app on the phone looks up a name, the tunnel answers at once with a placeholder address from 100.64.0.0/10 and sends the name itself to the server, which looks up the real address. This keeps your DNS lookups inside the tunnel. When it is off, the phone asks 1.1.1.1 and 1.0.0.1.</p>
+<p>When an app on the phone looks up a name, the tunnel answers at once with a placeholder address from 100.64.0.0/10 and sends the name itself into the chain, where the server, or a <code>DomainResolver</code> node, looks up the real address. This keeps your DNS lookups inside the tunnel. When it is off, the phone asks 1.1.1.1 and 1.0.0.1. It applies to <code>HintConnectionIN</code> chains with System VPN (TUN) as the input.</p>
 
 <h3>What does Auto Switch do, and why does nothing happen?</h3>
-<p>Auto Switch uses your other WaterWall Chain profiles <em>with the same Server</em> as fallbacks. With only one profile for that server there is nothing to switch to. The option appears only in Chain mode. See <a href="ui-guide.html#options">OPTIONS</a>.</p>
+<p>Auto Switch uses your other WaterWall profiles <em>for the same server address</em> as fallbacks. With only one profile for that server there is nothing to switch to, and a profile with exactly the same chain is not used. The option appears only for a chain with a fixed server address. See <a href="ui-guide.html#options">OPTIONS</a>.</p>
 
 <h3>What happens when the phone sleeps?</h3>
 <p>That depends on <strong>On Sleep</strong>: <em>Stay</em> (the default) keeps the connection, <em>Pause</em> closes it and reconnects on wake, and <em>Off</em> closes it and reconnects on wake only when Auto Reconnect is on. On Android, sleeping means the screen going off.</p>
 
-<h3>What sizes does TLS Fragmentation Auto use?</h3>
-<p>Auto cuts the ClientHello after 32 bytes and then every 256 bytes. Choose Manual to set your own sizes; the First Chunk must be smaller than 16384 bytes.</p>
+<h3>How do I split the TLS ClientHello?</h3>
+<p>With a <code>fragment</code> object in the settings of the <code>TlsClient</code> or <code>RealityClient</code>; its keys are in the <a href="https://radkesvat.github.io/WaterWall-Docs/">WaterWall documentation</a>. A profile converted from the former TLS Fragmentation option has one: cuts at 32 bytes and then every 256 bytes for Auto, or the sizes you had typed for Manual.</p>
 
-<h3>What should I type in SNI for Reality?</h3>
-<p>The name of the cover site your Reality server passes visitors to. Left empty, the app uses <code>www.cloudflare.com</code>, the cover our server uses.</p>
+<h3>What should the SNI be for Reality?</h3>
+<p>The name of the cover site your Reality server passes visitors to, as the <code>sni</code> of the <code>RealityClient</code>. Our server's cover is <code>www.cloudflare.com</code>, which converted profiles with an empty SNI use.</p>
 
 <h2>Server side</h2>
 
 <h3>What must match between the app and the server?</h3>
-<p>The layers, in the same order, on the same port, and the values listed in <a href="configuration.html#matching">The server node for each app choice</a>: for example the UUID, the Reality password and salt, or the HTTP path.</p>
+<p>The nodes, in the same order, on the same port, and the values listed in <a href="configuration.html#matching">The server node for each client node</a>: for example the UUID, the Reality password and salt, or the HTTP path.</p>
 
 <h3>Can one server run several chains?</h3>
 <p>Yes. Each chain is its own file on its own port, and all of them are listed in <code>core.json</code>. Our test server runs 44 of them. See <a href="configuration.html">Configuration Reference</a>.</p>

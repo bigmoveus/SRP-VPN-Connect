@@ -12,7 +12,7 @@
 <main>
 <h1>VLESS + Reality (vless-reality.json)</h1>
 <p class="lead">Reality makes the connection start like a visit to another TLS website, so the server needs no certificate of its own.</p>
-<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 9 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 9 November 2026 against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
 <table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>93 seconds</td></tr><tr><th>Downloaded</th><td>1,560 MB (134 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>1,946 MB (167 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>93 downloads and 116 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 196 ms; Ping: 158 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
 <h2>Test setup</h2>
@@ -92,10 +92,84 @@
   ]
 }</code></pre>
 <h2>App settings</h2>
-<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
-<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Connections</td></tr><tr><td><strong>Application</strong></td><td>VLESS</td></tr><tr><td><strong>MUX</strong></td><td>Off</td></tr><tr><td><strong>Obfuscator</strong></td><td>Off</td></tr><tr><td><strong>HTTP</strong></td><td>Off</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>Reality</td></tr><tr><td><strong>Carrier</strong></td><td>TCP</td></tr></tbody></table>
-<p>In the profile editor:</p>
-<table><tbody><tr><th>Server</th><td>&lt;SERVER_HOST&gt;, the server&#x27;s domain name</td></tr><tr><th>Port</th><td>The listener port in the server file</td></tr><tr><th>SNI (optional)</th><td>Empty, so the app sends the Server field (&lt;SERVER_HOST&gt;)</td></tr><tr><th>TLS Server Verification</th><td>On</td></tr><tr><th>UUID or Password</th><td>The value from the server file</td></tr><tr><th>Reality Password</th><td>The value from the server file, for Reality</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
+<p>The profile, as <a href="../ui-guide.html#import">Import JSON</a> takes it and as the app holds a profile that an earlier version saved with these settings. Values in angle brackets stand for the test's own:</p>
+<pre data-label="Profile"><code class="language-json">{
+  &quot;name&quot;: &quot;VLESS + REALITY&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;name&quot;: &quot;input&quot;,
+      &quot;next&quot;: &quot;router&quot;,
+      &quot;settings&quot;: {},
+      &quot;type&quot;: &quot;HintConnectionIN&quot;
+    },
+    {
+      &quot;name&quot;: &quot;router&quot;,
+      &quot;next&quot;: &quot;vless&quot;,
+      &quot;settings&quot;: {
+        &quot;rules&quot;: [
+          {
+            &quot;destination-ip&quot;: [
+              &quot;10.0.0.0/8&quot;,
+              &quot;172.16.0.0/12&quot;,
+              &quot;192.168.0.0/16&quot;
+            ],
+            &quot;target&quot;: &quot;direct-local&quot;
+          }
+        ]
+      },
+      &quot;type&quot;: &quot;Router&quot;
+    },
+    {
+      &quot;name&quot;: &quot;vless&quot;,
+      &quot;next&quot;: &quot;reality&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;protocol&quot;: &quot;dest_context-&gt;protocol&quot;,
+        &quot;uuid&quot;: &quot;&lt;UUID&gt;&quot;
+      },
+      &quot;type&quot;: &quot;VlessClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;reality&quot;,
+      &quot;next&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;algorithm&quot;: &quot;chacha20-poly1305&quot;,
+        &quot;kdf-iterations&quot;: 12000,
+        &quot;password&quot;: &quot;&lt;OUTER_PASSWORD&gt;&quot;,
+        &quot;salt&quot;: &quot;waterwall-reality&quot;,
+        &quot;sni&quot;: &quot;www.cloudflare.com&quot;,
+        &quot;verbose&quot;: false,
+        &quot;verify&quot;: true
+      },
+      &quot;type&quot;: &quot;RealityClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;&lt;SERVER_HOST&gt;&quot;,
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: 18447
+      },
+      &quot;type&quot;: &quot;TcpConnector&quot;
+    },
+    {
+      &quot;name&quot;: &quot;direct-local&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;dns-behaviour&quot;: {
+          &quot;resolve&quot;: true,
+          &quot;strategy&quot;: &quot;prefer-ipv4&quot;
+        },
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;
+      },
+      &quot;type&quot;: &quot;TcpUdpConnector&quot;
+    }
+  ]
+}</code></pre>
+<p><a href="../ui-guide.html#input">Settings → WaterWall Input</a>: <strong>System VPN (TUN)</strong>. In the profile's OPTIONS:</p>
+<table><tbody><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr></tbody></table>
 <h2>How it was tested</h2>
 <ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, both HTTPS checks succeeded, and the HTTPS test server saw the transfers come through the tunnel (Direct mode and the GeoIP cases leave outside it by design and are not checked).</p>
 <h2>Gaps and limits</h2>

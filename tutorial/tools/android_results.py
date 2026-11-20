@@ -58,7 +58,12 @@ def extract(args):
 
 def render(args):
     evidence = json.loads(Path(args.evidence).read_text())
-    summary = evidence["summary"]
+    # The form's WireGuard mode is gone: the app runs such a profile as a WireGuard profile, documented there
+    wireguard = {case["id"] for case in evidence["chains"] if (case.get("configuration") or {}).get("mode") == "wireguard"}
+    evidence["chains"] = [case for case in evidence["chains"] if case["id"] not in wireguard]
+    if evidence.get("release"):
+        evidence["release"]["chains"] = [case for case in evidence["release"]["chains"] if case["id"] not in wireguard]
+    summary = {**evidence["summary"], "chains": len(evidence["chains"]), "chains_passed": sum(case["passed"] for case in evidence["chains"])}
     rows = []
     chain_of = {case["id"]: case.get("configuration") for case in evidence["chains"]}
     file_of = {case["id"]: case.get("server_file") for case in evidence["chains"]}
@@ -74,7 +79,7 @@ def render(args):
              '<table><thead><tr><th>Chain</th><th>Result</th><th>To Connected</th><th>Two downloads and two uploads at once, 16 MiB each</th></tr></thead><tbody>\n'
              + "\n".join(rows) + '\n</tbody></table>\n'
              '<h3 id="android-checks">Everything around the connection</h3>\n'
-             '<p>Each of these ran on the phone. The network check moved between its real Wi-Fi and cellular connections, and the sleep checks turned its screen off.</p>\n'
+             '<p>Each of these ran on the phone, through the app\'s own screens.</p>\n'
              '<table><thead><tr><th>What we checked</th><th>Result</th></tr></thead><tbody>\n' + "\n".join(checks) + '\n</tbody></table>\n')
     release = evidence.get("release")
     if release:

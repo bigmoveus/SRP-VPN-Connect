@@ -1,4 +1,4 @@
-<p class="lead">Every WaterWall combination we tested on 9 and 10 November 2026, with the app against the official WaterWall 1.5.42 release on our server. Each page shows the server file, the app settings, how the test ran and what happened.</p>
+<p class="lead">Every WaterWall combination we tested on 9 and 10 November 2026, with the app against the official WaterWall 1.5.42 release on our server. Each page shows the server file, the profile, how the test ran and what happened.</p>
 
 <div class="callout evidence">
   <span class="callout-title">How these tests ran</span>
@@ -10,9 +10,10 @@
     <li><strong>DNS resolver.</strong> Chains with the DNS resolver on were checked for where its questions went, with a DNS test server on the server that logs where each question comes from.</li>
     <li><strong>Connection lifecycle.</strong> Checks of reconnecting, Retry Times, On Sleep and Auto Switch on the VLESS + TLS chain.</li>
   </ul>
-  <p>The production server's chains ran on app commit <code>e44cf11d</code>, which is TestFlight build 41 and contains WaterWall 1.5.42, and its four KCP chains on <code>f4425e02</code>; the other tests ran on <code>e69cb668</code>. The commits after <code>e44cf11d</code> change only the tests and the change log, so every test ran build 41's app. On Raw IPv4 and native WireGuard chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
+  <p>The production server's chains ran on app commit <code>e44cf11d</code>, which is TestFlight build 41 and contains WaterWall 1.5.42, and its four KCP chains on <code>f4425e02</code>; the other tests ran on <code>e69cb668</code>. The commits after <code>e44cf11d</code> change only the tests and the change log, so every test ran build 41's app. On Raw IPv4 chains iOS keeps the server's own address out of the tunnel, so their traffic went to a private address of the server. For every case except Direct mode and the GeoIP cases, which leave outside the tunnel by design, the test checked that the traffic arrived through the tunnel.</p>
   <p>Every scenario page describes its procedure in full. A page whose case ran more than once says how many runs passed.</p>
-  <p>The server files and app settings on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
+  <p>These tests ran before the app held its profiles as node chains. The profile on each page is the chain the current app holds for these settings: a profile saved with them is converted to exactly that chain, and WaterWall runs the same nodes as in the test. On 20 November 2026, 23 of the production server's chains, at least one with each kind of node, ran again on the iPhone with the node-chain app of commit <code>501cc02e</code>, each from a profile saved with the earlier settings and converted by the app, with the same full-duplex test through the tunnel: all 23 passed.</p>
+  <p>The server files and profiles on these pages apply to Android too. The Android results are on the <a href="../android.html#android-tested">Android</a> page.</p>
 </div>
 
 <h2>How to read the results</h2>

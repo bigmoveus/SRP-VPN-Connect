@@ -12,7 +12,7 @@
 <main>
 <h1>VLESS + TLS with GeoIP direct routing for IR, TR and the DNS resolver Through the VPN</h1>
 <p class="lead">The DNS resolver looks up the name of each connection on the phone before routing. Through the VPN asks the listed DNS server through the VPN, so our DNS test server must hear the questions from the WaterWall server. GeoIP routing for the chosen countries stays on, and the downloads from our server, which is in Turkey (TR), must go straight from the phone.</p>
-<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
 <table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>93 seconds</td></tr><tr><th>Downloaded</th><td>1,996 MB (172 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>119 downloads of 16 MiB; 4/4 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>GeoIP routing</th><td>passed: expected straight from the phone; the reference server saw 119 downloads from the phone&#x27;s own address and 0 through WaterWall</td></tr><tr><th>DNS questions</th><td>passed: our DNS test server got 12, 0 from the phone&#x27;s network and 12 from the WaterWall server; the test site&#x27;s name was among them</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 196 ms; Ping: 135 ms</td></tr><tr><th>UDP</th><td>passed: 900 datagrams sent and 900 echoed back in 91 seconds; round trip 23 ms on average, 128 ms at most</td></tr></tbody></table>
 <h2>Test setup</h2>
@@ -97,11 +97,9 @@ to port 28480, without WaterWall.</code></pre>
   ]
 }</code></pre></details>
 <h2>App settings</h2>
-<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
-<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Connections</td></tr><tr><td><strong>Application</strong></td><td>VLESS</td></tr><tr><td><strong>MUX</strong></td><td>Off</td></tr><tr><td><strong>Obfuscator</strong></td><td>Off</td></tr><tr><td><strong>HTTP</strong></td><td>Off</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>TLS</td></tr><tr><td><strong>Carrier</strong></td><td>TCP</td></tr><tr><td><strong>GeoIP Routing</strong></td><td>On</td></tr><tr><td><strong>Countries</strong></td><td>IR, TR</td></tr><tr><td><strong>Resolver</strong></td><td>Through the VPN</td></tr><tr><td><strong>Addresses</strong></td><td>Default (IPv4 First)</td></tr><tr><td><strong>DNS Servers</strong></td><td>&lt;SERVER_IP&gt;:28453</td></tr></tbody></table>
-<p>In the profile editor:</p>
-<table><tbody><tr><th>Server</th><td>&lt;SERVER_IP&gt;, the test server&#x27;s address</td></tr><tr><th>Port</th><td>4097</td></tr><tr><th>SNI (optional)</th><td>localhost, for chains with TLS, Reality or QUIC</td></tr><tr><th>TLS Server Verification</th><td>Off, because the test certificate is self-signed</td></tr><tr><th>UUID or Password</th><td>&lt;UUID&gt;, a test value</td></tr><tr><th>Reality or AEAD Password</th><td>&lt;OUTER_PASSWORD&gt;, a test value, when the chain uses one</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
-<details><summary>The client chain the app built (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
+<p><a href="../ui-guide.html#input">Settings → WaterWall Input</a>: <strong>System VPN (TUN)</strong>. In the profile's OPTIONS:</p>
+<table><tbody><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr></tbody></table>
+<details><summary>The chain WaterWall ran in this test (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
   &quot;name&quot;: &quot;VLESS + TLS&quot;,
   &quot;nodes&quot;: [
     {

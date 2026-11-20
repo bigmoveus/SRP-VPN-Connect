@@ -20,7 +20,7 @@
 <h2>How SRP VPN Connect uses WaterWall</h2>
 <p>A connection has two halves that must match:</p>
 <ul>
-  <li><strong>On the phone</strong>, you choose the layers in the app, for example VLESS inside TLS. The app builds the client chain from your choices; you do not write client files by hand.</li>
+  <li><strong>On the phone</strong>, the profile is a WaterWall client file, for example VLESS inside TLS. You import it as plain JSON or build it node by node in the app. It starts with an input hint, which the app replaces with the phone's traffic when it connects: the system VPN, or a local SOCKS5 or HTTP proxy.</li>
   <li><strong>On the server</strong>, you write a configuration file with the matching server chain, for example TLS then VLESS, listening on a port.</li>
 </ul>
 <pre data-label="Illustration — not a capture of a real network"><code>Apps on the phone
@@ -37,11 +37,11 @@ WaterWall server chain on your server  e.g. TCP -> TLS -> VLESS
       |
       v
 Websites and services</code></pre>
-<p>The phone sends its traffic into the system's VPN. WaterWall in the app wraps it in the layers you chose and sends it to your server. The server unwraps the same layers in reverse order and connects to the real destination.</p>
+<p>The phone sends its traffic into the system's VPN. WaterWall in the app wraps it in the layers of your profile and sends it to your server. The server unwraps the same layers in reverse order and connects to the real destination.</p>
 
 <div class="callout tip">
   <span class="callout-title">The rule that matters most</span>
-  The layers in the app and on the server must match, in the same order, on the same port. If the app uses VLESS + TLS and the server port runs Trojan + TLS, the connection fails. Each scenario page shows both halves side by side.
+  The nodes of the profile and of the server must match, in the same order, on the same port. If the profile uses VLESS + TLS and the server port runs Trojan + TLS, the connection fails. Each scenario page shows both halves side by side.
 </div>
 
 <h2>What is in this section</h2>
@@ -50,7 +50,7 @@ Websites and services</code></pre>
   <a class="card" href="installation.html"><strong>Installation</strong><span>Install the WaterWall server and the app.</span></a>
   <a class="card" href="getting-started.html"><strong>Getting Started</strong><span>Your first working connection, step by step.</span></a>
   <a class="card" href="ui-guide.html"><strong>Complete UI &amp; Profile Guide</strong><span>Every screen, field and option in the app.</span></a>
-  <a class="card" href="configuration.html"><strong>Configuration Reference</strong><span>Server files, and what the app builds for each choice.</span></a>
+  <a class="card" href="configuration.html"><strong>Configuration Reference</strong><span>Server files, the profile file, and what the app adds when it connects.</span></a>
   <a class="card" href="scenarios/index.html"><strong>Verified Test Scenarios</strong><span>Each combination we tested, with its result.</span></a>
   <a class="card" href="android.html"><strong>Android</strong><span>What differs from iPhone, and what we tested on Android.</span></a>
   <a class="card" href="troubleshooting.html"><strong>Troubleshooting</strong><span>What each message means and how to check the server.</span></a>

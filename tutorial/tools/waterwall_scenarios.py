@@ -11,7 +11,9 @@ from datetime import datetime
 import html
 import json
 import re
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SITE = Path(__file__).resolve().parent.parent
@@ -390,6 +392,53 @@ def settings_rows(case):
     return rows
 
 
+# Values the app's conversion checks, swapped for the placeholders the pages show
+PROFILE_UUID = "00000000-0000-4000-8000-000000000000"
+PROFILE_OPTIONS = {"Auto Reconnect", "Retry Times", "On Sleep", "Log Level", "Remote DNS (Fake IP)"}
+
+
+def listener_port(case):
+    nodes = ((case.get("server") or {}).get("peer") or {}).get("nodes") or []
+    return next((node["settings"].get("port") for node in nodes if node.get("type") in ("TcpListener", "UdpListener")), None)
+
+
+def profile_chains(items):
+    """The WaterWall profile the app holds for each case: the iPhone app's own conversion of the case's former form
+    configuration (tools/profile_chain.m on the real SRPWaterWallChainConfig.m), nodes in chain order."""
+    requests, keys = [], []
+    for case, env in items:
+        c = case.get("configuration") or {}
+        production = case["kind"] == "production"
+        outer = c.get("outer")
+        secret = "<PASSWORD>" if c.get("application") in ("trojan", "socks5", "http-proxy") else PROFILE_UUID
+        requests.append({"configuration": c, "server": "<SERVER_HOST>" if production else "<SERVER_IP>",
+                         "port": listener_port(case) if production else 4097,
+                         "sni": case.get("sni") if production else ("localhost" if outer in ("tls", "reality", "quic") else None),
+                         "verify": production, "secret": secret, "outer": "<OUTER_PASSWORD>",
+                         "options": {"ww_fake_dns": True, "ww_smart_routing": True, "tls_frag": 0, "username": "",
+                                     "log_level": "normal"}})
+        keys.append(case["id"])
+    source = SITE.parent / "iOS" / "Core" / "SRPCore"
+    with tempfile.TemporaryDirectory() as folder:
+        tool = Path(folder) / "profile_chain"
+        subprocess.run(["clang", "-fobjc-arc", "-w", "-framework", "Foundation", "-I", str(source), str(source / "SRPWaterWallChainConfig.m"),
+                        str(Path(__file__).with_name("profile_chain.m")), "-o", str(tool)], check=True)
+        answers = json.loads(subprocess.run([str(tool)], input=json.dumps(requests).encode(), capture_output=True, check=True).stdout)
+    chains = {}
+    for key, document in zip(keys, answers):
+        if document is None:
+            continue
+        nodes = {node["name"]: node for node in document["nodes"]}
+        ordered, name = [], next(node["name"] for node in document["nodes"] if node["type"].startswith("Hint"))
+        while name in nodes and nodes[name] not in ordered:
+            ordered.append(nodes[name])
+            name = nodes[name].get("next")
+        ordered += [node for node in document["nodes"] if node not in ordered]
+        text = json.dumps({"name": document["name"], "nodes": ordered}, indent=2).replace(PROFILE_UUID, "<UUID>")
+        chains[key] = json.loads(text)
+    return chains
+
+
 def setup_of(env, run):
     """The shared setup rows, with {head} replaced by the commit the run tested."""
     return [(k, v.replace("{head}", (run.get("head") or "")[:8])) for k, v in env.get("setup", [])]
@@ -403,7 +452,7 @@ def render_case(case, env, run):
     title = title_of(case)
     seconds, down, up = traffic_of(case)
     out = [f"<h1>{e(title)}</h1>", f'<p class="lead">{e(purpose_of(case))}</p>',
-           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} on the current app build against WaterWall {e(env.get("server_version", ""))}.</p>']
+           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} against WaterWall {e(env.get("server_version", ""))}.</p>']
 
     out.append("<h2>Result</h2>")
     rows = [("Outcome", "Passed: every check succeeded." if status == "verified" else
@@ -475,21 +524,15 @@ def render_case(case, env, run):
         out.append("<details><summary>The test copy's core.json</summary>" + code("core.json", server["core"]) + "</details>")
 
     out.append("<h2>App settings</h2>")
-    out.append("<p>On the <a href=\"../ui-guide.html#configuration-screen\">WaterWall configuration screen</a>:</p>")
-    out.append("<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody>" +
-               "".join(f"<tr><td><strong>{e(k)}</strong></td><td>{e(v)}</td></tr>" for k, v in settings_rows(case)) + "</tbody></table>")
-    options = (case.get("configuration") or {}).get("node-options") or {}
-    if options:
-        out.append("<p>Advanced node settings used in this case:</p>")
-        out.append(code("ADVANCED NODE SETTINGS", options))
-    out.append("<p>In the profile editor:</p>")
-    profile = env.get("profile", [])
-    if case["kind"] == "production":
-        sni = case.get("sni") or "Empty, so the app sends the Server field (<SERVER_HOST>)"
-        profile = [(k, sni if k == "SNI (optional)" else v) for k, v in profile]
+    if case.get("profile"):
+        out.append('<p>The profile, as <a href="../ui-guide.html#import">Import JSON</a> takes it and as the app holds a profile '
+                   "that an earlier version saved with these settings. Values in angle brackets stand for the test's own:</p>")
+        out.append(code("Profile", case["profile"]))
+    out.append('<p><a href="../ui-guide.html#input">Settings → WaterWall Input</a>: <strong>System VPN (TUN)</strong>. In the profile\'s OPTIONS:</p>')
+    profile = [(k, v) for k, v in env.get("profile", []) if k in PROFILE_OPTIONS]
     out.append("<table><tbody>" + "".join(f"<tr><th>{e(k)}</th><td>{e(v)}</td></tr>" for k, v in profile) + "</tbody></table>")
     if case.get("client"):
-        out.append("<details><summary>The client chain the app built (for reference)</summary>" +
+        out.append("<details><summary>The chain WaterWall ran in this test (for reference)</summary>" +
                    code("Client chain", case["client"]) + "</details>")
 
     out.append("<h2>How it was tested</h2>")
@@ -516,7 +559,7 @@ def render_lifecycle(case, env, run):
     device = case.get("device") or {}
     duration = case["result"].get("duration_s") or 0
     out = [f"<h1>{e(step['title'])}</h1>", f'<p class="lead">{e(step["purpose"])}</p>',
-           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} on the current app build against WaterWall {e(env.get("server_version", ""))}.</p>',
+           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} against WaterWall {e(env.get("server_version", ""))}.</p>',
            "<h2>Result</h2>"]
     rows = [("Outcome", "Passed: every check succeeded." if status == "verified" else "Failed."),
             ("Test length", f"{duration:.0f} seconds, including connecting and disconnecting")]
@@ -580,6 +623,7 @@ def render(args):
     out_dir = SITE / "waterwall" / "scenarios"
     out_dir.mkdir(parents=True, exist_ok=True)
     groups = {key: [] for key, _ in GROUPS}
+    loaded = []
     for evidence_path in args.evidence:
         evidence = json.loads(Path(evidence_path).read_text())
         profiles = json.loads(Path(args.environment).read_text())
@@ -592,7 +636,13 @@ def render(args):
         env["head"] = (evidence["run"].get("head") or "")[:8]
         env["date"] = (evidence["run"].get("start_utc") or "")[:10]
         env["date_text"] = "on " + datetime.strptime(env["date"], "%Y-%m-%d").strftime("%-d %B %Y")
-        for case in evidence["cases"]:
+        # The form's WireGuard mode is gone: the app runs such a profile as a WireGuard profile, documented there
+        cases = [case for case in evidence["cases"] if (case.get("configuration") or {}).get("mode") != "wireguard"]
+        loaded.append((evidence, env, cases))
+    chains = profile_chains([(case, env) for _, env, cases in loaded for case in cases if case["kind"] != "lifecycle"])
+    for evidence, env, cases in loaded:
+        for case in cases:
+            case["profile"] = chains.get(case["id"])
             if case["kind"] == "lifecycle":
                 step = env["steps"][case["step"]]
                 case["title"] = step["title"]

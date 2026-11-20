@@ -12,7 +12,7 @@
 <main>
 <h1>Raw IPv4 + KCP (additional-rawip-kcp.json)</h1>
 <p class="lead">Raw IPv4 sends whole IP packets as one stream instead of separate connections. In this case KCP carries it over UDP.</p>
-<p><span class="status partial">TESTED — PARTIALLY WORKING</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
+<p><span class="status partial">TESTED — PARTIALLY WORKING</span> &nbsp;Tested on 10 November 2026 against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
 <table><tbody><tr><th>Outcome</th><td>Failed: traffic moved, but not every check succeeded.</td></tr><tr><th>Runs</th><td>1 of 2 passed; the numbers on this page are from the first run</td></tr><tr><th>Test length</th><td>101 seconds</td></tr><tr><th>Downloaded</th><td>369 MB (29 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>101 MB (8 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>22 downloads and 7 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>The network connection was lost.</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 852 ms; Ping: 232 ms</td></tr><tr><th>UDP</th><td>not-run: This run measured TCP only</td></tr></tbody></table>
 <h3>What the test reported</h3>
@@ -85,10 +85,48 @@
   ]
 }</code></pre>
 <h2>App settings</h2>
-<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
-<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Raw IPv4</td></tr><tr><td><strong>Obfuscator</strong></td><td>Off</td></tr><tr><td><strong>HTTP</strong></td><td>Off</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>None</td></tr><tr><td><strong>Carrier</strong></td><td>KCP</td></tr></tbody></table>
-<p>In the profile editor:</p>
-<table><tbody><tr><th>Server</th><td>&lt;SERVER_HOST&gt;, the server&#x27;s domain name</td></tr><tr><th>Port</th><td>The listener port in the server file</td></tr><tr><th>SNI (optional)</th><td>Empty, so the app sends the Server field (&lt;SERVER_HOST&gt;)</td></tr><tr><th>TLS Server Verification</th><td>On</td></tr><tr><th>UUID or Password</th><td>The value from the server file</td></tr><tr><th>Reality Password</th><td>The value from the server file, for Reality</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
+<p>The profile, as <a href="../ui-guide.html#import">Import JSON</a> takes it and as the app holds a profile that an earlier version saved with these settings. Values in angle brackets stand for the test's own:</p>
+<pre data-label="Profile"><code class="language-json">{
+  &quot;name&quot;: &quot;Raw IPv4 + none + KCP&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;name&quot;: &quot;input&quot;,
+      &quot;next&quot;: &quot;pts&quot;,
+      &quot;settings&quot;: {},
+      &quot;type&quot;: &quot;HintPacketIN&quot;
+    },
+    {
+      &quot;name&quot;: &quot;pts&quot;,
+      &quot;next&quot;: &quot;kcp&quot;,
+      &quot;settings&quot;: {
+        &quot;packet-validation-level&quot;: &quot;hard&quot;
+      },
+      &quot;type&quot;: &quot;PacketsToStream&quot;
+    },
+    {
+      &quot;name&quot;: &quot;kcp&quot;,
+      &quot;next&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;kcp-initial-cwnd&quot;: 16,
+        &quot;kcp-recv-window&quot;: 128,
+        &quot;kcp-send-buffer-limit&quot;: 512,
+        &quot;kcp-send-window&quot;: 128
+      },
+      &quot;type&quot;: &quot;KcpClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;&lt;SERVER_HOST&gt;&quot;,
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: 18474
+      },
+      &quot;type&quot;: &quot;UdpConnector&quot;
+    }
+  ]
+}</code></pre>
+<p><a href="../ui-guide.html#input">Settings → WaterWall Input</a>: <strong>System VPN (TUN)</strong>. In the profile's OPTIONS:</p>
+<table><tbody><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr></tbody></table>
 <h2>How it was tested</h2>
 <ol><li>Xcode installed the app's test build on the phone, and the test created the profile shown above in memory. It was not added to the app's profile list.</li><li>The test connected the VPN and waited until iOS reported it connected.</li><li>It ran the app's own HTTPS check through the tunnel: a request to <code>https://gstatic.com/generate_204</code>, which must answer 204.</li><li>For at least 90 seconds it ran 4 downloads and 4 uploads at the same time, over and over. Each download fetched a 16 MiB file from the HTTPS test server. Each upload sent 16 MiB, and the server answered with the size and SHA-256 it received, which the test compared with what it sent.</li><li>It ran the HTTPS check again and disconnected.</li></ol><p>A case passes only if the VPN stayed connected, the test ran the full 90 seconds, every transfer finished, there were no errors and no timeouts, data moved in both directions, both HTTPS checks succeeded, and the HTTPS test server saw the transfers come through the tunnel (Direct mode and the GeoIP cases leave outside it by design and are not checked).</p>
 <h2>Gaps and limits</h2>

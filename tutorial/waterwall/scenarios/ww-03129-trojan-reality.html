@@ -12,7 +12,7 @@
 <main>
 <h1>Trojan + MUX + Obfuscator + HTTP/1.1 + Reality + KCP</h1>
 <p class="lead">Reality makes the connection start like a visit to another TLS website, so the server needs no certificate of its own. In this case MUX carries many connections inside one, an HTTP layer makes it look like web requests, the XOR obfuscator scrambles the bytes, KCP carries it over UDP.</p>
-<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 on the current app build against WaterWall 1.5.42, the official release, unchanged.</p>
+<p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span> &nbsp;Tested on 10 November 2026 against WaterWall 1.5.42, the official release, unchanged.</p>
 <h2>Result</h2>
 <table><tbody><tr><th>Outcome</th><td>Passed: every check succeeded.</td></tr><tr><th>Test length</th><td>98 seconds</td></tr><tr><th>Downloaded</th><td>621 MB (50 Mbit/s on average)</td></tr><tr><th>Uploaded</th><td>537 MB (44 Mbit/s on average)</td></tr><tr><th>Transfers</th><td>37 downloads and 32 uploads of 16 MiB; 8/8 streams finished at the end</td></tr><tr><th>Errors</th><td>none</td></tr><tr><th>Timeouts</th><td>0</td></tr><tr><th>Through the tunnel</th><td>Yes: the HTTPS test server saw these transfers come from &lt;SERVER_IP&gt;, and it would have seen the phone&#x27;s own network if they had left outside the tunnel</td></tr><tr><th>HTTPS check through the tunnel</th><td>Ping: 188 ms; Ping: 137 ms</td></tr><tr><th>UDP</th><td>not-applicable: The generated connector does not support application UDP</td></tr></tbody></table>
 <h2>Test setup</h2>
@@ -167,11 +167,139 @@ Test server &lt;SERVER_IP&gt;
   ]
 }</code></pre></details>
 <h2>App settings</h2>
-<p>On the <a href="../ui-guide.html#configuration-screen">WaterWall configuration screen</a>:</p>
-<table><thead><tr><th>Row</th><th>Value</th></tr></thead><tbody><tr><td><strong>Mode</strong></td><td>Chain</td></tr><tr><td><strong>Input</strong></td><td>Connections</td></tr><tr><td><strong>Application</strong></td><td>Trojan</td></tr><tr><td><strong>MUX</strong></td><td>On</td></tr><tr><td><strong>Obfuscator</strong></td><td>On</td></tr><tr><td><strong>HTTP</strong></td><td>HTTP</td></tr><tr><td><strong>HTTP Version</strong></td><td>1</td></tr><tr><td><strong>BGP4 Framing</strong></td><td>Off</td></tr><tr><td><strong>Outer</strong></td><td>Reality</td></tr><tr><td><strong>Carrier</strong></td><td>KCP</td></tr></tbody></table>
-<p>In the profile editor:</p>
-<table><tbody><tr><th>Server</th><td>&lt;SERVER_IP&gt;, the test server&#x27;s address</td></tr><tr><th>Port</th><td>4097</td></tr><tr><th>SNI (optional)</th><td>localhost, for chains with TLS, Reality or QUIC</td></tr><tr><th>TLS Server Verification</th><td>Off, because the test certificate is self-signed</td></tr><tr><th>UUID or Password</th><td>&lt;UUID&gt;, a test value</td></tr><tr><th>Reality or AEAD Password</th><td>&lt;OUTER_PASSWORD&gt;, a test value, when the chain uses one</td></tr><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr><tr><th>Direct LAN Routing</th><td>On</td></tr></tbody></table>
-<details><summary>The client chain the app built (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
+<p>The profile, as <a href="../ui-guide.html#import">Import JSON</a> takes it and as the app holds a profile that an earlier version saved with these settings. Values in angle brackets stand for the test's own:</p>
+<pre data-label="Profile"><code class="language-json">{
+  &quot;name&quot;: &quot;Trojan + MUX + XOR + HTTP + REALITY + KCP&quot;,
+  &quot;nodes&quot;: [
+    {
+      &quot;name&quot;: &quot;input&quot;,
+      &quot;next&quot;: &quot;router&quot;,
+      &quot;settings&quot;: {},
+      &quot;type&quot;: &quot;HintConnectionIN&quot;
+    },
+    {
+      &quot;name&quot;: &quot;router&quot;,
+      &quot;next&quot;: &quot;trojan&quot;,
+      &quot;settings&quot;: {
+        &quot;rules&quot;: [
+          {
+            &quot;destination-ip&quot;: [
+              &quot;10.0.0.0/8&quot;,
+              &quot;172.16.0.0/12&quot;,
+              &quot;192.168.0.0/16&quot;
+            ],
+            &quot;target&quot;: &quot;direct-local&quot;
+          }
+        ]
+      },
+      &quot;type&quot;: &quot;Router&quot;
+    },
+    {
+      &quot;name&quot;: &quot;trojan&quot;,
+      &quot;next&quot;: &quot;mux&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;password&quot;: &quot;&lt;PASSWORD&gt;&quot;,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;,
+        &quot;protocol&quot;: &quot;dest_context-&gt;protocol&quot;
+      },
+      &quot;type&quot;: &quot;TrojanClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;mux&quot;,
+      &quot;next&quot;: &quot;obfuscator&quot;,
+      &quot;settings&quot;: {
+        &quot;child-buffer-limit&quot;: 4194304,
+        &quot;connection-capacity&quot;: 128,
+        &quot;detached-buffer-limit&quot;: 4194304,
+        &quot;detached-child-limit&quot;: 128,
+        &quot;max-children&quot;: 256,
+        &quot;mode&quot;: &quot;counter&quot;,
+        &quot;parent-buffer-limit&quot;: 16777216,
+        &quot;parent-write-buffer-limit&quot;: 16777216,
+        &quot;parent-write-buffer-pause-threshold&quot;: 8388608,
+        &quot;parent-write-buffer-resume-threshold&quot;: 1048576
+      },
+      &quot;type&quot;: &quot;MuxClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;obfuscator&quot;,
+      &quot;next&quot;: &quot;http&quot;,
+      &quot;settings&quot;: {
+        &quot;method&quot;: &quot;xor&quot;,
+        &quot;skip&quot;: &quot;none&quot;,
+        &quot;xor_key&quot;: 90
+      },
+      &quot;type&quot;: &quot;ObfuscatorClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;http&quot;,
+      &quot;next&quot;: &quot;reality&quot;,
+      &quot;settings&quot;: {
+        &quot;host&quot;: &quot;localhost&quot;,
+        &quot;http-version&quot;: 1,
+        &quot;path&quot;: &quot;/&quot;,
+        &quot;port&quot;: 4097,
+        &quot;scheme&quot;: &quot;https&quot;,
+        &quot;websocket&quot;: false
+      },
+      &quot;type&quot;: &quot;HttpClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;reality&quot;,
+      &quot;next&quot;: &quot;kcp&quot;,
+      &quot;settings&quot;: {
+        &quot;algorithm&quot;: &quot;chacha20-poly1305&quot;,
+        &quot;alpns&quot;: [
+          &quot;http/1.1&quot;
+        ],
+        &quot;kdf-iterations&quot;: 12000,
+        &quot;password&quot;: &quot;&lt;OUTER_PASSWORD&gt;&quot;,
+        &quot;salt&quot;: &quot;waterwall-reality&quot;,
+        &quot;sni&quot;: &quot;localhost&quot;,
+        &quot;verbose&quot;: false,
+        &quot;verify&quot;: false
+      },
+      &quot;type&quot;: &quot;RealityClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;kcp&quot;,
+      &quot;next&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;kcp-initial-cwnd&quot;: 16,
+        &quot;kcp-recv-window&quot;: 128,
+        &quot;kcp-send-buffer-limit&quot;: 512,
+        &quot;kcp-send-window&quot;: 128
+      },
+      &quot;type&quot;: &quot;KcpClient&quot;
+    },
+    {
+      &quot;name&quot;: &quot;connector&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;&lt;SERVER_IP&gt;&quot;,
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: 4097
+      },
+      &quot;type&quot;: &quot;UdpConnector&quot;
+    },
+    {
+      &quot;name&quot;: &quot;direct-local&quot;,
+      &quot;settings&quot;: {
+        &quot;address&quot;: &quot;dest_context-&gt;address&quot;,
+        &quot;dns-behaviour&quot;: {
+          &quot;resolve&quot;: true,
+          &quot;strategy&quot;: &quot;prefer-ipv4&quot;
+        },
+        &quot;nodelay&quot;: true,
+        &quot;port&quot;: &quot;dest_context-&gt;port&quot;
+      },
+      &quot;type&quot;: &quot;TcpUdpConnector&quot;
+    }
+  ]
+}</code></pre>
+<p><a href="../ui-guide.html#input">Settings → WaterWall Input</a>: <strong>System VPN (TUN)</strong>. In the profile's OPTIONS:</p>
+<table><tbody><tr><th>Auto Reconnect</th><td>Off, so that a reconnect cannot hide a failure</td></tr><tr><th>On Sleep</th><td>Stay</td></tr><tr><th>Log Level</th><td>Normal</td></tr><tr><th>Remote DNS (Fake IP)</th><td>On</td></tr></tbody></table>
+<details><summary>The chain WaterWall ran in this test (for reference)</summary><pre data-label="Client chain"><code class="language-json">{
   &quot;name&quot;: &quot;Trojan + MUX + XOR + HTTP + REALITY + KCP&quot;,
   &quot;nodes&quot;: [
     {
