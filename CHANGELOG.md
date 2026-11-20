@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WaterWall installation guide and the requirements name TestFlight build 47 and APK 1.2.0 (12) as the builds with the node chain; the Android page has the release APK's check.
+
 ## 1.2.0 (47) - 2026-11-20
 
 ### Added
