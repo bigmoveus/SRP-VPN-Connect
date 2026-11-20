@@ -81,6 +81,11 @@ target_compile_definitions(SRPWaterWallBridge PRIVATE
     INCLUDE_HTTP_CLIENT=1
     INCLUDE_OBFUSCATOR_CLIENT=1
     INCLUDE_KCP_CLIENT=1
+    INCLUDE_TCP_LISTENER=1
+    INCLUDE_UDP_LISTENER=1
+    INCLUDE_TCP_UDP_LISTENER=1
+    INCLUDE_SOCKS_5_SERVER=1
+    INCLUDE_HTTP_PROXY_SERVER=1
 )
 target_include_directories(SRPWaterWallBridge PUBLIC
     native
@@ -119,6 +124,11 @@ target_link_libraries(SRPWaterWallBridge PUBLIC
     HttpClient
     ObfuscatorClient
     KcpClient
+    TcpListener
+    UdpListener
+    TcpUdpListener
+    Socks5Server
+    HttpProxyServer
     waterwall_quiche
     ww
 )
@@ -198,6 +208,11 @@ add_custom_command(
         $<TARGET_FILE:HttpCommon>
         $<TARGET_FILE:ObfuscatorClient>
         $<TARGET_FILE:KcpClient>
+        $<TARGET_FILE:TcpListener>
+        $<TARGET_FILE:UdpListener>
+        $<TARGET_FILE:TcpUdpListener>
+        $<TARGET_FILE:Socks5Server>
+        $<TARGET_FILE:HttpProxyServer>
         $<TARGET_FILE:ProxyClientCommon>
         $<TARGET_FILE:VlessCommon>
         $<TARGET_FILE:TrojanCommon>
@@ -265,6 +280,11 @@ add_custom_command(
         HttpCommon
         ObfuscatorClient
         KcpClient
+        TcpListener
+        UdpListener
+        TcpUdpListener
+        Socks5Server
+        HttpProxyServer
         ProxyClientCommon
         VlessCommon
         TrojanCommon

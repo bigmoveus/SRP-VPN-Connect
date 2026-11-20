@@ -26,6 +26,11 @@ typedef void(^SRPWaterWallFailureBlock)(NSString *reason);
 @property (nonatomic, copy, nullable) NSString *allowedIPs;
 // Reaches the server over UDP (KCP or QUIC datagrams) instead of a TCP connection.
 @property (nonatomic) BOOL udpCarrier;
+// "socks5" or "http" when the chain starts at a local proxy instead of the device: the
+// tunnel then routes nothing and the probes ask that proxy. Nil for the system VPN.
+@property (nonatomic, copy, nullable) NSString *localProxy;
+// The port of that proxy on 127.0.0.1.
+@property (nonatomic) uint16_t localProxyPort;
 @end
 
 // Counters of WaterWall's connections to the server (TCP, KCP and QUIC): the counts
@@ -69,6 +74,8 @@ typedef struct SRPWaterWallLinkTotals {
 @property (nonatomic, copy, nullable) NSString *allowedIPs;
 @property (nonatomic, copy) NSString *profileName;
 @property (nonatomic) BOOL udpCarrier;
+@property (nonatomic, copy, nullable) NSString *localProxy;
+@property (nonatomic) uint16_t localProxyPort;
 // Other profiles of the same server. A failed connection reconnects with the next one
 // (with Auto Reconnect); heavy loss moves to one with a different carrier. Empty keeps
 // the selected profile, which a network change always restores.

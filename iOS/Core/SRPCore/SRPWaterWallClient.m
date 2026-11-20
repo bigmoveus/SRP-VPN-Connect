@@ -50,6 +50,10 @@
     dispatch_source_t _qualityTimer;
     NSUInteger _qualityReadings;
     BOOL _lossHandled;
+    NSUInteger _probeRun;
+    uint64_t _lastReceivedBytes;
+    BOOL _runtimeReady;
+    NSString *_startupProblem;   // WaterWall's first fatal line since the runtime started; guarded by @synchronized (self)
 }
 @property (nonatomic) NSTimeInterval lastOutputAt;
 @end
@@ -280,6 +284,77 @@ static NSData *SRPWWDnsPacket(NSString *source, uint16_t identifier, NSString *d
     return [NSData dataWithBytes:p length:sizeof(p)];
 }
 
+static BOOL SRPWWSendAll(int fd, const void *bytes, size_t length) {
+    for (size_t sent = 0; sent < length;) {
+        ssize_t count = send(fd, (const uint8_t *)bytes + sent, length - sent, 0);
+        if (count <= 0) return NO;
+        sent += (size_t)count;
+    }
+    return YES;
+}
+
+static BOOL SRPWWReceiveExactly(int fd, uint8_t *bytes, size_t length) {
+    for (size_t received = 0; received < length;) {
+        ssize_t count = recv(fd, bytes + received, length - received, 0);
+        if (count <= 0) return NO;
+        received += (size_t)count;
+    }
+    return YES;
+}
+
+// Asks the local proxy for http://target/ as an app would. Both proxies confirm a CONNECT only once
+// the chain reached the far end, and the HTTP answer after it can only come from there.
+static NSString *SRPWWLocalProxyProbe(NSString *proxy, uint16_t port, NSString *target) {
+    struct in_addr destination;
+    if (inet_pton(AF_INET, target.UTF8String, &destination) != 1) return @"the probe address is not an IPv4 address";
+    BOOL socks5 = [proxy isEqualToString:@"socks5"];
+    int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (fd < 0) return @"no socket";
+    struct timeval timeout = {.tv_sec = 10};
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+    int on = 1;
+    setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
+    struct sockaddr_in address = {.sin_len = sizeof(address), .sin_family = AF_INET,
+                                  .sin_port = htons(port), .sin_addr.s_addr = htonl(INADDR_LOOPBACK)};
+    NSString *problem = nil;
+    uint8_t reply[1024] = {0};
+    if (connect(fd, (struct sockaddr *)&address, sizeof(address)) != 0) {
+        problem = [NSString stringWithFormat:@"127.0.0.1:%u accepts no connection", port];
+    } else if (socks5) {
+        const uint8_t hello[] = {5, 1, 0};
+        uint8_t request[10] = {5, 1, 0, 1, 0, 0, 0, 0, 0, 80};
+        memcpy(request + 4, &destination, 4);
+        if (!SRPWWSendAll(fd, hello, sizeof(hello)) || !SRPWWReceiveExactly(fd, reply, 2) || reply[0] != 5 || reply[1] != 0) {
+            problem = @"the SOCKS5 greeting got no answer";
+        } else if (!SRPWWSendAll(fd, request, sizeof(request)) || !SRPWWReceiveExactly(fd, reply, 5) || reply[1] != 0) {
+            problem = @"the SOCKS5 CONNECT was not granted";
+        } else {
+            // The bound address after the reply's first four bytes: IPv4, a name of reply[4] bytes or IPv6, then the port.
+            size_t rest = reply[3] == 1 ? 5 : reply[3] == 3 ? (size_t)reply[4] + 2 : reply[3] == 4 ? 17 : SIZE_MAX;
+            if (rest == SIZE_MAX || !SRPWWReceiveExactly(fd, reply, rest)) problem = @"the SOCKS5 CONNECT reply was cut short";
+        }
+    } else {
+        NSData *request = [[NSString stringWithFormat:@"CONNECT %@:80 HTTP/1.1\r\nHost: %@:80\r\n\r\n", target, target]
+                           dataUsingEncoding:NSASCIIStringEncoding];
+        size_t length = 0;
+        BOOL sent = SRPWWSendAll(fd, request.bytes, request.length);
+        while (sent && length < sizeof(reply) - 1 && SRPWWReceiveExactly(fd, reply + length, 1)) {
+            if (++length >= 4 && memcmp(reply + length - 4, "\r\n\r\n", 4) == 0) break;
+        }
+        if (length < 12 || memcmp(reply, "HTTP/1.", 7) != 0 || memcmp(reply + 8, " 200", 4) != 0) problem = @"the HTTP CONNECT was not granted";
+    }
+    if (problem == nil) {
+        NSData *request = [[NSString stringWithFormat:@"GET / HTTP/1.1\r\nHost: %@\r\nConnection: close\r\n\r\n", target]
+                           dataUsingEncoding:NSASCIIStringEncoding];
+        if (!SRPWWSendAll(fd, request.bytes, request.length) || !SRPWWReceiveExactly(fd, reply, 5) || memcmp(reply, "HTTP/", 5) != 0) {
+            problem = @"no HTTP answer came back through the chain";
+        }
+    }
+    close(fd);
+    return problem;
+}
+
 // PacketsToConnection answers handshakes, acknowledges and resets flows and serves
 // fake DNS on the device itself, so only relayed payload shows the server path works.
 static BOOL SRPWWPacketCarriesRemotePayload(const uint8_t *packet, size_t length) {
@@ -318,8 +393,28 @@ static NSString *SRPWWNativeLogPath(void) {
     return [directory stringByAppendingPathComponent:@"ww-native-current.log"];
 }
 
+// WaterWall refused a node while it built the chain, so the same profile would fail again on every retry
+static BOOL SRPWWIsConfigurationProblem(NSString *line) {
+    return [line containsString:@"JSON Error"] || [line containsString:@"node creation failure"] || [line containsString:@"Restricted config"];
+}
+
 static void SRPWWLog(void *context, int level, const char *message, size_t length) {
     SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
+    if (client != nil && message != NULL && strstr(message, " FATAL ") != NULL) {
+        @autoreleasepool {
+            // The first fatal line says why the chain did not start; the ones after it follow from it
+            NSString *line = [[NSString alloc] initWithBytes:message length:length encoding:NSUTF8StringEncoding];
+            NSRange fatal = line ? [line rangeOfString:@" FATAL "] : NSMakeRange(NSNotFound, 0);
+            if (fatal.location != NSNotFound) {
+                @synchronized (client) {
+                    if (client->_startupProblem == nil) {
+                        client->_startupProblem = [[line substringFromIndex:NSMaxRange(fatal)]
+                                                   stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+                    }
+                }
+            }
+        }
+    }
     if (!client.liveDiagnostics) return;
     @autoreleasepool {
         if (message == NULL) return;
@@ -349,6 +444,7 @@ static void SRPWWLog(void *context, int level, const char *message, size_t lengt
 static void SRPWWReady(void *context) {
     SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
     dispatch_async(client->_worker, ^{
+        client->_runtimeReady = YES;
         if (client->_closed || client->_sleepPaused || client->_up || client->_probeStage != 0) return;
         [client beginDataPlaneProbe];
     });
@@ -359,6 +455,15 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     NSLog(@"WaterWall: native runtime exited with code %d", code);
     dispatch_async(client->_worker, ^{
         if (client->_closed || client->_sleepPaused) return;
+        NSString *problem = nil;
+        @synchronized (client) { problem = client->_startupProblem; }
+        if (!client->_runtimeReady && SRPWWIsConfigurationProblem(problem)) {
+            NSString *refused = [@"WaterWall refused the profile: " stringByAppendingString:problem];
+            // Another profile of Auto Switch may still start; alone, the profile ends the VPN with WaterWall's reason
+            if (client->_candidates.count > 1) [client handleRuntimeFailure:refused];
+            else [client failWithReason:refused];
+            return;
+        }
         NSString *reason = message ? @(message) : @"WaterWall runtime stopped";
         [client handleRuntimeFailure:[NSString stringWithFormat:@"%@ (%d)", reason, code]];
     });
@@ -413,6 +518,40 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     });
 }
 
+- (void)sendTcpProbe {
+    if (_localProxy.length > 0) [self sendLocalProxyProbe];
+    else [self sendSynProbe];
+}
+
+// A chain behind a local proxy has no device to send packets into, so the probe goes through the proxy.
+- (void)sendLocalProxyProbe {
+    if (_closed || (_probeStage != 1 && _probeStage != 4)) return;
+    _probeAttempts++;
+    NSInteger stage = _probeStage;
+    NSUInteger run = _probeRun;
+    NSString *proxy = _localProxy, *target = _probeAddress;
+    uint16_t port = _localProxyPort;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        NSString *problem = SRPWWLocalProxyProbe(proxy, port, target);
+        dispatch_async(self->_worker, ^{
+            if (self->_closed || self->_probeRun != run || self->_probeStage != stage) return;
+            if (problem == nil) {
+                atomic_store_explicit(&self->_lastOutputAt, NSProcessInfo.processInfo.systemUptime, memory_order_relaxed);
+                if (stage == 4) [self finishHealthCheck];
+                else [self finishProbe];
+            } else if (stage == 4 && self->_probeAttempts >= 3) {
+                [self healthProbeFailed:[@"WaterWall local proxy health probe failed: " stringByAppendingString:problem]];
+            } else {
+                // The startup probe keeps trying until its 20-second limit; a slow network may still be connecting.
+                SSLogD(@"WaterWall: local proxy probe attempt %ld: %@", (long)self->_probeAttempts, problem);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), self->_worker, ^{
+                    if (self->_probeRun == run) [self sendLocalProxyProbe];
+                });
+            }
+        });
+    });
+}
+
 - (void)sendHTTPProbe:(uint32_t)acknowledgement {
     if (_pendingProbePackets.count > 0) return;
     _probeHTTPStarted = YES;
@@ -450,7 +589,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
         self->_probeAttempts = 0;
         self->_probeTcpPort = arc4random_uniform(40000) + 20000;
         self->_probeHTTPStarted = NO;
-        if (self->_probeTCP) [self sendSynProbe];
+        if (self->_probeTCP) [self sendTcpProbe];
         else [self sendDnsProbe];
     });
     dispatch_resume(_healthTimer);
@@ -481,6 +620,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _probeDnsId = arc4random_uniform(65535) + 1;
     _probeTcpPort = arc4random_uniform(40000) + 20000;
     _probeHTTPStarted = NO;
+    _probeRun++;
     _probeTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _worker);
     dispatch_source_set_timer(_probeTimer, dispatch_time(DISPATCH_TIME_NOW, 20 * NSEC_PER_SEC), DISPATCH_TIME_FOREVER, 0);
     dispatch_source_set_event_handler(_probeTimer, ^{
@@ -488,7 +628,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     });
     dispatch_resume(_probeTimer);
     if (_probeTCP) {
-        [self sendSynProbe];
+        [self sendTcpProbe];
     } else if (_probeUDP) {
         [self sendDnsProbe];
     } else {
@@ -504,7 +644,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     }
     _probeStage = 6;
     _failedAttempts = 0;
-    if (_probeTCP && _probeUDP) {
+    if (_localProxy.length > 0 && _probeTCP) {
+        SSLogM(@"WaterWall: the local %@ proxy on 127.0.0.1:%u answered through the chain",
+               [_localProxy isEqualToString:@"socks5"] ? @"SOCKS5" : @"HTTP", _localProxyPort);
+    } else if (_probeTCP && _probeUDP) {
         SSLogM(@"WaterWall: TCP and UDP/DNS data-plane probes passed");
     } else if (_probeTCP) {
         SSLogM(@"WaterWall: TCP data-plane probe passed");
@@ -560,6 +703,7 @@ static void SRPWWFailure(void *context, int code, const char *message) {
         _qualityTimer = nil;
     }
     _probeStage = 0;
+    _probeRun++;
     _probeHTTPStarted = NO;
     _probeResponseHeader = nil;
     _pendingProbePackets = nil;
@@ -664,6 +808,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     _dnsServers = candidate.dnsServers;
     _allowedIPs = candidate.allowedIPs;
     _udpCarrier = candidate.udpCarrier;
+    _localProxy = candidate.localProxy;
+    _localProxyPort = candidate.localProxyPort;
 }
 
 - (SRPWaterWallCandidate *)currentCandidate {
@@ -681,6 +827,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     candidate.dnsServers = _dnsServers;
     candidate.allowedIPs = _allowedIPs;
     candidate.udpCarrier = _udpCarrier;
+    candidate.localProxy = _localProxy;
+    candidate.localProxyPort = _localProxyPort;
     return candidate;
 }
 
@@ -718,7 +866,13 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 
 - (void)readLinkQuality {
     if (_closed || _sleepPaused || !_up) return;
-    [_linkQuality addTotals:SRPWWReadLinkTotals()];
+    SRPWaterWallLinkTotals totals = SRPWWReadLinkTotals();
+    // Behind a local proxy no packets show the tunnel busy, so data from the server does.
+    if (_localProxy.length > 0 && totals.receivedBytes > _lastReceivedBytes) {
+        atomic_store_explicit(&_lastOutputAt, NSProcessInfo.processInfo.systemUptime, memory_order_relaxed);
+    }
+    _lastReceivedBytes = totals.receivedBytes;
+    [_linkQuality addTotals:totals];
     NSUInteger perMinute = MAX((NSUInteger)1, (NSUInteger)llround(60 / _qualityInterval));
     if (++_qualityReadings % perMinute == 0) {
         NSString *summary = [_linkQuality summaryOfLastSamples:perMinute];
@@ -758,6 +912,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
     if (_closed || _sleepPaused) return;
     [self stopRuntimeLocked];
     _up = NO;
+    _runtimeReady = NO;
+    @synchronized (self) { _startupProblem = nil; }
     atomic_store_explicit(&_lastOutputAt, 0, memory_order_relaxed);
     if (_coreJSON.length == 0 || _nodesJSON.length == 0) {
         [self failWithReason:@"WaterWall configuration is missing"];
@@ -940,8 +1096,10 @@ static void SRPWWFailure(void *context, int code, const char *message) {
         }
     }
     v4.excludedRoutes = excludedRoutes;
+    // Apps reach a local proxy on 127.0.0.1 themselves, so the tunnel takes no traffic and leaves DNS alone.
+    if (_localProxy.length > 0) v4.includedRoutes = @[];
     settings.IPv4Settings = v4;
-    settings.DNSSettings = [[NEDNSSettings alloc] initWithServers:_dnsServers];
+    if (_localProxy.length == 0) settings.DNSSettings = [[NEDNSSettings alloc] initWithServers:_dnsServers];
     settings.MTU = @(_mtu);
     return settings;
 }
@@ -997,7 +1155,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
 
 - (void)injectPackets:(NSArray<NSData *> *)packets completion:(dispatch_block_t)completion {
     dispatch_async(_worker, ^{
-        if (self->_closed) {
+        // Without a device in the chain there is nothing to take packets; a local proxy routes none here anyway.
+        if (self->_closed || self->_localProxy.length > 0) {
             if (completion) completion();
             return;
         }

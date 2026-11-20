@@ -118,6 +118,14 @@ static NodeModel * modal = nil;
     return _udpgw_port;
 }
 
+-(void)syncWaterWallServer {
+    NSData *data = [_waterwallChainJSON dataUsingEncoding:NSUTF8StringEncoding];
+    id document = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+    NSDictionary *endpoint = [document isKindOfClass:NSDictionary.class] ? [SRPWaterWallNodeChain endpointsOfDocument:document].firstObject : nil;
+    self.server = endpoint[@"host"] ?: @"";
+    self.port = endpoint ? [endpoint[@"port"] stringValue] : @"";
+}
+
 -(void)clearWireGuardSettings {
     _wgConfig = _wgPrivateKey = _wgPeerPublicKey = _wgPresharedKey = _wgAddress = _wgDNS = _wgAllowedIPs = nil;
     _wgI1 = _wgI2 = _wgI3 = _wgI4 = _wgI5 = nil;

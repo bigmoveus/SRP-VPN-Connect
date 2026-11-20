@@ -8,6 +8,7 @@
 #import "CheckConnectData.h"
 #import "userNodeData.h"
 #import "SRPLogViewController.h"
+#import "SRPWaterWallConfigViewController.h"
 #import <SRPCore/SRPWaterWallChainConfig.h>
 #import "SRPProfileLatencyTester.h"
 
@@ -53,6 +54,7 @@
     [self.header.addButton addTarget:self action:@selector(showCreateView) forControlEvents:UIControlEventTouchUpInside];
     [self.header.editButton addTarget:self action:@selector(editNode) forControlEvents:UIControlEventTouchUpInside];
     [self.header.helpButton addTarget:self action:@selector(onHelp) forControlEvents:UIControlEventTouchUpInside];
+    [self.header.settingsButton addTarget:self action:@selector(showSettings) forControlEvents:UIControlEventTouchUpInside];
     [self.header.connectButton addTarget:self action:@selector(connectVPN) forControlEvents:UIControlEventTouchUpInside];
     __weak typeof(self) weakSelfHeader = self;
     self.header.onStatusTap = ^{
@@ -203,8 +205,9 @@
     if ([modal.protocolType isEqualToString:@"aether"]) {
         subtitle = @"Cloudflare WARP";
     } else if ([modal.protocolType isEqualToString:@"waterwall"]) {
-        NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON];
-        subtitle = [SRPWaterWallChainConfig summaryForConfiguration:configuration ?: [SRPWaterWallChainConfig defaultConfiguration]];
+        NSData *data = [modal.waterwallChainJSON dataUsingEncoding:NSUTF8StringEncoding];
+        id document = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+        subtitle = [SRPWaterWallNodeChain summaryOfDocument:[document isKindOfClass:NSDictionary.class] ? document : @{}];
     } else {
         subtitle = [NSString stringWithFormat:@"%@:%@", modal.server, modal.port];
     }
@@ -358,6 +361,12 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
     }];
 }
 
+-(void)showSettings {
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:[SRPSettingsViewController new]];
+    if (self.traitCollection.userInterfaceIdiom == UIUserInterfaceIdiomPad) nav.modalPresentationStyle = UIModalPresentationFormSheet;
+    [self presentViewController:nav animated:YES completion:nil];
+}
+
 -(void)onHelp {
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://srpconnect.app"] options:@{} completionHandler:nil];
 }
@@ -397,9 +406,8 @@ static NSString *const kSRPSavedLatencyKey = @"SRPProfileLatency";
         return;
     }
     NodeModel *selNode = [NodeModel shareInstance].selectNode;
-    BOOL needsServerField = ![selNode.protocolType isEqualToString:@"aether"] &&
-                            !([selNode.protocolType isEqualToString:@"waterwall"] &&
-                              [SRPWaterWallChainConfig isDirectConfiguration:[SRPWaterWallChainConfig configurationWithJSON:selNode.waterwallConfigJSON]]);
+    // Aether has no server, and a WaterWall chain names its own (a direct chain none)
+    BOOL needsServerField = ![selNode.protocolType isEqualToString:@"aether"] && ![selNode.protocolType isEqualToString:@"waterwall"];
     if(needsServerField && selNode.server.length==0) {
         [self.view makeToast:@"Add a profile first (tap +)" duration:2 position:CSToastPositionCenter];
         [self.header showStatus:SRPHomeStatusDisconnected animated:NO];

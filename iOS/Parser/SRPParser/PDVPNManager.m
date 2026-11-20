@@ -474,7 +474,7 @@ static NSString *SRPMaskedURI(NSString *uri) {
 }
 
 -(void)connectWaterWall:(NSDictionary *)server {
-    NSArray *keys = @[@"ww_config", @"address", @"port", @"username", @"password", @"ww_probe_ip", @"ww_dns_probe_ip", @"sni",
+    NSArray *keys = @[@"ww_chain_ref", @"ww_config", @"address", @"port", @"username", @"password", @"ww_probe_ip", @"ww_dns_probe_ip", @"sni",
                       @"allowInsecure", @"ww_secret_ref", @"ww_outer_secret_ref", @"wg_conf",
                       @"wg_private_key", @"wg_peer_public_key", @"wg_address",
                       @"wg_keepalive", @"log_level", @"tls_frag", @"tls_frag_first",

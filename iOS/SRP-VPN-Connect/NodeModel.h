@@ -100,6 +100,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// Forgets the WireGuard keys and settings, so that another protocol does not use them.
 -(void)clearWireGuardSettings;
+/// Server and Port of a WaterWall profile follow its chain (the address of its last connector) for the home screen,
+/// the latency test and Auto Switch; a chain without a server of its own leaves them empty
+-(void)syncWaterWallServer;
 
 /// Aether transport: "masque" (HTTP/3), "masque-h2" (HTTP/2),
 /// "masque-both" (HTTP/3 with HTTP/2 fallback), or "wg" (WireGuard)
@@ -132,6 +135,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic,assign) BOOL waterwallSmartRouting;
 /// Lets a failing or lossy connection move to another WaterWall profile of the same server.
 @property (nonatomic,assign) BOOL waterwallAutoSwitch;
+/// The WaterWall profile: WaterWall JSON nodes whose chain starts with an input hint (SRPWaterWallNodeChain). The
+/// Keychain keeps it under waterwallChainRef, because node settings hold UUIDs and passwords. The former form's
+/// settings above (waterwallConfigJSON, waterwallPreset, the secrets) are read only to convert an older profile.
+@property (nonatomic,copy,nullable) NSString * waterwallChainJSON;
+@property (nonatomic,copy,nullable) NSString * waterwallChainRef;
 
 /// SoftEther "Hostname" field: optional TLS SNI / certificate-verification
 /// hostname override (empty = use the Server field)

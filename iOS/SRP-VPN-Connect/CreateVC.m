@@ -247,57 +247,24 @@ static const NSInteger kFieldAetherLicense = 33;
     return [self.modal.protocolType isEqualToString:@"waterwall"];
 }
 
-- (NSDictionary *)waterWallConfiguration {
-    NSDictionary *configuration = self.modal.waterwallConfigJSON.length > 0 ?
-        [SRPWaterWallChainConfig configurationWithJSON:self.modal.waterwallConfigJSON] : nil;
-    if (configuration == nil) {
-        configuration = self.modal.waterwallPreset.length > 0 ?
-            [SRPWaterWallChainConfig configurationFromLegacyPreset:self.modal.waterwallPreset] : nil;
-        configuration = configuration ?: [SRPWaterWallChainConfig defaultConfiguration];
-        self.modal.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
-    }
-    return configuration;
+- (NSDictionary *)waterWallDocument {
+    NSData *data = [self.modal.waterwallChainJSON dataUsingEncoding:NSUTF8StringEncoding];
+    id document = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+    return [document isKindOfClass:NSDictionary.class] ? document : [SRPWaterWallNodeChain emptyDocument];
 }
 
-- (BOOL)waterWallNeedsOuterSecret {
-    return [SRPWaterWallChainConfig configurationNeedsOuterSecret:[self waterWallConfiguration]];
-}
-
-/// Auto Switch moves between Chain profiles of the same server; WireGuard and Direct have none to move to.
+/// Auto Switch moves between profiles of the same server; a chain without a server of its own has none to move to.
 - (BOOL)waterWallOffersAutoSwitch {
-    NSDictionary *configuration = [self waterWallConfiguration];
-    return ![SRPWaterWallChainConfig isWireGuardConfiguration:configuration] && ![SRPWaterWallChainConfig isDirectConfiguration:configuration];
+    return [SRPWaterWallNodeChain endpointsOfDocument:[self waterWallDocument]].count > 0;
+}
+
+/// Remote DNS shapes the connections SRP hands to a chain that starts with HintConnectionIN
+- (BOOL)waterWallTakesConnections {
+    return [[SRPWaterWallNodeChain hintOfDocument:[self waterWallDocument]][@"type"] isEqual:SRPWaterWallHintConnection];
 }
 
 - (NSString *)waterWallValidationError {
-    NSDictionary *configuration = [self waterWallConfiguration];
-    NSString *error = [SRPWaterWallChainConfig validationErrorForConfiguration:configuration];
-    if (error != nil) return error;
-    if ([SRPWaterWallChainConfig isDirectConfiguration:configuration]) return nil;
-    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
-        return [SRPWaterWallChainConfig wireGuardConfigurationWithConfig:[self.modal wgEffectiveConfig]] == nil ?
-            @"Import or enter a complete, valid WireGuard configuration." : nil;
-    }
-    if (self.modal.server.length == 0) return @"Enter the WaterWall server.";
-    NSInteger port = self.modal.port.integerValue;
-    if (port < 1 || port > 65535) return @"Enter a WaterWall port between 1 and 65535.";
-    // An untouched field is nil; validate it as empty so the message names the missing value.
-    error = [SRPWaterWallChainConfig validationErrorForApplicationSecret:self.modal.password ?: @""
-                                                        forConfiguration:configuration];
-    if (error != nil) return error;
-    error = [SRPWaterWallChainConfig validationErrorForApplicationUsername:self.modal.username
-                                                                    secret:self.modal.password
-                                                           forConfiguration:configuration];
-    if (error != nil) return error;
-    error = [SRPWaterWallChainConfig validationErrorForOuterSecret:self.modal.waterwallOuterSecret ?: @""
-                                                  forConfiguration:configuration];
-    if (error != nil) return error;
-    // The ClientHello is cut only below 16384 bytes, so a larger first chunk would send it whole
-    if (self.modal.tlsFragMode == 2 && self.modal.tlsFragFirst >= 16384 &&
-        [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration]) {
-        return @"First Chunk must be smaller than 16384 bytes.";
-    }
-    return nil;
+    return [SRPWaterWallNodeChain validationErrorForDocument:[self waterWallDocument]];
 }
 
 /// OpenVPN: the imported profile asks for interactive credentials
@@ -323,6 +290,7 @@ static const NSInteger kFieldAetherLicense = 33;
 
 /// The first reason the profile cannot be saved yet, or nil once it is complete.
 /// Save stays tappable: a disabled button gave no hint about which field was wrong.
+
 - (NSString *)validationMessage {
     BOOL hasServer = self.modal.server.length > 0;
     if ([self isSoftEther]) {
@@ -447,12 +415,6 @@ static const NSInteger kFieldAetherLicense = 33;
         self.modal.server = parts[@"server"];
         if (parts[@"port"]) self.modal.port = parts[@"port"];
         self.modal.ocPath = parts[@"path"] ?: [self.modal.ocPath stringByTrimmingCharactersInSet:edges];
-    }
-    if ([self isWaterWall]) {
-        NSString *application = [self waterWallConfiguration][@"application"];
-        if ([application isEqualToString:@"vless"] || [application isEqualToString:@"vmess"]) {
-            self.modal.password = [self.modal.password stringByTrimmingCharactersInSet:edges];
-        }
     }
 }
 
@@ -727,9 +689,7 @@ static const NSInteger kFieldAetherLicense = 33;
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 1: return @"SERVER";
-        case 2: return ([self isAether] || ([self isWaterWall] &&
-            ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
-            ![self waterWallNeedsOuterSecret])) ? nil : ([self isOpenVPN] && ![self ovpnNeedsAuth] ? nil : ([self isWireGuard] ? nil : @"AUTHENTICATION"));  // OpenVPN/WireGuard: credentials live in the imported file
+        case 2: return ([self isAether] || [self isWaterWall]) ? nil : ([self isOpenVPN] && ![self ovpnNeedsAuth] ? nil : ([self isWireGuard] ? nil : @"AUTHENTICATION"));  // OpenVPN/WireGuard: credentials live in the imported file
         case 3: return ([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall]) ? nil : @"PROXY";  // hidden where unsupported
         case 4: return @"OPTIONS";
         default: return nil;
@@ -741,10 +701,7 @@ static const NSInteger kFieldAetherLicense = 33;
     if (([self isSSH] || [self isOpenVPN] || [self isWireGuard] || [self isOpenConnect] || [self isAether] || [self isWaterWall]) && section == 3) {
         return CGFLOAT_MIN;
     }
-    if (([self isAether] && (section == 1 || section == 2)) ||
-        ([self isWaterWall] && section == 2 &&
-         ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
-         ![self waterWallNeedsOuterSecret]) ||
+    if (([self isAether] && (section == 1 || section == 2)) || ([self isWaterWall] && section == 2) ||
         (([self isOpenVPN] && ![self ovpnNeedsAuth] && section == 2) || ([self isWireGuard] && section == 2))) {
         return CGFLOAT_MIN;
     }
@@ -756,10 +713,7 @@ static const NSInteger kFieldAetherLicense = 33;
         return CGFLOAT_MIN;
     }
     // Aether's server section keeps its footer (what its rows do); its empty section 2 has none
-    if (([self isAether] && section == 2) ||
-        ([self isWaterWall] && section == 2 &&
-         ![SRPWaterWallChainConfig configurationNeedsApplicationSecret:[self waterWallConfiguration]] &&
-         ![self waterWallNeedsOuterSecret]) ||
+    if (([self isAether] && section == 2) || ([self isWaterWall] && section == 2) ||
         (([self isOpenVPN] && ![self ovpnNeedsAuth] && section == 2) || ([self isWireGuard] && section == 2))) {
         return CGFLOAT_MIN;
     }
@@ -780,7 +734,7 @@ static const NSInteger kFieldAetherLicense = 33;
         return @"The .ovpn profile supplies the OpenVPN configuration and credentials (client certificate or auth-user-pass). Server and Port are filled from the profile's first remote line on import; change them to connect to another address or port. Enable stunnel to wrap OpenVPN TCP in an outer TLS connection.";
     }
     if (section == 1 && [self isWaterWall]) {
-        return @"Configuration independently combines the input, application protocol, MUX and outer transport. SOCKS5 supports TCP and UDP Association directly; HTTP CONNECT supports TCP. Proxy username and password are optional as a pair. Advanced Node Settings provides per-node JSON overrides. Reality defaults to the www.cloudflare.com cover and uses a separate password. AEAD has no TLS handshake. Raw IPv4 uses PacketsToStream. TLS Server Verification validates TLS, Reality and QUIC certificates. Optional SNI must match the server's cover configuration.";
+        return @"The profile is a chain of WaterWall nodes that starts with an input hint. Open it to read the chain from top to bottom, edit a node, or import a WaterWall JSON file. The node settings hold the server, its credentials and every other setting of the chain.";
     }
     if (section == 1 && [self isAether]) {
         return @"Aether connects to Cloudflare WARP automatically. H3 uses QUIC; H2 uses TCP+TLS and supports TLS Fragmentation; Both tries H3 first and falls back to H2. Endpoint Scan: Turbo takes the first verified endpoint, Balanced compares more candidates. WireGuard is the classic WARP transport. A WARP+ License is bound at connect time. Tor can carry WARP or provide a Tor-only exit.";
@@ -816,15 +770,11 @@ static const NSInteger kFieldAetherLicense = 33;
     if (section == 4 && [self isWaterWall]) {
         NSString *base = @"Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error.";
         if ([self waterWallOffersAutoSwitch]) {
-            base = [base stringByAppendingString:@" Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); when Switch to Wi-Fi When Available moves the connection to a new network, it returns to this profile."];
+            base = [base stringByAppendingString:@" Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile that reaches the server the other way (TCP or UDP)."];
         }
-        base = [base stringByAppendingString:@" Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open."];
-        NSDictionary *configuration = [self waterWallConfiguration];
-        if ([SRPWaterWallChainConfig configurationAllowsFragmentation:configuration]) {
-            base = [base stringByAppendingString:@" TLS Fragmentation splits the outer TLS ClientHello into smaller writes."];
-        }
-        if ([SRPWaterWallChainConfig configurationAllowsRouting:configuration]) {
-            base = [base stringByAppendingString:@" Remote DNS answers lookups with placeholder addresses so the server resolves the real names; Direct LAN Routing connects private addresses (10/8, 172.16/12, 192.168/16) directly instead of through the server."];
+        base = [base stringByAppendingString:@" Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps, Pause closes it and connects again at wake, Stay keeps it."];
+        if ([self waterWallTakesConnections]) {
+            base = [base stringByAppendingString:@" With System VPN (TUN) as the WaterWall input in Settings, Remote DNS answers lookups with placeholder addresses, so each connection carries the name to the chain and the server resolves it."];
         }
         return base;
     }
@@ -870,9 +820,7 @@ static const NSInteger kFieldAetherLicense = 33;
         case 0: return 2; // Protocol, Description
         case 1:
             if ([self isWaterWall]) {
-                NSDictionary *configuration = [self waterWallConfiguration];
-                if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) return 5;
-                return [SRPWaterWallChainConfig configurationUsesTLS:configuration] ? 5 : 3;
+                return 1;   // the chain
             }
             if ([self isAether]) {
                 // Transport, Endpoint Scan, WARP+ License, Tor; Tor Only keeps the Tor row alone
@@ -900,11 +848,7 @@ static const NSInteger kFieldAetherLicense = 33;
             return 3; // Host, Port, Allow Untrusted
         case 2:
             if ([self isWaterWall]) {
-                NSDictionary *configuration = [self waterWallConfiguration];
-                NSString *application = configuration[@"application"];
-                BOOL proxy = [application isEqualToString:@"socks5"] || [application isEqualToString:@"http-proxy"];
-                return ([SRPWaterWallChainConfig configurationNeedsApplicationSecret:configuration] ? (proxy ? 2 : 1) : 0) +
-                       ([self waterWallNeedsOuterSecret] ? 1 : 0);
+                return 0;   // the chain holds the credentials
             }
             if ([self isAether]) {
                 return 0;
@@ -945,14 +889,10 @@ static const NSInteger kFieldAetherLicense = 33;
             }
         case 4: // OPTIONS
             if ([self isWaterWall]) {
-                // Auto Reconnect (+Retry Times when on), Auto Switch (Chain mode only), Switch
-                // to Wi-Fi, On Sleep, Log Level (+ TLS Fragmentation where the
-                // chain has an outer TLS handshake, + the two routing switches)
-                NSDictionary *configuration = [self waterWallConfiguration];
-                BOOL fragmentation = [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration];
-                BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
+                // Auto Reconnect (+Retry Times when on), Auto Switch (a chain with a server of its own), Switch to
+                // Wi-Fi, On Sleep, Log Level (+ Remote DNS for a chain that takes connections)
                 return (self.modal.autoReconnect ? 6 : 5) - ([self waterWallOffersAutoSwitch] ? 0 : 1) +
-                       (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0) + (routing ? 2 : 0);
+                       ([self waterWallTakesConnections] ? 1 : 0);
             }
             if ([self isWireGuard]) {
                 // WireGuard and AmneziaWG: Auto Reconnect (+Retry Times when on), On Sleep, Log Level
@@ -998,41 +938,8 @@ static const NSInteger kFieldAetherLicense = 33;
     }
     if (indexPath.section == 1) {
         if ([self isWaterWall]) {
-            NSDictionary *configuration = [self waterWallConfiguration];
-            if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
-                switch (indexPath.row) {
-                    case 0:
-                        return [self valueCellWithTitle:@"Configuration"
-                                                  value:[SRPWaterWallChainConfig summaryForConfiguration:configuration] disclosure:YES];
-                    case 1:
-                        return [self valueCellWithTitle:@"Import Config (.conf)" value:(self.modal.wgConfig.length > 0 ? @"Imported" : @"None") disclosure:YES];
-                    case 2:
-                        return [self valueCellWithTitle:@"Manual Configuration" value:(self.modal.wgPrivateKey.length > 0 ? @"Configured" : @"None") disclosure:YES];
-                    case 3:
-                        return [self textCellWithTitle:@"Server" text:self.modal.server placeholder:@"Required"
-                                                   tag:kFieldHost keyboardType:UIKeyboardTypeURL secure:NO];
-                    default:
-                        return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"51820"
-                                                   tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
-                }
-            }
-            switch (indexPath.row) {
-                case 0:
-                    return [self valueCellWithTitle:@"Configuration"
-                                              value:[SRPWaterWallChainConfig isDirectConfiguration:configuration] ? @"Direct (diagnostics)" : @"Custom Chain"
-                                       disclosure:YES];
-                case 1:
-                    return [self textCellWithTitle:@"Server" text:self.modal.server placeholder:@"Required"
-                                               tag:kFieldHost keyboardType:UIKeyboardTypeURL secure:NO];
-                case 2:
-                    return [self textCellWithTitle:@"Port" text:self.modal.port placeholder:@"443"
-                                               tag:kFieldPort keyboardType:UIKeyboardTypeNumberPad secure:NO];
-                case 3:
-                    return [self textCellWithTitle:@"SNI (optional)" text:self.modal.customSni placeholder:@"Server hostname"
-                                               tag:kFieldCustomSni keyboardType:UIKeyboardTypeURL secure:NO];
-                default:
-                    return [self switchCellWithTitle:@"TLS Server Verification" on:!self.modal.TLS tag:kSwitchSETLSVerify];
-            }
+            return [self valueCellWithTitle:@"WaterWall" value:[SRPWaterWallNodeChain summaryOfDocument:[self waterWallDocument]]
+                                 disclosure:YES];
         }
         if ([self isAether]) {
             BOOL torOnly = [self.modal.aetherTor isEqualToString:@"only"];
@@ -1195,28 +1102,6 @@ static const NSInteger kFieldAetherLicense = 33;
                 return [self switchCellWithTitle:@"Allow Untrusted Certificate" on:self.modal.TLS tag:kSwitchAllowUntrusted];
             default: break;
         }
-    }
-    if (indexPath.section == 2 && [self isWaterWall]) {
-        NSDictionary *configuration = [self waterWallConfiguration];
-        BOOL needsApplicationSecret = [SRPWaterWallChainConfig configurationNeedsApplicationSecret:configuration];
-        NSString *application = configuration[@"application"];
-        BOOL proxy = [application isEqualToString:@"socks5"] || [application isEqualToString:@"http-proxy"];
-        NSInteger applicationRows = needsApplicationSecret ? (proxy ? 2 : 1) : 0;
-        BOOL isOuterSecretRow = [self waterWallNeedsOuterSecret] && indexPath.row == applicationRows;
-        if (isOuterSecretRow) {
-            NSString *title = [configuration[@"packet-encryption"] boolValue] ? @"Packet Password" :
-                              [configuration[@"outer"] isEqualToString:@"aead"] ? @"AEAD Password" : @"Reality Password";
-            return [self textCellWithTitle:title text:self.modal.waterwallOuterSecret placeholder:@"Required"
-                                       tag:kFieldWWOuterSecret keyboardType:UIKeyboardTypeASCIICapable secure:YES];
-        }
-        if (proxy && indexPath.row == 0) {
-            return [self textCellWithTitle:@"Username" text:self.modal.username placeholder:@"Optional"
-                                       tag:kFieldUsername keyboardType:UIKeyboardTypeASCIICapable secure:NO];
-        }
-        NSString *title = [application isEqualToString:@"trojan"] ? @"Password" :
-                          [application isEqualToString:@"vmess"] ? @"UUID / ID" : proxy ? @"Password" : @"UUID";
-        return [self textCellWithTitle:title text:self.modal.password placeholder:proxy ? @"Optional" : @"Required"
-                                   tag:kFieldPassword keyboardType:UIKeyboardTypeASCIICapable secure:YES];
     }
     if (indexPath.section == 2 && [self isOpenVPN]) {
         if (![self ovpnNeedsAuth]) {
@@ -1396,29 +1281,8 @@ static const NSInteger kFieldAetherLicense = 33;
                 return [self segmentCellWithTitle:@"Log Level" items:@[@"Normal", @"Expert", @"Debug"]
                                          selected:self.modal.logLevel action:@selector(logLevelChanged:) tag:kSegmentLogLevel];
             }
-            NSDictionary *configuration = [self waterWallConfiguration];
-            BOOL fragmentation = [SRPWaterWallChainConfig configurationAllowsFragmentation:configuration];
-            BOOL routing = [SRPWaterWallChainConfig configurationAllowsRouting:configuration];
-            if (fragmentation && shifted == 6) {
-                return [self segmentCellWithTitle:@"TLS Fragmentation" items:@[@"Off", @"Auto", @"Manual"]
-                                         selected:self.modal.tlsFragMode action:@selector(tlsFragChanged:) tag:kSegmentTLSFrag];
-            }
-            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 7) {
-                return [self textCellWithTitle:@"First Chunk (bytes)"
-                                          text:(self.modal.tlsFragFirst > 0 ? @(self.modal.tlsFragFirst).stringValue : nil)
-                                   placeholder:@"32" tag:kFieldTLSFragFirst keyboardType:UIKeyboardTypeNumberPad secure:NO];
-            }
-            if (fragmentation && self.modal.tlsFragMode == 2 && shifted == 8) {
-                return [self textCellWithTitle:@"Following Chunks (bytes)"
-                                          text:(self.modal.tlsFragFollowing > 0 ? @(self.modal.tlsFragFollowing).stringValue : nil)
-                                   placeholder:@"256" tag:kFieldTLSFragFollowing keyboardType:UIKeyboardTypeNumberPad secure:NO];
-            }
-            NSInteger routingRow = 6 + (fragmentation ? 1 + (self.modal.tlsFragMode == 2 ? 2 : 0) : 0);
-            if (routing && shifted == routingRow) {
+            if ([self waterWallTakesConnections] && shifted == 6) {
                 return [self switchCellWithTitle:@"Remote DNS (Fake IP)" on:self.modal.waterwallFakeDNS tag:kSwitchWWFakeDNS];
-            }
-            if (routing && shifted == routingRow + 1) {
-                return [self switchCellWithTitle:@"Direct LAN Routing" on:self.modal.waterwallSmartRouting tag:kSwitchWWSmartRouting];
             }
             return [UITableViewCell new];
         }
@@ -1597,17 +1461,8 @@ static const NSInteger kFieldAetherLicense = 33;
         return;
     }
     if ([self isWaterWall] && indexPath.section == 1) {
-        if (indexPath.row == 0) {
-            SRPWaterWallConfigViewController *vc = [[SRPWaterWallConfigViewController alloc] initWithNodeModel:self.modal];
-            [self.navigationController pushViewController:vc animated:YES];
-        } else if ([SRPWaterWallChainConfig isWireGuardConfiguration:[self waterWallConfiguration]]) {
-            if (indexPath.row == 1) {
-                [self importWGConfig];
-            } else if (indexPath.row == 2) {
-                SRPWGConfigViewController *vc = [[SRPWGConfigViewController alloc] initWithNodeModel:self.modal];
-                [self.navigationController pushViewController:vc animated:YES];
-            }
-        }
+        SRPWaterWallConfigViewController *vc = [[SRPWaterWallConfigViewController alloc] initWithNodeModel:self.modal];
+        [self.navigationController pushViewController:vc animated:YES];
         return;
     }
     if ([self isAether]) {

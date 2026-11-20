@@ -73,8 +73,10 @@
         model.aetherTransport = @"masque-both";
         model.aetherScan = @"balanced";
     } else if ([type isEqualToString:@"waterwall"]) {
-        model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
-        model.port = @"443";
+        // The input hint alone, until a file is imported or nodes are inserted
+        model.waterwallConfigJSON = nil;
+        model.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
+        [model syncWaterWallServer];
     } else if ([type isEqualToString:@"softether"] && model.hubName.length == 0) {
         model.hubName = @"DEFAULT";
     }

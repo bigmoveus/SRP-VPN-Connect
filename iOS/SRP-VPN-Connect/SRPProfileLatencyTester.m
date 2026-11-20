@@ -257,12 +257,10 @@ static const NSTimeInterval kSRPTCPPingTimeout = 2.5;
             return nil;
         }
     } else if ([type isEqualToString:@"waterwall"]) {
-        NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:profile.waterwallConfigJSON] ?:
-                                      [SRPWaterWallChainConfig defaultConfiguration];
-        if ([SRPWaterWallChainConfig isDirectConfiguration:configuration] ||
-            [SRPWaterWallChainConfig configurationUsesUDPCarrier:configuration]) {
-            return nil;
-        }
+        // Server and Port follow the chain's last connector; a chain that ends in UDP has no TCP server to time
+        NSData *data = [profile.waterwallChainJSON dataUsingEncoding:NSUTF8StringEncoding];
+        id document = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
+        if (![document isKindOfClass:NSDictionary.class] || [SRPWaterWallNodeChain documentUsesUDPCarrier:document]) return nil;
     } else {
         // WireGuard, AmneziaWG, WARP and server-entry profiles have no TCP server
         return nil;

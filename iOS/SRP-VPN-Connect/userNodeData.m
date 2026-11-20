@@ -36,6 +36,8 @@ static userNodeData * user = nil;
                 [CheckConnectData deleteStoredSecretsOfProfile:modal];
                 migrated = YES;
             } else if (modal) {
+                // A WaterWall profile made with the former form becomes its node chain
+                if ([CheckConnectData convertLegacyWaterWallProfile:modal]) migrated = YES;
                 [t addObject:modal];
             } else if ([dic[@"type"] isEqualToString:@"psiphon"]) {
                 migrated = YES;   // Psiphon is no longer in the app: its profiles go, and the list is saved without them

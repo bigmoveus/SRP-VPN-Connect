@@ -14,6 +14,7 @@
 #import "SRPEapConfig.h"
 #import "SSNetOptions.h"
 #import "SRPWaterWallChainConfig.h"
+#import "SRPKeychain.h"
 #import "SSFragTLSChannel.h"
 #import "SRPOpenVPNClient.h"
 #import "SRPWireGuardClient.h"
@@ -38,10 +39,8 @@
 #import <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 #import "CreateVC.h"
-#import "SRPKeychain.h"
 #import "HomeProtocolView.h"
 #import "SRPProtocolViewController.h"
-#import "SRPGeoIPCountryViewController.h"
 #import "SRPAetherClient.h"
 #import "userNodeData.h"
 #import "SRPWaterWallClient.h"
@@ -65,20 +64,13 @@
 - (void)editNode;
 @end
 
-@interface UIViewController (SRPWaterWallConfigTesting)
-- (void)applicationChanged:(NSString *)application;
-- (void)dnsModeChanged:(NSString *)mode;
-- (void)dnsStrategyChanged:(NSString *)strategy;
-- (void)commitDNSServers;
-@end
-
-@interface UIViewController (SRPWaterWallNodeOptionsTesting)
-- (instancetype)initWithConfiguration:(NSDictionary *)configuration
-                                layer:(NSString *)layer
-                                title:(NSString *)title
-                           completion:(void (^)(NSDictionary *configuration))completion;
-- (void)format;
-- (void)done;
+@interface UIViewController (SRPWaterWallNodeTesting)
+- (instancetype)initWithModel:(NodeModel *)model nodeName:(NSString *)name insertingAfter:(NSString *)previous;
+- (instancetype)initWithModel:(NodeModel *)model;
+- (void)loadFileAtURL:(NSURL *)url;
+- (void)save;
+- (void)import;
+- (void)typeChanged;
 @end
 
 @interface SRPWaterWallClient (SRPLifecycleTesting)
@@ -96,6 +88,7 @@
 - (void)healthProbeFailed:(NSString *)reason;
 - (BOOL)runtimeCanAcceptPackets;
 - (int)submitPacketToRuntime:(NSData *)packet;
+- (SRPWaterWallCandidate *)currentCandidate;
 @end
 
 @interface SRPWaterWallLifecycleTestClient : SRPWaterWallClient
@@ -221,6 +214,28 @@ static UILabel *SRPLatencyLabel(UIView *view, NSString *text) {
 
 @interface SROptionsTests : XCTestCase <NSURLSessionDelegate>
 @end
+
+// The example profile of the node editor's specification: its array puts uplink before tls
+static NSString *const SRPWWExampleJSON = @"{\"name\": \"Example TLS chain\", \"nodes\": ["
+    "{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"settings\": {}, \"next\": \"tls\"},"
+    "{\"name\": \"uplink\", \"type\": \"TcpConnector\", \"settings\": {\"address\": \"vpn.example.com\", \"port\": 443}},"
+    "{\"name\": \"tls\", \"type\": \"TlsClient\", \"settings\": {\"sni\": \"vpn.example.com\", \"verify\": true}, \"next\": \"uplink\"}]}";
+
+static NSDictionary *SRPWWExampleDocument(void) {
+    return [SRPWaterWallNodeChain documentWithJSON:SRPWWExampleJSON error:nil];
+}
+
+static NSDictionary *SRPWWDocumentWithNodes(NSArray *nodes) {
+    return @{@"name": @"Test", @"nodes": nodes};
+}
+
+static NSString *SRPWWImportProblem(NSArray *nodes) {
+    NSData *data = [NSJSONSerialization dataWithJSONObject:SRPWWDocumentWithNodes(nodes) options:0 error:nil];
+    NSString *problem = nil;
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]
+                                                               error:&problem];
+    return document == nil ? problem : nil;
+}
 
 @implementation SROptionsTests
 
@@ -530,39 +545,296 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     return byName;
 }
 
-- (void)testWaterWallProfileRoundTrip {
+// A profile from the former WaterWall form becomes the chain the app built for it, once, when it is first read
+- (void)testWaterWallLegacyProfileBecomesItsNodeChain {
     NodeModel *m = [NodeModel new];
     m.protocolType = @"waterwall";
     m.server = @"waterwall.example.com";
+    m.port = @"8443";
     NSDictionary *configuration = [self waterWallConfigurationWithApplication:@"vless" mux:YES outer:@"reality"];
     m.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
     m.password = @"00112233-4455-6677-8899-aabbccddeeff";
-    m.passwordKey = @"canonical-password-key";
-    m.waterwallSecretRef = @"legacy-reference-not-used";
+    m.passwordKey = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
     m.waterwallOuterSecret = @"outer-secret";
-    m.waterwallOuterSecretRef = @"outer-reference-only";
+    m.waterwallOuterSecretRef = [@"srp-test-" stringByAppendingString:NSUUID.UUID.UUIDString];
+    XCTAssertTrue([SRPKeychain setPassword:m.waterwallOuterSecret forKey:m.waterwallOuterSecretRef]);
+    NSString *passwordKey = m.passwordKey, *outerRef = m.waterwallOuterSecretRef;
     m.waterwallProbeIP = @"1.1.1.1";
     m.waterwallDNSProbeIP = @"192.0.2.1";
     m.waterwallFakeDNS = YES;
     m.waterwallSmartRouting = YES;
+    @try {
+        NSDictionary *d = [CheckConnectData checkConnectParmer:m];
+        for (NSString *key in @[@"ww_config", @"ww_preset", @"ww_secret_ref", @"ww_outer_secret_ref", @"ww_outer_secret"]) {
+            XCTAssertNil(d[key], @"%@", key);
+        }
+        XCTAssertEqualObjects(d[@"password"], @"", @"The UUID travels in the chain only");
+        XCTAssertGreaterThan([d[@"ww_chain_ref"] length], 0U);
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:d[@"ww_chain_ref"]], m.waterwallChainJSON);
+        NSString *problem = nil;
+        NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:m.waterwallChainJSON error:&problem];
+        XCTAssertNotNil(document, @"%@", problem);
+        NSArray<NSDictionary *> *chain = [SRPWaterWallNodeChain chainOfDocument:document];
+        XCTAssertEqualObjects(chain.firstObject[@"type"], SRPWaterWallHintConnection);
+        NSDictionary *byType = [NSDictionary dictionaryWithObjects:chain forKeys:[chain valueForKey:@"type"]];
+        XCTAssertEqualObjects(byType[@"VlessClient"][@"settings"][@"uuid"], @"00112233-4455-6677-8899-aabbccddeeff");
+        XCTAssertNotNil(byType[@"MuxClient"]);
+        XCTAssertNotNil(byType[@"RealityClient"]);
+        XCTAssertNotNil(byType[@"Router"], @"Smart routing stays a Router on the chain");
+        XCTAssertNil(byType[@"NEPacketDevice"]);
+        XCTAssertNil(byType[@"PacketsToConnection"]);
+        XCTAssertEqualObjects(chain.lastObject[@"settings"][@"address"], @"waterwall.example.com");
+        XCTAssertEqualObjects(m.server, @"waterwall.example.com");
+        XCTAssertEqualObjects(m.port, @"8443");
+        // The secrets are in the chain now, so the former fields and Keychain entries are gone
+        XCTAssertNil(m.waterwallConfigJSON);
+        XCTAssertNil(m.password);
+        XCTAssertNil(m.passwordKey);
+        XCTAssertNil(m.waterwallOuterSecretRef);
+        XCTAssertNil([SRPKeychain passwordForKey:passwordKey]);
+        XCTAssertNil([SRPKeychain passwordForKey:outerRef]);
+        XCTAssertFalse([CheckConnectData convertLegacyWaterWallProfile:m], @"A profile is converted once");
 
-    NSDictionary *d = [CheckConnectData checkConnectParmer:m];
-    XCTAssertEqualObjects(d[@"ww_config"], m.waterwallConfigJSON);
-    XCTAssertFalse([d.allKeys containsObject:@"ww_preset"]);
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:d[@"ww_config"]], configuration);
-    XCTAssertEqualObjects(d[@"ww_secret_ref"], m.passwordKey);
-    XCTAssertEqualObjects(d[@"ww_outer_secret_ref"], m.waterwallOuterSecretRef);
-    XCTAssertNil(d[@"ww_outer_secret"]);
-    NodeModel *r = [CheckConnectData getModalForDic:d];
-    XCTAssertEqualObjects(r.nodeName, @"WaterWall VPN");
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:r.waterwallConfigJSON], configuration);
-    XCTAssertEqualObjects(r.passwordKey, m.passwordKey);
-    XCTAssertEqualObjects(r.waterwallOuterSecret, m.waterwallOuterSecret);
-    XCTAssertEqualObjects(r.waterwallOuterSecretRef, m.waterwallOuterSecretRef);
-    XCTAssertEqualObjects(r.waterwallProbeIP, m.waterwallProbeIP);
-    XCTAssertEqualObjects(r.waterwallDNSProbeIP, m.waterwallDNSProbeIP);
-    XCTAssertTrue(r.waterwallFakeDNS);
-    XCTAssertTrue(r.waterwallSmartRouting);
+        NodeModel *r = [CheckConnectData getModalForDic:d];
+        XCTAssertEqualObjects(r.waterwallChainJSON, m.waterwallChainJSON);
+        XCTAssertEqualObjects(r.waterwallProbeIP, m.waterwallProbeIP);
+        XCTAssertEqualObjects(r.waterwallDNSProbeIP, m.waterwallDNSProbeIP);
+        XCTAssertTrue(r.waterwallFakeDNS);
+        XCTAssertFalse([CheckConnectData convertLegacyWaterWallProfile:r]);
+    } @finally {
+        [CheckConnectData deleteStoredSecretsOfProfile:m];
+    }
+}
+
+// WaterWall's WireGuard mode cannot start with an input hint: such a profile becomes a WireGuard profile
+- (void)testWaterWallWireGuardModeProfileBecomesAWireGuardProfile {
+    NodeModel *m = [NodeModel new];
+    m.protocolType = @"waterwall";
+    m.server = @"edited.example.com";
+    m.port = @"443";
+    m.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
+    m.wgConfig = @"[Interface]\nPrivateKey = aW1wb3J0ZWQ=\nAddress = 10.66.0.2/32\n\n[Peer]\nPublicKey = cGVlcg==\nEndpoint = wg.example.com:51820\nAllowedIPs = 0.0.0.0/0\n";
+    XCTAssertTrue([CheckConnectData convertLegacyWaterWallProfile:m]);
+    XCTAssertEqualObjects(m.protocolType, @"wireguard");
+    XCTAssertEqualObjects(m.nodeName, @"WireGuard VPN");
+    XCTAssertEqualObjects(m.server, @"wg.example.com", @"The imported file's Endpoint, as WaterWall used it");
+    XCTAssertEqualObjects(m.port, @"51820");
+    XCTAssertNil(m.waterwallConfigJSON);
+    XCTAssertNil(m.waterwallChainJSON);
+    XCTAssertEqualObjects(m.wgConfig, @"[Interface]\nPrivateKey = aW1wb3J0ZWQ=\nAddress = 10.66.0.2/32\n\n[Peer]\nPublicKey = cGVlcg==\nEndpoint = wg.example.com:51820\nAllowedIPs = 0.0.0.0/0\n");
+}
+
+// The GeoIP update link moved from each profile to the app's settings: a converted profile gives it once
+- (void)testWaterWallConversionMovesTheGeoIPUpdateLinkToTheSettings {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    id before = [defaults objectForKey:@"SRPGeoIPUpdateURL"];
+    @try {
+        [defaults removeObjectForKey:@"SRPGeoIPUpdateURL"];
+        NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
+        configuration[@"geoip"] = @{@"countries": @[@"IR"], @"update-url": @"https://example.com/first.mmdb"};
+        NodeModel *first = [self waterWallProfileWithConfiguration:configuration];
+        configuration[@"geoip"] = @{@"countries": @[@"IR"], @"update-url": @"https://example.com/second.mmdb"};
+        NodeModel *second = [self waterWallProfileWithConfiguration:configuration];
+        XCTAssertTrue([CheckConnectData convertLegacyWaterWallProfile:first]);
+        XCTAssertTrue([CheckConnectData convertLegacyWaterWallProfile:second]);
+        XCTAssertEqualObjects([defaults stringForKey:@"SRPGeoIPUpdateURL"], @"https://example.com/first.mmdb");
+        NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:first.waterwallChainJSON error:nil];
+        XCTAssertTrue([SRPWaterWallNodeChain documentUsesGeoIP:document]);
+        XCTAssertFalse([first.waterwallChainJSON containsString:@"geoip-db-path"], @"The phone's own database path is set when it connects");
+    } @finally {
+        if (before) [defaults setObject:before forKey:@"SRPGeoIPUpdateURL"];
+        else [defaults removeObjectForKey:@"SRPGeoIPUpdateURL"];
+    }
+}
+
+- (NodeModel *)waterWallProfileWithConfiguration:(NSDictionary *)configuration {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.server = @"waterwall.example.com";
+    model.port = @"443";
+    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
+    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    return model;
+}
+
+#pragma mark - WaterWall node chain
+
+- (void)testWaterWallExampleImportFollowsNextAndEndsAtTheTerminalNode {
+    NSString *problem = nil;
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:SRPWWExampleJSON error:&problem];
+    XCTAssertNotNil(document, @"%@", problem);
+    NSArray<NSDictionary *> *chain = [SRPWaterWallNodeChain chainOfDocument:document];
+    XCTAssertEqualObjects([chain valueForKey:@"type"], (@[@"HintConnectionIN", @"TlsClient", @"TcpConnector"]));
+    XCTAssertEqualObjects([chain valueForKey:@"name"], (@[@"input", @"tls", @"uplink"]));
+    XCTAssertEqualObjects(chain[1][@"next"], @"uplink");
+    XCTAssertNil(chain.lastObject[@"next"], @"The terminal node has no next key");
+    XCTAssertEqualObjects(chain[1][@"settings"], (@{@"sni": @"vpn.example.com", @"verify": @YES}));
+    XCTAssertEqualObjects([SRPWaterWallNodeChain summaryOfDocument:document], @"Example TLS chain");
+    XCTAssertEqualObjects([SRPWaterWallNodeChain endpointsOfDocument:document], (@[@{@"host": @"vpn.example.com", @"port": @443}]));
+}
+
+- (void)testWaterWallEditInsertDeleteAndRenameKeepTheChain {
+    NSDictionary *document = SRPWWExampleDocument();
+    // Edit: a new SNI; verify and next stay as they were
+    NSMutableDictionary *tls = [[SRPWaterWallNodeChain chainOfDocument:document][1] mutableCopy];
+    tls[@"settings"] = @{@"sni": @"edge.example.net", @"verify": @YES};
+    NSDictionary *edited = [SRPWaterWallNodeChain document:document replacingNodeNamed:@"tls" withNode:tls];
+    XCTAssertNil([SRPWaterWallNodeChain validationErrorForDocument:edited]);
+    NSDictionary *reopened = [SRPWaterWallNodeChain documentWithJSON:[SRPWaterWallNodeChain JSONWithDocument:edited] error:nil];
+    NSDictionary *saved = [SRPWaterWallNodeChain chainOfDocument:reopened][1];
+    XCTAssertEqualObjects(saved[@"settings"], (@{@"sni": @"edge.example.net", @"verify": @YES}));
+    XCTAssertEqualObjects(saved[@"next"], @"uplink");
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:reopened].lastObject, [SRPWaterWallNodeChain chainOfDocument:document].lastObject);
+
+    // Insert after tls, then delete: the link comes back
+    NSDictionary *fragmenter = @{@"name": @"split", @"type": @"StreamFragmenter", @"settings": @{}, @"next": @"uplink"};
+    NSDictionary *inserted = [SRPWaterWallNodeChain document:document insertingNode:fragmenter afterNodeNamed:@"tls"];
+    XCTAssertNil([SRPWaterWallNodeChain validationErrorForDocument:inserted]);
+    XCTAssertEqualObjects([[SRPWaterWallNodeChain chainOfDocument:inserted] valueForKey:@"name"], (@[@"input", @"tls", @"split", @"uplink"]));
+    NSDictionary *deleted = [SRPWaterWallNodeChain document:inserted deletingNodeNamed:@"split"];
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:deleted][1][@"next"], @"uplink");
+    XCTAssertEqualObjects([[SRPWaterWallNodeChain chainOfDocument:deleted] valueForKey:@"name"], (@[@"input", @"tls", @"uplink"]));
+
+    // After the terminal node a new node ends the chain; deleting the terminal node ends it at its predecessor
+    NSDictionary *tail = [SRPWaterWallNodeChain document:document insertingNode:@{@"name": @"last", @"type": @"StreamFragmenter", @"settings": @{}}
+                                          afterNodeNamed:@"uplink"];
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:tail].lastObject[@"name"], @"last");
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:tail][2][@"next"], @"last");
+    NSDictionary *shortened = [SRPWaterWallNodeChain document:document deletingNodeNamed:@"uplink"];
+    XCTAssertNil([SRPWaterWallNodeChain chainOfDocument:shortened].lastObject[@"next"]);
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:shortened].lastObject[@"name"], @"tls");
+
+    // Rename: the next that named the node follows the new name
+    NSMutableDictionary *renamed = [tls mutableCopy];
+    renamed[@"name"] = @"outer-tls";
+    NSDictionary *afterRename = [SRPWaterWallNodeChain document:document replacingNodeNamed:@"tls" withNode:renamed];
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:afterRename][0][@"next"], @"outer-tls");
+    XCTAssertNil([SRPWaterWallNodeChain validationErrorForDocument:afterRename]);
+
+    // An edit that leaves no leading hint cannot be saved
+    NSDictionary *noHint = [SRPWaterWallNodeChain document:document replacingNodeNamed:@"input"
+                                                  withNode:@{@"name": @"input", @"type": @"TlsClient", @"settings": @{}, @"next": @"tls"}];
+    XCTAssertEqualObjects([SRPWaterWallNodeChain validationErrorForDocument:noHint],
+                          @"The chain must start with an input hint: HintConnectionIN or HintPacketIN.");
+}
+
+- (void)testWaterWallImportBlocksForbiddenAndBrokenFilesWithTheirReason {
+    NSDictionary *hint = @{@"name": @"input", @"type": @"HintConnectionIN", @"settings": @{}, @"next": @"out"};
+    NSDictionary *out = @{@"name": @"out", @"type": @"TcpConnector", @"settings": @{@"address": @"vpn.example.com", @"port": @443}};
+    XCTAssertNil(SRPWWImportProblem(@[hint, out]));
+    XCTAssertEqualObjects(SRPWWImportProblem(@[out]), @"The chain must start with an input hint: HintConnectionIN or HintPacketIN.");
+    // A raw socket anywhere, on the chain or off it
+    NSDictionary *raw = @{@"name": @"raw", @"type": @"RawSocket", @"settings": @{}};
+    XCTAssertEqualObjects(SRPWWImportProblem((@[hint, out, raw])), @"Node \"raw\" is a RawSocket node: raw socket nodes cannot be imported.");
+    NSString *tun = SRPWWImportProblem((@[hint, out, @{@"name": @"tun", @"type": @"TunDevice", @"settings": @{}, @"next": @"input"}]));
+    XCTAssertTrue([tun hasPrefix:@"Node \"tun\" is a TunDevice node: SRP supplies TunDevice and PacketsToConnection itself"], @"%@", tun);
+    NSString *ptc = SRPWWImportProblem((@[hint, out, @{@"name": @"ptc", @"type": @"PacketsToConnection", @"settings": @{}}]));
+    XCTAssertTrue([ptc hasPrefix:@"Node \"ptc\" is a PacketsToConnection node"], @"%@", ptc);
+    NSString *missing = SRPWWImportProblem(@[hint]);
+    XCTAssertTrue([missing containsString:@"\"out\""], @"The missing target is named: %@", missing);
+    NSString *cycle = SRPWWImportProblem((@[hint, @{@"name": @"out", @"type": @"TlsClient", @"settings": @{}, @"next": @"input"}]));
+    XCTAssertNotNil(cycle);
+    NSString *twice = SRPWWImportProblem((@[hint, out, @{@"name": @"out", @"type": @"TlsClient", @"settings": @{}}]));
+    XCTAssertTrue([twice containsString:@"\"out\""], @"%@", twice);
+    NSMutableDictionary *withSettings = [hint mutableCopy];
+    withSettings[@"settings"] = @{@"mtu": @1400};
+    XCTAssertNotNil(SRPWWImportProblem((@[withSettings, out])), @"A hint has no settings");
+    XCTAssertNotNil(SRPWWImportProblem((@[hint, out, @{@"name": @"second", @"type": @"HintPacketIN", @"settings": @{}}])));
+    NSString *problem = nil;
+    XCTAssertNil([SRPWaterWallNodeChain documentWithJSON:@"{\"nodes\": [" error:&problem]);
+    XCTAssertGreaterThan(problem.length, 0U);
+}
+
+// The saved profile keeps its hint; what WaterWall runs starts with the input Settings → WaterWall Input chooses
+- (void)testWaterWallRuntimeInputPrefixFollowsTheHintAndTheInputSetting {
+    NSDictionary *document = SRPWWExampleDocument();
+    NSDictionary *(^runtime)(NSDictionary *, NSString *, NSString **) = ^NSDictionary *(NSDictionary *profile, NSString *input, NSString **error) {
+        return [SRPWaterWallNodeChain runtimeDocumentForDocument:profile input:input fakeDNS:YES geoIPDatabasePath:nil
+                                                       addresses:@{@"vpn.example.com": @"192.0.2.10"} error:error];
+    };
+    NSString *error = nil;
+    NSDictionary *tun = runtime(document, SRPWaterWallInputTUN, &error);
+    XCTAssertNil(error);
+    NSArray *nodes = tun[@"nodes"];
+    XCTAssertEqualObjects([nodes valueForKey:@"type"], (@[@"NEPacketDevice", @"PacketsToConnection", @"TcpConnector", @"TlsClient"]));
+    XCTAssertEqualObjects(nodes[0][@"next"], nodes[1][@"name"]);
+    XCTAssertEqualObjects(nodes[1][@"next"], @"tls", @"PacketsToConnection takes over the hint's successor");
+    XCTAssertNotNil(nodes[1][@"settings"][@"fake-dns"]);
+    XCTAssertEqualObjects(nodes[2][@"settings"][@"address"], @"192.0.2.10", @"The address the routes leave out");
+    XCTAssertEqualObjects([SRPWaterWallNodeChain chainOfDocument:document].firstObject[@"type"], @"HintConnectionIN", @"The profile keeps its hint");
+
+    NSMutableArray *packetNodes = [document[@"nodes"] mutableCopy];
+    packetNodes[0] = @{@"name": @"input", @"type": @"HintPacketIN", @"settings": @{}, @"next": @"tls"};
+    NSDictionary *packets = SRPWWDocumentWithNodes(packetNodes);
+    NSArray *packetRuntime = runtime(packets, SRPWaterWallInputTUN, &error)[@"nodes"];
+    XCTAssertEqualObjects([packetRuntime valueForKey:@"type"], (@[@"NEPacketDevice", @"TcpConnector", @"TlsClient"]));
+    XCTAssertEqualObjects(packetRuntime[0][@"next"], @"tls");
+
+    NSArray *socks = runtime(document, SRPWaterWallInputSOCKS5, &error)[@"nodes"];
+    XCTAssertEqualObjects([[socks subarrayWithRange:NSMakeRange(0, 2)] valueForKey:@"type"], (@[@"TcpUdpListener", @"Socks5Server"]));
+    XCTAssertEqualObjects(socks[0][@"settings"][@"address"], @"127.0.0.1");
+    XCTAssertEqualObjects(socks[0][@"settings"][@"port"], @1080);
+    XCTAssertEqualObjects(socks[1][@"settings"], (@{@"no-auth": @YES, @"connect": @YES, @"udp": @YES, @"ipv4": @"127.0.0.1"}));
+    XCTAssertEqualObjects(socks[1][@"next"], @"tls");
+    NSArray *http = runtime(document, SRPWaterWallInputHTTP, &error)[@"nodes"];
+    XCTAssertEqualObjects([[http subarrayWithRange:NSMakeRange(0, 2)] valueForKey:@"type"], (@[@"TcpListener", @"HttpProxyServer"]));
+    XCTAssertEqualObjects(http[0][@"settings"][@"port"], @8080);
+    XCTAssertEqualObjects(http[1][@"settings"], (@{@"no-auth": @YES}));
+    XCTAssertEqualObjects(http[1][@"next"], @"tls");
+
+    // A packet hint never becomes a connection input, and never falls back to the system VPN
+    for (NSString *input in @[SRPWaterWallInputSOCKS5, SRPWaterWallInputHTTP]) {
+        error = nil;
+        XCTAssertNil(runtime(packets, input, &error));
+        XCTAssertTrue([error hasPrefix:@"This profile starts with HintPacketIN, which takes IP packets"], @"%@", error);
+    }
+
+    // A node type the app's WaterWall does not include stops the connection at once, naming the node
+    NSMutableArray *unknown = [document[@"nodes"] mutableCopy];
+    [unknown addObject:@{@"name": @"meter", @"type": @"SpeedTestClient", @"settings": @{}}];
+    error = nil;
+    XCTAssertNil(runtime(SRPWWDocumentWithNodes(unknown), SRPWaterWallInputTUN, &error));
+    XCTAssertEqualObjects(error, @"Node \"meter\" is a SpeedTestClient node, which the app's WaterWall does not include.");
+
+    // A generated name never takes one the profile already uses
+    NSMutableArray *clash = [document[@"nodes"] mutableCopy];
+    [clash addObject:@{@"name": @"srp-device", @"type": @"StreamFragmenter", @"settings": @{}}];
+    NSArray *unique = runtime(SRPWWDocumentWithNodes(clash), SRPWaterWallInputTUN, &error)[@"nodes"];
+    XCTAssertEqualObjects(unique[0][@"name"], @"srp-device-2");
+}
+
+// One choice for all WaterWall profiles: the profiles hold no input of their own
+- (void)testWaterWallInputIsOneAppWideSetting {
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    id before = [shared objectForKey:@"SRPWaterWallInput"];
+    @try {
+        [shared removeObjectForKey:@"SRPWaterWallInput"];
+        XCTAssertEqualObjects(SRPWaterWallNodeChain.currentInput, SRPWaterWallInputTUN);
+        NodeModel *first = [NodeModel new], *second = [NodeModel new];
+        first.protocolType = second.protocolType = @"waterwall";
+        first.waterwallChainJSON = SRPWWExampleJSON;
+        second.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
+        NSDictionary *firstBefore = [CheckConnectData checkConnectParmer:first];
+        for (NSString *input in @[SRPWaterWallInputSOCKS5, SRPWaterWallInputHTTP, SRPWaterWallInputTUN]) {
+            SRPWaterWallNodeChain.currentInput = input;
+            XCTAssertEqualObjects(SRPWaterWallNodeChain.currentInput, input);
+            XCTAssertEqualObjects([shared stringForKey:@"SRPWaterWallInput"], input);
+            NSDictionary *a = [CheckConnectData checkConnectParmer:first], *b = [CheckConnectData checkConnectParmer:second];
+            XCTAssertEqualObjects(a, firstBefore, @"Changing the input changes no profile");
+            for (NSDictionary *parameters in @[a, b]) {
+                for (NSString *key in parameters) XCTAssertFalse([key containsString:@"input"], @"%@", key);
+            }
+        }
+        XCTAssertEqual([SRPWaterWallNodeChain portForInput:SRPWaterWallInputSOCKS5], 1080);
+        XCTAssertEqual([SRPWaterWallNodeChain portForInput:SRPWaterWallInputHTTP], 8080);
+        [shared setObject:@"something-else" forKey:@"SRPWaterWallInput"];
+        XCTAssertEqualObjects(SRPWaterWallNodeChain.currentInput, SRPWaterWallInputTUN);
+        [CheckConnectData deleteStoredSecretsOfProfile:first];
+        [CheckConnectData deleteStoredSecretsOfProfile:second];
+    } @finally {
+        if (before) [shared setObject:before forKey:@"SRPWaterWallInput"];
+        else [shared removeObjectForKey:@"SRPWaterWallInput"];
+    }
 }
 
 - (void)testWaterWallMigrationDefaultsAndLegacyConfigurations {
@@ -570,8 +842,11 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNotNil(empty);
     XCTAssertTrue(empty.waterwallFakeDNS);
     XCTAssertNil(empty.waterwallSecretRef);
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:empty.waterwallConfigJSON],
-                          [SRPWaterWallChainConfig defaultConfiguration]);
+    XCTAssertNil(empty.waterwallConfigJSON);
+    // Stored without settings or a UUID, the form could not connect it either: it starts as an empty chain
+    XCTAssertFalse([CheckConnectData convertLegacyWaterWallProfile:empty]);
+    XCTAssertEqualObjects(empty.waterwallChainJSON, [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]]);
+    XCTAssertFalse([CheckConnectData convertLegacyWaterWallProfile:empty]);
 
     for (NSDictionary *testCase in [self waterWallLegacyCases]) {
         NSString *name = testCase[@"name"];
@@ -580,7 +855,18 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
         XCTAssertEqualObjects(migrated, expected, @"%@", name);
         XCTAssertEqualObjects(migrated[@"version"], @3, @"%@", name);
         NodeModel *stored = [CheckConnectData getModalForDic:@{@"type": @"waterwall", @"ww_preset": name}];
-        XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:stored.waterwallConfigJSON], expected, @"%@", name);
+        XCTAssertEqualObjects(stored.waterwallPreset, name);
+        stored.server = @"waterwall.example.com";
+        stored.password = @"00112233-4455-6677-8899-aabbccddeeff";
+        stored.waterwallOuterSecret = @"outer-secret";
+        XCTAssertTrue([CheckConnectData convertLegacyWaterWallProfile:stored], @"%@", name);
+        XCTAssertNil(stored.waterwallPreset, @"%@", name);
+        if ([SRPWaterWallChainConfig isWireGuardConfiguration:expected]) {
+            XCTAssertEqualObjects(stored.protocolType, @"wireguard", @"%@", name);
+        } else {
+            XCTAssertNil([SRPWaterWallNodeChain validationErrorForDocument:
+                [SRPWaterWallNodeChain documentWithJSON:stored.waterwallChainJSON error:nil] ?: @{}], @"%@", name);
+        }
     }
 }
 
@@ -955,56 +1241,6 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertNil(router[@"rules"]);
     XCTAssertNil(byName[@"direct-local"]);
 }
-
-#if TARGET_OS_IPHONE  // the screen is UIKit; the Mac test target builds this file too
-- (void)testWaterWallDNSResolverSectionSavesTheResolver {
-    NodeModel *model = [NodeModel new];
-    [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
-    model.server = @"server.example.com";
-    model.password = @"00000000-0000-4000-8000-000000000000";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
-    UITableViewController *screen = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
-    [screen loadViewIfNeeded];
-    NSDictionary *(^saved)(void) = ^NSDictionary *{ return [SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON]; };
-    UITableViewCell *(^cell)(NSInteger) = ^UITableViewCell *(NSInteger row) {
-        return [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:3]];
-    };
-    XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 4);
-    XCTAssertEqualObjects([screen tableView:screen.tableView titleForHeaderInSection:3], @"DNS RESOLVER");
-    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 1);
-    XCTAssertEqualObjects(cell(0).textLabel.text, @"Resolver");
-    XCTAssertEqualObjects(cell(0).detailTextLabel.text, @"Off");
-    XCTAssertNil(saved()[@"domain-resolver"]);
-
-    // Through the VPN starts with two public servers and adds Addresses and DNS Servers
-    [screen dnsModeChanged:@"chain"];
-    XCTAssertEqualObjects(saved()[@"domain-resolver"], (@{@"mode": @"chain", @"servers": @[@"1.1.1.1", @"8.8.8.8"]}));
-    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 3);
-    XCTAssertEqualObjects(cell(0).detailTextLabel.text, @"Through the VPN");
-    XCTAssertEqualObjects(cell(1).detailTextLabel.text, @"Default (IPv4 First)");
-    [screen dnsStrategyChanged:@"only-ipv4"];
-    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"strategy"], @"only-ipv4");
-    XCTAssertEqualObjects(cell(1).detailTextLabel.text, @"IPv4 Only");
-    UITextField *field = (UITextField *)cell(2).accessoryView;
-    XCTAssertEqualObjects(field.text, @"1.1.1.1, 8.8.8.8");
-    field.text = @"9.9.9.9 [2620:fe::fe]:53,\n149.112.112.112";
-    [screen commitDNSServers];
-    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"servers"], (@[@"9.9.9.9", @"[2620:fe::fe]:53", @"149.112.112.112"]));
-    // A name is no server address: the screen says why and keeps the saved list
-    field.text = @"dns.google";
-    [screen commitDNSServers];
-    XCTAssertEqualObjects(saved()[@"domain-resolver"][@"servers"], (@[@"9.9.9.9", @"[2620:fe::fe]:53", @"149.112.112.112"]));
-    [screen dismissViewControllerAnimated:NO completion:nil];
-
-    // Native asks the phone's network and has no server list; Off takes the resolver out
-    [screen dnsModeChanged:@"native"];
-    XCTAssertEqualObjects(saved()[@"domain-resolver"], (@{@"mode": @"native", @"strategy": @"only-ipv4"}));
-    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 2);
-    [screen dnsModeChanged:@"off"];
-    XCTAssertNil(saved()[@"domain-resolver"]);
-    XCTAssertEqual([screen tableView:screen.tableView numberOfRowsInSection:3], 1);
-}
-#endif
 
 - (void)testWaterWallDNSResolverOptionAndDNSBehaviourMigration {
     // Profiles saved before WaterWall 1.5.4 keep their resolution under dns-behaviour, which replaced domain-strategy
@@ -2030,22 +2266,31 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
                                             @"mux": @NO, @"outer": @"none", @"http": @"off", @"http-version": @1,
                                             @"obfuscator": @NO, @"carrier": @"tcp", @"quic-carrier": @"datagram",
                                             @"node-options": @{}, @"bgp4": @NO} mutableCopy];
-    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    // The chain the former form built for each carrier: one that ends in UDP has no TCP server to time
+    void (^convert)(void) = ^{
+        waterwall.password = @"00112233-4455-6677-8899-aabbccddeeff";
+        waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+        XCTAssertTrue([CheckConnectData convertLegacyWaterWallProfile:waterwall]);
+    };
+    convert();
     XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port], @"203.0.113.8");
     XCTAssertEqual(port, 2083);
     configuration[@"carrier"] = @"kcp";
-    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    convert();
     XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port]);
     configuration[@"carrier"] = @"tcp";
     configuration[@"outer"] = @"quic";
-    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+    convert();
     XCTAssertNil([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port]);
     // QUIC's stream carrier runs over a TCP connection to the same port.
     configuration[@"quic-carrier"] = @"stream";
-    waterwall.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
-    XCTAssertNotNil(waterwall.waterwallConfigJSON);
+    convert();
     XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port], @"203.0.113.8");
     XCTAssertEqual(port, 2083);
+    waterwall.waterwallChainJSON = SRPWWExampleJSON;
+    [waterwall syncWaterWallServer];
+    XCTAssertEqualObjects([SRPProfileTCPPinger endpointHostForProfile:waterwall port:&port], @"vpn.example.com");
+    XCTAssertEqual(port, 443);
 
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:85 timedOut:NO], @"TCP: 85 ms");
     XCTAssertEqualObjects([SRPProfileTCPPinger textForMilliseconds:-1 timedOut:YES], @"TCP: Timeout");
@@ -2947,6 +3192,22 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     NSString *application = environment[@"SRP_WW_APPLICATION"] ?: @"vless";
     NSString *outer = environment[@"SRP_WW_OUTER"] ?: @"bgp4";
     NSString *customConfig = environment[@"SRP_WW_CONFIG_JSON"];
+    NSString *chainJSON = environment[@"SRP_WW_CHAIN_JSON"];
+    if (chainJSON.length > 0) {
+        NSString *problem = nil;
+        if ([SRPWaterWallNodeChain documentWithJSON:chainJSON error:&problem] == nil) {
+            NSLog(@"Live chain diagnostics: %@", problem);
+            return nil;
+        }
+        NodeModel *model = [NodeModel new];
+        model.protocolType = @"waterwall";
+        model.nodeId = environment[@"SRP_WW_TEST_ID"] ?: @"live-waterwall-test";
+        model.desc = @"WaterWall live test";
+        model.waterwallChainJSON = chainJSON;
+        [model syncWaterWallServer];
+        [self applyLiveWaterWallOptions:environment toModel:model];
+        return model;
+    }
     if (address.length == 0 || (!customConfig.length && uuid.length == 0) || port.integerValue < 1 || port.integerValue > 65535 ||
         (!customConfig.length && (![@[@"tcp", @"kcp"] containsObject:carrier] ||
          ![@[@"vless", @"vmess"] containsObject:application] || ![@[@"none", @"tls", @"bgp4"] containsObject:outer]))) {
@@ -2967,15 +3228,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     model.wgConfig = environment[@"SRP_WW_WG_CONFIG"];
     model.customSni = environment[@"SRP_WW_SNI"];
     model.TLS = [environment[@"SRP_WW_INSECURE"] boolValue];
-    model.logLevel = environment[@"SRP_WW_LOG_LEVEL"] ? [environment[@"SRP_WW_LOG_LEVEL"] integerValue] : 2;
-    model.waterwallFakeDNS = environment[@"SRP_WW_FAKE_DNS"] ? [environment[@"SRP_WW_FAKE_DNS"] boolValue] : YES;
     model.waterwallSmartRouting = YES;
-    model.waterwallProbeIP = environment[@"SRP_WW_PROBE_IP"];
-    model.waterwallDNSProbeIP = environment[@"SRP_WW_DNS_PROBE_IP"];
-    model.autoReconnect = environment[@"SRP_AUTO_RECONNECT"] ? [environment[@"SRP_AUTO_RECONNECT"] boolValue] : YES;
-    model.retryTimes = [environment[@"SRP_RETRY_TIMES"] integerValue];
-    model.switchToWifi = environment[@"SRP_SWITCH_WIFI"] ? [environment[@"SRP_SWITCH_WIFI"] boolValue] : YES;
-    model.onSleep = environment[@"SRP_ON_SLEEP"] ? [environment[@"SRP_ON_SLEEP"] integerValue] : 2;
+    [self applyLiveWaterWallOptions:environment toModel:model];
     NSDictionary *nodeOptions = @{};
     NSString *nodeOptionsJSON = environment[@"SRP_WW_NODE_OPTIONS"];
     if (nodeOptionsJSON.length > 0) {
@@ -2994,6 +3248,99 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     }];
     if ([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON] == nil) return nil;
     return model;
+}
+
+- (void)applyLiveWaterWallOptions:(NSDictionary *)environment toModel:(NodeModel *)model {
+    model.logLevel = environment[@"SRP_WW_LOG_LEVEL"] ? [environment[@"SRP_WW_LOG_LEVEL"] integerValue] : 2;
+    model.waterwallFakeDNS = environment[@"SRP_WW_FAKE_DNS"] ? [environment[@"SRP_WW_FAKE_DNS"] boolValue] : YES;
+    model.waterwallProbeIP = environment[@"SRP_WW_PROBE_IP"];
+    model.waterwallDNSProbeIP = environment[@"SRP_WW_DNS_PROBE_IP"];
+    model.autoReconnect = environment[@"SRP_AUTO_RECONNECT"] ? [environment[@"SRP_AUTO_RECONNECT"] boolValue] : YES;
+    model.retryTimes = [environment[@"SRP_RETRY_TIMES"] integerValue];
+    model.switchToWifi = environment[@"SRP_SWITCH_WIFI"] ? [environment[@"SRP_SWITCH_WIFI"] boolValue] : YES;
+    model.onSleep = environment[@"SRP_ON_SLEEP"] ? [environment[@"SRP_ON_SLEEP"] integerValue] : 2;
+}
+
+// The address Cloudflare's trace sees: directly, or through the local SOCKS5 or HTTP proxy the way an app uses one
+- (NSString *)liveTraceAddressThroughProxy:(NSString *)proxy {
+    NSURLSessionConfiguration *configuration = NSURLSessionConfiguration.ephemeralSessionConfiguration;
+    configuration.timeoutIntervalForRequest = 20;
+    if ([proxy isEqualToString:SRPWaterWallInputSOCKS5]) {
+        configuration.connectionProxyDictionary = @{@"SOCKSEnable": @1, (__bridge NSString *)kCFStreamPropertySOCKSProxyHost: @"127.0.0.1",
+                                                    (__bridge NSString *)kCFStreamPropertySOCKSProxyPort: @1080};
+    } else if ([proxy isEqualToString:SRPWaterWallInputHTTP]) {
+        configuration.connectionProxyDictionary = @{@"HTTPEnable": @1, @"HTTPProxy": @"127.0.0.1", @"HTTPPort": @8080,
+                                                    @"HTTPSEnable": @1, @"HTTPSProxy": @"127.0.0.1", @"HTTPSPort": @8080};
+    } else {
+        configuration.connectionProxyDictionary = @{};
+    }
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
+    XCTestExpectation *done = [self expectationWithDescription:proxy ?: @"direct"];
+    __block NSString *address = nil, *problem = nil;
+    [[session dataTaskWithURL:[NSURL URLWithString:@"https://www.cloudflare.com/cdn-cgi/trace"]
+            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        NSString *text = data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : nil;
+        for (NSString *line in [text componentsSeparatedByString:@"\n"]) {
+            if ([line hasPrefix:@"ip="]) address = [line substringFromIndex:3];
+        }
+        problem = error.localizedDescription ?: [NSString stringWithFormat:@"HTTP %ld", (long)((NSHTTPURLResponse *)response).statusCode];
+        [done fulfill];
+    }] resume];
+    [self waitForExpectations:@[done] timeout:30];
+    [session invalidateAndCancel];
+    if (address == nil) NSLog(@"Live trace through %@ failed: %@", proxy ?: @"no proxy", problem);
+    return address;
+}
+
+// With SRP_WW_PROXY_TEST=socks5 or http: the profile of the environment connects with that WaterWall input. Apps reach
+// the server through the local proxy, and the VPN carries nothing else: the proxy's exit is the server's, a direct
+// request still leaves from the phone. SRP_WW_EXPECT_FAILURE names a failure the connection must end with instead.
+- (void)testWaterWallLiveLocalProxyWhenConfigured {
+    NSDictionary *environment = NSProcessInfo.processInfo.environment;
+    NSString *input = environment[@"SRP_WW_PROXY_TEST"];
+    if (![@[SRPWaterWallInputSOCKS5, SRPWaterWallInputHTTP] containsObject:input ?: @""]) return;
+    PDVPNManager *manager = PDVPNManager.sharedManager;
+    if (manager.status != YDVPNStatusDisconnected) XCTSkip(@"An existing VPN connection must be disconnected before running this test.");
+    NodeModel *model = [self liveWaterWallModelFromEnvironment];
+    XCTAssertNotNil(model);
+    if (model == nil) return;
+    NSString *inputBefore = SRPWaterWallNodeChain.currentInput;
+    SRPWaterWallNodeChain.currentInput = input;
+    @try {
+        NSString *error = nil;
+        NSMutableDictionary *server = [[CheckConnectData checkConnectParmer:model] mutableCopy];
+        if ([environment[@"SRP_WW_TEST_ID"] length] > 0) server[@"ww_test_id"] = environment[@"SRP_WW_TEST_ID"];
+        BOOL connected = [self waitForLiveVPNConnection:manager server:server error:&error];
+        NSString *expectedFailure = environment[@"SRP_WW_EXPECT_FAILURE"];
+        if (expectedFailure.length > 0) {
+            NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+            NSString *reason = [shared objectForKey:@"SRPLastError"][@"message"] ?: error;
+            NSLog(@"Live local proxy %@: expected failure, got %@", input, reason);
+            XCTAssertFalse(connected);
+            XCTAssertTrue([reason containsString:expectedFailure], @"%@", reason);
+            return;
+        }
+        XCTAssertTrue(connected, @"%@", error);
+        if (!connected) return;
+        NSUInteger rounds = MAX(1, [environment[@"SRP_STRESS_ROUNDS"] integerValue] ?: 3);
+        for (NSUInteger round = 0; round < rounds; round++) {
+            NSString *proxied = [self liveTraceAddressThroughProxy:input];
+            NSString *direct = [self liveTraceAddressThroughProxy:nil];
+            NSLog(@"Live local proxy %@ round %lu: exit %@, direct %@, VPN status %ld", input, (unsigned long)(round + 1),
+                  proxied ?: @"none", direct ?: @"none", (long)manager.status);
+            XCTAssertNotNil(proxied);
+            XCTAssertNotNil(direct);
+            XCTAssertNotEqualObjects(proxied, direct, @"The proxy's traffic leaves through the server");
+            if ([environment[@"SRP_WW_EXPECT_EXIT"] length] > 0) XCTAssertEqualObjects(proxied, environment[@"SRP_WW_EXPECT_EXIT"]);
+            XCTAssertEqual(manager.status, YDVPNStatusConnected);
+        }
+    } @finally {
+        if ([environment[@"SRP_FETCH_LOGS"] boolValue] || [environment[@"SRP_FETCH_LOGS_ON_FAILURE"] boolValue]) {
+            [self logWaterWallProviderFile:@"tunnel-log" manager:manager];
+        }
+        if (manager.status != YDVPNStatusDisconnected) [self waitForLiveVPNDisconnect:manager];
+        SRPWaterWallNodeChain.currentInput = inputBefore;
+    }
 }
 
 - (void)testWaterWallLiveConnectionAndThroughputWhenConfigured {
@@ -3030,6 +3377,13 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
         NSMutableDictionary *server = [[CheckConnectData checkConnectParmer:model] mutableCopy];
         if ([environment[@"SRP_WW_TEST_ID"] length] > 0) server[@"ww_test_id"] = environment[@"SRP_WW_TEST_ID"];
         BOOL connected = [self waitForLiveVPNConnection:manager server:server error:&error];
+        NSString *expectedFailure = environment[@"SRP_WW_EXPECT_FAILURE"];
+        if (expectedFailure.length > 0) {
+            NSLog(@"Live expected failure: %@", error);
+            XCTAssertFalse(connected);
+            XCTAssertTrue([error containsString:expectedFailure], @"%@", error);
+            return;
+        }
         XCTAssertTrue(connected, @"%@", error);
         if (!connected) return;
         NSTimeInterval profileDelay = [environment[@"SRP_PROFILE_DELAY"] doubleValue];
@@ -4509,6 +4863,29 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertTrue([[client valueForKey:@"closed"] boolValue]);
 }
 
+// A chain WaterWall refuses when it builds it ends the VPN with WaterWall's reason instead of being retried for ever
+- (void)testWaterWallRefusedProfileEndsWithWaterWallsReason {
+    SRPWaterWallClient *client = [SRPWaterWallClient new];
+    client.autoReconnect = YES;
+    client.coreJSON = @"{}";
+    client.nodesJSON = @"{}";
+    __block NSString *failure = nil;
+    XCTestExpectation *ended = [self expectationWithDescription:@"refused"];
+    [client setValue:[^(NSString *reason) { failure = reason; [ended fulfill]; } copy] forKey:@"failureCb"];
+    [client setValue:@[[client currentCandidate]] forKey:@"candidates"];
+    [client startRuntimeLocked];
+    const char *fatal = "2026-11-20 09:25:40.146 FATAL JSON Error: VlessClient->settings->target-address (string field) is required";
+    SRPTestWWCallbacks.log(SRPTestWWCallbacks.context, 6, fatal, strlen(fatal));
+    const char *next = "2026-11-20 09:25:40.147 FATAL NodeManager: node startup failure: node (\"<restricted>\") create() returned NULL handle";
+    SRPTestWWCallbacks.log(SRPTestWWCallbacks.context, 6, next, strlen(next));
+    SRPTestWWCallbacks.failure(SRPTestWWCallbacks.context, 1, "WaterWall runtime stopped with an error");
+    [self waitForExpectations:@[ended] timeout:2];
+    XCTAssertEqualObjects(failure, @"WaterWall refused the profile: JSON Error: VlessClient->settings->target-address (string field) is required");
+    XCTAssertTrue([[client valueForKey:@"closed"] boolValue]);
+    XCTAssertFalse([[client valueForKey:@"reconnectPending"] boolValue]);
+    [client closeAndWait];
+}
+
 - (void)testWaterWallLocalHandshakesDoNotHideAStalledServer {
     SRPWaterWallClient *client = [SRPWaterWallClient new];
     client.coreJSON = @"{}";
@@ -5016,73 +5393,6 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     }
 }
 
-- (void)testGeoIPCountryScreenSearchAndMultipleSelection {
-    Class viewClass = NSClassFromString(@"SRPGeoIPCountryViewController");
-    XCTAssertNotNil(viewClass);
-    __block NSSet<NSString *> *selected = nil;
-    __block BOOL enabled = NO;
-    id controller = [[viewClass alloc] initWithSelectedCodes:[NSSet set]
-                                                geoIPEnabled:NO
-                                           enabledDidChange:^BOOL(BOOL value) {
-        enabled = value;
-        return YES;
-    }
-                                                  completion:^(NSSet<NSString *> *codes) {
-        selected = codes;
-    }];
-    [controller loadViewIfNeeded];
-    UITableView *table = [controller tableView];
-    XCTAssertEqual([controller tableView:table numberOfRowsInSection:0], (NSInteger)1);
-    XCTAssertGreaterThan([controller tableView:table numberOfRowsInSection:1], (NSInteger)200);
-    XCTAssertNotNil([controller navigationItem].rightBarButtonItem);
-
-    UITableViewCell *toggleCell = [controller tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    UISwitch *routingSwitch = (UISwitch *)toggleCell.accessoryView;
-    XCTAssertFalse(routingSwitch.on);
-    routingSwitch.on = YES;
-    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
-    XCTAssertTrue(enabled);
-    XCTAssertEqualObjects(selected, ([NSSet setWithObject:@"IR"]));
-
-    UISearchController *search = [controller navigationItem].searchController;
-    search.searchBar.text = @"Germany";
-    [controller updateSearchResultsForSearchController:search];
-    XCTAssertEqual([controller tableView:table numberOfRowsInSection:1], (NSInteger)1);
-    NSIndexPath *path = [NSIndexPath indexPathForRow:0 inSection:1];
-    UITableViewCell *cell = [controller tableView:table cellForRowAtIndexPath:path];
-    XCTAssertTrue([cell.textLabel.text containsString:@"Germany"]);
-    XCTAssertTrue([cell.textLabel.text containsString:@"(DE)"]);
-    [controller tableView:table didSelectRowAtIndexPath:path];
-    XCTAssertEqualObjects(selected, ([NSSet setWithObjects:@"IR", @"DE", nil]));
-    cell = [controller tableView:table cellForRowAtIndexPath:path];
-    XCTAssertEqual(cell.accessoryType, UITableViewCellAccessoryCheckmark);
-
-    toggleCell = [controller tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    routingSwitch = (UISwitch *)toggleCell.accessoryView;
-    routingSwitch.on = NO;
-    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
-    XCTAssertFalse(enabled);
-    XCTAssertEqual(selected.count, 0u);
-
-    __block NSSet<NSString *> *rejectedSelection = nil;
-    id rejecting = [[viewClass alloc] initWithSelectedCodes:[NSSet set]
-                                               geoIPEnabled:NO
-                                          enabledDidChange:^BOOL(BOOL value) {
-        (void)value;
-        return NO;
-    }
-                                                 completion:^(NSSet<NSString *> *codes) {
-        rejectedSelection = codes;
-    }];
-    [rejecting loadViewIfNeeded];
-    toggleCell = [rejecting tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
-    routingSwitch = (UISwitch *)toggleCell.accessoryView;
-    routingSwitch.on = YES;
-    [routingSwitch sendActionsForControlEvents:UIControlEventValueChanged];
-    XCTAssertFalse(routingSwitch.on);
-    XCTAssertNil(rejectedSelection);
-}
-
 - (NSDictionary *)vmessNoneProfileConfiguration {
     return @{@"version": @3, @"mode": @"chain", @"input": @"connections", @"application": @"vmess",
              @"mux": @NO, @"outer": @"none", @"http": @"off", @"http-version": @1, @"obfuscator": @NO,
@@ -5113,32 +5423,15 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [UIApplication.sharedApplication sendAction:save.action to:save.target from:save forEvent:nil];
 }
 
-- (void)testProfileSaveTrimsPastedWaterWallValues {
-    NodeModel *model = [NodeModel new];
-    model.protocolType = @"waterwall";
-    model.server = @" waterwall.example \n";
-    model.port = @"443 ";
-    model.password = @"00112233-4455-6677-8899-aabbccddeeff\n";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
-    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
-    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
-    [self tapSaveOnProfileEditor:[self profileEditorOfHost:create]];
-    XCTAssertEqual(saved.count, 1U);
-    XCTAssertEqualObjects(saved.firstObject.server, @"waterwall.example");
-    XCTAssertEqualObjects(saved.firstObject.port, @"443");
-    XCTAssertEqualObjects(saved.firstObject.password, @"00112233-4455-6677-8899-aabbccddeeff");
-}
-
 - (void)testProfileSaveStaysTappableAndNamesMissingValue {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
-    model.server = @"waterwall.example";
-    model.port = @"443";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    model.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
     UIViewController *editor = [self profileEditorOfHost:create];
-    XCTAssertEqualObjects([editor validationMessage], @"Enter a VMess UUID or a short string ID of 1 to 30 UTF-8 bytes.");
+    XCTAssertEqualObjects([editor validationMessage],
+                          @"The input hint \"input\" has no next node: import a WaterWall profile or insert a node after it.");
     [self tapSaveOnProfileEditor:editor];
     XCTAssertEqual(saved.count, 0U);
 }
@@ -5274,15 +5567,12 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
 - (void)testWaterWallProfileOffersConnectionOptions {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
-    model.server = @"waterwall.example";
-    model.port = @"443";
-    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    model.waterwallChainJSON = SRPWWExampleJSON;
     NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
     CreateVC *create = [self profileEditorHostForModel:model saved:saved];
     UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
     NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Retry Times", @"Auto Switch", @"Switch to Wi-Fi When Available",
-                                  @"On Sleep", @"Log Level", @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
+                                  @"On Sleep", @"Log Level", @"Remote DNS (Fake IP)"];
     XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
     NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
     XCTAssertTrue([footer containsString:@"Auto Reconnect restarts WaterWall"]);
@@ -5368,7 +5658,8 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects([fallbacks valueForKey:@"desc"], (@[@"KCP", @"QUIC stream"]));
     for (NSDictionary *fallback in fallbacks) {
         XCTAssertNil(fallback[@"password"], @"Fallbacks carry the Keychain reference, not the secret");
-        XCTAssertGreaterThan([fallback[@"ww_secret_ref"] length], 0U);
+        XCTAssertGreaterThan([fallback[@"ww_chain_ref"] length], 0U);
+        XCTAssertFalse([[fallback description] containsString:@"00112233-4455"]);
     }
     NSDictionary *parameters = [CheckConnectData connectParametersForProfile:selected amongProfiles:profiles];
     XCTAssertEqual([parameters[@"ww_fallbacks"] count], 2U);
@@ -5380,21 +5671,308 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertNil([CheckConnectData connectParametersForProfile:selected amongProfiles:profiles][@"ww_fallbacks"]);
 }
 
-- (void)testWaterWallOptionRowsKeepFragmentationAndRoutingAfterSleep {
-    NSMutableDictionary *configuration = [[self vmessNoneProfileConfiguration] mutableCopy];
-    configuration[@"outer"] = @"tls";
+// The chain decides two rows: Auto Switch needs a server of its own, Remote DNS a chain that takes connections
+- (void)testWaterWallOptionRowsFollowTheChain {
+    NSDictionary *packetHint = @{@"name": @"input", @"type": @"HintPacketIN", @"settings": @{}, @"next": @"tls"};
+    NSMutableArray *packetNodes = [SRPWWExampleDocument()[@"nodes"] mutableCopy];
+    packetNodes[0] = packetHint;
+    NSDictionary *direct = SRPWWDocumentWithNodes(@[
+        @{@"name": @"input", @"type": @"HintConnectionIN", @"settings": @{}, @"next": @"out"},
+        @{@"name": @"out", @"type": @"TcpUdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port"}}]);
+    NSDictionary<NSString *, NSArray *> *cases = @{
+        SRPWWExampleJSON: @[@"Auto Reconnect", @"Auto Switch", @"Switch to Wi-Fi When Available", @"On Sleep", @"Log Level",
+                            @"Remote DNS (Fake IP)"],
+        [SRPWaterWallNodeChain JSONWithDocument:SRPWWDocumentWithNodes(packetNodes)]:
+            @[@"Auto Reconnect", @"Auto Switch", @"Switch to Wi-Fi When Available", @"On Sleep", @"Log Level"],
+        [SRPWaterWallNodeChain JSONWithDocument:direct]:
+            @[@"Auto Reconnect", @"Switch to Wi-Fi When Available", @"On Sleep", @"Log Level", @"Remote DNS (Fake IP)"],
+    };
+    for (NSString *json in cases) {
+        NodeModel *model = [NodeModel new];
+        model.protocolType = @"waterwall";
+        model.autoReconnect = NO;
+        model.waterwallChainJSON = json;
+        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
+        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
+        XCTAssertEqualObjects([self optionTitlesOfEditor:editor], cases[json], @"%@", json);
+        NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
+        XCTAssertEqual([footer containsString:@"Auto Switch"], [cases[json] containsObject:@"Auto Switch"]);
+        XCTAssertEqual([footer containsString:@"Remote DNS"], [cases[json] containsObject:@"Remote DNS (Fake IP)"]);
+        // The chain is one row; server, port and secrets are node settings now
+        XCTAssertEqual([editor tableView:editor.tableView numberOfRowsInSection:1], 1);
+        XCTAssertEqualObjects([editor tableView:editor.tableView titleForHeaderInSection:2], nil);
+    }
+}
+
+- (void)testWaterWallChainScreenShowsTheLinkedOrderAndTheActions {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
-    model.autoReconnect = NO;
-    model.tlsFragMode = 2;
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
-    NSMutableArray<NodeModel *> *saved = [NSMutableArray new];
-    CreateVC *create = [self profileEditorHostForModel:model saved:saved];
-    UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
-    NSArray<NSString *> *rows = @[@"Auto Reconnect", @"Auto Switch", @"Switch to Wi-Fi When Available", @"On Sleep",
-                                  @"Log Level", @"TLS Fragmentation", @"First Chunk (bytes)", @"Following Chunks (bytes)",
-                                  @"Remote DNS (Fake IP)", @"Direct LAN Routing"];
-    XCTAssertEqualObjects([self optionTitlesOfEditor:editor], rows);
+    model.waterwallChainJSON = SRPWWExampleJSON;
+    UITableViewController *screen = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
+    [screen loadViewIfNeeded];
+    UITableView *table = screen.tableView;
+    NSArray<NSString *> *(^titles)(void) = ^NSArray<NSString *> * {
+        NSMutableArray *result = [NSMutableArray new];
+        for (NSInteger row = 0; row < [screen tableView:table numberOfRowsInSection:0]; row++) {
+            UITableViewCell *cell = [screen tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:0]];
+            [result addObject:[NSString stringWithFormat:@"%@|%@", cell.textLabel.text, cell.detailTextLabel.text ?: @""]];
+        }
+        return result;
+    };
+    XCTAssertEqualObjects([screen tableView:table titleForHeaderInSection:0], @"NODE CHAIN");
+    XCTAssertEqualObjects(titles(), (@[@"HintConnectionIN|input", @"TlsClient|tls", @"TcpConnector|uplink"]));
+    UITableViewCell *last = [screen tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+    XCTAssertTrue([last.accessibilityLabel hasSuffix:@", End"], @"%@", last.accessibilityLabel);
+    UITableViewCell *first = [screen tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertFalse([first.accessibilityLabel hasSuffix:@", End"]);
+    XCTAssertEqualObjects([screen tableView:table titleForFooterInSection:0], @"Order follows each node's next field.");
+
+    // Expanding tls shows its next and the three actions
+    [screen tableView:table didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+    XCTAssertEqualObjects(titles(), (@[@"HintConnectionIN|input", @"TlsClient|tls", @"next|uplink", @"Edit node|",
+                                       @"Insert node after|", @"Delete node|", @"TcpConnector|uplink"]));
+    // The hint can be edited and followed, never deleted
+    [screen tableView:table didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertEqualObjects(titles(), (@[@"HintConnectionIN|input", @"next|tls", @"Edit node|", @"Insert node after|",
+                                       @"TlsClient|tls", @"TcpConnector|uplink"]));
+    // The terminal node has no next row
+    [screen tableView:table didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
+    XCTAssertEqualObjects(titles(), (@[@"HintConnectionIN|input", @"TlsClient|tls", @"TcpConnector|uplink", @"Edit node|",
+                                       @"Insert node after|", @"Delete node|"]));
+}
+
+- (void)testWaterWallNodeEditorSavesSettingsAndKeepsTheRest {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.waterwallChainJSON = SRPWWExampleJSON;
+    UITableViewController *editor = [[NSClassFromString(@"SRPWaterWallNodeViewController") alloc] initWithModel:model nodeName:@"tls"
+                                                                                                insertingAfter:nil];
+    [editor loadViewIfNeeded];
+    XCTAssertEqualObjects(editor.title, @"Edit Node");
+    XCTAssertEqual([editor numberOfSectionsInTableView:editor.tableView], 2);
+    XCTAssertEqual([editor tableView:editor.tableView numberOfRowsInSection:0], 3, @"Name, Type and Next");
+    UITableViewCell *next = [editor tableView:editor.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+    XCTAssertEqualObjects(next.textLabel.text, @"Next");
+    XCTAssertEqualObjects(next.detailTextLabel.text, @"uplink");
+    UITextField *name = [editor valueForKey:@"nameField"], *type = [editor valueForKey:@"typeField"];
+    XCTAssertEqualObjects(name.text, @"tls");
+    XCTAssertEqualObjects(type.text, @"TlsClient");
+    UITextView *settings = [editor valueForKey:@"settingsView"];
+    UILabel *status = [editor valueForKey:@"statusLabel"];
+    XCTAssertEqualObjects(settings.text, @"{\n  \"sni\" : \"vpn.example.com\",\n  \"verify\" : true\n}");
+    XCTAssertEqualObjects(status.text, @"Valid JSON");
+
+    // Columns count characters, not UTF-8 bytes
+    NSDictionary<NSString *, NSString *> *errors = @{
+        @"{\n  \"sni\": \"a\"\n  \"verify\": true\n}": @"Line 3, column 3: ",
+        @"{\"éé\": tru}": @"Line 1, column 8: ",
+        @"[1500]": @"The settings must be a JSON object.",
+    };
+    for (NSString *text in errors) {
+        settings.text = text;
+        [settings.delegate textViewDidChange:settings];
+        XCTAssertTrue([status.text hasPrefix:errors[text]], @"%@ -> %@", text, status.text);
+    }
+    NSDictionary<NSString *, NSString *> *newlines = @{@"{\n  \"a\": [": @"{\n  \"a\": [\n    ",
+                                                       @"{\n  \"a\": 1,": @"{\n  \"a\": 1,\n  "};
+    for (NSString *text in newlines) {
+        settings.text = text;
+        settings.selectedRange = NSMakeRange(text.length, 0);
+        XCTAssertFalse([settings.delegate textView:settings shouldChangeTextInRange:settings.selectedRange replacementText:@"\n"]);
+        XCTAssertEqualObjects(settings.text, newlines[text]);
+    }
+    // An invalid text is not saved
+    settings.text = @"{\"sni\": ";
+    [editor save];
+    XCTAssertEqualObjects(model.waterwallChainJSON, SRPWWExampleJSON);
+    [editor dismissViewControllerAnimated:NO completion:nil];
+
+    // A new SNI: verify and next stay, the other nodes too
+    settings.text = @"{\"sni\": \"edge.example.net\", \"verify\": true}";
+    [editor save];
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:model.waterwallChainJSON error:nil];
+    NSArray *chain = [SRPWaterWallNodeChain chainOfDocument:document];
+    XCTAssertEqualObjects(chain[1][@"settings"], (@{@"sni": @"edge.example.net", @"verify": @YES}));
+    XCTAssertEqualObjects(chain[1][@"next"], @"uplink");
+    XCTAssertEqualObjects(chain[2], [SRPWaterWallNodeChain chainOfDocument:SRPWWExampleDocument()][2]);
+    UITableViewController *reopened = [[NSClassFromString(@"SRPWaterWallNodeViewController") alloc] initWithModel:model nodeName:@"tls"
+                                                                                                  insertingAfter:nil];
+    [reopened loadViewIfNeeded];
+    XCTAssertTrue([((UITextView *)[reopened valueForKey:@"settingsView"]).text containsString:@"edge.example.net"]);
+
+    // A rename follows into the next that pointed at the node
+    ((UITextField *)[reopened valueForKey:@"nameField"]).text = @"outer";
+    [reopened save];
+    chain = [SRPWaterWallNodeChain chainOfDocument:[SRPWaterWallNodeChain documentWithJSON:model.waterwallChainJSON error:nil]];
+    XCTAssertEqualObjects([chain valueForKey:@"name"], (@[@"input", @"outer", @"uplink"]));
+
+    // The hint has no settings to edit
+    UITableViewController *hint = [[NSClassFromString(@"SRPWaterWallNodeViewController") alloc] initWithModel:model nodeName:@"input"
+                                                                                              insertingAfter:nil];
+    [hint loadViewIfNeeded];
+    XCTAssertEqual([hint numberOfSectionsInTableView:hint.tableView], 1);
+    XCTAssertTrue([[hint tableView:hint.tableView titleForFooterInSection:0] hasPrefix:@"An input hint has no settings"]);
+
+    // Insert after outer: the new node takes over outer's successor
+    UITableViewController *insert = [[NSClassFromString(@"SRPWaterWallNodeViewController") alloc] initWithModel:model nodeName:nil
+                                                                                                insertingAfter:@"outer"];
+    [insert loadViewIfNeeded];
+    XCTAssertEqualObjects(insert.title, @"Insert Node");
+    XCTAssertEqualObjects([insert tableView:insert.tableView titleForFooterInSection:0], @"The new node goes between \"outer\" and \"uplink\".");
+    ((UITextField *)[insert valueForKey:@"nameField"]).text = @"split";
+    ((UITextField *)[insert valueForKey:@"typeField"]).text = @"StreamFragmenter";
+    [insert save];
+    chain = [SRPWaterWallNodeChain chainOfDocument:[SRPWaterWallNodeChain documentWithJSON:model.waterwallChainJSON error:nil]];
+    XCTAssertEqualObjects([chain valueForKey:@"name"], (@[@"input", @"outer", @"split", @"uplink"]));
+}
+
+- (void)testWaterWallImportScreenBlocksABadFileAndKeepsTheProfile {
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"waterwall";
+    model.waterwallChainJSON = SRPWWExampleJSON;
+    UITableViewController *screen = [[NSClassFromString(@"SRPWaterWallImportViewController") alloc] initWithModel:model];
+    [screen loadViewIfNeeded];
+    UIButton *importButton = [screen valueForKey:@"importButton"];
+    XCTAssertFalse(importButton.enabled);
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+    [NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+    @try {
+        NSURL *raw = [NSURL fileURLWithPath:[folder stringByAppendingPathComponent:@"raw.json"]];
+        [@"{\"nodes\": [{\"name\": \"input\", \"type\": \"HintPacketIN\", \"settings\": {}, \"next\": \"sock\"},"
+          "{\"name\": \"sock\", \"type\": \"RawSocket\", \"settings\": {}}]}" writeToURL:raw atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        [screen loadFileAtURL:raw];
+        XCTAssertFalse(importButton.enabled);
+        XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 3);
+        UITableViewCell *banner = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2]];
+        XCTAssertEqualObjects(banner.textLabel.text, @"Import blocked");
+        XCTAssertEqualObjects(banner.detailTextLabel.text, @"Node \"sock\" is a RawSocket node: raw socket nodes cannot be imported.");
+        [screen import];
+        XCTAssertEqualObjects(model.waterwallChainJSON, SRPWWExampleJSON, @"A blocked file leaves the profile as it was");
+
+        NSURL *example = [NSURL fileURLWithPath:[folder stringByAppendingPathComponent:@"example.json"]];
+        [SRPWWExampleJSON writeToURL:example atomically:YES encoding:NSUTF8StringEncoding error:nil];
+        model.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
+        [screen loadFileAtURL:example];
+        XCTAssertTrue(importButton.enabled);
+        XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 2);
+        XCTAssertEqualObjects([screen tableView:screen.tableView titleForFooterInSection:0],
+                              @"Example TLS chain: 3 nodes on the chain. Import replaces the profile's chain.");
+        [screen import];
+        XCTAssertEqualObjects(model.waterwallChainJSON, [SRPWaterWallNodeChain JSONWithDocument:SRPWWExampleDocument()]);
+        XCTAssertEqualObjects(model.server, @"vpn.example.com");
+        XCTAssertEqualObjects(model.port, @"443");
+    } @finally {
+        [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    }
+}
+
+- (void)testSettingsChooseTheWaterWallInputForEveryProfile {
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    id before = [shared objectForKey:@"SRPWaterWallInput"];
+    @try {
+        [shared removeObjectForKey:@"SRPWaterWallInput"];
+        UITableViewController *settings = [NSClassFromString(@"SRPSettingsViewController") new];
+        UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:settings];
+        [settings loadViewIfNeeded];
+        UITableViewCell *row = [settings tableView:settings.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+        XCTAssertEqualObjects(row.textLabel.text, @"WaterWall Input");
+        XCTAssertEqualObjects(row.detailTextLabel.text, @"System VPN (TUN)");
+        [settings tableView:settings.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+        UITableViewController *inputs = (UITableViewController *)navigation.topViewController;
+        XCTAssertFalse(inputs == settings);
+        [inputs loadViewIfNeeded];
+        NSArray *titles = @[@"System VPN (TUN)", @"Local SOCKS5 proxy", @"Local HTTP proxy"];
+        for (NSInteger index = 0; index < 3; index++) {
+            UITableViewCell *cell = [inputs tableView:inputs.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:index inSection:0]];
+            XCTAssertEqualObjects(cell.textLabel.text, titles[index]);
+            XCTAssertEqual(cell.accessoryType, index == 0 ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone);
+        }
+        [inputs tableView:inputs.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+        XCTAssertEqualObjects(SRPWaterWallNodeChain.currentInput, SRPWaterWallInputSOCKS5);
+        UITableViewCell *socks = [inputs tableView:inputs.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+        XCTAssertEqual(socks.accessoryType, UITableViewCellAccessoryCheckmark);
+        [inputs tableView:inputs.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0]];
+        XCTAssertEqualObjects(SRPWaterWallNodeChain.currentInput, SRPWaterWallInputHTTP);
+        row = [settings tableView:settings.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+        XCTAssertEqualObjects(row.detailTextLabel.text, @"Local HTTP proxy");
+    } @finally {
+        if (before) [shared setObject:before forKey:@"SRPWaterWallInput"];
+        else [shared removeObjectForKey:@"SRPWaterWallInput"];
+    }
+}
+
+// Behind a local proxy the probe asks the proxy as an app would; the tunnel then routes nothing and takes no packets
+- (void)testWaterWallLocalProxyProbeAndTunnelSettings {
+    for (NSString *proxy in @[@"socks5", @"http"]) {
+        // A port the system picks: the app's own 1080 or 8080 may be another app's on a test phone
+        int listener = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in address = {.sin_len = sizeof(address), .sin_family = AF_INET, .sin_addr.s_addr = htonl(INADDR_LOOPBACK)};
+        socklen_t length = sizeof(address);
+        XCTAssertEqual(bind(listener, (struct sockaddr *)&address, sizeof(address)), 0);
+        XCTAssertEqual(listen(listener, 4), 0);
+        XCTAssertEqual(getsockname(listener, (struct sockaddr *)&address, &length), 0);
+        __block NSString *request = nil, *get = nil;
+        XCTestExpectation *served = [self expectationWithDescription:proxy];
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            int fd = accept(listener, NULL, NULL);
+            uint8_t buffer[512] = {0};
+            if ([proxy isEqualToString:@"socks5"]) {
+                recv(fd, buffer, 3, MSG_WAITALL);
+                send(fd, "\x05\x00", 2, 0);
+                recv(fd, buffer, 10, MSG_WAITALL);
+                request = [NSString stringWithFormat:@"%u %u.%u.%u.%u:%u", buffer[1], buffer[4], buffer[5], buffer[6], buffer[7],
+                           (unsigned)(buffer[8] << 8 | buffer[9])];
+                send(fd, "\x05\x00\x00\x01\x7f\x00\x00\x01\x04\x38", 10, 0);
+            } else {
+                size_t length = 0;
+                while (length < sizeof(buffer) && (length < 4 || memcmp(buffer + length - 4, "\r\n\r\n", 4) != 0) &&
+                       recv(fd, buffer + length, 1, 0) == 1) length++;
+                request = [[NSString alloc] initWithBytes:buffer length:length encoding:NSASCIIStringEncoding];
+                const char *established = "HTTP/1.1 200 Connection established\r\n\r\n";
+                send(fd, established, strlen(established), 0);
+            }
+            ssize_t got = recv(fd, buffer, sizeof(buffer) - 1, 0);
+            get = got > 0 ? [[NSString alloc] initWithBytes:buffer length:(NSUInteger)got encoding:NSASCIIStringEncoding] : nil;
+            const char *answer = "HTTP/1.1 301 Moved Permanently\r\nContent-Length: 0\r\n\r\n";
+            send(fd, answer, strlen(answer), 0);
+            close(fd);
+            [served fulfill];
+        });
+        SRPWaterWallLifecycleTestClient *client = [SRPWaterWallLifecycleTestClient new];
+        SRPWaterWallCandidate *candidate = [SRPWaterWallCandidate new];
+        candidate.localProxy = proxy;
+        candidate.localProxyPort = ntohs(address.sin_port);
+        candidate.probeUDP = NO;
+        [client applyCandidate:candidate];
+        XCTAssertEqualObjects([client currentCandidate].localProxy, proxy);
+        XCTAssertEqual([client currentCandidate].localProxyPort, ntohs(address.sin_port));
+        __block NEPacketTunnelNetworkSettings *applied = nil;
+        [client setValue:[^(NEPacketTunnelNetworkSettings *settings, void (^completion)(NSError *)) {
+            applied = settings;
+            completion(nil);
+        } copy] forKey:@"settingsCb"];
+        [client beginDataPlaneProbe];
+        [self waitForExpectations:@[served] timeout:10];
+        XCTNSPredicateExpectation *up = [[XCTNSPredicateExpectation alloc]
+            initWithPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
+                return [[client valueForKey:@"up"] boolValue];
+            }] object:nil];
+        [self waitForExpectations:@[up] timeout:5];
+        close(listener);
+        if ([proxy isEqualToString:@"socks5"]) XCTAssertEqualObjects(request, @"1 1.1.1.1:80");
+        else XCTAssertEqualObjects(request, @"CONNECT 1.1.1.1:80 HTTP/1.1\r\nHost: 1.1.1.1:80\r\n\r\n");
+        XCTAssertTrue([get hasPrefix:@"GET / HTTP/1.1\r\nHost: 1.1.1.1\r\n"], @"%@", get);
+        XCTAssertEqual(applied.IPv4Settings.includedRoutes.count, 0U, @"Apps reach the proxy on 127.0.0.1 themselves");
+        XCTAssertNil(applied.DNSSettings);
+        XCTestExpectation *dropped = [self expectationWithDescription:@"packets are dropped"];
+        NSMutableData *packet = [NSMutableData dataWithLength:40];
+        ((uint8_t *)packet.mutableBytes)[0] = 0x45;
+        NSInteger before = client.submittedPackets;
+        [client injectPackets:@[packet] completion:^{ [dropped fulfill]; }];
+        [self waitForExpectations:@[dropped] timeout:2];
+        XCTAssertEqual(client.submittedPackets, before);
+        [client closeAndWait];
+    }
 }
 
 - (void)testProtocolListStartsWithWaterWall {
@@ -5415,8 +5993,8 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(model.protocolType, @"waterwall");
     XCTAssertEqualObjects(model.nodeName, @"WaterWall VPN");
     XCTAssertEqualObjects(model.port, @"443");
-    XCTAssertEqualObjects(model.waterwallConfigJSON,
-                          [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]]);
+    XCTAssertNil(model.waterwallConfigJSON);
+    XCTAssertEqualObjects(model.waterwallChainJSON, [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]]);
     XCTAssertTrue(model.MSCHAP2);
 
     SRPProtocolViewController *picker = [[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model];
@@ -5450,7 +6028,9 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     model.ovpnStunnelPort = @"9443";
     model.customSni = @"sni.example";
     model.seConnections = 7;
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    model.waterwallConfigJSON = nil;
+    model.waterwallPreset = nil;
+    model.waterwallChainJSON = SRPWWExampleJSON;
     // Positions of the editor's segmented controls
     model.proxyMode = model.tlsFragMode = model.onSleep = model.logLevel = 1;
     return model;
@@ -5534,9 +6114,12 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NodeModel *edited = [editor valueForKey:@"modal"];
 
     [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
-    [(UIViewController *)navigation.topViewController applicationChanged:@"trojan"];
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:edited.waterwallConfigJSON][@"application"], @"trojan");
-    XCTAssertNil(edited.password);
+    UITableViewController *chainScreen = (UITableViewController *)navigation.topViewController;
+    // Expand tls, then Delete node: input links to uplink
+    [chainScreen tableView:chainScreen.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+    [chainScreen tableView:chainScreen.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0]];
+    NSDictionary *changed = [SRPWaterWallNodeChain documentWithJSON:edited.waterwallChainJSON error:nil];
+    XCTAssertEqualObjects([[SRPWaterWallNodeChain chainOfDocument:changed] valueForKey:@"name"], (@[@"input", @"uplink"]));
     [navigation popToRootViewControllerAnimated:NO];
 
     [editor tableView:editor.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
@@ -5660,7 +6243,8 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
         XCTAssertEqualObjects(stored[@"desc"], @"edited");
         XCTAssertEqualObjects(stored[@"node_id"], model.nodeId);
         XCTAssertEqualObjects(stored[@"password_key"], model.passwordKey, @"The profile keeps its Keychain entries");
-        XCTAssertEqualObjects(stored[@"ww_outer_secret_ref"], model.waterwallOuterSecretRef);
+        XCTAssertEqualObjects(stored[@"ww_chain_ref"], model.waterwallChainRef);
+        XCTAssertEqualObjects([SRPKeychain passwordForKey:model.waterwallChainRef], SRPWWExampleJSON);
         XCTAssertEqualObjects(stored[@"proxy_pass_ref"], model.proxyPasswordRef);
         XCTAssertEqualObjects(stored[@"wg_secret_ref"], model.wgSecretRef);
         XCTAssertEqualObjects([SRPKeychain passwordForKey:model.passwordKey], @"edited secret");
@@ -5761,68 +6345,12 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     }
 }
 
-- (void)testWaterWallApplicationKeepsItsSecretUnlessItChanges {
-    NodeModel *model = [NodeModel new];
-    model.protocolType = @"waterwall";
-    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
-    UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
-    [waterWall applicationChanged:@"vless"];
-    XCTAssertEqualObjects(model.password, @"00112233-4455-6677-8899-aabbccddeeff");
-    [waterWall applicationChanged:@"trojan"];
-    XCTAssertNil(model.password);
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"application"], @"trojan");
-    // A change the screen refuses keeps the application and its password: Through the VPN cannot run over HTTP CONNECT
-    model.password = @"trojan-password";
-    [waterWall dnsModeChanged:@"chain"];
-    [waterWall applicationChanged:@"http-proxy"];
-    [waterWall dismissViewControllerAnimated:NO completion:nil];
-    XCTAssertEqualObjects([SRPWaterWallChainConfig configurationWithJSON:model.waterwallConfigJSON][@"application"], @"trojan");
-    XCTAssertEqualObjects(model.password, @"trojan-password");
-}
-
-- (void)testWaterWallAutoSwitchOnlyForChainMode {
-    for (NSString *mode in @[@"wireguard", @"direct", @"chain"]) {
-        NodeModel *model = [NodeModel new];
-        model.protocolType = @"waterwall";
-        model.waterwallConfigJSON = [mode isEqualToString:@"chain"] ?
-            [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]] :
-            [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": mode, @"node-options": @{}}];
-        CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
-        UITableViewController *editor = (UITableViewController *)[self profileEditorOfHost:create];
-        NSArray<NSString *> *titles = [self optionTitlesOfEditor:editor];
-        NSString *footer = [editor tableView:editor.tableView titleForFooterInSection:4];
-        BOOL chain = [mode isEqualToString:@"chain"];
-        XCTAssertEqual([titles containsObject:@"Auto Switch"], chain, @"%@: %@", mode, titles);
-        XCTAssertEqual([footer containsString:@"Auto Switch"], chain, @"%@", mode);
-        XCTAssertEqualObjects(titles[chain ? 3 : 2], @"Switch to Wi-Fi When Available", @"%@", mode);
-        XCTAssertEqualObjects(titles.lastObject, chain ? @"Direct LAN Routing" : @"Log Level", @"%@", mode);
-    }
-}
-
-- (void)testWaterWallManualFirstChunkMustCutTheClientHello {
-    NodeModel *model = [NodeModel new];
-    model.protocolType = @"waterwall";
-    model.server = @"waterwall.example.com";
-    model.port = @"443";
-    model.password = @"00112233-4455-6677-8899-aabbccddeeff";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[SRPWaterWallChainConfig defaultConfiguration]];
-    model.tlsFragMode = 2;
-    model.tlsFragFirst = 16384;
-    CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
-    UIViewController *editor = [self profileEditorOfHost:create];
-    XCTAssertEqualObjects([editor validationMessage], @"First Chunk must be smaller than 16384 bytes.");
-    NodeModel *edited = [editor valueForKey:@"modal"];
-    edited.tlsFragFirst = 16383;
-    XCTAssertNil([editor validationMessage]);
-}
-
 /// Plays the editing and keyboard notifications on the editors whose text view follows the keyboard, inside CreateVC as
 /// the app shows them. They are posted so the test also runs while a hardware keyboard hides the software one.
 - (void)testKeyboardKeepsProfileNavigationBarInPlace {
     NodeModel *model = [NodeModel new];
     model.protocolType = @"waterwall";
-    model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:[self vmessNoneProfileConfiguration]];
+    model.waterwallChainJSON = SRPWWExampleJSON;
     CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
     UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
     UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
@@ -5841,13 +6369,16 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NSNotificationCenter *center = NSNotificationCenter.defaultCenter;
 
     NSArray<void (^)(void)> *openers = @[
-        ^{ [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]]; },
+        // Expand tls, then Edit node
+        ^{ [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+           [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]]; },
     ];
     for (void (^open)(void) in openers) {
         open();
         [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.6]];
         UIViewController *editor = navigation.topViewController;
-        UITextView *textView = [editor valueForKey:@"textView"];
+        UITextView *textView = [editor valueForKey:@"settingsView"];
+        XCTAssertNotNil(textView);
         [center postNotificationName:UITextViewTextDidBeginEditingNotification object:textView];
         [center postNotificationName:UIKeyboardWillShowNotification object:nil userInfo:keyboardInfo];
         // Checked at once: IQKeyboardManager sets the moved frame inside its animation block, and a real hide
@@ -5860,54 +6391,6 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     }
     window.hidden = YES;
     [previous makeKeyWindow];
-}
-
-- (void)testWaterWallNodeOptionsEditorChecksAndFormatsJSON {
-    __block NSDictionary *saved = nil;
-    UIViewController *editor = [[NSClassFromString(@"SRPWaterWallNodeOptionsViewController") alloc]
-        initWithConfiguration:[self vmessNoneProfileConfiguration] layer:@"packet" title:@"Packet"
-                   completion:^(NSDictionary *configuration) { saved = configuration; }];
-    [editor loadViewIfNeeded];
-    UITextView *textView = [editor valueForKey:@"textView"];
-    UILabel *status = [editor valueForKey:@"statusLabel"];
-    UIButton *format = [editor valueForKey:@"formatButton"];
-    XCTAssertEqualObjects(textView.text, @"{\n\n}");
-    XCTAssertEqualObjects(status.text, @"No settings: WaterWall defaults");
-
-    // Columns count characters, not UTF-8 bytes.
-    NSDictionary<NSString *, NSString *> *errors = @{
-        @"{\n  \"mtu\": 1500\n  \"udp-idle-timeout-ms\": 30000\n}": @"Line 3, column 3: ",
-        @"{\"éé\": tru}": @"Line 1, column 8: ",
-        @"[1500]": @"Advanced node settings must be a JSON object.",
-    };
-    for (NSString *text in errors) {
-        textView.text = text;
-        [textView.delegate textViewDidChange:textView];
-        XCTAssertTrue([status.text hasPrefix:errors[text]], @"%@ -> %@", text, status.text);
-        XCTAssertFalse(format.enabled);
-    }
-
-    textView.text = @"{\"path\":\"/ws\",\"mtu\":1500}";
-    [textView.delegate textViewDidChange:textView];
-    XCTAssertEqualObjects(status.text, @"Valid JSON");
-    XCTAssertTrue(format.enabled);
-    [editor format];
-    XCTAssertEqualObjects(textView.text, @"{\n  \"mtu\" : 1500,\n  \"path\" : \"/ws\"\n}");
-
-    NSDictionary<NSString *, NSString *> *newlines = @{@"{\n  \"a\": [": @"{\n  \"a\": [\n    ",
-                                                       @"{\n  \"a\": 1,": @"{\n  \"a\": 1,\n  "};
-    for (NSString *text in newlines) {
-        textView.text = text;
-        textView.selectedRange = NSMakeRange(text.length, 0);
-        XCTAssertFalse([textView.delegate textView:textView shouldChangeTextInRange:textView.selectedRange replacementText:@"\n"]);
-        XCTAssertEqualObjects(textView.text, newlines[text]);
-    }
-    textView.text = @"}";
-    XCTAssertTrue([textView.delegate textView:textView shouldChangeTextInRange:NSMakeRange(1, 0) replacementText:@"\n"]);
-
-    textView.text = @"{\"mtu\": 1400}";
-    [editor done];
-    XCTAssertEqualObjects(saved[@"node-options"][@"packet"], @{@"mtu": @1400});
 }
 
 - (NSIndexPath *)visibleRowTitled:(NSString *)title inTable:(UITableView *)table {
@@ -5931,6 +6414,9 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-docs-screenshots"];
     [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
     XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    id inputBefore = [shared objectForKey:@"SRPWaterWallInput"];
+    [shared removeObjectForKey:@"SRPWaterWallInput"];
     UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
     UIWindow *previous = scene.keyWindow;
     UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
@@ -5947,37 +6433,41 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
         }];
         XCTAssertTrue([png writeToFile:[folder stringByAppendingPathComponent:[name stringByAppendingString:@".png"]] atomically:YES], @"%@", name);
     };
-    NodeModel *(^profile)(NSString *, NSDictionary *) = ^NodeModel *(NSString *description, NSDictionary *changes) {
-        NSMutableDictionary *configuration = [[SRPWaterWallChainConfig defaultConfiguration] mutableCopy];
-        [configuration addEntriesFromDictionary:changes];
+    NSString *(^json)(NSString *, NSArray *) = ^NSString *(NSString *name, NSArray *nodes) {
+        return [SRPWaterWallNodeChain JSONWithDocument:@{@"name": name, @"nodes": nodes}];
+    };
+    NSString *vlessTLS = json(@"VLESS over TLS", @[
+        @{@"name": @"input", @"type": @"HintConnectionIN", @"settings": @{}, @"next": @"vless"},
+        @{@"name": @"vless", @"type": @"VlessClient", @"settings": @{@"uuid": @"00000000-0000-4000-8000-000000000000"}, @"next": @"tls"},
+        @{@"name": @"tls", @"type": @"TlsClient", @"settings": @{@"sni": @"server.example.com", @"verify": @YES}, @"next": @"uplink"},
+        @{@"name": @"uplink", @"type": @"TcpConnector", @"settings": @{@"address": @"server.example.com", @"port": @443}}]);
+    NSString *trojan = json(@"Trojan over TLS", @[
+        @{@"name": @"input", @"type": @"HintConnectionIN", @"settings": @{}, @"next": @"trojan"},
+        @{@"name": @"trojan", @"type": @"TrojanClient", @"settings": @{@"password": @"example-password"}, @"next": @"tls"},
+        @{@"name": @"tls", @"type": @"TlsClient", @"settings": @{@"sni": @"server.example.com", @"verify": @YES}, @"next": @"uplink"},
+        @{@"name": @"uplink", @"type": @"TcpConnector", @"settings": @{@"address": @"server.example.com", @"port": @8443}}]);
+    NodeModel *(^profile)(NSString *, NSString *) = ^NodeModel *(NSString *description, NSString *chain) {
         NodeModel *model = [NodeModel new];
         [NSClassFromString(@"SRPProtocolViewController") applyProtocol:@"waterwall" toModel:model];
         model.desc = description;
-        model.server = @"server.example.com";
-        model.password = @"00000000-0000-4000-8000-000000000000";
-        model.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+        model.waterwallChainJSON = chain;
+        [model syncWaterWallServer];
         return model;
     };
-    NodeModel *reality = profile(@"Example: VLESS + Reality", @{@"outer": @"reality"});
-    reality.waterwallOuterSecret = @"example-password";
 
     UIViewController *home = [NSClassFromString(@"ViewController") new];
     [home loadViewIfNeeded];
-    [home setValue:[NSMutableArray arrayWithArray:@[
-        profile(@"Example: VLESS + TLS", @{}), reality,
-        profile(@"Example: Trojan + TLS", @{@"application": @"trojan"}),
-        profile(@"Example: VMess + KCP", @{@"application": @"vmess", @"outer": @"none", @"carrier": @"kcp"})]]
+    [home setValue:[NSMutableArray arrayWithArray:@[profile(@"Example: TLS chain", SRPWWExampleJSON), profile(@"", vlessTLS),
+                                                    profile(@"Example: Trojan", trojan)]]
             forKey:@"nodaArray"];
     [[home valueForKey:@"homeTableview"] reloadData];
     shoot(home, @"home");
 
-    NodeModel *model = profile(@"Example: VLESS + TLS", @{});
+    NodeModel *model = profile(@"Example: TLS chain", SRPWWExampleJSON);
     CreateVC *create = [self profileEditorHostForModel:model saved:[NSMutableArray new]];
     UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
     UITableView *editorTable = ((UITableViewController *)navigation.topViewController).tableView;
     shoot(create, @"profile-editor");
-    [editorTable scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] atScrollPosition:UITableViewScrollPositionTop animated:NO];
-    shoot(nil, @"profile-options");
     [self scrollTableToEnd:editorTable];
     shoot(nil, @"profile-options-end");
     [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:model] animated:NO];
@@ -5987,58 +6477,43 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:model];
     [navigation pushViewController:waterWall animated:NO];
     shoot(nil, @"waterwall");
-    NSIndexPath *outer = [self visibleRowTitled:@"Outer" inTable:waterWall.tableView];
-    XCTAssertNotNil(outer);
-    if (outer != nil) {
-        [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:outer];
-        shoot(nil, @"waterwall-outer");
-        [navigation popToViewController:waterWall animated:NO];
-    }
-    [self scrollTableToEnd:waterWall.tableView];
-    shoot(nil, @"waterwall-advanced-geoip");
-    [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1]];
+    [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+    shoot(nil, @"waterwall-expanded");
+    [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
     [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.6]];
-    UITextView *textView = [navigation.topViewController valueForKey:@"textView"];
-    textView.text = @"{\n  \"mtu\": 1400\n}";
-    [textView.delegate textViewDidChange:textView];
-    [textView resignFirstResponder];
     shoot(nil, @"node-editor");
     [navigation popToViewController:waterWall animated:NO];
-    [navigation pushViewController:[[NSClassFromString(@"SRPGeoIPCountryViewController") alloc] initWithSelectedCodes:[NSSet setWithObject:@"IR"]
-                                                                                   geoIPEnabled:YES
-                                                                              enabledDidChange:nil
-                                                                                     completion:^(NSSet<NSString *> *codes) {}]
-                          animated:NO];
-    shoot(nil, @"geoip-countries");
+    [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0]];
+    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.6]];
+    UIViewController *insert = navigation.topViewController;
+    ((UITextField *)[insert valueForKey:@"nameField"]).text = @"split";
+    ((UITextField *)[insert valueForKey:@"typeField"]).text = @"StreamFragmenter";
+    [insert typeChanged];
+    shoot(nil, @"node-insert");
+    [navigation popToViewController:waterWall animated:NO];
+
+    UITableViewController *import = [[NSClassFromString(@"SRPWaterWallImportViewController") alloc] initWithModel:model];
+    [navigation pushViewController:import animated:NO];
+    NSURL *blocked = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"raw-socket-chain.json"]];
+    [@"{\"nodes\": [{\"name\": \"input\", \"type\": \"HintPacketIN\", \"settings\": {}, \"next\": \"sock\"},"
+      "{\"name\": \"sock\", \"type\": \"RawSocket\", \"settings\": {}}]}" writeToURL:blocked atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [import loadFileAtURL:blocked];
+    shoot(nil, @"import-blocked");
+    NSURL *example = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"example-tls-chain.json"]];
+    [SRPWWExampleJSON writeToURL:example atomically:YES encoding:NSUTF8StringEncoding error:nil];
+    [import loadFileAtURL:example];
+    shoot(nil, @"import-ready");
     [navigation popToRootViewControllerAnimated:NO];
 
-    NodeModel *resolver = profile(@"Example: VLESS + TLS", @{@"domain-resolver": @{@"mode": @"chain", @"servers": @[@"1.1.1.1", @"8.8.8.8"]}});
-    UITableViewController *resolverScreen = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:resolver];
-    [navigation pushViewController:resolverScreen animated:NO];
-    [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.4]];
-    [self scrollTableToEnd:resolverScreen.tableView];
-    shoot(nil, @"waterwall-dns-resolver");
-    [resolverScreen tableView:resolverScreen.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3]];
-    shoot(nil, @"waterwall-dns-resolver-mode");
-
-    CreateVC *realityHost = [self profileEditorHostForModel:reality saved:[NSMutableArray new]];
-    shoot(realityHost, @"profile-editor-reality");
-    UINavigationController *realityNavigation = (UINavigationController *)realityHost.childViewControllers.firstObject;
-    [((UITableViewController *)realityNavigation.topViewController).tableView
-        scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:NO];
-    shoot(nil, @"profile-editor-reality-authentication");
-
-    NodeModel *wireGuard = profile(@"Example: WireGuard", @{});
-    wireGuard.port = @"51820";
-    wireGuard.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:@{@"version": @3, @"mode": @"wireguard", @"node-options": @{}}];
-    CreateVC *wireGuardHost = [self profileEditorHostForModel:wireGuard saved:[NSMutableArray new]];
-    shoot(wireGuardHost, @"profile-editor-wireguard");
-    UINavigationController *wireGuardNavigation = (UINavigationController *)wireGuardHost.childViewControllers.firstObject;
-    [wireGuardNavigation pushViewController:[[NSClassFromString(@"SRPWGConfigViewController") alloc] initWithNodeModel:wireGuard] animated:NO];
-    shoot(nil, @"wireguard-manual");
+    UITableViewController *settings = [NSClassFromString(@"SRPSettingsViewController") new];
+    UINavigationController *settingsNavigation = [[UINavigationController alloc] initWithRootViewController:settings];
+    shoot(settingsNavigation, @"settings");
+    [settings tableView:settings.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    shoot(nil, @"waterwall-input");
 
     window.hidden = YES;
     [previous makeKeyWindow];
+    if (inputBefore) [shared setObject:inputBefore forKey:@"SRPWaterWallInput"];
 }
 
 // The SSTP guide's iPhone screenshots, with example profiles that name no real server; they go to

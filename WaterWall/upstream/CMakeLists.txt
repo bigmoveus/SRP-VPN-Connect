@@ -328,6 +328,12 @@ if(WW_MINIMAL_NODES)
     INCLUDE_HTTP_CLIENT
     INCLUDE_OBFUSCATOR_CLIENT
     INCLUDE_KCP_CLIENT
+    # The app's local SOCKS5 and HTTP proxy inputs.
+    INCLUDE_TCP_LISTENER
+    INCLUDE_UDP_LISTENER
+    INCLUDE_TCP_UDP_LISTENER
+    INCLUDE_SOCKS_5_SERVER
+    INCLUDE_HTTP_PROXY_SERVER
   )
   get_cmake_property(waterwall_include_options VARIABLES)
   foreach(waterwall_include_option IN LISTS waterwall_include_options)

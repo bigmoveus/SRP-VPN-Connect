@@ -8,6 +8,9 @@
 @implementation CheckConnectData
 
 +(NSDictionary*)checkConnectParmer:(NodeModel*)modal {
+    // A WaterWall profile from before the node editor (the live tests still describe one so) becomes its chain first:
+    // its secrets move into the chain, and WaterWall's WireGuard mode becomes a WireGuard profile
+    [self convertLegacyWaterWallProfile:modal];
     // Sync the secret into Keychain; the dict keeps the in-memory password
     // under @"password" because connectDirectly needs it for the sstp:// URI.
     if (modal.password.length > 0) {
@@ -83,24 +86,19 @@
         if (modal.aetherTor.length > 0) d[@"ae_tor"] = modal.aetherTor;
     }
     if ([modal.protocolType isEqualToString:@"waterwall"]) {
-        if ((modal.waterwallConfigJSON.length == 0 || [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON] == nil)) {
-            NSDictionary *configuration = [SRPWaterWallChainConfig configurationFromLegacyPreset:modal.waterwallPreset] ?: [SRPWaterWallChainConfig defaultConfiguration];
-            modal.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
+        if (modal.waterwallChainJSON.length == 0) {
+            modal.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
         }
-        d[@"ww_config"] = modal.waterwallConfigJSON;
-        if (modal.passwordKey.length > 0) d[@"ww_secret_ref"] = modal.passwordKey;
-        if (modal.waterwallOuterSecret.length > 0) {
-            if (modal.waterwallOuterSecretRef.length == 0) modal.waterwallOuterSecretRef = NSUUID.UUID.UUIDString;
-            [SRPKeychain setPassword:modal.waterwallOuterSecret forKey:modal.waterwallOuterSecretRef];
-        }
-        if (modal.waterwallOuterSecretRef.length > 0) d[@"ww_outer_secret_ref"] = modal.waterwallOuterSecretRef;
+        // The chain holds UUIDs and passwords: the tunnel reads it from the Keychain, as it reads the other secrets
+        if (modal.waterwallChainRef.length == 0) modal.waterwallChainRef = NSUUID.UUID.UUIDString;
+        [SRPKeychain setPassword:modal.waterwallChainJSON forKey:modal.waterwallChainRef];
+        d[@"ww_chain_ref"] = modal.waterwallChainRef;
         if (modal.waterwallProbeIP.length > 0) d[@"ww_probe_ip"] = modal.waterwallProbeIP;
         if (modal.waterwallDNSProbeIP.length > 0) d[@"ww_dns_probe_ip"] = modal.waterwallDNSProbeIP;
         d[@"ww_fake_dns"] = @(modal.waterwallFakeDNS);
-        d[@"ww_smart_routing"] = @(modal.waterwallSmartRouting);
         d[@"ww_auto_switch"] = @(modal.waterwallAutoSwitch);
     }
-    if ([modal.protocolType isEqualToString:@"wireguard"] || [modal.protocolType isEqualToString:@"amnezia"] || [modal.protocolType isEqualToString:@"waterwall"]) {
+    if ([modal.protocolType isEqualToString:@"wireguard"] || [modal.protocolType isEqualToString:@"amnezia"]) {
         d[@"wg_conf"] = [modal wgEffectiveConfig] ?: @"";
         if (modal.wgPrivateKey.length > 0) d[@"wg_private_key"] = modal.wgPrivateKey;
         if (modal.wgPeerPublicKey.length > 0) d[@"wg_peer_public_key"] = modal.wgPeerPublicKey;
@@ -187,22 +185,20 @@ static NSString *SRPServerKey(NSString *server) {
     return [server stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet].lowercaseString ?: @"";
 }
 
-// The chain of WaterWall connect parameters, or nil for WireGuard, direct and invalid ones.
-static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
-    NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:parameters[@"ww_config"]];
-    if (configuration == nil || [SRPWaterWallChainConfig isWireGuardConfiguration:configuration] ||
-        [SRPWaterWallChainConfig isDirectConfiguration:configuration]) return nil;
-    return configuration;
+// The chain of a WaterWall profile, or nil when it is invalid or has no server of its own to share (a direct chain).
+static NSDictionary *SRPSwitchableDocument(NodeModel *profile) {
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:profile.waterwallChainJSON error:nil];
+    return document != nil && [SRPWaterWallNodeChain endpointsOfDocument:document].count > 0 ? document : nil;
 }
 
 +(NSArray<NSDictionary*>*)waterWallFallbacksForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles {
     static const NSUInteger limit = 8;
     NSString *server = SRPServerKey(profile.server);
     if (![profile.protocolType isEqualToString:@"waterwall"] || !profile.waterwallAutoSwitch || server.length == 0) return @[];
-    NSDictionary *own = [self checkConnectParmer:profile];
-    NSDictionary *ownConfiguration = SRPSwitchableConfiguration(own);
-    if (ownConfiguration == nil) return @[];
-    BOOL udp = [SRPWaterWallChainConfig configurationUsesUDPCarrier:ownConfiguration];
+    [self checkConnectParmer:profile];
+    NSDictionary *ownDocument = SRPSwitchableDocument(profile);
+    if (ownDocument == nil) return @[];
+    BOOL udp = [SRPWaterWallNodeChain documentUsesUDPCarrier:ownDocument];
     NSMutableArray<NSDictionary*> *otherCarrier = [NSMutableArray new];
     NSMutableArray<NSDictionary*> *sameCarrier = [NSMutableArray new];
     for (NodeModel *candidate in profiles) {
@@ -211,11 +207,10 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         // Fallbacks travel with Keychain references only, never a plaintext secret.
         NSMutableDictionary *parameters = [[self checkConnectParmer:candidate] mutableCopy];
         [parameters removeObjectsForKeys:@[@"password", @"ww_outer_secret"]];
-        NSDictionary *configuration = SRPSwitchableConfiguration(parameters);
+        NSDictionary *document = SRPSwitchableDocument(candidate);
         // A copy of the selected profile connects the same way, so it cannot take over.
-        if (configuration == nil || ([parameters[@"ww_config"] isEqualToString:own[@"ww_config"]] &&
-                                     [parameters[@"port"] isEqualToString:own[@"port"]])) continue;
-        [([SRPWaterWallChainConfig configurationUsesUDPCarrier:configuration] != udp ? otherCarrier : sameCarrier) addObject:parameters];
+        if (document == nil || [candidate.waterwallChainJSON isEqualToString:profile.waterwallChainJSON]) continue;
+        [([SRPWaterWallNodeChain documentUsesUDPCarrier:document] != udp ? otherCarrier : sameCarrier) addObject:parameters];
     }
     NSArray<NSDictionary*> *ordered = [otherCarrier arrayByAddingObjectsFromArray:sameCarrier];
     return ordered.count > limit ? [ordered subarrayWithRange:NSMakeRange(0, limit)] : ordered;
@@ -304,12 +299,11 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         modal.aetherLicenseRef = selectDic[@"ae_license_ref"];
         if (modal.aetherLicenseRef.length > 0) modal.aetherLicense = [SRPKeychain passwordForKey:modal.aetherLicenseRef];
         modal.aetherTor = selectDic[@"ae_tor"];
+        modal.waterwallChainRef = selectDic[@"ww_chain_ref"];
+        if (modal.waterwallChainRef.length > 0) modal.waterwallChainJSON = [SRPKeychain passwordForKey:modal.waterwallChainRef];
+        // The former form's settings, read only to convert a profile made before the node editor
         modal.waterwallPreset = selectDic[@"ww_preset"];
         modal.waterwallConfigJSON = selectDic[@"ww_config"];
-        if ([type isEqualToString:@"waterwall"] && (modal.waterwallConfigJSON.length == 0 || [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON] == nil)) {
-            NSDictionary *configuration = [SRPWaterWallChainConfig configurationFromLegacyPreset:modal.waterwallPreset] ?: [SRPWaterWallChainConfig defaultConfiguration];
-            modal.waterwallConfigJSON = [SRPWaterWallChainConfig JSONWithConfiguration:configuration];
-        }
         modal.waterwallSecretRef = selectDic[@"ww_secret_ref"];
         modal.waterwallOuterSecretRef = selectDic[@"ww_outer_secret_ref"];
         modal.waterwallOuterSecret = selectDic[@"ww_outer_secret"];
@@ -446,6 +440,99 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
     return nil;
 }
 
+// The Endpoint of a WireGuard file, as host and port
+static BOOL SRPWireGuardEndpoint(NSString *config, NSString **host, NSString **port) {
+    for (NSString *line in [config componentsSeparatedByCharactersInSet:NSCharacterSet.newlineCharacterSet]) {
+        NSRange equals = [line rangeOfString:@"="];
+        if (equals.location == NSNotFound) continue;
+        NSString *key = [[line substringToIndex:equals.location] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+        if ([key caseInsensitiveCompare:@"Endpoint"] != NSOrderedSame) continue;
+        NSString *value = [[line substringFromIndex:equals.location + 1] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+        NSRange colon = [value rangeOfString:@":" options:NSBackwardsSearch];
+        if (colon.location == NSNotFound || colon.location == 0) return NO;
+        *host = [[value substringToIndex:colon.location] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"[]"]];
+        *port = [value substringFromIndex:colon.location + 1];
+        return YES;
+    }
+    return NO;
+}
+
++(BOOL)convertLegacyWaterWallProfile:(NodeModel*)modal {
+    if (![modal.protocolType isEqualToString:@"waterwall"]) return NO;
+    BOOL legacy = modal.waterwallConfigJSON.length > 0 || modal.waterwallPreset.length > 0 ||
+                  (modal.waterwallChainJSON.length == 0 && modal.waterwallChainRef.length == 0);
+    if (!legacy) return NO;
+    // An empty config reads as the default one, so a stored preset is asked first; an invalid config converts to nothing
+    NSDictionary *configuration = modal.waterwallConfigJSON.length > 0 ? [SRPWaterWallChainConfig configurationWithJSON:modal.waterwallConfigJSON] :
+        modal.waterwallPreset.length > 0 ? [SRPWaterWallChainConfig configurationFromLegacyPreset:modal.waterwallPreset] :
+        [SRPWaterWallChainConfig defaultConfiguration];
+    if ([SRPWaterWallChainConfig isWireGuardConfiguration:configuration]) {
+        // WaterWall's WireGuard mode ends its chain in the packet device, which a leading input hint cannot express: the
+        // profile becomes a WireGuard profile with the same keys, and with the Endpoint its imported file had
+        NSString *host = nil, *port = nil;
+        if (modal.wgConfig.length > 0 && SRPWireGuardEndpoint(modal.wgConfig, &host, &port)) {
+            modal.server = host;
+            modal.port = port;
+        }
+        modal.protocolType = @"wireguard";
+        modal.nodeName = nil;
+        [self clearLegacyWaterWallSettingsOfProfile:modal];
+        return YES;
+    }
+    NSDictionary *options = @{@"ww_fake_dns": @(modal.waterwallFakeDNS), @"ww_smart_routing": @(modal.waterwallSmartRouting),
+                              @"tls_frag": @(modal.tlsFragMode), @"tls_frag_first": @(modal.tlsFragFirst),
+                              @"tls_frag_following": @(modal.tlsFragFollowing), @"username": modal.username ?: @"",
+                              @"log_level": modal.logLevel == 2 ? @"debug" : modal.logLevel == 1 ? @"expert" : @"normal"};
+    NSDictionary *document = [SRPWaterWallNodeChain documentForConfiguration:configuration
+                                                                      server:modal.server ?: @""
+                                                                        port:modal.port.integerValue
+                                                                         sni:modal.customSniEnabled ? modal.customSni : nil
+                                                                   verifyTLS:!modal.TLS
+                                                                      secret:modal.password
+                                                                 outerSecret:modal.waterwallOuterSecret
+                                                                     options:options];
+    if (document == nil) {
+        // A profile the form could not connect either keeps its former settings until a chain is saved for it
+        if (modal.waterwallChainJSON.length == 0) {
+            modal.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:[SRPWaterWallNodeChain emptyDocument]];
+        }
+        return NO;
+    }
+    modal.waterwallChainJSON = [SRPWaterWallNodeChain JSONWithDocument:document];
+    // The GeoIP update link is app-wide now (Settings → GeoIP Database): the first profile that had one gives it
+    NSDictionary *geoIP = [configuration[@"geoip"] isKindOfClass:NSDictionary.class] ? configuration[@"geoip"] : nil;
+    if ([geoIP[@"update-url"] isKindOfClass:NSString.class] && [geoIP[@"update-url"] length] > 0 &&
+        [NSUserDefaults.standardUserDefaults stringForKey:@"SRPGeoIPUpdateURL"].length == 0) {
+        [NSUserDefaults.standardUserDefaults setObject:geoIP[@"update-url"] forKey:@"SRPGeoIPUpdateURL"];
+    }
+    // A direct chain had no fake DNS; the option now shapes only the input SRP supplies
+    if ([SRPWaterWallChainConfig isDirectConfiguration:configuration]) modal.waterwallFakeDNS = NO;
+    [self clearLegacyWaterWallSettingsOfProfile:modal];
+    [modal syncWaterWallServer];
+    return YES;
+}
+
++(void)clearLegacyWaterWallSettingsOfProfile:(NodeModel*)modal {
+    // The UUID, password and outer secret are in the chain now, which the Keychain keeps as a whole
+    for (NSString *key in @[modal.passwordKey ?: @"", modal.waterwallSecretRef ?: @"", modal.waterwallOuterSecretRef ?: @""]) {
+        if (key.length > 0) [SRPKeychain deletePasswordForKey:key];
+    }
+    modal.password = nil;
+    modal.passwordKey = nil;
+    modal.waterwallSecretRef = nil;
+    modal.waterwallOuterSecret = nil;
+    modal.waterwallOuterSecretRef = nil;
+    modal.waterwallConfigJSON = nil;
+    modal.waterwallPreset = nil;
+    modal.waterwallSmartRouting = NO;
+    modal.tlsFragMode = 0;
+    modal.tlsFragFirst = 0;
+    modal.tlsFragFollowing = 0;
+    modal.customSniEnabled = NO;
+    modal.customSni = nil;
+    modal.username = nil;
+}
+
 +(NSDictionary*)storedParametersForProfile:(NodeModel*)modal {
     NSMutableDictionary *d = [[self checkConnectParmer:modal] mutableCopy];
     BOOL wireGuard = d[@"wg_conf"] != nil;
@@ -477,11 +564,25 @@ static NSDictionary *SRPSwitchableConfiguration(NSDictionary *parameters) {
         [SRPKeychain deletePasswordForKey:modal.aetherLicenseRef];
         modal.aetherLicenseRef = nil;
     }
+    if (![modal.protocolType isEqualToString:@"waterwall"] && modal.waterwallChainRef.length > 0) {
+        // A profile moved to another protocol leaves its chain
+        [SRPKeychain deletePasswordForKey:modal.waterwallChainRef];
+        modal.waterwallChainRef = nil;
+        modal.waterwallChainJSON = nil;
+    }
+    if ([modal.protocolType isEqualToString:@"waterwall"] && (modal.waterwallConfigJSON.length > 0 || modal.waterwallPreset.length > 0)) {
+        // A profile whose conversion failed keeps its former settings until a chain is saved for it
+        if (modal.waterwallConfigJSON.length > 0) d[@"ww_config"] = modal.waterwallConfigJSON;
+        if (modal.waterwallPreset.length > 0) d[@"ww_preset"] = modal.waterwallPreset;
+        if (modal.passwordKey.length > 0) d[@"ww_secret_ref"] = modal.passwordKey;
+        if (modal.waterwallOuterSecretRef.length > 0) d[@"ww_outer_secret_ref"] = modal.waterwallOuterSecretRef;
+        d[@"ww_smart_routing"] = @(modal.waterwallSmartRouting);
+    }
     return d;
 }
 
 +(void)deleteStoredSecretsOfProfile:(NodeModel*)modal {
-    for (NSString *key in @[modal.passwordKey ?: @"", modal.waterwallSecretRef ?: @"", modal.waterwallOuterSecretRef ?: @"",
+    for (NSString *key in @[modal.passwordKey ?: @"", modal.waterwallSecretRef ?: @"", modal.waterwallOuterSecretRef ?: @"", modal.waterwallChainRef ?: @"",
                             modal.proxyPasswordRef ?: @"", modal.wgSecretRef ?: @"", modal.aetherLicenseRef ?: @""]) {
         if (key.length > 0) [SRPKeychain deletePasswordForKey:key];
     }

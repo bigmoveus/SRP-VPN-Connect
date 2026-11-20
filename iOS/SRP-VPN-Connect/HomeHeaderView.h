@@ -23,6 +23,7 @@ typedef NS_ENUM(NSInteger, SRPHomeStatus) {
 @property (nonatomic, strong, readonly) UILabel *statusLabel;
 @property (nonatomic, strong, readonly) UIButton *editButton;
 @property (nonatomic, strong, readonly) UIButton *helpButton;
+@property (nonatomic, strong, readonly) UIButton *settingsButton;
 @property (nonatomic, strong, readonly) UIButton *addButton;
 
 /// Fired when the status text ("Connected"/… ) is tapped — opens the log

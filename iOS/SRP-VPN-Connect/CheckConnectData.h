@@ -13,6 +13,12 @@ NS_ASSUME_NONNULL_BEGIN
 +(NSDictionary*)storedParametersForProfile:(NodeModel*)modal;
 /// Removes the profile's passwords and WireGuard keys from the Keychain, for a deleted profile.
 +(void)deleteStoredSecretsOfProfile:(NodeModel*)modal;
+/// A WaterWall profile made with the former form becomes the chain the app built for it when it connected (WireGuard
+/// mode becomes a WireGuard profile). YES when it changed and must be saved; NO for a profile with a chain already, or
+/// one that could not be converted, which keeps its former settings until a chain is saved for it.
++(BOOL)convertLegacyWaterWallProfile:(NodeModel*)modal;
+/// The former form's settings and the secrets it kept apart, which the chain now holds
++(void)clearLegacyWaterWallSettingsOfProfile:(NodeModel*)modal;
 /// The other WaterWall profiles of the same server that Auto Switch may use, those with the
 /// other carrier (TCP or UDP) first, each as connect parameters. Empty when Auto Switch is off.
 +(NSArray<NSDictionary*>*)waterWallFallbacksForProfile:(NodeModel*)profile amongProfiles:(NSArray<NodeModel*>*)profiles;

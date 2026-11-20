@@ -6,6 +6,8 @@
 #import "SRPKeychain.h"
 #import <arpa/inet.h>
 #import <mach/mach.h>
+#import <sys/socket.h>
+#import <unistd.h>
 #import <stdatomic.h>
 
 @interface PacketTunnelProvider ()
@@ -866,11 +868,113 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     return NO;
 }
 
+// WaterWall's listener cannot share its port with another app's, and its own error would not say why it stopped
+static BOOL SRPWWLocalPortIsFree(uint16_t port) {
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0) return YES;
+    struct sockaddr_in address = {.sin_len = sizeof(address), .sin_family = AF_INET, .sin_port = htons(port),
+                                  .sin_addr.s_addr = htonl(INADDR_LOOPBACK)};
+    BOOL free = bind(fd, (struct sockaddr *)&address, sizeof(address)) == 0;
+    close(fd);
+    return free;
+}
+
+// Turns one node-chain WaterWall profile into what WaterWall runs and the tunnel's settings: its input hint becomes
+// the input Settings → WaterWall Input chooses. resolver resolves the fixed server names, which the routes leave out.
+- (nullable SRPWaterWallCandidate *)waterWallChainCandidateWithOptions:(NSDictionary *)v
+                                                               resolver:(SRPWaterWallClient *)resolver
+                                                                failure:(NSString **)failure {
+    NSString *problem = nil;
+    NSString *json = [SRPKeychain passwordForKey:v[@"ww_chain_ref"]];
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:json error:&problem];
+    if (document == nil) {
+        *failure = json.length == 0 ? @"The WaterWall profile is missing from the Keychain; open it in the app and save it again." :
+                   [@"The WaterWall profile is invalid: " stringByAppendingString:problem];
+        return nil;
+    }
+    NSString *geoIPPath = nil;
+    if ([SRPWaterWallNodeChain documentUsesGeoIP:document]) {
+        NSURL *databaseURL = SRPGeoIPDatabase.sharedDatabase.currentDatabaseURL;
+        NSError *databaseError = nil;
+        if (databaseURL == nil || ![SRPGeoIPDatabase.sharedDatabase validateDatabaseAtURL:databaseURL error:&databaseError]) {
+            NSString *message = databaseError.localizedDescription ?: @"A valid GeoIP country database is required.";
+            *failure = [@"GeoIP is enabled but its database is unavailable: " stringByAppendingString:message];
+            return nil;
+        }
+        geoIPPath = databaseURL.path;
+    }
+    NSString *input = SRPWaterWallNodeChain.currentInput;
+    NSArray<NSDictionary *> *endpoints = [SRPWaterWallNodeChain endpointsOfDocument:document];
+    NSMutableDictionary<NSString *, NSString *> *addresses = [NSMutableDictionary new];
+    NSMutableArray<NSString *> *endpointIPs = [NSMutableArray new];
+    for (NSDictionary *endpoint in endpoints) {
+        NSString *host = endpoint[@"host"];
+        if (addresses[host] != nil) continue;
+        NSString *address = [resolver resolvedAddressForHost:host];
+        if (address.length == 0) {
+            *failure = [NSString stringWithFormat:@"The WaterWall server address %@ could not be resolved.", host];
+            return nil;
+        }
+        addresses[host] = address;
+        if (![endpointIPs containsObject:address]) [endpointIPs addObject:address];
+    }
+    BOOL connections = [[SRPWaterWallNodeChain hintOfDocument:document][@"type"] isEqual:SRPWaterWallHintConnection];
+    BOOL fakeDNS = (v[@"ww_fake_dns"] == nil || [v[@"ww_fake_dns"] boolValue]) && connections &&
+                   [input isEqualToString:SRPWaterWallInputTUN];
+    NSDictionary *runtime = [SRPWaterWallNodeChain runtimeDocumentForDocument:document input:input fakeDNS:fakeDNS
+                                                            geoIPDatabasePath:geoIPPath addresses:addresses error:&problem];
+    if (runtime == nil) {
+        *failure = problem;
+        return nil;
+    }
+    SRPWaterWallCandidate *candidate = [SRPWaterWallCandidate new];
+    candidate.name = [v[@"desc"] length] > 0 ? v[@"desc"] : [SRPWaterWallNodeChain summaryOfDocument:document];
+    candidate.nodesJSON = [SRPWaterWallNodeChain JSONWithDocument:runtime];
+    candidate.udpCarrier = [SRPWaterWallNodeChain documentUsesUDPCarrier:document];
+    NSArray<NSDictionary *> *chain = [SRPWaterWallNodeChain chainOfDocument:document];
+    NSSet *applications = [NSSet setWithArray:@[@"VlessClient", @"VmessClient", @"TrojanClient", @"Socks5Client", @"HttpProxyClient"]];
+    for (NSDictionary *node in chain) {
+        // An HTTP CONNECT proxy carries TCP only, and an application with a fixed protocol carries that one
+        NSDictionary *settings = [node[@"settings"] isKindOfClass:NSDictionary.class] ? node[@"settings"] : @{};
+        id protocol = settings[@"protocol"] ?: settings[@"proto"];
+        if ([node[@"type"] isEqual:@"HttpProxyClient"]) candidate.probeUDP = NO;
+        if ([applications containsObject:node[@"type"]] && ([protocol isEqual:@"tcp"] || [protocol isEqual:@"connect"])) candidate.probeUDP = NO;
+        if ([applications containsObject:node[@"type"]] && ([protocol isEqual:@"udp"] || [protocol isEqual:@"udp-associate"])) candidate.probeTCP = NO;
+        if ([node[@"type"] isEqual:@"EncryptionClient"]) candidate.tunnelAddress = @"10.44.0.4";
+    }
+    candidate.probeUDP = candidate.probeUDP && [chain.lastObject[@"type"] isEqual:@"TcpUdpConnector"];
+    // Packets reach the far end with this source address, which our packet servers expect
+    if (!connections) candidate.tunnelAddress = @"10.44.0.4";
+    candidate.endpointIP = endpointIPs.firstObject;
+    candidate.endpointIPs = endpointIPs;
+    candidate.remoteAddress = endpoints.firstObject[@"host"] ?: @"127.0.0.1";
+    candidate.probeAddress = [v[@"ww_probe_ip"] length] > 0 ? v[@"ww_probe_ip"] : @"1.1.1.1";
+    candidate.dnsProbeAddress = fakeDNS ? @"198.18.0.2" :
+                                [v[@"ww_dns_probe_ip"] length] > 0 ? v[@"ww_dns_probe_ip"] : candidate.probeAddress;
+    if (fakeDNS) candidate.dnsServers = @[@"198.18.0.2"];
+    if (![input isEqualToString:SRPWaterWallInputTUN]) {
+        uint16_t port = (uint16_t)[SRPWaterWallNodeChain portForInput:input];
+        if (!SRPWWLocalPortIsFree(port)) {
+            *failure = [NSString stringWithFormat:@"127.0.0.1:%u is in use by another app, so the local %@ proxy cannot listen there. "
+                        "Stop that app's proxy or choose another input in Settings → WaterWall Input.", port,
+                        [input isEqualToString:SRPWaterWallInputSOCKS5] ? @"SOCKS5" : @"HTTP"];
+            return nil;
+        }
+        candidate.localProxy = input;
+        candidate.localProxyPort = port;
+        // The probe asks the proxy over TCP; what apps send over SOCKS5 UDP is theirs to check
+        candidate.probeUDP = NO;
+    }
+    return candidate;
+}
+
 // Turns one WaterWall profile into its node graph and tunnel settings. resolver only
 // resolves the server address; failure receives the reason when the profile is unusable.
 - (nullable SRPWaterWallCandidate *)waterWallCandidateWithOptions:(NSDictionary *)v
                                                           resolver:(SRPWaterWallClient *)resolver
                                                            failure:(NSString **)failure {
+    if ([v[@"ww_chain_ref"] length] > 0) return [self waterWallChainCandidateWithOptions:v resolver:resolver failure:failure];
+    // A configuration the system saved before the node editor, until the app connects again
     NSDictionary *configuration = [SRPWaterWallChainConfig configurationWithJSON:v[@"ww_config"]];
     if (configuration == nil) {
         *failure = @"The WaterWall configuration is invalid.";
@@ -1010,6 +1114,9 @@ static BOOL SRPWWProbeAddressAllowed(NSString *address, NSString *allowedIPs) {
     NSString *failure = nil;
     SRPWaterWallCandidate *selected = [self waterWallCandidateWithOptions:v resolver:client failure:&failure];
     if (selected == nil) {
+        // The app shows this reason after the VPN ends, as it shows a failed connection's
+        [[[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"] setObject:@{@"message": failure, @"date": NSDate.date}
+                                                                                 forKey:@"SRPLastError"];
         completionHandler([NSError errorWithDomain:@"SRPVPN" code:-3 userInfo:@{NSLocalizedDescriptionKey: failure}]);
         return;
     }

@@ -61,9 +61,11 @@
 
     _editButton = [self toolbarButtonWithSymbol:@"square.and.pencil"];
     _helpButton = [self toolbarButtonWithSymbol:@"questionmark.circle"];
+    _settingsButton = [self toolbarButtonWithSymbol:@"gearshape"];
+    _settingsButton.accessibilityLabel = @"Settings";
     _addButton = [self toolbarButtonWithSymbol:@"plus"];
 
-    UIStackView *toolbar = [[UIStackView alloc] initWithArrangedSubviews:@[_editButton, _helpButton, _addButton]];
+    UIStackView *toolbar = [[UIStackView alloc] initWithArrangedSubviews:@[_editButton, _helpButton, _settingsButton, _addButton]];
     toolbar.axis = UILayoutConstraintAxisHorizontal;
     toolbar.spacing = 24;
     toolbar.alignment = UIStackViewAlignmentCenter;
