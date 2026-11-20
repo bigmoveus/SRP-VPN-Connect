@@ -76,6 +76,7 @@ fun HomeScreen(
     onAdd: () -> Unit,
     onEdit: (Profile) -> Unit,
     onHelp: () -> Unit,
+    onSettings: () -> Unit,
     onStatusTap: () -> Unit,
 ) {
     val colors = LocalIosColors.current
@@ -108,7 +109,7 @@ fun HomeScreen(
     }
 
     Column(Modifier.fillMaxSize().background(colors.groupedBackground).statusBarsPadding().navigationBarsPadding()) {
-        HomeHeader(status, onPower, onStatusTap, onHelp, onAdd) {
+        HomeHeader(status, onPower, onStatusTap, onHelp, onSettings, onAdd) {
             val selected = AppModel.selected
             when {
                 status == VpnState.Status.Connected -> ui.showToast("Disconnect the VPN before editing this profile")
@@ -127,6 +128,7 @@ private fun HomeHeader(
     onPower: () -> Unit,
     onStatusTap: () -> Unit,
     onHelp: () -> Unit,
+    onSettings: () -> Unit,
     onAdd: () -> Unit,
     onEdit: () -> Unit,
 ) {
@@ -166,6 +168,7 @@ private fun HomeHeader(
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
             ToolbarButton(Glyph.Edit, "Edit profile", onEdit)
             ToolbarButton(Glyph.Help, "Help", onHelp)
+            ToolbarButton(Glyph.Gear, "Settings", onSettings)
             ToolbarButton(Glyph.Plus, "Add profile", onAdd)
         }
     }
@@ -258,7 +261,7 @@ private fun ProfileRow(profile: Profile, status: VpnState.Status, open: OpenSwip
                 // iOS's home row: the chain summary for WaterWall, the server and port for SSTP
                 Label(if (profile.isAether) "Cloudflare WARP"
                       else if (profile.isTlsVpn || profile.isSsh || profile.isOpenVpn || profile.isWireGuard) "${profile.server}:${profile.effectivePort}"
-                      else ChainConfig.summary(profile.configuration), IosText.subheadline, colors.secondaryLabel, maxLines = 1)
+                      else NodeChain.summary(Json.parseOrNull(profile.chainJson)), IosText.subheadline, colors.secondaryLabel, maxLines = 1)
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {

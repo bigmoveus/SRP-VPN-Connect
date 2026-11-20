@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 
-private const val SERVER_FOOTER = "Configuration independently combines the input, application protocol, MUX and outer transport. SOCKS5 supports TCP and UDP Association directly; HTTP CONNECT supports TCP. Proxy username and password are optional as a pair. Advanced Node Settings provides per-node JSON overrides. Reality defaults to the www.cloudflare.com cover and uses a separate password. AEAD has no TLS handshake. Raw IPv4 uses PacketsToStream. TLS Server Verification validates TLS, Reality and QUIC certificates. Optional SNI must match the server's cover configuration."
+private const val WATERWALL_FOOTER = "The profile is a chain of WaterWall nodes that starts with an input hint. Open it to read the chain from top to bottom, edit a node, or import a WaterWall JSON file. The node settings hold the server, its credentials and every other setting of the chain."
 
 /** The screens of the editor, which open one over the other as in the iOS navigation stack. */
 sealed interface EditorPage {
@@ -55,13 +55,13 @@ sealed interface EditorPage {
 
     data object WireGuardManual : EditorPage
 
+    /** The WaterWall chain */
     data object WaterWall : EditorPage
 
-    data class Choice(val row: String) : EditorPage
+    /** Edit Node for [name], or Insert Node after [after] */
+    data class WaterWallNode(val name: String?, val after: String?) : EditorPage
 
-    data class NodeOptions(val layer: String) : EditorPage
-
-    data object Countries : EditorPage
+    data object WaterWallImport : EditorPage
 
     data object SstpMethod : EditorPage
 
@@ -107,10 +107,9 @@ fun ProfileEditor(profile: Profile?, onClose: () -> Unit, onSave: (Profile) -> U
                 EditorPage.Main -> ProfileEditPage(draft, profile != null, { draft = it }, push, onClose, onSave)
                 EditorPage.Protocol -> ProtocolPage(draft, { draft = it }, pop)
                 EditorPage.WireGuardManual -> WireGuardManualPage(draft, { draft = it }, pop)
-                EditorPage.WaterWall -> WaterWallConfigPage(draft, { draft = it }, push, pop)
-                is EditorPage.Choice -> WaterWallChoicePage(page.row, draft, { draft = it }, pop)
-                is EditorPage.NodeOptions -> NodeOptionsPage(page.layer, draft, { draft = it }, pop)
-                EditorPage.Countries -> GeoIpCountriesPage(draft, { draft = it }, pop)
+                EditorPage.WaterWall -> WaterWallChainPage(draft, { draft = it }, push, pop)
+                is EditorPage.WaterWallNode -> WaterWallNodePage(draft, page.name, page.after, { draft = it }, pop)
+                EditorPage.WaterWallImport -> WaterWallImportPage(draft, { draft = it }, pop)
                 EditorPage.SstpMethod -> SstpMethodPage(draft, { draft = it }, pop)
                 EditorPage.SstpCertificate -> SstpCertificatePage(draft, { draft = it }, pop)
                 EditorPage.SstpEap -> SstpEapPage(draft, { draft = it }, push, pop)
@@ -133,22 +132,8 @@ fun validationMessage(profile: Profile): String? {
     if (profile.isWireGuard) return wireGuardValidationMessage(profile)
     // Aether needs nothing entered: it connects to Cloudflare WARP by itself
     if (profile.isAether) return null
-    val configuration = profile.configuration
-    ChainConfig.validationError(configuration)?.let { return it }
-    if (ChainConfig.isDirect(configuration)) return null
-    if (ChainConfig.isWireGuard(configuration)) {
-        return if (ChainConfig.wireGuardWithConfig(profile.wgEffectiveConfig()) == null) "Import or enter a complete, valid WireGuard configuration." else null
-    }
-    if (profile.server.isEmpty()) return "Enter the WaterWall server."
-    if ((profile.effectivePort.toIntOrNull() ?: 0) !in 1..65535) return "Enter a WaterWall port between 1 and 65535."
-    ChainConfig.applicationSecretError(profile.password, configuration)?.let { return it }
-    ChainConfig.applicationUsernameError(profile.username, profile.password, configuration)?.let { return it }
-    ChainConfig.outerSecretError(profile.outerSecret, configuration)?.let { return it }
-    // The ClientHello is cut only below 16384 bytes, so a larger first chunk would send it whole
-    if (profile.tlsFragMode == 2 && profile.tlsFragFirst >= 16384 && ChainConfig.allowsFragmentation(configuration)) {
-        return "First Chunk must be smaller than 16384 bytes."
-    }
-    return null
+    // WaterWall: the chain's own checks, as on import
+    return NodeChain.validationError(documentOf(profile))
 }
 
 private fun trimmedForSave(profile: Profile): Profile {
@@ -184,13 +169,9 @@ private fun trimmedForSave(profile: Profile): Profile {
             proxyAddress = profile.proxyAddress.trim(), proxyPort = profile.proxyPort.trim(), hostnameOverride = profile.hostnameOverride.trim(),
             hubName = profile.hubName.trim(), seNatTHint = profile.seNatTHint.trim(), pacUrl = profile.pacUrl.trim())
     }
-    val application = profile.configuration["application"]
-    return profile.copy(
-        server = profile.server.trim(),
-        port = profile.port.trim(),
-        customSni = profile.customSni.trim(),
-        password = if (application == "vless" || application == "vmess") profile.password.trim() else profile.password,
-    )
+    // WaterWall's server, port and credentials are node settings, which the node editor checks as JSON
+    if (profile.isWaterWall) return profile
+    return profile.copy(server = profile.server.trim(), port = profile.port.trim(), customSni = profile.customSni.trim())
 }
 
 /** Server and Port from a wg-quick file's Endpoint line, once it looks like a WireGuard file. */
@@ -216,10 +197,6 @@ private fun ProfileEditPage(
     val colors = LocalIosColors.current
     val ui = LocalUi.current
     val context = LocalContext.current
-    val configuration = draft.configuration
-    val wireGuard = ChainConfig.isWireGuard(configuration)
-    val application = configuration["application"]
-    val proxy = application == "socks5" || application == "http-proxy"
     val importFile = rememberLauncherForActivityResult(OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val text = runCatching {
@@ -299,77 +276,51 @@ private fun ProfileEditPage(
                 Spacer(Modifier.height(32.dp))
                 return@Column
             }
-            Section("SERVER", SERVER_FOOTER) {
-                if (wireGuard) {
-                    row { ValueRow("Configuration", ChainConfig.summary(configuration)) { push(EditorPage.WaterWall) } }
-                    row { ValueRow("Import Config (.conf)", if (draft.wgConfig.isNotEmpty()) "Imported" else "None") { importFile.launch(arrayOf("*/*")) } }
-                    row { ValueRow("Manual Configuration", if (draft.wgPrivateKey.isNotEmpty()) "Configured" else "None") { push(EditorPage.WireGuardManual) } }
-                    row { TextFieldRow("Server", draft.server, "Required", keyboardType = KeyboardType.Uri) { onChange(draft.copy(server = it)) } }
-                    row { TextFieldRow("Port", draft.port, "51820", keyboardType = KeyboardType.Number) { onChange(draft.copy(port = it)) } }
-                } else {
-                    row { ValueRow("Configuration", if (ChainConfig.isDirect(configuration)) "Direct (diagnostics)" else "Custom Chain") { push(EditorPage.WaterWall) } }
-                    row { TextFieldRow("Server", draft.server, "Required", keyboardType = KeyboardType.Uri) { onChange(draft.copy(server = it)) } }
-                    row { TextFieldRow("Port", draft.port, "443", keyboardType = KeyboardType.Number) { onChange(draft.copy(port = it)) } }
-                    if (ChainConfig.usesTls(configuration)) {
-                        row { TextFieldRow("SNI (optional)", draft.customSni, "Server hostname", keyboardType = KeyboardType.Uri) { onChange(draft.copy(customSni = it)) } }
-                        row { SwitchRow("TLS Server Verification", !draft.allowInsecure) { onChange(draft.copy(allowInsecure = !it)) } }
-                    }
-                }
+            val document = documentOf(draft)
+            Section("SERVER", WATERWALL_FOOTER) {
+                row { ValueRow("WaterWall", NodeChain.summary(document)) { push(EditorPage.WaterWall) } }
             }
-            if (ChainConfig.needsApplicationSecret(configuration) || ChainConfig.needsOuterSecret(configuration)) {
-                Section("AUTHENTICATION") {
-                    if (ChainConfig.needsApplicationSecret(configuration)) {
-                        if (proxy) row { TextFieldRow("Username", draft.username, "Optional") { onChange(draft.copy(username = it)) } }
-                        val title = when {
-                            application == "trojan" || proxy -> "Password"
-                            application == "vmess" -> "UUID / ID"
-                            else -> "UUID"
-                        }
-                        row { TextFieldRow(title, draft.password, if (proxy) "Optional" else "Required", secure = true) { onChange(draft.copy(password = it)) } }
-                    }
-                    if (ChainConfig.needsOuterSecret(configuration)) {
-                        val title = if (configuration["packet-encryption"] == true) "Packet Password" else if (configuration["outer"] == "aead") "AEAD Password" else "Reality Password"
-                        row { TextFieldRow(title, draft.outerSecret, "Required", secure = true) { onChange(draft.copy(outerSecret = it)) } }
-                    }
-                }
-            }
-            OptionsSection(draft, configuration, onChange)
+            WaterWallOptionsSection(draft, document, onChange)
             Spacer(Modifier.height(32.dp))
         }
     }
 }
 
-@Composable
-private fun OptionsSection(draft: Profile, configuration: Map<String, Any?>, onChange: (Profile) -> Unit) {
-    val autoSwitch = !ChainConfig.isWireGuard(configuration) && !ChainConfig.isDirect(configuration)
-    val fragmentation = ChainConfig.allowsFragmentation(configuration)
-    val routing = ChainConfig.allowsRouting(configuration)
-    val footer = buildString {
-        append("Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error.")
-        if (autoSwitch) append(" Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile with the other carrier (TCP or UDP); when Switch to Wi-Fi When Available moves the connection to a new network, it returns to this profile.")
-        append(" Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps; on wake it reconnects with Auto Reconnect, otherwise the VPN disconnects. Pause closes it and always reconnects on wake; Stay keeps it open.")
-        if (fragmentation) append(" TLS Fragmentation splits the outer TLS ClientHello into smaller writes.")
-        if (routing) append(" Remote DNS answers lookups with placeholder addresses so the server resolves the real names; Direct LAN Routing connects private addresses (10/8, 172.16/12, 192.168/16) directly instead of through the server.")
+/** The WaterWall rows of OPTIONS: Auto Switch needs a chain with a server of its own, Remote DNS a chain that takes connections */
+internal fun waterWallOptionTitles(profile: Profile, document: Map<String, Any?>): List<String> = buildList {
+    add("Auto Reconnect")
+    if (profile.autoReconnect) add("Retry Times")
+    if (NodeChain.endpoints(document).isNotEmpty()) add("Auto Switch")
+    addAll(listOf("Switch to Wi-Fi When Available", "On Sleep", "Log Level"))
+    if (NodeChain.hint(document)?.get("type") == NodeChain.HINT_CONNECTION) add("Remote DNS (Fake IP)")
+}
+
+internal fun waterWallOptionsFooter(document: Map<String, Any?>) = buildString {
+    append("Auto Reconnect restarts WaterWall 2 seconds after the connection fails; Retry Times limits the consecutive attempts (empty = unlimited) before the VPN disconnects with an error.")
+    if (NodeChain.endpoints(document).isNotEmpty()) {
+        append(" Auto Switch uses the other WaterWall profiles of the same server: each reconnect tries the next one, and when the network loses too many packets the connection moves to a profile that reaches the server the other way (TCP or UDP).")
     }
-    Section("OPTIONS", footer) {
-        row { SwitchRow("Auto Reconnect", draft.autoReconnect) { onChange(draft.copy(autoReconnect = it)) } }
-        if (draft.autoReconnect) {
-            row { NumberRow("Retry Times", draft.retryTimes, "Unlimited") { onChange(draft.copy(retryTimes = it)) } }
-        }
-        if (autoSwitch) row { SwitchRow("Auto Switch", draft.autoSwitch) { onChange(draft.copy(autoSwitch = it)) } }
-        row { SwitchRow("Switch to Wi-Fi When Available", draft.switchToWifi) { onChange(draft.copy(switchToWifi = it)) } }
-        row { SegmentRow("On Sleep", listOf("Off", "Pause", "Stay"), draft.onSleep) { onChange(draft.copy(onSleep = it)) } }
-        row { SegmentRow("Log Level", listOf("Normal", "Expert", "Debug"), draft.logLevel) { onChange(draft.copy(logLevel = it)) } }
-        if (fragmentation) {
-            row { SegmentRow("TLS Fragmentation", listOf("Off", "Auto", "Manual"), draft.tlsFragMode) { onChange(draft.copy(tlsFragMode = it)) } }
-            if (draft.tlsFragMode == 2) {
-                row { NumberRow("First Chunk (bytes)", draft.tlsFragFirst, "32") { onChange(draft.copy(tlsFragFirst = it)) } }
-                row { NumberRow("Following Chunks (bytes)", draft.tlsFragFollowing, "256") { onChange(draft.copy(tlsFragFollowing = it)) } }
+    append(" Switch to Wi-Fi When Available moves the connection to Wi-Fi as soon as it appears, and back to cellular when Wi-Fi is lost. On Sleep: Off closes the connection while the device sleeps, Pause closes it and connects again at wake, Stay keeps it.")
+    if (NodeChain.hint(document)?.get("type") == NodeChain.HINT_CONNECTION) {
+        append(" With System VPN (TUN) as the WaterWall input in Settings, Remote DNS answers lookups with placeholder addresses, so each connection carries the name to the chain and the server resolves it.")
+    }
+}
+
+@Composable
+private fun WaterWallOptionsSection(draft: Profile, document: Map<String, Any?>, onChange: (Profile) -> Unit) {
+    Section("OPTIONS", waterWallOptionsFooter(document)) {
+        for (title in waterWallOptionTitles(draft, document)) {
+            row {
+                when (title) {
+                    "Auto Reconnect" -> SwitchRow(title, draft.autoReconnect) { onChange(draft.copy(autoReconnect = it)) }
+                    "Retry Times" -> NumberRow(title, draft.retryTimes, "Unlimited") { onChange(draft.copy(retryTimes = it)) }
+                    "Auto Switch" -> SwitchRow(title, draft.autoSwitch) { onChange(draft.copy(autoSwitch = it)) }
+                    "Switch to Wi-Fi When Available" -> SwitchRow(title, draft.switchToWifi) { onChange(draft.copy(switchToWifi = it)) }
+                    "On Sleep" -> SegmentRow(title, listOf("Off", "Pause", "Stay"), draft.onSleep) { onChange(draft.copy(onSleep = it)) }
+                    "Log Level" -> SegmentRow(title, listOf("Normal", "Expert", "Debug"), draft.logLevel) { onChange(draft.copy(logLevel = it)) }
+                    else -> SwitchRow(title, draft.fakeDns) { onChange(draft.copy(fakeDns = it)) }
+                }
             }
-        }
-        if (routing) {
-            row { SwitchRow("Remote DNS (Fake IP)", draft.fakeDns) { onChange(draft.copy(fakeDns = it)) } }
-            row { SwitchRow("Direct LAN Routing", draft.smartRouting) { onChange(draft.copy(smartRouting = it)) } }
         }
     }
 }
@@ -388,15 +339,17 @@ private fun ProtocolPage(draft: Profile, onChange: (Profile) -> Unit, onBack: ()
     fun choose(type: String) {
         if (type != draft.protocolType) {
             // Each protocol keeps its own WireGuard keys and settings; a profile moved to another protocol starts without them.
-            onChange(draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
+            val chosen = draft.copy(protocolType = type, wgConfig = "", wgPrivateKey = "", wgPeerPublicKey = "", wgPresharedKey = "", wgAddress = "",
                 wgDns = "", wgAllowedIps = "", wgKeepalive = 0, wgJc = 0, wgJmin = 0, wgJmax = 0, wgS1 = 0, wgS2 = 0, wgS3 = 0, wgS4 = 0,
                 wgH1 = "", wgH2 = "", wgH3 = "", wgH4 = "", wgI1 = "", wgI2 = "", wgI3 = "", wgI4 = "", wgI5 = "", wgHeaderProtectionKey = "",
                 wgContentPaddingAddition = "", wgRekeyAfterTime = "", wgRekeyTimeout = "", wgRejectAfterTime = "", wgKeepaliveTimeout = "",
                 wgMaxHandshakeAttempts = "", wgRandomTrailers = false, wgDisableCookies = false,
-                port = if (type == "waterwall") "443" else if (type == "ssh") "22" else if (type == "openvpn") "1194"
+                port = if (type == "ssh") "22" else if (type == "openvpn") "1194"
                        else if (type == "wireguard" || type == "amnezia") "51820" else if (type == "aether") "" else draft.port,
                 // A new Aether profile as the iOS editor makes it (SRPProtocolViewController applyProtocol)
-                aetherTransport = "masque-both", aetherScan = "balanced", aetherTor = "off"))
+                aetherTransport = "masque-both", aetherScan = "balanced", aetherTor = "off")
+            // WaterWall starts with the input hint alone, until a file is imported or nodes are inserted
+            onChange(if (type == "waterwall") chosen.copy(configJson = "", chainJson = NodeChain.emptyJson).withWaterWallServer() else chosen)
         }
         onBack()
     }

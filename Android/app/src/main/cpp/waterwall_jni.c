@@ -20,7 +20,7 @@
 // One runtime per process, as the bridge allows. Everything here runs for WaterWallClient, which calls start, stop,
 // submit and the settings from one worker thread; its event thread sits in nextEvent.
 
-enum { kEventReady = 1, kEventFailure = 2, kEventProbePacket = 3, kEventChannelStopped = 4 };
+enum { kEventReady = 1, kEventFailure = 2, kEventProbePacket = 3, kEventChannelStopped = 4, kEventFatalLog = 5 };
 enum { kMaxProbeFlows = 4 };
 enum { kReadAheadBytes = 8 * 1024 * 1024 };
 enum { kLogCapBytes = 2 * 1024 * 1024, kLogKeepBytes = 512 * 1024 };
@@ -213,9 +213,12 @@ static void captureStartupErrors(bool capture) {
 }
 
 static void onLog(void *context, int level, const char *message, size_t length) {
-  (void)context;
   if (message == NULL) {
     return;
+  }
+  // A fatal line says why a chain did not start, such as a node WaterWall refused to build: WaterWallClient keeps the first.
+  if (strstr(message, " FATAL ") != NULL) {
+    postEvent((uint32_t)(uintptr_t)context, kEventFatalLog, 0, message, length);
   }
   // Normal keeps errors and known flow events, as on iOS: every TLS line's normal end is a warning, for example.
   if (level < 4 && atomic_load(&log_level) < 1) {

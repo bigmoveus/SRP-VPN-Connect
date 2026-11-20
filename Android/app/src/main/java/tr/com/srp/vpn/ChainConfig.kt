@@ -869,6 +869,10 @@ object ChainConfig {
         return null
     }
 
+    /** PacketsToConnection's fake DNS: lookups get placeholder addresses, so the connection carries the name to the server */
+    fun fakeDnsSettings(): Map<String, Any?> = linkedMapOf("enabled" to true, "address" to "198.18.0.2", "port" to 53L, "network" to "100.64.0.0",
+        "netmask" to "255.192.0.0", "cache-size" to 10000L, "ttl" to 60L)
+
     private fun merged(defaults: Map<String, Any?>, overrides: Obj?, required: Map<String, Any?>): LinkedHashMap<String, Any?> =
         LinkedHashMap(defaults).apply {
             putAll(overrides.orEmpty())
@@ -920,10 +924,7 @@ object ChainConfig {
         if (direct || !raw) {
             val required = LinkedHashMap<String, Any?>()
             val fakeDnsOption = options?.get("ww_fake_dns")
-            if ((fakeDnsOption == null || boolOf(fakeDnsOption)) && !direct) {
-                required["fake-dns"] = linkedMapOf("enabled" to true, "address" to "198.18.0.2", "port" to 53L, "network" to "100.64.0.0",
-                    "netmask" to "255.192.0.0", "cache-size" to 10000L, "ttl" to 60L)
-            }
+            if ((fakeDnsOption == null || boolOf(fakeDnsOption)) && !direct) required["fake-dns"] = fakeDnsSettings()
             val settings = merged(mapOf("mtu" to 1420L, "max-pending-bytes" to 65536L, "max-total-pending-bytes" to 16777216L), advancedOf("packet"), required)
             if (required["fake-dns"] != null) {
                 settings.remove("mapdns")

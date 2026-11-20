@@ -159,6 +159,11 @@ enum class Glyph(val path: String, val strokeWidth: Float = 1.9f) {
     Trash("M4 6h16M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6M6 6l1 14a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 17 20l1-14M10 10.5v7M14 10.5v7"),
     Search("M10.5 3.5a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM15.6 15.6L21 21"),
     ClearMark("M8.5 8.5l7 7M15.5 8.5l-7 7", 2.2f),
+    Gear("M12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4zM12 5a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM12 5V2.5M16.95 7.05l1.77-1.77M19 12h2.5M16.95 16.95l1.77 1.77M12 19v2.5M7.05 16.95l-1.77 1.77M5 12H2.5M7.05 7.05L5.28 5.28", 2.2f),
+    Doc("M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"),
+    ImportDoc("M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 10.5v7M9 14.5l3 3l3-3"),
+    Pencil("M15.5 4.5l4 4L8 20H4v-4zM13 7l4 4"),
+    Alert("M12 2.75a9.25 9.25 0 1 0 0 18.5a9.25 9.25 0 1 0 0-18.5zM12 7v6.5M12 16.75v.01", 2.2f),
 }
 
 /** One of the app's symbols, drawn to look like its SF Symbol. */
@@ -267,16 +272,16 @@ private fun Hairline(modifier: Modifier = Modifier) {
 private val RowHeight = 52.dp
 
 @Composable
-private fun PressableRow(onClick: (() -> Unit)?, content: @Composable RowScope.() -> Unit) {
+internal fun PressableRow(onClick: (() -> Unit)?, modifier: Modifier = Modifier, onClickLabel: String? = null, content: @Composable RowScope.() -> Unit) {
     val colors = LocalIosColors.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .heightIn(min = RowHeight)
             .background(if (pressed) colors.cellPressed else colors.cell)
-            .then(if (onClick != null) Modifier.clickable(interaction, null, onClick = onClick) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(interaction, null, onClickLabel = onClickLabel, onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

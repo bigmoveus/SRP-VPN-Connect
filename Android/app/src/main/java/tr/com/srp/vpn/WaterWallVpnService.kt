@@ -140,7 +140,7 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         logLevel = profile.logLevel
         WaterWall.setLog(ConnectionLog.file(this).path, logLevel)
         val started = WaterWallClient(selected, fallbacks, profile.autoReconnect, profile.retryTimes, profile.switchToWifi, profile.onSleep,
-            getSystemService(ConnectivityManager::class.java), this)
+            getSystemService(ConnectivityManager::class.java), this, profile.logLevel)
         client = started
         VpnState.client = started
         registerReceiver(sleepReceiver, IntentFilter().apply {
@@ -291,119 +291,95 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         }
     }
 
-    /** Turns one profile into its node graph and tunnel settings; [failure] gets the reason when the profile is unusable. */
+    /**
+     * Turns one WaterWall profile into what WaterWall runs and the tunnel's settings (PacketTunnelProvider
+     * waterWallChainCandidateWithOptions): its input hint becomes the input Settings → WaterWall Input chooses, and the fixed server
+     * names of its connectors are resolved here. [failure] gets the reason when the profile cannot connect.
+     */
     private fun candidateFor(profile: Profile, failure: (String) -> Unit): WaterWallCandidate? {
-        val configuration = ChainConfig.configurationWithJson(profile.configJson)
-        if (configuration == null) {
-            failure("The WaterWall configuration is invalid.")
+        if (profile.chainJson.isEmpty()) {
+            failure("The WaterWall profile is missing from the app's secret store; open it in the app and save it again.")
             return null
         }
-        @Suppress("UNCHECKED_CAST")
-        val geoIp = configuration["geoip"] as? Map<String, Any?>
-        val options = linkedMapOf<String, Any?>(
-            "username" to profile.username, "ww_fake_dns" to profile.fakeDns, "ww_smart_routing" to profile.smartRouting,
-            "log_level" to listOf("normal", "expert", "debug")[profile.logLevel], "tls_frag" to profile.tlsFragMode.toLong(),
-            "tls_frag_first" to profile.tlsFragFirst.toLong(), "tls_frag_following" to profile.tlsFragFollowing.toLong(),
-        )
-        if (geoIp?.get("iran-direct") == true || (geoIp?.get("countries") as? List<*>).orEmpty().isNotEmpty()) {
+        val (document, invalid) = NodeChain.documentWithJson(profile.chainJson)
+        if (document == null) {
+            failure("The WaterWall profile is invalid: $invalid")
+            return null
+        }
+        var geoIpPath: String? = null
+        if (NodeChain.usesGeoIp(document)) {
             val database = GeoIpDatabase(this)
-            val problem = database.currentFile?.let { database.validationError(it) } ?: if (database.currentFile == null) "A valid GeoIP country database is required." else null
+            val current = database.currentFile
+            val problem = if (current == null) "A valid GeoIP country database is required." else database.validationError(current)
             if (problem != null) {
                 failure("GeoIP is enabled but its database is unavailable: $problem")
                 return null
             }
-            options["ww_geoip_db_path"] = database.currentFile!!.path
+            geoIpPath = current!!.path
         }
-        val wireGuardMode = ChainConfig.isWireGuard(configuration)
-        val direct = ChainConfig.isDirect(configuration)
-        var probeTcp = true
-        var probeUdp = true
-        if (configuration["mode"] == "chain") {
-            @Suppress("UNCHECKED_CAST")
-            val application = (configuration["node-options"] as? Map<String, Any?>)?.get("application") as? Map<String, Any?>
-            val protocol = application?.get("protocol") ?: application?.get("proto")
-            if (configuration["application"] == "http-proxy") probeUdp = false
-            if (protocol == "tcp" || protocol == "connect") probeUdp = false
-            else if (protocol == "udp" || protocol == "udp-associate") probeTcp = false
-        }
-        var tunnelAddress = if (configuration["input"] == "raw-ipv4" || configuration["outer"] == "aead") "10.44.0.4" else "10.89.0.1"
-        val serverAddress = profile.server.ifEmpty { "127.0.0.1" }
-        var endpointAddress: String? = null
-        if (!wireGuardMode && !direct) {
-            endpointAddress = resolvedAddress(serverAddress)
-            if (endpointAddress == null) {
-                failure("The WaterWall server address could not be resolved.")
+        val input = AppSettings(this).waterWallInput
+        val endpoints = NodeChain.endpoints(document)
+        val addresses = LinkedHashMap<String, String>()
+        for ((host, _) in endpoints) {
+            if (host in addresses) continue
+            addresses[host] = resolvedAddress(host) ?: run {
+                failure("The WaterWall server address $host could not be resolved.")
                 return null
             }
         }
-        var dnsServers = listOf("1.1.1.1", "1.0.0.1")
-        var allowedIps: String? = null
-        val nodesJson: String?
-        if (wireGuardMode) {
-            val config = profile.wgEffectiveConfig().orEmpty()
-            val wireGuard = if (config.isNotEmpty()) ChainConfig.wireGuardWithConfig(config)
-            else ChainConfig.wireGuardWithKeys(profile.wgPrivateKey, profile.wgPeerPublicKey, profile.server, profile.effectivePort.toLongOrNull() ?: 0, profile.wgAddress, profile.wgKeepalive.toLong())
-            nodesJson = wireGuard?.nodesJson
-            if (wireGuard != null) {
-                tunnelAddress = wireGuard.tunnelAddress
-                dnsServers = wireGuard.dnsServers
-                allowedIps = wireGuard.allowedIps
-            }
-        } else {
-            // The SNI field applies to outer TLS, Reality and QUIC only. Left empty it means the server name, except for
-            // Reality, where the builder uses its www.cloudflare.com cover; the server argument is a resolved address.
-            val typedSni = if (ChainConfig.usesTls(configuration)) profile.customSni else ""
-            val sni = typedSni.ifEmpty { if (configuration["outer"] == "reality") "" else serverAddress }
-            nodesJson = ChainConfig.nodesJson(configuration, endpointAddress ?: serverAddress, profile.effectivePort.toLongOrNull() ?: 0, sni,
-                !profile.allowInsecure, profile.password, profile.outerSecret, options)
-        }
-        if (nodesJson.isNullOrEmpty()) {
-            failure("The WaterWall profile is incomplete or invalid.")
+        val connections = NodeChain.hint(document)?.get("type") == NodeChain.HINT_CONNECTION
+        val fakeDns = profile.fakeDns && connections && input == NodeChain.INPUT_TUN
+        val (runtime, problem) = NodeChain.runtimeDocument(document, input, fakeDns, geoIpPath, addresses)
+        if (runtime == null) {
+            failure(problem!!)
             return null
         }
-        if (!wireGuardMode) {
-            val nodes = (Json.parse(nodesJson) as Map<*, *>)["nodes"] as List<*>
-            probeUdp = probeUdp && (nodes.last() as Map<*, *>)["type"] == "TcpUdpConnector"
+        val chain = NodeChain.chain(document)
+        var probeTcp = true
+        var probeUdp = true
+        var tunnelAddress = "10.89.0.1"
+        val applications = setOf("VlessClient", "VmessClient", "TrojanClient", "Socks5Client", "HttpProxyClient")
+        for (node in chain) {
+            // An HTTP CONNECT proxy carries TCP only, and an application with a fixed protocol carries that one
+            val settings = node["settings"] as? Map<*, *>
+            val protocol = settings?.get("protocol") ?: settings?.get("proto")
+            if (node["type"] == "HttpProxyClient") probeUdp = false
+            if (node["type"] in applications && (protocol == "tcp" || protocol == "connect")) probeUdp = false
+            if (node["type"] in applications && (protocol == "udp" || protocol == "udp-associate")) probeTcp = false
+            if (node["type"] == "EncryptionClient") tunnelAddress = "10.44.0.4"
+        }
+        probeUdp = probeUdp && chain.lastOrNull()?.get("type") == "TcpUdpConnector"
+        // Packets reach the far end with this source address, which our packet servers expect
+        if (!connections) tunnelAddress = "10.44.0.4"
+        val localProxy = input.takeIf { it != NodeChain.INPUT_TUN }
+        val localProxyPort = NodeChain.portForInput(input)
+        if (localProxy != null && !localPortIsFree(localProxyPort)) {
+            failure("127.0.0.1:$localProxyPort is in use by another app, so the local ${if (localProxy == NodeChain.INPUT_SOCKS5) "SOCKS5" else "HTTP"} proxy cannot listen there. " +
+                "Stop that app's proxy or choose another input in Settings → WaterWall Input.")
+            return null
         }
         val probeAddress = profile.probeIp.ifEmpty { "1.1.1.1" }
-        val fakeDns = profile.fakeDns && ChainConfig.allowsRouting(configuration)
-        val dnsProbeAddress = if (fakeDns) "198.18.0.2" else profile.dnsProbeIp.ifEmpty { probeAddress }
-        if (fakeDns) dnsServers = listOf("198.18.0.2")
-        if (wireGuardMode) {
-            probeTcp = probeTcp && probeAddressAllowed(probeAddress, allowedIps)
-            probeUdp = probeUdp && probeAddressAllowed(dnsProbeAddress, allowedIps)
-        }
         return WaterWallCandidate(
-            name = profile.desc.ifEmpty { ChainConfig.summary(configuration) },
-            nodesJson = nodesJson,
-            remoteAddress = serverAddress,
+            name = profile.desc.ifEmpty { NodeChain.summary(document) },
+            nodesJson = NodeChain.json(runtime),
+            remoteAddress = endpoints.firstOrNull()?.first ?: "127.0.0.1",
             tunnelAddress = tunnelAddress,
             probeAddress = probeAddress,
-            dnsProbeAddress = dnsProbeAddress,
+            dnsProbeAddress = if (fakeDns) "198.18.0.2" else profile.dnsProbeIp.ifEmpty { probeAddress },
             probeTcp = probeTcp,
-            probeUdp = probeUdp,
-            dnsServers = dnsServers,
-            allowedIps = allowedIps,
-            udpCarrier = ChainConfig.usesUdpCarrier(configuration),
+            // The probe asks a local proxy over TCP; what apps send over SOCKS5 UDP is theirs to check
+            probeUdp = probeUdp && localProxy == null,
+            dnsServers = if (fakeDns) listOf("198.18.0.2") else listOf("1.1.1.1", "1.0.0.1"),
+            allowedIps = null,
+            udpCarrier = NodeChain.usesUdpCarrier(document),
+            localProxy = localProxy,
+            localProxyPort = localProxyPort,
         )
     }
 
     private fun resolvedAddress(host: String): String? {
         if (ProbePackets.ipv4(host) != null) return host
         return runCatching { InetAddress.getAllByName(host).firstOrNull { it is Inet4Address }?.hostAddress }.getOrNull()
-    }
-
-    private fun probeAddressAllowed(address: String, allowedIps: String?): Boolean {
-        if (allowedIps.isNullOrEmpty()) return true
-        if (ProbePackets.ipv4(address) == null) return false
-        val ip = ProbePackets.ipv4Int(address)
-        return allowedIps.split(',').any { entry ->
-            val parts = entry.trim().split('/')
-            val prefix = parts.getOrNull(1)?.toIntOrNull() ?: -1
-            if (parts.size != 2 || prefix !in 0..32 || ProbePackets.ipv4(parts[0]) == null) return@any false
-            val mask = if (prefix == 0) 0 else -1 shl (32 - prefix)
-            ip and mask == ProbePackets.ipv4Int(parts[0]) and mask
-        }
     }
 
     companion object {
@@ -419,19 +395,21 @@ class WaterWallVpnService : VpnService(), WaterWallClient.Host {
         private const val NOTIFICATION = 1
         private const val FALLBACK_LIMIT = 8
 
-        /** The other chain profiles of the same server that a failing or lossy connection can move to, other carrier first. */
+        /** The other WaterWall profiles of the same server that a failing or lossy connection can move to, the other carrier first
+         *  (CheckConnectData waterWallFallbacksForProfile). Empty when Auto Switch is off. */
         fun fallbackProfiles(profile: Profile, profiles: List<Profile>): List<Profile> {
             val server = profile.server.trim().lowercase()
-            val own = profile.configuration
-            fun switchable(configuration: Map<String, Any?>) = !ChainConfig.isWireGuard(configuration) && !ChainConfig.isDirect(configuration)
-            if (!profile.autoSwitch || server.isEmpty() || !switchable(own)) return emptyList()
-            val udp = ChainConfig.usesUdpCarrier(own)
-            val others = profiles.filter { other ->
-                other.nodeId != profile.nodeId && other.server.trim().lowercase() == server && switchable(other.configuration) &&
-                    // A copy of the selected profile connects the same way, so it cannot take over.
-                    !(other.configJson == profile.configJson && other.effectivePort == profile.effectivePort)
+            // The chain of a profile, or null when it is invalid or has no server of its own to share (a direct chain)
+            fun switchable(candidate: Profile) = NodeChain.documentWithJson(candidate.chainJson).first?.takeIf { NodeChain.endpoints(it).isNotEmpty() }
+            if (!profile.isWaterWall || !profile.autoSwitch || server.isEmpty()) return emptyList()
+            val udp = NodeChain.usesUdpCarrier(switchable(profile) ?: return emptyList())
+            val others = profiles.mapNotNull { other ->
+                if (other.nodeId == profile.nodeId || !other.isWaterWall || other.server.trim().lowercase() != server) return@mapNotNull null
+                val document = switchable(other)
+                // A copy of the selected profile connects the same way, so it cannot take over.
+                if (document == null || other.chainJson == profile.chainJson) null else other to NodeChain.usesUdpCarrier(document)
             }
-            return others.sortedBy { if (ChainConfig.usesUdpCarrier(it.configuration) != udp) 0 else 1 }.take(FALLBACK_LIMIT)
+            return others.sortedBy { if (it.second != udp) 0 else 1 }.map { it.first }.take(FALLBACK_LIMIT)
         }
     }
 }

@@ -66,9 +66,15 @@ data class Profile(
     val server: String = "",
     val port: String = "443",
     val allowInsecure: Boolean = false,
-    val configJson: String = ChainConfig.jsonWithConfiguration(ChainConfig.defaultConfiguration())!!,
+    /** The former WaterWall form's configuration, with the server, port, SNI, secrets and form options beside it: read only to convert
+     *  a profile made before the node editor, and kept while that fails */
+    val configJson: String = "",
     val outerSecret: String = "",
     val outerSecretRef: String = "",
+    /** The WaterWall profile: WaterWall JSON nodes whose chain starts with an input hint (NodeChain). The SecretStore keeps it under
+     *  [chainRef], because node settings hold UUIDs and passwords. */
+    val chainJson: String = NodeChain.emptyJson,
+    val chainRef: String = "",
     val probeIp: String = "",
     val dnsProbeIp: String = "",
     val fakeDns: Boolean = true,
@@ -193,17 +199,15 @@ data class Profile(
     val isAmnezia get() = protocolType == "amnezia"
     val isPlainWireGuard get() = protocolType == "wireguard"
     val isAether get() = protocolType == "aether"
+    val isWaterWall get() = protocolType == "waterwall"
     /** SSTP, SoftEther and SSL VPN: TLS protocols with a server, a port and the same OPTIONS (not WaterWall) */
     val isTlsVpn get() = isSstp || isSoftEther || isOpenConnect
 
     val certificateMode get() = ((isSstp || isOpenConnect) && authMethod == "certificate") || (isSoftEther && seAuthMethod == "certificate")
 
-    val configuration: Map<String, Any?>
-        get() = ChainConfig.configurationWithJson(configJson) ?: ChainConfig.defaultConfiguration()
-
-    /** An empty port means 443, 22 for SSH, 1194 for OpenVPN, or 51820 in WireGuard mode. */
+    /** An empty port means 443, 22 for SSH, 1194 for OpenVPN, or 51820 for WireGuard. */
     val effectivePort: String
-        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard || (!isTlsVpn && !isAether && ChainConfig.isWireGuard(configuration))) "51820" else "443" }
+        get() = port.ifEmpty { if (isSsh) "22" else if (isOpenVpn) "1194" else if (isWireGuard) "51820" else "443" }
 
     val nodeName get() = if (isSstp) "SSTP VPN" else if (isSoftEther) "SoftEther VPN" else if (isOpenConnect) "SSL VPN" else if (isSsh) "SSH VPN" else if (isOpenVpn) "OpenVPN" else if (isAmnezia) "AmneziaWG VPN" else if (isWireGuard) "WireGuard VPN" else if (isAether) "Aether VPN" else "WaterWall VPN"
 
@@ -251,8 +255,84 @@ internal fun Profile.wgConfigWithEndpointFromFields(config: String): String {
     return config.replaceRange(match.range, "${match.groupValues[1]}$name:$value")
 }
 
-/** The app's secrets, encrypted with a key that the Android Keystore holds; the counterpart of the iOS Keychain. */
-class SecretStore(context: Context) {
+/** Server and Port of a WaterWall profile follow its chain (its last connector's address) for the home screen, the TCP ping and Auto
+ *  Switch; a chain without a server of its own leaves them empty (NodeModel syncWaterWallServer) */
+fun Profile.withWaterWallServer(): Profile {
+    val endpoint = NodeChain.endpoints(Json.parseOrNull(chainJson)).firstOrNull()
+    return copy(server = endpoint?.first.orEmpty(), port = endpoint?.second?.toString().orEmpty())
+}
+
+/** A WaterWall profile that still holds the former form's settings, or nothing at all */
+internal val Profile.hasLegacyWaterWallSettings get() = isWaterWall && (configJson.isNotEmpty() || (chainJson.isEmpty() && chainRef.isEmpty()))
+
+/**
+ * A profile made with the former WaterWall form as the chain the app built for it when it connected, the form's settings cleared
+ * (CheckConnectData convertLegacyWaterWallProfile); WaterWall's WireGuard mode becomes a WireGuard profile. Null when the configuration
+ * cannot be converted, an invalid one or one without its UUID: the profile then keeps its former settings until a chain is saved.
+ */
+internal fun Profile.convertedFromLegacyWaterWall(): Profile? {
+    // An empty configuration reads as the default one; an invalid one converts to nothing
+    val configuration = ChainConfig.configurationWithJson(configJson) ?: return null
+    // The UUID, password and outer secret are in the chain now, which the store keeps as a whole
+    val cleared = copy(configJson = "", password = "", passwordKey = "", outerSecret = "", outerSecretRef = "", smartRouting = false,
+        tlsFragMode = 0, tlsFragFirst = 0, tlsFragFollowing = 0, customSniEnabled = false, customSni = "", username = "")
+    if (ChainConfig.isWireGuard(configuration)) {
+        // WireGuard mode ends its chain in the packet device, which a leading input hint cannot express: the profile becomes a
+        // WireGuard profile with the same keys, and with the Endpoint its imported file had
+        val (host, number) = wireGuardEndpoint(wgConfig) ?: (server to port)
+        return cleared.copy(protocolType = "wireguard", server = host, port = number, chainJson = "")
+    }
+    val options = mapOf<String, Any?>("ww_fake_dns" to fakeDns, "ww_smart_routing" to smartRouting, "tls_frag" to tlsFragMode.toLong(),
+        "tls_frag_first" to tlsFragFirst.toLong(), "tls_frag_following" to tlsFragFollowing.toLong(), "username" to username,
+        "log_level" to listOf("normal", "expert", "debug")[logLevel])
+    // The SNI field applied to outer TLS, Reality and QUIC only; left empty, the builder names the server or the Reality cover
+    val sni = if (ChainConfig.usesTls(configuration)) customSni else ""
+    val document = NodeChain.documentForConfiguration(configuration, server, effectivePort.toLongOrNull() ?: 0, sni, !allowInsecure,
+        password, outerSecret, options) ?: return null
+    // A direct chain had no fake DNS; the option now shapes only the input SRP supplies
+    return cleared.copy(chainJson = NodeChain.json(document), fakeDns = fakeDns && !ChainConfig.isDirect(configuration)).withWaterWallServer()
+}
+
+/** The GeoIP update link of the former form's configuration */
+internal val Profile.legacyGeoIpUpdateUrl: String?
+    get() = ((ChainConfig.configurationWithJson(configJson)?.get("geoip") as? Map<*, *>)?.get("update-url") as? String)?.takeIf { it.isNotEmpty() }
+
+/** The Endpoint of a WireGuard file, as host and port */
+private fun wireGuardEndpoint(config: String): Pair<String, String>? {
+    for (line in config.lines()) {
+        val equals = line.indexOf('=')
+        if (equals < 0 || !line.substring(0, equals).trim().equals("Endpoint", ignoreCase = true)) continue
+        val value = line.substring(equals + 1).trim()
+        val colon = value.lastIndexOf(':')
+        if (colon <= 0) return null
+        return value.substring(0, colon).trim('[', ']') to value.substring(colon + 1)
+    }
+    return null
+}
+
+/** The app's own settings, which no profile holds (iOS keeps them in its user defaults) */
+class AppSettings(context: Context) {
+    private val preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    /** Settings → WaterWall Input, one choice for every WaterWall profile, System VPN unless chosen otherwise; the next connect uses it */
+    var waterWallInput: String
+        get() = NodeChain.inputOf(preferences.getString(INPUT, null))
+        set(value) = preferences.edit().putString(INPUT, value).apply()
+
+    /** Settings → GeoIP Database: the HTTPS link Download & Replace fetches the country database from */
+    var geoIpUpdateUrl: String
+        get() = preferences.getString(GEOIP_URL, null).orEmpty()
+        set(value) = preferences.edit().apply { if (value.isEmpty()) remove(GEOIP_URL) else putString(GEOIP_URL, value) }.apply()
+
+    private companion object {
+        const val INPUT = "SRPWaterWallInput"
+        const val GEOIP_URL = "SRPGeoIPUpdateURL"
+    }
+}
+
+/** The app's secrets, encrypted with a key that the Android Keystore holds; the counterpart of the iOS Keychain. Open for the tests,
+ *  whose JVM has no Keystore. */
+open class SecretStore(context: Context) {
     private val preferences = context.getSharedPreferences("secrets", Context.MODE_PRIVATE)
 
     private fun key(): SecretKey {
@@ -269,13 +349,13 @@ class SecretStore(context: Context) {
         return generator.generateKey()
     }
 
-    fun set(name: String, value: String) {
+    open fun set(name: String, value: String) {
         val cipher = Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, key()) }
         val sealed = cipher.iv + cipher.doFinal(value.toByteArray())
         preferences.edit().putString(name, Base64.encodeToString(sealed, Base64.NO_WRAP)).apply()
     }
 
-    fun get(name: String): String? {
+    open fun get(name: String): String? {
         val sealed = Base64.decode(preferences.getString(name, null) ?: return null, Base64.NO_WRAP)
         return runCatching {
             val cipher = Cipher.getInstance(TRANSFORMATION)
@@ -284,7 +364,7 @@ class SecretStore(context: Context) {
         }.getOrNull()
     }
 
-    fun delete(name: String) {
+    open fun delete(name: String) {
         preferences.edit().remove(name).apply()
     }
 
@@ -296,20 +376,36 @@ class SecretStore(context: Context) {
 }
 
 /** Saved profiles, in the same parameter names as iOS: profiles.json holds no secret, the SecretStore holds the rest. */
-class ProfileStore(context: Context) {
+class ProfileStore(context: Context, private val secrets: SecretStore = SecretStore(context)) {
     private val file = File(context.filesDir, "profiles.json")
-    private val secrets = SecretStore(context)
     private val certificates = CertificateStore(context)
+    private val settings = AppSettings(context)
 
     fun load(): List<Profile> {
         val all = (Json.parseOrNull(if (file.exists()) file.readText() else null) as? List<*>).orEmpty().filterIsInstance<Map<*, *>>()
         // Aether's Private mode (the user's own server) is gone: a profile of it cannot connect any more and leaves with its secrets
         val (removed, stored) = all.partition { it["type"] == "aether" && it["ae_mode"] == "private" }
         removed.forEach { deleteSecrets(fromStored(it)) }
-        val profiles = stored.map { fromStored(it) }
+        var converted = false
+        val profiles = stored.map { item ->
+            val profile = fromStored(item)
+            if (!profile.hasLegacyWaterWallSettings) return@map profile
+            // A WaterWall profile made with the former form becomes its node chain, once
+            val chain = profile.convertedFromLegacyWaterWall()
+            if (chain != null) {
+                converted = true
+                listOf(profile.passwordKey, profile.outerSecretRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
+                // The GeoIP update link is app-wide now (Settings → GeoIP Database): the first profile that had one gives it
+                if (settings.geoIpUpdateUrl.isEmpty()) profile.legacyGeoIpUpdateUrl?.let { settings.geoIpUpdateUrl = it }
+            }
+            // One that cannot be converted starts as the empty chain, its former settings kept beside it
+            val result = chain ?: profile.copy(chainJson = profile.chainJson.ifEmpty { NodeChain.emptyJson })
+            // The reference is given here, so that the profile in memory names the entry the save writes
+            if (result.isWaterWall && result.chainRef.isEmpty()) result.copy(chainRef = UUID.randomUUID().toString()) else result
+        }
         // Re-save profiles that still contain a plaintext credential or WireGuard key, and an Aether profile an older build saved
         // (it wrote "ae_mode"): the save takes the WireGuard keys such a profile kept from Private mode out of the store.
-        if (removed.isNotEmpty() || stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "wg_header_protection_key", "proxy_password", "cert_p12", "ovpn_profile", "ae_license", "ae_mode").any { it in item } }) save(profiles)
+        if (converted || removed.isNotEmpty() || stored.any { item -> listOf("password", "ww_outer_secret", "wg_conf", "wg_private_key", "wg_preshared_key", "wg_header_protection_key", "proxy_password", "cert_p12", "ovpn_profile", "ae_license", "ae_mode").any { it in item } }) save(profiles)
         return profiles
     }
 
@@ -321,12 +417,22 @@ class ProfileStore(context: Context) {
     }
 
     fun deleteSecrets(profile: Profile) {
-        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef, profile.proxyPasswordRef, profile.ovpnProfileRef, profile.aetherLicenseRef)
-            .filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
+        listOf(profile.passwordKey, profile.outerSecretRef, profile.wgSecretRef, profile.proxyPasswordRef, profile.ovpnProfileRef, profile.aetherLicenseRef,
+            profile.chainRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
     }
 
     private fun toStored(profile: Profile): Map<String, Any?> {
         var saved = profile
+        // A profile moved to another protocol leaves its chain
+        if (!saved.isWaterWall && saved.chainRef.isNotEmpty()) {
+            secrets.delete(saved.chainRef)
+            saved = saved.copy(chainRef = "", chainJson = "")
+        }
+        if (saved.isWaterWall && saved.configJson.isEmpty()) {
+            // The former form's UUID, password and outer secret are in the chain now
+            listOf(saved.passwordKey, saved.outerSecretRef).filter { it.isNotEmpty() }.forEach { secrets.delete(it) }
+            saved = saved.copy(password = "", passwordKey = "", outerSecret = "", outerSecretRef = "")
+        }
         if (saved.password.isNotEmpty()) {
             if (saved.passwordKey.isEmpty()) saved = saved.copy(passwordKey = UUID.randomUUID().toString())
             secrets.set(saved.passwordKey, saved.password)
@@ -365,7 +471,8 @@ class ProfileStore(context: Context) {
         if (saved.wgPrivateKey.isNotEmpty()) keys["private_key"] = saved.wgPrivateKey
         if (saved.wgPresharedKey.isNotEmpty()) keys["preshared_key"] = saved.wgPresharedKey
         if (saved.wgHeaderProtectionKey.isNotEmpty()) keys["header_protection_key"] = saved.wgHeaderProtectionKey
-        if (keys.isNotEmpty()) {
+        // WaterWall's WireGuard mode is a WireGuard profile now, so a WaterWall profile keeps no keys
+        if (keys.isNotEmpty() && !saved.isWaterWall) {
             if (saved.wgSecretRef.isEmpty()) saved = saved.copy(wgSecretRef = UUID.randomUUID().toString())
             secrets.set(saved.wgSecretRef, Json.write(keys))
         } else if (saved.wgSecretRef.isNotEmpty() && secrets.get(saved.wgSecretRef) != null) {
@@ -396,17 +503,27 @@ class ProfileStore(context: Context) {
             }
             return stored
         }
-        return linkedMapOf(
-            "type" to "waterwall", "desc" to saved.desc, "node_id" to saved.nodeId, "username" to saved.username, "address" to saved.server,
-            "port" to saved.effectivePort, "allowInsecure" to saved.allowInsecure, "ww_config" to saved.configJson, "password_key" to saved.passwordKey,
-            "ww_outer_secret_ref" to saved.outerSecretRef, "ww_probe_ip" to saved.probeIp, "ww_dns_probe_ip" to saved.dnsProbeIp,
-            "ww_fake_dns" to saved.fakeDns, "ww_smart_routing" to saved.smartRouting, "ww_auto_switch" to saved.autoSwitch,
-            "tls_frag" to saved.tlsFragMode.toLong(), "tls_frag_first" to saved.tlsFragFirst.toLong(), "tls_frag_following" to saved.tlsFragFollowing.toLong(),
+        // The chain holds UUIDs and passwords, so it goes to the store and the list keeps its reference (an entry the Keystore cannot
+        // read now loads as an empty chain and stays as it is)
+        if (saved.chainJson.isNotEmpty()) {
+            if (saved.chainRef.isEmpty()) saved = saved.copy(chainRef = UUID.randomUUID().toString())
+            secrets.set(saved.chainRef, saved.chainJson)
+        }
+        val stored = linkedMapOf<String, Any?>(
+            "type" to "waterwall", "desc" to saved.desc, "node_id" to saved.nodeId, "address" to saved.server, "port" to saved.port,
+            "ww_chain_ref" to saved.chainRef, "ww_probe_ip" to saved.probeIp, "ww_dns_probe_ip" to saved.dnsProbeIp,
+            "ww_fake_dns" to saved.fakeDns, "ww_auto_switch" to saved.autoSwitch,
             "auto_reconnect" to saved.autoReconnect, "retry_times" to saved.retryTimes.toLong(), "switch_to_wifi" to saved.switchToWifi,
             "on_sleep" to listOf("off", "pause", "stay")[saved.onSleep], "log_level" to listOf("normal", "expert", "debug")[saved.logLevel],
-            "sni" to saved.customSni, "wg_peer_public_key" to saved.wgPeerPublicKey, "wg_address" to saved.wgAddress, "wg_dns" to saved.wgDns,
-            "wg_allowed_ips" to saved.wgAllowedIps, "wg_keepalive" to saved.wgKeepalive.toLong(), "wg_secret_ref" to saved.wgSecretRef,
         )
+        if (saved.configJson.isNotEmpty()) {
+            // A profile whose conversion failed keeps its former settings until a chain is saved for it
+            stored.putAll(linkedMapOf("ww_config" to saved.configJson, "username" to saved.username, "allowInsecure" to saved.allowInsecure,
+                "password_key" to saved.passwordKey, "ww_outer_secret_ref" to saved.outerSecretRef, "ww_smart_routing" to saved.smartRouting,
+                "tls_frag" to saved.tlsFragMode.toLong(), "tls_frag_first" to saved.tlsFragFirst.toLong(),
+                "tls_frag_following" to saved.tlsFragFollowing.toLong(), "sni" to saved.customSni))
+        }
+        return stored
     }
 
     /** CheckConnectData's keys for an SSTP, SoftEther, SSL VPN, SSH or OpenVPN profile; the proxy password and the .ovpn go to the store like the main one. */
@@ -496,10 +613,10 @@ class ProfileStore(context: Context) {
             else -> ""
         }
         val defaults = Profile()
-        val configJson = text("ww_config").takeIf { ChainConfig.configurationWithJson(it) != null && it.isNotEmpty() } ?: defaults.configJson
         // Password: prefer the store through password_key; a plaintext one moves there on the next save.
         val passwordKey = text("password_key")
         val outerRef = text("ww_outer_secret_ref")
+        val chainRef = text("ww_chain_ref")
         val wgRef = text("wg_secret_ref")
         val wg = (if (wgRef.isNotEmpty()) secrets.get(wgRef) else null)?.let { Json.parseOrNull(it) as? Map<*, *> }
         // A certificate written into the file as a PKCS#12 moves to the certificate store, as plaintext secrets move to theirs
@@ -515,9 +632,12 @@ class ProfileStore(context: Context) {
             server = text("address"),
             port = text("port"),
             allowInsecure = flag("allowInsecure", false),
-            configJson = configJson,
+            // The former form's configuration, read only to convert the profile
+            configJson = text("ww_config"),
             outerSecret = text("ww_outer_secret").ifEmpty { if (outerRef.isNotEmpty()) secrets.get(outerRef).orEmpty() else "" },
             outerSecretRef = outerRef,
+            chainJson = if (chainRef.isNotEmpty()) secrets.get(chainRef).orEmpty() else "",
+            chainRef = chainRef,
             probeIp = text("ww_probe_ip"),
             dnsProbeIp = text("ww_dns_probe_ip"),
             fakeDns = flag("ww_fake_dns", true),

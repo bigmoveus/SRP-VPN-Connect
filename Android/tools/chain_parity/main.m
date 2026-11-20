@@ -11,6 +11,58 @@ static id parsed(NSString *json) {
 
 static id nullToNil(id value) { return value == NSNull.null ? nil : value; }
 
+// One answer of the node editor can raise where another does not, so each is caught alone and marked.
+static id attempt(id (^block)(void)) {
+    @try {
+        return orNull(block());
+    } @catch (NSException *exception) {
+        return @{@"__exception__": exception.reason ?: @"exception"};
+    }
+}
+
+static NSDictionary *runNodeChain(NSDictionary *item) {
+    id document = item[@"document"];
+    NSMutableDictionary *out = [NSMutableDictionary new];
+    out[@"error"] = attempt(^id { return [SRPWaterWallNodeChain validationErrorForDocument:document]; });
+    if ([document isKindOfClass:NSDictionary.class]) {
+        out[@"chain"] = attempt(^id { return [SRPWaterWallNodeChain chainOfDocument:document]; });
+        out[@"hint"] = attempt(^id { return [SRPWaterWallNodeChain hintOfDocument:document]; });
+        out[@"summary"] = attempt(^id { return [SRPWaterWallNodeChain summaryOfDocument:document]; });
+        out[@"endpoints"] = attempt(^id { return [SRPWaterWallNodeChain endpointsOfDocument:document]; });
+        out[@"flags"] = attempt(^id {
+            return @[@([SRPWaterWallNodeChain documentUsesGeoIP:document]), @([SRPWaterWallNodeChain documentUsesUDPCarrier:document])];
+        });
+    }
+    return out;
+}
+
+static NSDictionary *runNodeJSON(NSDictionary *item) {
+    NSString *problem = nil;
+    NSDictionary *document = [SRPWaterWallNodeChain documentWithJSON:nullToNil(item[@"json"]) error:&problem];
+    return @{@"parsed": orNull(document), @"error": orNull(problem)};
+}
+
+static NSDictionary *runNodeEdit(NSDictionary *item) {
+    NSDictionary *document = item[@"document"];
+    NSString *operation = item[@"operation"];
+    NSDictionary *result = [operation isEqualToString:@"replace"] ?
+        [SRPWaterWallNodeChain document:document replacingNodeNamed:item[@"name"] withNode:item[@"node"]] :
+        [operation isEqualToString:@"insert"] ? [SRPWaterWallNodeChain document:document insertingNode:item[@"node"] afterNodeNamed:item[@"name"]] :
+        [SRPWaterWallNodeChain document:document deletingNodeNamed:item[@"name"]];
+    return @{@"result": result, @"resultError": orNull([SRPWaterWallNodeChain validationErrorForDocument:result])};
+}
+
+static NSDictionary *runNodeRuntime(NSDictionary *item) {
+    NSString *problem = nil;
+    NSDictionary *runtime = [SRPWaterWallNodeChain runtimeDocumentForDocument:item[@"document"]
+                                                                        input:item[@"input"]
+                                                                      fakeDNS:[item[@"fakeDNS"] boolValue]
+                                                            geoIPDatabasePath:nullToNil(item[@"geoIPDatabasePath"])
+                                                                    addresses:nullToNil(item[@"addresses"])
+                                                                        error:&problem];
+    return @{@"runtime": orNull(runtime), @"runtimeError": orNull(problem)};
+}
+
 static NSDictionary *runChain(NSDictionary *item) {
     NSMutableDictionary *out = [NSMutableDictionary new];
     id configuration = item[@"configuration"];
@@ -43,6 +95,17 @@ static NSDictionary *runChain(NSDictionary *item) {
                                                                        secret:secret
                                                                   outerSecret:outerSecret
                                                                       options:options]);
+    // The node chain the conversion of a profile made with the former WaterWall form gives
+    out[@"legacyDocument"] = attempt(^id {
+        return [SRPWaterWallNodeChain documentForConfiguration:configuration
+                                                        server:nullToNil(item[@"server"])
+                                                          port:[item[@"port"] integerValue]
+                                                           sni:nullToNil(item[@"sni"])
+                                                     verifyTLS:[item[@"verifyTLS"] boolValue]
+                                                        secret:secret
+                                                   outerSecret:outerSecret
+                                                       options:options];
+    });
     return out;
 }
 
@@ -70,6 +133,14 @@ int main(int argc, const char *argv[]) {
                                                                                                                              port:[item[@"port"] integerValue]
                                                                                                                      clientAddress:item[@"clientAddress"]
                                                                                                                          keepalive:[item[@"keepalive"] integerValue]])];
+                } else if ([item[@"kind"] isEqualToString:@"node-chain"]) {
+                    [entry addEntriesFromDictionary:runNodeChain(item)];
+                } else if ([item[@"kind"] isEqualToString:@"node-json"]) {
+                    [entry addEntriesFromDictionary:runNodeJSON(item)];
+                } else if ([item[@"kind"] isEqualToString:@"node-edit"]) {
+                    [entry addEntriesFromDictionary:runNodeEdit(item)];
+                } else if ([item[@"kind"] isEqualToString:@"node-runtime"]) {
+                    [entry addEntriesFromDictionary:runNodeRuntime(item)];
                 } else {
                     [entry addEntriesFromDictionary:runChain(item)];
                 }

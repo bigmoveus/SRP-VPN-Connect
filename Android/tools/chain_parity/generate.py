@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Writes app/src/test/resources/chain_config_parity.json.gz: iOS's answers for a broad corpus of WaterWall profiles.
+"""Writes app/src/test/resources/chain_config_parity.json.gz: iOS's answers for a broad corpus of WaterWall profiles, of the
+form-made configurations (SRPWaterWallChainConfig, with the node chain each converts to) and of the node editor's documents
+(SRPWaterWallNodeChain: checks, chain order, edits and the runtime copy for each input).
 
 ChainConfigParityTest checks that the Kotlin port gives the same answers. Run this again after a change to
-iOS/Core/SRPCore/SRPWaterWallChainConfig.m. The corpus holds only made-up values and a fixed random seed.
+iOS/Core/SRPCore/SRPWaterWallChainConfig.m. The corpus holds only made-up values and fixed random seeds.
 """
 import gzip
 import json
@@ -259,7 +261,165 @@ def corpus():
     for values in [("k", "p", "vpn.example.com", 51820, "10.88.0.2/24", 25), ("", "p", "s", 1, "a", 0), ("k", "", "s", 1, "a", 0), ("k", "p", "", 1, "a", 0), ("k", "p", "s", 1, "", 0),
                    ("k", "p", "s", 0, "a", 0), ("k", "p", "s", 65536, "a", 0), ("k", "p", "s", 1, "a", -1), ("k", "p", "s", 1, "a", 65536)]:
         items.append(dict(zip(("privateKey", "serverPublicKey", "server", "port", "clientAddress", "keepalive"), values), kind="wg-keys"))
+    items.extend(node_corpus())
     return items
+
+
+# The node editor's documents (SRPWaterWallNodeChain), with a random source of their own so that the corpus above stays as it was.
+NODE_RANDOM = random.Random(20261120)
+EXAMPLE = {"name": "Example TLS chain", "nodes": [
+    {"name": "input", "type": "HintConnectionIN", "settings": {}, "next": "tls"},
+    {"name": "uplink", "type": "TcpConnector", "settings": {"address": "vpn.example.com", "port": 443}},
+    {"name": "tls", "type": "TlsClient", "settings": {"sni": "vpn.example.com", "verify": True}, "next": "uplink"}]}
+CHAIN_TYPES = ["TlsClient", "VlessClient", "VmessClient", "TrojanClient", "MuxClient", "RealityClient", "EncryptionClient", "StreamFragmenter",
+               "HttpClient", "ObfuscatorClient", "KcpClient", "QuicClient", "Bgp4Client", "Router", "DomainResolver", "Socks5Client",
+               "HttpProxyClient", "PacketsToStream", "WireGuardDevice", "SpeedTestClient", "UserController"]
+LAST_TYPES = ["TcpConnector", "UdpConnector", "TcpUdpConnector", "UdpStatelessSocket", "TlsClient"]
+HOSTS = ["vpn.example.com", "192.0.2.1", "edge.example.net", "dest_context->address", "dest_context", "", 5, None]
+PORTS = [443, 8443, 1, 65535, 0, 65536, -1, "443", " 443", "\t8443", "\n8443", "443x", "+443", "-443", "x", "", True, False, 443.7, 1000.0,
+         99999999999999999999, "99999999999999999999", None, [], {}]
+DESTINATIONS = [["geoip:ir"], ["GEOIP:IR", "10.0.0.0/8"], "geoip:us", ["geoip:"], ["10.0.0.0/8"], [5], None, {}, "GeoIP:TR"]
+
+
+def node_settings(node_type):
+    pick = NODE_RANDOM.random()
+    if node_type in ("TcpConnector", "UdpConnector", "TcpUdpConnector") and pick < 0.85:
+        settings = {"address": NODE_RANDOM.choice(HOSTS), "port": NODE_RANDOM.choice(PORTS)}
+        if NODE_RANDOM.random() < 0.3:
+            settings["nodelay"] = True
+        return settings
+    if node_type == "Router" and pick < 0.8:
+        rules = [{"destination-ip": NODE_RANDOM.choice(DESTINATIONS), "target": "direct"} for _ in range(NODE_RANDOM.randint(0, 2))]
+        return NODE_RANDOM.choice([{"rules": rules}, {"rules": rules, "geoip-db-path": "/elsewhere/geoip.mmdb"}, {"rules": 5}, {"rules": [5]}, {}])
+    if node_type in ("VlessClient", "VmessClient", "TrojanClient", "Socks5Client", "HttpProxyClient") and pick < 0.6:
+        # WaterWall 1.5.42 needs the destination of an application node
+        return {"uuid": "00000000-0000-4000-8000-000000000000", "address": "dest_context->address", "port": "dest_context->port",
+                "protocol": NODE_RANDOM.choice(["tcp", "udp", "connect", "udp-associate", "dest_context->protocol"])}
+    return NODE_RANDOM.choice([{}, {"sni": "vpn.example.com", "verify": True}, {"mtu": 1400}])
+
+
+def random_document():
+    """A valid chain in a shuffled array, with off-chain nodes, then a few mistakes of the kinds an import must name."""
+    length = NODE_RANDOM.randint(1, 6)
+    names = NODE_RANDOM.sample(["input", "tls", "uplink", "mux", "app", "out", "router", "frag", "srp-device", "srp-connections", "srp-device-2",
+                                "srp-socks5", "srp-socks5-listener", "srp-http-proxy", "srp-http-listener", "direct", "a", "b"], length + 2)
+    hint = {"name": names[0], "type": NODE_RANDOM.choice(["HintConnectionIN", "HintConnectionIN", "HintPacketIN"]), "settings": {}}
+    if NODE_RANDOM.random() < 0.1:
+        del hint["settings"]
+    chain = [hint]
+    for index in range(1, length):
+        node_type = NODE_RANDOM.choice(LAST_TYPES if index == length - 1 else CHAIN_TYPES)
+        node = {"name": names[index], "type": node_type}
+        if NODE_RANDOM.random() < 0.9:
+            node["settings"] = node_settings(node_type)
+        chain.append(node)
+    for previous, node in zip(chain, chain[1:]):
+        previous["next"] = node["name"]
+    nodes = list(chain)
+    for name in names[length:length + NODE_RANDOM.randint(0, 2)]:
+        node_type = NODE_RANDOM.choice(["TcpUdpConnector", "TcpConnector", "Router", "UdpConnector"])
+        nodes.append({"name": name, "type": node_type, "settings": node_settings(node_type)})
+    def pick():
+        return NODE_RANDOM.choice([node for node in nodes if isinstance(node, dict)])
+
+    mutations = [
+        lambda: pick().update(next="missing"),
+        lambda: chain[-1].update(next=NODE_RANDOM.choice(chain[1:] or chain).get("name")),
+        lambda: pick().update(name=pick().get("name")),
+        lambda: nodes.append({"name": "second", "type": NODE_RANDOM.choice(["HintPacketIN", "HintConnectionIN"]), "settings": {}}),
+        lambda: hint.update(settings=NODE_RANDOM.choice([{"mtu": 1400}, [], None, {}])),
+        lambda: hint.pop("next", None),
+        lambda: pick().update(type=NODE_RANDOM.choice(["RawSocket", "TunDevice", "PacketsToConnection", "NEPacketDevice", "", 5, None])),
+        lambda: pick().update(settings=NODE_RANDOM.choice([[], "x", 5, None, True])),
+        lambda: pick().update(name=NODE_RANDOM.choice(["", 5, None])),
+        lambda: pick().update(next=NODE_RANDOM.choice(["", 5, None, [], {}])),
+        lambda: nodes.insert(NODE_RANDOM.randint(0, len(nodes)), NODE_RANDOM.choice([5, "node", None, [], {"type": "RawSocket"}])),
+        lambda: pick().update(next=hint.get("name")),
+        lambda: pick().pop("name", None),
+        lambda: pick().pop("type", None),
+    ]
+    for _ in range(NODE_RANDOM.choice([0, 0, 0, 1, 1, 2])):
+        NODE_RANDOM.choice(mutations)()
+    NODE_RANDOM.shuffle(nodes)
+    document = {"nodes": nodes}
+    name = NODE_RANDOM.choice(["Example", "", None, 5, "absent", "absent"])
+    if name != "absent":
+        document["name"] = name
+    return document
+
+
+def node_corpus():
+    items = []
+    hint = {"name": "input", "type": "HintConnectionIN", "settings": {}, "next": "out"}
+    out = {"name": "out", "type": "TcpConnector", "settings": {"address": "vpn.example.com", "port": 443}}
+    fixed = [
+        EXAMPLE, [], "x", 1, None, True, {}, {"nodes": {}}, {"nodes": "x"}, {"nodes": None}, {"nodes": []},
+        {"nodes": [hint, out]}, {"nodes": [out]}, {"nodes": [hint]}, {"nodes": [hint, out, {"name": "raw", "type": "RawSocket", "settings": {}}]},
+        {"nodes": [{"type": "RawSocket"}]}, {"nodes": [{"name": "", "type": "RawSocket"}]}, {"nodes": [5, {"type": "RawSocket"}]},
+        {"nodes": [hint, out, {"name": "tun", "type": "TunDevice", "settings": {}, "next": "input"}]},
+        {"nodes": [hint, out, {"name": "ptc", "type": "PacketsToConnection", "settings": {}}]}, {"nodes": [hint, out, {"type": "NEPacketDevice"}]},
+        {"nodes": [hint, 5]}, {"nodes": [hint, None]}, {"nodes": [hint, []]}, {"nodes": [{"type": "TcpConnector"}]},
+        {"nodes": [hint, dict(out, name="")]}, {"nodes": [hint, dict(out, name=5)]}, {"nodes": [hint, dict(out, type="")]}, {"nodes": [hint, dict(out, type=5)]},
+        {"nodes": [hint, dict(out, settings=[])]}, {"nodes": [hint, dict(out, settings=None)]}, {"nodes": [hint, dict(out, next="")]}, {"nodes": [hint, dict(out, next=5)]},
+        {"nodes": [hint, dict(out, next=None)]}, {"nodes": [hint, out, dict(out, type="TlsClient")]},
+        {"nodes": [hint, out, {"name": "second", "type": "HintPacketIN", "settings": {}}]}, {"nodes": [dict(hint, settings={"mtu": 1400}), out]},
+        {"nodes": [{k: v for k, v in hint.items() if k != "settings"}, out]}, {"nodes": [hint, dict(out, next="input")]}, {"nodes": [dict(hint, next="input"), out]},
+        {"nodes": [hint, {"name": "out", "type": "TlsClient", "settings": {}, "next": "input"}]},
+        {"nodes": [hint, {"name": "out", "type": "TlsClient", "next": "loop"}, {"name": "loop", "type": "TlsClient", "next": "out"}]},
+        {"nodes": [hint, {"name": "out", "type": "TlsClient", "next": "out"}]}, {"nodes": [dict(hint, next="gone"), out]},
+        {"nodes": [dict(hint, type="HintPacketIN"), out]}, {"name": "", "nodes": [hint, out]}, {"name": 5, "nodes": [hint, out]},
+        {"nodes": [hint, dict(out, type="UdpConnector")]}, {"nodes": [hint, {"name": "out", "type": "UdpStatelessSocket"}]},
+        {"nodes": [hint, {"name": "out", "type": "Router", "settings": {"rules": [{"destination-ip": ["geoip:ir"], "target": "direct"}]}, "next": "app"},
+                   {"name": "app", "type": "VlessClient", "settings": {"uuid": "00000000-0000-4000-8000-000000000000", "address": "dest_context->address",
+                                                                       "port": "dest_context->port", "protocol": "dest_context->protocol"}, "next": "uplink"},
+                   {"name": "uplink", "type": "TcpConnector", "settings": {"address": "vpn.example.com", "port": "8443"}},
+                   {"name": "direct", "type": "TcpUdpConnector", "settings": {"address": "dest_context->address", "port": "dest_context->port"}},
+                   {"name": "spare", "type": "TcpConnector", "settings": {"address": "spare.example.com", "port": 443}}]},
+    ]
+    documents = fixed + [random_document() for _ in range(3000)]
+    for document in documents:
+        items.append({"kind": "node-chain", "document": document})
+    for text in ["", "{", "[]", "{}", "1", "\"x\"", "null", "true", json.dumps(EXAMPLE), "﻿" + json.dumps(EXAMPLE), json.dumps(EXAMPLE) + " ",
+                 "{\"nodes\": [", "{\"nodes\": [] }", "{\"nodes\": [{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"out\"}]}", None]:
+        items.append({"kind": "node-json", "json": text})
+    valid = [EXAMPLE] + [document for document in documents if is_valid_document(document)][:160]
+    added = [{"name": "added", "type": "StreamFragmenter", "settings": {}}, {"name": "added", "type": "StreamFragmenter", "next": "elsewhere"},
+             {"name": "uplink", "type": "TlsClient"}, {"type": "StreamFragmenter"}, {"name": "input2", "type": "HintPacketIN", "settings": {}}]
+    for document in valid[:60]:
+        for node in [n for n in document["nodes"] if isinstance(n, dict)] + [{"name": "nowhere"}]:
+            name = node.get("name")
+            items.append({"kind": "node-edit", "document": document, "operation": "delete", "name": name})
+            items.append({"kind": "node-edit", "document": document, "operation": "insert", "name": name, "node": NODE_RANDOM.choice(added)})
+            for replacement in [dict(node, settings={"sni": "edge.example.net"}), dict(node, name="renamed"), dict(node, name="uplink"),
+                                dict(node, type="HintPacketIN"), {k: v for k, v in node.items() if k != "next"}]:
+                items.append({"kind": "node-edit", "document": document, "operation": "replace", "name": name, "node": replacement})
+    clashes = [dict(EXAMPLE, nodes=EXAMPLE["nodes"] + [{"name": name, "type": "StreamFragmenter", "settings": {}}])
+               for name in ["srp-device", "srp-connections", "srp-socks5", "srp-socks5-listener", "srp-http-proxy", "srp-http-listener", "srp-device-2"]]
+    clashes.append(dict(EXAMPLE, nodes=EXAMPLE["nodes"] + [{"name": "srp-device", "type": "StreamFragmenter"}, {"name": "srp-device-2", "type": "StreamFragmenter"}]))
+    clashes.append(dict(EXAMPLE, nodes=EXAMPLE["nodes"] + [{"name": "meter", "type": "SpeedTestClient", "settings": {}}]))
+    packets = dict(EXAMPLE, nodes=[dict(EXAMPLE["nodes"][0], type="HintPacketIN")] + EXAMPLE["nodes"][1:])
+    for document in [EXAMPLE, packets] + clashes + valid[1:61] + documents[:20]:
+        if not isinstance(document, dict):
+            continue
+        for input_name in ["tun", "socks5", "http", "other"]:
+            for fake_dns in [True, False]:
+                for path in [None, "/data/GeoIP/GeoLite2-Country.mmdb", ""]:
+                    addresses = NODE_RANDOM.choice([{}, {"vpn.example.com": "192.0.2.10"}, {"vpn.example.com": "192.0.2.10", "192.0.2.1": "192.0.2.1",
+                                                                                              "edge.example.net": "198.51.100.7", "spare.example.com": "203.0.113.9"}])
+                    items.append({"kind": "node-runtime", "document": document, "input": input_name, "fakeDNS": fake_dns,
+                                  "geoIPDatabasePath": path, "addresses": addresses})
+    return items
+
+
+def is_valid_document(document):
+    """Roughly the editor's checks, to pick documents worth editing; iOS gives the real answer."""
+    if not isinstance(document, dict) or not isinstance(document.get("nodes"), list):
+        return False
+    nodes = document["nodes"]
+    if not all(isinstance(n, dict) and isinstance(n.get("name"), str) and n["name"] and isinstance(n.get("type"), str) and n["type"] for n in nodes):
+        return False
+    names = [n["name"] for n in nodes]
+    return len(set(names)) == len(names) and sum(n["type"] in ("HintConnectionIN", "HintPacketIN") for n in nodes) == 1
 
 
 def main():

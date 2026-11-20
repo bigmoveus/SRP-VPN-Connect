@@ -85,6 +85,8 @@ private sealed interface Modal {
     data class Editor(val profile: Profile?) : Modal
 
     data object Log : Modal
+
+    data object Settings : Modal
 }
 
 @Composable
@@ -138,8 +140,8 @@ private fun App() {
                         send(WaterWallVpnService.ACTION_DISCONNECT)
                     } else {
                         val selected = AppModel.selected
-                        // Aether has no server (Cloudflare WARP)
-                        if (selected == null || (selected.server.isEmpty() && !selected.isAether && (selected.isTlsVpn || !ChainConfig.isDirect(selected.configuration)))) {
+                        // Aether has no server (Cloudflare WARP), and a WaterWall chain names its own (a direct chain none)
+                        if (selected == null || (selected.server.isEmpty() && !selected.isAether && !selected.isWaterWall)) {
                             ui.showToast("Add a profile first (tap +)")
                         } else if (selected.isTlsVpn && !selected.allowInsecure) {
                             // SSTP, SoftEther and SSL VPN check the server's certificate first and let the user decide when it is not trusted
@@ -178,6 +180,7 @@ private fun App() {
                 onAdd = { modal = Modal.Editor(null) },
                 onEdit = { profile -> modal = Modal.Editor(profile) },
                 onHelp = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://srpconnect.app"))) },
+                onSettings = { modal = Modal.Settings },
                 onStatusTap = { modal = Modal.Log },
             )
             // The log is a sheet over the home screen, as on iOS.
@@ -195,6 +198,7 @@ private fun App() {
                 when (val current = shown) {
                     is Modal.Editor -> ProfileEditor(current.profile, onClose = { modal = null }, onSave = { AppModel.put(it); modal = null })
                     Modal.Log -> LogScreen(onClose = { modal = null })
+                    Modal.Settings -> SettingsScreen(onClose = { modal = null })
                     null -> Unit
                 }
             }

@@ -6,6 +6,8 @@ internal object WaterWall {
     const val EVENT_FAILURE = 2
     const val EVENT_PROBE_PACKET = 3
     const val EVENT_CHANNEL_STOPPED = 4
+    /** A log line with " FATAL " in it, as its payload */
+    const val EVENT_FATAL_LOG = 5
 
     init {
         System.loadLibrary("waterwall")

@@ -80,8 +80,9 @@ class TcpPinger {
                     return null
                 }
             } else if (!profile.isTlsVpn && !profile.isSsh) {
-                val configuration = profile.configuration
-                if (ChainConfig.isDirect(configuration) || ChainConfig.usesUdpCarrier(configuration)) return null
+                // Server and Port follow the WaterWall chain's last connector; a chain that ends in UDP has no TCP server to time
+                val document = Json.parseOrNull(profile.chainJson) as? Map<*, *>
+                if (document == null || NodeChain.usesUdpCarrier(document)) return null
             }
             return if (host.isEmpty() || port !in 1..65535) null else host to port
         }

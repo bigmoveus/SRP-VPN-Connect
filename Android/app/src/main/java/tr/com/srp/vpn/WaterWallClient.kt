@@ -6,6 +6,13 @@ import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
+import java.io.DataInputStream
+import java.io.IOException
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.ServerSocket
+import java.net.Socket
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -24,7 +31,105 @@ class WaterWallCandidate(
     val allowedIps: String?,
     /** Reaches the server over UDP (KCP or QUIC datagrams) instead of a TCP connection. */
     val udpCarrier: Boolean,
+    /** "socks5" or "http" when the chain starts at a local proxy instead of the device: the tunnel then routes nothing and the probes
+     *  ask that proxy, on 127.0.0.1:[localProxyPort]. Null for the system VPN. */
+    val localProxy: String? = null,
+    val localProxyPort: Int = 0,
 )
+
+private val LOOPBACK = InetAddress.getByAddress(byteArrayOf(127, 0, 0, 1))
+
+/** WaterWall's listener cannot share its port with another app's, and its own error would not say why it stopped. A socket of ours
+ *  that is only waiting out its close does not count, as it would not stop the listener either. */
+internal fun localPortIsFree(port: Int): Boolean {
+    repeat(10) { attempt ->
+        if (attempt > 0) Thread.sleep(100)
+        val free = runCatching {
+            ServerSocket().use {
+                it.reuseAddress = true
+                it.bind(InetSocketAddress(LOOPBACK, port))
+            }
+        }.isSuccess
+        // The runtime of a connection that just ended may still be letting its listener go
+        if (free) return true
+    }
+    return false
+}
+
+/**
+ * Asks the local proxy for http://[target]/ as an app would (SRPWWLocalProxyProbe): both proxies confirm a CONNECT only once the chain
+ * reached the far end, and the HTTP answer after it can only come from there. Null when it answered, otherwise what went wrong.
+ */
+internal fun localProxyProbe(proxy: String, port: Int, target: String): String? {
+    val destination = ProbePackets.ipv4(target) ?: return "the probe address is not an IPv4 address"
+    Socket().use { socket ->
+        try {
+            socket.connect(InetSocketAddress(LOOPBACK, port), PROXY_PROBE_TIMEOUT_MS)
+            socket.soTimeout = PROXY_PROBE_TIMEOUT_MS
+        } catch (_: IOException) {
+            return "127.0.0.1:$port accepts no connection"
+        }
+        val input = DataInputStream(socket.getInputStream())
+        val output = socket.getOutputStream()
+        fun send(bytes: ByteArray) = try {
+            output.write(bytes)
+            output.flush()
+            true
+        } catch (_: IOException) {
+            false
+        }
+        fun receive(count: Int): ByteArray? = try {
+            ByteArray(count).also { input.readFully(it) }
+        } catch (_: IOException) {
+            null
+        }
+        if (proxy == "socks5") {
+            val greeting = if (send(byteArrayOf(5, 1, 0))) receive(2) else null
+            if (greeting == null || greeting[0].toInt() != 5 || greeting[1].toInt() != 0) return "the SOCKS5 greeting got no answer"
+            val reply = if (send(byteArrayOf(5, 1, 0, 1) + destination + byteArrayOf(0, 80))) receive(5) else null
+            if (reply == null || reply[1].toInt() != 0) return "the SOCKS5 CONNECT was not granted"
+            // The bound address after the reply's first four bytes: IPv4, a name of reply[4] bytes or IPv6, then the port.
+            val rest = when (reply[3].toInt()) {
+                1 -> 5
+                3 -> (reply[4].toInt() and 0xff) + 2
+                4 -> 17
+                else -> -1
+            }
+            if (rest < 0 || receive(rest) == null) return "the SOCKS5 CONNECT reply was cut short"
+        } else {
+            val sent = send("CONNECT $target:80 HTTP/1.1\r\nHost: $target:80\r\n\r\n".toByteArray(Charsets.US_ASCII))
+            val reply = StringBuilder()
+            while (sent && reply.length < 1023) {
+                val byte = try {
+                    input.read()
+                } catch (_: IOException) {
+                    -1
+                }
+                if (byte < 0) break
+                reply.append(byte.toChar())
+                if (reply.endsWith("\r\n\r\n")) break
+            }
+            if (reply.length < 12 || !reply.startsWith("HTTP/1.") || reply.substring(8, 12) != " 200") return "the HTTP CONNECT was not granted"
+        }
+        val answer = if (send("GET / HTTP/1.1\r\nHost: $target\r\nConnection: close\r\n\r\n".toByteArray(Charsets.US_ASCII))) receive(5) else null
+        return if (answer == null || String(answer, Charsets.US_ASCII) != "HTTP/") "no HTTP answer came back through the chain" else null
+    }
+}
+
+private const val PROXY_PROBE_TIMEOUT_MS = 10000
+
+/** What a WaterWall log line says after " FATAL ", or null for another line */
+internal fun fatalText(line: String): String? = line.indexOf(" FATAL ").takeIf { it >= 0 }?.let { line.substring(it + 7).trim() }
+
+/**
+ * The reason to stop with when WaterWall refused a node while it built the chain, which the same profile would hit again on every
+ * retry: the runtime ended before it was ready, and its first fatal line since it started names the configuration. Null otherwise.
+ */
+internal fun refusedProfileReason(startupProblem: String?, runtimeReady: Boolean): String? {
+    if (runtimeReady || startupProblem == null) return null
+    val configuration = "JSON Error" in startupProblem || "node creation failure" in startupProblem || "Restricted config" in startupProblem
+    return if (configuration) "WaterWall refused the profile: $startupProblem" else null
+}
 
 data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int,
                           /** Ranges that stay outside the tunnel (an SSL VPN server's no-route lines); Android 13 and later */
@@ -72,6 +177,8 @@ class WaterWallClient(
     private val onSleep: Int,
     private val connectivity: ConnectivityManager,
     private val host: Host,
+    /** The profile's Log Level: Debug (2) adds the probe attempts that did not pass */
+    private val logLevel: Int = 0,
 ) : TunnelClient {
     interface Host : TunnelHost {
         /** The core settings for the next runtime start, with the DNS servers of the network at that moment. */
@@ -110,6 +217,12 @@ class WaterWallClient(
     private val linkQuality = LinkQuality()
     private var qualityReadings = 0
     private var lossHandled = false
+    // Behind a local proxy no packets show the tunnel busy, so the proxy's answers and data from the server do (elapsedRealtime, 0 for none)
+    private var proxyActiveAt = 0L
+    private var lastReceivedBytes = 0L
+    // Whether the runtime became ready, and WaterWall's first fatal line since it started
+    private var runtimeReady = false
+    private var startupProblem: String? = null
     private var lastPathHadWifi = false
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
@@ -189,11 +302,22 @@ class WaterWallClient(
             pingHttpStarted = false
             pingStarted = SystemClock.elapsedRealtime()
             val epoch = ++pingEpoch
-            updateProbeFlows()
-            sendPingSyn(epoch, 0)
             worker.postDelayed({
                 if (epoch == pingEpoch) finishPing(-2)
             }, PING_TIMEOUT_MS)
+            val proxy = candidate.localProxy
+            if (proxy != null) {
+                // No device takes packets behind a local proxy: the request goes through the proxy, as an app's would
+                val port = candidate.localProxyPort
+                val target = candidate.probeAddress
+                thread(name = "waterwall-proxy-ping") {
+                    val problem = localProxyProbe(proxy, port, target)
+                    worker.post { if (epoch == pingEpoch) finishPing(if (problem == null) SystemClock.elapsedRealtime() - pingStarted else -1) }
+                }
+                return@post
+            }
+            updateProbeFlows()
+            sendPingSyn(epoch, 0)
         }
     }
 
@@ -217,10 +341,23 @@ class WaterWallClient(
         val code = (event[5].toInt() and 0xff) or (event[6].toInt() and 0xff shl 8) or (event[7].toInt() and 0xff shl 16) or (event[8].toInt() and 0xff shl 24)
         val payload = event.copyOfRange(9, event.size)
         when (event[0].toInt()) {
-            WaterWall.EVENT_READY -> if (!sleepPaused && !up && probeStage == 0) beginDataPlaneProbe()
-            WaterWall.EVENT_FAILURE -> if (!sleepPaused) handleRuntimeFailure("${String(payload)} ($code)")
+            WaterWall.EVENT_READY -> {
+                runtimeReady = true
+                if (!sleepPaused && !up && probeStage == 0) beginDataPlaneProbe()
+            }
+            WaterWall.EVENT_FAILURE -> if (!sleepPaused) {
+                val refused = refusedProfileReason(startupProblem, runtimeReady)
+                when {
+                    refused == null -> handleRuntimeFailure("${String(payload)} ($code)")
+                    // Another profile of Auto Switch may still start; alone, the profile ends the VPN with WaterWall's reason
+                    candidates.size > 1 -> handleRuntimeFailure(refused)
+                    else -> failWithReason(refused)
+                }
+            }
             WaterWall.EVENT_CHANNEL_STOPPED -> if (up) handleRuntimeFailure("WaterWall packet channel stopped ($code)")
             WaterWall.EVENT_PROBE_PACKET -> handleProbePacket(payload)
+            // The first fatal line says why the chain did not start; the ones after it follow from it
+            WaterWall.EVENT_FATAL_LOG -> if (startupProblem == null) startupProblem = fatalText(String(payload))
         }
     }
 
@@ -238,7 +375,8 @@ class WaterWallClient(
     }
 
     private fun submitProbe(packet: ByteArray, attempt: Int = 0) {
-        if (closed) return
+        // A chain behind a local proxy has no device to take packets
+        if (closed || candidate.localProxy != null) return
         val result = WaterWall.submit(packet)
         when {
             result == 0 -> Unit
@@ -266,6 +404,43 @@ class WaterWallClient(
         }, if (probeStage == 1) 1000 else 5000)
     }
 
+    private fun sendTcpProbe() {
+        if (candidate.localProxy != null) sendLocalProxyProbe() else sendSynProbe()
+    }
+
+    /** A chain behind a local proxy has no device to send packets into, so the probe goes through the proxy. */
+    private fun sendLocalProxyProbe() {
+        if (closed || (probeStage != 1 && probeStage != 4)) return
+        probeAttempts++
+        val stage = probeStage
+        val epoch = probeEpoch
+        val proxy = candidate.localProxy ?: return
+        val port = candidate.localProxyPort
+        val target = candidate.probeAddress
+        thread(name = "waterwall-proxy-probe") {
+            val problem = localProxyProbe(proxy, port, target)
+            worker.post {
+                if (closed || epoch != probeEpoch || probeStage != stage) return@post
+                if (problem == null) {
+                    proxyActiveAt = SystemClock.elapsedRealtime()
+                    if (stage == 4) finishHealthCheck() else finishProbe()
+                } else if (stage == 4 && probeAttempts >= 3) {
+                    healthProbeFailed("WaterWall local proxy health probe failed: $problem")
+                } else {
+                    // The startup probe keeps trying until its 20-second limit; a slow network may still be connecting.
+                    if (logLevel >= 2) ConnectionLog.m("WaterWall: local proxy probe attempt $probeAttempts: $problem")
+                    worker.postDelayed({ if (epoch == probeEpoch) sendLocalProxyProbe() }, 1000)
+                }
+            }
+        }
+    }
+
+    /** Milliseconds since relayed payload last arrived, or -1 when none has since the runtime started */
+    private fun payloadAgeMs(): Long {
+        if (candidate.localProxy == null) return WaterWall.lastPayloadAgeMs()
+        return if (proxyActiveAt == 0L) -1 else SystemClock.elapsedRealtime() - proxyActiveAt
+    }
+
     private fun sendDnsProbe() {
         if (closed || (probeStage != 2 && probeStage != 5)) return
         probeAttempts++
@@ -284,7 +459,7 @@ class WaterWallClient(
 
     private fun checkHealth() {
         if (closed || sleepPaused || !up || probeStage != 3) return
-        val age = WaterWall.lastPayloadAgeMs()
+        val age = payloadAgeMs()
         if (age in 0 until HEALTH_SILENCE_MS) return
         probeStage = if (candidate.probeTcp) 4 else 5
         probeAttempts = 0
@@ -292,7 +467,7 @@ class WaterWallClient(
         probeHttpStarted = false
         probeEpoch++
         updateProbeFlows()
-        if (candidate.probeTcp) sendSynProbe() else sendDnsProbe()
+        if (candidate.probeTcp) sendTcpProbe() else sendDnsProbe()
     }
 
     private fun finishHealthCheck() {
@@ -305,7 +480,7 @@ class WaterWallClient(
 
     private fun healthProbeFailed(reason: String) {
         if (closed || sleepPaused || probeStage < 4) return
-        val age = WaterWall.lastPayloadAgeMs()
+        val age = payloadAgeMs()
         if (age in 0 until HEALTH_SILENCE_MS) {
             finishHealthCheck()
             return
@@ -324,7 +499,7 @@ class WaterWallClient(
         updateProbeFlows()
         worker.postDelayed(probeTimeout, 20000)
         when {
-            candidate.probeTcp -> sendSynProbe()
+            candidate.probeTcp -> sendTcpProbe()
             candidate.probeUdp -> sendDnsProbe()
             else -> finishProbe()
         }
@@ -337,15 +512,20 @@ class WaterWallClient(
         probeEpoch++
         failedAttempts = 0
         updateProbeFlows()
+        val proxy = candidate.localProxy
         ConnectionLog.m(
             when {
+                proxy != null && candidate.probeTcp ->
+                    "WaterWall: the local ${if (proxy == NodeChain.INPUT_SOCKS5) "SOCKS5" else "HTTP"} proxy on 127.0.0.1:${candidate.localProxyPort} answered through the chain"
                 candidate.probeTcp && candidate.probeUdp -> "WaterWall: TCP and UDP/DNS data-plane probes passed"
                 candidate.probeTcp -> "WaterWall: TCP data-plane probe passed"
                 candidate.probeUdp -> "WaterWall: UDP/DNS data-plane probe passed"
                 else -> "WaterWall: no external data-plane probe required"
             },
         )
-        val error = host.applyTunnelSettings(buildSettings()) { WaterWall.attachTun(it) }
+        // Apps reach a local proxy on 127.0.0.1 themselves. Android sends every app into a VPN, routes or none, so behind a
+        // proxy the app sets up no VPN at all and the phone's other traffic keeps its own network.
+        val error = if (proxy != null) null else host.applyTunnelSettings(settingsFor(candidate)) { WaterWall.attachTun(it) }
         if (closed || sleepPaused || probeStage != 6) return
         if (error != null) {
             handleRuntimeFailure("WaterWall network settings failed: $error")
@@ -481,7 +661,9 @@ class WaterWallClient(
     private fun startQualityMonitor() {
         linkQuality.interval = QUALITY_INTERVAL_MS / 1000.0
         linkQuality.clear()
-        linkQuality.add(readTotals())
+        val baseline = readTotals()
+        linkQuality.add(baseline)
+        lastReceivedBytes = baseline.received
         qualityReadings = 0
         lossHandled = false
         worker.removeCallbacks(qualityTick)
@@ -490,7 +672,10 @@ class WaterWallClient(
 
     private fun readLinkQuality() {
         if (closed || sleepPaused || !up) return
-        linkQuality.add(readTotals())
+        val totals = readTotals()
+        if (candidate.localProxy != null && totals.received > lastReceivedBytes) proxyActiveAt = SystemClock.elapsedRealtime()
+        lastReceivedBytes = totals.received
+        linkQuality.add(totals)
         val perMinute = max(1, (60000.0 / QUALITY_INTERVAL_MS).roundToInt())
         if (++qualityReadings % perMinute == 0) {
             linkQuality.summary(perMinute)?.let { ConnectionLog.m("WaterWall: last minute on ${candidate.name}: $it") }
@@ -544,6 +729,10 @@ class WaterWallClient(
         if (closed || sleepPaused) return
         stopRuntime()
         up = false
+        // As the runtime's own payload clock, which starts again with it
+        proxyActiveAt = 0
+        runtimeReady = false
+        startupProblem = null
         generation = WaterWall.start(host.coreJson().toByteArray(), candidate.nodesJson.toByteArray())
         if (generation == 0) {
             failWithReason("WaterWall could not start (invalid configuration or another session is active)")
@@ -623,26 +812,26 @@ class WaterWallClient(
         networkCallback = null
     }
 
-    private fun buildSettings(): TunnelSettings {
-        val routes = ArrayList<Pair<String, Int>>()
-        for (entry in candidate.allowedIps.orEmpty().split(',')) {
-            val parts = entry.trim().split('/')
-            val prefix = parts.getOrNull(1)?.toIntOrNull() ?: -1
-            if (parts.size == 2 && prefix in 0..32 && ProbePackets.ipv4(parts[0]) != null) {
-                // Android refuses a route with host bits set; iOS takes it as the whole network.
-                val network = ProbePackets.ipv4Int(parts[0]) and (if (prefix == 0) 0 else -1 shl (32 - prefix))
-                routes.add("${network ushr 24}.${network ushr 16 and 255}.${network ushr 8 and 255}.${network and 255}" to prefix)
-            }
-        }
-        return TunnelSettings(
-            address = candidate.tunnelAddress,
-            dnsServers = candidate.dnsServers,
-            routes = if (candidate.allowedIps.isNullOrEmpty()) listOf("0.0.0.0" to 0) else routes,
-            mtu = MTU,
-        )
-    }
-
     companion object {
+        fun settingsFor(candidate: WaterWallCandidate): TunnelSettings {
+            val routes = ArrayList<Pair<String, Int>>()
+            for (entry in candidate.allowedIps.orEmpty().split(',')) {
+                val parts = entry.trim().split('/')
+                val prefix = parts.getOrNull(1)?.toIntOrNull() ?: -1
+                if (parts.size == 2 && prefix in 0..32 && ProbePackets.ipv4(parts[0]) != null) {
+                    // Android refuses a route with host bits set; iOS takes it as the whole network.
+                    val network = ProbePackets.ipv4Int(parts[0]) and (if (prefix == 0) 0 else -1 shl (32 - prefix))
+                    routes.add("${network ushr 24}.${network ushr 16 and 255}.${network ushr 8 and 255}.${network and 255}" to prefix)
+                }
+            }
+            return TunnelSettings(
+                address = candidate.tunnelAddress,
+                dnsServers = candidate.dnsServers,
+                routes = if (candidate.allowedIps.isNullOrEmpty()) listOf("0.0.0.0" to 0) else routes,
+                mtu = MTU,
+            )
+        }
+
         // One worker for the process, like the runtime: a client that closes finishes before the next one starts.
         private val worker by lazy { Handler(HandlerThread("srp.waterwall").apply { start() }.looper) }
 
