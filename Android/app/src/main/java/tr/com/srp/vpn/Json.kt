@@ -142,7 +142,8 @@ object Json {
                 skipSpace()
                 if (position >= text.length) throw SyntaxError("Unexpected end of text in an object.", position)
                 when (text[position++]) {
-                    ',' -> continue
+                    // One comma after the last member is accepted, as the iPhone's reader accepts it
+                    ',' -> if (closesAfterComma('}')) return result
                     '}' -> return result
                     else -> throw SyntaxError("Expected ',' or '}' in an object.", position - 1)
                 }
@@ -162,11 +163,19 @@ object Json {
                 skipSpace()
                 if (position >= text.length) throw SyntaxError("Unexpected end of text in an array.", position)
                 when (text[position++]) {
-                    ',' -> continue
+                    ',' -> if (closesAfterComma(']')) return result
                     ']' -> return result
                     else -> throw SyntaxError("Expected ',' or ']' in an array.", position - 1)
                 }
             }
+        }
+
+        /** After a comma: true, and past the bracket, when the object or array ends right there. */
+        private fun closesAfterComma(bracket: Char): Boolean {
+            skipSpace()
+            if (position >= text.length || text[position] != bracket) return false
+            position++
+            return true
         }
 
         private fun stringValue(): String {
@@ -188,11 +197,17 @@ object Json {
                             'r' -> out.append('\r')
                             't' -> out.append('\t')
                             'u' -> {
-                                val digits = text.substring(position, minOf(position + 4, text.length))
-                                val code = digits.takeIf { it.length == 4 }?.toIntOrNull(16)
-                                    ?: throw SyntaxError("Invalid \\u escape.", position)
+                                val code = hexEscape()
                                 out.append(code.toChar())
-                                position += 4
+                                // Half of a surrogate pair alone is refused, as the iPhone's reader refuses it
+                                if (code in 0xDC00..0xDFFF) throw SyntaxError("Invalid \\u escape.", position - 4)
+                                if (code in 0xD800..0xDBFF) {
+                                    if (!text.startsWith("\\u", position)) throw SyntaxError("Invalid \\u escape.", position - 4)
+                                    position += 2
+                                    val low = hexEscape()
+                                    if (low !in 0xDC00..0xDFFF) throw SyntaxError("Invalid \\u escape.", position - 4)
+                                    out.append(low.toChar())
+                                }
                             }
                             else -> throw SyntaxError("Invalid escape sequence.", position - 1)
                         }
@@ -200,6 +215,15 @@ object Json {
                     else -> out.append(character)
                 }
             }
+        }
+
+        /** The four hex digits of a \u escape at the position, which moves past them. */
+        private fun hexEscape(): Int {
+            val digits = text.substring(position, minOf(position + 4, text.length))
+            // toInt alone would take a sign, or a digit of another script
+            if (digits.length != 4 || digits.any { it !in '0'..'9' && it !in 'a'..'f' && it !in 'A'..'F' }) throw SyntaxError("Invalid \\u escape.", position)
+            position += 4
+            return digits.toInt(16)
         }
 
         private fun numberValue(): Any {

@@ -240,6 +240,12 @@ class WaterWallNodeChainTest {
             assertEquals(number, "The file is not valid JSON.", importedDocument(exampleJson.replaceFirst("{", "{\"limit\": $number, ").toByteArray()).second)
         }
         assertEquals(example(), importedDocument(exampleJson.replaceFirst(Regex("\\}\\s*$"), ", \"nodes\": []}").toByteArray()).first)
+        // One comma after the last member or element is accepted, as the iPhone's reader accepts it; any other stray comma is not
+        assertEquals(example(), importedDocument(exampleJson.replaceFirst(Regex("\\}\\s*$"), ",\n}").toByteArray()).first)
+        assertEquals(mapOf("a" to listOf(1L, 2L), "b" to mapOf("c" to true)), Json.parse("{\"a\": [1, 2 , ], \"b\": {\"c\": true,},}"))
+        for (stray in listOf("[1,,]", "[,]", "[,1]", "{\"a\": 1,,}", "{,}", "{,\"a\": 1}", "[1,]]", "[1,")) {
+            assertEquals(stray, "The file is not valid JSON.", NodeChain.documentWithJson(stray).second)
+        }
     }
 
     // The saved profile keeps its hint; what WaterWall runs starts with the input Settings → WaterWall Input chooses

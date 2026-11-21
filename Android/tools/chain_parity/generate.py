@@ -429,6 +429,15 @@ def node_corpus():
     texts += ['{"nodes": ' + json.dumps([hint, out]) + ', "nodes": []}', '{"variables": {"a": 1}, "variables": {"a": 2}, "x": $a$, "nodes": ' + json.dumps([hint, out]) + "}"]
     texts += ['{"variables": {"big": "' + "x" * 1024 + '"}, "nodes": ' + json.dumps([hint, out]) + ', "notes": [' + ",".join(["$big$"] * count) + "]}"
               for count in (2, 1025)]
+    # One comma after the last member or element is accepted, as Apple's reader takes it; any other stray comma is not
+    plain = json.dumps({"nodes": [hint, out]})
+    texts += [plain[:-1] + ",}", plain[:-2] + ",]}", plain[:-2] + " , ]\n,\n}", plain[:-1] + ",,}", plain[:-2] + ",,]}", "{," + plain[1:],
+              plain.replace("[", "[,", 1), plain.replace('"settings": {}', '"settings": {"a": [1, 2,], "b": {"c": true,},}', 1),
+              plain.replace('"settings": {}', '"settings": {"a": [,]}', 1)]
+    # A \u escape is four hex digits, and half of a surrogate pair alone is refused; the hint keeps its empty settings
+    texts += [plain.replace('"vpn.example.com"', '"' + escape + '"', 1) for escape in
+              ["\\ud800", "\\udc00", "\\ud83d\\ude00", "\\uD83D\\uDE00", "\\ud800\\u0041", "\\ud83dx", "\\ud83d\\ud83d", "a\\ud83d", "\\u00e9", "\\u-123",
+               "\\u+123", "\\u12", "\\u12g4", "\\u0661"]]
     for text in ["", "{", "[]", "{}", "1", "\"x\"", "null", "true", json.dumps(EXAMPLE), "﻿" + json.dumps(EXAMPLE), json.dumps(EXAMPLE) + " ",
                  "{\"nodes\": [", "{\"nodes\": [] }", "{\"nodes\": [{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"out\"}]}", None] + texts:
         items.append({"kind": "node-json", "json": text})

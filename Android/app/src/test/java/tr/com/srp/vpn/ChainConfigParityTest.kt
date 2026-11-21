@@ -159,7 +159,7 @@ class ChainConfigParityTest {
 
     @Test
     fun syntaxErrorsCarryTheirOffset() {
-        val error = runCatching { Json.parse("{\n  \"a\": 1,\n}") }.exceptionOrNull() as Json.SyntaxError
-        assertEquals(12, error.offset)
+        val error = runCatching { Json.parse("{\n  \"a\": 1,,\n}") }.exceptionOrNull() as Json.SyntaxError
+        assertEquals(11, error.offset)
     }
 }
