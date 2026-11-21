@@ -17,6 +17,8 @@ static const char *domainresolverCopyDomainForLog(const address_context_t *dest_
 bool domainresolverUpdateSourcePressure(tunnel_t *t, line_t *l)
 {
     domainresolver_lstate_t *ls     = lineGetState(l, t);
+    if (ls->phase == kDomainResolverPhaseClosing)
+        return true;
     const bool               paused = ls->pending_source_hold || ls->next_paused;
     if (ls->source_paused == paused)
         return true;
@@ -36,20 +38,21 @@ bool domainresolverDrainPending(tunnel_t *t, line_t *l)
         return true;
     lineRef(l);
     ls->draining = true;
-    while (lineIsAlive(l) && ! ls->next_paused && bufferqueueGetEntryCount(&ls->pending) != 0)
+    while (lineIsAlive(l) && ls->phase == kDomainResolverPhaseOpen && ! ls->next_paused &&
+           bufferqueueGetEntryCount(&ls->pending) != 0)
     {
         sbuf_t *buf = bufferqueuePopFront(&ls->pending);
         tunnelNextUpStreamPayload(t, l, buf);
     }
     bool alive = lineIsAlive(l);
-    if (alive)
+    if (alive && ls->phase == kDomainResolverPhaseOpen)
     {
         ls->draining = false;
         if (bufferqueueGetEntryCount(&ls->pending) == 0)
             ls->pending_source_hold = false;
         alive = domainresolverUpdateSourcePressure(t, l);
-        if (alive && tunnelIsActiveForLine(t, l) && ! ls->init_dispatching && ! ls->draining &&
-            ! ls->pending_source_hold && bufferqueueGetEntryCount(&ls->pending) == 0 &&
+        if (alive && ls->phase == kDomainResolverPhaseOpen && tunnelIsActiveForLine(t, l) && ! ls->init_dispatching &&
+            ! ls->draining && ! ls->pending_source_hold && bufferqueueGetEntryCount(&ls->pending) == 0 &&
             ! tunnelchainIsWorkerPacketLine(tunnelGetChain(t), l))
         {
             /* Next consumed its prepare state during Init. Only matched
@@ -70,7 +73,7 @@ void domainresolverOpenPath(tunnel_t *t, line_t *l)
     ls->phase            = kDomainResolverPhaseOpen;
     ls->init_dispatching = true;
     tunnelNextUpStreamInit(t, l);
-    if (lineIsAlive(l))
+    if (lineIsAlive(l) && ls->phase == kDomainResolverPhaseOpen)
     {
         ls->init_dispatching = false;
         if (ls->prev_paused && ! ls->read_pause_sent)
@@ -175,8 +178,11 @@ bool domainresolverStartResolveIfNeeded(tunnel_t *t, line_t *l, domainresolver_l
 
     addresscontextSetDomainStrategy(dest_ctx, domainresolverStrategyForLine(ts, dest_ctx));
 
-    const char *domain   = dest_ctx->domain;
-    int         socktype = addresscontextGetSockType(dest_ctx);
+    const char   *domain   = dest_ctx->domain;
+    const uint8_t offer    = addresscontextGetTransportOffer(dest_ctx);
+    const int     socktype = offer == kAddressContextTransportTcp   ? SOCK_STREAM
+                             : offer == kAddressContextTransportUdp ? SOCK_DGRAM
+                                                                    : 0;
 
     if (ts->verbose)
     {
@@ -202,6 +208,68 @@ bool domainresolverStartResolveIfNeeded(tunnel_t *t, line_t *l, domainresolver_l
     return true;
 }
 
+static void domainresolverLogPendingRefusal(tunnel_t *t, line_t *l, domainresolver_lstate_t *ls, const sbuf_t *buf)
+{
+    assert(lineIsOnCurrentWorker(l));
+    domainresolver_tstate_t *ts  = tunnelGetState(t);
+    const wid_t              wid = lineGetWID(l);
+    assert(ts->pending_logs != NULL && wid < getWorkersCount());
+    const buffer_budget_cost_t used         = bufferbudgetGetUsage(&ls->pending_budget);
+    const buffer_budget_cost_t limits       = bufferbudgetGetLimits(&ls->pending_budget);
+    const size_t               length       = sbufGetLength(buf);
+    size_t                     charge       = 0;
+    const bool                 charge_valid = sbufTryGetQueueCharge(buf, &charge);
+    unsigned                   reason       = kDomainResolverLogPendingAdmission;
+    const char                *name         = "application-queue-admission";
+    size_t                     current = used.bytes, incoming = length, limit = limits.bytes;
+    if (length > limits.bytes - used.bytes)
+    {
+        reason = kDomainResolverLogPendingBytes;
+        name   = "application-payload-bytes";
+    }
+    else if (charge_valid && charge > limits.charge - used.charge)
+    {
+        reason   = kDomainResolverLogPendingCharge;
+        name     = "application-buffer-charge";
+        current  = used.charge;
+        incoming = charge;
+        limit    = limits.charge;
+    }
+    const log_rate_limiter_report_t report =
+        logRateLimiterRecordImmediate(&ts->pending_logs[wid].limits[reason], kDomainResolverLimitLogIntervalMs);
+    if (! report.should_log)
+        return;
+
+    const address_context_t *dest = lineGetDestinationAddressContext(l);
+    char                     address[SOCKADDR_STRLEN];
+    const char              *destination = "unavailable";
+    if (addresscontextIsDomain(dest))
+        destination = dest->domain;
+    else if (addresscontextCanConvertToSockAddr(dest))
+    {
+        const sockaddr_u peer = addresscontextToSockAddr(dest);
+        destination           = SOCKADDR_STR(&peer, address);
+    }
+    const uint8_t offer = addresscontextGetTransportOffer(dest);
+    loggerPrint(getDnsLogger(),
+                LOG_LEVEL_ERROR,
+                "DomainResolver: node=%s worker=%u destination=%s port=%u transport=%s reason=%s "
+                "used=%zu incoming=%zu limit=%zu action=closing-application-path suppressed=%llu",
+                t->node->name != NULL ? t->node->name : "<unnamed>",
+                (unsigned) wid,
+                destination,
+                (unsigned) dest->port,
+                offer == kAddressContextTransportTcp    ? "tcp"
+                : offer == kAddressContextTransportUdp  ? "udp"
+                : offer == kAddressContextTransportBoth ? "tcp/udp"
+                                                        : "unknown",
+                name,
+                current,
+                incoming,
+                limit,
+                (unsigned long long) (report.events - 1));
+}
+
 bool domainresolverQueuePayload(tunnel_t *t, line_t *l, domainresolver_lstate_t *ls, sbuf_t *buf)
 {
     if (LIKELY(bufferqueueTryPushBack(&ls->pending, &buf)))
@@ -209,8 +277,8 @@ bool domainresolverQueuePayload(tunnel_t *t, line_t *l, domainresolver_lstate_t 
         ls->pending_source_hold = true;
         return domainresolverUpdateSourcePressure(t, l);
     }
+    domainresolverLogPendingRefusal(t, l, ls, buf);
     lineReuseBuffer(l, buf);
-    loggerPrint(getDnsLogger(), LOG_LEVEL_ERROR, "DomainResolver: pending payload retention overflow");
     domainresolverCloseLine(t, l);
     return false;
 }
@@ -220,14 +288,15 @@ bool domainresolverQueuePayload(tunnel_t *t, line_t *l, domainresolver_lstate_t 
 void domainresolverCloseLine(tunnel_t *t, line_t *l)
 {
     domainresolver_lstate_t *ls       = lineGetState(l, t);
-    bool                     was_open = ls->phase == kDomainResolverPhaseOpen;
+    bool                     source_finished = ls->phase == kDomainResolverPhaseClosing;
+    bool                     was_open        = ls->phase == kDomainResolverPhaseOpen || source_finished;
     lineRef(l);
     domainresolverLinestateDestroy(t, l, ls);
     if (was_open && lineIsAlive(l))
     {
         tunnelNextUpStreamFinish(t, l);
     }
-    if (lineIsAlive(l))
+    if (! source_finished && lineIsAlive(l))
     {
         tunnelPrevDownStreamFinish(t, l);
     }

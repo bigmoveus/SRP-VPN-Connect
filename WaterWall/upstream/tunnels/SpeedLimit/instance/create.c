@@ -184,15 +184,17 @@ tunnel_t *speedlimitTunnelCreate(node_t *node)
 {
     const int workers_count = getWorkersCount();
 
-    tunnel_t *t = tunnelCreate(node,
-                               sizeof(speedlimit_tstate_t) + ((uint32_t) workers_count * sizeof(speedlimit_bucket_t)),
-                               sizeof(speedlimit_lstate_t));
+    tunnel_t *t = tunnelCreate(
+        node, sizeof(speedlimit_tstate_t) + ((uint32_t) workers_count * sizeof(speedlimit_bucket_t)), kLineStateSize);
     if (! t)
     {
         return NULL;
     }
 
     t->onWorkerQuiesce = speedlimitTunnelWorkerQuiesce;
+    t->onWorkerStop    = speedlimitTunnelWorkerStop;
+    t->fnEstU          = &speedlimitTunnelUpStreamEst;
+    t->fnEstD          = &speedlimitTunnelDownStreamEst;
     t->fnInitU         = &speedlimitTunnelUpStreamInit;
     t->fnFinU          = &speedlimitTunnelUpStreamFinish;
     t->fnPayloadU      = &speedlimitTunnelUpStreamPayload;
@@ -220,5 +222,12 @@ tunnel_t *speedlimitTunnelCreate(node_t *node)
         return NULL;
     }
 
+    atomicLogRateLimiterInitialize(&state->drop_log_limiter);
+    atomicStoreU64Relaxed(&state->dropped_payloads, 0);
+    if (state->work_mode == kSpeedLimitWorkModePause)
+    {
+        node->layer_group_prev_node = kNodeLayer3 | kNodeLayer4Stream | kNodeLayerSameAsNext;
+        node->layer_group_next_node = kNodeLayer3 | kNodeLayer4Stream | kNodeLayerSameAsPrev;
+    }
     return t;
 }

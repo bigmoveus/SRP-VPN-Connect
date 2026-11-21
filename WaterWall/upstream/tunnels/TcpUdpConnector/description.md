@@ -1,9 +1,11 @@
 <!--
-Documentation version: 156
+Documentation version: 157
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/TcpUdpConnector.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/TcpUdpConnector.mdx, and all files must keep the same documentation version.
 -->
 
 # TcpUdpConnector Node
+
+## Overview
 
 `TcpUdpConnector` is a chain-end wrapper around `TcpConnector` and `UdpConnector`. It lets one chain end connect TCP
 lines through `TcpConnector` and UDP lines through `UdpConnector` while using one shared connector settings object.
@@ -11,18 +13,7 @@ lines through `TcpConnector` and UDP lines through `UdpConnector` while using on
 It does not create or destroy connection lines itself. The previous chain head or bridge owns line creation, and the
 selected internal connector owns the real outbound socket state for that line.
 
-## What It Does
-
-- creates one internal `TcpConnector`
-- creates one internal `UdpConnector`
-- passes the same `settings` object to both child connectors
-- selects the child connector during upstream `Init`
-- remembers the selected child connector in this node's per-line state
-- forwards upstream `Payload`, `Pause`, `Resume`, `Est`, and `Finish` to that selected child
-- forwards downstream callbacks from either child connector back to the previous node
-- includes both child connectors in the chain so their line states and lifecycle callbacks are handled normally
-
-## Typical Placement
+## Typical placement
 
 `TcpUdpConnector` is used at the end of a chain when one outbound configuration should support both TCP and UDP:
 
@@ -32,32 +23,51 @@ TcpUdpListener -> SniffRouter -> TcpUdpConnector
 PacketsToConnection -> TcpUdpConnector
 ```
 
-The previous node must set either the destination protocol or the source protocol to TCP or UDP.
+The line must offer TCP, UDP, or both in its destination context.
 
-## Configuration Example
+
+## Minimal practical example
+
+### TCP and UDP DNS relay
+
+#### One local DNS entry for TCP and UDP
 
 ```json
 {
-  "name": "mixed-out",
-  "type": "TcpUdpConnector",
-  "settings": {
-    "address": "dest_context->address",
-    "port": "dest_context->port",
-    "dns-behaviour": {"resolve": true, "strategy": "prefer-ipv4"},
-    "nodelay": true,
-    "fastopen": false,
-    "large-send-buffer": true,
-    "large-recv-buffer": true,
-    "interface": "eth0",
-    "fwmark": 10,
-    "balance-mode": "connection"
-  }
+  "name": "local-dns-relay",
+  "nodes": [
+    {
+      "name": "dns-in",
+      "type": "TcpUdpListener",
+      "settings": {
+        "address": "127.0.0.1",
+        "port": 1053
+      },
+      "next": "dns-out"
+    },
+    {
+      "name": "dns-out",
+      "type": "TcpUdpConnector",
+      "settings": {
+        "address": "192.0.2.53",
+        "port": 53
+      }
+    }
+  ]
 }
 ```
+Save this complete node config in a file listed by `core.json.configs`.
+Configure the DNS client to query `127.0.0.1:1053`, and replace `192.0.2.53` with
+a resolver that accepts both TCP and UDP on port 53. TCP queries stay TCP; UDP
+queries stay UDP. WaterWall does not implement a DNS cache or convert between
+the protocols. Both use the same selected backend address and port.
 
-## Required JSON Fields
 
-### Top-level fields
+## Configuration
+
+### Required JSON Fields
+
+#### Top-level fields
 
 - `name` `(string)`
   A user-chosen name for this wrapper node.
@@ -67,7 +77,7 @@ The previous node must set either the destination protocol or the source protoco
 
 This node is a chain end and must not have `next`.
 
-### `settings`
+#### `settings`
 
 The `settings` object is passed to both internal child connectors.
 
@@ -79,7 +89,7 @@ The `settings` object is passed to both internal child connectors.
 
 Alternatively, use the `addresses` array supported by `TcpConnector` and `UdpConnector`.
 
-## Optional `settings` Fields
+### Optional `settings` Fields
 
 Most options are inherited directly from `TcpConnector` and `UdpConnector`:
 
@@ -90,7 +100,7 @@ Most options are inherited directly from `TcpConnector` and `UdpConnector`:
 
 See `TcpConnector` and `UdpConnector` documentation for detailed destination selection and socket behavior.
 
-## DNS behaviour
+### DNS behaviour
 
 Resolving a hostname means looking up its IP address before connecting or sending.
 The selected TCP or UDP connector first prepares the destination from this node's
@@ -149,21 +159,76 @@ Both private TCP/UDP children use one authoritative provider, channel/cache owne
 
 See [DomainResolver](../../WaterWall-Docs/docs/02-noderefs/DomainResolver.mdx) for native, direct and protected-chain configuration examples and core option limits. This policy controls lookups owned by this node; it does not configure PTC fake DNS, TunDevice system DNS or every DNS source in the program.
 
-## Protocol Selection
+## Usage and troubleshooting
 
-During upstream `Init`, `TcpUdpConnector` first checks `line->routing_context.dest_ctx`.
+### Configuration Example
 
-- exact TCP destination protocol selects `TcpConnector`
-- exact UDP destination protocol selects `UdpConnector`
-- unsupported or ambiguous destination protocol flags are rejected
+```json
+{
+  "name": "mixed-out",
+  "type": "TcpUdpConnector",
+  "settings": {
+    "address": "dest_context->address",
+    "port": "dest_context->port",
+    "dns-behaviour": {"resolve": true, "strategy": "prefer-ipv4"},
+    "nodelay": true,
+    "fastopen": false,
+    "large-send-buffer": true,
+    "large-recv-buffer": true,
+    "interface": "eth0",
+    "fwmark": 10,
+    "balance-mode": "connection"
+  }
+}
+```
 
-If the destination context has no protocol flags, `TcpUdpConnector` falls back to `line->routing_context.src_ctx`. This
-keeps simple TCP-in-to-TCP-out and UDP-in-to-UDP-out chains usable with constant outbound destinations.
+### Notes And Caveats
 
-The selected child connector is stored in this node's line state. Later upstream callbacks use the stored child instead
-of re-reading `dest_ctx`, because the selected connector may rewrite the destination context during its own init.
+- Both child connectors receive the same settings. This node is not for separate TCP and UDP destination settings.
+- No payload bytes are added or removed, so the node requires no left padding.
 
-## Lifecycle And Direction Rules
+## Advanced behavior
+
+### Protocol Selection
+
+The TCP child requires a byte stream. The UDP child requires one complete
+datagram per payload. The same selection applies to replies.
+
+On upstream `Init`, the wrapper selects a child from the destination transport
+offer. The table applies to each line.
+
+| Destination offer | Result |
+| --- | --- |
+| TCP | `TcpConnector` |
+| UDP | `UdpConnector` |
+| Both TCP and UDP | `TcpConnector` |
+| Unset or invalid | Close the line before socket I/O |
+
+The wrapper publishes the exact protocol before invoking the child's entry and
+retains the selected child in line state for later callbacks. Set
+`PacketsToStream.settings.protocol` to `"udp"` to use the UDP child with that
+producer. A pinned DNS or SOCKS relay destination supplies one exact protocol.
+
+With `HeaderServer → TcpUdpConnector`, the HeaderServer setting determines
+what its first bytes mean. In protocol mode, byte `6` selects the TCP socket and
+`17` selects the UDP socket. In `line-mark` mode the 16-byte header sets only
+the mark, so this direct TCP stream uses the TCP socket. A UDP-over-TCP stream
+needs a decoder to recover the original datagram boundaries before the UDP child.
+
+## Implementation details
+
+### What It Does
+
+- creates one internal `TcpConnector`
+- creates one internal `UdpConnector`
+- passes the same `settings` object to both child connectors
+- selects the child connector during upstream `Init`
+- remembers the selected child connector in this node's per-line state
+- forwards upstream `Payload`, `Pause`, `Resume`, `Est`, and `Finish` to that selected child
+- forwards downstream callbacks from either child connector back to the previous node
+- includes both child connectors in the chain so their line states and lifecycle callbacks are handled normally
+
+### Lifecycle And Direction Rules
 
 The internal child connectors are the real socket adapters:
 
@@ -180,14 +245,7 @@ If a line is rejected during protocol selection, or an upstream callback arrives
 cleared, that callback is ignored instead of aborting the process. A discarded payload buffer is returned to the line's
 buffer pool. Valid callbacks continue to use the selected child described above.
 
-## Notes And Caveats
-
-- Both child connectors receive the same settings. This node is not for separate TCP and UDP destination settings.
-- If a previous node can set destination protocol, that protocol wins over source protocol.
-- If neither source nor destination has an exact TCP or UDP protocol flag, the line is rejected as a configuration or routing error.
-- No payload bytes are added or removed, so the node requires no left padding.
-
-## Node Metadata
+### Node Metadata
 
 Source-backed metadata:
 
@@ -201,7 +259,7 @@ Source-backed metadata:
 | `layer_group_next_node` | `kNodeLayerNone` |
 | `required_padding_left` | `0` bytes |
 
-## UDP splice sending
+### UDP splice sending
 
 UDP receives remain ordinary buffers. On an eligible Linux chain, UDP sends accept ordinary data or a real prefix plus a private-pipe body as one datagram to its explicit destination, including empty datagrams. Supported layouts use pipe-to-socket splice. Highly fragmented pipes, or failure to establish a safe fragment bound before sending, use a complete ordinary fallback before socket assembly. Oversized datagrams are rejected without splitting.
 

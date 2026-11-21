@@ -58,7 +58,17 @@ static bool routerQueueDatagram(tunnel_t *t, line_t *l, router_lstate_t *ls, sbu
         charge > kRouterDatagramCharge || bufferqueueGetCharge(&ls->datagrams) > kRouterDatagramCharge - charge ||
         bufferqueueGetEntryCount(&ls->datagrams) >= kRouterDatagramCount)
     {
-        LOGE("Router: pending datagrams exceeded their retention limit, closing this line");
+        LOGE("Router: closing line: pending datagram admission refused "
+             "(queued_bytes=%zu, incoming_bytes=%zu, byte_limit=%u, queued_charge_bytes=%zu, "
+             "incoming_charge_bytes=%zu, charge_limit_bytes=%u, queued_datagrams=%zu, datagram_limit=%u)",
+             bufferqueueGetLength(&ls->datagrams),
+             bytes,
+             (unsigned) kRouterPendingBytes,
+             bufferqueueGetCharge(&ls->datagrams),
+             charge,
+             (unsigned) kRouterDatagramCharge,
+             bufferqueueGetEntryCount(&ls->datagrams),
+             (unsigned) kRouterDatagramCount);
         routerRejectPendingPayload(t, l, ls, *buf);
         return false;
     }
@@ -92,8 +102,14 @@ static void routerReturnResolvedName(line_t *l)
     memoryZero(&dest->ip_address, sizeof(dest->ip_address));
 }
 
-void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, tunnel_t *target, sbuf_t *first)
+void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, router_match_t match, sbuf_t *first)
 {
+    const uint8_t transport = addresscontextChooseTransport(ls->network_offer & kAddressContextTransportBoth,
+                                                            match.eligible_networks & kAddressContextTransportBoth);
+    if (transport != 0)
+        addresscontextSetTransportOffer(lineGetDestinationAddressContext(l), transport);
+
+    tunnel_t *target = match.target;
     lineRef(l);
     if (ls->return_name)
         routerReturnResolvedName(l);
@@ -122,7 +138,7 @@ void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, tunnel_t *ta
     {
         if (first == NULL)
         {
-            if (ls->datagram_input)
+            if (ls->preserve_deliveries)
                 first = bufferqueuePopFront(&ls->datagrams);
             else
             {
@@ -156,7 +172,7 @@ void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, tunnel_t *ta
 
 static void routerBufferReentrantPayload(tunnel_t *t, line_t *l, router_lstate_t *ls, sbuf_t *buf)
 {
-    if (ls->datagram_input)
+    if (ls->preserve_deliveries)
     {
         discard routerQueueDatagram(t, l, ls, &buf);
         return;
@@ -166,7 +182,11 @@ static void routerBufferReentrantPayload(tunnel_t *t, line_t *l, router_lstate_t
     const uint32_t incoming = sbufGetLength(buf);
     if (incoming > limit || queued > limit - incoming)
     {
-        LOGE("Router: initial replay backlog exceeded its limit, closing this line");
+        LOGE("Router: closing line: initial replay byte limit exceeded "
+             "(queued_bytes=%u, incoming_bytes=%u, limit_bytes=%u)",
+             queued,
+             incoming,
+             limit);
         routerRejectPendingPayload(t, l, ls, buf);
         return;
     }
@@ -194,7 +214,7 @@ void routerTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     // Sniffing and pending storage use ordinary memory until the route is committed.
     buf = sbufEnsureOrdinary(lineGetBufferPool(l), buf);
 
-    if (ls->datagram_input)
+    if (ls->preserve_deliveries)
     {
         if (! routerQueueDatagram(t, l, ls, &buf))
             return;
@@ -230,13 +250,13 @@ void routerTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 
     sbuf_t *first = ls->pending;
     ls->pending   = NULL;
-    if (ls->datagram_input)
+    if (ls->preserve_deliveries)
     {
-        // This UDP sniff view was allocated directly, without a pool checkout.
+        // This view was allocated directly, without a pool checkout.
         // Recycling it would incorrectly decrement the pool's debug in-use count.
         sbufDestroy(first);
         first = NULL;
     }
 
-    routerCommitRoute(t, l, ls, match.result == kRouterClassifyTarget ? match.target : NULL, first);
+    routerCommitRoute(t, l, ls, match, first);
 }

@@ -587,7 +587,20 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         if (length > limit - bytes || entries == config->settings.max_buffered_buffers ||
             charge > 2 * limit - allocation)
         {
-            Fail(wire ? "QUIC ciphertext staging budget exceeded" : "QUIC plaintext staging budget exceeded");
+            char reason[256];
+            std::snprintf(reason,
+                          sizeof(reason),
+                          "QUIC %s staging budget exceeded (retained_bytes=%zu, incoming_bytes=%zu, byte_limit=%zu, "
+                          "retained_entries=%zu, entry_limit=%u, allocation_bytes=%zu, allocation_limit_bytes=%zu)",
+                          wire ? "ciphertext" : "plaintext",
+                          bytes,
+                          length,
+                          limit,
+                          entries,
+                          config->settings.max_buffered_buffers,
+                          allocation,
+                          2 * limit);
+            Fail(reason);
             return false;
         }
         auto *copy = static_cast<uint8_t *>(config->settings.allocate(length));
@@ -956,7 +969,15 @@ struct ww_quic_engine final : webtransport::SessionVisitor
         constexpr uint64_t maximum_stream_offset = (UINT64_C(1) << 62) - 1;
         if (length > maximum_stream_offset - send_offset)
         {
-            Fail("QUIC application stream offset exhausted");
+            char reason[192];
+            std::snprintf(reason,
+                          sizeof(reason),
+                          "QUIC application stream offset exhausted "
+                          "(offset_bytes=%llu, incoming_bytes=%zu, protocol_limit_bytes=%llu)",
+                          static_cast<unsigned long long>(send_offset),
+                          length,
+                          static_cast<unsigned long long>(maximum_stream_offset));
+            Fail(reason);
             return false;
         }
         if (length > limit - storage.send_bytes || storage.send_entries == config->settings.max_buffered_buffers ||
@@ -1024,7 +1045,14 @@ struct ww_quic_engine final : webtransport::SessionVisitor
             ww_quic_now_us() - created_us >= uint64_t(config->settings.handshake_timeout_ms) * 1000)
         {
             network_timeout = true;
-            Fail("QUIC handshake/stream-opening deadline exceeded");
+            char reason[192];
+            std::snprintf(reason,
+                          sizeof(reason),
+                          "QUIC handshake/stream-opening deadline exceeded "
+                          "(elapsed_ms=%llu, handshake-timeout-ms=%u)",
+                          static_cast<unsigned long long>((ww_quic_now_us() - created_us) / 1000),
+                          config->settings.handshake_timeout_ms);
+            Fail(reason);
         }
         return ! closed;
     }

@@ -1,7 +1,7 @@
 #include "DomainResolver/transport.h"
 #include "DomainResolver/structure.h"
 
-#include "splice_buffer.h"
+#include "loggers/dns_logger.h"
 
 enum
 {
@@ -17,6 +17,21 @@ enum
     kDnsTransportMaxDatagram     = 65535
 };
 
+typedef enum dns_transport_log_reason_e
+{
+    kDnsTransportLogSockets,
+    kDnsTransportLogHandles,
+    kDnsTransportLogSendDatagram,
+    kDnsTransportLogReceiveDatagram,
+    kDnsTransportLogInputBytes,
+    kDnsTransportLogInputEntries,
+    kDnsTransportLogInputCharge,
+    kDnsTransportLogWorkerBytes,
+    kDnsTransportLogWorkerCharge,
+    kDnsTransportLogInputAdmission,
+    kDnsTransportLogCount
+} dns_transport_log_reason_t;
+
 typedef struct domainresolver_socket_s domainresolver_socket_t;
 struct domainresolver_socket_s
 {
@@ -29,7 +44,8 @@ struct domainresolver_socket_s
     int                         family;
     bool                        owned_prepared;
     bool                        tcp;
-    bool                        established;
+    bool                        transport_established;
+    bool                        write_admitted;
     bool                        send_paused;
     bool                        read_paused;
     bool                        failed;
@@ -47,12 +63,58 @@ struct domainresolver_transport_s
     dns_resolver_t           resolver;
     domainresolver_socket_t *sockets;
     buffer_budget_t          input_budget;
+    log_rate_limiter_t       limit_logs[kDnsTransportLogCount];
     size_t                   socket_count;
     /* Never reuse a virtual descriptor. A readiness snapshot from before close
      * cannot address a later connection, even in a reentrant c-ares callback. */
     uint32_t next_handle;
     bool     quiesced;
 };
+
+static void dnsTransportLogLimit(domainresolver_transport_t *transport, const domainresolver_socket_t *socket, int type,
+                                 dns_transport_log_reason_t reason, size_t used, size_t incoming, size_t limit)
+{
+    assert(currentThreadOwnsWorker(transport->wid));
+    static const char *const        names[kDnsTransportLogCount] = {"socket-count",
+                                                                    "socket-id",
+                                                                    "send-datagram-size",
+                                                                    "receive-datagram-size",
+                                                                    "input-bytes",
+                                                                    "input-entries",
+                                                                    "input-buffer-charge",
+                                                                    "worker-input-bytes",
+                                                                    "worker-input-buffer-charge",
+                                                                    "input-queue-admission"};
+    const log_rate_limiter_report_t report =
+        logRateLimiterRecordImmediate(&transport->limit_logs[reason], kDomainResolverLimitLogIntervalMs);
+    if (! report.should_log)
+        return;
+
+    char        address[SOCKADDR_STRLEN];
+    const char *peer = "unassigned"; /* c-ares supplies the peer only after opening a socket. */
+    if (socket != NULL && (socket->peer.sa.sa_family == AF_INET || socket->peer.sa.sa_family == AF_INET6))
+        peer = SOCKADDR_STR(&socket->peer, address);
+    const bool    opening = reason == kDnsTransportLogSockets || reason == kDnsTransportLogHandles;
+    const bool    sending = reason == kDnsTransportLogSendDatagram;
+    const char   *action  = opening ? "refusing-dns-socket" : sending ? "rejecting-dns-send" : "closing-dns-transport";
+    const node_t *node    = transport->owner->node;
+    loggerPrint(getDnsLogger(),
+                opening || sending ? LOG_LEVEL_WARN : LOG_LEVEL_ERROR,
+                "DomainResolver: node=%s worker=%u peer=%s transport=%s reason=%s "
+                "used=%zu incoming=%zu limit=%zu action=%s suppressed=%llu",
+                node->name != NULL ? node->name : "<unnamed>",
+                (unsigned) transport->wid,
+                peer,
+                type == SOCK_STREAM  ? "tcp"
+                : type == SOCK_DGRAM ? "udp"
+                                     : "unknown",
+                names[reason],
+                used,
+                incoming,
+                limit,
+                action,
+                (unsigned long long) (report.events - 1));
+}
 
 static void dnsTransportSetError(int error)
 {
@@ -100,7 +162,7 @@ static domainresolver_socket_t *dnsTransportSocket(domainresolver_transport_t *t
 
 static bool dnsTransportCanWrite(const domainresolver_socket_t *socket)
 {
-    return (socket->write_interest || socket->write_blocked) && socket->established && ! socket->send_paused &&
+    return (socket->write_interest || socket->write_blocked) && socket->write_admitted && ! socket->send_paused &&
            ! socket->failed;
 }
 
@@ -169,8 +231,18 @@ static ares_socket_t dnsTransportOpen(int family, int type, int protocol, void *
     discard                     protocol;
     domainresolver_transport_t *transport = userdata;
     assert(currentThreadOwnsWorker(transport->wid));
-    if (transport->quiesced || transport->socket_count >= kDnsTransportMaxSockets || transport->next_handle == INT_MAX)
+    if (transport->quiesced)
     {
+        dnsTransportSetError(ENOBUFS);
+        return ARES_SOCKET_BAD;
+    }
+    if (transport->socket_count >= kDnsTransportMaxSockets || transport->next_handle == INT_MAX)
+    {
+        if (transport->socket_count >= kDnsTransportMaxSockets)
+            dnsTransportLogLimit(
+                transport, NULL, type, kDnsTransportLogSockets, transport->socket_count, 1, kDnsTransportMaxSockets);
+        else
+            dnsTransportLogLimit(transport, NULL, type, kDnsTransportLogHandles, transport->next_handle, 1, INT_MAX);
         dnsTransportSetError(ENOBUFS);
         return ARES_SOCKET_BAD;
     }
@@ -223,8 +295,7 @@ static int dnsTransportSetOption(ares_socket_t handle, ares_socket_opt_t option,
     discard value;
     discard length;
     discard userdata;
-    /* No kernel socket belongs to this adapter. In particular TCP Fast Open
-     * must remain disabled: establishment is reported by the selected egress. */
+    /* These virtual sockets have no kernel socket options, including TCP Fast Open. */
     dnsTransportSetError(ENOSYS);
     return -1;
 }
@@ -250,7 +321,6 @@ static int dnsTransportConnect(ares_socket_t handle, const struct sockaddr *addr
      * metadata and must never be used to authenticate the DNS peer. */
     line_t *line                = lineCreate(tunnelchainGetLinePools(tunnelGetChain(transport->owner)), transport->wid);
     socket->line                = line;
-    socket->established         = ! socket->tcp;
     domainresolver_lstate_t *ls = lineGetState(line, transport->owner);
     ls->dns_transport           = socket;
     addresscontextFromSockAddrWithProtocol(
@@ -286,7 +356,10 @@ static int dnsTransportConnect(ares_socket_t handle, const struct sockaddr *addr
         dnsTransportSetError(ECONNREFUSED);
         return -1;
     }
-    if (! socket->established)
+    /* The live egress can take payload now. For a pending TCP connect, the
+     * subsequent c-ares WRITE interest lets us report virtual writability. */
+    socket->write_admitted = true;
+    if (socket->tcp && ! socket->transport_established)
     {
         dnsTransportSetError(EINPROGRESS);
         return -1;
@@ -306,7 +379,7 @@ static ares_ssize_t dnsTransportSend(ares_socket_t handle, const void *data, siz
         dnsTransportSetError(ECONNREFUSED);
         return -1;
     }
-    if (! socket->established || socket->send_paused)
+    if (! socket->write_admitted || socket->send_paused)
     {
         /* c-ares 1.34.8 clears UDP WRITE interest after a would-block flush.
          * Retain that pending send independently until capacity can retry it. */
@@ -317,6 +390,8 @@ static ares_ssize_t dnsTransportSend(ares_socket_t handle, const void *data, siz
     socket->write_blocked = false;
     if (! socket->tcp && length > kDnsTransportMaxDatagram)
     {
+        dnsTransportLogLimit(
+            transport, socket, SOCK_DGRAM, kDnsTransportLogSendDatagram, 0, length, kDnsTransportMaxDatagram);
         dnsTransportSetError(ENOBUFS);
         return -1;
     }
@@ -504,8 +579,7 @@ void domainresolverTransportEst(tunnel_t *owner, line_t *line)
     domainresolver_socket_t *socket = dnsTransportLine(owner, line);
     if (socket == NULL || socket->line != line)
         return;
-    socket->established = true;
-    asyncdnsWakeTransport(&socket->transport->resolver);
+    socket->transport_established = true;
 }
 
 void domainresolverTransportFinish(tunnel_t *owner, line_t *line)
@@ -513,7 +587,7 @@ void domainresolverTransportFinish(tunnel_t *owner, line_t *line)
     domainresolver_socket_t *socket = dnsTransportLine(owner, line);
     if (socket != NULL && socket->line == line)
     {
-        socket->eof = socket->tcp && socket->established;
+        socket->eof = socket->tcp && socket->transport_established;
         dnsTransportFail(socket, false);
     }
 }
@@ -527,10 +601,36 @@ void domainresolverTransportPayload(tunnel_t *owner, line_t *line, sbuf_t *buf)
         return;
     }
     size_t length = sbufGetLength(buf);
+    if (socket->tcp && length == 0)
+    {
+        /* Empty stream payload is not EOF. Only Finish may close this stream. */
+        lineReuseBuffer(line, buf);
+        return;
+    }
     if ((! socket->tcp && length > kDnsTransportMaxDatagram) ||
         length > kDnsTransportMaxInputBytes - bufferqueueGetLength(&socket->input) ||
         bufferqueueGetEntryCount(&socket->input) >= kDnsTransportMaxInputEntries)
     {
+        const int type = socket->tcp ? SOCK_STREAM : SOCK_DGRAM;
+        if (! socket->tcp && length > kDnsTransportMaxDatagram)
+            dnsTransportLogLimit(
+                socket->transport, socket, type, kDnsTransportLogReceiveDatagram, 0, length, kDnsTransportMaxDatagram);
+        else if (length > kDnsTransportMaxInputBytes - bufferqueueGetLength(&socket->input))
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogInputBytes,
+                                 bufferqueueGetLength(&socket->input),
+                                 length,
+                                 kDnsTransportMaxInputBytes);
+        else
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogInputEntries,
+                                 bufferqueueGetEntryCount(&socket->input),
+                                 1,
+                                 kDnsTransportMaxInputEntries);
         lineReuseBuffer(line, buf);
         dnsTransportFail(socket, true);
         return;
@@ -540,6 +640,40 @@ void domainresolverTransportPayload(tunnel_t *owner, line_t *line, sbuf_t *buf)
     if (charge > kDnsTransportMaxInputCharge - bufferqueueGetCharge(&socket->input) ||
         ! bufferqueueTryPushBack(&socket->input, &buf))
     {
+        const int                  type = socket->tcp ? SOCK_STREAM : SOCK_DGRAM;
+        const buffer_budget_cost_t used = bufferbudgetGetUsage(&socket->transport->input_budget);
+        if (charge > kDnsTransportMaxInputCharge - bufferqueueGetCharge(&socket->input))
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogInputCharge,
+                                 bufferqueueGetCharge(&socket->input),
+                                 charge,
+                                 kDnsTransportMaxInputCharge);
+        else if (length > kDnsTransportWorkerBytes - used.bytes)
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogWorkerBytes,
+                                 used.bytes,
+                                 length,
+                                 kDnsTransportWorkerBytes);
+        else if (charge > kDnsTransportWorkerCharge - used.charge)
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogWorkerCharge,
+                                 used.charge,
+                                 charge,
+                                 kDnsTransportWorkerCharge);
+        else
+            dnsTransportLogLimit(socket->transport,
+                                 socket,
+                                 type,
+                                 kDnsTransportLogInputAdmission,
+                                 used.bytes,
+                                 length,
+                                 kDnsTransportWorkerBytes);
         lineReuseBuffer(line, buf);
         dnsTransportFail(socket, true);
         return;

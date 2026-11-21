@@ -1,22 +1,58 @@
 <!--
-Documentation version: 152
+Documentation version: 153
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/ConnectionFisherServer.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/ConnectionFisherServer.mdx, and all files must keep the same documentation version.
 -->
 
 # ConnectionFisherServer Node
 
+## Overview
+
 `ConnectionFisherServer` is the server-side peer for `ConnectionFisherClient`.
 
 It delays upstream `Init` until it has validated the fixed `5`-byte client probe, sends the fixed `5`-byte reply, and only then turns the line into a normal forwarding stream.
 
-## Probe Exchange
+The server selects TCP from the incoming destination offer at `Init` and
+retains that selection when the winning line continues upstream.
+
+## Typical placement
+
+### Intended Placement
+
+A common placement is:
+
+- `TcpListener -> ConnectionFisherServer -> TcpConnector`
+
+or any other server-side stream chain where the first `5` bytes are reserved for the ConnectionFisher probe.
+
+## Minimal practical example
+
+These are node fragments; define the referenced neighboring nodes in the surrounding configuration.
+
+`ConnectionFisherServer` currently has no settings.
+
+```json
+{
+  "name": "connection-fisher-server",
+  "type": "ConnectionFisherServer",
+  "next": "next-node-name"
+}
+```
+
+## Configuration
+
+
+## Advanced behavior
+
+### Probe Exchange
 
 - client probe: `FISH?`
 - server reply: `FISH!`
 
 Both values are fixed ASCII `5`-byte markers.
 
-## What It Does
+## Implementation details
+
+### What It Does
 
 - accepts a new line from the previous tunnel without forwarding upstream `Init` yet
 - buffers upstream bytes until at least `5` bytes are available
@@ -26,15 +62,7 @@ Both values are fixed ASCII `5`-byte markers.
 - forwards any buffered bytes after the first `5` upstream once the next side exists
 - closes the line if the first `5` bytes do not match the probe
 
-## Intended Placement
-
-A common placement is:
-
-- `TcpListener -> ConnectionFisherServer -> TcpConnector`
-
-or any other server-side stream chain where the first `5` bytes are reserved for the ConnectionFisher probe.
-
-## Lifecycle Notes
+### Lifecycle Notes
 
 - upstream `Init` only initializes local line state
 - upstream `Init` is intentionally delayed toward `next`
@@ -53,26 +81,14 @@ Once next Init, any pending Pause replay and all admitted input settle, the serv
 and permanently bypasses itself on that line. This does not wait for Est or Resume. Before that point, an upstream
 Pause retained during setup is replayed after Init unless a newer Pause/Resume already handled it.
 
-## Finish And Safety Behavior
+### Finish And Safety Behavior
 
 - if the probe is invalid, the tunnel destroys its line state first and closes the previous side; next has not been initialized
 - a real upstream `Finish` destroys local state and only propagates upstream if `next` was already initialized
 - a real downstream `Finish` destroys local state and propagates downstream toward `prev`
 - if a protocol error occurs before upstream init was sent to `next`, only the previous side is closed because there is no next-side line yet
 
-## Configuration
-
-`ConnectionFisherServer` currently has no settings.
-
-```json
-{
-  "name": "connection-fisher-server",
-  "type": "ConnectionFisherServer",
-  "next": "next-node-name"
-}
-```
-
-## Splice Support and Setup Retirement
+### Splice Support and Setup Retirement
 
 Both nodes accept ordinary buffers and private-pipe payloads. Complete deliveries entering handshake
 or selection parsing are materialized with `sbufEnsureOrdinary()`; application FIFOs retain buffers
@@ -86,7 +102,7 @@ and replay settle. Ready payloads preserve their buffers without inspection, mat
 backlog limit. Server backend initialization still waits for the first application payload, so losing
 candidates create no backend connection. Neither node requests ordinary reads for the established TCP stream.
 
-## Node Metadata
+### Node Metadata
 
 Source-backed metadata:
 
@@ -96,6 +112,6 @@ Source-backed metadata:
 | `can_have_prev` | `true` |
 | `can_have_next` | `true` |
 | `layer_group` | `kNodeLayer4` |
-| `layer_group_prev_node` | `kNodeLayer4` |
-| `layer_group_next_node` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4Stream` |
+| `layer_group_next_node` | `kNodeLayer4Stream` |
 | `required_padding_left` | `0` bytes |

@@ -2,7 +2,6 @@
 #include "structure.h"
 
 #include "loggers/network_logger.h"
-#include <math.h>
 
 static void authenticationclientInitializeCallbacks(tunnel_t *t)
 {
@@ -215,7 +214,7 @@ tunnel_t *authenticationclientTunnelCreate(node_t *node)
     authenticationclientInitializeCallbacks(t);
 
     ts->next_correlation_id = 1U;
-    ts->users_generation    = 1U;
+    atomic_init(&ts->users_generation, 1U);
 
     if (UNLIKELY(! authenticationclientParseSettings(ts, node)))
     {

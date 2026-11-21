@@ -35,6 +35,8 @@ struct raw_native_writer_s
     log_rate_limiter_t discard_log_limiter;
     uint64_t           oversized_packet_total;
     uint64_t           packet_local_send_error_total;
+    size_t             last_packet_bytes;
+    const char        *last_reason;
     uint32_t           last_discard_error;
 };
 
@@ -49,28 +51,35 @@ static void rawdeviceLogDiscards(raw_native_writer_t *native, wid_t wid, log_rat
     if (! report.should_log)
         return;
     LOGW("RawDevice: worker %u discarded %llu packet(s) over %llums "
-         "(total=%llu, exceeding kMaxAllowedPacketLength=%u: %llu, "
+         "(last_reason=%s, last_packet_bytes=%zu, policy_limit_bytes=%u, total=%llu, oversized_total=%llu, "
          "packet-local WinDivertSendEx errors=%llu, last error=%u)",
          (unsigned int) wid,
          LLU(report.events),
          LLU(report.elapsed_ms),
-         LLU(report.total),
+         native->last_reason,
+         native->last_packet_bytes,
          (unsigned int) kMaxAllowedPacketLength,
+         LLU(report.total),
          LLU(native->oversized_packet_total),
          LLU(native->packet_local_send_error_total),
          native->last_discard_error);
 }
 
 static void rawdeviceRecordDiscard(raw_native_writer_t *native, wid_t wid, rawdevice_discard_reason_t reason,
-                                   DWORD send_error)
+                                   size_t packet_bytes, DWORD send_error)
 {
     if (reason == kRawDeviceDiscardOversized)
+    {
         native->oversized_packet_total++;
+        native->last_reason = "policy_size_limit";
+    }
     else
     {
         native->packet_local_send_error_total++;
-        native->last_discard_error = (uint32_t) send_error;
+        native->last_reason = "packet_local_send_error";
     }
+    native->last_packet_bytes  = packet_bytes;
+    native->last_discard_error = (uint32_t) send_error;
     rawdeviceLogDiscards(native, wid, logRateLimiterRecord(&native->discard_log_limiter, kRawDiscardReportIntervalMs));
 }
 
@@ -108,8 +117,9 @@ static raw_writer_batch_result_t rawdeviceWriteBatch(void *context, worker_t *wo
 
     while (sent < count && rawLifecycleIsActive(rawLifecycleLoad(&rdev->lifecycle)))
     {
-        sbuf_t *buf        = buffers[sent];
-        DWORD   send_error = ERROR_SUCCESS;
+        sbuf_t      *buf          = buffers[sent];
+        const size_t packet_bytes = sbufGetLength(buf);
+        DWORD        send_error   = ERROR_SUCCESS;
         if (native->pending_buffer != NULL)
         {
             assert(native->pending_buffer == buf);
@@ -124,10 +134,10 @@ static raw_writer_batch_result_t rawdeviceWriteBatch(void *context, worker_t *wo
         }
         else
         {
-            const uint32_t packet_len = sbufGetLength(buf);
+            const uint32_t packet_len = packet_bytes;
             if (UNLIKELY(packet_len > kMaxAllowedPacketLength))
             {
-                rawdeviceRecordDiscard(native, worker->wid, kRawDeviceDiscardOversized, 0);
+                rawdeviceRecordDiscard(native, worker->wid, kRawDeviceDiscardOversized, packet_bytes, 0);
                 bufferpoolReuseBuffer(worker->buffer_pool, buf);
                 sent++;
                 continue;
@@ -177,7 +187,8 @@ static raw_writer_batch_result_t rawdeviceWriteBatch(void *context, worker_t *wo
             continue;
         if (rawWindowsClassifySendError(send_error) == kRawWindowsSendDiscardPacket)
         {
-            rawdeviceRecordDiscard(native, worker->wid, kRawDeviceDiscardPacketLocalSendError, send_error);
+            rawdeviceRecordDiscard(
+                native, worker->wid, kRawDeviceDiscardPacketLocalSendError, packet_bytes, send_error);
             continue;
         }
         if (rawdeviceWriteFailed(rdev, send_error))
@@ -297,13 +308,30 @@ bool rawdeviceBringUp(raw_device_t *rdev)
         raw_native_writer_t *native = &rdev->writer_states[i];
         native->event               = CreateEventW(NULL, TRUE, FALSE, NULL);
         if (native->event == NULL)
+        {
+            const DWORD error = GetLastError();
+            LOGE("RawDevice: cannot create output completion event for %s (worker=%zu, error=%lu)",
+                 rdev->name,
+                 i,
+                 error);
             goto fail;
+        }
         native->wait = CreateThreadpoolWait(rawdeviceWriteCompleted, native, NULL);
         if (native->wait == NULL)
+        {
+            const DWORD error = GetLastError();
+            LOGE(
+                "RawDevice: cannot create output completion wait for %s (worker=%zu, error=%lu)", rdev->name, i, error);
             goto fail;
+        }
     }
     if (! rawWriterOpen(&rdev->writer, kRawWriteQueueMax, 0, rdev, rawdeviceWriteBatch, rawdeviceStopWriter))
+    {
+        LOGE("RawDevice: cannot open worker output queues for %s (device_packet_limit=%u)",
+             rdev->name,
+             (unsigned) kRawWriteQueueMax);
         goto fail;
+    }
     if (! rawLifecycleTransitionStartingToUp(&rdev->lifecycle))
     {
         rawWriterCloseRequest(&rdev->writer);
@@ -316,7 +344,6 @@ bool rawdeviceBringUp(raw_device_t *rdev)
     return true;
 
 fail:
-    LOGE("RawDevice: failed to initialize worker output, error %lu", GetLastError());
     for (size_t i = 0; i < rdev->writer_worker_count; ++i)
         rawdeviceStopWriter(rdev, (wid_t) i);
     rawdeviceFreeWriterStates(rdev);
@@ -339,10 +366,9 @@ bool rawdeviceBringDown(raw_device_t *rdev)
     return true;
 }
 
-raw_device_t *rawdeviceCreate(const char *name, uint32_t mark, bool bypass_conntrack, void *userdata)
+raw_device_t *rawdeviceCreate(const char *name, uint32_t mark, void *userdata)
 {
     discard getCurrentWorker();
-    discard bypass_conntrack;
     if (! windivertManagerEnsureLoaded())
         return NULL;
     HANDLE handle = windivertOpen("false", WINDIVERT_LAYER_NETWORK, 0, WINDIVERT_FLAG_SEND_ONLY);

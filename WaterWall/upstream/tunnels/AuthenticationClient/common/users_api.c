@@ -55,14 +55,8 @@ uint64_t authenticationclientUsersGeneration(tunnel_t *t)
         return 0;
     }
 
-    authenticationclient_tstate_t *ts         = tunnelGetState(t);
-    uint64_t                       generation = 0;
-
-    rwlockReadLock(&ts->users_lock);
-    generation = ts->users_generation;
-    rwlockReadUnlock(&ts->users_lock);
-
-    return generation;
+    authenticationclient_tstate_t *ts = tunnelGetState(t);
+    return atomicLoadU64(&ts->users_generation);
 }
 
 authenticationclient_uuid_snapshot_result_t authenticationclientGetUUIDSource(
@@ -83,10 +77,11 @@ authenticationclient_uuid_snapshot_result_t authenticationclientGetUUIDSource(
             result = kAuthenticationClientUuidSnapshotLimit;
         else
         {
-            *source_out = (authenticationclient_uuid_source_t) {.users_generation = ts->users_generation,
-                                                                .total_users      = count,
-                                                                .max_users        = (size_t) ts->sync_max_users,
-                                                                .max_bytes        = (size_t) ts->sync_max_bytes};
+            *source_out =
+                (authenticationclient_uuid_source_t) {.users_generation = atomicLoadU64(&ts->users_generation),
+                                                      .total_users      = count,
+                                                      .max_users        = (size_t) ts->sync_max_users,
+                                                      .max_bytes        = (size_t) ts->sync_max_bytes};
             result      = kAuthenticationClientUuidSnapshotOk;
         }
     }
@@ -110,7 +105,7 @@ authenticationclient_uuid_snapshot_result_t authenticationclientCopyUUIDCandidat
     rwlockReadLock(&ts->users_lock);
     if (authenticationclientCanAuthenticateLocked(ts))
     {
-        if (expected_generation != ts->users_generation)
+        if (expected_generation != atomicLoadU64(&ts->users_generation))
             result = kAuthenticationClientUuidSnapshotChanged;
         else if (usersCount(ts->users) > ts->sync_max_users ||
                  ! usersCopyUUIDCandidatePage(ts->users, position, max_rows, entries_out, count_out, next_position_out))
@@ -224,7 +219,7 @@ static authenticationclient_user_lookup_result_t authenticationclientResolveCred
     if (user != NULL && authenticationclientIdDetachedLocked(ts, userGetId(user)))
         user = NULL;
     if (user != NULL && expected_identity != NULL &&
-        (expected_identity->generation > ts->users_generation ||
+        (expected_identity->generation > atomicLoadU64(&ts->users_generation) ||
          expected_identity->generation < user->runtime.identity_generation_floor ||
          expected_identity->user_id != userGetId(user)))
         user = NULL;
@@ -253,7 +248,7 @@ static authenticationclient_user_lookup_result_t authenticationclientResolveCred
                     result = kAuthenticationClientUserLookupUserIdRequired;
                 else
                 {
-                    userHandleSet(handle_out, ts->users_generation, user_id);
+                    userHandleSet(handle_out, atomicLoadU64(&ts->users_generation), user_id);
                     result = kAuthenticationClientUserLookupOk;
                 }
             }
@@ -421,7 +416,7 @@ bool authenticationclientUserHandleIsLive(tunnel_t *t, const user_handle_t *hand
 
     rwlockReadLock(&ts->users_lock);
     user_t *user = NULL;
-    if (LIKELY(ts->users != NULL) && handle->generation == ts->users_generation)
+    if (LIKELY(ts->users != NULL) && handle->generation == atomicLoadU64(&ts->users_generation))
     {
         user = usersLookupByIdentifier(ts->users, handle->user_id);
     }
@@ -443,7 +438,7 @@ cJSON *authenticationclientUserToJson(tunnel_t *t, const user_handle_t *handle)
     cJSON                         *json = NULL;
 
     rwlockReadLock(&ts->users_lock);
-    if (LIKELY(ts->users != NULL) && handle->generation == ts->users_generation)
+    if (LIKELY(ts->users != NULL) && handle->generation == atomicLoadU64(&ts->users_generation))
     {
         json = usersUserToJsonByIdentifier(ts->users, handle->user_id);
     }
@@ -484,7 +479,7 @@ bool authenticationclientUserGetStats(tunnel_t *t, const user_handle_t *handle, 
 
     rwlockReadLock(&ts->users_lock);
     user_t *user = NULL;
-    if (LIKELY(ts->users != NULL) && handle->generation == ts->users_generation)
+    if (LIKELY(ts->users != NULL) && handle->generation == atomicLoadU64(&ts->users_generation))
     {
         user = usersLookupByIdentifier(ts->users, handle->user_id);
     }
@@ -619,7 +614,7 @@ static authenticationclient_first_usage_push_result_t authenticationclientReques
     {
         result = kAuthenticationClientFirstUsagePushPending;
     }
-    else if (LIKELY(ts->authenticated && ts->connected && ! ts->stopping && ! ts->write_paused &&
+    else if (LIKELY(ts->authenticated && ts->write_admitted && ! ts->stopping && ! ts->write_paused &&
                     ts->control_line != NULL))
     {
         ts->first_usage_push_requested = true;
@@ -657,7 +652,7 @@ static bool authenticationclientAccountTraffic(tunnel_t *t, const user_handle_t 
 
     rwlockReadLock(&ts->users_lock);
     if (authenticationclientHandleCurrentLocked(ts, handle) &&
-        (! check_generation || handle->generation == ts->users_generation))
+        (! check_generation || handle->generation == atomicLoadU64(&ts->users_generation)))
     {
         // AccountTraffic returns close=true when the user is gone (revoked), so a removed user's
         // traffic is rejected and the connection is torn down.
@@ -976,4 +971,119 @@ user_delivery_decision_t authenticationclientUserCommitDelivery(tunnel_t *t, con
             ts->users, handle->user_id, direction, ticket, bytes, datagram, more, ts->traffic_multiplier);
     rwlockReadUnlock(&ts->users_lock);
     return result;
+}
+
+user_delivery_decision_t authenticationclientUserCommitFinalDelivery(tunnel_t *t, const user_handle_t *handle,
+                                                                     user_bandwidth_direction_t direction,
+                                                                     uint64_t                   bytes)
+{
+    assert(t != NULL && userHandleIsValid(handle));
+    authenticationclient_tstate_t *ts     = tunnelGetState(t);
+    user_delivery_decision_t       result = kUserDeliveryReject;
+    rwlockReadLock(&ts->users_lock);
+    if (authenticationclientHandleCurrentLocked(ts, handle) &&
+        ! authenticationclientIdDetachedLocked(ts, handle->user_id))
+        result =
+            usersCommitFinalDeliveryByIdentifier(ts->users, handle->user_id, direction, bytes, ts->traffic_multiplier);
+    rwlockReadUnlock(&ts->users_lock);
+    return result;
+}
+
+void authenticationclientWireGuardAuthorizationClear(authenticationclient_wireguard_authorization_t *authorization)
+{
+    authenticationclientUserProfileClear(&authorization->profile);
+    memoryZero(authorization, sizeof(*authorization));
+}
+
+authenticationclient_user_lookup_result_t authenticationclientCopyWireGuardAuthorization(
+    tunnel_t *t, const uint8_t public_key[USER_WIREGUARD_PUBLICKEY_SIZE],
+    authenticationclient_wireguard_authorization_t *authorization)
+{
+    assert(public_key != NULL && authorization != NULL);
+    authenticationclientAssertProfileEmpty(&authorization->profile, "authenticationclientCopyWireGuardAuthorization");
+    *authorization = (authenticationclient_wireguard_authorization_t) {0};
+    if (t == NULL)
+        return kAuthenticationClientUserLookupUsersUnavailable;
+    authenticationclient_tstate_t            *ts     = tunnelGetState(t);
+    authenticationclient_user_lookup_result_t result = kAuthenticationClientUserLookupUserNotFound;
+    mutexLock(&ts->control_mutex);
+    rwlockReadLock(&ts->users_lock);
+    if (! authenticationclientCanAuthenticateLocked(ts))
+        result = kAuthenticationClientUserLookupUsersUnavailable;
+    else
+    {
+        user_t *user = usersLookupByWireGuardPublicKey(ts->users, public_key);
+        if (user != NULL && ! authenticationclientIdDetachedLocked(ts, userGetId(user)))
+        {
+            uint64_t                      id     = 0;
+            const user_admission_result_t access = userCopyAccess(user,
+                                                                  authenticationclientLocalTimeMS(),
+                                                                  &id,
+                                                                  &authorization->profile.name,
+                                                                  &authorization->profile.password);
+            if (access == kUserAdmissionDisabled)
+                result = kAuthenticationClientUserLookupUserDisabled;
+            else if (access == kUserAdmissionExpired)
+                result = kAuthenticationClientUserLookupUserExpired;
+            else if (access == kUserAdmissionTrafficLimited)
+                result = kAuthenticationClientUserLookupUserLimitReached;
+            else if (id == 0)
+                result = kAuthenticationClientUserLookupUserIdRequired;
+            else
+            {
+                rwlockReadLock(&user->lock);
+                if (user->wireguard_allowed_ips_valid)
+                {
+                    authorization->network    = user->wireguard_allowed_ip;
+                    authorization->mask       = user->wireguard_allowed_mask;
+                    authorization->generation = atomicLoadU64(&ts->users_generation);
+                    authorization->continuity = user->runtime.wireguard_generation_floor;
+                    userHandleSet(&authorization->handle, authorization->generation, id);
+                    result = kAuthenticationClientUserLookupOk;
+                }
+                rwlockReadUnlock(&user->lock);
+            }
+        }
+    }
+    rwlockReadUnlock(&ts->users_lock);
+    mutexUnlock(&ts->control_mutex);
+    if (result != kAuthenticationClientUserLookupOk)
+        authenticationclientWireGuardAuthorizationClear(authorization);
+    return result;
+}
+
+bool authenticationclientWireGuardAuthorizationMatches(tunnel_t            *t,
+                                                       const uint8_t        public_key[USER_WIREGUARD_PUBLICKEY_SIZE],
+                                                       const user_handle_t *handle, uint64_t continuity,
+                                                       const ip_addr_t *network, const ip_addr_t *mask)
+{
+    assert(public_key != NULL && handle != NULL && network != NULL && mask != NULL);
+    if (t == NULL || ! userHandleIsValid(handle))
+        return false;
+    authenticationclient_tstate_t *ts      = tunnelGetState(t);
+    bool                           matches = false;
+    mutexLock(&ts->control_mutex);
+    rwlockReadLock(&ts->users_lock);
+    /* Existing bindings retain cached enforcement during explicit control
+     * rejection. Shutdown, terminal continuity and an unusable cache still
+     * close this gate; this operation never authorizes a new connection. */
+    if (ts->started && ! ts->stopping && ! ts->continuity_error && ts->users_loaded && ts->clock_loaded &&
+        ts->users != NULL)
+    {
+        user_t *user = usersLookupByWireGuardPublicKey(ts->users, public_key);
+        if (user != NULL && ! authenticationclientIdDetachedLocked(ts, handle->user_id) &&
+            ! userRuntimeShouldClose(user, authenticationclientLocalTimeMS()))
+        {
+            rwlockReadLock(&user->lock);
+            matches = user->enabled && user->id == handle->user_id &&
+                      handle->generation <= atomicLoadU64(&ts->users_generation) &&
+                      handle->generation >= user->runtime.identity_generation_floor &&
+                      continuity == user->runtime.wireguard_generation_floor && user->wireguard_allowed_ips_valid &&
+                      ipAddrCmp(network, &user->wireguard_allowed_ip) && ipAddrCmp(mask, &user->wireguard_allowed_mask);
+            rwlockReadUnlock(&user->lock);
+        }
+    }
+    rwlockReadUnlock(&ts->users_lock);
+    mutexUnlock(&ts->control_mutex);
+    return matches;
 }

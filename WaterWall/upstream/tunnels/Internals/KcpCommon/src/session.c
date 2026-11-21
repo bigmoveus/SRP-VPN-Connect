@@ -151,6 +151,12 @@ static bool stagePacket(tou_session_t *s, uint8_t kind, const uint8_t *body, siz
 {
     if (length > UINT16_MAX)
     {
+        if (! s->output_failed)
+            LOGW("Kcp%s: aborting session: output envelope length cannot be represented "
+                 "(body_bytes=%zu, body_limit_bytes=%u)",
+                 s->client ? "Client" : "Server",
+                 length,
+                 (unsigned) UINT16_MAX);
         s->output_failed = true;
         return false;
     }
@@ -158,6 +164,15 @@ static bool stagePacket(tou_session_t *s, uint8_t kind, const uint8_t *body, siz
     if (s->output_bytes > s->output_byte_limit || size > s->output_byte_limit - s->output_bytes ||
         (size_t) tou_packet_queue_t_size(&s->output) >= s->output_packet_limit)
     {
+        if (! s->output_failed)
+            LOGW("Kcp%s: aborting session: encoded output staging admission refused "
+                 "(queued_bytes=%zu, incoming_bytes=%zu, byte_limit=%zu, queued_packets=%zu, packet_limit=%zu)",
+                 s->client ? "Client" : "Server",
+                 s->output_bytes,
+                 size,
+                 s->output_byte_limit,
+                 (size_t) tou_packet_queue_t_size(&s->output),
+                 s->output_packet_limit);
         s->output_failed = true;
         return false;
     }
@@ -179,7 +194,7 @@ static bool stageOuter(void *user, const uint8_t *packet, size_t length)
 static bool beginOutputBatch(tou_session_t *s)
 {
     assert(tou_packet_queue_t_is_empty(&s->output) && s->output_bytes == 0);
-    /* One driver batch performs update plus an optional explicit ACK flush.
+    /* One driver batch performs update plus an optional explicit flush.
      * Each call can emit at most the existing flight plus one send-window of
      * queued PUSHes, ackcount ACKs and two probes. Every datagram contains at
      * least one such segment. FEC completes at most ceil(packet_count/data)
@@ -200,6 +215,12 @@ static bool beginOutputBatch(tou_session_t *s)
                            parity * (mtu + kTouEnvelopeSize + kKcpFecOuterHeaderSize);
     if (packets > SIZE_MAX || bytes > SIZE_MAX)
     {
+        LOGW("Kcp%s: aborting session: encoded output batch geometry is unrepresentable "
+             "(required_packets=%" PRIu64 ", required_bytes=%" PRIu64 ", size_limit=%zu)",
+             s->client ? "Client" : "Server",
+             packets,
+             bytes,
+             SIZE_MAX);
         return false;
     }
     s->output_packet_limit = (size_t) packets;
@@ -212,7 +233,7 @@ static uint32_t readLE32(const uint8_t *p)
     return p[0] | ((uint32_t) p[1] << 8U) | ((uint32_t) p[2] << 16U) | ((uint32_t) p[3] << 24U);
 }
 
-static bool validKcp(const uint8_t *packet, size_t size)
+static bool validKcp(const uint8_t *packet, size_t size, bool *has_ping)
 {
     if (size < 24)
     {
@@ -229,6 +250,11 @@ static bool validKcp(const uint8_t *packet, size_t size)
         {
             return false;
         }
+        /* Only PUSH carries a payload. A PING is one byte with no following fragments. */
+        if (length == 1 && packet[5] == 0 && packet[24] == kTouFramePing)
+        {
+            *has_ping = true;
+        }
         packet += 24 + length;
         size -= 24 + length;
     }
@@ -237,8 +263,24 @@ static bool validKcp(const uint8_t *packet, size_t size)
 
 static bool inputKcp(void *user, const uint8_t *packet, size_t size)
 {
-    tou_session_t *s = user;
-    return validKcp(packet, size) && ikcp_input(s->kcp, (const char *) packet, (long) size) >= 0;
+    tou_session_t *s        = user;
+    bool           has_ping = false;
+    if (! validKcp(packet, size, &has_ping))
+    {
+        return false;
+    }
+    const IUINT32 previous_ack_count = s->kcp->ackcount;
+    if (ikcp_input(s->kcp, (const char *) packet, (long) size) < 0)
+    {
+        return false;
+    }
+    /* A retransmitted PING queues another ACK without delivering another record. */
+    if (has_ping && s->kcp->ackcount > previous_ack_count)
+    {
+        s->dirty = true;
+        s->flush = true;
+    }
+    return true;
 }
 
 static int outputKcp(const char *data, int length, ikcpcb *kcp, void *user)
@@ -316,6 +358,9 @@ static void emitOutput(tou_session_t *s)
     sbuf_t *buffer = bufferpoolTryGetBestFit(s->config.pool, packet.size, 0);
     if (buffer == NULL)
     {
+        LOGW("Kcp%s: aborting session: output buffer geometry refused (packet_bytes=%zu)",
+             s->client ? "Client" : "Server",
+             packet.size);
         memoryFree(packet.bytes);
         touSessionAbort(s, kTouCapacityFailure);
         return;
@@ -330,6 +375,10 @@ static bool expire(tou_session_t *s, uint64_t now)
 {
     if (s->client && ! s->ready && now >= s->handshake_deadline)
     {
+        LOGW("KcpClient: closing session: handshake deadline expired "
+             "(overdue_ms=%" PRIu64 ", no-recv-timeout-ms=%u)",
+             now - s->handshake_deadline,
+             s->config.no_recv_timeout_ms);
         touSessionAbort(s, kTouHandshakeTimeout);
         return true;
     }
@@ -343,12 +392,24 @@ static bool expire(tou_session_t *s, uint64_t now)
         }
         if (s->send_settled && (s->retention_deadline == 0 || now >= s->retention_deadline))
         {
+            if (! s->confirmed && ! s->send_completed)
+                LOGW("Kcp%s: close delivery unconfirmed at fixed deadline "
+                     "(elapsed_ms=%" PRIu64 ", negotiated_close_drain_ms=%u, pending_segments=%u)",
+                     s->client ? "Client" : "Server",
+                     now - s->close_started,
+                     s->settings.close_ms,
+                     (unsigned) ikcp_waitsnd(s->kcp));
             touSessionAbort(s, s->confirmed ? kTouConfirmed : s->send_completed ? kTouPeerDrained : kTouUnconfirmed);
             return true;
         }
     }
     else if (s->ready && now >= touDeadline(s->last_recv, s->config.no_recv_timeout_ms))
     {
+        LOGW("Kcp%s: closing session: receive idle deadline expired "
+             "(idle_ms=%" PRIu64 ", no-recv-timeout-ms=%u)",
+             s->client ? "Client" : "Server",
+             now - s->last_recv,
+             s->config.no_recv_timeout_ms);
         touSessionAbort(s, kTouIdleTimeout);
         return true;
     }
@@ -454,7 +515,14 @@ static void processWire(tou_session_t *s, sbuf_t *buffer, uint64_t now)
         s->last_recv = now;
         s->ping_sent = false;
         s->dirty     = true;
-        s->flush     = true;
+        /* Ordinary input follows kcp-ack-batch. ACK-only retention has no interval update,
+         * so every valid input flushes there, including window probes. */
+        const int ack_batch = s->config.kcp_ack_batch;
+        if (ack_batch == 1 || (s->closing && s->send_settled) ||
+            (ack_batch > 1 && s->kcp->ackcount >= (IUINT32) ack_batch))
+        {
+            s->flush = true;
+        }
     }
 }
 
@@ -506,6 +574,11 @@ static void receiveRecords(tou_session_t *s, uint64_t now)
         }
         if (peek == 0 || (size_t) peek > bufferpoolGetLargeBufferSize(s->config.pool))
         {
+            LOGW("Kcp%s: closing session: completed record size is unsupported "
+                 "(record_bytes=%d, minimum_bytes=1, receive_limit_bytes=%u)",
+                 s->client ? "Client" : "Server",
+                 peek,
+                 (unsigned) bufferpoolGetLargeBufferSize(s->config.pool));
             touSessionAbort(s, kTouProtocolFailure);
             return;
         }
@@ -515,6 +588,11 @@ static void receiveRecords(tou_session_t *s, uint64_t now)
         const int count  = ikcp_recv(s->kcp, (char *) sbufGetMutablePtr(buffer), (int) sbufGetWritableCapacity(buffer));
         if (count <= 0)
         {
+            LOGW("Kcp%s: closing session: complete record receive failed "
+                 "(peek_bytes=%d, receive_result=%d)",
+                 s->client ? "Client" : "Server",
+                 peek,
+                 count);
             bufferpoolReuseBuffer(s->config.pool, buffer);
             touSessionAbort(s, kTouProtocolFailure);
             return;
@@ -542,6 +620,8 @@ static void receiveRecords(tou_session_t *s, uint64_t now)
                 {
                     s->retention_deadline = touDeadline(now, s->settings.close_ms);
                 }
+                /* Let the driver acknowledge the first CLOSE after application retirement. */
+                s->flush = true;
                 bufferpoolReuseBuffer(s->config.pool, buffer);
                 if (s->callbacks.peer_close != NULL)
                 {
@@ -552,6 +632,11 @@ static void receiveRecords(tou_session_t *s, uint64_t now)
         }
         else if (flag != kTouFramePing || count != 1)
         {
+            LOGW("Kcp%s: closing session: invalid record flag or control length "
+                 "(flag=%u, record_bytes=%d, control_length_bytes=1)",
+                 s->client ? "Client" : "Server",
+                 (unsigned) flag,
+                 count);
             bufferpoolReuseBuffer(s->config.pool, buffer);
             touSessionAbort(s, kTouProtocolFailure);
             return;
@@ -609,6 +694,12 @@ static void reconcilePressure(tou_session_t *s)
     }
 }
 
+static uint64_t nextKcpUpdate(const tou_session_t *s, uint64_t now)
+{
+    const IUINT32 current = (IUINT32) now;
+    return touDeadline(now, ikcp_check(s->kcp, current) - current);
+}
+
 static void armTimer(tou_session_t *s, uint64_t now)
 {
     if (s->timer == NULL || s->dead || s->quiesced || ! s->started)
@@ -626,8 +717,13 @@ static void armTimer(tou_session_t *s, uint64_t now)
     }
     else
     {
-        const IINT32 delay = (IINT32) (ikcp_check(s->kcp, (IUINT32) now) - (IUINT32) now);
-        next               = touDeadline(now, delay > 0 ? (uint32_t) delay : 1U);
+        next = nextKcpUpdate(s, now);
+        if (! s->closing)
+        {
+            next = min(next, touDeadline(s->last_recv, s->config.no_recv_timeout_ms));
+            if (! s->ping_sent)
+                next = min(next, touDeadline(s->last_recv, s->config.ping_interval_ms));
+        }
     }
     if (s->closing && ! s->send_settled)
     {
@@ -699,7 +795,21 @@ static void drive(tou_session_t *s)
             stageHandshake(s);
             s->retry_at = touDeadline(now, kTouHandshakeRetryMs);
         }
-        if (s->started && s->ready && s->dirty)
+        if (s->started && s->ready && ! s->closing && ! s->ping_sent &&
+            now >= touDeadline(s->last_recv, s->config.ping_interval_ms))
+        {
+            const uint8_t ping = kTouFramePing;
+            sendRecord(s, (const char *) &ping, 1);
+            s->ping_sent = true;
+            s->dirty     = true;
+            s->flush     = true;
+        }
+        /* Duplicate CLOSEs queue ACKs even while reverse data is still draining. */
+        const bool flush_close_acks = (s->peer_closed || s->send_settled) && s->kcp->ackcount != 0;
+        /* Input can reach the driver just before timer dispatch. Run due work
+         * here as well so an ignored packet cannot keep resetting its wakeup. */
+        if (s->started && s->ready &&
+            (s->dirty || flush_close_acks || (! s->send_settled && now >= nextKcpUpdate(s, now))))
         {
             assert(tou_packet_queue_t_is_empty(&s->output));
             if (! beginOutputBatch(s))
@@ -707,9 +817,13 @@ static void drive(tou_session_t *s)
                 touSessionAbort(s, kTouCapacityFailure);
                 break;
             }
-            s->dirty = false;
-            ikcp_update(s->kcp, (IUINT32) now);
-            if (s->flush)
+            const IUINT32 current = (IUINT32) now;
+            s->dirty              = false;
+            ikcp_update(s->kcp, current);
+            /* ikcp_update handles periodic flushes. If ikcp_check still returns
+             * the current tick, an outstanding segment is due for retransmission. */
+            if (s->flush || flush_close_acks ||
+                (! s->send_settled && s->kcp->nsnd_buf != 0 && ikcp_check(s->kcp, current) == current))
             {
                 s->flush = false;
                 ikcp_flush(s->kcp);
@@ -751,6 +865,25 @@ static void queueWork(tou_session_t *s, sbuf_t *buffer, bool wire)
         tou_work_t event = {.buffer = buffer, .wire = wire};
         if (! bufferbudgetTryReserve(&s->budget, buffer, &event.reservation))
         {
+            const buffer_budget_cost_t used   = bufferbudgetGetUsage(&s->budget);
+            const buffer_budget_cost_t limits = bufferbudgetGetLimits(&s->budget);
+            size_t                     charge;
+            if (sbufTryGetQueueCharge(buffer, &charge))
+                LOGW("Kcp%s: closing session: %s input retention admission refused "
+                     "(retained_bytes=%zu, incoming_bytes=%zu, byte_limit=%zu, retained_charge_bytes=%zu, "
+                     "incoming_charge_bytes=%zu, charge_limit_bytes=%zu)",
+                     s->client ? "Client" : "Server",
+                     wire ? "carrier" : "nested application",
+                     used.bytes,
+                     sbufGetLength(buffer),
+                     limits.bytes,
+                     used.charge,
+                     charge,
+                     limits.charge);
+            else
+                LOGW("Kcp%s: closing session: input allocation charge is unrepresentable (input_bytes=%zu)",
+                     s->client ? "Client" : "Server",
+                     sbufGetLength(buffer));
             bufferpoolReuseBuffer(s->config.pool, buffer);
             touSessionAbort(s, kTouCapacityFailure);
         }
@@ -784,8 +917,9 @@ void touSessionInput(tou_session_t *s, sbuf_t *packet)
     queueWork(s, packet, true);
 }
 
-void touSessionAppFinish(tou_session_t *s)
+void touSessionAppFinish(tou_session_t *s, void (*before_drain)(void *user))
 {
+    assert(before_drain != NULL);
     touSessionRetain(s);
     if (s->quiesced)
     {
@@ -797,6 +931,7 @@ void touSessionAppFinish(tou_session_t *s)
         // No Resume can follow a finished application.
         s->delivery_held = false;
         beginClose(s, sessionNow(s));
+        before_drain(s->user);
         drive(s);
     }
     touSessionRelease(s);
@@ -848,12 +983,6 @@ void touSessionTick(tou_session_t *s, uint64_t now)
     s->current_now = now;
     if (! s->dead && ! s->quiesced && s->started)
     {
-        if (! s->closing && s->ready && now >= touDeadline(s->last_recv, s->config.ping_interval_ms) && ! s->ping_sent)
-        {
-            const uint8_t ping = kTouFramePing;
-            sendRecord(s, (const char *) &ping, 1);
-            s->ping_sent = true;
-        }
         s->dirty = ! s->send_settled;
         drive(s);
     }

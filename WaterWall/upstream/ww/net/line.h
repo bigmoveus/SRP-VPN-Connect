@@ -202,6 +202,56 @@ void lineSetAuthenticatedCredentials(line_t *const line, const char *username, c
 void lineCopyUsers(line_t *const dest, const line_t *const src);
 
 /**
+ * @brief Copy the source address context, observed peer and listener ports, and user identity.
+ *
+ * Both arguments must be distinct, live normal lines. The current worker
+ * must own the source and have exclusive access to the newly created,
+ * unpublished destination with no user markers. The destination may already
+ * be assigned to another worker. Its destination address and line mark are caller-managed.
+ */
+void lineCopyIngressContext(line_t *const dest, const line_t *const src);
+
+/**
+ * @brief Copy routing context and user identity to a newly created companion line.
+ *
+ * Both lines must be distinct, live normal lines owned by the current worker.
+ * The destination must be newly created and unpublished, with no user markers
+ * or credentials. Node-local state may already be initialized.
+ *
+ * Copies both address contexts, including their protocol and optional metadata,
+ * the listener/source ports, and all user markers and credentials through the
+ * existing copy helpers. The new companion keeps its own line mark.
+ * The caller selects the final endpoints and protocols
+ * before Init. No callback is dispatched and no association is created.
+ *
+ * Lifetime, pool/worker ownership, established state, tunnel state and bypass
+ * mask remain unchanged. Read preferences, fallback and close-linger policy
+ * remain the caller's responsibility.
+ *
+ * @param dest Newly created destination line.
+ * @param src Source line whose routing context and user identity are inherited.
+ */
+void lineCopyContext(line_t *const dest, const line_t *const src);
+
+/** Return the line-owned routing mark, or NULL when absent. Reading leaves the mark in place. */
+static inline const line_mark_t *lineGetMark(const line_t *line)
+{
+    assert(line != NULL && lineIsAlive(line));
+    return line->has_mark ? &line->mark : NULL;
+}
+
+/** Set or replace the mark on a live normal line. An all-zero mark is a present value. */
+static inline void lineSetMark(line_t *line, const line_mark_t *mark)
+{
+    assert(line != NULL && lineIsAlive(line) && ! line->is_packet_line && mark != NULL);
+    line->mark     = *mark;
+    line->has_mark = true;
+}
+
+/** Decode exactly 32 ASCII hexadecimal digits in wire order. Failure leaves the output untouched. */
+bool lineMarkParseHex(const char *hex, line_mark_t *out);
+
+/**
  * @brief Returns the latest user handle marker added to the line.
  *
  * @param line Pointer to the line.
@@ -388,37 +438,35 @@ static inline bool lineIsFallback(const line_t *line)
 
 typedef enum line_close_linger_reason_e
 {
-    kLineCloseLingerProtocolDrain     = 1U << 0,
     kLineCloseLingerPeerWriteShutdown = 1U << 1
 } line_close_linger_reason_t;
 
-/* Request bounded socket-only cleanup after normal line destruction. A protocol
- * can finish output while its peer still sends control data; a transport can
- * independently observe a peer that shut down only its sending direction.
- * Each reason is idempotent. Retiring a branch clears only its own reason. */
+/* Only a fallback connector that detects peer write shutdown originates this
+ * request. A tunnel mapping that fallback path may propagate it to a related
+ * line, or clear it when retiring the fallback branch. */
 static inline void lineRequestCloseLinger(line_t *line, line_close_linger_reason_t reason)
 {
     assert(lineIsAlive(line) && lineIsOnCurrentWorker(line));
-    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    assert(reason == kLineCloseLingerPeerWriteShutdown);
     line->close_linger_reasons |= (uint8_t) reason;
 }
 
 static inline void lineClearCloseLinger(line_t *line, line_close_linger_reason_t reason)
 {
     assert(lineIsAlive(line) && lineIsOnCurrentWorker(line));
-    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    assert(reason == kLineCloseLingerPeerWriteShutdown);
     line->close_linger_reasons &= (uint8_t) ~reason;
 }
 
 static inline bool lineHasCloseLingerReason(const line_t *line, line_close_linger_reason_t reason)
 {
-    assert(reason == kLineCloseLingerProtocolDrain || reason == kLineCloseLingerPeerWriteShutdown);
+    assert(reason == kLineCloseLingerPeerWriteShutdown);
     return (line->close_linger_reasons & (uint8_t) reason) != 0;
 }
 
 static inline bool lineShouldLingerOnClose(const line_t *line)
 {
-    return line->close_linger_reasons != 0;
+    return lineHasCloseLingerReason(line, kLineCloseLingerPeerWriteShutdown);
 }
 
 /**
@@ -695,6 +743,10 @@ int lineResolveDomainServiceAsync(line_t *const line, const char *domain, const 
 int lineResolveDomainOnResolverAsync(line_t *const line, dns_resolver_t *resolver, const char *domain,
                                      const char *service, int socktype, LineDnsResolveFn cb, tunnel_t *t,
                                      void *userdata);
+/* Same guarded completion; family is AF_UNSPEC, AF_INET, or AF_INET6. */
+int lineResolveDomainOnResolverFamilyAsync(line_t *const line, dns_resolver_t *resolver, const char *domain,
+                                           const char *service, int socktype, int family, LineDnsResolveFn cb,
+                                           tunnel_t *t, void *userdata);
 
 /**
  * @brief Acquire, hold, and release a temporary line reference around a task.

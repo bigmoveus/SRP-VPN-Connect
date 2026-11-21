@@ -7,9 +7,20 @@
 #include "loggers/internal_logger.h"
 #include "managers/node_manager.h"
 
+static void invalidateBoundLayerSolution(const tunnel_t *t)
+{
+    if (t != NULL && t->chain != NULL && ! t->chain->finalized)
+    {
+        t->chain->layer_solution_ready = false;
+    }
+}
+
 // Binds a tunnel as the upstream of another tunnel
 void tunnelBindUp(tunnel_t *from, tunnel_t *to)
 {
+    invalidateBoundLayerSolution(from);
+    invalidateBoundLayerSolution(from->next);
+    invalidateBoundLayerSolution(to);
     from->next = to;
 }
 
@@ -19,6 +30,9 @@ void tunnelBindDown(tunnel_t *from, tunnel_t *to)
     // assert(to->dw == NULL); // 2 nodes cannot chain to 1 exact node
     // such chains are possible by a generic listener adapter
     // but the cyclic reference detection is already done in node map
+    invalidateBoundLayerSolution(to);
+    invalidateBoundLayerSolution(to->prev);
+    invalidateBoundLayerSolution(from);
     to->prev = from;
 }
 
@@ -368,6 +382,7 @@ tunnel_t *tunnelCreate(node_t *node, size_t tstate_size, size_t lstate_size)
                               .tstate_size      = aligned_tstate_size,
                               .lstate_size      = aligned_lstate_size,
                               .node             = node};
+    atomicLogRateLimiterInitialize(&tunnel_ptr->transport_refusal_log);
 
     return tunnel_ptr;
 }

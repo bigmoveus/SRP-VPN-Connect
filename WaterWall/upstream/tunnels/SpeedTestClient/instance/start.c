@@ -20,13 +20,22 @@ static void speedtestclientStartStream(void *worker, void *arg1, void *arg2, voi
 
     line_t                   *l  = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), real_worker->wid);
     speedtestclient_lstate_t *ls = lineGetState(l, t);
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(l),
+                                  state->mode == kSpeedTestClientModeUdp ? IP_PROTO_UDP : IP_PROTO_TCP);
 
     speedtestclientLinestateInitialize(ls, t, l, stream_id);
     assert(state->owned_lines[stream_id] == NULL);
     state->owned_lines[stream_id] = l;
     ls->upstream_init_sent        = true;
+    ls->init_in_progress          = true;
 
     if (! lineCallWithRef(l, tunnelNextUpStreamInit, t))
+    {
+        return;
+    }
+
+    ls->init_in_progress = false;
+    if (atomicLoadRelaxed(&state->stopping) || ! speedtestclientScheduleSend(t, l, ls))
     {
         return;
     }

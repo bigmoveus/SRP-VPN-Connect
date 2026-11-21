@@ -76,7 +76,7 @@ typedef struct vmessclient_tstate_s
     uint32_t               target_addr_source, target_port_source;
     vmessclient_protocol_t protocol;
     uint32_t               first_payload_timeout_ms;
-    uint8_t                security, options;
+    uint8_t                security, options, framing_transports;
     bool                   verbose, resolve_domains, send_termination, packetaddr, security_auto;
     vmess_counter_policy_t counter_policy;
     vmessclient_stats_t    stats;
@@ -90,7 +90,7 @@ typedef struct vmessclient_lstate_s
     vmessclient_phase_t     phase;
     address_context_t       target_addr;
     first_payload_window_t  first_payload;
-    bool                    request_sent, est_notifying, carrier_paused, next_paused;
+    bool                    request_sent, carrier_paused, next_paused;
     bool response_complete, transmitting, receiving, closing, upstream_pause_sent, downstream_pause_sent;
     /* Storage belongs to the outer synchronous close frame. */
     struct vmessclient_close_context_s *close_context;

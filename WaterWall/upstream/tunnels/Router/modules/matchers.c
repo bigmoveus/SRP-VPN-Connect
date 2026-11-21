@@ -6,6 +6,7 @@
 #include "modules/destination_domain/destination_domain.h"
 #include "modules/destination_ip/destination_ip.h"
 #include "modules/destination_port/destination_port.h"
+#include "modules/line_mark/line_mark.h"
 #include "modules/network/network.h"
 #include "modules/password/password.h"
 #include "modules/protocol/protocol.h"
@@ -35,9 +36,10 @@ typedef struct router_matcher_s
 } router_matcher_t;
 
 static const router_matcher_t kRouterMatchers[] = {
+    {"network", routerNetworkParse, routerNetworkMatch, routerNetworkDestroy},
+    {"line-mark", routerLineMarkParse, routerLineMarkMatch, routerLineMarkDestroy},
     {"source-ips", routerSourceIpsParse, routerSourceIpsMatch, routerSourceIpsDestroy},
     {"source-port", routerSourcePortParse, routerSourcePortMatch, routerSourcePortDestroy},
-    {"network", routerNetworkParse, routerNetworkMatch, routerNetworkDestroy},
     {"protocol", routerProtocolParse, routerProtocolMatch, routerProtocolDestroy},
     {"resolver-dns", routerResolverDnsParse, routerResolverDnsMatch, routerResolverDnsDestroy},
     {"attributes", routerAttributesParse, routerAttributesMatch, routerAttributesDestroy},

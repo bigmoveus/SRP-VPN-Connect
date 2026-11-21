@@ -8,7 +8,8 @@ typedef enum domainresolver_phase_e
 {
     kDomainResolverPhaseIdle = 0,
     kDomainResolverPhaseResolving,
-    kDomainResolverPhaseOpen
+    kDomainResolverPhaseOpen,
+    kDomainResolverPhaseClosing,
 } domainresolver_phase_t;
 
 typedef enum domainresolver_mode_e
@@ -17,6 +18,20 @@ typedef enum domainresolver_mode_e
     kDomainResolverModeDirect,
     kDomainResolverModeChain
 } domainresolver_mode_t;
+
+enum
+{
+    kDomainResolverLogPendingBytes,
+    kDomainResolverLogPendingCharge,
+    kDomainResolverLogPendingAdmission,
+    kDomainResolverLogPendingCount,
+    kDomainResolverLimitLogIntervalMs = 5000
+};
+
+typedef struct domainresolver_pending_logs_s
+{
+    log_rate_limiter_t limits[kDomainResolverLogPendingCount];
+} domainresolver_pending_logs_t;
 
 typedef struct domainresolver_tstate_s
 {
@@ -41,6 +56,7 @@ typedef struct domainresolver_tstate_s
     tunnel_t                             *dns_egress;
     domainresolver_transport_t          **dns_workers;
     bool                                 *dns_worker_closed;
+    domainresolver_pending_logs_t        *pending_logs; /* Indexed only by the line's owner worker. */
     unsigned                              dns_workers_count;
     bool                                  resolve;
     bool                                  dns_attached;
@@ -58,6 +74,7 @@ typedef struct domainresolver_lstate_s
     buffer_queue_t         pending;
     bool                   init_dispatching;
     bool                   draining;
+    bool                   drain_on_finish; // Framing on the application side, captured after destination preparation.
     bool                   pending_source_hold; // Local DNS/order wait; never stored as received permission.
     bool                   next_paused;
     bool                   prev_paused;

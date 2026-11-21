@@ -1,4 +1,15 @@
 # Root/platform registrations, including standalone archive and Windows seams.
+if(BUILD_TESTING AND WW_BUILD_UNIT_TESTS AND CMAKE_SYSTEM_NAME MATCHES "^(Darwin|FreeBSD|OpenBSD|NetBSD|SunOS)$")
+  waterwall_add_native_executable(native_watcher_registration_test SUPPORT
+    SOURCES tests/unittests/net/event/native_watcher_registration_test.c)
+  target_link_libraries(native_watcher_registration_test PRIVATE ww)
+  set_target_properties(native_watcher_registration_test PROPERTIES DISABLE_PRECOMPILE_HEADERS ON UNITY_BUILD OFF)
+  waterwall_register_native_test(waterwall.native_watcher_registration_unit native_watcher_registration_test
+    "unit;event;registration" TIMEOUT 30)
+  waterwall_register_platform_native_unit(waterwall.native_watcher_registration_unit native_watcher_registration_test
+    "unit;event;registration")
+endif()
+
 if(BUILD_TESTING AND WW_BUILD_UNIT_TESTS AND CMAKE_SYSTEM_NAME MATCHES "^(FreeBSD|OpenBSD|NetBSD)$")
   waterwall_add_native_executable(tun_bsd_reader_test SUPPORT SOURCES tests/unittests/devices/tun_bsd_reader_test.c)
   target_include_directories(tun_bsd_reader_test PRIVATE "${PROJECT_SOURCE_DIR}/ww/devices/tun")
@@ -39,6 +50,15 @@ endif()
 # test here as well. The test remains build-on-demand through its CTest runner.
 if(BUILD_TESTING AND WW_BUILD_UNIT_TESTS AND WIN32)
   set(WATERWALL_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
+  include("${PROJECT_SOURCE_DIR}/tests/unittests/external_node_abi.cmake")
+  waterwall_add_native_executable(winsock_startup_test SUPPORT EXCLUDE_FROM_ALL
+    SOURCES tests/unittests/net/winsock_startup_test.c LIBRARIES ww)
+  if(MINGW)
+    target_link_options(winsock_startup_test PRIVATE -static)
+  endif()
+  set_target_properties(winsock_startup_test PROPERTIES DISABLE_PRECOMPILE_HEADERS ON)
+  waterwall_register_native_test(waterwall.winsock_startup_unit winsock_startup_test
+    "unit;net;startup;windows" AGGREGATE waterwall_platform_unit_tests)
   include("${PROJECT_SOURCE_DIR}/tests/unittests/windows_packed_startup.cmake")
   include("${PROJECT_SOURCE_DIR}/tests/unittests/windows_driver_artifacts.cmake")
   include("${PROJECT_SOURCE_DIR}/tests/unittests/tundevice_policy_cleanup.cmake")

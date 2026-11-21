@@ -1,5 +1,5 @@
 repository=https://github.com/radkesvat/WaterWall.git
-tag=v1.5.42
-tag_object=ef4caa4bb8bcfbee232c89801023edd2d9b24739
-commit=c0c934ae70a80e81062c7dd2bdeb3fb5b27f4267
+tag=v1.6.0
+tag_object=371c6c51b1228815eac2e0da1dc9dd15abf8ba4f
+commit=f4a5b3b1a4949d520ad5cd0c60afff8bc921290d
 docs_repository=https://github.com/radkesvat/WaterWall-Docs.git

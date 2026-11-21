@@ -77,23 +77,34 @@ static tunnel_t *domainresolverCreateDnsHead(tunnel_t *owner)
     return head;
 }
 
-static bool domainresolverDnsEntrySupportsTransport(tunnel_t *entry)
+static bool domainresolverDnsEntrySupportsTransport(const tunnel_t *entry)
 {
-    const char *type = entry->node->type;
-    if ((entry->node->flags & kNodeFlagDnsTransportUnsupported) != 0)
+    const node_t  *node  = entry->node;
+    const unsigned kinds = nodeLayerDeclaredL4Kinds(node, kTunnelLayerSidePrev);
+    if (kinds == kNodeLayer4QualifierMask && (node->flags & kNodeFlagDnsTransportUnsupported) == 0)
+        return true;
+
+    const char *name = configPolicyDiagnostic(node->name != NULL ? node->name : "<unnamed>");
+    const char *type = configPolicyDiagnostic(node->type != NULL ? node->type : "<unnamed>");
+    if (kinds == kNodeLayer4QualifierMask)
     {
-        LOGF("DomainResolver: DNS entry %s has configured framing that cannot support both UDP and TCP fallback",
-             type != NULL ? type : "<unnamed>");
+        LOGF("DomainResolver: DNS entry %s (%s) declares both TCP streams and UDP datagrams, but its framing does "
+             "not support both sending UDP queries and retrying truncated replies over TCP",
+             name,
+             type);
         return false;
     }
-    if (type != NULL && (strcmp(type, "TcpConnector") == 0 || strcmp(type, "UdpConnector") == 0 ||
-                         strcmp(type, "HttpProxyClient") == 0 || strcmp(type, "HttpClient") == 0 ||
-                         strcmp(type, "TlsClient") == 0 || strcmp(type, "UdpStatelessSocket") == 0))
-    {
-        LOGF("DomainResolver: DNS entry %s must support both UDP queries and TCP fallback", type);
-        return false;
-    }
-    return true;
+    const char *limitation = "accepts neither UDP datagrams nor TCP streams; cannot send UDP queries or retry a "
+                             "truncated reply over TCP";
+    if ((kinds & kNodeLayer4Stream) != 0)
+        limitation = "accepts TCP streams only; cannot send UDP queries";
+    else if ((kinds & kNodeLayer4Datagram) != 0)
+        limitation = "accepts UDP datagrams only; cannot retry a truncated reply over TCP";
+    const char *hint = node->type != NULL && strcmp(node->type, "UserController") == 0
+                           ? "; set payload-mode to \"dest_context->protocol\" to accept both"
+                           : "";
+    LOGF("DomainResolver: DNS entry %s (%s) %s%s", name, type, limitation, hint);
+    return false;
 }
 
 static bool domainresolverAttachDnsEgress(tunnel_t *t, tunnel_chain_t *chain)
@@ -207,8 +218,8 @@ bool domainresolverTunnelAttachEmbedded(tunnel_t *resolver, tunnel_t *owner, tun
     if (! domainresolverAttachDnsEgress(resolver, tunnelGetChain(resolver)))
     {
         LOGF("%s: failed to attach settings.dns-behaviour DNS egress for node %s",
-             owner->node->type != NULL ? owner->node->type : "DNS policy owner",
-             owner->node->name != NULL ? owner->node->name : "<unnamed>");
+             configPolicyDiagnostic(owner->node->type != NULL ? owner->node->type : "DNS policy owner"),
+             configPolicyDiagnostic(owner->node->name != NULL ? owner->node->name : "<unnamed>"));
         return false;
     }
     return true;

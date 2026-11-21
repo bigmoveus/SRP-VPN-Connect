@@ -403,6 +403,13 @@ bool workerTryCreateCorePools(worker_t *worker)
 
 bool workerTryCreateBufferPool(worker_t *worker)
 {
+    static_assert(SMALL_BUFFER_SIZE > 0, "Worker small buffers need writable payload space");
+    static_assert(SMALL_BUFFER_SIZE <= MEDIUM_BUFFER_SIZE_RAM_LOW &&
+                      MEDIUM_BUFFER_SIZE_RAM_LOW <= LARGE_BUFFER_SIZE_RAM_LOW,
+                  "Low-memory worker buffers must satisfy small <= medium <= large");
+    static_assert(SMALL_BUFFER_SIZE <= MEDIUM_BUFFER_SIZE_RAM_HIGH &&
+                      MEDIUM_BUFFER_SIZE_RAM_HIGH <= LARGE_BUFFER_SIZE_RAM_HIGH,
+                  "High-memory worker buffers must satisfy small <= medium <= large");
     assert(worker != NULL);
     assert(worker->buffer_pool == NULL);
 
@@ -539,8 +546,8 @@ void workerRun(worker_t *worker)
     workerUnbindCurrentThread();
 }
 
-int workerResolveDomainServiceAsync(wid_t wid, const char *domain, const char *service, int socktype, dns_resolve_cb cb,
-                                    void *userdata)
+int workerResolveDomainServiceFamilyAsync(wid_t wid, const char *domain, const char *service, int socktype, int family,
+                                          dns_resolve_cb cb, void *userdata)
 {
     /*
      * The resolver channel is worker-local c-ares state with no internal
@@ -562,7 +569,13 @@ int workerResolveDomainServiceAsync(wid_t wid, const char *domain, const char *s
         return ARES_ECANCELLED;
     }
 
-    return asyncdnsResolve(&worker->dns_resolver, domain, service, socktype, cb, userdata);
+    return asyncdnsResolveFamily(&worker->dns_resolver, domain, service, socktype, family, cb, userdata);
+}
+
+int workerResolveDomainServiceAsync(wid_t wid, const char *domain, const char *service, int socktype, dns_resolve_cb cb,
+                                    void *userdata)
+{
+    return workerResolveDomainServiceFamilyAsync(wid, domain, service, socktype, AF_UNSPEC, cb, userdata);
 }
 
 int workerResolveDomainAsync(wid_t wid, const char *domain, dns_resolve_cb cb, void *userdata)

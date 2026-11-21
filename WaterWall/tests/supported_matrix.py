@@ -194,13 +194,10 @@ class SupportedMatrix(Matrix):
                     f"[Peer]\nPublicKey = {server_public}\nAllowedIPs = 0.0.0.0/0\n"
                     f"Endpoint = 127.0.0.1:{self.args.port}\nPersistentKeepalive = 0\n")
         nodes = [
-            {"name": "udp", "type": "UdpStatelessSocket", "settings": {
-                "listen-address": "127.0.0.1", "source-ip": "127.0.0.1",
-                "listen-port": self.args.port}, "next": "wg"},
-            {"name": "wg", "type": "WireGuardDevice", "settings": {
-                "privatekey": server_private,
-                "peers": [{"publickey": public, "allowedips": address + "/32",
-                           "endpoint": "127.0.0.1:9", "persistentkeepalive": 0}
+            {"name": "udp", "type": "UdpListener", "settings": {"address": "127.0.0.1", "port": self.args.port}, "next": "wg"},
+            {"name": "wg", "type": "WireGuardServer", "settings": {
+                "mode": "packet", "privatekey": server_private,
+                "peers": [{"publickey": public, "allowedips": address + "/32", "persistentkeepalive": 0}
                           for public, address in ((client_public, "10.99.0.2"),
                                                  (udp_public, "10.99.0.3"))]}, "next": "ptc"},
             {"name": "ptc", "type": "PacketsToConnection", "settings": {
@@ -221,7 +218,7 @@ class SupportedMatrix(Matrix):
         name, app, outer, mux, http, obfuscator, carrier, quic, input_mode, version, mode, options = item
         if mode == "wireguard":
             nodes = copy.deepcopy(self.wireguard_peer(name)["nodes"])
-            nodes[0]["settings"]["listen-port"] = self.args.port
+            nodes[0]["settings"]["port"] = self.args.port
             for path in {client_path, self.wireguard_udp_clients.get(name, client_path)}:
                 root = json.loads(path.read_text())
                 for peer in root["nodes"][1]["settings"]["peers"]:

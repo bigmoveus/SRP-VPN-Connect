@@ -4,6 +4,7 @@
 #include "devices/device_frag_affinity.h"
 #include "ipv4_packet_view.h"
 #include "loggers/internal_logger.h"
+#include "loggers/log_rate_limiter.h"
 #include "objects/node.h"
 #include "packet_batch.h"
 #include "packet_tunnel.h"
@@ -24,6 +25,7 @@ typedef struct packet_affinity_record_s
     struct packet_affinity_record_s *next;
     sbuf_t                          *buf;
     size_t                           charge;
+    uint64_t                         token;
 } packet_affinity_record_t;
 
 typedef struct packet_affinity_queue_s
@@ -37,10 +39,21 @@ typedef struct packet_affinity_queue_s
     bool                      closed;
 } packet_affinity_queue_t;
 
+typedef struct packet_affinity_drop_sample_s
+{
+    size_t   charge;
+    size_t   incoming_charge;
+    size_t   packet_bytes;
+    unsigned packets;
+    wid_t    target;
+    bool     packet_limit;
+} packet_affinity_drop_sample_t;
+
 struct packet_affinity_s
 {
     tunnel_t                     *tunnel;
     LineTaskFnWithBuf             continuation;
+    packet_affinity_tagged_fn     tagged_continuation;
     device_frag_affinity_table_t *fragments;
     /* Short admission/dequeue critical sections only; never call out or post
      * while locked. This also linearizes the aggregate allocation budget. */
@@ -48,10 +61,33 @@ struct packet_affinity_s
     size_t                  charge;
     unsigned                packets;
     unsigned                workers;
+    log_rate_limiter_t            capacity_drops;
+    packet_affinity_drop_sample_t last_capacity_drop;
     packet_affinity_queue_t queues[];
 };
 
 static void packetAffinityRun(void *worker, void *arg1, void *arg2, void *arg3);
+
+static void packetAffinityLogCapacityDrop(const packet_affinity_t *affinity, log_rate_limiter_report_t report,
+                                          packet_affinity_drop_sample_t sample)
+{
+    if (report.should_log)
+        LOGW("PacketAffinity: dropping packets: dispatcher capacity exceeded "
+             "(chain_index=%u, drops=%llu, total_drops=%llu, last_reason=%s, last_target_worker=%u, "
+             "last_packet_bytes=%zu, last_queued_packets=%u, packet_limit=%u, "
+             "last_allocation_bytes=%zu, last_incoming_allocation_bytes=%zu, allocation_limit_bytes=%u)",
+             (unsigned) affinity->tunnel->chain_index,
+             (unsigned long long) report.events,
+             (unsigned long long) report.total,
+             sample.packet_limit ? "packet-count limit" : "allocation-byte limit",
+             (unsigned) sample.target,
+             sample.packet_bytes,
+             sample.packets,
+             (unsigned) kPacketAffinityPacketLimit,
+             sample.charge,
+             sample.incoming_charge,
+             (unsigned) kPacketAffinityChargeLimit);
+}
 
 static void packetAffinityReleaseRecord(packet_affinity_t *affinity, packet_affinity_record_t *record)
 {
@@ -130,7 +166,10 @@ static void packetAffinityDrain(worker_t *worker, packet_affinity_queue_t *queue
         bytes += sbufGetLength(record->buf);
         if (lineIsAlive(line))
         {
-            affinity->continuation(affinity->tunnel, line, record->buf);
+            if (affinity->tagged_continuation != NULL)
+                affinity->tagged_continuation(affinity->tunnel, line, record->buf, record->token);
+            else
+                affinity->continuation(affinity->tunnel, line, record->buf);
             if (! lineIsAlive(line))
             {
                 LOGF("PacketAffinity: continuation destroyed its worker packet line");
@@ -212,12 +251,15 @@ void packetAffinityDestroy(packet_affinity_t *affinity)
         }
     }
     assert(affinity->packets == 0 && affinity->charge == 0);
+    packetAffinityLogCapacityDrop(
+        affinity, logRateLimiterFlush(&affinity->capacity_drops), affinity->last_capacity_drop);
     deviceFragAffinityDestroy(affinity->fragments);
     mutexDestroy(&affinity->lock);
     memoryFree(affinity);
 }
 
-static void packetAffinityPublish(packet_affinity_t *affinity, line_t *source_line, sbuf_t *buf, wid_t wid)
+static void packetAffinityPublish(packet_affinity_t *affinity, line_t *source_line, sbuf_t *buf, wid_t wid,
+                                  uint64_t token)
 {
     assert(wid < affinity->workers);
     packet_affinity_queue_t *queue  = &affinity->queues[wid];
@@ -226,12 +268,28 @@ static void packetAffinityPublish(packet_affinity_t *affinity, line_t *source_li
     if (queue->closed || affinity->packets == kPacketAffinityPacketLimit ||
         charge > kPacketAffinityChargeLimit - affinity->charge)
     {
+        log_rate_limiter_report_t     report = {0};
+        packet_affinity_drop_sample_t sample = {0};
+        if (! queue->closed)
+        {
+            sample                       = (packet_affinity_drop_sample_t) {.charge          = affinity->charge,
+                                                                            .incoming_charge = charge,
+                                                                            .packet_bytes    = sbufGetLength(buf),
+                                                                            .packets         = affinity->packets,
+                                                                            .target          = wid,
+                                                                            .packet_limit = affinity->packets == kPacketAffinityPacketLimit};
+            affinity->last_capacity_drop = sample;
+            /* A full dispatcher can reject every packet in a receive batch.
+             * Keep the first report and a final summary without logging under its lock. */
+            report = logRateLimiterRecordImmediate(&affinity->capacity_drops, 1000);
+        }
         mutexUnlock(&affinity->lock);
+        packetAffinityLogCapacityDrop(affinity, report, sample);
         lineReuseBuffer(source_line, buf);
         return;
     }
     packet_affinity_record_t *record = memoryAllocate(sizeof(*record));
-    *record                          = (packet_affinity_record_t) {.buf = buf, .charge = charge};
+    *record                          = (packet_affinity_record_t) {.buf = buf, .charge = charge, .token = token};
     if (queue->tail != NULL)
         queue->tail->next = record;
     else
@@ -257,15 +315,29 @@ static void packetAffinityPublish(packet_affinity_t *affinity, line_t *source_li
         packetAffinitySchedule(queue);
 }
 
-void packetAffinityForward(packet_affinity_t *affinity, line_t *source_line, sbuf_t *buf)
+void packetAffinitySetTaggedContinuation(packet_affinity_t *affinity, packet_affinity_tagged_fn continuation)
+{
+    assert(affinity != NULL && continuation != NULL && affinity->packets == 0);
+    affinity->tagged_continuation = continuation;
+}
+
+void packetAffinityForwardTagged(packet_affinity_t *affinity, line_t *source_line, sbuf_t *buf, uint64_t token)
 {
     assert(affinity != NULL && source_line != NULL && buf != NULL && lineIsOnCurrentWorker(source_line));
     ipv4_packet_view_t packet;
-    if (getWorkersCount() <= 1 || ! tunnelchainIsWorkerPacketLine(tunnelGetChain(affinity->tunnel), source_line) ||
-        ! ipv4packetviewParse(sbufGetRawPtr(buf), sbufGetLength(buf), &packet) ||
-        packet.ip_total_length != sbufGetLength(buf) || (packet.protocol != 6 && packet.protocol != 17))
+    const bool         parsed = ipv4packetviewParse(sbufGetRawPtr(buf), sbufGetLength(buf), &packet);
+    if (token != 0 && parsed && packet.fragmented)
     {
-        affinity->continuation(affinity->tunnel, source_line, buf);
+        lineReuseBuffer(source_line, buf);
+        return;
+    }
+    if (getWorkersCount() <= 1 || ! tunnelchainIsWorkerPacketLine(tunnelGetChain(affinity->tunnel), source_line) ||
+        ! parsed || packet.ip_total_length != sbufGetLength(buf) || (packet.protocol != 6 && packet.protocol != 17))
+    {
+        if (affinity->tagged_continuation != NULL)
+            affinity->tagged_continuation(affinity->tunnel, source_line, buf, token);
+        else
+            affinity->continuation(affinity->tunnel, source_line, buf);
         return;
     }
 
@@ -284,15 +356,20 @@ void packetAffinityForward(packet_affinity_t *affinity, line_t *source_line, sbu
             return;
         assert(action == kDeviceFragAffinityDispatch);
         for (unsigned i = 0; i < fragment.released_count; ++i)
-            packetAffinityPublish(affinity, source_line, fragment.released[i], fragment.wid);
-        packetAffinityPublish(affinity, source_line, buf, fragment.wid);
+            packetAffinityPublish(affinity, source_line, fragment.released[i], fragment.wid, 0);
+        packetAffinityPublish(affinity, source_line, buf, fragment.wid, 0);
         return;
     }
     wid_t      wid;
     const bool identified = deviceFlowAffineWID(sbufGetRawPtr(buf), sbufGetLength(buf), &wid);
     assert(identified);
     discard identified;
-    packetAffinityPublish(affinity, source_line, buf, wid);
+    packetAffinityPublish(affinity, source_line, buf, wid, token);
+}
+
+void packetAffinityForward(packet_affinity_t *affinity, line_t *source_line, sbuf_t *buf)
+{
+    packetAffinityForwardTagged(affinity, source_line, buf, 0);
 }
 
 /* A private chain helper owns only its dispatcher and metadata. It creates no

@@ -1615,7 +1615,18 @@ void widleDelete(widle_t *idle)
     EVENT_DEL(idle);
 }
 
-wtimer_t *wtimerAdd(wloop_t *loop, wtimer_cb cb, uint32_t timeout_ms, uint32_t repeat)
+static uint64_t wtimeoutNextDeadline(const wtimeout_t *timer, uint64_t now_us)
+{
+    uint64_t deadline = now_us + (uint64_t) timer->timeout * 1000;
+    if (! timer->exact_deadline && timer->timeout >= 1000 && timer->timeout % 100 == 0)
+    {
+        deadline = deadline / 100000 * 100000;
+    }
+    return deadline;
+}
+
+static wtimer_t *wtimerAddTimeout(wloop_t *loop, wtimer_cb cb, uint32_t timeout_ms, uint32_t repeat,
+                                  bool exact_deadline)
 {
     if (loop == NULL || timeout_ms == 0)
         return NULL;
@@ -1638,22 +1649,28 @@ wtimer_t *wtimerAdd(wloop_t *loop, wtimer_cb cb, uint32_t timeout_ms, uint32_t r
     {
         EVENTLOOP_ALLOC_SIZEOF(timer);
     }
-    timer->event_type = WEVENT_TYPE_TIMEOUT;
-    timer->priority   = WEVENT_HIGHEST_PRIORITY;
-    timer->repeat     = repeat;
-    timer->timeout    = timeout_ms;
+    timer->event_type     = WEVENT_TYPE_TIMEOUT;
+    timer->priority       = WEVENT_HIGHEST_PRIORITY;
+    timer->repeat         = repeat;
+    timer->timeout        = timeout_ms;
+    timer->exact_deadline = exact_deadline;
     wloopUpdateTime(loop);
-    timer->next_timeout = loop->cur_hrtime + (uint64_t) timeout_ms * 1000;
-    // NOTE: Limit granularity to 100ms
-    if (timeout_ms >= 1000 && timeout_ms % 100 == 0)
-    {
-        timer->next_timeout = timer->next_timeout / 100000 * 100000;
-    }
+    timer->next_timeout = wtimeoutNextDeadline(timer, loop->cur_hrtime);
     heap_insert(&loop->timers, &timer->node);
     EVENT_ADD(loop, timer, cb);
     loop->ntimers++;
     mutexUnlock(&loop->normal_admission_mutex);
     return (wtimer_t *) timer;
+}
+
+wtimer_t *wtimerAdd(wloop_t *loop, wtimer_cb cb, uint32_t timeout_ms, uint32_t repeat)
+{
+    return wtimerAddTimeout(loop, cb, timeout_ms, repeat, false);
+}
+
+wtimer_t *wtimerAddDeadline(wloop_t *loop, wtimer_cb cb, uint32_t delay_ms)
+{
+    return wtimerAddTimeout(loop, cb, delay_ms, 1, true);
 }
 
 #ifdef WW_EVENT_MEMORY_TEST_SEAM
@@ -1704,12 +1721,11 @@ bool wtimerReset(wtimer_t *timer, uint32_t timeout_ms)
     {
         timeout->timeout = timeout_ms;
     }
-    timer->next_timeout = loop->cur_hrtime + (uint64_t) timeout->timeout * 1000;
-    // NOTE: Limit granularity to 100ms
-    if (timeout->timeout >= 1000 && timeout->timeout % 100 == 0)
+    if (timeout->exact_deadline)
     {
-        timer->next_timeout = timer->next_timeout / 100000 * 100000;
+        wloopUpdateTime(loop);
     }
+    timer->next_timeout = wtimeoutNextDeadline(timeout, loop->cur_hrtime);
     heap_insert(&loop->timers, &timer->node);
     /* Dispatch may still hold its current or next pointer after this reset. */
     timer->pending_reset = timer->pending;
@@ -1914,32 +1930,45 @@ wio_t *wioGet(wloop_t *loop, int fd)
     return io;
 }
 
+static void wioRequireTransferable(const wio_t *io)
+{
+    if (UNLIKELY(io->closed || io->events != 0 || io->pending))
+    {
+        LOGF("Cannot transfer WIO fd=%d during close, with active I/O interest, or with pending dispatch", io->fd);
+        abortProgramNow(1);
+    }
+    if (UNLIKELY(io->connect_timer || io->close_timer || io->read_timer || io->write_timer || io->keepalive_timer ||
+                 io->heartbeat_timer))
+    {
+        LOGF("Cannot transfer WIO fd=%d while a socket timer belongs to its original loop", io->fd);
+        abortProgramNow(1);
+    }
+#ifdef EVENT_IOCP
+    // Stopping interest cannot move a socket's completion-port association to another loop.
+    if (UNLIKELY(io->iocp_associated || io->iocp_live_records != 0 || io->iocp_accept_retry_timer))
+    {
+        LOGF("Cannot transfer WIO fd=%d with a completion-port association or outstanding IOCP work", io->fd);
+        abortProgramNow(1);
+    }
+#endif
+}
+
 void wioDetach(wio_t *io)
 {
     assert(wioGetFD(io) >= 0);
-    assert((io->events & WW_READ) != WW_READ);
-    assert((io->events & WW_WRITE) != WW_WRITE);
-    if (UNLIKELY(io->pending))
-    {
-        LOGF("wioDetach: cannot transfer a WIO until its original loop has released pending dispatch");
-        abortProgramNow(1);
-    }
+    assert(currentThreadOwnsWorker((wid_t) io->loop->wid));
+    wioRequireTransferable(io);
 
     wloop_t *loop = io->loop;
     int      fd   = wioGetFD(io);
     assert(loop != NULL && fd < (int) loop->ios.maxsize);
+    assert(io->io_slot == fd && loop->ios.ptr[fd] == io);
     loop->ios.ptr[fd] = NULL;
+    io->io_slot       = -1;
 }
 
 void wioAttach(wloop_t *loop, wio_t *io)
 {
-    assert((io->events & WW_READ) != WW_READ);
-    assert((io->events & WW_WRITE) != WW_WRITE);
-    if (UNLIKELY(io->pending))
-    {
-        LOGF("wioAttach: cannot attach a WIO still owned by pending dispatch on its original loop");
-        abortProgramNow(1);
-    }
     if (! currentThreadOwnsWorker((wid_t) loop->wid))
     {
         printError("wioAttach: loop wid %ld is not owned by the current worker (wid %d)",
@@ -1959,6 +1988,8 @@ void wioAttach(wloop_t *loop, wio_t *io)
         return;
     }
 
+    wioRequireTransferable(io);
+    assert(io->io_slot == -1);
     // NOTE: wio was not freed for reused when closed, but attached wio can't be reused,
     // so we need to free it if fd exists to avoid memory leak.
     wio_t *preio = __wio_get(loop, fd);
@@ -2169,10 +2200,11 @@ static int wioAddWithNormalAuthority(wio_t *io, wio_cb cb, int events, bool alre
         wioReady(io);
     }
 
-    if (! (io->events & events))
+    const int new_events = events & ~io->events;
+    if (new_events != 0)
     {
         // printDebug("wioAdd: fd=%x on loop wid %d, real wid %d\n", wioGetFD(io), loop->wid, getWID());
-        int add_error = iowatcherAddEvent(loop, wioGetFD(io), events);
+        int add_error = iowatcherAddEvent(loop, wioGetFD(io), new_events);
         if (UNLIKELY(add_error != 0))
         {
             io->error = add_error < 0 ? -add_error : add_error;
@@ -2234,7 +2266,7 @@ int wioDel(wio_t *io, int events)
          */
         wioIocpCancel(io, events, WOVERLAPPED_CANCEL_STOP);
 #else
-        iowatcherDelEvent(io->loop, wioGetFD(io), events);
+        iowatcherDelEvent(io->loop, wioGetFD(io), events & io->events);
 #endif
         io->events &= ~events;
     }
@@ -2257,22 +2289,42 @@ int wioDel(wio_t *io, int events)
     return 0;
 }
 
+wevent_t wioMakeDeferredEvent(const wio_t *io, wevent_cb cb)
+{
+    return (wevent_t) {
+        .cb       = cb,
+        .userdata = (void *) (intptr_t) io->io_slot,
+        .privdata = (void *) (uintptr_t) io->id,
+    };
+}
+
+static wio_t *wioFindOpen(wloop_t *loop, int slot, uint32_t id)
+{
+    if (! wioExists(loop, slot))
+    {
+        return NULL;
+    }
+    wio_t *io = loop->ios.ptr[slot];
+    return wioIsOpened(io) && io->id == id ? io : NULL;
+}
+
+wio_t *wioResolveDeferredEvent(const wevent_t *ev)
+{
+    return wioFindOpen(ev->loop, (int) (intptr_t) ev->userdata, (uint32_t) (uintptr_t) ev->privdata);
+}
+
 static void wio_close_event_cb(wevent_t *ev)
 {
-    wio_t   *io = (wio_t *) ev->userdata;
-    uint32_t id = (uint32_t) (uintptr_t) ev->privdata;
-    if (io->id != id)
-        return;
-    wioClose(io);
+    wio_t *io = wioResolveDeferredEvent(ev);
+    if (io != NULL)
+    {
+        wioClose(io);
+    }
 }
 
 int wioCloseAsync(wio_t *io)
 {
-    wevent_t ev;
-    memoryZero(&ev, sizeof(ev));
-    ev.cb       = wio_close_event_cb;
-    ev.userdata = io;
-    ev.privdata = (void *) (uintptr_t) io->id;
+    wevent_t ev = wioMakeDeferredEvent(io, wio_close_event_cb);
     return wloopPostControlEvent(io->loop, &ev) ? 0 : -1;
 }
 
@@ -2300,8 +2352,9 @@ wio_t *wWrite(wloop_t *loop, int fd, sbuf_t *buf, wwrite_cb write_cb)
     {
         io->write_cb = write_cb;
     }
+    const uint32_t id = io->id;
     wioWrite(io, buf);
-    return io;
+    return wioFindOpen(loop, fd, id);
 }
 
 wio_t *waccept(wloop_t *loop, int listenfd, waccept_cb accept_cb)
@@ -2393,13 +2446,15 @@ static bool wioApplySocketOptions(int sockfd, const char *interface_name, int fw
 {
     if (socketOptionBindToDevice(sockfd, interface_name) != 0)
     {
-        printError("set socket interface failed, call: setsockopt(SO_BINDTODEVICE)");
+        const int error = socketERRNO();
+        printError("socket setup rejected: interface binding failed (fd=%d, error=%d)", sockfd, error);
         return false;
     }
 
     if (fwmark >= 0 && socketOptionSetFwMark(sockfd, fwmark) != 0)
     {
-        printError("set socket fwmark failed, call: setsockopt(SO_MARK)");
+        const int error = socketERRNO();
+        printError("socket setup rejected: SO_MARK failed (fd=%d, fwmark=%d, error=%d)", sockfd, fwmark, error);
         return false;
     }
 
@@ -2421,14 +2476,15 @@ wio_t *wioCreateSocketWithOptions(wloop_t *loop, const char *host, int port, wio
 
     if (ret != 0)
     {
-        // printError("unknown host: %s\n", host);
+        printError("socket setup rejected: address resolution failed (port=%d, resolver_error=%d)", port, ret);
         return NULL;
     }
     int sockfd = socketToFd(socket(addr.sa.sa_family, sock_type, 0));
 
     if (sockfd < 0)
     {
-        printError("syscall return error, call: socket , value: %d\n", sockfd);
+        const int error = socketERRNO();
+        printError("socket creation failed (family=%d, type=%d, error=%d)", addr.sa.sa_family, sock_type, error);
         return NULL;
     }
 
@@ -2449,7 +2505,8 @@ wio_t *wioCreateSocketWithOptions(wloop_t *loop, const char *host, int port, wio
         }
         if (bind(sockfd, &addr.sa, sockaddrLen(&addr)) < 0)
         {
-            printError("syscall return error , call: bind , value: %d\n", -1);
+            const int error = socketERRNO();
+            printError("socket setup rejected: bind failed (fd=%d, port=%d, error=%d)", sockfd, port, error);
             closesocket(sockfd);
             return NULL;
         }
@@ -2457,7 +2514,9 @@ wio_t *wioCreateSocketWithOptions(wloop_t *loop, const char *host, int port, wio
         {
             if (listen(sockfd, SOMAXCONN) < 0)
             {
-                printError("listen");
+                const int error = socketERRNO();
+                printError(
+                    "socket setup rejected: listen failed (fd=%d, backlog=%d, error=%d)", sockfd, SOMAXCONN, error);
                 closesocket(sockfd);
                 return NULL;
             }
@@ -2544,14 +2603,22 @@ wio_t *wloopCreateUdpServerWithBufferOptions(wloop_t *loop, const char *host, in
 
     if (! socketOptionApplySendBuffer(wioGetFD(io), send_buffer_size))
     {
-        printError("set socket send buffer failed, call: setsockopt , value: %d\n", send_buffer_size);
+        const int error = socketERRNO();
+        printError("closing UDP socket: SO_SNDBUF failed (fd=%d, requested_bytes=%d, error=%d)",
+                   wioGetFD(io),
+                   send_buffer_size,
+                   error);
         wioClose(io);
         return NULL;
     }
 
     if (! socketOptionApplyRecvBuffer(wioGetFD(io), recv_buffer_size))
     {
-        printError("set socket recv buffer failed, call: setsockopt , value: %d\n", recv_buffer_size);
+        const int error = socketERRNO();
+        printError("closing UDP socket: SO_RCVBUF failed (fd=%d, requested_bytes=%d, error=%d)",
+                   wioGetFD(io),
+                   recv_buffer_size,
+                   error);
         wioClose(io);
         return NULL;
     }
@@ -2569,14 +2636,22 @@ wio_t *wloopCreateUdpClient(wloop_t *loop, const char *host, int port)
 
     if (! socketOptionApplySendBuffer(wioGetFD(io), kDefaultLargeSocketBufferSize))
     {
-        printError("set socket send buffer failed, call: setsockopt , value: %d\n", kDefaultLargeSocketBufferSize);
+        const int error = socketERRNO();
+        printError("closing UDP socket: SO_SNDBUF failed (fd=%d, requested_bytes=%d, error=%d)",
+                   wioGetFD(io),
+                   kDefaultLargeSocketBufferSize,
+                   error);
         wioClose(io);
         return NULL;
     }
 
     if (! socketOptionApplyRecvBuffer(wioGetFD(io), kDefaultLargeSocketBufferSize))
     {
-        printError("set socket recv buffer failed, call: setsockopt , value: %d\n", kDefaultLargeSocketBufferSize);
+        const int error = socketERRNO();
+        printError("closing UDP socket: SO_RCVBUF failed (fd=%d, requested_bytes=%d, error=%d)",
+                   wioGetFD(io),
+                   kDefaultLargeSocketBufferSize,
+                   error);
         wioClose(io);
         return NULL;
     }

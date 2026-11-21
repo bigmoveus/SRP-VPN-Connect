@@ -12,6 +12,15 @@ static void closeOrDestroyLine(tunnel_t *t, line_t *l, httpclient_lstate_t *ls)
 
 void httpclientTunnelUpStreamInit(tunnel_t *t, line_t *l)
 {
+    address_context_t *destination = lineGetDestinationAddressContext(l);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportTcp);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+    addresscontextSetOnlyProtocol(destination, IP_PROTO_TCP);
+
     if (httpclientSplitIsEnabled(t))
     {
         httpclientSplitUpStreamInit(t, l);
@@ -35,12 +44,12 @@ void httpclientStartTransport(tunnel_t *t, line_t *l)
 
     if (ts->verbose)
     {
-        LOGD("HttpClient: line init version-mode=%d websocket=%s upgrade=%s host=%s path=%s",
+        LOGD("HttpClient: line init version-mode=%d websocket=%s upgrade=%s host_bytes=%zu path_bytes=%zu",
              ts->version_mode,
              boolToTrueFalse(ts->websocket_enabled),
              boolToTrueFalse(ts->enable_upgrade),
-             ts->host,
-             ts->path);
+             httpclientLogTextBytes(ts->host),
+             httpclientLogTextBytes(ts->path));
     }
 
     lineRef(l);

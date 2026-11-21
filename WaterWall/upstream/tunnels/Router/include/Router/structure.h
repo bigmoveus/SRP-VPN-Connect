@@ -23,7 +23,7 @@
  * Rule targets are folded into the same chain during onChain so they get per-line
  * state slots and so their downstream traffic returns through us. Without root
  * domain sniffing, Init evaluates the ordered metadata-only rule prefix and can
- * commit before later payload-dependent rules. An earlier protocol/attribute
+ * commit before later payload-dependent rules. An eligible protocol/attribute
  * rule or configured domain sniffing defers classification to payload, whose
  * buffered bytes are replayed to the chosen branch with no loss.
  *
@@ -71,13 +71,14 @@ typedef struct router_tstate_s
 
 typedef struct router_lstate_s
 {
-    buffer_queue_t datagrams; // original UDP deliveries, separate from the sniffing view
-    sbuf_t        *pending;   // stream bytes, or a copy used only to sniff queued datagrams
+    buffer_queue_t datagrams; // original deliveries when UDP is possible
+    sbuf_t        *pending;   // stream bytes, or a copy used only to sniff queued deliveries
     tunnel_t      *target;    // selected rule tunnel; NULL means the default next branch
     uint8_t        route;     // enum router_route_e
+    uint8_t        network_offer;
     uint32_t       sniffed_attributes;
-    bool           replaying;      // selected Init and its initial FIFO are still running
-    bool           datagram_input; // exact incoming transport, retained across branch context rewrites
+    bool           replaying;           // selected Init and its initial FIFO are still running
+    bool           preserve_deliveries; // selects the replay storage, even after a branch rewrites the destination
     bool           pending_pause;  // receiver Pause waiting for the selected branch's Init
     bool           return_name;    // SRP client: the internal resolver looked the name up only for the rules
 } router_lstate_t;
@@ -93,6 +94,7 @@ typedef struct router_match_ctx_s
     const uint8_t              *payload;
     uint32_t                    payload_len;
     router_geosite_host_cache_t geosite_host;
+    uint8_t                     eligible_networks; // temporary intersection for the current rule
     // set by a matcher when evaluating a condition failed at runtime. This is not "the rule did not match":
     // classification stops immediately and the line is closed instead of falling through to another route.
     bool evaluation_failed;
@@ -102,6 +104,7 @@ typedef struct router_match_s
 {
     enum router_classify_result_e result;
     tunnel_t                     *target;
+    uint8_t                       eligible_networks;
 } router_match_t;
 
 WW_EXPORT void         routerTunnelDestroy(tunnel_t *t, const ww_lifecycle_context_t *context);
@@ -138,9 +141,9 @@ void routerRuleDestroyConditions(router_rule_t *rule);
 bool routerIsKnownConditionKey(const char *key);
 
 // --- line state ---
-void routerLinestateInitialize(router_lstate_t *ls);
+void routerLinestateInitialize(router_lstate_t *ls, const address_context_t *dest);
 void routerLinestateDestroy(line_t *l, router_lstate_t *ls);
-void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, tunnel_t *target, sbuf_t *first);
+void routerCommitRoute(tunnel_t *t, line_t *l, router_lstate_t *ls, router_match_t match, sbuf_t *first);
 
 // --- instance lifecycle ---
 void routerTunnelOnChain(tunnel_t *t, tunnel_chain_t *chain);

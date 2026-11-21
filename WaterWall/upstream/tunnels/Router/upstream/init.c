@@ -9,12 +9,18 @@ void routerTunnelUpStreamInit(tunnel_t *t, line_t *l)
     router_tstate_t *ts = tunnelGetState(t);
     router_lstate_t *ls = lineGetState(l, t);
 
-    routerLinestateInitialize(ls);
+    address_context_t *dest = lineGetDestinationAddressContext(l);
+    routerLinestateInitialize(ls, dest);
+    if (ls->network_offer == 0)
+    {
+        tunnelLogTransportRequirement(t, dest, "a valid network for routing");
+        routerLinestateDestroy(l, ls);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
     // SRP client: remembered now, because the resolver's line state lasts only through this Init
     ls->return_name = ts->domain_resolver_tunnel != NULL && domainresolverLineResolvedHere(ts->domain_resolver_tunnel, l);
-    const address_context_t *dest = lineGetDestinationAddressContext(l);
-    ls->datagram_input            = dest->proto_udp && ! dest->proto_tcp && ! dest->proto_icmp && ! dest->proto_packet;
-    addresscontextClearDetectedProtocols(lineGetDestinationAddressContext(l));
+    addresscontextClearDetectedProtocols(dest);
 
     router_match_ctx_t mctx = {
         .router_state = ts,
@@ -36,5 +42,5 @@ void routerTunnelUpStreamInit(tunnel_t *t, line_t *l)
         return;
     }
 
-    routerCommitRoute(t, l, ls, match.result == kRouterClassifyTarget ? match.target : NULL, NULL);
+    routerCommitRoute(t, l, ls, match, NULL);
 }

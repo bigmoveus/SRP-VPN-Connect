@@ -12,6 +12,8 @@ typedef struct udpstatelesssocket_dns_request_s
     char     *domain;
     uint16_t  port;
     int       strategy;
+    udpstatelesssocket_dns_pending_t *pending;
+    buffer_budget_cost_t              retained;
 } udpstatelesssocket_dns_request_t;
 
 static void udpstatelesssocketCleanupSendRequest(void *arg1, void *arg2, void *arg3,
@@ -201,8 +203,7 @@ static void udpstatelesssocketWriteOwnerPeer(tunnel_t *t, sbuf_t *buf, const soc
     if (result.retire)
     {
         udpstatelesssocketReleaseWrittenBuffer(buf, detached_from_origin_worker);
-        io->error = result.error;
-        wioClose(io);
+        wioCloseWithError(io, result.error);
         return;
     }
 
@@ -215,17 +216,22 @@ static void udpstatelesssocketWriteOwnerPeer(tunnel_t *t, sbuf_t *buf, const soc
             if (loggerCheckWriteLevel(getNetworkLogger(), LOG_LEVEL_DEBUG))
             {
                 char peeraddrstr[SOCKADDR_STRLEN] = {0};
-                LOGD("UdpStatelessSocket: dropped datagram to [%s]: %s",
+                LOGD("UdpStatelessSocket: dropped datagram to [%s]: %s (packet_bytes=%u, socket_error=%d)",
                      SOCKADDR_STR(peer_addr, peeraddrstr),
-                     socketStrError(err));
+                     socketStrError(err),
+                     length,
+                     err);
             }
         }
         else if (loggerCheckWriteLevel(getNetworkLogger(), LOG_LEVEL_ERROR))
         {
             char peeraddrstr[SOCKADDR_STRLEN] = {0};
-            LOGE("UdpStatelessSocket: sendto failed for [%s]: %s",
+            LOGE("UdpStatelessSocket: dropping datagram: sendto failed for [%s]: %s "
+                 "(packet_bytes=%u, socket_error=%d)",
                  SOCKADDR_STR(peer_addr, peeraddrstr),
-                 socketStrError(err));
+                 socketStrError(err),
+                 length,
+                 err);
         }
     }
     else if (UNLIKELY((uint32_t) nwrite != length))
@@ -319,6 +325,10 @@ static void udpstatelesssocketHandleRecvFrom(tunnel_t *t, wio_t *io, sbuf_t *buf
         udpstatelesssocket_lstate_t *existing = idle->userdata;
         if (! udpstatelesssocketIdleLineMatchesPacket(existing, t, &peer_addr, &local_addr))
         {
+            LOGW("UdpStatelessSocket: dropping datagram: peer idle-key collision "
+                 "(worker=%u, packet_bytes=%zu)",
+                 (unsigned) wid,
+                 sbufGetLength(buf));
             bufferpoolReuseBuffer(getWorkerBufferPool(wid), buf);
             return;
         }
@@ -330,6 +340,10 @@ static void udpstatelesssocketHandleRecvFrom(tunnel_t *t, wio_t *io, sbuf_t *buf
             table, idle_key, NULL, udpstatelesssocketOnIdleConnectionExpire, kUdpStatelessSocketInitExpireTime);
         if (idle == NULL)
         {
+            LOGW("UdpStatelessSocket: dropping datagram: peer idle registration refused "
+                 "(worker=%u, packet_bytes=%zu)",
+                 (unsigned) wid,
+                 sbufGetLength(buf));
             bufferpoolReuseBuffer(getWorkerBufferPool(wid), buf);
             return;
         }
@@ -428,6 +442,9 @@ static void udpstatelesssocketDnsRequestDestroy(udpstatelesssocket_dns_request_t
 {
     assert(request != NULL);
 
+    assert(request->pending->requests != 0);
+    --request->pending->requests;
+    bufferbudgetRelease(&request->pending->budget, request->retained);
     memoryFree(request->domain);
     memoryFree(request);
 }
@@ -629,15 +646,40 @@ static void udpstatelesssocketOnDnsResolved(void *userdata, int status, const ch
     }
 
     udpstatelesssocketDnsCacheStore(tunnelGetState(t), request->domain, request->port, request->strategy, &peer_addr);
+    // Retention ends before the send can reenter and admit another datagram.
+    udpstatelesssocketDnsRequestDestroy(request);
     udpstatelesssocketDispatchToPeer(t, buf, &peer_addr);
     lineUnref(line);
-    udpstatelesssocketDnsRequestDestroy(request);
 }
 
 static int udpstatelesssocketEffectiveDnsStrategy(const udpstatelesssocket_tstate_t *state,
                                                   const address_context_t           *dest_ctx)
 {
     return state->dns_strategy_override ? state->dns_policy.strategy : dest_ctx->domain_strategy;
+}
+
+static void udpstatelesssocketLogDnsLimit(tunnel_t *t, line_t *line, const address_context_t *destination,
+                                          log_rate_limiter_t *limiter, const char *reason, size_t used, size_t incoming,
+                                          size_t limit)
+{
+    const log_rate_limiter_report_t report = logRateLimiterRecordImmediate(limiter, 5000);
+    if (! report.should_log)
+        return;
+
+    const node_t *node = tunnelGetNode(t);
+    loggerPrint(getDnsLogger(),
+                LOG_LEVEL_WARN,
+                "UdpStatelessSocket: DNS pending limit exceeded node=%s worker=%u destination=%s:%u "
+                "reason=%s used=%zu incoming=%zu limit=%zu action=dropping-datagram suppressed=%llu",
+                node != NULL && node->name != NULL ? node->name : "<unnamed>",
+                (unsigned) lineGetWID(line),
+                destination->domain,
+                (unsigned) destination->port,
+                reason,
+                used,
+                incoming,
+                limit,
+                (unsigned long long) (report.events - 1));
 }
 
 static void udpstatelesssocketStartDnsResolve(tunnel_t *t, line_t *l, sbuf_t *buf, const address_context_t *dest_ctx)
@@ -650,7 +692,52 @@ static void udpstatelesssocketStartDnsResolve(tunnel_t *t, line_t *l, sbuf_t *bu
         return;
     }
 
-    udpstatelesssocket_tstate_t      *state       = tunnelGetState(t);
+    udpstatelesssocket_tstate_t *state = tunnelGetState(t);
+    assert(lineIsOnCurrentWorker(l));
+    assert(state->dns_pending != NULL);
+    udpstatelesssocket_dns_pending_t *pending  = &state->dns_pending[lineGetWID(l)];
+    const buffer_budget_cost_t        retained = {sbufGetLength(buf), sbufGetAllocationCharge(buf)};
+    if (pending->requests >= kUdpStatelessSocketDnsPendingRequests)
+    {
+        udpstatelesssocketLogDnsLimit(t,
+                                      l,
+                                      dest_ctx,
+                                      &pending->request_limit_log,
+                                      "pending-requests",
+                                      pending->requests,
+                                      1,
+                                      kUdpStatelessSocketDnsPendingRequests);
+        // These are independent datagrams on a borrowed line: drop only the
+        // refused input, preserving other pending sends and the line itself.
+        lineReuseBuffer(l, buf);
+        return;
+    }
+    if (! bufferbudgetTryAcquire(&pending->budget, retained))
+    {
+        const buffer_budget_cost_t used   = bufferbudgetGetUsage(&pending->budget);
+        const buffer_budget_cost_t limits = bufferbudgetGetLimits(&pending->budget);
+        if (retained.bytes > limits.bytes - used.bytes)
+            udpstatelesssocketLogDnsLimit(t,
+                                          l,
+                                          dest_ctx,
+                                          &pending->byte_limit_log,
+                                          "pending-payload-bytes",
+                                          used.bytes,
+                                          retained.bytes,
+                                          limits.bytes);
+        else
+            udpstatelesssocketLogDnsLimit(t,
+                                          l,
+                                          dest_ctx,
+                                          &pending->charge_limit_log,
+                                          "pending-buffer-charge",
+                                          used.charge,
+                                          retained.charge,
+                                          limits.charge);
+        lineReuseBuffer(l, buf);
+        return;
+    }
+    ++pending->requests;
     udpstatelesssocket_dns_request_t *request     = memoryAllocate(sizeof(*request));
     char                             *domain_copy = stringDuplicate(dest_ctx->domain);
     *request                                      = (udpstatelesssocket_dns_request_t) {
@@ -660,13 +747,21 @@ static void udpstatelesssocketStartDnsResolve(tunnel_t *t, line_t *l, sbuf_t *bu
                                              .domain   = domain_copy,
                                              .port     = dest_ctx->port,
                                              .strategy = udpstatelesssocketEffectiveDnsStrategy(state, dest_ctx),
+                                             .pending  = pending,
+                                             .retained = retained,
     };
 
     lineRef(l);
     char service[6];
     snprintf(service, sizeof(service), "%u", (unsigned) request->port);
-    int rc = domainresolverTunnelResolveRaw(
-        state->dns_provider, l, request->domain, service, SOCK_DGRAM, udpstatelesssocketOnDnsResolved, request);
+    int rc = domainresolverTunnelResolveRawWithStrategy(state->dns_provider,
+                                                        l,
+                                                        request->domain,
+                                                        service,
+                                                        SOCK_DGRAM,
+                                                        (enum domain_strategy) request->strategy,
+                                                        udpstatelesssocketOnDnsResolved,
+                                                        request);
     if (rc != ARES_SUCCESS)
     {
         lineUnref(l);

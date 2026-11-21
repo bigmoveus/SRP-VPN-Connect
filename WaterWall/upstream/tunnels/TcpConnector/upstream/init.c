@@ -148,7 +148,8 @@ static bool bindSourceIpIfNeeded(int sockfd, int addr_type, const tcpconnector_s
 
     if (bind(sockfd, &local_addr.sa, sockaddrLen(&local_addr)) < 0)
     {
-        LOGE("TcpConnector: bind source-ip failed");
+        const int error = socketERRNO();
+        LOGE("TcpConnector: refusing connection: source address bind failed (fd=%d, socket_error=%d)", sockfd, error);
         return false;
     }
 
@@ -181,7 +182,9 @@ static void tcpconnectorBeginConnect(tunnel_t *t, line_t *l, tcpconnector_lstate
 
     if (sockfd < 0)
     {
-        LOGE("TcpConnector: could not create socket");
+        const int error = socketERRNO();
+        LOGE(
+            "TcpConnector: refusing connection: socket creation failed (family=%d, socket_error=%d)", addr_type, error);
         goto fail;
     }
 
@@ -192,25 +195,37 @@ static void tcpconnectorBeginConnect(tunnel_t *t, line_t *l, tcpconnector_lstate
 
     if (! socketOptionApplySendBuffer(sockfd, socket_options->send_buffer_size))
     {
-        LOGE("TcpConnector: set socket send buffer failed");
+        const int error = socketERRNO();
+        LOGE("TcpConnector: refusing connection: SO_SNDBUF failed "
+             "(fd=%d, requested_bytes=%d, socket_error=%d)",
+             sockfd,
+             socket_options->send_buffer_size,
+             error);
         goto fail;
     }
 
     if (! socketOptionApplyRecvBuffer(sockfd, socket_options->recv_buffer_size))
     {
-        LOGE("TcpConnector: set socket recv buffer failed");
+        const int error = socketERRNO();
+        LOGE("TcpConnector: refusing connection: SO_RCVBUF failed "
+             "(fd=%d, requested_bytes=%d, socket_error=%d)",
+             sockfd,
+             socket_options->recv_buffer_size,
+             error);
         goto fail;
     }
 
     if (socketOptionBindToDevice(sockfd, socket_options->interface_name) != 0)
     {
-        LOGE("TcpConnector: setsockopt SO_BINDTODEVICE error");
+        const int error = socketERRNO();
+        LOGE("TcpConnector: refusing connection: interface bind failed (fd=%d, socket_error=%d)", sockfd, error);
         goto fail;
     }
 
     if (egressPinApply(sockfd, addr_type, socket_options->interface_name) != 0)
     {
-        LOGE("TcpConnector: egress pin failed");
+        const int error = socketERRNO();
+        LOGE("TcpConnector: refusing connection: egress pin failed (fd=%d, socket_error=%d)", sockfd, error);
         goto fail;
     }
 
@@ -226,7 +241,11 @@ static void tcpconnectorBeginConnect(tunnel_t *t, line_t *l, tcpconnector_lstate
     {
         if (socketOptionSetFwMark(sockfd, socket_options->fwmark) < 0)
         {
-            LOGE("TcpConnector: setsockopt SO_MARK error");
+            const int error = socketERRNO();
+            LOGE("TcpConnector: refusing connection: SO_MARK failed (fd=%d, mark=%d, socket_error=%d)",
+                 sockfd,
+                 socket_options->fwmark,
+                 error);
             goto fail;
         }
     }
@@ -326,14 +345,20 @@ bool tcpconnectorDomainResolverPrepare(tunnel_t *resolver, tunnel_t *connector, 
         socket_options     = getDestinationSocketOptions(selected_destination);
     }
 
-    if (addresscontextDestinationIsPinned(dest_ctx))
+    const bool pinned = addresscontextDestinationIsPinned(dest_ctx);
+    if (pinned && (! addresscontextIsValid(dest_ctx) || ! addresscontextHasPort(dest_ctx)))
     {
-        if (! addresscontextIsValid(dest_ctx) || ! addresscontextHasPort(dest_ctx) ||
-            addresscontextClassifyTransport(dest_ctx) != kAddressContextTransportTcp)
-        {
-            LOGE("TcpConnector: pinned destination requires an address, port and exact TCP transport");
-            return false;
-        }
+        LOGE("TcpConnector: pinned destination requires a valid address and port");
+        return false;
+    }
+    if (addresscontextSelectTransport(dest_ctx, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(connector, dest_ctx, kAddressContextTransportTcp);
+        return false;
+    }
+
+    if (pinned)
+    {
         addresscontextSetDestinationPinned(dest_ctx, false);
         // Socket/interface options remain selected, but neither a configured
         // endpoint nor CIDR host randomization may rewrite this logical peer.
@@ -341,6 +366,7 @@ bool tcpconnectorDomainResolverPrepare(tunnel_t *resolver, tunnel_t *connector, 
         prepared->socket_options    = socket_options;
         return true;
     }
+
 
     address_context_t original_dest_ctx = {0};
     addresscontextCopy(&original_dest_ctx, dest_ctx);

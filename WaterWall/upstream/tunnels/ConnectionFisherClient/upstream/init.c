@@ -15,6 +15,15 @@ static bool connectionfisherclientMainLineStillOpen(tunnel_t *t, line_t *main_l)
 
 void connectionfisherclientTunnelUpStreamInit(tunnel_t *t, line_t *main_l)
 {
+    address_context_t *destination = lineGetDestinationAddressContext(main_l);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportTcp);
+        tunnelPrevDownStreamFinish(t, main_l);
+        return;
+    }
+    addresscontextSetOnlyProtocol(destination, IP_PROTO_TCP);
+
     connectionfisherclient_tstate_t *ts      = tunnelGetState(t);
     connectionfisherclient_lstate_t *main_ls = lineGetState(main_l, t);
 
@@ -29,6 +38,7 @@ void connectionfisherclientTunnelUpStreamInit(tunnel_t *t, line_t *main_l)
     for (uint32_t i = 0; i < ts->simultaneous_tries_perline; ++i)
     {
         line_t *child_l = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(main_l));
+        addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(child_l), IP_PROTO_TCP);
         connectionfisherclient_lstate_t *child_ls = lineGetState(child_l, t);
 
         connectionfisherclientLinestateInitializeChild(child_ls, child_l, main_l, i);

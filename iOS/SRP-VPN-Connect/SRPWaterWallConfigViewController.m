@@ -449,7 +449,7 @@ static void SRPWWHighlight(UITextView *textView) {
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == 1 ? 3 : 1;
+    return section == 1 ? 4 : 1;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -494,9 +494,10 @@ static void SRPWWHighlight(UITextView *textView) {
         return cell;
     }
     NSArray<NSArray<NSString *> *> *rules = @[
-        @[@"Input hint", @"Start with HintConnectionIN or HintPacketIN."],
+        @[@"Input hint", @"Start with HintConnectionIN or HintPacketIN. A file that starts with its own local SOCKS5 or HTTP proxy gets the hint in its place."],
         @[@"App-managed input", @"Leave TunDevice and PacketsToConnection out of the file."],
         @[@"Raw sockets", @"Raw socket nodes cannot be imported."],
+        @[@"WaterWall syntax", @"// comments are skipped, and each $name$ takes its value from the file's variables."],
     ];
     cell.textLabel.text = rules[indexPath.row][0];
     cell.textLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
@@ -580,13 +581,18 @@ static void SRPWWHighlight(UITextView *textView) {
     [self.navigationController pushViewController:[[SRPWaterWallImportViewController alloc] initWithModel:_model] animated:YES];
 }
 
-// One row per node from the hint along next; the expanded node adds its next and its actions
-- (NSArray<NSDictionary *> *)rows {
-    NSDictionary *document = SRPWWDocument(_model);
-    NSArray<NSDictionary *> *chain = [SRPWaterWallNodeChain chainOfDocument:document];
+// One row per node, and the expanded node adds its next and its actions. Section 0 follows next from the hint; a profile
+// with nodes off that chain shows them in section 1, each branch along its own next.
+- (NSArray<NSDictionary *> *)branches {
+    return [SRPWaterWallNodeChain branchNodesOfDocument:SRPWWDocument(_model)];
+}
+
+- (NSArray<NSDictionary *> *)rowsInSection:(NSInteger)section {
+    NSArray<NSDictionary *> *nodes = section == 0 ? [SRPWaterWallNodeChain chainOfDocument:SRPWWDocument(_model)] : [self branches];
     NSMutableArray *rows = [NSMutableArray new];
-    [chain enumerateObjectsUsingBlock:^(NSDictionary *node, NSUInteger index, BOOL *stop) {
-        [rows addObject:@{@"kind": @"node", @"node": node, @"number": @(index + 1), @"end": @(index + 1 == chain.count)}];
+    [nodes enumerateObjectsUsingBlock:^(NSDictionary *node, NSUInteger index, BOOL *stop) {
+        BOOL end = section == 0 ? index + 1 == nodes.count : ![node[@"next"] isKindOfClass:NSString.class];
+        [rows addObject:@{@"kind": @"node", @"node": node, @"number": @(section == 0 ? index + 1 : 0), @"end": @(end)}];
         if (![node[@"name"] isEqual:self->_expanded]) return;
         if ([node[@"next"] isKindOfClass:NSString.class]) [rows addObject:@{@"kind": @"next", @"node": node}];
         [rows addObject:@{@"kind": @"edit", @"node": node}];
@@ -596,31 +602,30 @@ static void SRPWWHighlight(UITextView *textView) {
     return rows;
 }
 
+- (NSInteger)importSection {
+    return [self branches].count > 0 ? 2 : 1;
+}
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return [self importSection] + 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == 0 ? [self rows].count : 1;
+    return section == [self importSection] ? 1 : [self rowsInSection:section].count;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return section == 0 ? @"NODE CHAIN" : nil;
+    return section == [self importSection] ? nil : section == 0 ? @"NODE CHAIN" : @"OTHER NODES";
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
-    if (section != 0) return nil;
-    NSDictionary *document = SRPWWDocument(_model);
-    NSUInteger all = [document[@"nodes"] isKindOfClass:NSArray.class] ? [document[@"nodes"] count] : 0;
-    NSUInteger chain = [SRPWaterWallNodeChain chainOfDocument:document].count;
-    if (all <= chain) return @"Order follows each node's next field.";
-    NSUInteger others = all - chain;
-    return [NSString stringWithFormat:@"Order follows each node's next field. The profile has %lu more %@ off the chain, such as a Router's targets, which %@ kept as %@.",
-            (unsigned long)others, others == 1 ? @"node" : @"nodes", others == 1 ? @"is" : @"are", others == 1 ? @"it is" : @"they are"];
+    if (section == [self importSection]) return nil;
+    return section == 0 ? @"Order follows each node's next field." :
+        @"Nodes off the chain above, such as a Router's targets or a HalfDuplexClient's upload and download paths.";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 1) {
+    if (indexPath.section == [self importSection]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.imageView.image = [UIImage systemImageNamed:@"doc"];
         cell.textLabel.text = @"Import JSON…";
@@ -628,15 +633,15 @@ static void SRPWWHighlight(UITextView *textView) {
         cell.accessibilityTraits |= UIAccessibilityTraitButton;
         return cell;
     }
-    NSDictionary *row = [self rows][indexPath.row];
+    NSDictionary *row = [self rowsInSection:indexPath.section][indexPath.row];
     NSDictionary *node = row[@"node"];
     NSString *kind = row[@"kind"];
     if ([kind isEqualToString:@"node"]) {
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:nil];
-        NSInteger number = [row[@"number"] integerValue];
+        NSInteger number = [row[@"number"] integerValue];   // 0 off the chain
         UIImageSymbolConfiguration *symbol = [UIImageSymbolConfiguration configurationWithTextStyle:UIFontTextStyleTitle2];
-        cell.imageView.image = [UIImage systemImageNamed:number <= 50 ? [NSString stringWithFormat:@"%ld.circle", (long)number] : @"circle"
-                                       withConfiguration:symbol];
+        cell.imageView.image = [UIImage systemImageNamed:number == 0 ? @"arrow.triangle.branch" : number <= 50 ?
+                                [NSString stringWithFormat:@"%ld.circle", (long)number] : @"circle" withConfiguration:symbol];
         cell.imageView.tintColor = UIColor.secondaryLabelColor;
         cell.textLabel.text = [node[@"type"] isKindOfClass:NSString.class] ? node[@"type"] : @"";
         cell.textLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleHeadline];
@@ -659,7 +664,8 @@ static void SRPWWHighlight(UITextView *textView) {
         CGSize size = [accessory systemLayoutSizeFittingSize:UILayoutFittingCompressedSize];
         accessory.frame = CGRectMake(0, 0, size.width, MAX(size.height, 30));
         cell.accessoryView = accessory;
-        cell.accessibilityLabel = [NSString stringWithFormat:@"%ld, %@, %@%@", (long)number, cell.textLabel.text, node[@"name"], end ? @", End" : @""];
+        cell.accessibilityLabel = [NSString stringWithFormat:@"%@, %@, %@%@", number == 0 ? @"Branch" : @(number).stringValue,
+                                   cell.textLabel.text, node[@"name"], end ? @", End" : @""];
         cell.accessibilityHint = expanded ? @"Hides the node's actions" : @"Shows the node's next and actions";
         return cell;
     }
@@ -687,16 +693,17 @@ static void SRPWWHighlight(UITextView *textView) {
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if (indexPath.section == 1) {
+    if (indexPath.section == [self importSection]) {
         [self showImport];
         return;
     }
-    NSDictionary *row = [self rows][indexPath.row];
+    NSDictionary *row = [self rowsInSection:indexPath.section][indexPath.row];
     NSString *kind = row[@"kind"];
     NSString *name = row[@"node"][@"name"];
     if ([kind isEqualToString:@"node"]) {
         _expanded = [name isEqual:_expanded] ? nil : name;
-        [tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [tableView reloadSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [self importSection])]
+                 withRowAnimation:UITableViewRowAnimationAutomatic];
     } else if ([kind isEqualToString:@"edit"] || [kind isEqualToString:@"insert"]) {
         BOOL edit = [kind isEqualToString:@"edit"];
         SRPWaterWallNodeViewController *controller = [[SRPWaterWallNodeViewController alloc] initWithModel:_model
@@ -712,7 +719,7 @@ static void SRPWWHighlight(UITextView *textView) {
         }
         SRPWWKeep(_model, document);
         _expanded = nil;
-        [tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [tableView reloadData];   // the last branch node takes its section with it
     }
 }
 

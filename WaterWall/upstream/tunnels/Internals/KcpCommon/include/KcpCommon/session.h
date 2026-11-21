@@ -80,6 +80,7 @@ typedef struct tou_config_s
     bool           kcp_no_congestion_control;
     int            kcp_interval_ms;
     int            kcp_resend;
+    int            kcp_ack_batch;
     int            kcp_send_window;
     int            kcp_recv_window;
     int            kcp_initial_cwnd;
@@ -122,7 +123,8 @@ void touSessionSetReady(tou_session_t *session);
 void touSessionSend(tou_session_t *session, sbuf_t *payload);
 /* Input takes ownership of the complete outer datagram. Identity is checked before FEC/KCP. */
 void                  touSessionInput(tou_session_t *session, sbuf_t *packet);
-void                  touSessionAppFinish(tou_session_t *session);
+/* Publish closing before calling the detached application's hook, then drain if still alive. */
+void                  touSessionAppFinish(tou_session_t *session, void (*before_drain)(void *user));
 /* While held, KCP keeps reading, acknowledging and advertising its shrinking
  * receive window, so the peer slows down without packet loss. */
 void                  touSessionHoldDelivery(tou_session_t *session, bool held);

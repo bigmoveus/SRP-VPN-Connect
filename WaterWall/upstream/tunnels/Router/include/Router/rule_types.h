@@ -25,6 +25,7 @@ typedef struct router_ip_range_s
 typedef struct router_geoip_code_s
 {
     char code[3];
+    bool negated;
 } router_geoip_code_t;
 
 typedef struct router_port_range_s
@@ -35,8 +36,8 @@ typedef struct router_port_range_s
 
 enum
 {
-    kRouterNetworkTcp    = 1U << 0U,
-    kRouterNetworkUdp    = 1U << 1U,
+    kRouterNetworkTcp    = kAddressContextTransportTcp,
+    kRouterNetworkUdp    = kAddressContextTransportUdp,
     kRouterNetworkIcmp   = 1U << 2U,
     kRouterNetworkPacket = 1U << 3U
 };
@@ -78,6 +79,12 @@ typedef struct router_match_network_s
     router_string_list_t values;
     uint8_t              wanted;
 } router_match_network_t;
+
+typedef struct router_match_line_mark_s
+{
+    bool        present;
+    line_mark_t value;
+} router_match_line_mark_t;
 
 typedef struct router_match_protocol_s
 {
@@ -143,6 +150,7 @@ typedef struct router_rule_s
     router_match_source_ips_t         source_ips;
     router_match_source_port_t        source_port;
     router_match_network_t            network;
+    router_match_line_mark_t          line_mark;
     router_match_protocol_t           protocol;
     router_match_resolver_dns_t       resolver_dns;
     router_match_attributes_t         attributes;
@@ -159,6 +167,7 @@ void routerStringListDestroy(router_string_list_t *list);
 bool routerIpRangesParse(const router_string_list_t *patterns, router_ip_range_t **out_ranges, uint32_t *out_count,
                          const char *json_path);
 bool routerIpRangesMatch(const address_context_t *ctx, const router_ip_range_t *ranges, uint32_t count);
+bool routerGeoipTokenHasPrefix(const char *pattern);
 bool routerGeoipCodesParse(const router_string_list_t *patterns, router_geoip_code_t **out_codes, uint32_t *out_count,
                            const char *json_path);
 void routerGeoipCodesDestroy(router_geoip_code_t **codes, uint32_t *count);

@@ -1,9 +1,11 @@
 
 add_library(HalfDuplexServer STATIC
                     instance/create.c
+                    instance/chain.c
                     instance/destroy.c
                     instance/api.c
                     instance/node.c
+                    common/close.c
                     common/helpers.c
                     common/line_state.c
                     upstream/init.c

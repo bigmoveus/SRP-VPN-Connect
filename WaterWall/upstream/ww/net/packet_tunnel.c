@@ -7,6 +7,7 @@
 #include "ipv4_packet_view.h"
 #include "line.h"
 #include "loggers/internal_logger.h"
+#include "net/node_layer_solver.h"
 #include "objects/node.h"
 #include "utils/json_helpers.h"
 #include "wchecksum.h"
@@ -15,7 +16,8 @@ bool packettunnelTrustedChecksumPairEligible(const tunnel_t *source, const tunne
 {
     return source != NULL && consumer != NULL && source != consumer && source->next == consumer &&
            consumer->prev == source && source->node != NULL && consumer->node != NULL &&
-           source->node->layer_group == kNodeLayer3 && consumer->node->layer_group == (kNodeLayer3 | kNodeLayer4) &&
+           nodeLayerGroupToDomain(source->node->layer_group) == kLayerDomainL3 &&
+           nodeLayerGroupToDomain(consumer->node->layer_group) == kLayerDomainAny &&
            (source->node->flags & kNodeFlagSupportsTrustedPacketChecksums) != 0 &&
            (consumer->node->flags & kNodeFlagSupportsTrustedPacketChecksums) != 0;
 }
@@ -314,12 +316,19 @@ device_opaque_flow_mode_t packettunnelResolveOpaqueFlowMode(tunnel_t *t, device_
     const bool                       upstream  = anchor->direction == kPacketLifecycleAnchorPublishUpstream;
     const tunnel_t                  *neighbour = upstream ? t->next : t->prev;
     assert(neighbour != NULL && anchor->publication_tunnel == neighbour);
-    const char *decoder_type = upstream ? "PingServer" : "PingClient";
-    if (neighbour->node != NULL && neighbour->node->type != NULL &&
-        stringCompare(neighbour->node->type, decoder_type) == 0)
+    const char *decoder_type       = upstream ? "PingServer" : "PingClient";
+    const char *ping6_decoder_type = upstream ? "Ping6Server" : "Ping6Client";
+    if (neighbour->node != NULL && neighbour->node->type != NULL)
     {
-        *reason = upstream ? "direct upstream PingServer decoder" : "direct downstream PingClient decoder";
-        return kDeviceOpaqueFlowPeer;
+        const bool direct_ping  = stringCompare(neighbour->node->type, decoder_type) == 0;
+        const bool direct_ping6 = stringCompare(neighbour->node->type, ping6_decoder_type) == 0;
+        if (direct_ping || direct_ping6)
+        {
+            *reason = direct_ping6
+                          ? (upstream ? "direct upstream Ping6Server decoder" : "direct downstream Ping6Client decoder")
+                          : (upstream ? "direct upstream PingServer decoder" : "direct downstream PingClient decoder");
+            return kDeviceOpaqueFlowPeer;
+        }
     }
     *reason = "no direct Ping decoder in receive direction";
     return kDeviceOpaqueFlowPrefix;

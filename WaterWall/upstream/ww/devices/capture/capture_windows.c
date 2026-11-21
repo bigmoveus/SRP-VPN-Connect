@@ -231,7 +231,7 @@ static WTHREAD_ROUTINE(routineReadFromCapture) // NOLINT
         if (UNLIKELY(read_packet_len == 0))
         {
             bufferpoolReuseBuffer(cdev->reader_buffer_pool, buf);
-            LOGW("CaptureDevice: read packet with length 0");
+            LOGW("CaptureDevice: discarding empty captured packet on %s (packet_bytes=0)", cdev->name);
             continue;
         }
 
@@ -247,7 +247,13 @@ static WTHREAD_ROUTINE(routineReadFromCapture) // NOLINT
         if (! deviceIpv4PreparePacketChecksums(sbufGetMutablePtr(buf), sbufGetLength(buf), checksum_provenance))
         {
             bufferpoolReuseBuffer(cdev->reader_buffer_pool, buf);
-            LOGW("CaptureDevice: discarded an IPv4 packet with invalid or unavailable checksums");
+            LOGW("CaptureDevice: discarded captured packet on %s: IPv4 validation or checksum preparation rejected "
+                 "(packet_bytes=%u, outbound=%u, loopback=%u, impostor=%u)",
+                 cdev->name,
+                 read_packet_len,
+                 (unsigned) address.Outbound,
+                 (unsigned) address.Loopback,
+                 (unsigned) address.Impostor);
             continue;
         }
 
@@ -568,12 +574,11 @@ bool caputredeviceBringDown(capture_device_t *cdev)
 }
 
 capture_device_t *caputredeviceCreate(const char *name, const ipmask_t *capture_ranges, uint32_t capture_range_count,
-                                      bool skip_sysctl, bool bypass_conntrack,
-                                      const capture_protocol_filter_t *protocol_filter, void *userdata,
-                                      CaptureReadEventHandle cb, device_fragment_policy_t fragment_policy)
+                                      bool skip_sysctl, const capture_protocol_filter_t *protocol_filter,
+                                      void *userdata, CaptureReadEventHandle cb,
+                                      device_fragment_policy_t fragment_policy)
 {
     discard skip_sysctl;
-    discard bypass_conntrack; // Linux netfilter policy; WinDivert has no conntrack setting.
 
     if (capture_ranges == NULL || capture_range_count == 0)
     {

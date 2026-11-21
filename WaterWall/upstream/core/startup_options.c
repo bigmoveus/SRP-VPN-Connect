@@ -315,6 +315,10 @@ waterwall_startup_arguments_result_e waterwallStartupOptionsParse(int argc, char
 static void reportOpenFailure(const char *path, int error_number)
 {
     const char *reason = error_number != 0 ? strerror(error_number) : "input/output error";
+    if (error_number == ENOENT)
+    {
+        reason = "file not found";
+    }
     fprintf(stderr, "Waterwall version %s\n", WW_STR(WATERWALL_VERSION));
     fprintf(stderr, "Could not open core settings file \"%s\": %s\n", path, reason);
 }
@@ -381,13 +385,22 @@ char *waterwallStartupOptionsReadCoreJson(const waterwall_startup_options_t *opt
     {
         if (length == limit)
         {
-            if (fgetc(input) == EOF && ! ferror(input))
+            const int extra_byte = fgetc(input);
+            if (extra_byte == EOF && ! ferror(input))
             {
                 break;
             }
             if (options->restricted_config)
             {
-                fprintf(stderr, "Restricted config: input limit or read failure at byte %zu\n", length);
+                if (extra_byte != EOF)
+                    fprintf(stderr,
+                            "Restricted config: refusing core input: size limit exceeded "
+                            "(accepted_bytes=%zu, incoming_bytes=1, limit_bytes=%zu) at byte %zu\n",
+                            length,
+                            limit,
+                            length);
+                else
+                    fprintf(stderr, "Restricted config: read failure at byte %zu\n", length);
             }
             else
             {

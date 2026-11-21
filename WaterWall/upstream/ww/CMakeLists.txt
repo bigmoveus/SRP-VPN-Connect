@@ -124,6 +124,7 @@ add_library(ww STATIC
     objects/users_runtime.c
     
     # Event handling
+    event/event_accessors.c
     event/wevent.c
     event/wloop.c
     event/nio.c
@@ -163,6 +164,7 @@ add_library(ww STATIC
     net/dns_policy.c
     net/adapter.c
     net/tunnel.c
+    net/tunnel_diagnostics.c
     net/line.c
     net/chain.c
     net/node_layer_solver.c
@@ -184,6 +186,7 @@ add_library(ww STATIC
     node_builder/config_file.c
     node_builder/config_policy.c
     node_builder/config_lexical.c
+    node_builder/input_hints.c
     node_builder/node_library.c
     
     # Managers
@@ -1035,12 +1038,13 @@ if(PROJECT_REQUIRES_OPENSSL)
         # Pin the source archive and wrapper beside the consumer. Keeping the
         # immutable identities here is sufficient; no separate verifier-owned
         # dependency manifest is needed.
+        set(WW_OPENSSL_VERSION "4.0.3")
         set(WW_OPENSSL_PREV_CPM_SOURCE_CACHE "${CPM_SOURCE_CACHE}")
         set(CPM_SOURCE_CACHE "${CMAKE_CURRENT_BINARY_DIR}/openssl-cache")
         CPMAddPackage(
             NAME openssl-source
-            URL https://github.com/openssl/openssl/releases/download/openssl-4.0.1/openssl-4.0.1.tar.gz
-            URL_HASH SHA256=2db3f3a0d6ea4b59e1f094ace2c8cd536dffb87cdc39084c5afa1e6f7f37dd09
+            URL https://github.com/openssl/openssl/releases/download/openssl-${WW_OPENSSL_VERSION}/openssl-${WW_OPENSSL_VERSION}.tar.gz
+            URL_HASH SHA256=325b5c806167c13b40b1ffeadfe0248197c00eccc4cf123ec1e28d2d2fd216d9
             DOWNLOAD_ONLY True
         )
         set(CPM_SOURCE_CACHE "${WW_OPENSSL_PREV_CPM_SOURCE_CACHE}")
@@ -1053,13 +1057,19 @@ if(PROJECT_REQUIRES_OPENSSL)
             COMMAND_ERROR_IS_FATAL ANY)
         list(APPEND OPENSSL_CONFIGURE_OPTIONS "-include srp_openssl_prefix.h")
 
+        # The wrapper skips Configure when the options match. Force its
+        # source-change cleanup on upgrades, even if the source path is reused.
+        if(NOT "$CACHE{WW_OPENSSL_CONFIGURED_PIN}" STREQUAL WW_OPENSSL_VERSION)
+            set(openssl-source_SOURCE_DIR_OLD "" CACHE INTERNAL "Previously fetched OpenSSL source")
+        endif()
         CPMAddPackage(
             NAME openssl-cmake
             GIT_REPOSITORY https://github.com/jimmy-park/openssl-cmake.git
-            GIT_TAG f2318c9f4e31f1e449ce3533cd9f9a9d3a44256c # 4.0.1
+            GIT_TAG f2318c9f4e31f1e449ce3533cd9f9a9d3a44256c # openssl-cmake wrapper tag 4.0.1
             OPTIONS
             ${WW_OPENSSL_CPM_OPTIONS}
         )
+        set(WW_OPENSSL_CONFIGURED_PIN "${WW_OPENSSL_VERSION}" CACHE INTERNAL "OpenSSL source pin last configured")
         configure_file("${SRP_OPENSSL_PREFIX_HEADER}"
                        "${openssl-cmake_BINARY_DIR}/openssl-source-build/srp_openssl_prefix.h" COPYONLY)
         file(READ "${openssl-source_SOURCE_DIR}/crypto/cpuid.c" WW_OPENSSL_CPUID_SOURCE)
@@ -1094,17 +1104,7 @@ if(PROJECT_REQUIRES_OPENSSL)
             set(WW_OPENSSL_CRYPTO_REAL_TARGET OpenSSL::Crypto)
         endif()
         set_property(TARGET ${WW_OPENSSL_CRYPTO_REAL_TARGET}
-                     PROPERTY WW_PINNED_OPENSSL_VERSION "4.0.1")
-
-        # Consumers may need capability checks before the wrapper generates
-        # opensslv.h. Record the version of the source archive we actually own;
-        # externally supplied OpenSSL targets do not receive this assertion.
-        get_target_property(WW_OPENSSL_CRYPTO_REAL_TARGET OpenSSL::Crypto ALIASED_TARGET)
-        if(NOT WW_OPENSSL_CRYPTO_REAL_TARGET)
-            set(WW_OPENSSL_CRYPTO_REAL_TARGET OpenSSL::Crypto)
-        endif()
-        set_property(TARGET ${WW_OPENSSL_CRYPTO_REAL_TARGET}
-                     PROPERTY WW_PINNED_OPENSSL_VERSION "4.0.1")
+                     PROPERTY WW_PINNED_OPENSSL_VERSION "${WW_OPENSSL_VERSION}")
 
         set(ENV{CC} "${WW_OPENSSL_PREV_ENV_CC}")
         set(ENV{CXX} "${WW_OPENSSL_PREV_ENV_CXX}")
@@ -1324,8 +1324,11 @@ include("${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE}")
 set(WW_LWIP_TCP_TIMESTAMPS_RECIPE "${CMAKE_CURRENT_SOURCE_DIR}/lwip/tcp_timestamps_patch.cmake")
 file(SHA256 "${WW_LWIP_TCP_TIMESTAMPS_RECIPE}" WW_LWIP_TCP_TIMESTAMPS_RECIPE_SHA256)
 include("${WW_LWIP_TCP_TIMESTAMPS_RECIPE}")
+set(WW_LWIP_TCP_BOUND_MSS_RECIPE "${CMAKE_CURRENT_SOURCE_DIR}/lwip/tcp_bound_mss_patch.cmake")
+file(SHA256 "${WW_LWIP_TCP_BOUND_MSS_RECIPE}" WW_LWIP_TCP_BOUND_MSS_RECIPE_SHA256)
+include("${WW_LWIP_TCP_BOUND_MSS_RECIPE}")
 set(WW_LWIP_EXPECTED_PATCH_STAMP
-    "revision=${WW_LWIP_REVISION}\nrecipe-sha256=${WW_LWIP_PATCH_RECIPE_SHA256}\nengine-sha256=${WW_LWIP_ENGINE_RECIPE_SHA256}\npools-sha256=${WW_LWIP_POOLS_RECIPE_SHA256}\nports-sha256=${WW_LWIP_PORTS_RECIPE_SHA256}\ntimer-sha256=${WW_LWIP_TIMER_RECIPE_SHA256}\nlifecycle-sha256=${WW_LWIP_LIFECYCLE_RECIPE_SHA256}\nchecksum-sha256=${WW_LWIP_CHECKSUM_RECIPE_SHA256}\nack-batch-sha256=${WW_LWIP_ACK_BATCH_RECIPE_SHA256}\nreceive-budget-sha256=${WW_LWIP_RECEIVE_BUDGET_RECIPE_SHA256}\ntcp-output-tail-sha256=${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE_SHA256}\ntcp-timestamps-sha256=${WW_LWIP_TCP_TIMESTAMPS_RECIPE_SHA256}\n")
+    "revision=${WW_LWIP_REVISION}\nrecipe-sha256=${WW_LWIP_PATCH_RECIPE_SHA256}\nengine-sha256=${WW_LWIP_ENGINE_RECIPE_SHA256}\npools-sha256=${WW_LWIP_POOLS_RECIPE_SHA256}\nports-sha256=${WW_LWIP_PORTS_RECIPE_SHA256}\ntimer-sha256=${WW_LWIP_TIMER_RECIPE_SHA256}\nlifecycle-sha256=${WW_LWIP_LIFECYCLE_RECIPE_SHA256}\nchecksum-sha256=${WW_LWIP_CHECKSUM_RECIPE_SHA256}\nack-batch-sha256=${WW_LWIP_ACK_BATCH_RECIPE_SHA256}\nreceive-budget-sha256=${WW_LWIP_RECEIVE_BUDGET_RECIPE_SHA256}\ntcp-output-tail-sha256=${WW_LWIP_TCP_OUTPUT_TAIL_RECIPE_SHA256}\ntcp-timestamps-sha256=${WW_LWIP_TCP_TIMESTAMPS_RECIPE_SHA256}\ntcp-bound-mss-sha256=${WW_LWIP_TCP_BOUND_MSS_RECIPE_SHA256}\n")
 
 set(WW_LWIP_REBUILD TRUE)
 if(EXISTS "${WW_LWIP_PATCH_STAMP}")
@@ -1353,6 +1356,7 @@ if(WW_LWIP_REBUILD)
     ww_apply_lwip_receive_budget_patch("${LWIP_DIR}")
     ww_apply_lwip_tcp_output_tail_patch("${LWIP_DIR}")
     ww_apply_lwip_tcp_timestamps_patch("${LWIP_DIR}")
+    ww_apply_lwip_tcp_bound_mss_patch("${LWIP_DIR}")
     file(WRITE "${WW_LWIP_PATCH_STAMP}" "${WW_LWIP_EXPECTED_PATCH_STAMP}")
 endif()
 
@@ -1814,6 +1818,7 @@ if(BUILD_TESTING)
         # The select registration test compiles an alternate event stack directly.
         # Keep both its sources and the production Linux backend separate so the
         # archive linker can select one backend without extracting duplicate symbols.
+        event/event_accessors.c
         event/epoll.c
         event/nio.c
         event/udp_send.c

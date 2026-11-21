@@ -1,8 +1,10 @@
 <!--
-Documentation version: 3
+Documentation version: 4
 -->
 
 # HttpProxyClient Node
+
+## Overview
 
 `HttpProxyClient` connects through an upstream HTTP/1.1 proxy. It is a Layer 4
 middle node with two modes:
@@ -22,7 +24,10 @@ HTTP, TLS, or another TCP protocol and should retain its own framing.
 `HttpProxyServer` provides the incoming forward-proxy interface; `HttpClient`
 provides a separate HTTP transport with additional framing modes.
 
-## Typical Placement
+The incoming destination offer must allow TCP. The client publishes TCP before
+initializing its proxy transport.
+
+## Typical placement
 
 ```text
 TcpListener -> HttpProxyClient -> TcpConnector
@@ -38,7 +43,13 @@ HttpProxyClient protects the proxy connection; it does not change the origin
 request to HTTPS. For HTTPS to the origin, use CONNECT and let the preceding
 application or TLS node supply the origin TLS session inside the tunnel.
 
-## CONNECT Example
+
+## Minimal practical example
+
+This is a complete **node configuration**; list its file in `core.json.configs`.
+Replace `origin.example` and the proxy endpoint with your own values.
+
+### CONNECT Example
 
 This node configuration forwards connections on local port 8443 through the
 proxy at `127.0.0.1:8080` to `origin.example:443`:
@@ -77,83 +88,16 @@ response header, and releases application bytes after a final 2xx response.
 CONNECT responses may use HTTP/1.0 or HTTP/1.1; other response modes require HTTP/1.1.
 The application must supply TLS itself when the origin expects TLS on port 443.
 
-If an earlier node sets the destination context, use that destination with these
-client settings. This example also enables proxy authentication:
+## Configuration
 
-```json
-{
-  "name": "proxy",
-  "type": "HttpProxyClient",
-  "next": "proxy-transport",
-  "settings": {
-    "target-address": "dest_context->address",
-    "port": "dest_context->port",
-    "username": "alice",
-    "password": "replace-me"
-  }
-}
-```
-
-The following connector must still address the proxy. Dynamic target values are
-captured before that connector can replace the line's destination context.
-
-## One-Request HTTP Examples
-
-To download a body, replace the `proxy` node in the CONNECT example with:
-
-```json
-{
-  "name": "proxy",
-  "type": "HttpProxyClient",
-  "next": "proxy-transport",
-  "settings": {
-    "mode": "http",
-    "target-address": "origin.example",
-    "port": 80,
-    "method": "GET",
-    "path": "/download",
-    "body-mode": "none"
-  }
-}
-```
-
-Each local connection starts `GET http://origin.example:80/download HTTP/1.1`.
-The local application reads the response body without sending its own request.
-Sending nonempty upstream data in this example closes the line.
-
-For an upload whose size is known, use:
-
-```json
-{
-  "name": "proxy",
-  "type": "HttpProxyClient",
-  "next": "proxy-transport",
-  "settings": {
-    "mode": "http",
-    "target-address": "origin.example",
-    "port": 80,
-    "method": "POST",
-    "path": "/upload?source=waterwall",
-    "body-mode": "fixed",
-    "content-length": 4096,
-    "headers": { "Content-Type": "application/octet-stream" }
-  }
-}
-```
-
-The local application sends exactly 4096 body bytes, possibly across many writes,
-then keeps the connection open to read the response. It must not close or
-half-close its TCP connection to signal upload completion: WaterWall's TCP source
-EOF closes the line. The configured byte count already marks the request end.
-
-## Settings
+### Settings
 
 The node requires `name`, `type: "HttpProxyClient"`, `next`, and a `settings`
 object. It belongs between Layer 4 nodes. Setting names and enumerated values
 are case-sensitive. Unknown or duplicate settings, wrong types, and conflicting
 mode options fail startup.
 
-### Target and Proxy Authentication
+#### Target and Proxy Authentication
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
@@ -214,7 +158,7 @@ controls `Host`, `Proxy-Authorization`, `Content-Length`, `Transfer-Encoding`, a
 `TE`, `Trailer`, `Upgrade`, or `Expect`. Origin `Authorization` and `Content-Type`
 are allowed.
 
-### HTTP Request Options
+#### HTTP Request Options
 
 These settings are accepted only with `mode: "http"`:
 
@@ -231,7 +175,7 @@ to 8192 bytes, including the method, absolute URI, and HTTP version.
 Every HTTP request carries `Connection: close`. Supplying `content-length` with
 any body mode other than `fixed` is invalid.
 
-### Limits and Timeouts
+#### Limits and Timeouts
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
@@ -249,7 +193,7 @@ Paused time counts, and expiry closes the line. HTTP mode cannot specify
 `connect-response-timeout-ms`; its response waiting is covered by the header
 and idle deadlines.
 
-## DNS behaviour
+### DNS behaviour
 
 Resolving a hostname means looking up its IP address. `HttpProxyClient` can send
 the final target's hostname in the HTTP CONNECT request, or resolve it locally and
@@ -309,7 +253,84 @@ Enabled local resolution is supported only with HTTP `mode: "connect"`. Ordinary
 
 See [DomainResolver](../../WaterWall-Docs/docs/02-noderefs/DomainResolver.mdx) for native, direct and protected-chain configuration examples and core option limits. This policy controls lookups owned by this node; it does not configure PTC fake DNS, TunDevice system DNS or every DNS source in the program.
 
-## Request Bodies and Upload Completion
+## Usage and troubleshooting
+
+### Dynamic target and proxy authentication
+
+If an earlier node sets the destination context, use that destination with these
+client settings. This example also enables proxy authentication:
+
+```json
+{
+  "name": "proxy",
+  "type": "HttpProxyClient",
+  "next": "proxy-transport",
+  "settings": {
+    "target-address": "dest_context->address",
+    "port": "dest_context->port",
+    "username": "alice",
+    "password": "replace-me"
+  }
+}
+```
+
+The following connector must still address the proxy. Dynamic target values are
+captured before that connector can replace the line's destination context.
+
+
+
+### One-Request HTTP Examples
+
+To download a body, replace the `proxy` node in the CONNECT example with:
+
+```json
+{
+  "name": "proxy",
+  "type": "HttpProxyClient",
+  "next": "proxy-transport",
+  "settings": {
+    "mode": "http",
+    "target-address": "origin.example",
+    "port": 80,
+    "method": "GET",
+    "path": "/download",
+    "body-mode": "none"
+  }
+}
+```
+
+Each local connection starts `GET http://origin.example:80/download HTTP/1.1`.
+The local application reads the response body without sending its own request.
+Sending nonempty upstream data in this example closes the line.
+
+For an upload whose size is known, use:
+
+```json
+{
+  "name": "proxy",
+  "type": "HttpProxyClient",
+  "next": "proxy-transport",
+  "settings": {
+    "mode": "http",
+    "target-address": "origin.example",
+    "port": 80,
+    "method": "POST",
+    "path": "/upload?source=waterwall",
+    "body-mode": "fixed",
+    "content-length": 4096,
+    "headers": { "Content-Type": "application/octet-stream" }
+  }
+}
+```
+
+The local application sends exactly 4096 body bytes, possibly across many writes,
+then keeps the connection open to read the response. It must not close or
+half-close its TCP connection to signal upload completion: WaterWall's TCP source
+EOF closes the line. The configured byte count already marks the request end.
+
+## Advanced behavior
+
+### Request Bodies and Upload Completion
 
 | Body mode | Wire framing | Completion |
 | --- | --- | --- |
@@ -328,7 +349,7 @@ The application supplies raw bytes; HttpProxyClient adds chunk framing and
 removes it from chunked responses. Chunk boundaries do not need to match TCP
 packets or the application's writes.
 
-### Chunked Upload Completion Limitation
+#### Chunked Upload Completion Limitation
 
 **A finite chunked upload cannot finish sending and then wait for a later
 response.** WaterWall's `Finish` callback tears down the line; it is not a
@@ -353,7 +374,7 @@ remains open. The proxy must also permit that streaming exchange rather than
 buffering the whole request. With HttpProxyServer, a final response cancels an
 incomplete upload; the origin should consume the bytes it needs before responding.
 
-## Response and Connection Behavior
+### Response and Connection Behavior
 
 The request header is sent as soon as the following Init returns and normal
 dispatch remains allowed, including during advisory Pause. There is no
@@ -397,7 +418,9 @@ following, authentication challenge flow, Upgrade/WebSocket negotiation, HTTP/2,
 HTTP/3, UDP support, or built-in TLS. These restrictions describe the proxy
 interface; an established CONNECT tunnel does not inspect the protocol inside it.
 
-## Splice and Buffer Limits
+## Implementation details
+
+### Splice and Buffer Limits
 
 Splice requires a supported platform/build, `misc.splice`, and support from every
 node in the expanded chain. HttpProxyClient preserves eligible splice buffers
@@ -431,7 +454,7 @@ add one ordinary input buffer containing up to 2 MiB of payload. These limits
 are independent of buffer-pool tiers and kernel pipe capacity and are not a
 total process-memory guarantee.
 
-## Node Metadata
+### Node Metadata
 
 | Property | Value |
 | --- | --- |
@@ -439,6 +462,6 @@ total process-memory guarantee.
 | `can_have_prev` | `true` |
 | `can_have_next` | `true` |
 | `layer_group` | `kNodeLayer4` |
-| `layer_group_prev_node` | `kNodeLayer4` |
-| `layer_group_next_node` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4Stream` |
+| `layer_group_next_node` | `kNodeLayer4Stream` |
 | `required_padding_left` | `10` bytes for a chunk prefix |

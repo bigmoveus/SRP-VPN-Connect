@@ -18,7 +18,8 @@ void kcpserverCarrierRelease(kcpserver_carrier_t *carrier)
     assert(carrier != NULL && carrier->refs > 0);
     if (--carrier->refs == 0)
     {
-        assert(! carrier->active && carrier->sessions == NULL && carrier->pending_timer == NULL);
+        assert(! carrier->active && carrier->sessions == NULL && carrier->pending_timer == NULL &&
+               carrier->carrier_read_holds == 0);
         lineUnref(carrier->line);
         memoryFree(carrier);
     }
@@ -80,6 +81,14 @@ bool kcpserverLinestateInitialize(kcpserver_lstate_t *ls, line_t *l, tunnel_t *t
     {
         return false;
     }
+    address_context_t *destination = lineGetDestinationAddressContext(l);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportUdp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportUdp);
+        return false;
+    }
+    addresscontextSetTransportOffer(destination, kAddressContextTransportUdp);
+
     kcpserver_carrier_t *carrier = memoryAllocateZero(sizeof(*carrier));
     carrier->tunnel              = t;
     carrier->line                = l;
@@ -108,7 +117,5 @@ bool kcpserverLinestateInitialize(kcpserver_lstate_t *ls, line_t *l, tunnel_t *t
     }
     worker->carriers = carrier;
     *ls              = (kcpserver_lstate_t) {.kind = kKcpServerCarrier, .carrier = carrier};
-    addresscontextSetOnlyProtocol(lineGetSourceAddressContext(l), IP_PROTO_UDP);
-    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(l), IP_PROTO_UDP);
     return true;
 }

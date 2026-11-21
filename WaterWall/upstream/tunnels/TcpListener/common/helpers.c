@@ -35,6 +35,7 @@ static void onRecv(wio_t *io, sbuf_t *buf)
     tcplistener_lstate_t *ls = weventGetUserdata(io);
     if (UNLIKELY(ls == NULL))
     {
+        // WIO can still deliver reads after the line detaches while queued writes drain.
         bufferpoolReuseBuffer(wloopGetBufferPool(weventGetLoop(io)), buf);
         return;
     }
@@ -81,7 +82,7 @@ static void onClose(wio_t *io)
 
 void tcplistenerOnInboundConnected(wevent_t *ev)
 {
-    wloop_t                *loop = ev->loop;
+    wloop_t                *loop = weventGetLoop(ev);
     socket_accept_result_t *data = (socket_accept_result_t *) weventGetUserdata(ev);
     wio_t                  *io   = data->io;
     wid_t                   wid  = data->wid;
@@ -119,6 +120,7 @@ void tcplistenerOnInboundConnected(wevent_t *ev)
 
     l->routing_context.src_ctx.type_ip   = true; // we have a client ip
     l->routing_context.src_ctx.proto_tcp = true; // tcp client
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(l), IP_PROTO_TCP);
     sockaddrToIpAddr(peer_addr, &(l->routing_context.src_ctx.ip_address));
     l->routing_context.peer_source_port    = sockaddrPort((sockaddr_u *) peer_addr);
     l->routing_context.src_ctx.port        = data->real_localport;

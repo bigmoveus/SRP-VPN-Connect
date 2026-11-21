@@ -17,8 +17,23 @@ void packetstostreamTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
     const ipv4stream_input_result_t admission = ipv4streamInputAdmit(&ls->read_input, &ls->read_stream, buf);
     if (admission == kIpv4StreamInputRejected)
     {
+        const buffer_budget_cost_t usage           = bufferbudgetGetUsage(&ls->read_input.budget);
+        const buffer_budget_cost_t limits          = bufferbudgetGetLimits(&ls->read_input.budget);
+        const size_t               incoming_bytes  = sbufGetLength(buf);
+        const size_t               incoming_charge = sbufGetQueueCharge(buf);
+        LOGW("PacketsToStream: resetting carrier: nested input refused: %s "
+             "(retained_bytes=%zu, incoming_bytes=%zu, limit_bytes=%zu, retained_charge_bytes=%zu, "
+             "incoming_charge_bytes=%zu, limit_charge_bytes=%zu)",
+             incoming_bytes > limits.bytes - usage.bytes      ? "byte budget exceeded"
+             : incoming_charge > limits.charge - usage.charge ? "storage charge budget exceeded"
+                                                              : "queue admission failed",
+             usage.bytes,
+             incoming_bytes,
+             limits.bytes,
+             usage.charge,
+             incoming_charge,
+             limits.charge);
         lineReuseBuffer(l, buf);
-        LOGW("PacketsToStream: nested input limit exceeded, resetting carrier");
         packetstostreamCloseOutputLineAndScheduleRecreate(t, packet_line, ls);
         return;
     }
@@ -47,28 +62,28 @@ void packetstostreamTunnelDownStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 
         if (ts->sensitive_mode && packetstostreamFrameMatchesFillByte(packet_buffer, kSensitivePongByte))
         {
-            const uint64_t now        = wloopNowMS(getWorkerLoop(lineGetWID(packet_line)));
-            const uint64_t elapsed_ms = (ls->awaiting_pong && ls->ping_sent_at_ms > 0 && now >= ls->ping_sent_at_ms)
-                                            ? (now - ls->ping_sent_at_ms)
-                                            : 0;
+            const uint64_t now_us     = getHRTimeUs();
+            const uint64_t elapsed_ms = ls->awaiting_pong ? (now_us - ls->ping_sent_at_us) / 1000U : 0;
 
             LOGD("PacketsToStream: received sensitive-mode pong after %llums (limit=%u ms)",
                  (unsigned long long) elapsed_ms,
                  (unsigned int) ts->tolerance_ms);
             lineReuseBuffer(l, packet_buffer);
 
-            if (ls->awaiting_pong && elapsed_ms >= ts->tolerance_ms)
+            if (ls->awaiting_pong && now_us >= ls->pong_deadline_us)
             {
-                LOGW("PacketsToStream: sensitive-mode pong exceeded tolerance after %llums, resetting connection",
-                     (unsigned long long) elapsed_ms);
+                LOGW("PacketsToStream: resetting connection: sensitive-mode pong exceeded tolerance "
+                     "(elapsed_ms=%llu, tolerance_ms=%u)",
+                     (unsigned long long) elapsed_ms,
+                     (unsigned) ts->tolerance_ms);
                 packetstostreamCloseOutputLineAndScheduleRecreate(t, packet_line, ls);
                 lineUnref(l);
                 return;
             }
 
             ls->awaiting_pong    = false;
-            ls->ping_sent_at_ms  = 0;
-            ls->pong_deadline_ms = 0;
+            ls->ping_sent_at_us  = 0;
+            ls->pong_deadline_us = 0;
             continue;
         }
 

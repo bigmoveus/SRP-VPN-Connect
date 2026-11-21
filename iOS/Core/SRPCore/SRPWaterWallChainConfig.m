@@ -1180,7 +1180,7 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 outerSettings[@"password"] = outerSecret; outerSettings[@"algorithm"] = @"chacha20-poly1305";
                 outerSettings[@"salt"] = @"waterwall-aead"; outerSettings[@"kdf-iterations"] = @12000; outerSettings[@"max-frame-size"] = @16356;
             } else if (quic) {
-                outerSettings[@"protocol"] = @"h3"; outerSettings[@"carrier-mode"] = configuration[@"quic-carrier"];
+                outerSettings[@"protocol"] = @"h3";
             }
             if ([options[@"tls_frag"] integerValue] > 0 && [self configurationAllowsFragmentation:configuration]) {
                 // Auto uses the default sizes; only Manual takes the profile's
@@ -1203,11 +1203,14 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
                 outerSettings[@"alpns"] = httpVersion == 1 ? @[@"http/1.1"] : @[@"h2"];
             }
             if ([outer isEqualToString:@"reality"] || [outer isEqualToString:@"aead"]) outerSettings[@"password"] = outerSecret;
-            if (quic) outerSettings[@"carrier-mode"] = configuration[@"quic-carrier"];
             NSString *outerType = [outer isEqualToString:@"tls"] ? @"TlsClient" : [outer isEqualToString:@"reality"] ? @"RealityClient" :
                                   [outer isEqualToString:@"aead"] ? @"EncryptionClient" :
                                   [outer isEqualToString:@"bgp4"] ? @"Bgp4Client" : @"QuicClient";
-            [nodes addObject:@{@"name": outer, @"type": outerType, @"settings": outerSettings, @"next": kcp ? @"kcp" : @"connector"}];
+            NSString *carrier = kcp ? @"kcp" : @"connector";
+            // WaterWall 1.6 QUIC sends datagrams only; over TCP they travel in UdpOverTcp frames
+            BOOL quicOverTCP = quic && [configuration[@"quic-carrier"] isEqualToString:@"stream"];
+            [nodes addObject:@{@"name": outer, @"type": outerType, @"settings": outerSettings, @"next": quicOverTCP ? @"udp-over-tcp" : carrier}];
+            if (quicOverTCP) [nodes addObject:@{@"name": @"udp-over-tcp", @"type": @"UdpOverTcpClient", @"settings": @{}, @"next": carrier}];
         }
         if (kcp) {
             [nodes addObject:@{@"name": @"kcp", @"type": @"KcpClient",
@@ -1232,6 +1235,15 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 }
 
+// WaterWall 1.6: the phone's packets enter WireGuardClient, and its datagrams leave by a connector to the peer's endpoint.
+static NSArray<NSDictionary *> *SRPWWWireGuardNodes(NSString *privateKey, NSArray<NSDictionary *> *peers) {
+    return @[
+        @{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}, @"next": @"wg"},
+        @{@"name": @"wg", @"type": @"WireGuardClient", @"settings": @{@"privatekey": privateKey, @"peers": peers}, @"next": @"udp"},
+        @{@"name": @"udp", @"type": @"UdpConnector", @"settings": @{@"address": @"dest_context->address", @"port": @"dest_context->port"}},
+    ];
+}
+
 + (NSDictionary *)wireGuardConfigurationWithPrivateKey:(NSString *)privateKey
                                          serverPublicKey:(NSString *)serverPublicKey
                                                   server:(NSString *)server
@@ -1241,18 +1253,11 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
     if (privateKey.length == 0 || serverPublicKey.length == 0 || server.length == 0 ||
         clientAddress.length == 0 || port < 1 || port > 65535 || keepalive < 0 || keepalive > 65535) return nil;
     NSString *endpoint = [NSString stringWithFormat:@"%@:%ld", server, (long)port];
-    NSArray *nodes = @[
-        @{@"name": @"udp", @"type": @"UdpStatelessSocket", @"settings": @{
-            @"listen-address": @"0.0.0.0", @"listen-port": @0, @"verbose": @YES}, @"next": @"wg"},
-        @{@"name": @"wg", @"type": @"WireGuardDevice", @"settings": @{
-            @"privatekey": privateKey,
-            @"peers": @[@{
-                @"publickey": serverPublicKey,
-                @"allowedips": @"0.0.0.0/0",
-                @"endpoint": endpoint,
-                @"persistentkeepalive": @(MAX(0, keepalive))}]}, @"next": @"ne"},
-        @{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}},
-    ];
+    NSArray *nodes = SRPWWWireGuardNodes(privateKey, @[@{
+        @"publickey": serverPublicKey,
+        @"allowedips": @"0.0.0.0/0",
+        @"endpoint": endpoint,
+        @"persistentkeepalive": @(MAX(0, keepalive))}]);
     NSData *data = [NSJSONSerialization dataWithJSONObject:@{@"name": @"wireguard", @"nodes": nodes} options:0 error:nil];
     NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     NSString *address = [clientAddress componentsSeparatedByString:@"/"].firstObject;
@@ -1311,11 +1316,9 @@ static NSDictionary *SRPWWMigrateConfiguration(NSDictionary *configuration) {
         [endpointIPs addObject:server];
         if (endpointIP == nil) endpointIP = server;
     }
-    NSArray *nodes = @[
-        @{@"name": @"udp", @"type": @"UdpStatelessSocket", @"settings": @{@"listen-address": @"0.0.0.0", @"listen-port": @0, @"verbose": @YES}, @"next": @"wg"},
-        @{@"name": @"wg", @"type": @"WireGuardDevice", @"settings": @{@"privatekey": interface[@"privatekey"], @"peers": peers}, @"next": @"ne"},
-        @{@"name": @"ne", @"type": @"NEPacketDevice", @"settings": @{}}
-    ];
+    // WaterWall 1.6's WireGuardClient talks to one server; a file with more peers runs as a WireGuard profile instead
+    if (peers.count != 1) return nil;
+    NSArray *nodes = SRPWWWireGuardNodes(interface[@"privatekey"], peers);
     NSData *data = [NSJSONSerialization dataWithJSONObject:@{@"name": @"wireguard", @"nodes": nodes} options:0 error:nil];
     if (data == nil) return nil;
     NSString *json = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
@@ -1356,6 +1359,172 @@ static NSDictionary *SRPWWDocumentWithNodes(NSDictionary *document, NSArray *nod
     return result;
 }
 
+// The nodes a node names in its settings: a Router's targets, the two paths of a HalfDuplexClient and the DNS chain of
+// dns-behaviour. rename gets each name with the setting that holds it; the node comes back with the names
+// rename returned.
+static NSDictionary *SRPWWNodeWithReferences(NSDictionary *node, NSString *(^rename)(NSString *name, NSString *setting)) {
+    NSDictionary *settings = [node[@"settings"] isKindOfClass:NSDictionary.class] ? node[@"settings"] : nil;
+    NSMutableDictionary *changed = [settings mutableCopy];
+    id (^renamed)(id, NSString *) = ^id(id value, NSString *setting) {
+        return [value isKindOfClass:NSString.class] ? rename(value, setting) : value;
+    };
+    if ([node[@"type"] isEqual:@"HalfDuplexClient"]) {
+        for (NSString *path in @[@"upload", @"download"]) changed[path] = renamed(settings[path], path);
+    }
+    if ([node[@"type"] isEqual:@"Router"] && [settings[@"rules"] isKindOfClass:NSArray.class]) {
+        NSMutableArray *rules = [NSMutableArray new];
+        for (id rule in settings[@"rules"]) {
+            // A rule that is not an object names no node: it stays for WaterWall to refuse
+            NSMutableDictionary *copy = [rule isKindOfClass:NSDictionary.class] ? [rule mutableCopy] : nil;
+            copy[@"target"] = renamed(copy[@"target"], @"rules target");
+            [rules addObject:copy ?: rule];
+        }
+        changed[@"rules"] = rules;
+    }
+    if ([settings[@"dns-behaviour"] isKindOfClass:NSDictionary.class]) {
+        NSMutableDictionary *behaviour = [settings[@"dns-behaviour"] mutableCopy];
+        behaviour[@"dns-next"] = renamed(behaviour[@"dns-next"], @"dns-next");
+        changed[@"dns-behaviour"] = behaviour;
+    }
+    if (settings == nil || [changed isEqualToDictionary:settings]) return node;
+    NSMutableDictionary *result = [node mutableCopy];
+    result[@"settings"] = changed;
+    return result;
+}
+
+// A WaterWall client config written for a computer starts at its own listener and SOCKS5 or HTTP proxy server. SRP supplies
+// that input itself, so in a file without a hint the pair becomes the connection hint.
+static NSDictionary *SRPWWDocumentWithHintForLocalProxy(NSDictionary *document) {
+    NSArray<NSDictionary *> *nodes = SRPWWNodes(document);
+    NSMutableSet *names = [NSMutableSet new], *followers = [NSMutableSet new];
+    for (NSDictionary *node in nodes) {
+        if (SRPWWIsHint(node[@"type"])) return document;
+        if ([node[@"name"] isKindOfClass:NSString.class]) [names addObject:node[@"name"]];
+        if ([node[@"next"] isKindOfClass:NSString.class]) [followers addObject:node[@"next"]];
+    }
+    NSDictionary *listener = nil, *server = nil;
+    for (NSDictionary *node in nodes) {
+        if (![@[@"TcpListener", @"TcpUdpListener"] containsObject:node[@"type"] ?: @""] || [followers containsObject:node[@"name"] ?: @""]) continue;
+        for (NSDictionary *next in nodes) {
+            if (![node[@"next"] isKindOfClass:NSString.class] || ![next[@"name"] isEqual:node[@"next"]] ||
+                ![@[@"Socks5Server", @"HttpProxyServer"] containsObject:next[@"type"] ?: @""]) continue;
+            if (listener != nil) return document;   // two local proxies: which one is the input is not the app's guess
+            listener = node;
+            server = next;
+        }
+    }
+    if (listener == nil || ![server[@"next"] isKindOfClass:NSString.class]) return document;
+    NSString *name = @"input";
+    for (NSInteger suffix = 2; [names containsObject:name]; suffix++) name = [NSString stringWithFormat:@"input-%ld", (long)suffix];
+    NSMutableArray *result = [NSMutableArray arrayWithObject:@{@"name": name, @"type": SRPWaterWallHintConnection, @"settings": @{},
+                                                               @"next": server[@"next"]}];
+    for (NSDictionary *node in nodes) {
+        if (node != listener && node != server) [result addObject:node];
+    }
+    return SRPWWDocumentWithNodes(document, result);
+}
+
+// WaterWall's own loader takes // comments and $name$ placeholders, each standing for a value of the top-level
+// "variables" object. JSON has neither: a comment goes, and a placeholder becomes a marked string that SRPWWParsedProfile
+// replaces once the text is parsed.
+static NSString *const SRPWWVariableMarker = @"$srp-variable$:";
+
+static NSString *SRPWWPlainJSON(NSString *text) {
+    NSMutableString *plain = [NSMutableString stringWithCapacity:text.length];
+    NSUInteger length = text.length, copied = 0;
+    BOOL inString = NO;
+    for (NSUInteger index = 0; index < length; index++) {
+        unichar character = [text characterAtIndex:index];
+        if (inString) {
+            if (character == '\\') index++;
+            else if (character == '"') inString = NO;
+            continue;
+        }
+        if (character == '"') {
+            inString = YES;
+            continue;
+        }
+        BOOL comment = character == '/' && index + 1 < length && [text characterAtIndex:index + 1] == '/';
+        if (!comment && character != '$') continue;
+        NSUInteger end = index + 1;
+        while (end < length && [text characterAtIndex:end] != '\n' && [text characterAtIndex:end] != '\r' &&
+               (comment || [text characterAtIndex:end] != '$')) end++;
+        NSString *name = comment ? nil : [text substringWithRange:NSMakeRange(index + 1, end - index - 1)];
+        // An unfinished or empty placeholder stays as it is, and the text then fails as JSON
+        if (!comment && (end >= length || [text characterAtIndex:end] != '$' || name.length == 0 ||
+                         [name rangeOfCharacterFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\"\\"]].location != NSNotFound)) continue;
+        [plain appendString:[text substringWithRange:NSMakeRange(copied, index - copied)]];
+        if (!comment) [plain appendFormat:@"\"%@%@\"", SRPWWVariableMarker, name];
+        copied = comment ? end : end + 1;
+        index = comment ? end - 1 : end;
+    }
+    [plain appendString:[text substringFromIndex:copied]];
+    return plain;
+}
+
+// How much of a profile a value is: the characters of its strings and keys, and one for each value
+static long long SRPWWWeight(id value) {
+    if ([value isKindOfClass:NSString.class]) return (long long)[value length];
+    long long weight = 1;
+    if ([value isKindOfClass:NSArray.class]) {
+        for (id item in value) weight += SRPWWWeight(item);
+    } else if ([value isKindOfClass:NSDictionary.class]) {
+        for (NSString *key in value) weight += (long long)key.length + SRPWWWeight(value[key]);
+    }
+    return weight;
+}
+
+// room is what the values may still add: a value named many times must not grow the profile past what a file may hold
+static id SRPWWWithVariables(id value, NSDictionary *variables, NSMutableSet<NSString *> *missing, long long *room) {
+    if ([value isKindOfClass:NSString.class] && [value hasPrefix:SRPWWVariableMarker]) {
+        NSString *name = [value substringFromIndex:SRPWWVariableMarker.length];
+        id filled = variables[name];
+        if (filled == nil) [missing addObject:name];
+        else if (*room >= 0) *room -= SRPWWWeight(filled);
+        return filled == nil || *room < 0 ? value : filled;
+    }
+    if ([value isKindOfClass:NSArray.class]) {
+        NSMutableArray *items = [NSMutableArray new];
+        for (id item in value) [items addObject:SRPWWWithVariables(item, variables, missing, room)];
+        return items;
+    }
+    if ([value isKindOfClass:NSDictionary.class]) {
+        NSMutableDictionary *items = [NSMutableDictionary new];
+        for (id key in value) items[key] = SRPWWWithVariables(value[key], variables, missing, room);
+        return items;
+    }
+    return value;
+}
+
+// The profile of a file: plain JSON, or WaterWall's config syntax with its comments removed and its variables filled in.
+static id SRPWWParsedProfile(NSString *text, NSString **problem) {
+    id document = [NSJSONSerialization JSONObjectWithData:[text dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (document != nil) return document;
+    NSString *plain = SRPWWPlainJSON(text);
+    document = [plain isEqualToString:text] ? nil :
+        [NSJSONSerialization JSONObjectWithData:[plain dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (![document isKindOfClass:NSDictionary.class]) return document;
+    NSDictionary *variables = [document[@"variables"] isKindOfClass:NSDictionary.class] ? document[@"variables"] : @{};
+    NSMutableDictionary *profile = [document mutableCopy];
+    [profile removeObjectForKey:@"variables"];
+    NSMutableSet<NSString *> *missing = [NSMutableSet new];
+    long long room = 1048576;
+    id filled = SRPWWWithVariables(profile, variables, missing, &room);
+    if (missing.count == 0 && room < 0) {
+        *problem = @"The file is larger than 1 MB with its variables filled in.";
+        return nil;
+    }
+    if (missing.count > 0) {
+        // Of several, the first by name: a dictionary has no order, and the message must not change from run to run
+        NSString *first = [missing.allObjects sortedArrayUsingComparator:^NSComparisonResult(NSString *one, NSString *other) {
+            return [one compare:other options:NSLiteralSearch];
+        }].firstObject;
+        *problem = [NSString stringWithFormat:@"The file uses the variable $%@$, but its \"variables\" block does not define it.", first];
+        return nil;
+    }
+    return filled;
+}
+
 @implementation SRPWaterWallNodeChain
 
 + (NSUserDefaults *)sharedDefaults {
@@ -1376,14 +1545,46 @@ static NSDictionary *SRPWWDocumentWithNodes(NSDictionary *document, NSArray *nod
 }
 
 + (NSDictionary *)documentWithJSON:(NSString *)json error:(NSString **)error {
-    NSData *data = [json isKindOfClass:NSString.class] ? [json dataUsingEncoding:NSUTF8StringEncoding] : nil;
-    id document = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
-    NSString *problem = document == nil ? @"The file is not valid JSON." : [self validationErrorForDocument:document];
+    NSString *problem = nil;
+    id document = [json isKindOfClass:NSString.class] ? SRPWWParsedProfile(json, &problem) : nil;
+    // A number no double can hold (-1e999 is read as an infinity) could not be written back
+    if (document != nil && ![NSJSONSerialization isValidJSONObject:document]) document = nil;
+    if ([document isKindOfClass:NSDictionary.class]) document = SRPWWDocumentWithHintForLocalProxy(document);
+    if (problem == nil) problem = document == nil ? @"The file is not valid JSON." : [self validationErrorForDocument:document];
     if (problem != nil) {
         if (error) *error = problem;
         return nil;
     }
-    return document;
+    return [self currentDocumentForDocument:document];
+}
+
++ (NSDictionary *)currentDocumentForDocument:(NSDictionary *)document {
+    NSArray<NSDictionary *> *nodes = SRPWWNodes(document);
+    NSMutableSet *names = [NSMutableSet setWithArray:[nodes valueForKey:@"name"]];
+    NSMutableArray *current = [NSMutableArray new];
+    BOOL changed = NO;
+    for (NSDictionary *node in nodes) {
+        id mode = [node[@"settings"] isKindOfClass:NSDictionary.class] ? node[@"settings"][@"carrier-mode"] : nil;
+        if (![node[@"type"] isEqual:@"QuicClient"] || mode == nil) {
+            [current addObject:node];
+            continue;
+        }
+        changed = YES;
+        NSMutableDictionary *quic = [node mutableCopy];
+        NSMutableDictionary *settings = [node[@"settings"] mutableCopy];
+        [settings removeObjectForKey:@"carrier-mode"];
+        quic[@"settings"] = settings;
+        [current addObject:quic];
+        if (![mode isEqual:@"stream"]) continue;
+        NSString *name = @"udp-over-tcp";
+        for (NSInteger suffix = 2; [names containsObject:name]; suffix++) name = [NSString stringWithFormat:@"udp-over-tcp-%ld", (long)suffix];
+        [names addObject:name];
+        NSMutableDictionary *framing = [@{@"name": name, @"type": @"UdpOverTcpClient", @"settings": @{}} mutableCopy];
+        framing[@"next"] = node[@"next"];
+        quic[@"next"] = name;
+        [current addObject:framing];
+    }
+    return changed ? SRPWWDocumentWithNodes(document, current) : document;
 }
 
 + (NSString *)validationErrorForDocument:(NSDictionary *)document {
@@ -1450,7 +1651,20 @@ static NSDictionary *SRPWWDocumentWithNodes(NSDictionary *document, NSArray *nod
         [seen addObject:next];
         node = successor;
     }
-    return nil;
+    __block NSString *problem = nil;
+    for (NSDictionary *node in nodes) {
+        SRPWWNodeWithReferences(node, ^NSString *(NSString *name, NSString *setting) {
+            if (problem != nil) return name;
+            if ([name isEqual:hintName]) {
+                problem = [NSString stringWithFormat:@"Node \"%@\" names the input hint \"%@\" as its %@, but the hint must start the chain.",
+                           node[@"name"], name, setting];
+            } else if (byName[name] == nil) {
+                problem = [NSString stringWithFormat:@"Node \"%@\" names \"%@\" as its %@, but no node has that name.", node[@"name"], name, setting];
+            }
+            return name;
+        });
+    }
+    return problem;
 }
 
 + (NSString *)JSONWithDocument:(NSDictionary *)document {
@@ -1489,6 +1703,33 @@ static NSDictionary *SRPWWDocumentWithNodes(NSDictionary *document, NSArray *nod
     return chain;
 }
 
++ (NSArray<NSDictionary *> *)branchNodesOfDocument:(NSDictionary *)document {
+    NSArray<NSDictionary *> *chain = [self chainOfDocument:document];
+    NSMutableArray<NSDictionary *> *others = [NSMutableArray new];
+    NSMutableDictionary<NSString *, NSDictionary *> *byName = [NSMutableDictionary new];
+    for (NSDictionary *node in SRPWWNodes(document)) {
+        if ([chain containsObject:node] || ![node[@"name"] isKindOfClass:NSString.class]) continue;
+        [others addObject:node];
+        if (byName[node[@"name"]] == nil) byName[node[@"name"]] = node;
+    }
+    NSMutableSet *followers = [NSMutableSet new];
+    for (NSDictionary *node in others) {
+        if ([node[@"next"] isKindOfClass:NSString.class]) [followers addObject:node[@"next"]];
+    }
+    // Each branch from its first node along next; what a cycle leaves over keeps the file's order
+    NSMutableArray<NSDictionary *> *ordered = [NSMutableArray new];
+    for (NSInteger pass = 0; pass < 2; pass++) {
+        for (NSDictionary *start in others) {
+            if (pass == 0 && [followers containsObject:start[@"name"]]) continue;
+            for (NSDictionary *node = start; node != nil && ![ordered containsObject:node];
+                 node = [node[@"next"] isKindOfClass:NSString.class] ? byName[node[@"next"]] : nil) {
+                [ordered addObject:node];
+            }
+        }
+    }
+    return ordered;
+}
+
 + (NSString *)summaryOfDocument:(NSDictionary *)document {
     if ([document[@"name"] isKindOfClass:NSString.class] && [document[@"name"] length] > 0) return document[@"name"];
     NSMutableArray *types = [NSMutableArray new];
@@ -1504,13 +1745,15 @@ static NSDictionary *SRPWWDocumentWithNodes(NSDictionary *document, NSArray *nod
     for (NSDictionary *item in SRPWWNodes(document)) {
         if ([item[@"name"] isEqual:name]) {
             [nodes addObject:node];
-        } else if (![newName isEqual:name] && [item[@"next"] isEqual:name]) {
-            // A rename keeps the link that pointed to the old name
-            NSMutableDictionary *linked = [item mutableCopy];
-            linked[@"next"] = newName;
-            [nodes addObject:linked];
-        } else {
+        } else if ([newName isEqual:name]) {
             [nodes addObject:item];
+        } else {
+            // A rename keeps the links that pointed to the old name: next, and the settings that name a node
+            NSMutableDictionary *linked = [SRPWWNodeWithReferences(item, ^NSString *(NSString *reference, NSString *setting) {
+                return [reference isEqual:name] ? newName : reference;
+            }) mutableCopy];
+            if ([item[@"next"] isEqual:name]) linked[@"next"] = newName;
+            [nodes addObject:linked];
         }
     }
     return SRPWWDocumentWithNodes(document, nodes);
@@ -1561,8 +1804,10 @@ static BOOL SRPWWIsConnector(id type) {
 // A connector's own server, not the destination of the connection it carries
 static NSString *SRPWWFixedAddress(NSDictionary *node) {
     id address = [node[@"settings"] isKindOfClass:NSDictionary.class] ? node[@"settings"][@"address"] : nil;
+    // A value taken from the connection (dest_context->address, src_context->address), an IPv6 literal and a CIDR range are
+    // WaterWall's to handle: there is no IPv4 server of the profile to look up
     if (!SRPWWIsConnector(node[@"type"]) || ![address isKindOfClass:NSString.class] || [address length] == 0 ||
-        [address hasPrefix:@"dest_context"]) return nil;
+        [address containsString:@"_context->"] || [address containsString:@":"] || [address containsString:@"/"]) return nil;
     return address;
 }
 
@@ -1587,9 +1832,12 @@ static BOOL SRPWWRouterUsesGeoIP(NSDictionary *node) {
     id rules = node[@"settings"][@"rules"];
     if (![rules isKindOfClass:NSArray.class]) return NO;
     for (id rule in rules) {
-        id destinations = [rule isKindOfClass:NSDictionary.class] ? rule[@"destination-ip"] : nil;
-        for (id destination in [destinations isKindOfClass:NSArray.class] ? destinations : destinations ? @[destinations] : @[]) {
-            if ([destination isKindOfClass:NSString.class] && [[destination lowercaseString] hasPrefix:@"geoip:"]) return YES;
+        for (NSString *key in @[@"destination-ip", @"source-ips"]) {
+            id addresses = [rule isKindOfClass:NSDictionary.class] ? rule[key] : nil;
+            for (id address in [addresses isKindOfClass:NSArray.class] ? addresses : addresses ? @[addresses] : @[]) {
+                NSString *token = [address isKindOfClass:NSString.class] ? [address lowercaseString] : @"";
+                if ([token hasPrefix:@"geoip:"] || [token hasPrefix:@"!geoip:"]) return YES;
+            }
         }
     }
     return NO;
@@ -1603,7 +1851,24 @@ static BOOL SRPWWRouterUsesGeoIP(NSDictionary *node) {
 }
 
 + (BOOL)documentUsesUDPCarrier:(NSDictionary *)document {
-    return [@[@"UdpConnector", @"UdpStatelessSocket"] containsObject:[self chainOfDocument:document].lastObject[@"type"] ?: @""];
+    return [[self chainOfDocument:document].lastObject[@"type"] isEqual:@"UdpConnector"];
+}
+
++ (NSSet<NSString *> *)includedNodeTypes {
+    static NSSet<NSString *> *included;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        included = [NSSet setWithArray:@[
+            @"AuthenticationClient", @"Bgp4Client", @"BlackHole", @"ConnectionFisherClient", @"ConnectionStripeClient",
+            @"ConnectionToPackets", @"Disturber", @"DomainResolver", @"EncryptionClient", @"EnetClient", @"GnsClient",
+            @"HalfDuplexClient", @"HeaderClient", @"HttpClient", @"HttpProxyClient", @"HttpProxyServer", @"JunkDatagramSender",
+            @"KcpClient", @"KeepAliveClient", @"LoggerTunnel", @"MuxClient", @"ObfuscatorClient", @"PacketsToStream", @"QuicClient",
+            @"RealityClient", @"Router", @"RtmpClient", @"Socks5Client", @"Socks5Server", @"SpeedLimit",
+            @"StreamFragmenter", @"TcpConnector", @"TcpListener", @"TcpUdpConnector", @"TcpUdpListener", @"TlsClient",
+            @"TrojanClient", @"UdpConnector", @"UdpListener", @"UdpOverTcpClient", @"UserController", @"VlessClient",
+            @"VmessClient", @"WireGuardClient"]];
+    });
+    return included;
 }
 
 + (NSDictionary *)runtimeDocumentForDocument:(NSDictionary *)document
@@ -1612,25 +1877,15 @@ static BOOL SRPWWRouterUsesGeoIP(NSDictionary *node) {
                            geoIPDatabasePath:(NSString *)geoIPDatabasePath
                                    addresses:(NSDictionary<NSString *, NSString *> *)addresses
                                        error:(NSString **)error {
+    document = [self currentDocumentForDocument:document];
     NSString *problem = [self validationErrorForDocument:document];
     NSDictionary *hint = [self hintOfDocument:document];
     BOOL packets = [hint[@"type"] isEqual:SRPWaterWallHintPacket];
     if (problem == nil && packets && ![input isEqualToString:SRPWaterWallInputTUN]) {
         problem = @"This profile starts with HintPacketIN, which takes IP packets, but the local SOCKS5 and HTTP proxies supply connections. Choose System VPN (TUN) in Settings → WaterWall Input to use it.";
     }
-    // The node types WaterWall/CMakeLists.txt builds into the app; another one would only fail and be retried when it starts
-    static NSSet<NSString *> *included;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        included = [NSSet setWithArray:@[@"AuthenticationClient", @"Bgp4Client", @"DomainResolver", @"EncryptionClient", @"HttpClient",
-                                         @"HttpProxyClient", @"HttpProxyServer", @"KcpClient", @"MuxClient", @"ObfuscatorClient",
-                                         @"PacketsToStream", @"QuicClient", @"RealityClient", @"Router", @"Socks5Client", @"Socks5Server",
-                                         @"StreamFragmenter", @"TcpConnector", @"TcpListener", @"TcpUdpConnector", @"TcpUdpListener",
-                                         @"TlsClient", @"TrojanClient", @"UdpConnector", @"UdpListener", @"UdpStatelessSocket",
-                                         @"UserController", @"VlessClient", @"VmessClient", @"WireGuardDevice"]];
-    });
     for (NSDictionary *node in problem == nil ? SRPWWNodes(document) : @[]) {
-        if (node == hint || [included containsObject:node[@"type"]]) continue;
+        if (node == hint || [[self includedNodeTypes] containsObject:node[@"type"]]) continue;
         problem = [NSString stringWithFormat:@"Node \"%@\" is a %@ node, which the app's WaterWall does not include.", node[@"name"], node[@"type"]];
         break;
     }

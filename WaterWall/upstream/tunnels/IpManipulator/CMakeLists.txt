@@ -32,7 +32,7 @@ target_include_directories(IpManipulator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc
 
 # common/ is PUBLIC because the public structure.h includes common/flow_table.h.
 target_include_directories(IpManipulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/common/)
-target_include_directories(IpManipulator PRIVATE ${CMAKE_SOURCE_DIR}/tunnels/TlsClient/include)
+target_include_directories(IpManipulator PRIVATE ${PROJECT_SOURCE_DIR}/tunnels/TlsClient/include)
 
 
 target_link_libraries(IpManipulator ww TlsClient)

@@ -12,6 +12,15 @@ static void closeOrDestroyLine(tunnel_t *t, line_t *l, httpserver_lstate_t *ls)
 
 void httpserverTunnelUpStreamInit(tunnel_t *t, line_t *l)
 {
+    address_context_t *destination = lineGetDestinationAddressContext(l);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportTcp);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+    addresscontextSetOnlyProtocol(destination, IP_PROTO_TCP);
+
     if (httpserverSplitIsEnabled(t))
     {
         httpserverSplitUpStreamInit(t, l);

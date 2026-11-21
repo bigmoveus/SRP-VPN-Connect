@@ -40,6 +40,7 @@ static void httpclientSplitInitTransportState(tunnel_t *t, line_t *transport, li
 {
     httpclient_lstate_t *ls = lineGetState(transport, t);
     httpclientLinestateInitialize(ls, t, transport);
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(transport), IP_PROTO_TCP);
     ls->runtime_proto       = kHttpClientRuntimeHttp1;
     ls->split_role          = role;
     ls->split_main_line     = main_line;
@@ -256,12 +257,12 @@ void httpclientSplitUpStreamInit(tunnel_t *t, line_t *l)
 
     if (ts->verbose)
     {
-        LOGD("HttpClient: split HTTP/1.1 init id=%s upload=%s %s download=%s %s",
-             ls->split_id,
-             ts->split_upload_method,
-             ts->split_upload_path,
-             ts->split_download_method,
-             ts->split_download_path);
+        LOGD("HttpClient: split HTTP/1.1 init upload_method_bytes=%zu upload_path_bytes=%zu "
+             "download_method_bytes=%zu download_path_bytes=%zu",
+             httpclientLogTextBytes(ts->split_upload_method),
+             httpclientLogTextBytes(ts->split_upload_path),
+             httpclientLogTextBytes(ts->split_download_method),
+             httpclientLogTextBytes(ts->split_download_path));
     }
 
     lineRef(l);

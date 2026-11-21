@@ -659,7 +659,10 @@ static const NSInteger kFieldAetherLicense = 33;
             [self.tableView reloadData];
             break;
         case kSwitchSETLSVerify: self.modal.TLS = !sw.isOn; break;   // TLS field = allowUntrusted (inverted)
-        case kSwitchWWFakeDNS: self.modal.waterwallFakeDNS = sw.isOn; break;
+        case kSwitchWWFakeDNS:
+            if (sw.isOn) self.modal.waterwallFakeDNS = YES;
+            else [self presentViewController:[self remoteDNSOffAlertForSwitch:sw] animated:YES completion:nil];
+            break;
         case kSwitchWWSmartRouting: self.modal.waterwallSmartRouting = sw.isOn; break;
         case kSwitchWWAutoSwitch: self.modal.waterwallAutoSwitch = sw.isOn; break;
         case kSwitchSEUdpAccel: self.modal.seUdpAcceleration = sw.isOn; break;
@@ -678,6 +681,20 @@ static const NSInteger kFieldAetherLicense = 33;
 
         default: break;
     }
+}
+
+/// Remote DNS stays on until the user accepts what turning it off costs.
+- (UIAlertController *)remoteDNSOffAlertForSwitch:(UISwitch *)sw {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Turn Off Remote DNS?"
+        message:@"WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled."
+        preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        [sw setOn:YES animated:YES];
+    }]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Turn Off" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        self.modal.waterwallFakeDNS = NO;
+    }]];
+    return alert;
 }
 
 #pragma mark - table view

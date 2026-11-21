@@ -326,7 +326,7 @@ static int post_recv(wio_t *io, woverlapped_t *record)
     {
         // The loop wake transport carries one byte per armed wake and must not
         // reserve a full network payload buffer for its lifetime.
-        record->sbuf = bufferpoolGetSmallBuffer(io->loop->bufpool);
+        record->sbuf = bufferpoolGetBestFit(io->loop->bufpool, 1, 0);
     }
     else if (io->io_type == WIO_TYPE_UDP)
     {
@@ -335,6 +335,10 @@ static int post_recv(wio_t *io, woverlapped_t *record)
     else if (io->io_type == WIO_TYPE_IP)
     {
         record->sbuf = bufferpoolGetSmallBuffer(io->loop->bufpool);
+    }
+    else if (io->io_type == WIO_TYPE_TCP)
+    {
+        record->sbuf = wioGetTcpReadBuffer(io);
     }
     else
     {
@@ -795,7 +799,12 @@ static int enqueue_send(wio_t *io, sbuf_t *buf)
     uint32_t len = sbufGetLength(buf);
     if (len > io->max_write_bufsize - min(io->write_bufsize, io->max_write_bufsize))
     {
-        wloge("write bufsize > %u, close it!", io->max_write_bufsize);
+        wloge("closing socket: write queue limit exceeded (fd=%d, queued_bytes=%u, incoming_bytes=%u, "
+              "limit_bytes=%u)",
+              wioGetFD(io),
+              io->write_bufsize,
+              len,
+              io->max_write_bufsize);
         io->error = WERR_OVER_LIMIT;
         bufferpoolReuseBuffer(io->loop->bufpool, buf);
         return WERR_OVER_LIMIT;
@@ -832,16 +841,26 @@ static void dispatch_recv(wio_t *io, woverlapped_t *record)
     }
 
     const bool is_dgram = (io->io_type & WIO_TYPE_SOCK_DGRAM) != 0 || (io->io_type & WIO_TYPE_SOCK_RAW) != 0;
+    if (io->iocp_read_paused && record->error == 0)
+    {
+        assert(io->io_type == WIO_TYPE_TCP && io->iocp_held_recv == NULL);
+        io->iocp_held_recv = record;
+        return;
+    }
     if (record->error != 0 || (record->bytes == 0 && ! is_dgram))
     {
         // Real error or stream EOF.
         io->error = record->error;
-        if (record->error == 0 && ! is_dgram)
-            wioHandleReadEOF(io);
         recordRetire(record); // recycles the still-attached sbuf
-        wioClose(io);
+        if (io->error == 0)
+            wioHandleReadEOF(io);
+        else
+            wioClose(io);
         return;
     }
+
+    if (io->io_type == WIO_TYPE_TCP && ! wloopIOIsControl(io))
+        wioUpdateTcpReadCapacity(io, record->bytes, record->buf.len);
 
     // Detach the buffer: read_cb owns it, the record no longer points at it.
     sbuf_t *buf  = record->sbuf;
@@ -870,7 +889,7 @@ static void dispatch_recv(wio_t *io, woverlapped_t *record)
     }
 
     // Repost only if still open, same generation, and read is still enabled.
-    if (! io->closed && record->io_id == io->id && (io->events & WW_READ) &&
+    if (! io->closed && ! io->iocp_read_paused && record->io_id == io->id && (io->events & WW_READ) &&
         LIKELY(wloopNormalDispatchAllowed(io->loop)))
     {
         if (hasUncancelledReceive(io))
@@ -1226,6 +1245,12 @@ void wioIocpCancel(wio_t *io, int event_mask, woverlapped_cancel_reason_e reason
 
     if ((event_mask & WW_READ) != 0)
     {
+        io->iocp_read_paused = 0;
+        if (io->iocp_held_recv != NULL)
+        {
+            recordRetire(io->iocp_held_recv);
+            io->iocp_held_recv = NULL;
+        }
         // Read/accept interest is being withdrawn (read stop, close,
         // release-no-close, loop shutdown). A scheduled AcceptEx replenishment
         // must not outlive it, or it would fire on a pooled wio_t.
@@ -1342,7 +1367,9 @@ static void __connect_timeout_cb(wtimer_t *timer)
     {
         char localaddrstr[SOCKADDR_STRLEN] = {0};
         char peeraddrstr[SOCKADDR_STRLEN]  = {0};
-        wlogw("connect timeout [%s] <=> [%s]",
+        wlogw("closing connection: connect timeout (fd=%d, timeout_ms=%d) [%s] <=> [%s]",
+              wioGetFD(io),
+              io->connect_timeout ? io->connect_timeout : WIO_DEFAULT_CONNECT_TIMEOUT,
               SOCKADDR_STR(io->localaddr, localaddrstr),
               SOCKADDR_STR(io->peeraddr, peeraddrstr));
         io->error = ETIMEDOUT;
@@ -1486,6 +1513,7 @@ error:
 
 int wioRead(wio_t *io)
 {
+    assert(io->loop->bufpool != NULL);
     // Restore read interest first so a restart re-enables the one-shot/stopped
     // read even when an uncancelled receive is still live.
     int add_error = wioAdd(io, wio_handle_events, WW_READ);
@@ -1493,6 +1521,25 @@ int wioRead(wio_t *io)
     {
         wioClose(io);
         return add_error;
+    }
+
+    io->iocp_read_paused = 0;
+    if (io->iocp_held_recv != NULL)
+    {
+        // Deliver through the ordinary dispatch path. Resume must not run a
+        // tunnel or EOF callback inline or post another receive ahead of it.
+        woverlapped_t *held = io->iocp_held_recv;
+        io->iocp_held_recv  = NULL;
+        recordMarkPosted(held);
+        int replay_error = wioIocpRequeueReceive(held);
+        if (replay_error != 0)
+        {
+            recordUnpost(held);
+            recordRetire(held);
+            io->error = replay_error;
+            wioClose(io);
+        }
+        return replay_error;
     }
 
     // Idempotent, like the readiness backend: repeated wioReadStart() calls (and
@@ -1788,7 +1835,10 @@ static void __close_timeout_cb(wtimer_t *timer)
     {
         char localaddrstr[SOCKADDR_STRLEN] = {0};
         char peeraddrstr[SOCKADDR_STRLEN]  = {0};
-        wlogw("close timeout [%s] <=> [%s]",
+        wlogw("forcing socket close: output drain timeout (fd=%d, queued_bytes=%u, timeout_ms=%d) [%s] <=> [%s]",
+              wioGetFD(io),
+              io->write_bufsize,
+              io->close_timeout ? io->close_timeout : WIO_DEFAULT_CLOSE_TIMEOUT,
               SOCKADDR_STR(io->localaddr, localaddrstr),
               SOCKADDR_STR(io->peeraddr, peeraddrstr));
         io->error = ETIMEDOUT;

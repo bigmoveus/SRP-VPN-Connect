@@ -5,8 +5,15 @@
 
 bool vmessclientApplyTargetContext(tunnel_t *t, line_t *l)
 {
-    vmessclient_tstate_t            *ts        = tunnelGetState(t);
-    address_context_t               *dest_ctx  = lineGetDestinationAddressContext(l);
+    vmessclient_tstate_t *ts        = tunnelGetState(t);
+    address_context_t    *dest_ctx  = lineGetDestinationAddressContext(l);
+    const uint8_t         supported = addresscontextGetTransportOffer(dest_ctx) & ts->framing_transports;
+    if (supported == 0)
+    {
+        tunnelLogTransportRefusal(t, dest_ctx, ts->framing_transports);
+        return false;
+    }
+    addresscontextSetTransportOffer(dest_ctx, supported);
     const proxy_client_destination_t selection = {
         .target               = &ts->target_addr,
         .protocol             = ts->protocol == kVmessClientProtocolDestContext ? kProxyClientProtocolDestContext
@@ -15,16 +22,15 @@ bool vmessclientApplyTargetContext(tunnel_t *t, line_t *l)
         .address_from_context = ts->target_addr_source != kDvsConstant,
         .port_from_context    = ts->target_port_source != kDvsConstant,
     };
-    if (! proxyClientApplyDestination(dest_ctx, &selection, "VmessClient"))
+    if (! proxyClientApplyDestination(t, dest_ctx, &selection))
         return false;
 
-    if (! vmessModeValid(ts->security, ts->options, dest_ctx->proto_udp ? 2 : 1) || ! addresscontextIsValid(dest_ctx) ||
-        dest_ctx->port == 0 ||
+    if (! addresscontextIsValid(dest_ctx) || dest_ctx->port == 0 ||
         (addresscontextIsDomain(dest_ctx) &&
          (dest_ctx->domain_len == 0 || memchr(dest_ctx->domain, 0, dest_ctx->domain_len) != NULL ||
           vmessIsPacketAddrDomain((const uint8_t *) dest_ctx->domain, dest_ctx->domain_len))))
     {
-        LOGW("VmessClient: unsupported target or protocol/framing combination");
+        LOGW("VmessClient: invalid or reserved target");
         return false;
     }
 

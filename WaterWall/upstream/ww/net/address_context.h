@@ -54,17 +54,7 @@ enum connection_context_type
  * route-control data through those middle nodes. */
 #define kAddressContextDetectedProtocolMask                                                                            \
     (kAddressContextProtocolHttp1 | kAddressContextProtocolTls | kAddressContextProtocolBittorrent)
-#define kAddressContextRouteControlMask (kAddressContextRouteFlagPinnedDestination)
-
-/*
- * Optional routing metadata. These flags are not intrinsic endpoint identity.
- * Router/sniffers own the detected-protocol subset; route-control flags are
- * carried by protocol tunnels until their designated consumer accepts them.
- */
-typedef struct address_context_optional_flags_s
-{
-    uint32_t detected_protocols;
-} address_context_optional_flags_t;
+#define kAddressContextRouteControlMask kAddressContextRouteFlagPinnedDestination
 
 /**
  * Connction context provieds complete information about a connection. It can be used to connecto to somewhere.
@@ -72,12 +62,12 @@ typedef struct address_context_optional_flags_s
  */
 typedef struct address_context_s
 {
-    ip_addr_t                        ip_address;      // IP address in network byte order
-    uint16_t                         port;            // Port number in host byte order
-    char                            *domain;          // Domain name if applicable
-    enum domain_strategy             domain_strategy; // DNS resolution strategy
-    uint8_t                          domain_len;      // Length of domain name
-    address_context_optional_flags_t optional_flags;  // sniff and route-control metadata
+    ip_addr_t            ip_address;      // IP address in network byte order
+    uint16_t             port;            // Port number in host byte order
+    char                *domain;          // Domain name if applicable
+    enum domain_strategy domain_strategy; // DNS resolution strategy
+    uint8_t              domain_len;      // Length of domain name
+    uint32_t             metadata_flags;  // Detected application protocols and route-control flags
 
     // Flags for address properties
     uint8_t type_ip : 1;         // True for IP address, false for domain
@@ -117,7 +107,7 @@ static inline void addresscontextReset(address_context_t *ctx)
  */
 static inline void addresscontextClearOptionalFlags(address_context_t *ctx)
 {
-    ctx->optional_flags = (address_context_optional_flags_t) {0};
+    ctx->metadata_flags = 0;
     ctx->resolver_dns   = false;
 }
 
@@ -130,7 +120,7 @@ static inline void addresscontextClearOptionalFlags(address_context_t *ctx)
  */
 static inline void addresscontextClearDetectedProtocols(address_context_t *ctx)
 {
-    ctx->optional_flags.detected_protocols &= ~kAddressContextDetectedProtocolMask;
+    ctx->metadata_flags &= ~kAddressContextDetectedProtocolMask;
 }
 
 /**
@@ -165,17 +155,17 @@ static inline void addresscontextSetDestinationPinned(address_context_t *ctx, bo
 {
     if (pinned)
     {
-        ctx->optional_flags.detected_protocols |= kAddressContextRouteFlagPinnedDestination;
+        ctx->metadata_flags |= kAddressContextRouteFlagPinnedDestination;
     }
     else
     {
-        ctx->optional_flags.detected_protocols &= ~kAddressContextRouteFlagPinnedDestination;
+        ctx->metadata_flags &= ~kAddressContextRouteFlagPinnedDestination;
     }
 }
 
 static inline bool addresscontextDestinationIsPinned(const address_context_t *ctx)
 {
-    return (ctx->optional_flags.detected_protocols & kAddressContextRouteFlagPinnedDestination) != 0;
+    return (ctx->metadata_flags & kAddressContextRouteFlagPinnedDestination) != 0;
 }
 
 /**
@@ -547,11 +537,6 @@ static inline int addresscontextGetSockAddrFamily(const address_context_t *conte
 }
 
 /**
- * @brief Get a socket type hint from the current transport protocol flags.
- *
- * Returns 0 when the context has no single TCP or UDP protocol selection.
- */
-/**
  * @brief How one address context names a transport, considering every protocol flag.
  *
  * addresscontextGetSockType() deliberately looks only at TCP versus UDP, so it
@@ -561,21 +546,63 @@ static inline int addresscontextGetSockAddrFamily(const address_context_t *conte
  */
 typedef enum address_context_transport_e
 {
-    /* No protocol flag is set: the caller may fall back to another context. */
+    /* No protocol flag is set. */
     kAddressContextTransportNone = 0,
     /* Exactly TCP, and no other protocol flag. */
-    kAddressContextTransportTcp,
+    kAddressContextTransportTcp = 1,
     /* Exactly UDP, and no other protocol flag. */
-    kAddressContextTransportUdp,
+    kAddressContextTransportUdp = 2,
+    /* Destination offer for a producer that can honor either choice. */
+    kAddressContextTransportBoth = kAddressContextTransportTcp | kAddressContextTransportUdp,
     /* ICMP, packet, or a combination: not something a TCP/UDP node can serve. */
-    kAddressContextTransportUnsupported
+    kAddressContextTransportUnsupported = 4
 } address_context_transport_t;
+
+/**
+ * Read a normal line's destination offer without changing its endpoint.
+ * Pinned endpoints require an exact protocol.
+ */
+static inline uint8_t addresscontextGetTransportOffer(const address_context_t *context)
+{
+    if (context->proto_icmp || context->proto_packet)
+    {
+        return 0;
+    }
+
+    const uint8_t offer =
+        (context->proto_tcp ? kAddressContextTransportTcp : 0) | (context->proto_udp ? kAddressContextTransportUdp : 0);
+    return offer == kAddressContextTransportBoth && addresscontextDestinationIsPinned(context) ? 0 : offer;
+}
+
+/** Select an exact transport from a saved offer and allowed subset, preferring TCP. */
+static inline uint8_t addresscontextChooseTransport(uint8_t offer, uint8_t allowed)
+{
+    assert((offer & ~kAddressContextTransportBoth) == 0);
+    assert((allowed & ~kAddressContextTransportBoth) == 0);
+    const uint8_t eligible = offer & allowed;
+    return (eligible & kAddressContextTransportTcp) != 0 ? kAddressContextTransportTcp : eligible;
+}
+
+static inline uint8_t addresscontextSelectTransport(const address_context_t *context, uint8_t allowed)
+{
+    return addresscontextChooseTransport(addresscontextGetTransportOffer(context), allowed);
+}
+
+/** Publish an offer while preserving the address, port and routing metadata. */
+static inline void addresscontextSetTransportOffer(address_context_t *context, uint8_t offer)
+{
+    assert(offer != 0 && (offer & ~kAddressContextTransportBoth) == 0);
+    assert(offer != kAddressContextTransportBoth || ! addresscontextDestinationIsPinned(context));
+
+    addresscontextSetOnlyProtocol(context, offer == kAddressContextTransportUdp ? IP_PROTO_UDP : IP_PROTO_TCP);
+    if (offer == kAddressContextTransportBoth)
+        addresscontextSetProtocol(context, IP_PROTO_UDP);
+}
 
 /**
  * @brief Classify one context's transport exactly.
  *
- * Pure: it reads flags and nothing else, so the caller keeps its own
- * destination-before-source policy and its own diagnostics.
+ * Pure: use this to validate an exact observation, such as the ingress source.
  */
 static inline address_context_transport_t addresscontextClassifyTransport(const address_context_t *context)
 {
@@ -660,7 +687,7 @@ static inline void addresscontextCopy(address_context_t *dest, const address_con
     dest->proto_packet    = source->proto_packet;
     dest->domain_resolved = source->domain_resolved;
     dest->port            = source->port;
-    dest->optional_flags  = source->optional_flags;
+    dest->metadata_flags  = source->metadata_flags;
     dest->resolver_dns    = source->resolver_dns;
 }
 

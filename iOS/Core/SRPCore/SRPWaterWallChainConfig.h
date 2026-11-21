@@ -72,6 +72,15 @@ FOUNDATION_EXPORT NSString *const SRPWaterWallHintPacket;
 
 /// The nodes from the hint along each next, in the order the chain runs (a missing node or a cycle ends the list)
 + (NSArray<NSDictionary *> *)chainOfDocument:(NSDictionary *)document;
+/// The nodes off that chain, such as the ones another node names in its settings (a Router's targets, the upload and
+/// download paths of a HalfDuplexClient): each branch from its first node along next.
++ (NSArray<NSDictionary *> *)branchNodesOfDocument:(NSDictionary *)document;
+/// The node types WaterWall/CMakeLists.txt builds into the app, without the input nodes SRP supplies itself; a profile
+/// with another type would only fail when it starts
+@property (class, nonatomic, readonly) NSSet<NSString *> *includedNodeTypes;
+/// A profile saved for WaterWall 1.5 in the form WaterWall 1.6 takes: QuicClient lost carrier-mode, and QUIC over TCP
+/// has a UdpOverTcpClient node after it.
++ (NSDictionary *)currentDocumentForDocument:(NSDictionary *)document;
 + (nullable NSDictionary *)hintOfDocument:(NSDictionary *)document;
 /// The document's name, or the node types along the chain
 + (NSString *)summaryOfDocument:(NSDictionary *)document;

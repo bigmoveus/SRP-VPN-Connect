@@ -9,14 +9,21 @@ void speedlimitTunnelUpStreamPayload(tunnel_t *tunnel, line_t *line, sbuf_t *buf
 {
     speedlimit_tstate_t *settings = tunnelGetState(tunnel);
     speedlimit_lstate_t *state    = lineGetState(line, tunnel);
+    if (state->close_phase != kSpeedLimitOpen)
+    {
+        lineReuseBuffer(line, buffer);
+        return;
+    }
     if (settings->work_mode == kSpeedLimitWorkModeDrop)
     {
         if (speedlimitGrantBytes(tunnel, line, sbufGetLength(buffer), false) == sbufGetLength(buffer))
             tunnelNextUpStreamPayload(tunnel, line, buffer);
         else
+        {
+            speedlimitLogDrop(tunnel, line, sbufGetLength(buffer), true);
             lineReuseBuffer(line, buffer);
+        }
         return;
     }
-    if (trafficshaperSubmit(&state->up, buffer) == kTrafficShaperRefused)
-        speedlimitCloseLineOnDrainFailure(state, buffer);
+    speedlimitSubmit(&state->up_context, buffer);
 }

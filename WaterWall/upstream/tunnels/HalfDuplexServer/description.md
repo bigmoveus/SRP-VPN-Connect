@@ -1,26 +1,20 @@
 <!--
-Documentation version: 153
+Documentation version: 156
 Sync note: Any change to this file must also be applied to WaterWall/WaterWall-Docs/docs/02-noderefs/HalfDuplexServer.mdx and WaterWall/WaterWall-Docs/i18n/fa/docusaurus-plugin-content-docs/current/02-noderefs/HalfDuplexServer.mdx, and all files must keep the same documentation version.
 -->
 
 # HalfDuplexServer Node
 
+## Overview
+
 `HalfDuplexServer` is the server-side peer of `HalfDuplexClient`. It receives two separate inbound half-connections, matches them by an internal identifier, and reconstructs one normal logical line toward the next node.
 
 In practice, this node is used together with `HalfDuplexClient` on the other side of the transport.
 
-## What It Does
+The server selects TCP on each incoming transport line. The reconstructed
+application line offers exact TCP before its first upstream `Init`.
 
-- Accepts inbound half-connections from the previous node.
-- Reads an internal 17-byte intro containing an exact role and a 128-bit pair ID.
-- Matches upload and download connections that belong together.
-- Creates one normal main line toward the next node after both halves are available.
-- Forwards upload-side payload to the next node.
-- Sends downstream replies from the next node back through the download-side connection.
-
-This tunnel effectively turns two transport connections into one logical connection for the service-facing side.
-
-## Typical Placement
+## Typical placement
 
 A common layout is:
 
@@ -30,7 +24,11 @@ A common layout is:
 
 `HalfDuplexServer` should usually sit opposite `HalfDuplexClient`.
 
-## Configuration Example
+## Minimal practical example
+
+These are node fragments; define the referenced neighboring nodes in the surrounding configuration.
+
+### Configuration Example
 
 ```json
 {
@@ -41,9 +39,11 @@ A common layout is:
 }
 ```
 
-## Required JSON Fields
+## Configuration
 
-### Top-level fields
+### Required JSON Fields
+
+#### Top-level fields
 
 - `name` `(string)`
   A user-chosen name for this node.
@@ -52,19 +52,107 @@ A common layout is:
   Must be exactly `"HalfDuplexServer"`.
 
 - `next` `(string)`
-  The next node that should receive the reconstructed logical line.
+  Required when `settings.pair` is absent. Receives the reconstructed logical line.
+  Must be omitted when `settings.pair` is present.
 
-### `settings`
+#### `settings`
 
 There are no required tunnel-specific settings in the current implementation.
 
-## Optional `settings` Fields
+### Optional `settings` Fields
 
-There are no tunnel-specific optional settings in the current implementation.
+| Setting | Type | Description |
+| --- | --- | --- |
+| `pair` | string | Optional name of a primary `HalfDuplexServer` in the same configuration. |
 
-## Detailed Behavior
+With no `pair`, this node is a primary and requires a nonempty `next`. With
+`pair`, it is a secondary and `next` must be absent, including no `next: null`.
+The primary does not need a reciprocal setting. Several secondaries may name the
+same primary.
 
-### Upload and download matching
+Startup rejects an empty, non-string, unknown or self-referencing `pair`, a target
+of another node type, or a target that itself specifies `pair`. Pair chains and
+cycles are therefore not allowed. Every server still requires its own previous
+transport node.
+
+## Usage and troubleshooting
+
+### Alternative examples
+
+A second transport can join the same pairing group by naming the primary server:
+
+```json
+[
+  {
+    "name": "hs1",
+    "type": "HalfDuplexServer",
+    "settings": {},
+    "next": "vless-server"
+  },
+  {
+    "name": "hs2",
+    "type": "HalfDuplexServer",
+    "settings": { "pair": "hs1" }
+  }
+]
+```
+
+Either upload or download may arrive through either server. The intro determines
+its role; `pair` does not assign a fixed upload or download role to a node.
+
+### Complete TLS/KCP Topology
+
+One local TCP stream can upload over TLS/TCP and download over KCP/UDP. The two
+client branches start at `HalfDuplexClient`; both server branches belong to the
+same configuration:
+
+```text
+Client:
+TcpListener -> VlessClient -> HalfDuplexClient
+  upload   -> TlsClient -> TcpConnector == TLS/TCP ==> server TcpListener
+  download -> KcpClient -> UdpConnector == KCP/UDP ==> server UdpListener
+
+Server:
+TcpListener -> TlsServer -> hs1 -> VlessServer -> TcpUdpConnector
+UdpListener -> KcpServer -> hs2 (pair: hs1)
+```
+
+`hs1` and `hs2` share one pairing group, and the reconstructed application line
+continues through `hs1` to `VlessServer` and `TcpUdpConnector`.
+Both transport connections are initiated by the client. The path names describe
+application payload directions; KCP still exchanges acknowledgements and control
+traffic in both directions. Swap the client's `upload` and `download` values to
+reverse the transport roles without changing the server's `pair` setting.
+
+See the [complete TLS/KCP walkthrough](../../WaterWall-Docs/docs/03-examples/tunnels/halfduplex-split-transports.mdx)
+and the [client/server configuration files](../HalfDuplexClient/examples/tls-kcp) for setup and execution.
+
+### Notes And Caveats
+
+- `HalfDuplexServer` is intended to be paired with `HalfDuplexClient`.
+- `settings.pair` joins another server's pairing group and application path.
+- The tunnel depends on an internal 17-byte intro shared with `HalfDuplexClient`.
+- Waiting upload halves can buffer data, but waiting download halves are mostly just registered in the map.
+- The current implementation uses a pipe-tunnel wrapper internally for cross-worker pairing.
+- Incoming transport `Est` is consumed; application startup waits for both halves.
+- `DownStreamInit` is disabled in the current implementation.
+
+## Implementation details
+
+### What It Does
+
+- Accepts inbound half-connections from the previous node.
+- Reads an internal 17-byte intro containing an exact role and a 128-bit pair ID.
+- Matches upload and download connections that belong together.
+- Creates one normal main line toward the next node after both halves are available.
+- Forwards upload-side payload to the next node.
+- Sends downstream replies from the next node back through the download-side connection.
+
+This tunnel effectively turns two transport connections into one logical connection for the service-facing side.
+
+### Detailed Behavior
+
+#### Upload and download matching
 
 Each incoming transport line begins in an unknown state.
 
@@ -75,7 +163,7 @@ From that block it extracts:
 - the logical connection's full 128-bit pair ID
 - whether this line is the upload side or the download side
 
-It then uses two hash maps:
+The primary owns two hash maps shared by every server in its pairing group:
 
 - upload-line map
 - download-line map
@@ -84,17 +172,17 @@ If the matching peer half is already waiting, the server pairs them immediately.
 
 If not, the half-connection is stored in the appropriate map until its partner arrives.
 
-### Main line creation
+#### Main line creation
 
 Once both halves are available:
 
-- `HalfDuplexServer` creates one main line toward the next node
+- the primary `HalfDuplexServer` creates one main line toward its next node
 - links that main line to the upload and download transport lines
 - initializes the next node with that main line
 
 After this point, the next node sees a normal single logical line and does not need to know that it came from two transport connections.
 
-### Data flow direction
+#### Data flow direction
 
 - Upload half to main line: previous node -> upload line -> `HalfDuplexServer` -> next node
 - Main line reply to download half: next node -> `HalfDuplexServer` -> download line -> previous node
@@ -103,7 +191,7 @@ The upload line is where client-originated payload enters.
 
 The download line is where service replies are written back.
 
-### Handling of the first payload
+#### Handling of the first payload
 
 The first upload-side payload includes both:
 
@@ -117,7 +205,7 @@ required.
 
 The download-side intro carries no user payload. It is consumed only for matching.
 
-### Worker handoff behavior
+#### Worker handoff behavior
 
 This tunnel is created through the pipe-tunnel wrapper so it can move a half-connection to the worker that already owns its matching partner.
 
@@ -128,7 +216,14 @@ If the upload and download halves arrive on different workers:
 
 This is an important implementation detail because the two halves may not land on the same worker naturally.
 
-### Temporary buffering
+Each server retains its own PipeTunnel wrapper. Cross-worker handoff uses the
+arriving half's wrapper, and callbacks to a transport return through that half's
+original server and branch. The primary owns the matching tables and main line;
+responses use the download branch, while service-side pressure reaches the upload
+branch. All branches belong to one assembled topology for line state, padding,
+layer checks and lifecycle handling.
+
+#### Temporary buffering
 
 If an upload half arrives before its matching download half, the server buffers its payload until the pair is complete.
 
@@ -140,7 +235,7 @@ If that limit is reached before the matching download half appears, the waiting 
 
 Download halves are not buffered the same way. They are mainly stored as waiting entries until the upload side arrives.
 
-### Pause and resume behavior
+#### Pause and resume behavior
 
 If the download transport line is paused or resumed by the previous side, `HalfDuplexServer` forwards that pause or resume to the main line toward the next node.
 
@@ -156,43 +251,27 @@ and owns the reconstructed main line. It must stay active to map payload, pressu
 and Finish between them. Its startup replay still respects next-side Pause; the
 ordinary middle-node transparency rule does not remove this producer control.
 
-### Finish behavior
+#### Finish behavior
 
-If either half-connection closes after pairing:
+If an upload with a complete validated intro finishes before download arrives,
+the server retains its pair ID and accepted body for up to 30 seconds from
+upload Finish. The pairing group holds at most 64 such uploads and 8 MiB of
+retained allocation charge. A matching download on another worker moves to the
+record's owner through PipeTunnel. Entries with incomplete intros are discarded.
 
-- the main line is finished and destroyed
-- the other half-connection is scheduled to close
-
-If a half-connection closes before pairing completes, it is removed from the waiting map and cleaned up.
+After pairing, upload Finish detaches that transport. The service receives the
+initial body and admitted startup FIFO in order as its Pause permits, then
+receives one Finish. If the download sends Finish during the service's Finish
+callback, it cancels the pending download notification. Otherwise the server
+finishes the download after settling the owned service line.
+The original 30-second deadline includes any time spent
+waiting for a download match. Service closure or worker shutdown settles the
+remaining drain. An early download failure while both transports are still
+attached aborts the pair.
 
 If the next side closes the reconstructed main line, `HalfDuplexServer` finishes the download line immediately and schedules the upload line to close.
 
-## Notes And Caveats
-
-- `HalfDuplexServer` is intended to be paired with `HalfDuplexClient`.
-- There are no tunnel-specific JSON settings today.
-- The tunnel depends on an internal 17-byte intro shared with `HalfDuplexClient`.
-- Waiting upload halves can buffer data, but waiting download halves are mostly just registered in the map.
-- The current implementation uses a pipe-tunnel wrapper internally for cross-worker pairing.
-- `UpStreamEst` and `DownStreamInit` are disabled in the current implementation.
-
-## Node Metadata
-
-Source-backed metadata:
-
-| Property | Value |
-| --- | --- |
-| node flags | `kNodeFlagSupportsSplice` |
-| `can_have_prev` | `true` |
-| `can_have_next` | `true` |
-| `layer_group` | `kNodeLayer4` |
-| `layer_group_prev_node` | `kNodeLayer4` |
-| `layer_group_next_node` | `kNodeLayer4` |
-| `required_padding_left` | `0` bytes |
-
-The waiting bound applies at initial publication and on later appends. Close occurs at or above 262,140 bytes in S1/S2 or 4,194,240 bytes in higher profiles; available peers pair before waiting limits apply.
-
-## Splice and setup storage
+### Splice and setup storage
 
 Any delivery used to parse an intro or extend a waiting upload is materialized
 completely, including body bytes accompanying the intro. Retained setup buffers
@@ -211,10 +290,10 @@ Both nodes advertise `kNodeFlagSupportsSplice`. The client requires 17 bytes of
 left padding for its upload intro; the server requires zero.
 Actual splice reads require platform/build support, `misc.splice` enabled, and
 support from every node in the expanded chain, including the server's PipeTunnel
-wrapper and all neighbors. Ordinary buffers remain valid in every state. No new
-settings, wire fields, or read-preference requests are introduced.
+wrapper and all neighbors. Ordinary buffers remain valid in every state.
+`pair` does not change the wire format or read-preference behavior.
 
-### Ordering during main-line startup
+#### Ordering during main-line startup
 
 Pairing publishes a temporary startup barrier before invoking next Init. The
 server-owned main line owns the initial ordinary body separately from later
@@ -222,9 +301,8 @@ upload input. Input received reentrantly during Init or initial replay cannot
 overtake that body. An empty initial body still preserves the Init barrier.
 
 Later input retained by this barrier has independent inclusive limits of 2 MiB
-logical bytes, 2 MiB canonical allocation charge, and 1,024 entries. Empty entries
-consume charge and an entry; allocation capacity may exhaust the charge limit
-before the byte limit. Refusal closes the association rather than dropping TCP
+logical bytes and 2 MiB canonical allocation charge. Empty entries consume charge;
+allocation capacity may exhaust the charge limit before the byte limit. Refusal closes the association rather than dropping TCP
 bytes. The initial body is outside this new budget: its existing admission and
 waiting-upload limits remain unchanged, including immediately pairable large
 inputs.
@@ -239,5 +317,22 @@ Replay waits for next-side permission. A Resume during Init only records that
 permission; source Resume follows older startup output and is withheld while next
 is paused. The barrier ends immediately before the final tail handoff, allowing
 later reentrant data to follow all older bytes. Ready forwarding remains queue-free
-and preserves ordinary/splice wrappers. Every close path releases main-owned
-startup data and its budget before notifying adjacent sides.
+and preserves ordinary/splice wrappers. Orderly upload Finish keeps the
+startup buffers on the owned service line until handoff or cancellation. Budget
+cost is released as each entry is handed off or recycled.
+
+### Node Metadata
+
+Source-backed metadata:
+
+| Property | Value |
+| --- | --- |
+| node flags | `kNodeFlagChainEnd \| kNodeFlagSupportsSplice` |
+| `can_have_prev` | `true` |
+| `can_have_next` | `true` |
+| `layer_group` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4Stream` |
+| `layer_group_next_node` | `kNodeLayer4Stream` |
+| `required_padding_left` | `0` bytes |
+
+The waiting bound applies at initial publication and on later appends. Close occurs at or above 262,140 bytes in S1/S2 or 4,194,240 bytes in higher profiles; available peers pair before waiting limits apply.

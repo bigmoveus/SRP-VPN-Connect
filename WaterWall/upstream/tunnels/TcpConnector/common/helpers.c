@@ -72,8 +72,8 @@ static void onRecv(wio_t *io, sbuf_t *buf)
     tcpconnector_lstate_t *lstate = weventGetUserdata(io);
     if (UNLIKELY(lstate == NULL))
     {
+        // WIO can still deliver reads after the line detaches while queued writes drain.
         bufferpoolReuseBuffer(wloopGetBufferPool(weventGetLoop(io)), buf);
-        // assert(false);
         return;
     }
     tunnel_t              *t  = lstate->tunnel;
@@ -118,7 +118,7 @@ void tcpconnectorOnOutBoundConnected(wio_t *upstream_io)
     tcpconnector_lstate_t *lstate = weventGetUserdata(upstream_io);
     if (UNLIKELY(lstate == NULL))
     {
-        // assert(false);
+        // The line can detach before WIO reports that the connection succeeded.
         return;
     }
 

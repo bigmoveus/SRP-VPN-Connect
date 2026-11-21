@@ -386,6 +386,7 @@ void muxclientUnregisterParent(muxclient_tstate_t *ts, muxclient_lstate_t *ls)
 static bool muxclientCreateParentLine(tunnel_t *t, wid_t wid, line_t **selection_slot)
 {
     line_t             *parent_l  = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), wid);
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(parent_l), IP_PROTO_TCP);
     muxclient_lstate_t *parent_ls = lineGetState(parent_l, t);
 
     muxclientLinestateInitialize(t, parent_ls, parent_l, false, 0);
@@ -1565,6 +1566,8 @@ void muxclientSendSpliceBatch(tunnel_t *t, line_t *parent_l, sbuf_t *input, muxc
     lineRef(parent_l);
     line_t *writer_l = child->l;
     lineRef(writer_l);
+    const size_t input_bytes   = sbufGetLength(input);
+    const size_t queued_charge = output->charge;
     if (! muxEncodeSpliceBatch(lineGetBufferPool(parent_l),
                                input,
                                child->connection_id,
@@ -1572,7 +1575,11 @@ void muxclientSendSpliceBatch(tunnel_t *t, line_t *parent_l, sbuf_t *input, muxc
                                output,
                                ts->parent_write_limit))
     {
-        LOGE("MuxClient: complete splice batch exceeds parent limit or reservation failed");
+        LOGE("MuxClient: closing parent: complete splice batch admission refused "
+             "(queued_charge_bytes=%zu, incoming_payload_bytes=%zu, parent_write_limit_charge_bytes=%u)",
+             queued_charge,
+             input_bytes,
+             ts->parent_write_limit);
         muxclientHandleParentLoss(t, parent_l, true);
         lineUnref(writer_l);
         lineUnref(parent_l);

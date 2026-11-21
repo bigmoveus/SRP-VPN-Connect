@@ -115,6 +115,7 @@ typedef struct httpserver_lstate_s
     bool h2_end_stream_emitted : 1;
     bool h2_source_paused : 1; // our DATA backlog paused next
     bool prev_paused : 1;      // prev paused next through us
+    bool service_read_paused : 1; // next paused carrier reads through us
     bool prev_finished : 1;
     bool next_finished : 1;
     bool finish_dispatching : 1; // synchronous final output owns cleanup until it returns
@@ -282,3 +283,10 @@ bool httpserverTransportFinishCustomUpgrade(tunnel_t *t, line_t *l, httpserver_l
 void httpserverSplitRejectInput(tunnel_t *t, line_t *l);
 
 bool httpserverDrainSplitInput(tunnel_t *t, line_t *l);
+
+/* Render field lengths only: request paths and peer header values may contain
+ * credentials or control bytes that must not enter diagnostic records. */
+static inline size_t httpserverLogTextBytes(const char *text)
+{
+    return text != NULL ? stringLength(text) : 0;
+}

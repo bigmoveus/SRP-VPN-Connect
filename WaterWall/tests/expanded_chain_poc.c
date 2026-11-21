@@ -147,18 +147,14 @@ int main(void) {
       "{\"name\":\"out\",\"type\":\"TcpConnector\",\"settings\":{\"address\":"
       "\"127.0.0.1\",\"port\":9}}]}";
   static const char wireguard[] =
-      "{\"name\":\"wireguard\",\"nodes\":["
-      "{\"name\":\"udp\",\"type\":\"UdpStatelessSocket\",\"settings\":{"
-      "\"listen-address\":\"127.0.0.1\",\"listen-port\":51821},\"next\":\"wg\"}"
-      ","
-      "{\"name\":\"wg\",\"type\":\"WireGuardDevice\",\"settings\":{"
-      "\"privatekey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\","
-      "\"peers\":[{"
-      "\"publickey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\","
-      "\"allowedips\":\"0.0.0.0/0\","
-      "\"endpoint\":\"127.0.0.1:51820\",\"persistentkeepalive\":15}]},\"next\":"
-      "\"ne\"},"
-      "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{}}]}";
+      "{\"name\":\"wireguard\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"s"
+      "ettings\":{},\"next\":\"wg\"},{\"name\":\"wg\",\"type\":\"WireGuardClient\",\"next"
+      "\":\"udp\",\"settings\":{\"privatekey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQ"
+      "EBAQEBAQE=\",\"peers\":[{\"publickey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBA"
+      "QEBAQEBAQE=\",\"allowedips\":\"0.0.0.0/0\",\"endpoint\":\"127.0.0.1:51820\",\""
+      "persistentkeepalive\":15}]}},{\"name\":\"udp\",\"type\":\"UdpConnector\",\"set"
+      "tings\":{\"address\":\"dest_context->address\",\"port\":\"dest_context->port"
+      "\"}}]}";
 
   static const char raw_reality[] =
       "{\"name\":\"raw-reality\",\"nodes\":["
@@ -182,19 +178,106 @@ int main(void) {
       "{\"name\":\"out\",\"type\":\"TcpConnector\",\"settings\":{\"address\":"
       "\"127.0.0.1\",\"port\":9}}]}";
   static const char quic[] =
-      "{\"name\":\"quic\",\"nodes\":["
-      "{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settings\":{},\"next\":"
-      "\"ptc\"},"
-      "{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"settings\":{},"
-      "\"next\":\"vless\"},"
-      "{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{\"uuid\":"
-      "\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"example.com\","
-      "\"port\":80,\"protocol\":\"tcp\"},\"next\":\"quic\"},"
-      "{\"name\":\"quic\",\"type\":\"QuicClient\",\"settings\":{\"sni\":"
-      "\"localhost\",\"verify\":false,\"carrier-mode\":\"datagram\"},\"next\":"
-      "\"out\"},"
-      "{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":"
+      "{\"name\":\"quic\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settin"
+      "gs\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"set"
+      "tings\":{},\"next\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\"sett"
+      "ings\":{\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"exam"
+      "ple.com\",\"port\":80,\"protocol\":\"tcp\"},\"next\":\"quic\"},{\"name\":\"quic\",\""
+      "type\":\"QuicClient\",\"settings\":{\"sni\":\"localhost\",\"verify\":false},\"ne"
+      "xt\":\"out\"},{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\""
+      ":\"127.0.0.1\",\"port\":9}}]}";
+  static const char quic_tcp[] =
+      "{\"name\":\"quic-tcp\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"se"
+      "ttings\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\","
+      "\"settings\":{},\"next\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\""
+      "settings\":{\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\""
+      "example.com\",\"port\":80,\"protocol\":\"tcp\"},\"next\":\"quic\"},{\"name\":\"qui"
+      "c\",\"type\":\"QuicClient\",\"settings\":{\"sni\":\"localhost\",\"verify\":false}"
+      ",\"next\":\"framing\"},{\"name\":\"framing\",\"type\":\"UdpOverTcpClient\",\"sett"
+      "ings\":{},\"next\":\"out\"},{\"name\":\"out\",\"type\":\"TcpConnector\",\"settings"
+      "\":{\"address\":\"127.0.0.1\",\"port\":9}}]}";
+  static const char striped_rtmp_reality[] =
+      "{\"name\":\"striped-rtmp-reality\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacke"
+      "tDevice\",\"settings\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsTo"
+      "Connection\",\"settings\":{},\"next\":\"trojan\"},{\"name\":\"trojan\",\"type\":\""
+      "TrojanClient\",\"next\":\"mux\",\"settings\":{\"password\":\"native-poc-placeh"
+      "older\",\"address\":\"dest_context->address\",\"port\":\"dest_context->port\""
+      ",\"protocol\":\"dest_context->protocol\"}},{\"name\":\"mux\",\"type\":\"MuxClie"
+      "nt\",\"next\":\"half-duplex\",\"settings\":{\"mode\":\"fixed-connections-count"
+      "\",\"per-worker-connections-count\":1}},{\"name\":\"half-duplex\",\"type\":\"H"
+      "alfDuplexClient\",\"settings\":{\"upload\":\"up\",\"download\":\"down\"}},{\"nam"
+      "e\":\"up\",\"type\":\"ConnectionStripeClient\",\"settings\":{\"connections\":8}"
+      ",\"next\":\"obfuscator\"},{\"name\":\"obfuscator\",\"type\":\"ObfuscatorClient\""
+      ",\"settings\":{\"method\":\"xor\",\"xor_key\":90},\"next\":\"rtmp\"},{\"name\":\"rt"
+      "mp\",\"type\":\"RtmpClient\",\"settings\":{\"tc-url\":\"rtmp://127.0.0.1:1935/"
+      "waterwall\"},\"next\":\"rtmp-out\"},{\"name\":\"rtmp-out\",\"type\":\"TcpConnect"
+      "or\",\"settings\":{\"address\":\"127.0.0.1\",\"port\":9}},{\"name\":\"down\",\"typ"
+      "e\":\"RealityClient\",\"settings\":{\"sni\":\"localhost\",\"verify\":false,\"pas"
+      "sword\":\"native-poc-placeholder\"},\"next\":\"reality-out\"},{\"name\":\"real"
+      "ity-out\",\"type\":\"TcpConnector\",\"settings\":{\"address\":\"127.0.0.1\",\"po"
+      "rt\":9}}]}";
+  static const char enet[] =
+      "{\"name\":\"enet\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"settin"
+      "gs\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"set"
+      "tings\":{},\"next\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\"sett"
+      "ings\":{\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"exam"
+      "ple.com\",\"port\":80,\"protocol\":\"tcp\"},\"next\":\"enet\"},{\"name\":\"enet\",\""
+      "type\":\"EnetClient\",\"settings\":{\"send-mtu\":1400},\"next\":\"out\"},{\"name"
+      "\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":\"127.0.0.1\",\"por"
+      "t\":9}}]}";
+  static const char gns[] =
+      "{\"name\":\"gns\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"setting"
+      "s\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\"sett"
+      "ings\":{},\"next\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\"setti"
+      "ngs\":{\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"examp"
+      "le.com\",\"port\":80,\"protocol\":\"tcp\"},\"next\":\"gns\"},{\"name\":\"gns\",\"typ"
+      "e\":\"GnsClient\",\"settings\":{\"send-mtu\":1400,\"send-rate\":4194304},\"nex"
+      "t\":\"out\"},{\"name\":\"out\",\"type\":\"UdpConnector\",\"settings\":{\"address\":"
       "\"127.0.0.1\",\"port\":9}}]}";
+  static const char helpers[] =
+      "{\"name\":\"helpers\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"set"
+      "tings\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\",\""
+      "settings\":{},\"next\":\"router\"},{\"name\":\"router\",\"type\":\"Router\",\"sett"
+      "ings\":{\"rules\":[{\"destination-ip\":[\"192.0.2.0/24\"],\"target\":\"drop\"}]"
+      "},\"next\":\"speed\"},{\"name\":\"drop\",\"type\":\"BlackHole\",\"settings\":{\"mod"
+      "e\":\"passive\"}},{\"name\":\"speed\",\"type\":\"SpeedLimit\",\"settings\":{\"kilo"
+      "-bytes-per-sec\":256,\"limit-mode\":\"per-line\",\"work-mode\":\"pause\"},\"ne"
+      "xt\":\"log\"},{\"name\":\"log\",\"type\":\"LoggerTunnel\",\"settings\":{\"mode\":\"l"
+      "og\",\"level\":\"info\"},\"next\":\"disturber\"},{\"name\":\"disturber\",\"type\":\""
+      "Disturber\",\"settings\":{\"disturb-upstream\":true,\"disturb-downstream\":"
+      "false,\"chance_payload_delay\":1,\"delay_min_ms\":1,\"delay_max_ms\":2},\"n"
+      "ext\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\"settings\":{\"uuid"
+      "\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\"example.com\",\"po"
+      "rt\":80,\"protocol\":\"tcp\"},\"next\":\"keepalive\"},{\"name\":\"keepalive\",\"ty"
+      "pe\":\"KeepAliveClient\",\"settings\":{\"ping-interval\":30000,\"sensitive-m"
+      "ode\":false,\"tolerance-ms\":90000},\"next\":\"header\"},{\"name\":\"header\",\""
+      "type\":\"HeaderClient\",\"settings\":{\"data\":\"src_context->port\"},\"next\":"
+      "\"fisher\"},{\"name\":\"fisher\",\"type\":\"ConnectionFisherClient\",\"settings"
+      "\":{\"simultaneous-tries-perline\":3},\"next\":\"out\"},{\"name\":\"out\",\"type"
+      "\":\"TcpConnector\",\"settings\":{\"address\":\"127.0.0.1\",\"port\":9}}]}";
+  static const char kcp_junk[] =
+      "{\"name\":\"kcp-junk\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPacketDevice\",\"se"
+      "ttings\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsToConnection\","
+      "\"settings\":{},\"next\":\"vless\"},{\"name\":\"vless\",\"type\":\"VlessClient\",\""
+      "settings\":{\"uuid\":\"00112233-4455-6677-8899-aabbccddeeff\",\"address\":\""
+      "example.com\",\"port\":80,\"protocol\":\"tcp\"},\"next\":\"kcp\"},{\"name\":\"kcp\""
+      ",\"type\":\"KcpClient\",\"settings\":{},\"next\":\"junk\"},{\"name\":\"junk\",\"typ"
+      "e\":\"JunkDatagramSender\",\"settings\":{\"packet-count-perline-min\":2,\"pa"
+      "cket-count-perline-max\":5,\"resend-again-times\":1,\"selected-protocols"
+      "\":[\"dns\",\"ntp\"],\"keep-sending-max-ms\":1500},\"next\":\"out\"},{\"name\":\"o"
+      "ut\",\"type\":\"UdpConnector\",\"settings\":{\"address\":\"127.0.0.1\",\"port\":9"
+      "}}]}";
+  static const char connections_wireguard[] =
+      "{\"name\":\"connections-wireguard\",\"nodes\":[{\"name\":\"ne\",\"type\":\"NEPack"
+      "etDevice\",\"settings\":{},\"next\":\"ptc\"},{\"name\":\"ptc\",\"type\":\"PacketsT"
+      "oConnection\",\"settings\":{},\"next\":\"ctp\"},{\"name\":\"ctp\",\"type\":\"Conne"
+      "ctionToPackets\",\"settings\":{\"source-ipv4\":\"10.90.0.1\",\"mtu\":1420},\"n"
+      "ext\":\"wg\"},{\"name\":\"wg\",\"type\":\"WireGuardClient\",\"next\":\"udp\",\"setti"
+      "ngs\":{\"privatekey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\",\"p"
+      "eers\":[{\"publickey\":\"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\",\""
+      "allowedips\":\"0.0.0.0/0\",\"endpoint\":\"127.0.0.1:51820\",\"persistentkeep"
+      "alive\":15}]}},{\"name\":\"udp\",\"type\":\"UdpConnector\",\"settings\":{\"addre"
+      "ss\":\"dest_context->address\",\"port\":\"dest_context->port\"}}]}";
 
   static const char bgp4[] =
       "{\"name\":\"bgp4\",\"nodes\":["
@@ -245,5 +328,13 @@ int main(void) {
   checkChain("VLESS MUX TLS", vless_mux);
   checkChain("Trojan MUX TLS", trojan_mux);
   checkChain("WireGuard", wireguard);
+  // WaterWall 1.6: QUIC over TCP, and the nodes that came with it
+  checkChain("VLESS QUIC over TCP", quic_tcp);
+  checkChain("Striped RTMP upload, Reality download", striped_rtmp_reality);
+  checkChain("VLESS ENet", enet);
+  checkChain("VLESS GNS", gns);
+  checkChain("Helper nodes", helpers);
+  checkChain("VLESS KCP with junk datagrams", kcp_junk);
+  checkChain("Connections into WireGuard", connections_wireguard);
   return 0;
 }

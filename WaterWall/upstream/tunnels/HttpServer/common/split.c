@@ -424,13 +424,17 @@ static bool splitValidateRequest(tunnel_t *t, line_t *l, const httpserver_split_
 
     if (! stringAsciiCaseEquals(info->method, method) || ! splitPathTemplateMatches(path_template, info->path))
     {
-        LOGW("HttpServer: split HTTP/1.1 request mismatch method=%s path=%s", info->method, info->path);
+        LOGW("HttpServer: split HTTP/1.1 request mismatch method_bytes=%zu path_bytes=%zu",
+             httpserverLogTextBytes(info->method),
+             httpserverLogTextBytes(info->path));
         return false;
     }
 
     if (! httpserverAuthorityMatchesExpectedHost(ts->expected_host, info->host))
     {
-        LOGW("HttpServer: split HTTP/1.1 host mismatch expected=%s got=%s", ts->expected_host, info->host);
+        LOGW("HttpServer: split HTTP/1.1 host mismatch expected_bytes=%zu got_bytes=%zu",
+             httpserverLogTextBytes(ts->expected_host),
+             httpserverLogTextBytes(info->host));
         return false;
     }
 
@@ -685,6 +689,7 @@ static bool splitPair(tunnel_t *t, line_t *upload_line, line_t *download_line)
     httpserver_lstate_t *dls = lineGetState(download_line, t);
 
     line_t              *main_line = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(upload_line));
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(main_line), IP_PROTO_TCP);
     httpserver_lstate_t *mls       = lineGetState(main_line, t);
     httpserverLinestateInitialize(mls, t, main_line);
 
@@ -985,7 +990,10 @@ void httpserverSplitProcessUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
             httpserver_tstate_t *ts = tunnelGetState(t);
             if (! ts->no_split_upload_buffering_limit) // probably running test cases
             {
-                LOGW("HttpServer: split upload buffering exceeded limit before download paired");
+                LOGW("HttpServer: closing split upload: waiting for download pairing exceeded buffer limit "
+                     "(retained_bytes=%zu, effective_limit_bytes=%" PRIu64 ")",
+                     bufferstreamGetLength(&ls->in_stream),
+                     (uint64_t) httpserverSplitWaitingLimit(l));
                 ok = false;
             }
         }

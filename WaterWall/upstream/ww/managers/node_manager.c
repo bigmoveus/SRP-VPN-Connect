@@ -11,6 +11,7 @@
 #include "net/node_layer_solver.h"
 #include "node_builder/config_lexical.h"
 #include "node_builder/config_policy.h"
+#include "node_builder/input_hints.h"
 #include "signal_manager.h"
 #include "utils/json_helpers.h"
 
@@ -363,6 +364,28 @@ static void validateTunnelChains(tunnel_t **t_array, int tunnels_count)
     }
 }
 
+static void validateConfiguredL4Links(node_manager_config_t *cfg, tunnel_t **t_array, int tunnels_count)
+{
+    /* Use configured neighbors even if onChain inserted a private resolver. */
+    for (int i = 0; i < tunnels_count; ++i)
+    {
+        const tunnel_t *from = t_array[i];
+        if (from->node->hash_next == 0)
+        {
+            continue;
+        }
+        const node_t *target = nodemanagerGetConfigNodeByHash(cfg, from->node->hash_next);
+        assert(target != NULL && target->instance != NULL);
+        node_layer_solver_status_t status = {0};
+        if (! nodeLayerValidateL4Link(from, target->instance, &status))
+        {
+            LOGF("NodeManager: node startup failure: %s", status.message);
+            startupFailureRecord(1);
+            return;
+        }
+    }
+}
+
 typedef void (*TunnelLifecycleFn)(tunnel_t *t);
 
 static void runTunnelOnPrepare(tunnel_t *t)
@@ -565,6 +588,11 @@ static void buildNodes(node_manager_config_t *cfg)
     {
         return;
     }
+    validateConfiguredL4Links(cfg, t_array, tunnels_count);
+    if (UNLIKELY(startupFailurePending()))
+    {
+        return;
+    }
     finalizeTunnelChains(cfg, t_array, tunnels_count);
     if (UNLIKELY(startupFailurePending()))
     {
@@ -623,6 +651,55 @@ static void pathWalk(node_manager_config_t *cfg)
         {
             return;
         }
+    }
+}
+
+static void validateInputHints(node_manager_config_t *cfg)
+{
+    const char *unresolved = NULL;
+    c_foreach(entry, map_node_t, cfg->node_map)
+    {
+        const node_t *hint       = entry.ref->second;
+        const char   *diagnostic = nodeInputHintUnresolvedDiagnostic(hint);
+        if (diagnostic == NULL)
+        {
+            continue;
+        }
+
+        const cJSON *settings = hint->node_settings_json;
+        if (settings != NULL && (! cJSON_IsObject(settings) || settings->child != NULL))
+        {
+            LOGF("NodeManager: input hint node \"%s\" settings must be omitted or an empty object",
+                 configPolicyDiagnostic(hint->name));
+            startupFailureRecord(1);
+            return;
+        }
+        if (hint->hash_next == 0 || hint->next[0] == '\0')
+        {
+            LOGF("NodeManager: input hint node \"%s\" requires a next node", configPolicyDiagnostic(hint->name));
+            startupFailureRecord(1);
+            return;
+        }
+        c_foreach(other, map_node_t, cfg->node_map)
+        {
+            const node_t *predecessor = other.ref->second;
+            if (predecessor->hash_next != 0 && predecessor->hash_next == hint->hash_name)
+            {
+                LOGF("NodeManager: input hint node \"%s\" must be a chain head", configPolicyDiagnostic(hint->name));
+                startupFailureRecord(1);
+                return;
+            }
+        }
+        if (unresolved == NULL)
+        {
+            unresolved = diagnostic;
+        }
+    }
+
+    if (unresolved != NULL)
+    {
+        LOGF("%s", unresolved);
+        startupFailureRecord(1);
     }
 }
 
@@ -1044,6 +1121,11 @@ static void startInstallingConfigFile(node_manager_config_t *cfg)
         return;
     }
     pathWalk(cfg);
+    if (UNLIKELY(startupFailurePending()))
+    {
+        return;
+    }
+    validateInputHints(cfg);
     if (UNLIKELY(startupFailurePending()))
     {
         return;

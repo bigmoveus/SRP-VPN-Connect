@@ -6,6 +6,10 @@ static void checkWaitingLimit(tunnel_t *t, line_t *l, halfduplexserver_tstate_t 
 {
     if (sbufGetLength(ls->buffering) >= halfduplexserverWaitingLimit(l))
     {
+        LOGW("HalfDuplexServer: closing unpaired upload: waiting buffer limit reached "
+             "(buffered_bytes=%zu, effective_limit_bytes=%" PRIu64 ")",
+             sbufGetLength(ls->buffering),
+             halfduplexserverWaitingLimit(l));
         mutexLock(&(ts->pending_line_maps_mutex));
         hmap_cons_t_iter f_iter = hmap_cons_t_find(&(ts->upload_line_map), ls->pair_id);
         bool             found  = f_iter.ref != hmap_cons_t_end(&(ts->upload_line_map)).ref;
@@ -60,11 +64,13 @@ static bool extractPairIdAndSetupConnection(line_t *l, halfduplexserver_lstate_t
 
     if (*is_upload)
     {
-        ls->upload_line = l;
+        ls->upload_line   = l;
+        ls->upload_tunnel = ls->ingress_tunnel;
     }
     else
     {
-        ls->download_line = l;
+        ls->download_line   = l;
+        ls->download_tunnel = ls->ingress_tunnel;
     }
 
     return true;
@@ -88,13 +94,20 @@ static halfduplexserver_pending_decision_t pendingClaim(halfduplexserver_tstate_
     hmap_cons_t_iter opposite = hmap_cons_t_find(opposite_map, pair_id);
     if (opposite.ref != hmap_cons_t_end(opposite_map).ref)
     {
-        halfduplexserver_lstate_t *peer      = opposite.ref->second;
-        line_t *const              peer_line = is_upload ? peer->download_line : peer->upload_line;
-
-        decision.target_wid = lineGetWID(peer_line);
+        halfduplexserver_lstate_t                *peer      = opposite.ref->second;
+        const bool                                detached  = peer->state == kCsUploadDetached;
+        line_t *const                             peer_line = is_upload ? peer->download_line : peer->upload_line;
+        const halfduplexserver_detached_upload_t *upload =
+            detached ? container_of(peer, halfduplexserver_detached_upload_t, entry) : NULL;
+        decision.target_wid = detached ? upload->worker : lineGetWID(peer_line);
         if (decision.target_wid == lineGetWID(current_line))
         {
             hmap_cons_t_erase_at(opposite_map, opposite);
+            if (detached)
+            {
+                --ts->detached_count;
+                ts->detached_charge -= upload->charge;
+            }
             decision.peer   = peer;
             decision.result = kHalfDuplexServerPendingMatchedLocal;
         }
@@ -135,6 +148,7 @@ static line_t *createAndInitializeMainLine(tunnel_t *t, line_t *upload_line, lin
                                            halfduplexserver_lstate_t *upload_ls, halfduplexserver_lstate_t *download_ls)
 {
     line_t *main_line = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), lineGetWID(upload_line));
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(main_line), IP_PROTO_TCP);
 
     upload_ls->main_line   = main_line;
     download_ls->main_line = main_line;
@@ -142,9 +156,13 @@ static line_t *createAndInitializeMainLine(tunnel_t *t, line_t *upload_line, lin
     halfduplexserver_lstate_t *ls_mainline = lineGetState(main_line, t);
     halfduplexserverLinestateInitialize(ls_mainline);
 
-    ls_mainline->upload_line   = upload_line;
-    ls_mainline->download_line = download_line;
-    ls_mainline->main_line     = main_line;
+    ls_mainline->upload_line     = upload_line;
+    ls_mainline->download_line   = download_line;
+    ls_mainline->main_line       = main_line;
+    ls_mainline->upload_tunnel   = upload_ls->ingress_tunnel;
+    ls_mainline->download_tunnel = download_ls->ingress_tunnel;
+    upload_ls->download_tunnel   = download_ls->ingress_tunnel;
+    download_ls->upload_tunnel   = upload_ls->ingress_tunnel;
 
     return main_line;
 }
@@ -155,7 +173,8 @@ static void initializeMainLineConnection(tunnel_t *t, line_t *main, sbuf_t *init
     line_t                    *upload   = ls->upload_line;
     line_t                    *download = ls->download_line;
     lineRef(main);
-    lineRef(upload);
+    if (upload != NULL)
+        lineRef(upload);
     lineRef(download);
     assert(! sbufIsSplice(initial));
     sbufShiftRight(initial, kHLFDIntroSize);
@@ -174,22 +193,47 @@ static void initializeMainLineConnection(tunnel_t *t, line_t *main, sbuf_t *init
     ls->startup_active       = true;
     ls->startup_initializing = true;
     tunnelNextUpStreamInit(t, main);
-    if (halfduplexserverPairAlive(t, main, upload, download))
+    if (lineIsAlive(main) && ls->main_line == main)
     {
         ls->startup_initializing = false;
-        halfduplexserverReplayStartup(t, main);
+        if (ls->download_line == download)
+        {
+            halfduplexserver_lstate_t *download_ls = lineGetState(download, ls->download_tunnel);
+            if (download_ls->transport_paused)
+            {
+                tunnelNextUpStreamPause(t, main);
+                if (! lineIsAlive(main) || ls->main_line != main)
+                    goto done;
+            }
+        }
+        if (closeDrainIsActive(&ls->close_drain))
+            halfduplexserverPumpClose(t, main);
+        else
+            halfduplexserverReplayStartup(t, main);
     }
+done:
     lineUnref(download);
-    lineUnref(upload);
+    if (upload != NULL)
+        lineUnref(upload);
     lineUnref(main);
 }
 
 static void handlePipeToWorker(tunnel_t *t, line_t *l, sbuf_t *buf, wid_t target_wid, halfduplexserver_lstate_t *ls)
 {
+    const bool paused = ls->transport_paused;
     halfduplexserverLinestateDestroy(ls);
     if (pipeTo(t, l, target_wid))
     {
         tunnel_t *prev_tun = t->prev;
+        if (paused)
+        {
+            buffer_pool_t *pool = lineGetBufferPool(l);
+            if (! lineCallWithRef(l, tunnelUpStreamPause, prev_tun))
+            {
+                bufferpoolReuseBuffer(pool, buf);
+                return;
+            }
+        }
         tunnelUpStreamPayload(prev_tun, l, buf);
         return;
     }
@@ -208,9 +252,9 @@ static void handleUploadConnectionFound(tunnel_t *t, line_t *l, sbuf_t *buf, hal
     download_line_ls->state       = kCsDownloadDirect;
     download_line_ls->upload_line = l;
 
-    line_t *main_line = createAndInitializeMainLine(t, l, download_line, ls, download_line_ls);
+    line_t *main_line = createAndInitializeMainLine(halfduplexserverOwner(t), l, download_line, ls, download_line_ls);
 
-    initializeMainLineConnection(t, main_line, buf);
+    initializeMainLineConnection(halfduplexserverOwner(t), main_line, buf);
 }
 
 static void handleDuplicateUploadConnection(tunnel_t *t, line_t *l, halfduplexserver_lstate_t *ls)
@@ -227,19 +271,52 @@ static void handleDownloadConnectionFound(tunnel_t *t, line_t *l, sbuf_t *buf, h
 {
     lineReuseBuffer(l, buf);
 
+    if (upload_line_ls->state == kCsUploadDetached)
+    {
+        halfduplexserver_detached_upload_t *upload =
+            container_of(upload_line_ls, halfduplexserver_detached_upload_t, entry);
+        const uint64_t deadline  = upload_line_ls->close_drain.deadline_ms;
+        const bool     remaining = closeDrainTimeRemaining(&upload_line_ls->close_drain) != 0;
+        sbuf_t        *initial   = upload_line_ls->buffering;
+        closeDrainEnd(&upload_line_ls->close_drain);
+        memoryFree(upload);
+        if (! remaining)
+        {
+            LOGW("HalfDuplexServer: detached upload timed out with %u undelivered upload bytes",
+                 sbufGetLength(initial) - kHLFDIntroSize);
+            lineReuseBuffer(l, initial);
+            halfduplexserverLinestateDestroy(ls);
+            tunnelPrevDownStreamFinish(t, l);
+            return;
+        }
+        tunnel_t                  *owner   = halfduplexserverOwner(t);
+        line_t                    *main    = lineCreate(tunnelchainGetLinePools(tunnelGetChain(owner)), lineGetWID(l));
+        addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(main), IP_PROTO_TCP);
+        halfduplexserver_lstate_t *service = lineGetState(main, owner);
+        halfduplexserverLinestateInitialize(service);
+        service->main_line       = main;
+        service->download_line   = l;
+        service->download_tunnel = t;
+        ls->state                = kCsDownloadDirect;
+        ls->main_line            = main;
+        halfduplexserverBeginServiceClose(owner, main, deadline);
+        initializeMainLineConnection(owner, main, initial);
+        return;
+    }
+
     ls->state                     = kCsDownloadDirect;
     line_t *upload_line           = upload_line_ls->upload_line;
     ls->upload_line               = upload_line;
     upload_line_ls->state         = kCsUploadDirect;
     upload_line_ls->download_line = l;
 
-    line_t *main_line = createAndInitializeMainLine(t, upload_line, l, upload_line_ls, ls);
+    line_t *main_line = createAndInitializeMainLine(halfduplexserverOwner(t), upload_line, l, upload_line_ls, ls);
 
     assert(upload_line_ls->buffering);
     sbuf_t *buf_upline        = upload_line_ls->buffering;
     upload_line_ls->buffering = NULL;
 
-    initializeMainLineConnection(t, main_line, buf_upline);
+    initializeMainLineConnection(halfduplexserverOwner(t), main_line, buf_upline);
 }
 
 static void handleDuplicateDownloadConnection(tunnel_t *t, line_t *l, sbuf_t *buf, halfduplexserver_lstate_t *ls)
@@ -324,8 +401,9 @@ static void handleUploadInTable(tunnel_t *t, line_t *l, sbuf_t *buf, halfduplexs
 
 void halfduplexserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 {
-    halfduplexserver_tstate_t *ts = tunnelGetState(t);
-    halfduplexserver_lstate_t *ls = lineGetState(l, t);
+    tunnel_t                  *owner = halfduplexserverOwner(t);
+    halfduplexserver_tstate_t *ts    = tunnelGetState(owner);
+    halfduplexserver_lstate_t *ls    = lineGetState(l, t);
 
     // Only setup parses or retains bytes. Direct paths preserve the wrapper;
     // download-only input is discarded without materialization.
@@ -370,27 +448,44 @@ void halfduplexserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
         if (LIKELY(ls->main_line != NULL))
         {
             line_t                    *main    = ls->main_line;
-            halfduplexserver_lstate_t *main_ls = lineGetState(main, t);
-            if (main_ls->startup_active)
+            halfduplexserver_lstate_t *main_ls = lineGetState(main, owner);
+            if (main_ls->startup_active || (main_ls->next_paused && ! main_ls->startup_dispatching))
             {
-                sbuf_t *ordinary = sbufTryEnsureOrdinary(lineGetBufferPool(l), buf);
+                main_ls->startup_active = true;
+                sbuf_t *ordinary        = sbufTryEnsureOrdinary(lineGetBufferPool(l), buf);
                 if (ordinary == NULL)
                 {
                     lineReuseBuffer(l, buf);
-                    halfduplexserverAbortPair(t, main);
+                    halfduplexserverAbortPair(owner, main);
                     return;
                 }
                 buf = ordinary;
                 if (! bufferqueueTryPushBack(&main_ls->startup_pending, &buf))
                 {
+                    const buffer_budget_cost_t usage           = bufferbudgetGetUsage(&main_ls->startup_budget);
+                    const buffer_budget_cost_t limits          = bufferbudgetGetLimits(&main_ls->startup_budget);
+                    const size_t               incoming_bytes  = sbufGetLength(buf);
+                    const size_t               incoming_charge = sbufGetQueueCharge(buf);
+                    LOGW("HalfDuplexServer: closing pair: startup queue refused: %s "
+                         "(retained_bytes=%zu, incoming_bytes=%zu, limit_bytes=%zu, retained_charge_bytes=%zu, "
+                         "incoming_charge_bytes=%zu, limit_charge_bytes=%zu)",
+                         incoming_bytes > limits.bytes - usage.bytes      ? "byte budget exceeded"
+                         : incoming_charge > limits.charge - usage.charge ? "storage charge budget exceeded"
+                                                                          : "queue admission failed",
+                         usage.bytes,
+                         incoming_bytes,
+                         limits.bytes,
+                         usage.charge,
+                         incoming_charge,
+                         limits.charge);
                     lineReuseBuffer(l, buf);
-                    halfduplexserverAbortPair(t, main);
+                    halfduplexserverAbortPair(owner, main);
                     return;
                 }
-                halfduplexserverReplayStartup(t, main);
+                halfduplexserverReplayStartup(owner, main);
                 return;
             }
-            tunnelNextUpStreamPayload(t, main, buf);
+            halfduplexserverSendServicePayload(owner, main, buf);
         }
         else
         {
@@ -400,7 +495,11 @@ void halfduplexserverTunnelUpStreamPayload(tunnel_t *t, line_t *l, sbuf_t *buf)
 
     case kCsDownloadDirect:
     case kCsDownloadInTable:
+    case kCsDownloadFinishPending:
         lineReuseBuffer(l, buf);
+        break;
+    case kCsUploadDetached:
+        assert(false); // Detached rendezvous entries have no associated line.
         break;
     }
     return;
@@ -409,6 +508,9 @@ setup_failure:
     lineReuseBuffer(l, buf);
     // These setup states have no main line; Finish removes any waiting map
     // entry and retained input before notifying the borrowed half's owner.
-    halfduplexserverTunnelUpStreamFinish(t, l);
+    if (ls->state == kCsUploadInTable)
+        halfduplexserverDiscardWaitingUpload(t, l);
+    else
+        halfduplexserverTunnelUpStreamFinish(t, l);
     tunnelPrevDownStreamFinish(t, l);
 }

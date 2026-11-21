@@ -25,7 +25,9 @@ static void __connect_timeout_cb(wtimer_t *timer)
     {
         char localaddrstr[SOCKADDR_STRLEN] = {0};
         char peeraddrstr[SOCKADDR_STRLEN]  = {0};
-        wlogw("connect timeout [%s] <=> [%s]",
+        wlogw("closing connection: connect timeout (fd=%d, timeout_ms=%d) [%s] <=> [%s]",
+              wioGetFD(io),
+              io->connect_timeout ? io->connect_timeout : WIO_DEFAULT_CONNECT_TIMEOUT,
               SOCKADDR_STR(io->localaddr, localaddrstr),
               SOCKADDR_STR(io->peeraddr, peeraddrstr));
         io->error = ETIMEDOUT;
@@ -40,7 +42,10 @@ static void __close_timeout_cb(wtimer_t *timer)
     {
         char localaddrstr[SOCKADDR_STRLEN] = {0};
         char peeraddrstr[SOCKADDR_STRLEN]  = {0};
-        wlogw("close timeout [%s] <=> [%s]",
+        wlogw("forcing socket close: output drain timeout (fd=%d, queued_bytes=%u, timeout_ms=%d) [%s] <=> [%s]",
+              wioGetFD(io),
+              io->write_bufsize,
+              io->close_timeout ? io->close_timeout : WIO_DEFAULT_CLOSE_TIMEOUT,
               SOCKADDR_STR(io->localaddr, localaddrstr),
               SOCKADDR_STR(io->peeraddr, peeraddrstr));
         io->error = ETIMEDOUT;
@@ -125,7 +130,6 @@ static void nio_accept(wio_t *io)
             }
             else
             {
-                LOGE("listenfd=%d accept error: %s:%d", wioGetFD(io), socketStrError(err), err);
                 io->error = err;
                 goto accept_error;
             }
@@ -157,7 +161,10 @@ static void nio_accept(wio_t *io)
     return;
 
 accept_error:
-    wloge("listenfd=%d accept error: %s:%d", wioGetFD(io), socketStrError(io->error), io->error);
+    wloge("accept failed; listener remains open (fd=%d, error=%d: %s)",
+          wioGetFD(io),
+          io->error,
+          socketStrError(io->error));
     // NOTE: Don't close listen fd automatically anyway.
     // wioClose(io);
 }
@@ -198,20 +205,16 @@ connect_error:
 
 static void nio_connect_event_cb(wevent_t *ev)
 {
-    wio_t   *io = (wio_t *) ev->userdata;
-    uint32_t id = (uint32_t) (uintptr_t) ev->privdata;
-    if (io->id != id)
-        return;
-    nio_connect(io);
+    wio_t *io = wioResolveDeferredEvent(ev);
+    if (io != NULL)
+    {
+        nio_connect(io);
+    }
 }
 
 static int nio_connect_async(wio_t *io)
 {
-    wevent_t ev;
-    memoryZero(&ev, sizeof(ev));
-    ev.cb       = nio_connect_event_cb;
-    ev.userdata = io;
-    ev.privdata = (void *) (uintptr_t) io->id;
+    wevent_t ev = wioMakeDeferredEvent(io, nio_connect_event_cb);
     return wloopPostEvent(io->loop, &ev) ? 0 : -1;
 }
 
@@ -312,13 +315,14 @@ static int nioWriteBuffer(wio_t *io, sbuf_t *buf, bool more_after, int *error)
 #if WW_HAVE_SPLICE
     if (sbufIsSplice(buf))
     {
-        const uint32_t prefix  = sbufGetResidentPrefixLength(buf);
-        const uint32_t body    = sbufGetLength(buf) - prefix;
-        int            written = 0;
+        const sbuf_read_view_t view    = sbufGetResidentView(buf);
+        const uint32_t         prefix  = (uint32_t) view.length;
+        const uint32_t         body    = sbufGetLength(buf) - prefix;
+        int                    written = 0;
         if (prefix != 0)
         {
             // The private pipe already holds the body that follows this prefix.
-            written = __nio_write(io, sbufGetRawPtr(buf), (int) prefix, body != 0 || more_after);
+            written = __nio_write(io, view.data, (int) prefix, body != 0 || more_after);
             if (written < 0)
             {
                 *error = socketERRNO();
@@ -371,6 +375,38 @@ static void nioConsumeWrittenBuffer(sbuf_t *buf, uint32_t bytes)
     }
 }
 
+static sbuf_t *nioGetOrdinaryReadBuffer(wio_t *io, bool control_io)
+{
+    buffer_pool_t *pool = io->loop->bufpool;
+    if (control_io)
+    {
+        // eventfd requires an eight-byte read. Pipes and socketpairs carry one wake byte.
+        return bufferpoolGetBestFit(pool, sizeof(uint64_t), 0);
+    }
+    switch (io->io_type)
+    {
+    case WIO_TYPE_TCP:
+        return wioGetTcpReadBuffer(io);
+    case WIO_TYPE_UDP:
+#if defined(OS_LINUX)
+    {
+        int queued_bytes = 0;
+        if (ioctl(wioGetFD(io), FIONREAD, &queued_bytes) == 0 && queued_bytes > 0)
+        {
+            // UDP must fit the entire next datagram.
+            return bufferpoolGetBestFit(pool, queued_bytes, bufferpoolGetLargeBufferPadding(pool));
+        }
+        // A failed/zero hint still needs a receive: empty UDP and transient readiness are distinct.
+    }
+#endif
+        return bufferpoolGetLargeBuffer(pool);
+    case WIO_TYPE_IP:
+        return bufferpoolGetSmallBuffer(pool);
+    default:
+        return bufferpoolGetLargeBuffer(pool);
+    }
+}
+
 static void nio_read(wio_t *io)
 {
     // printd("nio_read fd=%d\n", wioGetFD(io));
@@ -378,6 +414,7 @@ static void nio_read(wio_t *io)
     int err   = 0;
     //  read:;
 
+    const bool control_io = wloopIOIsControl(io);
     sbuf_t *buf;
 
 #if WW_HAVE_SPLICE
@@ -427,32 +464,7 @@ static void nio_read(wio_t *io)
 read_ordinary:
 #endif
 
-    switch (io->io_type)
-    {
-    case WIO_TYPE_UDP:
-#if defined(OS_LINUX)
-    {
-        int queued_bytes = 0;
-        if (ioctl(wioGetFD(io), FIONREAD, &queued_bytes) == 0 && queued_bytes > 0)
-        {
-            buffer_pool_t *pool = io->loop->bufpool;
-            // UDP must fit the entire next datagram.
-            buf = bufferpoolGetBestFit(pool, queued_bytes, bufferpoolGetLargeBufferPadding(pool));
-            break;
-        }
-        // A failed/zero hint still needs a receive: empty UDP and transient readiness are distinct.
-    }
-#endif
-        buf = bufferpoolGetLargeBuffer(io->loop->bufpool);
-        break;
-    case WIO_TYPE_TCP:
-    default:
-        buf = bufferpoolGetLargeBuffer(io->loop->bufpool);
-        break;
-    case WIO_TYPE_IP:
-        buf = bufferpoolGetSmallBuffer(io->loop->bufpool);
-        break;
-    }
+    buf = nioGetOrdinaryReadBuffer(io, control_io);
 
     unsigned int available = sbufGetWritableCapacity(buf);
     assert(available > 0);
@@ -492,12 +504,14 @@ read_ordinary:
     }
     if (UNLIKELY(nread == 0 && (io->io_type & WIO_TYPE_SOCK_DGRAM) == 0))
     {
-        wioHandleReadEOF(io);
         bufferpoolReuseBuffer(io->loop->bufpool, buf);
-        goto disconnect;
+        wioHandleReadEOF(io);
+        return;
     }
     // printf("%d \n",nread);
 
+    if (io->io_type == WIO_TYPE_TCP && ! control_io)
+        wioUpdateTcpReadCapacity(io, (uint32_t) nread, available);
     sbufSetLength(buf, min(available, (uint32_t) nread));
     if (UNLIKELY(! wloopNormalDispatchAllowed(io->loop)))
     {
@@ -508,7 +522,6 @@ read_ordinary:
     // user consumed buffer
     return;
 read_error:
-disconnect:
     if (io->io_type & WIO_TYPE_SOCK_STREAM)
     {
         wioClose(io);
@@ -554,10 +567,12 @@ write:
         }
         else
         {
-            if (UNLIKELY((io->io_type & WIO_TYPE_SOCK_DGRAM) != 0))
-            {
-                LOGE("UDP write failed: fd=%d error=%s:%d", wioGetFD(io), socketStrError(err), err);
-            }
+            // printError("write");
+            wloge("socket write failed (fd=%d, remaining_bytes=%zu, queued_bytes=%u, error=%d)",
+                  wioGetFD(io),
+                  sbufGetLength(buf),
+                  io->write_bufsize,
+                  err);
             io->error = err;
             goto write_error;
         }
@@ -720,6 +735,7 @@ int wioRead(wio_t *io)
         wloge("wioRead called but fd[%d] already closed!", wioGetFD(io));
         return -1;
     }
+    assert(io->loop->bufpool != NULL);
     int add_error = wioAdd(io, wio_handle_events, WW_READ);
     if (UNLIKELY(add_error != 0))
     {
@@ -912,6 +928,10 @@ int wioWriteWithHint(wio_t *io, sbuf_t *buf, bool more_after)
             else
             {
                 // printError("write");
+                wloge("socket write failed (fd=%d, remaining_bytes=%zu, error=%d)",
+                      wioGetFD(io),
+                      sbufGetLength(buf),
+                      err);
                 io->error = err;
                 goto write_error;
             }
@@ -928,6 +948,10 @@ int wioWriteWithHint(wio_t *io, sbuf_t *buf, bool more_after)
         add_error = wioAddAlreadyAdmitted(io, wio_handle_events, WW_WRITE);
         if (UNLIKELY(add_error != 0))
         {
+            wloge("closing socket: write watcher registration failed (fd=%d, remaining_bytes=%zu, result=%d)",
+                  wioGetFD(io),
+                  sbufGetLength(buf),
+                  add_error);
             io->error = add_error < 0 ? -add_error : add_error;
             nwrite    = add_error;
             goto write_error;
@@ -938,7 +962,12 @@ int wioWriteWithHint(wio_t *io, sbuf_t *buf, bool more_after)
     {
         if (io->write_bufsize + (uint32_t) len - (uint32_t) nwrite > io->max_write_bufsize)
         {
-            wloge("write bufsize > %u, close it!", io->max_write_bufsize);
+            wloge("closing socket: write queue limit exceeded (fd=%d, queued_bytes=%u, incoming_bytes=%zu, "
+                  "limit_bytes=%u)",
+                  wioGetFD(io),
+                  io->write_bufsize,
+                  sbufGetLength(buf),
+                  io->max_write_bufsize);
             io->error = WERR_OVER_LIMIT;
             goto write_error;
         }

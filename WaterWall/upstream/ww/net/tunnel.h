@@ -9,6 +9,7 @@
 #include "chain.h"
 #include "generic_pool.h"
 #include "line_types.h"
+#include "loggers/log_rate_limiter.h"
 #include "shiftbuffer.h"
 #include "wlibc.h"
 #include "wloop.h"
@@ -172,7 +173,7 @@ struct tunnel_s
      * Optional pre-indexing hook for a tunnel whose runtime orientation or
      * private topology depends on solved adjacent layer domains. See the
      * TunnelSolvedTopologyFn contract above. Tunnels that only need to consume
-     * the final solution may do so in onIndex instead. (as of writing this only WireGuardDevice used this)
+     * the final solution may do so in onIndex instead.
      *
      * This pointer occupies historical alignment padding: state[] remains at
      * the same cache-line-aligned offset, preserving the external tunnel ABI.
@@ -182,7 +183,8 @@ struct tunnel_s
     // May run repeatedly; changing topology invalidates the current snapshot immediately.
     TunnelSolvedTopologyFn onSolvedTopology;
 
-    node_t *node;
+    node_t                   *node;
+    atomic_log_rate_limiter_t transport_refusal_log;
 
     // tunnel itself will be aligned to cache line when allocating memory
     MSVC_ATTR_ALIGNED_LINE_CACHE uint8_t state[] GNU_ATTR_ALIGNED_LINE_CACHE;
@@ -197,6 +199,11 @@ struct tunnel_s
  * @return tunnel_t* Pointer to the created tunnel.
  */
 tunnel_t *tunnelCreate(node_t *node, size_t tstate_size, size_t lstate_size);
+
+/** Report a live input refusal. The first refusal is immediate, then at most one warning per tunnel per second. */
+void tunnelLogTransportRefusal(tunnel_t *t, const address_context_t *destination, uint8_t allowed);
+/** Variant for a node whose input requirement is more specific than a TCP/UDP mask. */
+void tunnelLogTransportRequirement(tunnel_t *t, const address_context_t *destination, const char *requirement);
 
 /**
  * @brief Destroys a tunnel instance.

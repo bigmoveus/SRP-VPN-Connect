@@ -2,6 +2,7 @@
 
 #include "global_state.h"
 #include "loggers/internal_logger.h"
+#include "loggers/log_rate_limiter.h"
 #include "quiescence_gate.h"
 #include "worker_messages.h"
 
@@ -19,6 +20,9 @@ struct raw_writer_lane_s
     sbuf_t                  *batch[kRawWriterBatchPackets];
     size_t                   batch_count;
     size_t                   batch_offset;
+    log_rate_limiter_t       refusal_limiter;
+    size_t                   last_refused_packets;
+    size_t                   last_refused_packet_bytes;
 };
 
 struct raw_writer_generation_s
@@ -49,18 +53,33 @@ static void rawWriterGenerationUnref(raw_writer_generation_t *generation)
     }
 }
 
-static bool rawWriterReservePacket(raw_writer_generation_t *generation)
+static void rawWriterReportRefusals(raw_writer_lane_t *lane, log_rate_limiter_report_t report)
 {
-#if WW_HAVE_C11_ATOMICS
+    if (report.should_log)
+        LOGW("RawWriter: worker %u refused %llu output packet(s): device packet budget reached "
+             "(last_retained_packets=%zu, requested_packets=1, packet_limit=%zu, last_packet_bytes=%zu, total=%llu)",
+             (unsigned) lane->wid,
+             LLU(report.events),
+             lane->last_refused_packets,
+             lane->generation->packet_limit,
+             lane->last_refused_packet_bytes,
+             LLU(report.total));
+}
+
+static bool rawWriterReservePacket(raw_writer_generation_t *generation, raw_writer_lane_t *lane, size_t packet_bytes)
+{
     size_t current = atomicLoadRelaxed(&generation->packets);
-#else
-    w_atomic_uint_value_t current = atomicLoadRelaxed(&generation->packets);
-#endif
     for (;;)
     {
-        if ((size_t) current >= generation->packet_limit)
+        if (current >= generation->packet_limit)
+        {
+            lane->last_refused_packets      = current;
+            lane->last_refused_packet_bytes = packet_bytes;
+            /* A full output queue can reject every packet in a receive burst. */
+            rawWriterReportRefusals(lane, logRateLimiterRecordImmediate(&lane->refusal_limiter, 1000));
             return false;
-        if (atomic_compare_exchange_weak_explicit(
+        }
+        if (atomicCompareExchangeWeakSizeExplicit(
                 &generation->packets, &current, current + 1, memory_order_relaxed, memory_order_relaxed))
             return true;
     }
@@ -200,7 +219,7 @@ static void rawWriterDrain(worker_t *worker, void *arg1, void *arg2, void *arg3)
 void rawWriterInit(raw_writer_t *writer)
 {
     *writer = (raw_writer_t) {0};
-    atomicStoreRelaxed(&writer->published_generation, (uintptr_t) NULL);
+    atomicStorePtrExplicit(&writer->published_generation, NULL, memory_order_relaxed);
 }
 
 bool rawWriterOpen(raw_writer_t *writer, size_t packet_limit, uint32_t retry_delay_ms, void *context,
@@ -233,14 +252,14 @@ bool rawWriterOpen(raw_writer_t *writer, size_t packet_limit, uint32_t retry_del
         return false;
     }
     writer->current = generation;
-    atomicStoreExplicit(&writer->published_generation, (uintptr_t) generation, memory_order_release);
+    atomicStorePtrExplicit(&writer->published_generation, generation, memory_order_release);
     return true;
 }
 
 void rawWriterCloseRequest(raw_writer_t *writer)
 {
-    raw_writer_generation_t *generation = (raw_writer_generation_t *) atomicExchangeExplicit(
-        &writer->published_generation, (uintptr_t) NULL, memory_order_acq_rel);
+    raw_writer_generation_t *generation =
+        atomicExchangePtrExplicit(&writer->published_generation, NULL, memory_order_acq_rel);
     if (generation != NULL)
     {
         assert(generation == writer->current);
@@ -260,6 +279,7 @@ void rawWriterCloseWait(raw_writer_t *writer)
             generation->stop_worker(generation->context, wid);
     for (size_t i = 0; i < generation->worker_count; ++i)
     {
+        rawWriterReportRefusals(&generation->lanes[i], logRateLimiterFlush(&generation->lanes[i].refusal_limiter));
         rawWriterDiscardLane(&generation->lanes[i]);
         raw_writer_buffers_t_drop(&generation->lanes[i].buffers);
     }
@@ -285,8 +305,7 @@ void rawWriterDestroy(raw_writer_t *writer)
 raw_writer_send_result_t rawWriterTrySend(raw_writer_t *writer, sbuf_t *buffer)
 {
     worker_t                *worker = getCurrentWorker();
-    raw_writer_generation_t *generation =
-        (raw_writer_generation_t *) atomicLoadExplicit(&writer->published_generation, memory_order_acquire);
+    raw_writer_generation_t *generation = atomicLoadPtrExplicit(&writer->published_generation, memory_order_acquire);
     if (generation == NULL)
         return kRawWriterSendDown;
     if (! quiescenceGateEnter(&generation->gate))
@@ -298,7 +317,7 @@ raw_writer_send_result_t rawWriterTrySend(raw_writer_t *writer, sbuf_t *buffer)
         atomicLoadExplicit(&lane->cancelled, memory_order_acquire))
         goto done;
     result = kRawWriterSendFull;
-    if (! rawWriterReservePacket(generation))
+    if (! rawWriterReservePacket(generation, lane, sbufGetLength(buffer)))
         goto done;
     discard raw_writer_buffers_t_push_back(&lane->buffers, buffer);
     if (! lane->scheduled && ! rawWriterSchedule(generation, lane, 0))

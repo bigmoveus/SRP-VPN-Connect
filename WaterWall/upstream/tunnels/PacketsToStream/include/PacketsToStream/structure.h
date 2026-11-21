@@ -17,6 +17,7 @@ typedef struct packetstostream_tstate_s
     uint32_t                                  interval_ms;
     uint32_t                                  tolerance_ms;
     packetstostream_packet_validation_level_t packet_validation_level;
+    uint8_t                                   transport_offer;
     bool                                      sensitive_mode;
 } packetstostream_tstate_t;
 
@@ -25,8 +26,8 @@ typedef struct packetstostream_lstate_s
     line_t         *line;             // Pointer to the line associated with this state
     buffer_stream_t read_stream;      // Stream for reading data packets
     ipv4stream_input_t read_input;       // Serializes and bounds nested deliveries
-    uint64_t        ping_sent_at_ms;  // On packet lines: timestamp of the last ping in flight
-    uint64_t        pong_deadline_ms; // On packet lines: current pong deadline
+    uint64_t           ping_sent_at_us;  // On packet lines: monotonic timestamp of the last ping in flight
+    uint64_t           pong_deadline_us; // On packet lines: monotonic pong deadline
     bool            paused;           // Indicates if the line is paused, dropping packets
     bool            awaiting_pong;    // On packet lines: whether a ping is in flight
     bool            recreate_scheduled;

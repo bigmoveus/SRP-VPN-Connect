@@ -279,8 +279,8 @@ bool tundeviceBringUp(tun_device_t *tdev)
 
 #ifdef OS_LINUX
     atomicStoreRelaxed(&tdev->gso_write_disabled, false);
-    atomicStoreRelaxed(&tdev->gso_generated_segments, 0);
-    atomicStoreRelaxed(&tdev->gso_intact_aggregates, 0);
+    atomicStoreU64Relaxed(&tdev->gso_generated_segments, 0);
+    atomicStoreU64Relaxed(&tdev->gso_intact_aggregates, 0);
 #endif
     if (! tunWriterOpen(&tdev->writer, kTunWriterQueueMax, SIZE_MAX, tdev, tunWriteBatch))
     {
@@ -616,7 +616,7 @@ tun_device_t *tundeviceCreate(const char *name, bool gso_requested, bool multi_q
            opaque_flow_mode == kDeviceOpaqueFlowSpread);
     if (mtu <= 16)
     {
-        LOGE("TunDevice: Invalid MTU size: %u", mtu);
+        LOGE("TunDevice: refusing device creation: invalid MTU (mtu_bytes=%u, minimum_bytes=17)", (unsigned) mtu);
         return NULL;
     }
 
@@ -631,7 +631,8 @@ tun_device_t *tundeviceCreate(const char *name, bool gso_requested, bool multi_q
     snprintf(tun_path, sizeof(tun_path), "/dev/%s", name);
     if ((fd = open(tun_path, O_RDWR)) < 0)
     {
-        LOGE("TunDevice: opening %s failed", tun_path);
+        const int error = errno;
+        LOGE("TunDevice: opening %s failed (errno=%d: %s)", tun_path, error, strerror(error));
         return NULL;
     }
 

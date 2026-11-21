@@ -393,11 +393,6 @@ static NSString *SRPWWNativeLogPath(void) {
     return [directory stringByAppendingPathComponent:@"ww-native-current.log"];
 }
 
-// WaterWall refused a node while it built the chain, so the same profile would fail again on every retry
-static BOOL SRPWWIsConfigurationProblem(NSString *line) {
-    return [line containsString:@"JSON Error"] || [line containsString:@"node creation failure"] || [line containsString:@"Restricted config"];
-}
-
 static void SRPWWLog(void *context, int level, const char *message, size_t length) {
     SRPWaterWallClient *client = (__bridge SRPWaterWallClient *)context;
     if (client != nil && message != NULL && strstr(message, " FATAL ") != NULL) {
@@ -457,7 +452,8 @@ static void SRPWWFailure(void *context, int code, const char *message) {
         if (client->_closed || client->_sleepPaused) return;
         NSString *problem = nil;
         @synchronized (client) { problem = client->_startupProblem; }
-        if (!client->_runtimeReady && SRPWWIsConfigurationProblem(problem)) {
+        // A fatal line before the chain is up is WaterWall refusing the profile; starting it again would end the same way
+        if (!client->_runtimeReady && problem.length > 0) {
             NSString *refused = [@"WaterWall refused the profile: " stringByAppendingString:problem];
             // Another profile of Auto Switch may still start; alone, the profile ends the VPN with WaterWall's reason
             if (client->_candidates.count > 1) [client handleRuntimeFailure:refused];

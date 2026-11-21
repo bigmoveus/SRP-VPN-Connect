@@ -165,9 +165,11 @@ def peer_nodes(client_root, port, cert, key, cover_port):
             for field in ("password", "algorithm", "salt", "kdf-iterations", "max-frame-size"):
                 if field in node["settings"]:
                     settings[field] = node["settings"][field]
+        elif kind == "UdpOverTcpClient":   # QUIC over TCP: the framing sits between the listener and QuicServer
+            server_type = "UdpOverTcpServer"
         elif kind == "QuicClient":
             server_type = "QuicServer"
-            for field in ("protocol", "carrier-mode", "handshake-timeout-ms", "idle-timeout-ms",
+            for field in ("protocol", "handshake-timeout-ms", "idle-timeout-ms",
                           "max-packet-size", "max-buffered-bytes", "max-buffered-buffers", "receive-window-bytes", "verbose"):
                 if field in node["settings"]:
                     settings[field] = node["settings"][field]

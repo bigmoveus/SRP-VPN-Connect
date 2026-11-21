@@ -1,8 +1,15 @@
 # StreamFragmenter
 
+## Overview
+
 `StreamFragmenter` delays selected upstream byte ranges or fragments the initial
 TLS ClientHello into valid handshake records. It is a configurable internal Layer 4
 middle node, built by default with `INCLUDE_STREAM_FRAGMENTER`.
+
+The node selects TCP from the destination transport offer during `Init`.
+It closes lines whose offers do not include TCP.
+
+## Typical placement
 
 ```text
 TcpListener -> StreamFragmenter -> TcpConnector
@@ -13,7 +20,9 @@ WaterWall callback, not a TCP packet, TLS record, or application message. Later
 transforms and the transport can combine writes; the node does not promise wire
 packet boundaries. Downstream bytes and transport establishment pass through.
 
-## Configuration
+## Minimal practical example
+
+This node fragment shapes upstream payload callbacks. Define the `next` node in the surrounding configuration.
 
 ```json
 {
@@ -28,6 +37,8 @@ packet boundaries. Downstream bytes and transport establishment pass through.
   }
 }
 ```
+
+## Configuration
 
 For timed eligibility, replace `"mode": "counter", "count": 3` with
 `"mode": "timed", "duration-ms": 100`.
@@ -50,7 +61,9 @@ are no string duration formats. Zero count, zero duration, or an empty cut array
 disables shaping and TLS probing immediately. All settings are validated even when shaping is
 disabled. An enabled `wait-for-est` still holds input when shaping is disabled.
 
-## Selection and timing
+## Advanced behavior
+
+### Selection and timing
 
 Each line has independent eligibility. Counter mode counts every upstream
 Payload arrival, including empty, bypassed, too-short, and uncut payloads. Timed
@@ -81,7 +94,7 @@ are sent immediately once the startup gate is open. Pause/Resume do not delay
 due output. Scheduling can make delivery late, but the node checks monotonic
 deadlines so timer rounding cannot shorten the configured delay.
 
-### Initial TLS ClientHello records
+#### Initial TLS ClientHello records
 
 For TLS record fragmentation, use a `settings` object such as:
 
@@ -126,7 +139,7 @@ cannot later time out. Finish discards incomplete input without a timeout replay
 This option neither locates SNI automatically nor applies independent TLS and
 TCP cut profiles.
 
-### Waiting for transport establishment
+#### Waiting for transport establishment
 
 By default (`wait-for-est: true`), all upstream input enters the existing bounded FIFO
 before Est, including empty, bypassed and no-longer-eligible payloads. No fragment
@@ -149,7 +162,9 @@ Est is synthesized and no separate startup timeout is added. Finish before Est
 discards the FIFO. Further downstream buffering can still combine deliveries,
 so this setting does not guarantee packet boundaries or spacing on the wire.
 
-## FIFO, pressure, and shutdown
+## Implementation details
+
+### FIFO, pressure, and shutdown
 
 One FIFO owns all retained upstream payloads, including its active head. Bypassed
 payloads and arrivals after eligibility ends remain behind older work. Reentrant
@@ -195,7 +210,7 @@ payloads, clears local state, and forwards only away from its sender. There is
 no delayed flush after Finish. The node borrows its normal line; its creator
 owns line destruction and shutdown drain.
 
-## Buffers and splice
+### Buffers and splice
 
 The node advertises splice support with zero extra prepend padding. Later opaque
 payloads retain their representation. Generic selected ranges use the existing buffer
@@ -211,7 +226,7 @@ recycling belong to that line's event worker. Callback continuations hold a line
 reference and stop after logical death. Generic worker quiescence detaches timers
 before owner-line drain releases retained buffers and timer handles.
 
-## Acknowledgements
+### Acknowledgements
 
 WaterWall's fragmentation features draw inspiration from:
 
@@ -223,7 +238,7 @@ WaterWall's fragmentation features draw inspiration from:
 
 We thank both developers for sharing their work with the community.
 
-## Node Metadata
+### Node Metadata
 
 Source-backed metadata from `instance/node.c`:
 
@@ -233,6 +248,6 @@ Source-backed metadata from `instance/node.c`:
 | `can_have_prev` | `true` |
 | `can_have_next` | `true` |
 | `layer_group` | `kNodeLayer4` |
-| `layer_group_prev_node` | `kNodeLayer4` |
-| `layer_group_next_node` | `kNodeLayer4` |
+| `layer_group_prev_node` | `kNodeLayer4Stream` |
+| `layer_group_next_node` | `kNodeLayer4Stream` |
 | `required_padding_left` | `0` bytes |

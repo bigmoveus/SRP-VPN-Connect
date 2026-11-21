@@ -63,13 +63,15 @@ void authenticationclientOpenControlLine(tunnel_t *t)
         return;
     }
     authenticationclientClearSessionLocked(ts);
-    ts->connected     = false;
-    ts->write_paused  = false;
-    ts->pending_count = 0;
+    ts->connected      = false;
+    ts->write_admitted = false;
+    ts->write_paused   = false;
+    ts->pending_count  = 0;
     mutexUnlock(&ts->control_mutex);
     authenticationclientResetFirstUsagePushRuntime(t);
 
     line_t                        *line = lineCreate(tunnelchainGetLinePools(tunnelGetChain(t)), 0);
+    addresscontextSetOnlyProtocol(lineGetDestinationAddressContext(line), IP_PROTO_TCP);
     authenticationclient_lstate_t *ls   = lineGetState(line, t);
     authenticationclientLinestateInitialize(ls, lineGetBufferPool(line));
 
@@ -90,6 +92,14 @@ void authenticationclientOpenControlLine(tunnel_t *t)
         }
         return;
     }
+
+    /* Init can deliver Est or Resume synchronously. Start requests only after
+     * it returns on the live control line and the next node can accept writes. */
+    mutexLock(&ts->control_mutex);
+    assert(ts->control_line == line);
+    ts->write_admitted = true;
+    mutexUnlock(&ts->control_mutex);
+    discard authenticationclientSendAuthenticate(t);
 }
 
 void authenticationclientCloseControlLine(tunnel_t *t, line_t *l, bool propagate_finish)
@@ -102,9 +112,10 @@ void authenticationclientCloseControlLine(tunnel_t *t, line_t *l, bool propagate
     {
         ts->control_line = NULL;
     }
-    ts->connected     = false;
-    ts->write_paused  = false;
-    ts->pending_count = 0;
+    ts->connected      = false;
+    ts->write_admitted = false;
+    ts->write_paused   = false;
+    ts->pending_count  = 0;
     authenticationclientClearSessionLocked(ts);
     mutexUnlock(&ts->control_mutex);
     /* Retain unacknowledged relative debt; a saturated A - B cannot rebuild it. */

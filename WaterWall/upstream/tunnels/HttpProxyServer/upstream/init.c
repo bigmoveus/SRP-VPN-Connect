@@ -1,4 +1,5 @@
 #include "internal.h"
+#include "loggers/network_logger.h"
 
 static void timeout(wtimer_t *timer)
 {
@@ -9,17 +10,38 @@ static void timeout(wtimer_t *timer)
     uint64_t now   = hpsNowMs(s);
     unsigned error = 0;
     if (up->header_at && now - up->header_at >= hpsSettings(s)->header_timeout)
+    {
+        LOGW("HttpProxyServer: rejecting request: header deadline expired (elapsed_ms=%" PRIu64 ", timeout_ms=%u)",
+             now - up->header_at,
+             hpsSettings(s)->header_timeout);
         error = 408;
+    }
     else if (down->header_at && now - down->header_at >= hpsSettings(s)->header_timeout)
+    {
+        LOGW("HttpProxyServer: closing exchange: response header deadline expired (elapsed_ms=%" PRIu64
+             ", timeout_ms=%u)",
+             now - down->header_at,
+             hpsSettings(s)->header_timeout);
         error = 504;
+    }
     else if (s->connect_at && now - s->connect_at >= hpsSettings(s)->connect_timeout)
+    {
+        LOGW("HttpProxyServer: closing exchange: connect deadline expired (elapsed_ms=%" PRIu64 ", timeout_ms=%u)",
+             now - s->connect_at,
+             hpsSettings(s)->connect_timeout);
         error = 504;
+    }
     else if (now - s->progress_at >= hpsSettings(s)->idle_timeout)
     {
         if (s->phase == kHpsRequest && ! up->input)
             hpsClose(s, false);
         else
+        {
+            LOGW("HttpProxyServer: closing exchange: idle deadline expired (elapsed_ms=%" PRIu64 ", timeout_ms=%u)",
+                 now - s->progress_at,
+                 hpsSettings(s)->idle_timeout);
             error = 504;
+        }
     }
     if (error)
     {
@@ -31,6 +53,15 @@ static void timeout(wtimer_t *timer)
 
 void httpproxyserverTunnelUpStreamInit(tunnel_t *t, line_t *l)
 {
+    address_context_t *destination = lineGetDestinationAddressContext(l);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportTcp);
+        tunnelPrevDownStreamFinish(t, l);
+        return;
+    }
+    addresscontextSetOnlyProtocol(destination, IP_PROTO_TCP);
+
     hps_tstate_t *ts = tunnelGetState(t);
     hps_lstate_t *ls = lineGetState(l, t);
     *ls              = (hps_lstate_t) {.line = l};

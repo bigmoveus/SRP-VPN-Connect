@@ -285,9 +285,22 @@ bool realityserverSendHandoffAckAtBoundary(tunnel_t *t, line_t *l)
     }
 
     assert(ls->s2c_send_seq == 1);
-    ls->handoff_ack_sent = true;
-    ls->mode             = kRealityServerModeHandoffAwaitConfirm;
-    return lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, frame);
+    ls->handoff_ack_sent        = true;
+    ls->handoff_ack_dispatching = true;
+    ls->mode                    = kRealityServerModeHandoffAwaitConfirm;
+    if (! lineCallWithRefWithBuf(l, tunnelPrevDownStreamPayload, t, frame) || ! ls->handoff_ack_dispatching ||
+        ls->terminal_closing || ls->prev_finished)
+    {
+        return false;
+    }
+
+    /* The cutoff retires cover pressure. Keep the frontend stopped until ACK
+     * returns, then release the old hold unless protected Init replaced it. */
+    ls->handoff_ack_dispatching = false;
+    if (! ls->frontend_read_paused || ls->protected_read_paused)
+        return true;
+    ls->frontend_read_paused = false;
+    return lineCallWithRef(l, tunnelPrevDownStreamResume, t) && ls->handoff_ack_sent && ! ls->terminal_closing;
 }
 
 static int realityserverTryReadTlsRecord(buffer_stream_t *stream, sbuf_t **record)
@@ -692,6 +705,16 @@ static bool realityserverForwardHandoffTail(tunnel_t *t, line_t *l, sbuf_t *reco
                            len > kRealityServerMaxHandoffTailBytes - ls->handoff_tail_bytes;
     if (ls->destination_up_finished || over_record_limit || over_byte_limit)
     {
+        LOGW("RealityServer: closing connection: authenticated handoff tail refused (%s) "
+             "(tail_records=%u, record_limit=%u, tail_bytes=%u, incoming_record_bytes=%u, byte_limit=%u)",
+             ls->destination_up_finished ? "destination finished"
+             : over_record_limit         ? "record limit"
+                                         : "byte limit",
+             ls->handoff_tail_records,
+             (unsigned) kRealityServerMaxHandoffTailRecords,
+             ls->handoff_tail_bytes,
+             len,
+             (unsigned) kRealityServerMaxHandoffTailBytes);
         bufferpoolReuseBuffer(pool, record);
         bufferstreamEmpty(&ls->read_stream);
         realityserverCloseLineBidirectional(t, l);

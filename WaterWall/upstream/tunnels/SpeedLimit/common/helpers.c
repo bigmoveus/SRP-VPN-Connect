@@ -92,7 +92,7 @@ size_t speedlimitGrantBytes(tunnel_t *tunnel, line_t *line, size_t requested, bo
     return granted;
 }
 
-uint32_t speedlimitGetRetryDelayMs(tunnel_t *tunnel, line_t *line)
+uint32_t speedlimitGetRetryDelayMs(tunnel_t *tunnel, line_t *line, size_t wanted)
 {
     speedlimit_tstate_t *state = tunnelGetState(tunnel);
     speedlimit_bucket_t  global;
@@ -100,7 +100,7 @@ uint32_t speedlimitGetRetryDelayMs(tunnel_t *tunnel, line_t *line)
     rate_bucket_t        value  = speedlimitReadBucket(bucket);
     uint64_t             now    = speedlimitNowMs(line);
     ratebucketRefill(&value, state->bytes_per_sec, state->bytes_per_sec, state->recharge_interval_ms, now);
-    uint64_t delay = ratebucketRetryMs(&value, state->bytes_per_sec, state->recharge_interval_ms, now, 1);
+    uint64_t delay = ratebucketRetryMs(&value, state->bytes_per_sec, state->recharge_interval_ms, now, wanted);
     speedlimitWriteBucket(bucket, &value);
     speedlimitReleaseBucket(state, bucket);
     assert(delay <= INT_MAX);
@@ -123,13 +123,19 @@ void speedlimitCloseLineOnDrainFailure(speedlimit_lstate_t *state, sbuf_t *detac
 {
     tunnel_t *tunnel = state->tunnel;
     line_t   *line   = state->line;
-    lineRef(line);
     if (detached != NULL)
         lineReuseBuffer(line, detached);
     speedlimitLinestateDestroy(state);
+
+    /* The first callback can make the source finish this same line. */
+    state->close_phase = kSpeedLimitClosingBoth;
+    lineRef(line);
     tunnelNextUpStreamFinish(tunnel, line);
-    if (lineIsAlive(line))
+    if (lineIsAlive(line) && state->close_phase == kSpeedLimitClosingBoth)
+    {
+        state->close_phase = kSpeedLimitClosed;
         tunnelPrevDownStreamFinish(tunnel, line);
+    }
     lineUnref(line);
 }
 
@@ -140,8 +146,14 @@ static traffic_shaper_preview_t speedlimitPreview(void *context, size_t requeste
     speedlimit_lstate_t    *state     = direction->state;
     uint64_t                units     = speedlimitPeekAvailableUnits(state->tunnel, state->line);
     size_t                  bytes     = (size_t) min((uint64_t) requested, units / kSpeedLimitUnitsPerByte);
-    return (traffic_shaper_preview_t) {
-        bytes, requested != 0 && bytes == 0 ? speedlimitGetRetryDelayMs(state->tunnel, state->line) : 0, false};
+    /* Keep local producer backpressure for both line roles. A packet may enter the shaper only whole. */
+    if (state->packet_line && bytes < requested)
+        bytes = 0;
+    const uint32_t retry =
+        requested != 0 && bytes == 0
+            ? speedlimitGetRetryDelayMs(state->tunnel, state->line, state->packet_line ? requested : 1)
+            : 0;
+    return (traffic_shaper_preview_t) {bytes, retry, false};
 }
 
 static traffic_shaper_commit_t speedlimitCommit(void *context, size_t bytes, bool queued, bool remaining)
@@ -187,7 +199,22 @@ static void speedlimitPressure(void *context, bool paused)
 static void speedlimitClose(void *context)
 {
     speedlimit_direction_t *direction = context;
-    speedlimitCloseLineOnDrainFailure(direction->state, NULL);
+    speedlimit_lstate_t    *state     = direction->state;
+    if (! state->packet_line)
+    {
+        speedlimitCloseLineOnDrainFailure(state, NULL);
+        return;
+    }
+
+    /* A refused timer cannot drain this FIFO. Keep the shared worker line and the opposite direction live. */
+    traffic_shaper_t *shaper         = direction->upstream ? &state->up : &state->down;
+    const bool        external_hold  = shaper->externally_paused;
+    const bool        release_source = shaper->locally_paused && ! external_hold;
+    trafficshaperDestroy(shaper);
+    speedlimitInitShaper(direction);
+    shaper->externally_paused = external_hold;
+    if (release_source)
+        speedlimitPressure(direction, false);
 }
 
 const traffic_shaper_ops_t speedlimitShaperOps = {.preview  = speedlimitPreview,
@@ -195,3 +222,47 @@ const traffic_shaper_ops_t speedlimitShaperOps = {.preview  = speedlimitPreview,
                                                   .forward  = speedlimitForward,
                                                   .pressure = speedlimitPressure,
                                                   .close    = speedlimitClose};
+
+void speedlimitLogDrop(tunnel_t *t, line_t *line, size_t bytes, bool upstream)
+{
+    speedlimit_tstate_t *ts = tunnelGetState(t);
+    atomicIncU64Relaxed(&ts->dropped_payloads);
+    /* Drop mode can refuse every packet in a high-rate stream; sample the event
+     * and retain a node-wide cumulative count without logging under its bucket lock. */
+    if (atomicLogRateLimiterShouldLog(&ts->drop_log_limiter, 1000))
+        LOGW("SpeedLimit: dropping %s: %s "
+             "(sample_direction=%s, sample_payload_bytes=%zu, max_credit_bytes=%" PRIu64
+             ", rate_bytes_per_second=%" PRIu64 ", scope=%s, worker=%u, node_dropped_payloads_total=%" PRIu64 ")",
+             ts->work_mode == kSpeedLimitWorkModePause ? "packet" : "payload",
+             bytes > ts->bytes_per_sec ? "size exceeds one-second bucket capacity" : "insufficient rate credit",
+             upstream ? "upstream" : "downstream",
+             bytes,
+             ts->bytes_per_sec,
+             ts->bytes_per_sec,
+             ts->limit_mode == kSpeedLimitLimitModeAllLines    ? "node"
+             : ts->limit_mode == kSpeedLimitLimitModePerWorker ? "worker"
+                                                               : "connection",
+             (unsigned) lineGetWID(line),
+             atomicLoadU64Relaxed(&ts->dropped_payloads));
+}
+
+void speedlimitSubmit(speedlimit_direction_t *direction, sbuf_t *buffer)
+{
+    speedlimit_lstate_t       *state    = direction->state;
+    traffic_shaper_t          *shaper   = direction->upstream ? &state->up : &state->down;
+    const speedlimit_tstate_t *settings = tunnelGetState(state->tunnel);
+    if (state->packet_line && sbufGetLength(buffer) > settings->bytes_per_sec)
+    {
+        /* The bucket holds at most one second of credit. This packet could never leave the FIFO. */
+        speedlimitLogDrop(state->tunnel, state->line, sbufGetLength(buffer), direction->upstream);
+        lineReuseBuffer(state->line, buffer);
+        return;
+    }
+    if (trafficshaperSubmit(shaper, buffer) == kTrafficShaperRefused)
+    {
+        if (state->packet_line)
+            lineReuseBuffer(state->line, buffer);
+        else
+            speedlimitCloseLineOnDrainFailure(state, buffer);
+    }
+}

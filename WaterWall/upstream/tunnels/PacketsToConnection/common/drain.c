@@ -427,8 +427,6 @@ ptc_tcp_drain_adopt_result_t ptcTcpDrainAdoptLocked(tunnel_t *t, ptc_lstate_t *l
 
     if (! ptcDrainBudgetReserve(ts, (uint32_t) queued))
     {
-        if (atomicLogRateLimiterShouldLog(&g_ptc_drain_budget_log, kPtcDrainLogIntervalMs))
-            LOGW("PacketsToConnection: resetting a closing flow because the bounded closer budget is full");
         return kPtcTcpDrainFailed;
     }
 
@@ -480,13 +478,23 @@ void ptcTcpDrainDestroyRoute(interface_route_context_t *route)
 bool ptcDrainBudgetReserve(ptc_tstate_t *ts, uint32_t bytes)
 {
     mutexLock(&ts->drain_lock);
-    const bool admitted = ts->drain_count < kPtcMaxDrains && bytes <= kPtcMaxDrainBytesTotal - ts->drain_bytes;
+    const bool   admitted   = ts->drain_count < kPtcMaxDrains && bytes <= kPtcMaxDrainBytesTotal - ts->drain_bytes;
+    const size_t used_bytes = ts->drain_bytes;
+    const size_t used_count = ts->drain_count;
     if (admitted)
     {
         ++ts->drain_count;
         ts->drain_bytes += bytes;
     }
     mutexUnlock(&ts->drain_lock);
+    if (! admitted && atomicLogRateLimiterShouldLog(&g_ptc_drain_budget_log, kPtcDrainLogIntervalMs))
+        LOGW("PacketsToConnection: resetting closing flow: node closer admission refused "
+             "(retained_bytes=%zu, incoming_bytes=%u, byte_limit=%u, active_closers=%zu, closer_limit=%u)",
+             used_bytes,
+             (unsigned) bytes,
+             (unsigned) kPtcMaxDrainBytesTotal,
+             used_count,
+             (unsigned) kPtcMaxDrains);
     return admitted;
 }
 
@@ -497,4 +505,23 @@ void ptcDrainBudgetRelease(ptc_tstate_t *ts, uint32_t bytes)
     --ts->drain_count;
     ts->drain_bytes -= bytes;
     mutexUnlock(&ts->drain_lock);
+}
+
+void ptcTcpDrainRetireSourceRange(interface_route_context_t *route, const ip_addr_t *network, const ip_addr_t *mask)
+{
+    assert(route->engine == wwLwipEngineCurrent());
+    ptc_tcp_drain_t *drain = route->drains;
+    while (drain != NULL)
+    {
+        ptc_tcp_drain_t *next = drain->next;
+        if (drain->pcb != NULL && IP_IS_V4(&drain->pcb->remote_ip) &&
+            ip4AddrNetcmp(ip_2_ip4(&drain->pcb->remote_ip), ip_2_ip4(network), ip_2_ip4(mask)))
+        {
+            struct tcp_pcb *pcb = ptcDrainDetachPcbLocked(drain);
+            if (pcb != NULL)
+                tcp_abort(pcb);
+            ptcDrainFreeLocked(drain);
+        }
+        drain = next;
+    }
 }

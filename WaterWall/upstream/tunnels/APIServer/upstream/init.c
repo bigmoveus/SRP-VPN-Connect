@@ -2,6 +2,15 @@
 
 void apiserverUpStreamInit(tunnel_t *t, line_t *line)
 {
+    address_context_t *destination = lineGetDestinationAddressContext(line);
+    if (addresscontextSelectTransport(destination, kAddressContextTransportTcp) == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportTcp);
+        tunnelPrevDownStreamFinish(t, line);
+        return;
+    }
+    addresscontextSetTransportOffer(destination, kAddressContextTransportTcp);
+
     if (! apiserverLinestateInitialize(t, line))
     {
         tunnelPrevDownStreamFinish(t, line);

@@ -316,9 +316,9 @@ static void cleanupQueuedPipeMessage(void *arg1, void *arg2, void *arg3, worker_
 
 static bool pipeMessageLineIsUsable(pipe_pair_t *pair, line_t *line_to, sbuf_t *payload)
 {
-    const bool attached = line_to == pair->borrowed_line
-                              ? atomicLoadExplicit(&pair->borrowed_attached, memory_order_acquire)
-                              : atomicLoadExplicit(&pair->owned_attached, memory_order_acquire);
+    const bool borrowed = line_to == pair->borrowed_line;
+    const bool attached =
+        atomicLoadExplicit(borrowed ? &pair->borrowed_attached : &pair->owned_attached, memory_order_acquire);
     const bool alive    = lineIsAlive(line_to);
     const bool terminal = atomicLoadExplicit(&pair->terminal, memory_order_acquire);
 
@@ -331,9 +331,16 @@ static bool pipeMessageLineIsUsable(pipe_pair_t *pair, line_t *line_to, sbuf_t *
         }
     }
 
-    atomicStoreExplicit(&pair->terminal, true, memory_order_release);
+    // A message queued before this exact side sent Finish cannot be delivered
+    // there. Its surviving peer still has ordered payload and Finish to dispatch.
+    const bool retired_normally =
+        ! attached && atomicLoadExplicit(borrowed ? &pair->prev_finished : &pair->next_finished, memory_order_acquire);
+    const bool reconcile = terminal || ! retired_normally;
+    if (reconcile)
+        atomicStoreExplicit(&pair->terminal, true, memory_order_release);
     pipeDiscardPayload(payload);
-    pipeReconcileLine(pair, line_to);
+    if (reconcile)
+        pipeReconcileLine(pair, line_to);
     lineUnref(line_to);
     pipePairUnref(pair);
     return false;
@@ -984,6 +991,13 @@ bool pipeTo(tunnel_t *t, line_t *line, wid_t wid_to)
         LOGE("PipeTunnel: source line %p is already attached to a cross-worker pair", (void *) line);
         return false;
     }
+    const address_context_t *destination = lineGetDestinationAddressContext(line);
+    const uint8_t            offer       = addresscontextGetTransportOffer(destination);
+    if (offer == 0)
+    {
+        tunnelLogTransportRefusal(t, destination, kAddressContextTransportBoth);
+        return false;
+    }
 
 #ifdef WW_PIPE_TUNNEL_TEST_SEAM
     /* Deterministically lets a test place PreStop between the fast rejection
@@ -994,7 +1008,11 @@ bool pipeTo(tunnel_t *t, line_t *line, wid_t wid_to)
     pipe_pair_t *pair = memoryAllocateZero(sizeof(*pair));
 
     line_t *owned = lineCreateForWorker(wid, tunnelchainGetLinePools(tunnelGetChain(t)), wid_to);
-    lineCopyUsers(owned, line);
+    lineCopyIngressContext(owned, line);
+    const line_mark_t *mark = lineGetMark(line);
+    if (mark != NULL)
+        lineSetMark(owned, mark);
+    addresscontextSetTransportOffer(lineGetDestinationAddressContext(owned), offer);
 
     /* Stage all metadata without publishing either line state. */
     *pair = (pipe_pair_t) {
