@@ -286,7 +286,7 @@ private fun ProfileEditPage(
     }
 }
 
-internal const val REMOTE_DNS_OFF_WARNING = "WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled."
+internal const val REMOTE_DNS_OFF_WARNING = "WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled. Only a Router with sniffing still reads the name, from the traffic itself."
 
 /** The WaterWall rows of OPTIONS: Auto Switch needs a chain with a server of its own, Remote DNS a chain that takes connections */
 internal fun waterWallOptionTitles(profile: Profile, document: Map<String, Any?>): List<String> = buildList {

@@ -686,7 +686,7 @@ static const NSInteger kFieldAetherLicense = 33;
 /// Remote DNS stays on until the user accepts what turning it off costs.
 - (UIAlertController *)remoteDNSOffAlertForSwitch:(UISwitch *)sw {
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Turn Off Remote DNS?"
-        message:@"WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled."
+        message:@"WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled. Only a Router with sniffing still reads the name, from the traffic itself."
         preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
         [sw setOn:YES animated:YES];

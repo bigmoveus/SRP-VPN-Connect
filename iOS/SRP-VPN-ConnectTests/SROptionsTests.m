@@ -5960,6 +5960,8 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     XCTAssertEqualObjects(alert.title, @"Turn Off Remote DNS?");
     XCTAssertTrue([alert.message hasPrefix:@"WaterWall will no longer receive site names"], @"%@", alert.message);
     XCTAssertTrue([alert.message containsString:@"Domain routing and DNS routing in the chain stop working, even when they are enabled."]);
+    // A Router that sniffs is the one node that still gets the name with Remote DNS off, and the alert says so
+    XCTAssertTrue([alert.message hasSuffix:@"Only a Router with sniffing still reads the name, from the traffic itself."], @"%@", alert.message);
     XCTAssertEqualObjects([alert.actions valueForKey:@"title"], (@[@"Cancel", @"Turn Off"]));
     void (^cancel)(UIAlertAction *) = [alert.actions[0] valueForKey:@"handler"];
     cancel(alert.actions[0]);

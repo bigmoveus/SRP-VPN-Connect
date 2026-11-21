@@ -9,6 +9,7 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ### Changed
 - The Android app's version code is 13, for the release APK with WaterWall 1.6.0; the version name stays 1.2.0.
+- *Turn Off Remote DNS?* names the one exception, on both apps: *Only a Router with sniffing still reads the name, from the traffic itself.* Without that sentence the alert said that domain routing stops in every chain, which is not so where a Router reads the name from TLS, HTTP or QUIC traffic.
 
 ### Fixed
 - Import JSON on Android accepts one comma after the last member of an object or the last element of an array, as on iPhone, where the system's reader takes it; such a file was *not valid JSON* on Android only. Any other stray comma is still refused on both. Android now also refuses half of a surrogate pair in a `\u` escape and a `\u` escape with a sign in place of a digit, as the iPhone does. The parity test compares 50,509 answers of both apps.
