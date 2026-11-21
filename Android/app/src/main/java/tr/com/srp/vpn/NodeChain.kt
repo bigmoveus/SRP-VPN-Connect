@@ -16,13 +16,18 @@ object NodeChain {
     const val HINT_PACKET = "HintPacketIN"
 
     /** The node types WaterWall/CMakeLists.txt builds into the app, apart from the input SRP supplies itself */
-    private val INCLUDED = setOf(
-        "AuthenticationClient", "Bgp4Client", "DomainResolver", "EncryptionClient", "HttpClient", "HttpProxyClient", "HttpProxyServer",
-        "KcpClient", "MuxClient", "ObfuscatorClient", "PacketsToStream", "QuicClient", "RealityClient", "Router", "Socks5Client",
-        "Socks5Server", "StreamFragmenter", "TcpConnector", "TcpListener", "TcpUdpConnector", "TcpUdpListener", "TlsClient", "TrojanClient",
-        "UdpConnector", "UdpListener", "UdpStatelessSocket", "UserController", "VlessClient", "VmessClient", "WireGuardDevice",
+    val includedNodeTypes = setOf(
+        "AuthenticationClient", "Bgp4Client", "BlackHole", "ConnectionFisherClient", "ConnectionStripeClient", "ConnectionToPackets",
+        "Disturber", "DomainResolver", "EncryptionClient", "EnetClient", "GnsClient", "HalfDuplexClient", "HeaderClient", "HttpClient",
+        "HttpProxyClient", "HttpProxyServer", "JunkDatagramSender", "KcpClient", "KeepAliveClient", "LoggerTunnel", "MuxClient",
+        "ObfuscatorClient", "PacketsToStream", "QuicClient", "RealityClient", "Router", "RtmpClient", "Socks5Client", "Socks5Server",
+        "SpeedLimit", "StreamFragmenter", "TcpConnector", "TcpListener", "TcpUdpConnector", "TcpUdpListener", "TlsClient", "TrojanClient",
+        "UdpConnector", "UdpListener", "UdpOverTcpClient", "UserController", "VlessClient", "VmessClient", "WireGuardClient",
     )
     private val CONNECTORS = setOf("TcpConnector", "UdpConnector", "TcpUdpConnector")
+    /** What [plainJson] writes before the name of a placeholder */
+    private const val VARIABLE_MARKER = "\$srp-variable\$:"
+    private const val MAXIMUM_VARIABLE_WEIGHT = 1048576L
 
     /** The stored input: anything but the two local proxies reads as System VPN */
     fun inputOf(stored: String?): String = if (stored == INPUT_SOCKS5 || stored == INPUT_HTTP) stored else INPUT_TUN
@@ -45,13 +50,157 @@ object NodeChain {
     /** The node with this next, or without one when [next] is null, as an NSMutableDictionary takes a nil value */
     private fun withNext(node: Node, next: Any?): Node = LinkedHashMap(node).apply { if (next == null) remove("next") else put("next", next) }
 
+    /** [base], or base-2, base-3 and so on while a node has the name, which is taken from then on */
+    private fun uniqueName(names: MutableSet<Any?>, base: String): String {
+        var name = base
+        var suffix = 2
+        while (name in names) name = "$base-${suffix++}"
+        names.add(name)
+        return name
+    }
+
+    /**
+     * The nodes a node names in its settings: a Router's targets, the two paths of a HalfDuplexClient and the DNS chain of
+     * dns-behaviour. [rename] gets each name with the setting that holds it; the node comes back with the names it returned.
+     */
+    private fun withReferences(node: Node, rename: (name: String, setting: String) -> Any?): Node {
+        val settings = node["settings"] as? Map<*, *> ?: return node
+        // A name that comes back as null leaves its setting, as an NSMutableDictionary takes a nil value
+        fun renamed(holder: Map<*, *>, key: String, setting: String) = LinkedHashMap<Any?, Any?>(holder).apply {
+            val name = get(key) as? String ?: return@apply
+            rename(name, setting).let { if (it == null) remove(key) else put(key, it) }
+        }
+        var changed = LinkedHashMap<Any?, Any?>(settings)
+        if (node["type"] == "HalfDuplexClient") for (path in listOf("upload", "download")) changed = renamed(changed, path, path)
+        val rules = settings["rules"]
+        if (node["type"] == "Router" && rules is List<*>) changed["rules"] = rules.map { if (it is Map<*, *>) renamed(it, "target", "rules target") else it }
+        (settings["dns-behaviour"] as? Map<*, *>)?.let { changed["dns-behaviour"] = renamed(it, "dns-next", "dns-next") }
+        return if (changed == settings) node else LinkedHashMap(node).apply { put("settings", changed) }
+    }
+
+    /**
+     * A WaterWall client config written for a computer starts at its own listener and SOCKS5 or HTTP proxy server. SRP supplies that
+     * input itself, so in a file without a hint the pair becomes the connection hint.
+     */
+    private fun withHintForLocalProxy(document: Map<String, Any?>): Map<String, Any?> {
+        val nodes = nodesOf(document)
+        if (nodes.any { isHint(it["type"]) }) return document
+        val followers = nodes.mapNotNull { it["next"] as? String }
+        val heads = nodes.filter { it["type"] in setOf("TcpListener", "TcpUdpListener") && (it["name"] ?: "") !in followers }.flatMap { listener ->
+            nodes.filter { listener["next"] is String && it["name"] == listener["next"] && it["type"] in setOf("Socks5Server", "HttpProxyServer") }.map { listener to it }
+        }
+        // Two local proxies: which one is the input is not the app's guess
+        val (listener, server) = heads.singleOrNull() ?: return document
+        val next = server["next"] as? String ?: return document
+        val hint = node(uniqueName(nodes.map { it["name"] }.toHashSet(), "input"), HINT_CONNECTION, LinkedHashMap(), next)
+        return withNodes(document, listOf(hint) + nodes.filter { it !== listener && it !== server })
+    }
+
+    /**
+     * WaterWall's own loader takes // comments and $name$ placeholders, each standing for a value of the top-level "variables" object.
+     * JSON has neither: a comment goes, and a placeholder becomes a marked string that [parsedProfile] replaces once the text is parsed.
+     */
+    private fun plainJson(text: String): String {
+        val plain = StringBuilder(text.length)
+        var copied = 0
+        var inString = false
+        var index = 0
+        while (index < text.length) {
+            val character = text[index]
+            if (inString) {
+                if (character == '\\') index++ else if (character == '"') inString = false
+            } else if (character == '"') {
+                inString = true
+            } else if (character == '$' || text.startsWith("//", index)) {
+                val comment = character == '/'
+                var end = index + 1
+                while (end < text.length && text[end] != '\n' && text[end] != '\r' && (comment || text[end] != '$')) end++
+                val name = text.substring(index + 1, end)
+                // An unfinished or empty placeholder stays as it is, and the text then fails as JSON
+                if (comment || (end < text.length && text[end] == '$' && name.isNotEmpty() && name.none { it == '"' || it == '\\' })) {
+                    plain.append(text, copied, index)
+                    if (!comment) plain.append('"').append(VARIABLE_MARKER).append(name).append('"')
+                    copied = if (comment) end else end + 1
+                    index = copied - 1
+                }
+            }
+            index++
+        }
+        return plain.append(text, copied, text.length).toString()
+    }
+
+    /** How much of a profile a value is: the characters of its strings and keys, and one for each value */
+    private fun weight(value: Any?): Long = when (value) {
+        is String -> value.length.toLong()
+        is List<*> -> 1 + value.sumOf { weight(it) }
+        is Map<*, *> -> 1 + value.entries.sumOf { (it.key as String).length + weight(it.value) }
+        else -> 1
+    }
+
+    /**
+     * [value] with each marked string replaced by its variable; [missing] gets the name of each one that [variables] does not define.
+     * [room] is what the values may still add: a value named many times must not grow the profile past what a file may hold.
+     */
+    private fun withVariables(value: Any?, variables: Map<*, *>, missing: (String) -> Unit, room: LongArray): Any? = when {
+        value is String && value.startsWith(VARIABLE_MARKER) -> value.substring(VARIABLE_MARKER.length).let { name ->
+            val filled = variables[name]
+            if (filled == null) missing(name) else if (room[0] >= 0) room[0] -= weight(filled)
+            if (filled == null || room[0] < 0) value else filled
+        }
+        value is List<*> -> value.map { withVariables(it, variables, missing, room) }
+        value is Map<*, *> -> value.mapValues { withVariables(it.value, variables, missing, room) }
+        else -> value
+    }
+
+    /** The profile of a file, plain JSON or WaterWall's config syntax with its comments removed and its variables filled in; or the reason */
+    private fun parsedProfile(text: String): Pair<Any?, String?> {
+        // NSJSONSerialization reads an object or an array, never a bare value
+        fun parsed(json: String) = Json.parseOrNull(json)?.takeIf { it is Map<*, *> || it is List<*> }
+        parsed(text)?.let { return it to null }
+        val plain = plainJson(text)
+        val document = if (plain == text) null else parsed(plain)
+        if (document !is Map<*, *>) return document to null
+        // Of several, the first by name, as on iPhone, where a dictionary has no order
+        val missing = sortedSetOf<String>()
+        val room = longArrayOf(MAXIMUM_VARIABLE_WEIGHT)
+        val filled = withVariables(document.filterKeys { it != "variables" }, document["variables"] as? Map<*, *> ?: emptyMap<Any?, Any?>(), { missing += it }, room)
+        if (missing.isNotEmpty()) return null to "The file uses the variable \$${missing.first()}\$, but its \"variables\" block does not define it."
+        return if (room[0] < 0) null to "The file is larger than 1 MB with its variables filled in." else filled to null
+    }
+
     /** A file or saved profile, checked as an import is: the document, or null and the reason naming the node or reference at fault */
     fun documentWithJson(json: String?): Pair<Map<String, Any?>?, String?> {
-        // NSJSONSerialization reads an object or an array, never a bare value
-        val document = Json.parseOrNull(json)?.takeIf { it is Map<*, *> || it is List<*> }
-        val problem = if (document == null) "The file is not valid JSON." else validationError(document)
+        val (parsed, undefined) = if (json == null) null to null else parsedProfile(json)
         @Suppress("UNCHECKED_CAST")
-        return if (problem != null) null to problem else document as Map<String, Any?> to null
+        val document = if (parsed is Map<*, *>) withHintForLocalProxy(parsed as Map<String, Any?>) else parsed
+        val problem = undefined ?: if (document == null) "The file is not valid JSON." else validationError(document)
+        @Suppress("UNCHECKED_CAST")
+        return if (problem != null) null to problem else currentDocument(document as Map<String, Any?>) to null
+    }
+
+    /**
+     * A profile saved for WaterWall 1.5 in the form WaterWall 1.6 takes: QuicClient lost carrier-mode, and QUIC over TCP has a
+     * UdpOverTcpClient node after it.
+     */
+    fun currentDocument(document: Map<String, Any?>): Map<String, Any?> {
+        val nodes = nodesOf(document)
+        val names = nodes.map { it["name"] }.toHashSet()
+        val current = ArrayList<Node>()
+        for (node in nodes) {
+            val settings = node["settings"] as? Map<*, *>
+            val mode = settings?.get("carrier-mode")
+            if (node["type"] != "QuicClient" || settings == null || mode == null) {
+                current.add(node)
+                continue
+            }
+            val quic = LinkedHashMap(node).apply { put("settings", settings.filterKeys { it != "carrier-mode" }) }
+            current.add(quic)
+            if (mode != "stream") continue
+            val framing = uniqueName(names, "udp-over-tcp")
+            current.add(withNext(linkedMapOf("name" to framing, "type" to "UdpOverTcpClient", "settings" to LinkedHashMap<String, Any?>()), node["next"]))
+            quic["next"] = framing
+        }
+        return if (current == nodes) document else withNodes(document, current)
     }
 
     /** The checks of an import, on a document an edit made; null when it may be kept */
@@ -99,7 +248,13 @@ object NodeChain {
             if (!seen.add(next)) return "Following next from \"${node["name"]}\" comes back to \"$next\": the chain has a cycle."
             node = successor
         }
-        return null
+        var problem: String? = null
+        for (holder in nodesOf(document)) withReferences(holder) { name, setting ->
+            if (problem == null && name == hintName) problem = "Node \"${holder["name"]}\" names the input hint \"$name\" as its $setting, but the hint must start the chain."
+            else if (problem == null && name !in byName) problem = "Node \"${holder["name"]}\" names \"$name\" as its $setting, but no node has that name."
+            name
+        }
+        return problem
     }
 
     fun json(document: Map<String, Any?>): String = Json.write(document, sortedKeys = true)
@@ -132,6 +287,28 @@ object NodeChain {
         return chain
     }
 
+    /**
+     * The nodes off that chain, such as the ones another node names in its settings (a Router's targets, the upload and download
+     * paths of a HalfDuplexClient): each branch from its first node along next.
+     */
+    fun branchNodes(document: Any?): List<Node> {
+        val chain = chain(document)
+        val others = nodesOf(document).filter { it !in chain && it["name"] is String }
+        val byName = HashMap<Any?, Node>()
+        for (node in others) byName.putIfAbsent(node["name"], node)
+        val followers = others.mapNotNull { it["next"] as? String }
+        // Each branch from its first node along next; what a cycle leaves over keeps the file's order
+        val ordered = ArrayList<Node>()
+        for (start in others.filter { it["name"] !in followers } + others) {
+            var node: Node? = start
+            while (node != null && node !in ordered) {
+                ordered.add(node)
+                node = (node["next"] as? String)?.let { byName[it] }
+            }
+        }
+        return ordered
+    }
+
     /** The document's name, or the node types along the chain */
     fun summary(document: Any?): String {
         ((document as? Map<*, *>)?.get("name") as? String)?.takeIf { it.isNotEmpty() }?.let { return it }
@@ -145,9 +322,10 @@ object NodeChain {
         return withNodes(document, nodesOf(document).map { item ->
             when {
                 item["name"] == name -> node
-                // A rename keeps the link that pointed to the old name
-                newName != name && item["next"] == name -> withNext(item, newName)
-                else -> item
+                newName == name -> item
+                // A rename keeps the links that pointed to the old name: next, and the settings that name a node
+                else -> withReferences(item) { reference, _ -> if (reference == name) newName else reference }
+                    .let { if (item["next"] == name) withNext(it, newName) else it }
             }
         })
     }
@@ -176,7 +354,9 @@ object NodeChain {
     /** A connector's own server, not the destination of the connection it carries */
     private fun fixedAddress(node: Node): String? {
         val address = (node["settings"] as? Map<*, *>)?.get("address") as? String
-        return if (node["type"] !in CONNECTORS || address.isNullOrEmpty() || address.startsWith("dest_context")) null else address
+        // A value taken from the connection (dest_context->address, src_context->address), an IPv6 literal and a CIDR range are
+        // WaterWall's to handle: there is no IPv4 server of the profile to look up
+        return if (node["type"] !in CONNECTORS || address.isNullOrEmpty() || "_context->" in address || ':' in address || '/' in address) null else address
     }
 
     /** NSString and NSNumber integerValue: a number truncated, true as 1, a string's leading decimal digits after spaces and tabs */
@@ -212,15 +392,17 @@ object NodeChain {
         if (node["type"] != "Router") return false
         val rules = (node["settings"] as? Map<*, *>)?.get("rules") as? List<*> ?: return false
         return rules.any { rule ->
-            val destinations = (rule as? Map<*, *>)?.get("destination-ip")
-            (destinations as? List<*> ?: listOfNotNull(destinations)).any { it is String && it.lowercase().startsWith("geoip:") }
+            listOf("destination-ip", "source-ips").any { key ->
+                val addresses = (rule as? Map<*, *>)?.get(key)
+                (addresses as? List<*> ?: listOfNotNull(addresses)).any { it is String && it.lowercase().removePrefix("!").startsWith("geoip:") }
+            }
         }
     }
 
     fun usesGeoIp(document: Any?) = nodesOf(document).any { routerUsesGeoIp(it) }
 
     /** The chain reaches its server over UDP (it ends in a UDP connector) */
-    fun usesUdpCarrier(document: Any?) = chain(document).lastOrNull()?.get("type").let { it == "UdpConnector" || it == "UdpStatelessSocket" }
+    fun usesUdpCarrier(document: Any?) = chain(document).lastOrNull()?.get("type") == "UdpConnector"
 
     private fun node(name: String, type: String, settings: Map<String, Any?>, next: Any?): Node =
         linkedMapOf("name" to name, "type" to type, "settings" to settings, "next" to next)
@@ -230,11 +412,12 @@ object NodeChain {
      * Routers that need it; each fixed server name of a connector replaced by its address from [addresses]. Null and the reason when
      * the profile cannot run with this input.
      */
-    fun runtimeDocument(document: Map<String, Any?>, input: String, fakeDns: Boolean, geoIpDatabasePath: String?,
+    fun runtimeDocument(saved: Map<String, Any?>, input: String, fakeDns: Boolean, geoIpDatabasePath: String?,
                         addresses: Map<String, String>): Pair<Map<String, Any?>?, String?> {
+        val document = currentDocument(saved)
         val hint = hint(document)
         val packets = hint?.get("type") == HINT_PACKET
-        val unknown = nodesOf(document).firstOrNull { it !== hint && it["type"] !in INCLUDED }
+        val unknown = nodesOf(document).firstOrNull { it !== hint && it["type"] !in includedNodeTypes }
         val problem = validationError(document)
             ?: (if (packets && input != INPUT_TUN) "This profile starts with HintPacketIN, which takes IP packets, but the local SOCKS5 and HTTP proxies supply connections. Choose System VPN (TUN) in Settings → WaterWall Input to use it." else null)
             // Another type would only fail and be retried when the runtime starts
@@ -242,13 +425,7 @@ object NodeChain {
             ?: (if (usesGeoIp(document) && geoIpDatabasePath.isNullOrEmpty()) "The profile routes by country, but the GeoIP database is not available." else null)
         if (problem != null) return null to problem
         val names = nodesOf(document).map { it["name"] }.toHashSet<Any?>()
-        fun unique(base: String): String {
-            var name = base
-            var suffix = 2
-            while (name in names) name = "$base-${suffix++}"
-            names.add(name)
-            return name
-        }
+        fun unique(base: String) = uniqueName(names, base)
         val successor = hint!!["next"]
         val nodes = ArrayList<Node>()
         when {

@@ -114,6 +114,8 @@ class ChainConfigParityTest {
                     check("validation", item["error"], NodeChain.validationError(document))
                     if (document is Map<*, *>) {
                         check("chain", item["chain"], NodeChain.chain(document))
+                        check("branches", item["branches"], NodeChain.branchNodes(document))
+                        check("current", item["current"], NodeChain.currentDocument(document as Map<String, Any?>))
                         check("hint", item["hint"], NodeChain.hint(document))
                         check("summary", item["summary"], NodeChain.summary(document))
                         check("endpoints", item["endpoints"], NodeChain.endpoints(document).map { (host, port) -> mapOf("host" to host, "port" to port) })

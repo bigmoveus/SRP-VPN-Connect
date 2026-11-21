@@ -136,7 +136,9 @@ object Json {
                 skipSpace()
                 if (position >= text.length || text[position] != ':') throw SyntaxError("Expected ':' after the key.", position)
                 position++
-                result[key] = value(depth + 1)
+                // A key written twice keeps its first value, as on iOS and in WaterWall's own reader
+                val member = value(depth + 1)
+                if (key !in result) result[key] = member
                 skipSpace()
                 if (position >= text.length) throw SyntaxError("Unexpected end of text in an object.", position)
                 when (text[position++]) {
@@ -224,7 +226,8 @@ object Json {
                 if (position == exponent) throw SyntaxError("Invalid number.", start)
             }
             val token = text.substring(start, position)
-            return (if (integer) token.toLongOrNull() else null) ?: token.toDouble()
+            // A number no double can hold is not one this writer could write back
+            return (if (integer) token.toLongOrNull() else null) ?: token.toDouble().takeIf { it.isFinite() } ?: throw SyntaxError("Number out of range.", start)
         }
 
         private fun Char.isAsciiDigit() = this in '0'..'9'

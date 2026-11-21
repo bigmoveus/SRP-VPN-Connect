@@ -93,14 +93,22 @@ private fun kept(profile: Profile, document: Map<String, Any?>, context: Context
     return profile.copy(chainJson = NodeChain.json(document), configJson = "").withWaterWallServer()
 }
 
-internal fun chainFooter(document: Map<String, Any?>): String {
-    val all = (document["nodes"] as? List<*>)?.size ?: 0
-    val others = all - NodeChain.chain(document).size
-    if (others <= 0) return "Order follows each node's next field."
-    val one = others == 1
-    return "Order follows each node's next field. The profile has $others more ${if (one) "node" else "nodes"} off the chain, such as a Router's targets, " +
-        "which ${if (one) "is" else "are"} kept as ${if (one) "it is" else "they are"}."
+/** A section of the chain screen: a row per node with its number, 0 off the chain, and whether its chain or branch ends there */
+internal class ChainSection(val title: String, val footer: String, val rows: List<Triple<Map<String, Any?>, Int, Boolean>>)
+
+/** NODE CHAIN follows next from the hint; a profile with nodes off that chain shows them in OTHER NODES, each branch along its own next */
+internal fun chainSections(document: Map<String, Any?>): List<ChainSection> {
+    val chain = NodeChain.chain(document)
+    val branches = NodeChain.branchNodes(document)
+    return listOfNotNull(
+        ChainSection("NODE CHAIN", "Order follows each node's next field.", chain.mapIndexed { index, node -> Triple(node, index + 1, index == chain.lastIndex) }),
+        ChainSection("OTHER NODES", "Nodes off the chain above, such as a Router's targets or a HalfDuplexClient's upload and download paths.",
+            branches.map { Triple(it, 0, it["next"] !is String) }).takeIf { branches.isNotEmpty() },
+    )
 }
+
+/** What a screen reader says for a node's row */
+internal fun nodeRowDescription(number: Int, type: String, name: String, end: Boolean) = "${if (number == 0) "Branch" else number}, $type, $name${if (end) ", End" else ""}"
 
 /** The large title the WaterWall screens show under the navigation bar */
 @Composable
@@ -143,14 +151,14 @@ private fun NextRow(title: String, next: String) {
     }
 }
 
-/** The screen titled WaterWall behind the profile's WaterWall row: one row per node from the hint along next, the last marked End */
+/** The screen titled WaterWall behind the profile's WaterWall row: one row per node from the hint along next, the last marked End,
+ *  then the nodes off that chain */
 @Composable
 fun WaterWallChainPage(draft: Profile, onChange: (Profile) -> Unit, push: (EditorPage) -> Unit, onBack: () -> Unit) {
     val colors = LocalIosColors.current
     val ui = LocalUi.current
     val context = LocalContext.current
     val document = documentOf(draft)
-    val chain = NodeChain.chain(document)
     // The node whose next and actions show
     var expanded by rememberSaveable { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().background(colors.groupedBackground)) {
@@ -158,12 +166,12 @@ fun WaterWallChainPage(draft: Profile, onChange: (Profile) -> Unit, push: (Edito
             right = { RoundBarButton(Glyph.ImportDoc, "Import JSON") { push(EditorPage.WaterWallImport) } })
         Column(Modifier.weight(1f).navigationBarsPadding().verticalScroll(rememberScrollState())) {
             LargeTitle("WaterWall")
-            Section("NODE CHAIN", chainFooter(document)) {
-                chain.forEachIndexed { index, node ->
+            for (section in chainSections(document)) Section(section.title, section.footer) {
+                section.rows.forEach { (node, number, end) ->
                     val name = node["name"] as? String ?: ""
                     val open = node["name"] == expanded
-                    row { NodeRow(index + 1, node, index == chain.lastIndex, open) { expanded = if (open) null else name } }
-                    if (!open) return@forEachIndexed
+                    row { NodeRow(number, node, end, open) { expanded = if (open) null else name } }
+                    if (!open) return@forEach
                     (node["next"] as? String)?.let { next -> row { NextRow("next", next) } }
                     row { ActionRow(Glyph.Pencil, "Edit node", colors.blue) { push(EditorPage.WaterWallNode(name, null)) } }
                     row { ActionRow(Glyph.Plus, "Insert node after", colors.blue) { push(EditorPage.WaterWallNode(null, name)) } }
@@ -196,14 +204,19 @@ private fun NodeRow(number: Int, node: Map<String, Any?>, end: Boolean, expanded
     val name = node["name"] as? String ?: ""
     val hint = if (expanded) "Hides the node's actions" else "Shows the node's next and actions"
     PressableRow(onToggle, Modifier.clearAndSetSemantics {
-        contentDescription = "$number, $type, $name${if (end) ", End" else ""}"
+        contentDescription = nodeRowDescription(number, type, name, end)
         onClick(hint) {
             onToggle()
             true
         }
     }) {
-        Box(Modifier.size(28.dp).border(1.5.dp, colors.secondaryLabel, CircleShape), contentAlignment = Alignment.Center) {
-            Label("$number", IosText.subheadline.copy(fontWeight = FontWeight.SemiBold), colors.secondaryLabel)
+        // A node off the chain has no number
+        if (number == 0) {
+            GlyphIcon(Glyph.Branch, colors.secondaryLabel, 28.dp)
+        } else {
+            Box(Modifier.size(28.dp).border(1.5.dp, colors.secondaryLabel, CircleShape), contentAlignment = Alignment.Center) {
+                Label("$number", IosText.subheadline.copy(fontWeight = FontWeight.SemiBold), colors.secondaryLabel)
+            }
         }
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
@@ -323,7 +336,7 @@ internal fun importedDocument(bytes: ByteArray?): Pair<Map<String, Any?>?, Strin
     val text = runCatching {
         Charsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString()
     }.getOrNull() ?: return null to "The file is not UTF-8 text."
-    return NodeChain.documentWithJson(text)
+    return NodeChain.documentWithJson(text.removePrefix("﻿"))   // a byte order mark is not part of the JSON
 }
 
 internal fun importFooter(document: Map<String, Any?>) =
@@ -344,9 +357,10 @@ private fun readForImport(input: InputStream): ByteArray {
 }
 
 private val ImportRules = listOf(
-    "Input hint" to "Start with HintConnectionIN or HintPacketIN.",
+    "Input hint" to "Start with HintConnectionIN or HintPacketIN. A file that starts with its own local SOCKS5 or HTTP proxy gets the hint in its place.",
     "App-managed input" to "Leave TunDevice and PacketsToConnection out of the file.",
     "Raw sockets" to "Raw socket nodes cannot be imported.",
+    "WaterWall syntax" to "// comments are skipped, and each \$name\$ takes its value from the file's variables.",
 )
 
 /** Import JSON: a plain WaterWall .json file replaces the profile's chain, or shows why it is blocked and leaves the profile as it is */

@@ -286,6 +286,8 @@ private fun ProfileEditPage(
     }
 }
 
+internal const val REMOTE_DNS_OFF_WARNING = "WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled."
+
 /** The WaterWall rows of OPTIONS: Auto Switch needs a chain with a server of its own, Remote DNS a chain that takes connections */
 internal fun waterWallOptionTitles(profile: Profile, document: Map<String, Any?>): List<String> = buildList {
     add("Auto Reconnect")
@@ -308,6 +310,7 @@ internal fun waterWallOptionsFooter(document: Map<String, Any?>) = buildString {
 
 @Composable
 private fun WaterWallOptionsSection(draft: Profile, document: Map<String, Any?>, onChange: (Profile) -> Unit) {
+    val ui = LocalUi.current
     Section("OPTIONS", waterWallOptionsFooter(document)) {
         for (title in waterWallOptionTitles(draft, document)) {
             row {
@@ -318,7 +321,13 @@ private fun WaterWallOptionsSection(draft: Profile, document: Map<String, Any?>,
                     "Switch to Wi-Fi When Available" -> SwitchRow(title, draft.switchToWifi) { onChange(draft.copy(switchToWifi = it)) }
                     "On Sleep" -> SegmentRow(title, listOf("Off", "Pause", "Stay"), draft.onSleep) { onChange(draft.copy(onSleep = it)) }
                     "Log Level" -> SegmentRow(title, listOf("Normal", "Expert", "Debug"), draft.logLevel) { onChange(draft.copy(logLevel = it)) }
-                    else -> SwitchRow(title, draft.fakeDns) { onChange(draft.copy(fakeDns = it)) }
+                    // Remote DNS stays on until the user accepts what turning it off costs
+                    else -> SwitchRow(title, draft.fakeDns) { on ->
+                        if (on) onChange(draft.copy(fakeDns = true))
+                        else ui.choice = UiHost.Choice("Turn Off Remote DNS?", REMOTE_DNS_OFF_WARNING, listOf("Turn Off", "Cancel"), setOf(0)) { index ->
+                            if (index == 0) onChange(draft.copy(fakeDns = false))
+                        }
+                    }
                 }
             }
         }

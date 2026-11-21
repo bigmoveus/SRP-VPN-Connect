@@ -164,6 +164,7 @@ enum class Glyph(val path: String, val strokeWidth: Float = 1.9f) {
     ImportDoc("M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5M12 10.5v7M9 14.5l3 3l3-3"),
     Pencil("M15.5 4.5l4 4L8 20H4v-4zM13 7l4 4"),
     Alert("M12 2.75a9.25 9.25 0 1 0 0 18.5a9.25 9.25 0 1 0 0-18.5zM12 7v6.5M12 16.75v.01", 2.2f),
+    Branch("M12 21v-7M12 14c0-3.5-5.5-3-5.5-7V3.5M12 14c0-3.5 5.5-3 5.5-7V3.5M4 6l2.5-2.5L9 6M15 6l2.5-2.5L20 6", 1.4f),
 }
 
 /** One of the app's symbols, drawn to look like its SF Symbol. */

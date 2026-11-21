@@ -122,14 +122,11 @@ private const val PROXY_PROBE_TIMEOUT_MS = 10000
 internal fun fatalText(line: String): String? = line.indexOf(" FATAL ").takeIf { it >= 0 }?.let { line.substring(it + 7).trim() }
 
 /**
- * The reason to stop with when WaterWall refused a node while it built the chain, which the same profile would hit again on every
- * retry: the runtime ended before it was ready, and its first fatal line since it started names the configuration. Null otherwise.
+ * The reason to stop with when WaterWall refused the profile, which starting it again would end the same way: the runtime ended
+ * before the chain was up, and [startupProblem] is its first fatal line since it started. Null otherwise.
  */
-internal fun refusedProfileReason(startupProblem: String?, runtimeReady: Boolean): String? {
-    if (runtimeReady || startupProblem == null) return null
-    val configuration = "JSON Error" in startupProblem || "node creation failure" in startupProblem || "Restricted config" in startupProblem
-    return if (configuration) "WaterWall refused the profile: $startupProblem" else null
-}
+internal fun refusedProfileReason(startupProblem: String?, runtimeReady: Boolean): String? =
+    if (runtimeReady || startupProblem.isNullOrEmpty()) null else "WaterWall refused the profile: $startupProblem"
 
 data class TunnelSettings(val address: String, val dnsServers: List<String>, val routes: List<Pair<String, Int>>, val mtu: Int,
                           /** Ranges that stay outside the tunnel (an SSL VPN server's no-route lines); Android 13 and later */

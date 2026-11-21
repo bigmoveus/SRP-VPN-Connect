@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Writes app/src/test/resources/chain_config_parity.json.gz: iOS's answers for a broad corpus of WaterWall profiles, of the
 form-made configurations (SRPWaterWallChainConfig, with the node chain each converts to) and of the node editor's documents
-(SRPWaterWallNodeChain: checks, chain order, edits and the runtime copy for each input).
+(SRPWaterWallNodeChain: checks, chain order and branches, the form WaterWall 1.6 takes, edits and the runtime copy for each
+input).
 
 ChainConfigParityTest checks that the Kotlin port gives the same answers. Run this again after a change to
 iOS/Core/SRPCore/SRPWaterWallChainConfig.m. The corpus holds only made-up values and fixed random seeds.
@@ -279,6 +280,32 @@ HOSTS = ["vpn.example.com", "192.0.2.1", "edge.example.net", "dest_context->addr
 PORTS = [443, 8443, 1, 65535, 0, 65536, -1, "443", " 443", "\t8443", "\n8443", "443x", "+443", "-443", "x", "", True, False, 443.7, 1000.0,
          99999999999999999999, "99999999999999999999", None, [], {}]
 DESTINATIONS = [["geoip:ir"], ["GEOIP:IR", "10.0.0.0/8"], "geoip:us", ["geoip:"], ["10.0.0.0/8"], [5], None, {}, "GeoIP:TR"]
+# WaterWall 1.6: a chain that ends at a HalfDuplexClient, the branches that its settings, a Router rule and a dns-next name, and a
+# QuicClient as a profile saved for 1.5 has it; then one node's settings changed at a time
+BRANCHED = [
+    {"name": "input", "type": "HintConnectionIN", "settings": {}, "next": "router"},
+    {"name": "router", "type": "Router", "settings": {"rules": [{"source-ips": ["geoip:ir"], "target": "direct"}, {"destination-ip": "10.0.0.0/8"}]}, "next": "quic"},
+    {"name": "quic", "type": "QuicClient", "settings": {"sni": "vpn.example.com", "carrier-mode": "stream"}, "next": "half"},
+    {"name": "half", "type": "HalfDuplexClient", "settings": {"upload": "up", "download": "down"}},
+    {"name": "up", "type": "ObfuscatorClient", "settings": {}, "next": "out"},
+    {"name": "out", "type": "TcpConnector", "settings": {"address": "vpn.example.com", "port": 443, "dns-behaviour": {"resolve": True, "dns-next": "dns"}}},
+    {"name": "down", "type": "RealityClient", "settings": {}, "next": "far"},
+    {"name": "far", "type": "TcpConnector", "settings": {"address": "2001:db8::1", "port": 443}},
+    {"name": "direct", "type": "TcpUdpConnector", "settings": {"address": "dest_context->address", "port": "dest_context->port"}},
+    {"name": "dns", "type": "TcpUdpConnector", "settings": {"address": "1.1.1.1", "port": 53}}]
+BRANCHED_SETTINGS = [
+    ("half", {"upload": "up", "download": "gone"}), ("half", {"upload": "input", "download": "down"}), ("half", {"upload": 5, "download": None}), ("half", {}),
+    ("out", {"dns-behaviour": {"dns-next": "gone"}}), ("out", {"dns-behaviour": {"dns-next": "input"}}), ("out", {"dns-behaviour": 5}),
+    ("out", {"address": "src_context->address", "port": 443}), ("far", {"address": "203.0.113.0/24", "port": 443}),
+    ("router", {"rules": [{"target": "gone"}]}), ("router", {"rules": [{"target": "input"}]}), ("router", {"rules": [{"target": 5}, {}]}),
+    ("router", {"rules": [{"source-ips": "!!geoip:ir"}], "dns-behaviour": {"dns-next": "dns"}}), ("router", {"rules": [{"destination-ip": "!GeoIP:TR"}]}),
+    ("quic", {"carrier-mode": "datagram"}), ("quic", {"carrier-mode": None}), ("quic", {"carrier-mode": 5}), ("quic", {}),
+    ("up", {"upload": "gone", "rules": [{"target": "gone"}]})]
+# A file in WaterWall's own config syntax: // comments, and $name$ placeholders for the values of "variables"
+SYNTAX = ('{\n  // the values to change\n  "variables": {"server": "203.0.113.20", "port": 8443, "tls": {"sni": "vpn.example.com"}},\n'
+          '  "name": "price $5 \\" // not a comment",\n  "nodes": [\n    {"name": "input", "type": "HintConnectionIN", "next": "tls"}, // the input\n'
+          '    {"name": "tls", "type": "TlsClient", "settings": $tls$, "next": "out"},\n'
+          '    {"name": "out", "type": "TcpConnector", "settings": {"address": $server$, "port": $port$}}\n  ]\n}\n')
 
 
 def node_settings(node_type):
@@ -375,12 +402,35 @@ def node_corpus():
                    {"name": "uplink", "type": "TcpConnector", "settings": {"address": "vpn.example.com", "port": "8443"}},
                    {"name": "direct", "type": "TcpUdpConnector", "settings": {"address": "dest_context->address", "port": "dest_context->port"}},
                    {"name": "spare", "type": "TcpConnector", "settings": {"address": "spare.example.com", "port": 443}}]},
+        {"nodes": BRANCHED},
+        # A cycle off the chain, whose names the node added for QUIC over TCP would take
+        {"nodes": BRANCHED + [{"name": "udp-over-tcp", "type": "BlackHole", "next": "udp-over-tcp-2"}, {"name": "udp-over-tcp-2", "type": "BlackHole", "next": "udp-over-tcp"}]},
     ]
+    fixed += [{"nodes": [dict(node, settings=settings) if node["name"] == name else node for node in BRANCHED]} for name, settings in BRANCHED_SETTINGS]
     documents = fixed + [random_document() for _ in range(3000)]
     for document in documents:
         items.append({"kind": "node-chain", "document": document})
+    # A file that starts at its own local proxy takes the hint in its place
+    listener = {"name": "socks-listener", "type": "TcpUdpListener", "settings": {"address": "127.0.0.1", "port": 1080}, "next": "socks"}
+    socks = {"name": "socks", "type": "Socks5Server", "settings": {}, "next": "out"}
+    heads = [[listener, socks], [dict(listener, type="TcpListener"), dict(socks, type="HttpProxyServer")], [listener, dict(socks, type="TlsClient")],
+             [listener, dict(socks, next=5)], [dict(listener, next="out")], [hint, listener, socks], [listener, socks, dict(socks)],
+             [listener, socks, dict(listener, name="second", next="http"), dict(socks, name="http", type="HttpProxyServer")],
+             [listener, socks, {"name": "input", "type": "BlackHole"}], [{"name": "before", "type": "BlackHole", "next": "socks-listener"}, listener, socks],
+             [dict(listener, next=None), dict(socks, name=None)], [{"name": "socks-listener", "type": "TcpListener"}, {"type": "Socks5Server", "next": "out"}]]
+    texts = [json.dumps({"nodes": head + [out]}) for head in heads] + [json.dumps({"nodes": BRANCHED})]
+    texts += [SYNTAX, SYNTAX.replace("\n", "\r\n"), SYNTAX.rstrip() + " // the end", SYNTAX.replace("8443", "null"), SYNTAX.replace('"name":', "$port$:", 1),
+              "[] // a list", '{"nodes": [] // none\n}', '{"nodes": [], "x": $a$}', '{"variables": [1], "nodes": [], "x": $a$}',
+              '{"variables": {"a": $b$, "b": 1}, "x": $a$, "nodes": ' + json.dumps([hint, out]) + "}", json.dumps({"variables": {"a": 1}, "nodes": [hint, out]})]
+    texts += [SYNTAX.replace("$port$", broken) for broken in ["$missing$", "$port", "$$", '$po"rt$', "$po\\rt$", "$server$$port$", "$ port $"]]
+    texts.append(SYNTAX.replace("$tls$", "$zeta$").replace("$port$", "$alpha$"))   # two undefined: the first by name is the one named
+    # Numbers no double can hold, a key written twice (the first value stays), and values that fill in past what a file may hold
+    texts += [SYNTAX.replace("8443", number) for number in ["1e999", "-1e999", "1e308", "123456789012345678901234567890"]]
+    texts += ['{"nodes": ' + json.dumps([hint, out]) + ', "nodes": []}', '{"variables": {"a": 1}, "variables": {"a": 2}, "x": $a$, "nodes": ' + json.dumps([hint, out]) + "}"]
+    texts += ['{"variables": {"big": "' + "x" * 1024 + '"}, "nodes": ' + json.dumps([hint, out]) + ', "notes": [' + ",".join(["$big$"] * count) + "]}"
+              for count in (2, 1025)]
     for text in ["", "{", "[]", "{}", "1", "\"x\"", "null", "true", json.dumps(EXAMPLE), "﻿" + json.dumps(EXAMPLE), json.dumps(EXAMPLE) + " ",
-                 "{\"nodes\": [", "{\"nodes\": [] }", "{\"nodes\": [{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"out\"}]}", None]:
+                 "{\"nodes\": [", "{\"nodes\": [] }", "{\"nodes\": [{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"out\"}]}", None] + texts:
         items.append({"kind": "node-json", "json": text})
     valid = [EXAMPLE] + [document for document in documents if is_valid_document(document)][:160]
     added = [{"name": "added", "type": "StreamFragmenter", "settings": {}}, {"name": "added", "type": "StreamFragmenter", "next": "elsewhere"},

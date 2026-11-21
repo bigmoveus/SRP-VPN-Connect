@@ -26,6 +26,8 @@ static NSDictionary *runNodeChain(NSDictionary *item) {
     out[@"error"] = attempt(^id { return [SRPWaterWallNodeChain validationErrorForDocument:document]; });
     if ([document isKindOfClass:NSDictionary.class]) {
         out[@"chain"] = attempt(^id { return [SRPWaterWallNodeChain chainOfDocument:document]; });
+        out[@"branches"] = attempt(^id { return [SRPWaterWallNodeChain branchNodesOfDocument:document]; });
+        out[@"current"] = attempt(^id { return [SRPWaterWallNodeChain currentDocumentForDocument:document]; });
         out[@"hint"] = attempt(^id { return [SRPWaterWallNodeChain hintOfDocument:document]; });
         out[@"summary"] = attempt(^id { return [SRPWaterWallNodeChain summaryOfDocument:document]; });
         out[@"endpoints"] = attempt(^id { return [SRPWaterWallNodeChain endpointsOfDocument:document]; });

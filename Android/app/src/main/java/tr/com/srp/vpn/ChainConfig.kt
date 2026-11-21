@@ -1044,7 +1044,6 @@ object ChainConfig {
                     outerSettings["max-frame-size"] = 16356L
                 } else if (quic) {
                     outerSettings["protocol"] = "h3"
-                    outerSettings["carrier-mode"] = configuration["quic-carrier"]
                 }
                 val tlsFragment = longOf(options?.get("tls_frag"))
                 if (tlsFragment > 0 && allowsFragmentation(configuration)) {
@@ -1072,7 +1071,6 @@ object ChainConfig {
                     outerSettings["alpns"] = listOf(if (httpVersion == 1) "http/1.1" else "h2")
                 }
                 if (outer == "reality" || outer == "aead") outerSettings["password"] = outerSecret
-                if (quic) outerSettings["carrier-mode"] = configuration["quic-carrier"]
                 val outerType = when (outer) {
                     "tls" -> "TlsClient"
                     "reality" -> "RealityClient"
@@ -1080,7 +1078,11 @@ object ChainConfig {
                     "bgp4" -> "Bgp4Client"
                     else -> "QuicClient"
                 }
-                nodes.add(node(outer, outerType, outerSettings, if (kcp) "kcp" else "connector"))
+                val carrier = if (kcp) "kcp" else "connector"
+                // WaterWall 1.6 QUIC sends datagrams only; over TCP they travel in UdpOverTcp frames
+                val quicOverTcp = quic && configuration["quic-carrier"] == "stream"
+                nodes.add(node(outer, outerType, outerSettings, if (quicOverTcp) "udp-over-tcp" else carrier))
+                if (quicOverTcp) nodes.add(node("udp-over-tcp", "UdpOverTcpClient", emptyMap(), carrier))
             }
             if (kcp) {
                 val defaults = mapOf("kcp-send-window" to 128L, "kcp-recv-window" to 128L, "kcp-initial-cwnd" to 16L, "kcp-send-buffer-limit" to 512L)
@@ -1100,6 +1102,13 @@ object ChainConfig {
         }
         return Json.write(linkedMapOf("name" to summary(configuration), "nodes" to nodes))
     }
+
+    /** WaterWall 1.6: the phone's packets enter WireGuardClient, and its datagrams leave by a connector to the peer's endpoint */
+    private fun wireGuardNodes(privateKey: String, peers: List<Any?>) = listOf(
+        linkedMapOf("name" to "ne", "type" to "NEPacketDevice", "settings" to emptyMap<String, Any?>(), "next" to "wg"),
+        linkedMapOf("name" to "wg", "type" to "WireGuardClient", "settings" to mapOf("privatekey" to privateKey, "peers" to peers), "next" to "udp"),
+        linkedMapOf("name" to "udp", "type" to "UdpConnector", "settings" to mapOf("address" to "dest_context->address", "port" to "dest_context->port")),
+    )
 
     /** The node graph and tunnel settings of a wg-quick configuration, or null when it is not usable. */
     fun wireGuardWithConfig(config: String?): WireGuard? {
@@ -1151,14 +1160,11 @@ object ChainConfig {
             allowedIpParts.add(allowedIps)
             endpointIps.add(server)
         }
-        val nodes = listOf(
-            linkedMapOf("name" to "udp", "type" to "UdpStatelessSocket", "settings" to mapOf("listen-address" to "0.0.0.0", "listen-port" to 0L, "verbose" to true), "next" to "wg"),
-            linkedMapOf("name" to "wg", "type" to "WireGuardDevice", "settings" to mapOf("privatekey" to privateKey, "peers" to peers), "next" to "ne"),
-            linkedMapOf("name" to "ne", "type" to "NEPacketDevice", "settings" to emptyMap<String, Any?>()),
-        )
+        // WaterWall 1.6's WireGuardClient talks to one server; a file with more peers runs as a WireGuard profile instead
+        if (peers.size != 1) return null
         val dnsServers = iface?.get("dns").orEmpty().split(",").map { it.trim() }.filter { it.isNotEmpty() }
         return WireGuard(
-            nodesJson = Json.write(linkedMapOf("name" to "wireguard", "nodes" to nodes)),
+            nodesJson = Json.write(linkedMapOf("name" to "wireguard", "nodes" to wireGuardNodes(privateKey, peers))),
             tunnelAddress = address.substringBefore('/'),
             allowedIps = allowedIpParts.joinToString(", "),
             dnsServers = dnsServers.ifEmpty { listOf("1.1.1.1", "1.0.0.1") },
@@ -1171,12 +1177,8 @@ object ChainConfig {
     fun wireGuardWithKeys(privateKey: String, serverPublicKey: String, server: String, port: Long, clientAddress: String, keepalive: Long): WireGuard? {
         if (privateKey.isEmpty() || serverPublicKey.isEmpty() || server.isEmpty() || clientAddress.isEmpty() ||
             port !in 1..65535 || keepalive !in 0..65535) return null
-        val nodes = listOf(
-            linkedMapOf("name" to "udp", "type" to "UdpStatelessSocket", "settings" to mapOf("listen-address" to "0.0.0.0", "listen-port" to 0L, "verbose" to true), "next" to "wg"),
-            linkedMapOf("name" to "wg", "type" to "WireGuardDevice", "settings" to mapOf("privatekey" to privateKey,
-                "peers" to listOf(mapOf("publickey" to serverPublicKey, "allowedips" to "0.0.0.0/0", "endpoint" to "$server:$port", "persistentkeepalive" to max(0L, keepalive)))), "next" to "ne"),
-            linkedMapOf("name" to "ne", "type" to "NEPacketDevice", "settings" to emptyMap<String, Any?>()),
-        )
+        val nodes = wireGuardNodes(privateKey,
+            listOf(mapOf("publickey" to serverPublicKey, "allowedips" to "0.0.0.0/0", "endpoint" to "$server:$port", "persistentkeepalive" to max(0L, keepalive))))
         return WireGuard(
             nodesJson = Json.write(linkedMapOf("name" to "wireguard", "nodes" to nodes)),
             tunnelAddress = clientAddress.substringBefore('/'),

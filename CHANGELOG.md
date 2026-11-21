@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- The Android app has what build 48 gave the iPhone app: WaterWall 1.6.0 with the same node list and the same two engine changes, Import JSON's `//` comments, `variables` and proxy-headed configs, the settings that name other nodes with **OTHER NODES** on the WaterWall screen, QUIC over TCP in the 1.6.0 form, *WaterWall refused the profile: …* for every reason WaterWall gives before the chain is up, and *Turn Off Remote DNS?* before the switch turns off (**Turn Off**, **Cancel**). Its JSON reader keeps the first of two members with the same name and refuses a number out of range, as the iPhone's does, and Import JSON accepts a file that starts with a byte order mark. The parity test compares 50,486 answers of both apps' conversion and node editor.
+
 ## 1.2.0 (48) - 2026-11-21
 
 ### Added

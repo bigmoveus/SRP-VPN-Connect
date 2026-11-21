@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -31,9 +32,32 @@ class WaterWallNodeChainTest {
         {"name": "tls", "type": "TlsClient", "settings": {"sni": "vpn.example.com", "verify": true}, "next": "uplink"}]}"""
     private val uuid = "00112233-4455-6677-8899-aabbccddeeff"
 
+    // WaterWall's "striped RTMP and Reality" example with the hint in place of its listener and SOCKS5 server: the chain ends at the
+    // HalfDuplexClient, whose settings name the upload and the download branch
+    private val branchedJson = """{"name": "Test", "nodes": [
+        {"name": "input", "type": "HintConnectionIN", "settings": {}, "next": "trojan"},
+        {"name": "reality-connector", "type": "TcpConnector", "settings": {"address": "203.0.113.20", "port": 443, "nodelay": true, "fastopen": false}},
+        {"name": "trojan", "type": "TrojanClient", "next": "mux", "settings": {"password": "trojan-secret", "address": "dest_context->address",
+            "port": "dest_context->port", "protocol": "dest_context->protocol"}},
+        {"name": "mux", "type": "MuxClient", "next": "half-duplex", "settings": {"mode": "fixed-connections-count", "per-worker-connections-count": 1}},
+        {"name": "half-duplex", "type": "HalfDuplexClient", "settings": {"upload": "up", "download": "down"}},
+        {"name": "up", "type": "ConnectionStripeClient", "settings": {"connections": 8}, "next": "obfuscator"},
+        {"name": "obfuscator", "type": "ObfuscatorClient", "settings": {"method": "xor", "xor_key": 90}, "next": "rtmp"},
+        {"name": "rtmp", "type": "RtmpClient", "settings": {"tc-url": "rtmp://203.0.113.20:1935/waterwall"}, "next": "rtmp-connector"},
+        {"name": "rtmp-connector", "type": "TcpConnector", "settings": {"address": "203.0.113.20", "port": 1935, "nodelay": true, "fastopen": false}},
+        {"name": "down", "type": "RealityClient", "next": "reality-connector", "settings": {"sni": "example.com", "password": "reality-secret", "verify": true}}]}"""
+
     private fun example() = NodeChain.documentWithJson(exampleJson).first!!
 
+    private fun branched() = NodeChain.documentWithJson(branchedJson).first!!
+
     private fun documentWith(vararg nodes: Map<String, Any?>): Map<String, Any?> = mapOf("name" to "Test", "nodes" to nodes.toList())
+
+    @Suppress("UNCHECKED_CAST")
+    private fun nodesOf(document: Map<String, Any?>) = document["nodes"] as List<Map<String, Any?>>
+
+    /** The rows of a section of the chain screen, as a screen reader says them */
+    private fun descriptions(section: ChainSection) = section.rows.map { (node, number, end) -> nodeRowDescription(number, node["type"] as String, node["name"] as String, end) }
 
     private fun importProblem(vararg nodes: Map<String, Any?>) = NodeChain.documentWithJson(Json.write(documentWith(*nodes))).second
 
@@ -209,6 +233,13 @@ class WaterWallNodeChainTest {
         assertEquals("The file is larger than 1 MB.", importedDocument(ByteArray(1048577) { ' '.code.toByte() }).second)
         assertEquals("The file is not UTF-8 text.", importedDocument(byteArrayOf(0x7b, 0xff.toByte(), 0x7d)).second)
         assertEquals(example(), importedDocument(exampleJson.toByteArray()).first)
+        // A byte order mark is not part of the JSON
+        assertEquals(example(), importedDocument(byteArrayOf(0xef.toByte(), 0xbb.toByte(), 0xbf.toByte()) + exampleJson.toByteArray()).first)
+        // A number no double can hold could not be written back; a key written twice keeps its first value, as WaterWall reads it
+        for (number in listOf("1e999", "-1e999")) {
+            assertEquals(number, "The file is not valid JSON.", importedDocument(exampleJson.replaceFirst("{", "{\"limit\": $number, ").toByteArray()).second)
+        }
+        assertEquals(example(), importedDocument(exampleJson.replaceFirst(Regex("\\}\\s*$"), ", \"nodes\": []}").toByteArray()).first)
     }
 
     // The saved profile keeps its hint; what WaterWall runs starts with the input Settings → WaterWall Input chooses
@@ -276,6 +307,168 @@ class WaterWallNodeChainTest {
         val routed = nodes(NodeChain.runtimeDocument(geoIp, NodeChain.INPUT_TUN, false, "/data/GeoLite2-Country.mmdb", emptyMap()))
         assertEquals("/data/GeoLite2-Country.mmdb", (routed.first { it["type"] == "Router" }["settings"] as Map<*, *>)["geoip-db-path"])
         assertNull("Remote DNS off", (routed[1]["settings"] as Map<*, *>)["fake-dns"])
+    }
+
+    // WaterWall 1.6 refuses QuicClient's carrier-mode: a profile saved for 1.5 loses it, and QUIC over TCP gets the UdpOverTcp framing
+    @Test
+    fun quicProfilesOfVersion15TakeTheFormOfVersion16() {
+        fun profile(mode: String, connector: String) = documentWith(
+            mapOf("name" to "input", "type" to "HintConnectionIN", "settings" to emptyMap<String, Any?>(), "next" to "vless"),
+            mapOf("name" to "vless", "type" to "VlessClient", "settings" to mapOf("uuid" to "id"), "next" to "quic"),
+            mapOf("name" to "quic", "type" to "QuicClient", "next" to "connector", "settings" to mapOf("sni" to "vpn.example.com", "protocol" to "h3", "carrier-mode" to mode)),
+            mapOf("name" to "connector", "type" to connector, "settings" to mapOf("address" to "vpn.example.com", "port" to 443L)))
+        val datagram = NodeChain.chain(NodeChain.currentDocument(profile("datagram", "UdpConnector")))
+        assertEquals(listOf("HintConnectionIN", "VlessClient", "QuicClient", "UdpConnector"), datagram.map { it["type"] })
+        assertEquals(mapOf("sni" to "vpn.example.com", "protocol" to "h3"), datagram[2]["settings"])
+
+        val taken = nodesOf(profile("stream", "TcpConnector")) + mapOf("name" to "udp-over-tcp", "type" to "StreamFragmenter", "settings" to emptyMap<String, Any?>())
+        val stream = NodeChain.currentDocument(documentWith(*taken.toTypedArray()))
+        val chain = NodeChain.chain(stream)
+        assertEquals(listOf("HintConnectionIN", "VlessClient", "QuicClient", "UdpOverTcpClient", "TcpConnector"), chain.map { it["type"] })
+        assertFalse("carrier-mode" in chain[2]["settings"] as Map<*, *>)
+        assertEquals("The profile already has a node of the plain name", "udp-over-tcp-2", chain[3]["name"])
+        assertEquals(emptyMap<String, Any?>(), chain[3]["settings"])
+        assertNull(NodeChain.validationError(stream))
+
+        // A profile of the present form is returned as it is, and reading a saved one or starting it brings the form up to date
+        assertSame(stream, NodeChain.currentDocument(stream))
+        val saved = NodeChain.json(profile("stream", "TcpConnector"))
+        assertEquals(5, nodesOf(NodeChain.documentWithJson(saved).first!!).size)
+        val runtime = NodeChain.runtimeDocument(profile("stream", "TcpConnector"), NodeChain.INPUT_TUN, true, null, emptyMap()).first!!
+        assertEquals(listOf("NEPacketDevice", "PacketsToConnection", "VlessClient", "QuicClient", "UdpOverTcpClient", "TcpConnector"), nodesOf(runtime).map { it["type"] })
+        assertFalse("carrier-mode" in NodeChain.json(runtime))
+    }
+
+    // A file in WaterWall's own config syntax: // comments go, and each $name$ takes its value from the "variables" block
+    @Test
+    fun importTakesCommentsAndVariables() {
+        val file = "{\n  // the values to change\n  \"variables\": {\"server_address\": \"203.0.113.20\", \"port\": 8443," +
+            " \"tls\": {\"sni\": \"vpn.example.com\", \"verify\": true}},\n  \"name\": \"price \$5 // not a comment\",\n  \"nodes\": [\n" +
+            "    {\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"tls\"}, // the app's input\n" +
+            "    {\"name\": \"tls\", \"type\": \"TlsClient\", \"settings\": \$tls\$, \"next\": \"out\"},\n" +
+            "    {\"name\": \"out\", \"type\": \"TcpConnector\", \"settings\": {\"address\": \$server_address\$, \"port\": \$port\$}}\n  ]\n}\n"
+        val (document, problem) = NodeChain.documentWithJson(file)
+        assertNull(problem)
+        assertFalse("The values are in the nodes now", "variables" in document!!)
+        assertEquals("price \$5 // not a comment", document["name"])
+        val chain = NodeChain.chain(document)
+        assertEquals(mapOf("sni" to "vpn.example.com", "verify" to true), chain[1]["settings"])
+        assertEquals(mapOf("address" to "203.0.113.20", "port" to 8443L), chain[2]["settings"])
+
+        assertEquals(null to "The file uses the variable \$missing\$, but its \"variables\" block does not define it.",
+            NodeChain.documentWithJson(file.replace("\$port\$", "\$missing\$")))
+        // Of several undefined variables the message names the first by name, whatever their order in the file
+        assertEquals(null to "The file uses the variable \$alpha\$, but its \"variables\" block does not define it.",
+            NodeChain.documentWithJson(file.replace("\$tls\$", "\$zeta\$").replace("\$port\$", "\$alpha\$")))
+        // A value named many times must not grow the profile past what a file may hold: 1,048,576 characters of values
+        fun repeated(count: Int) = "{\"variables\": {\"big\": \"${"x".repeat(1024)}\"}, \"nodes\": [" +
+            "{\"name\": \"input\", \"type\": \"HintConnectionIN\", \"next\": \"out\"}, " +
+            "{\"name\": \"out\", \"type\": \"TcpConnector\", \"settings\": {\"address\": \"203.0.113.20\", \"port\": 443, \"notes\": [${List(count) { "\$big\$" }.joinToString(",")}]}}]}"
+        assertNull(NodeChain.documentWithJson(repeated(1024)).second)
+        assertEquals(null to "The file is larger than 1 MB with its variables filled in.", NodeChain.documentWithJson(repeated(1025)))
+        for (broken in listOf("\$port", "\$\$")) {
+            assertEquals(broken, null to "The file is not valid JSON.", NodeChain.documentWithJson(file.replace("\$port\$", broken)))
+        }
+    }
+
+    // Nodes that are not on the path from the hint, such as the ones another node names in its settings, follow the chain branch by branch
+    @Test
+    fun branchesFollowTheChain() {
+        val document = branched()
+        assertEquals(listOf("input", "trojan", "mux", "half-duplex"), names(document))
+        assertEquals(listOf("up", "obfuscator", "rtmp", "rtmp-connector", "down", "reality-connector"), NodeChain.branchNodes(document).map { it["name"] })
+        assertEquals(emptyList<Any>(), NodeChain.branchNodes(example()))
+        assertEquals(setOf("203.0.113.20" to 1935, "203.0.113.20" to 443), NodeChain.endpoints(document).toSet())
+
+        val (runtime, problem) = NodeChain.runtimeDocument(document, NodeChain.INPUT_SOCKS5, false, null, mapOf("203.0.113.20" to "198.51.100.7"))
+        assertNull(problem)
+        assertEquals("The two input nodes and the nine nodes after the hint", 11, nodesOf(runtime!!).size)
+        for (node in nodesOf(runtime).filter { it["type"] == "TcpConnector" }) {
+            assertEquals("${node["name"]}", "198.51.100.7", (node["settings"] as Map<*, *>)["address"])
+        }
+        // A cycle among the other nodes still lists each of them once
+        val cycle = nodesOf(example()) + mapOf("name" to "a", "type" to "BlackHole", "settings" to emptyMap<String, Any?>(), "next" to "b") +
+            mapOf("name" to "b", "type" to "BlackHole", "settings" to emptyMap<String, Any?>(), "next" to "a")
+        assertEquals(listOf("a", "b"), NodeChain.branchNodes(documentWith(*cycle.toTypedArray())).map { it["name"] })
+    }
+
+    // A WaterWall client config for a computer starts at its own listener and proxy server: without a hint, SRP's input takes their
+    // place, as it does when it adds the same pair for its local SOCKS5 input
+    @Test
+    fun importReplacesTheFilesOwnLocalProxyWithTheHint() {
+        val rest = arrayOf(mapOf("name" to "trojan", "type" to "TrojanClient", "settings" to mapOf("password" to "secret"), "next" to "out"),
+            mapOf("name" to "out", "type" to "TcpConnector", "settings" to mapOf("address" to "vpn.example.com", "port" to 443L)))
+        fun imported(vararg head: Map<String, Any?>) = NodeChain.documentWithJson(NodeChain.json(documentWith(*head, *rest)))
+        val listener = mapOf("name" to "socks-listener", "type" to "TcpUdpListener", "next" to "socks", "settings" to mapOf("address" to "127.0.0.1", "port" to 1080L))
+        val socks = mapOf("name" to "socks", "type" to "Socks5Server", "settings" to mapOf("no-auth" to true), "next" to "trojan")
+        val (document, problem) = imported(listener, socks)
+        assertNull(problem)
+        assertEquals(listOf("input", "trojan", "out"), names(document!!))
+        assertEquals(mapOf("name" to "input", "type" to "HintConnectionIN", "settings" to emptyMap<String, Any?>(), "next" to "trojan"), NodeChain.hint(document))
+        val http = socks + ("type" to "HttpProxyServer")
+        assertEquals(3, nodesOf(imported(listener + ("type" to "TcpListener"), http).first!!).size)
+
+        // A listener that forwards to one fixed service is no proxy input, and a second proxy head leaves the choice to the file
+        val noHint = null to "The chain must start with an input hint: HintConnectionIN or HintPacketIN."
+        assertEquals(noHint, imported(listener + ("next" to "trojan")))
+        val secondListener = mapOf("name" to "http-listener", "type" to "TcpListener", "settings" to emptyMap<String, Any?>(), "next" to "http")
+        assertEquals(noHint, imported(listener, socks, secondListener, http + ("name" to "http")))
+        // A listener without a next leads nowhere, so a proxy server without a name is not its pair
+        assertEquals(null to "The next of node \"socks-listener\" is not a node name.", imported(listener + ("next" to null), socks + ("name" to null)))
+        // A file that has a hint keeps its other nodes as they are
+        val hint = mapOf("name" to "start", "type" to "HintConnectionIN", "settings" to emptyMap<String, Any?>(), "next" to "trojan")
+        assertEquals(5, nodesOf(imported(hint, listener, socks).first!!).size)
+    }
+
+    // The names a node holds in its settings are links too: a missing one blocks the file, a rename follows, a delete is refused
+    @Test
+    fun settingsThatNameANodeAreKeptWhole() {
+        val document = branched()
+        assertEquals("Node \"half-duplex\" names \"down\" as its download, but no node has that name.", NodeChain.validationError(NodeChain.deletingNode(document, "down")))
+        assertNull("next closes the gap", NodeChain.validationError(NodeChain.deletingNode(document, "obfuscator")))
+
+        val renamed = NodeChain.replacingNode(document, "up", NodeChain.branchNodes(document)[0] + ("name" to "striped"))
+        assertNull(NodeChain.validationError(renamed))
+        assertEquals(mapOf("upload" to "striped", "download" to "down"), NodeChain.chain(renamed).last()["settings"])
+
+        fun routed(vararg rules: Any?) = documentWith(
+            mapOf("name" to "input", "type" to "HintConnectionIN", "settings" to emptyMap<String, Any?>(), "next" to "router"),
+            mapOf("name" to "router", "type" to "Router", "next" to "proxy", "settings" to mapOf("rules" to rules.toList())),
+            mapOf("name" to "proxy", "type" to "TcpConnector", "settings" to mapOf("address" to "vpn.example.com", "port" to 443L,
+                "dns-behaviour" to mapOf("resolve" to true, "dns-next" to "dns"))),
+            mapOf("name" to "direct", "type" to "TcpUdpConnector", "settings" to mapOf("address" to "dest_context->address", "port" to "dest_context->port")),
+            mapOf("name" to "dns", "type" to "TcpUdpConnector", "settings" to mapOf("address" to "1.1.1.1", "port" to 53L)))
+        val lan = routed(mapOf("destination-ip" to listOf("10.0.0.0/8"), "target" to "direct"))
+        assertNull(NodeChain.validationError(lan))
+        assertEquals("Node \"router\" names \"direct\" as its rules target, but no node has that name.", NodeChain.validationError(NodeChain.deletingNode(lan, "direct")))
+        assertEquals("Node \"proxy\" names \"dns\" as its dns-next, but no node has that name.", NodeChain.validationError(NodeChain.deletingNode(lan, "dns")))
+        // A rule that is not an object names no node: the file is read, and WaterWall is the one to refuse the rule
+        val oddRule = routed(5L, mapOf("target" to "direct"))
+        assertNull(NodeChain.validationError(oddRule))
+        assertEquals(oddRule to null, NodeChain.documentWithJson(NodeChain.json(oddRule)))
+        assertEquals("Node \"router\" names the input hint \"input\" as its rules target, but the hint must start the chain.",
+            NodeChain.validationError(routed(mapOf("target" to "input"))))
+
+        // Only an IPv4 host of the profile's own is a server to look up; country rules count by source and when negated too
+        val others = listOf("src_context->address", "2001:db8::1", "203.0.113.0/24").map {
+            mapOf("name" to it, "type" to "TcpConnector", "settings" to mapOf("address" to it, "port" to 443L))
+        }
+        assertEquals(listOf("vpn.example.com", "1.1.1.1"), NodeChain.endpoints(documentWith(*(nodesOf(lan) + others).toTypedArray())).map { it.first })
+        assertFalse(NodeChain.usesGeoIp(lan))
+        for (rule in listOf(mapOf("source-ips" to listOf("geoip:ir"), "target" to "direct"), mapOf("destination-ip" to listOf("!GeoIP:IR"), "target" to "direct"))) {
+            assertTrue("$rule", NodeChain.usesGeoIp(routed(rule)))
+        }
+    }
+
+    // A profile is checked against the node types WaterWall/CMakeLists.txt builds into the app
+    @Test
+    fun nodeTypesAreTheOnesOfTheBuild() {
+        // Gradle runs the tests in the app module's folder
+        val list = File("../../WaterWall/CMakeLists.txt").readText().substringAfter("set(SRP_NODES", "").substringBefore("\n)")
+        val built = Regex("""^\s+[A-Z0-9_]+:([A-Za-z0-9]+)$""", RegexOption.MULTILINE).findAll(list).map { it.groupValues[1] }.toSet()
+        assertTrue("$built", built.size > 40)
+        // SRP supplies these two itself, so a profile may not hold them
+        assertEquals(built - setOf("NEPacketDevice", "PacketsToConnection"), NodeChain.includedNodeTypes)
     }
 
     // One choice for all WaterWall profiles: the profiles hold no input of their own
@@ -516,17 +709,27 @@ class WaterWallNodeChainTest {
 
     @Test
     fun chainScreenFollowsTheLinkedOrder() {
-        val document = example()
-        assertEquals("Order follows each node's next field.", chainFooter(document))
-        @Suppress("UNCHECKED_CAST")
-        val nodes = document["nodes"] as List<Map<String, Any?>>
-        val withTargets = documentWith(*(nodes + mapOf("name" to "direct", "type" to "TcpUdpConnector")).toTypedArray())
-        assertEquals("Order follows each node's next field. The profile has 1 more node off the chain, such as a Router's targets, which is kept as it is.",
-            chainFooter(withTargets))
-        val withTwo = documentWith(*(nodes + mapOf("name" to "a", "type" to "TcpUdpConnector") + mapOf("name" to "b", "type" to "TcpUdpConnector")).toTypedArray())
-        assertTrue(chainFooter(withTwo).endsWith("The profile has 2 more nodes off the chain, such as a Router's targets, which are kept as they are."))
+        val section = chainSections(example()).single()
+        assertEquals("NODE CHAIN" to "Order follows each node's next field.", section.title to section.footer)
+        assertEquals(listOf("1, HintConnectionIN, input", "2, TlsClient, tls", "3, TcpConnector, uplink, End"), descriptions(section))
         // A profile without a readable chain is read as the hint alone
         assertEquals(NodeChain.emptyDocument(), documentOf(Profile(chainJson = "")))
+    }
+
+    // A profile with nodes off the chain shows them in a section of their own
+    @Test
+    fun chainScreenShowsTheOtherNodes() {
+        val sections = chainSections(branched())
+        assertEquals(listOf("NODE CHAIN", "OTHER NODES"), sections.map { it.title })
+        assertEquals("Order follows each node's next field.", sections[0].footer)
+        assertEquals("Nodes off the chain above, such as a Router's targets or a HalfDuplexClient's upload and download paths.", sections[1].footer)
+        assertEquals(listOf("1, HintConnectionIN, input", "2, TrojanClient, trojan", "3, MuxClient, mux", "4, HalfDuplexClient, half-duplex, End"), descriptions(sections[0]))
+        assertEquals(listOf("Branch, ConnectionStripeClient, up", "Branch, ObfuscatorClient, obfuscator", "Branch, RtmpClient, rtmp", "Branch, TcpConnector, rtmp-connector, End",
+            "Branch, RealityClient, down", "Branch, TcpConnector, reality-connector, End"), descriptions(sections[1]))
+        // Deleting the only other node leaves the chain's section alone
+        val spare = documentWith(*(nodesOf(example()) + mapOf("name" to "spare", "type" to "BlackHole", "settings" to emptyMap<String, Any?>())).toTypedArray())
+        assertEquals(listOf("Branch, BlackHole, spare, End"), descriptions(chainSections(spare)[1]))
+        assertEquals(listOf("NODE CHAIN"), chainSections(NodeChain.deletingNode(spare, "spare")).map { it.title })
     }
 
     @Test
@@ -579,13 +782,14 @@ class WaterWallNodeChainTest {
         assertNull(fatalText("2026-11-20 09:25:40.146 ERROR TcpConnector: connection refused"))
         assertEquals("WaterWall refused the profile: JSON Error: VlessClient->settings->target-address (string field) is required",
             refusedProfileReason(fatal, runtimeReady = false))
-        for (problem in listOf("NodeManager: node creation failure: VlessClient", "Restricted config: node TunDevice")) {
+        // Whatever the fatal line says: before the runtime is ready it is WaterWall refusing the profile
+        for (problem in listOf(next, "NodeManager: node creation failure: VlessClient", "Restricted config: node TunDevice")) {
             assertEquals("WaterWall refused the profile: $problem", refusedProfileReason(problem, runtimeReady = false))
         }
-        // Once the runtime was ready, or for another fatal line, a failure is retried as before
+        // Once the runtime was ready, or without a fatal line, a failure is retried as before
         assertNull(refusedProfileReason(fatal, runtimeReady = true))
-        assertNull(refusedProfileReason(next, runtimeReady = false))
         assertNull(refusedProfileReason(null, runtimeReady = false))
+        assertNull(refusedProfileReason("", runtimeReady = false))
     }
 
     @Test
