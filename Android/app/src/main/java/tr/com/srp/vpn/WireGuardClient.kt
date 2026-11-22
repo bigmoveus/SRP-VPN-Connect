@@ -102,12 +102,12 @@ internal data class WireGuardConf(
     }
 
     /**
-     * The name servers the VPN sets: the file's. A WireGuard file that sends all IPv4 traffic through the tunnel and names
-     * none gets 1.1.1.1 and 1.0.0.1, as on iPhone, where no name resolves without them. A file for part of the traffic
-     * keeps the phone's own servers, and AmneziaWG is as it was.
+     * The name servers the VPN sets, for WireGuard and AmneziaWG alike: the file's. A file that sends all IPv4 traffic
+     * through the tunnel and names none gets 1.1.1.1 and 1.0.0.1, as on iPhone, where no name resolves without them. A file
+     * for part of the traffic keeps the phone's own servers.
      */
-    fun tunnelDns(amnezia: Boolean = false): List<String> {
-        if (dns.isNotEmpty() || amnezia) return dns
+    fun tunnelDns(): List<String> {
+        if (dns.isNotEmpty()) return dns
         // All IPv4 traffic, as tunnelSettings routes it: an IPv4 entry with prefix 0, or no entry at all
         val allIpv4 = allowedIps.isEmpty() || allowedIps.any { ':' !in it && it.substringAfter('/', "").toIntOrNull() == 0 }
         return if (allIpv4) listOf("1.1.1.1", "1.0.0.1") else emptyList()
@@ -118,7 +118,7 @@ internal data class WireGuardConf(
         val v4 = addresses.firstOrNull { ProbePackets.ipv4(it.substringBefore('/')) != null } ?: addresses.first()
         val extra = addresses.filter { it != v4 }.map { it.substringBefore('/') to (it.substringAfter('/', "").toIntOrNull() ?: if (':' in it) 128 else 32) }
         val routes = allowedIps.map { it.substringBefore('/') to (it.substringAfter('/', "").toIntOrNull() ?: if (':' in it) 128 else 32) }
-        return TunnelSettings(v4.substringBefore('/'), tunnelDns(amnezia), routes.ifEmpty { listOf("0.0.0.0" to 0) }, tunnelMtu(amnezia),
+        return TunnelSettings(v4.substringBefore('/'), tunnelDns(), routes.ifEmpty { listOf("0.0.0.0" to 0) }, tunnelMtu(amnezia),
             addressPrefix = v4.substringAfter('/', "").toIntOrNull() ?: 32, extraAddresses = extra)
     }
 
@@ -477,8 +477,8 @@ class WireGuardClient(
         val keepalive = if (parsed.keepalive > 0) "${if (amnezia) parsed.keepaliveSpec else parsed.keepalive} s" else "off"
         ConnectionLog.m("$name: connecting to ${parsed.endpointHost} ($address) port ${parsed.endpointPort} over UDP, keepalive " +
             "$keepalive, preshared key ${if (parsed.presharedKey.isNotEmpty()) "yes" else "no"}")
-        if (parsed.dns.isEmpty() && parsed.tunnelDns(amnezia).isNotEmpty()) {
-            ConnectionLog.m("WireGuard: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1")
+        if (parsed.dns.isEmpty() && parsed.tunnelDns().isNotEmpty()) {
+            ConnectionLog.m("$name: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1")
         }
         if (amnezia) {
             // What the file sets (names only: the header protection key is a secret, the I1-I5 chains are long)

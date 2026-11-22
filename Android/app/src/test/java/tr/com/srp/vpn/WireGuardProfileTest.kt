@@ -69,7 +69,7 @@ class WireGuardProfileTest {
         assertEquals(1420, WireGuardConf.parse(conf.replace("MTU = 1280\n", "")).first!!.tunnelSettings().mtu)
     }
 
-    /** The VPN's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic. */
+    /** The VPN's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a file that sends all IPv4 traffic, AmneziaWG's too. */
     @Test
     fun givesAFileWithoutDnsItsNameServersWhenAllIpv4TrafficGoesThroughTheTunnel() {
         fun servers(allowed: String, dns: String = "", amnezia: Boolean = false) =
@@ -83,7 +83,9 @@ class WireGuardProfileTest {
         assertEquals(emptyList<String>(), servers("AllowedIPs = 10.66.66.0/24\n"))   // a split tunnel keeps the phone's own servers
         assertEquals(emptyList<String>(), servers("AllowedIPs = 0.0.0.0/1, 128.0.0.0/1\n"))
         assertEquals(emptyList<String>(), servers("AllowedIPs = ::/0\n"))   // IPv6 only: Android routes no IPv4 traffic then
-        assertEquals(emptyList<String>(), servers("AllowedIPs = 0.0.0.0/0\n", amnezia = true))   // AmneziaWG is as it was
+        assertEquals(defaults, servers("AllowedIPs = 0.0.0.0/0\n", amnezia = true))   // AmneziaWG too
+        assertEquals(emptyList<String>(), servers("AllowedIPs = 10.66.66.0/24\n", amnezia = true))
+        assertEquals(listOf("9.9.9.9"), servers("AllowedIPs = 0.0.0.0/0\n", dns = "DNS = 9.9.9.9\n", amnezia = true))
         // Keys typed in Manual Configuration, with DNS and AllowedIPs left empty: the generated file sends all IPv4 traffic
         val typed = Profile(protocolType = "wireguard", server = "192.0.2.7", wgPrivateKey = key, wgPeerPublicKey = key, wgAddress = "10.66.66.3/32")
         assertEquals(defaults, WireGuardConf.parse(typed.wgEffectiveConfig()!!).first!!.tunnelSettings().dnsServers)

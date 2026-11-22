@@ -288,11 +288,11 @@ static int SRPWGFindUTUNFd(void) {
     return -1;
 }
 
-/// The name servers the tunnel sets: the file's. A WireGuard file that sends all IPv4 traffic through the tunnel and names
-/// none gets 1.1.1.1 and 1.0.0.1, because iOS then has no name server left to ask and no name resolves. A file for part of
-/// the traffic keeps the phone's own servers, and AmneziaWG is as it was.
-static NSArray<NSString *> *SRPWGTunnelDNSServers(SRPWGConfig *cfg, BOOL amnezia) {
-    if (cfg.dnsServers.count > 0 || amnezia) return cfg.dnsServers;
+/// The name servers the tunnel sets, for WireGuard and AmneziaWG alike: the file's. A file that sends all IPv4 traffic
+/// through the tunnel and names none gets 1.1.1.1 and 1.0.0.1, because iOS then has no name server left to ask and no name
+/// resolves. A file for part of the traffic keeps the phone's own servers.
+static NSArray<NSString *> *SRPWGTunnelDNSServers(SRPWGConfig *cfg) {
+    if (cfg.dnsServers.count > 0) return cfg.dnsServers;
     // All IPv4 traffic, as buildSettingsFromConfig: routes it: an IPv4 entry with prefix 0, or no IPv4 entry at all
     BOOL anyIPv4 = NO;
     for (NSString *cidr in cfg.allowedIPs) {
@@ -503,8 +503,8 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
     NSString *endpointIP = SRPWGResolveIPv4(cfg.endpointHost);
     SSLogM(@"%@: parsed config — addrs=%@ dns=%@ allowed=%@ endpoint=%@:%ld", self.protocolName,
            cfg.addresses, cfg.dnsServers, cfg.allowedIPs, cfg.endpointHost, (long)cfg.endpointPort);
-    if (cfg.dnsServers.count == 0 && SRPWGTunnelDNSServers(cfg, _amnezia).count > 0) {
-        SSLogM(@"WireGuard: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1");
+    if (cfg.dnsServers.count == 0 && SRPWGTunnelDNSServers(cfg).count > 0) {
+        SSLogM(@"%@: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1", self.protocolName);
     }
     if (!endpointIP) {
         _failureCb([NSString stringWithFormat:@"The %@ endpoint %@ could not be resolved.", self.protocolName, cfg.endpointHost]);
@@ -563,7 +563,7 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
         return nil;
     }
     return @{@"uapi": uapi, @"mtu": @(SRPWGEffectiveMTU(cfg, amnezia)), @"silenceBytes": @(SRPWGSilenceBytes(cfg, amnezia)),
-             @"dnsServers": SRPWGTunnelDNSServers(cfg, amnezia)};
+             @"dnsServers": SRPWGTunnelDNSServers(cfg)};
 }
 
 - (BOOL)activateWithError:(NSError **)error {
@@ -693,7 +693,7 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
         settings.IPv6Settings = v6;
     }
 
-    NSArray<NSString *> *dnsServers = SRPWGTunnelDNSServers(cfg, _amnezia);
+    NSArray<NSString *> *dnsServers = SRPWGTunnelDNSServers(cfg);
     if (dnsServers.count > 0) {
         NEDNSSettings *dns = [[NEDNSSettings alloc] initWithServers:dnsServers];
         // Like the official app: the tunnel DNS is the default resolver —

@@ -4827,8 +4827,8 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqual([wireguard numberOfSectionsInTableView:wireguard.tableView], 2);
 }
 
-// The tunnel's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic
-// through the tunnel (iOS has no other server to ask then), none for a split tunnel, and none for AmneziaWG, which is as it was
+// The tunnel's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a file that sends all IPv4 traffic through the
+// tunnel (iOS has no other server to ask then) and none for a split tunnel, for WireGuard and AmneziaWG alike
 - (void)testWireGuardNameServersOfAFileWithoutDNS {
     NSString *(^conf)(NSString *, NSString *) = ^(NSString *dns, NSString *allowed) {
         return [NSString stringWithFormat:@"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\n%@\n"
@@ -4848,7 +4848,9 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = ::/0\n"), NO), defaults, @"Without an IPv4 entry too");
     XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 10.66.66.0/24\n"), NO), @[], @"A split tunnel keeps the phone's own servers");
     XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/1, 128.0.0.0/1\n"), NO), @[]);
-    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/0\n"), YES), @[], @"AmneziaWG is as it was");
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/0\n"), YES), defaults, @"AmneziaWG too");
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 10.66.66.0/24\n"), YES), @[]);
+    XCTAssertEqualObjects(servers(conf(@"DNS = 9.9.9.9\n", @"AllowedIPs = 0.0.0.0/0\n"), YES), @[@"9.9.9.9"]);
     // Keys typed in Manual Configuration, with DNS and AllowedIPs left empty: the generated file sends all IPv4 traffic
     NodeModel *model = [NodeModel new];
     model.protocolType = @"wireguard";

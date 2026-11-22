@@ -67,7 +67,7 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 
 /// What the client derives from a config (for tests): @"uapi" (the engine's settings), @"mtu" (the tunnel's),
 /// @"silenceBytes" (the sent bytes that mean more than keepalives) and @"dnsServers" (the tunnel's name servers: the file's,
-/// or 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic and names none); nil with errorOut set as the
+/// or 1.1.1.1 and 1.0.0.1 for a file that sends all IPv4 traffic and names none); nil with errorOut set as the
 /// connect would fail.
 + (nullable NSDictionary<NSString *, id> *)engineSettingsFromConfig:(NSString *)configText amnezia:(BOOL)amnezia
                                                               error:(NSString * _Nullable * _Nullable)errorOut;

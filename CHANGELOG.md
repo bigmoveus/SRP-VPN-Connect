@@ -7,6 +7,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 ### Changed
 - The WireGuard documentation describes TestFlight build 50 and the Android APK 1.2.0 (15). The `DNS` row of its Configuration Reference and the Manual Configuration step say which name servers a profile without DNS servers asks, and the Test Results page has every case again from the code of build 50 on both phones, tested on 22 November 2026: 42 cases on the iPhone and 37 on Android, all passed, with two new cases for a file without a `DNS` line (all traffic, and a split tunnel). The two cases on the guide's own server stay those of 8 November 2026. The WaterWall pages name build 50 and APK 1.2.0 (15) as the builds to use, and the UI guide says what a profile of the former WireGuard mode asks now.
 
+### Fixed
+- An AmneziaWG profile that sends all IPv4 traffic through the VPN and names no DNS servers asks 1.1.1.1 and 1.0.0.1 while it is connected, on both apps, as a WireGuard profile does since build 50. On iPhone such a profile connected and carried traffic but could not look up any name, because iOS asks no other name server once the VPN takes all traffic. A profile for part of the traffic keeps the phone's own name servers, and a file with DNS servers keeps its own. The connection log says *AmneziaWG: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1*; WireGuard's line and behaviour are as they were.
+
 ## 1.2.0 (50) - 2026-11-22
 
 ### Changed
