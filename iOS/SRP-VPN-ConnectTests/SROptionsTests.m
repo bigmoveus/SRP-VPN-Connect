@@ -4827,6 +4827,40 @@ static NSDictionary *SRPFieldsOfProfile(NodeModel *profile) {
     XCTAssertEqual([wireguard numberOfSectionsInTableView:wireguard.tableView], 2);
 }
 
+// The tunnel's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic
+// through the tunnel (iOS has no other server to ask then), none for a split tunnel, and none for AmneziaWG, which is as it was
+- (void)testWireGuardNameServersOfAFileWithoutDNS {
+    NSString *(^conf)(NSString *, NSString *) = ^(NSString *dns, NSString *allowed) {
+        return [NSString stringWithFormat:@"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.66.66.2/32\n%@\n"
+                "[Peer]\nPublicKey = AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=\nEndpoint = 192.0.2.7:51820\n%@", dns, allowed];
+    };
+    NSArray *(^servers)(NSString *, BOOL) = ^NSArray *(NSString *text, BOOL amnezia) {
+        NSString *error = nil;
+        NSDictionary *settings = [SRPWireGuardClient engineSettingsFromConfig:text amnezia:amnezia error:&error];
+        XCTAssertNotNil(settings, @"%@", error);
+        return settings[@"dnsServers"];
+    };
+    NSArray *defaults = @[@"1.1.1.1", @"1.0.0.1"];
+    XCTAssertEqualObjects(servers(conf(@"DNS = 9.9.9.9, 2620:fe::fe\n", @"AllowedIPs = 0.0.0.0/0\n"), NO), (@[@"9.9.9.9", @"2620:fe::fe"]));
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/0\n"), NO), defaults);
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 10.66.66.0/24, 0.0.0.0/0, ::/0\n"), NO), defaults);
+    XCTAssertEqualObjects(servers(conf(@"", @""), NO), defaults, @"Without AllowedIPs the tunnel takes all IPv4 traffic");
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = ::/0\n"), NO), defaults, @"Without an IPv4 entry too");
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 10.66.66.0/24\n"), NO), @[], @"A split tunnel keeps the phone's own servers");
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/1, 128.0.0.0/1\n"), NO), @[]);
+    XCTAssertEqualObjects(servers(conf(@"", @"AllowedIPs = 0.0.0.0/0\n"), YES), @[], @"AmneziaWG is as it was");
+    // Keys typed in Manual Configuration, with DNS and AllowedIPs left empty: the generated file sends all IPv4 traffic
+    NodeModel *model = [NodeModel new];
+    model.protocolType = @"wireguard";
+    model.server = @"192.0.2.7";
+    model.wgPrivateKey = @"AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=";
+    model.wgPeerPublicKey = @"AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=";
+    model.wgAddress = @"10.66.66.2/32";
+    XCTAssertEqualObjects(servers([model wgEffectiveConfig], NO), defaults);
+    model.wgDNS = @"8.8.8.8";
+    XCTAssertEqualObjects(servers([model wgEffectiveConfig], NO), @[@"8.8.8.8"]);
+}
+
 // A WireGuard profile refuses an AmneziaWG file at import, naming the protocol to use; an AmneziaWG profile takes it
 - (void)testWireGuardImportRefusesAmneziaWGFiles {
     NSString *conf = @"[Interface]\nPrivateKey = AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=\nAddress = 10.67.0.2/32\nS1 = 64\n\n"

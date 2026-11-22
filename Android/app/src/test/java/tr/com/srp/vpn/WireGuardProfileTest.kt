@@ -69,6 +69,27 @@ class WireGuardProfileTest {
         assertEquals(1420, WireGuardConf.parse(conf.replace("MTU = 1280\n", "")).first!!.tunnelSettings().mtu)
     }
 
+    /** The VPN's name servers: the file's; without any, 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic. */
+    @Test
+    fun givesAFileWithoutDnsItsNameServersWhenAllIpv4TrafficGoesThroughTheTunnel() {
+        fun servers(allowed: String, dns: String = "", amnezia: Boolean = false) =
+            WireGuardConf.parse(conf.replace("DNS = 1.1.1.1, 8.8.8.8\n", dns).replace("AllowedIPs = 0.0.0.0/0, ::/0\n", allowed))
+                .first!!.tunnelSettings(amnezia).dnsServers
+        val defaults = listOf("1.1.1.1", "1.0.0.1")
+        assertEquals(listOf("9.9.9.9", "2620:fe::fe"), servers("AllowedIPs = 0.0.0.0/0\n", dns = "DNS = 9.9.9.9, 2620:fe::fe\n"))
+        assertEquals(defaults, servers("AllowedIPs = 0.0.0.0/0\n"))
+        assertEquals(defaults, servers("AllowedIPs = 10.66.66.0/24, 0.0.0.0/0, ::/0\n"))
+        assertEquals(defaults, servers(""))   // without AllowedIPs the tunnel takes all IPv4 traffic
+        assertEquals(emptyList<String>(), servers("AllowedIPs = 10.66.66.0/24\n"))   // a split tunnel keeps the phone's own servers
+        assertEquals(emptyList<String>(), servers("AllowedIPs = 0.0.0.0/1, 128.0.0.0/1\n"))
+        assertEquals(emptyList<String>(), servers("AllowedIPs = ::/0\n"))   // IPv6 only: Android routes no IPv4 traffic then
+        assertEquals(emptyList<String>(), servers("AllowedIPs = 0.0.0.0/0\n", amnezia = true))   // AmneziaWG is as it was
+        // Keys typed in Manual Configuration, with DNS and AllowedIPs left empty: the generated file sends all IPv4 traffic
+        val typed = Profile(protocolType = "wireguard", server = "192.0.2.7", wgPrivateKey = key, wgPeerPublicKey = key, wgAddress = "10.66.66.3/32")
+        assertEquals(defaults, WireGuardConf.parse(typed.wgEffectiveConfig()!!).first!!.tunnelSettings().dnsServers)
+        assertEquals(listOf("8.8.8.8"), WireGuardConf.parse(typed.copy(wgDns = "8.8.8.8").wgEffectiveConfig()!!).first!!.tunnelSettings().dnsServers)
+    }
+
     @Test
     fun serverAndPortReplaceTheImportedEndpoint() {
         var profile = Profile(protocolType = "wireguard", wgConfig = conf, server = "vpn.example.com", port = "51821")

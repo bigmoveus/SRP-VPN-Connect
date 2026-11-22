@@ -65,8 +65,10 @@ typedef void(^SRPWGFailureCallback)(NSString *reason);
 /// The peer's last_handshake_time_sec, rx_bytes and tx_bytes from a UAPI get (wgGetConfig).
 + (nullable NSDictionary<NSString *, NSNumber *> *)peerStateFromUAPI:(NSString *)uapi;
 
-/// What the client derives from a config (for tests): @"uapi" (the engine's settings), @"mtu" (the tunnel's) and
-/// @"silenceBytes" (the sent bytes that mean more than keepalives); nil with errorOut set as the connect would fail.
+/// What the client derives from a config (for tests): @"uapi" (the engine's settings), @"mtu" (the tunnel's),
+/// @"silenceBytes" (the sent bytes that mean more than keepalives) and @"dnsServers" (the tunnel's name servers: the file's,
+/// or 1.1.1.1 and 1.0.0.1 for a WireGuard file that sends all IPv4 traffic and names none); nil with errorOut set as the
+/// connect would fail.
 + (nullable NSDictionary<NSString *, id> *)engineSettingsFromConfig:(NSString *)configText amnezia:(BOOL)amnezia
                                                               error:(NSString * _Nullable * _Nullable)errorOut;
 

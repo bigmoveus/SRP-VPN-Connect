@@ -288,6 +288,23 @@ static int SRPWGFindUTUNFd(void) {
     return -1;
 }
 
+/// The name servers the tunnel sets: the file's. A WireGuard file that sends all IPv4 traffic through the tunnel and names
+/// none gets 1.1.1.1 and 1.0.0.1, because iOS then has no name server left to ask and no name resolves. A file for part of
+/// the traffic keeps the phone's own servers, and AmneziaWG is as it was.
+static NSArray<NSString *> *SRPWGTunnelDNSServers(SRPWGConfig *cfg, BOOL amnezia) {
+    if (cfg.dnsServers.count > 0 || amnezia) return cfg.dnsServers;
+    // All IPv4 traffic, as buildSettingsFromConfig: routes it: an IPv4 entry with prefix 0, or no IPv4 entry at all
+    BOOL anyIPv4 = NO;
+    for (NSString *cidr in cfg.allowedIPs) {
+        NSArray<NSString *> *parts = [cidr componentsSeparatedByString:@"/"];
+        struct in_addr a4;
+        if (inet_pton(AF_INET, parts.firstObject.UTF8String, &a4) != 1) continue;
+        anyIPv4 = YES;
+        if (parts.count > 1 && [parts[1] integerValue] == 0) return @[@"1.1.1.1", @"1.0.0.1"];
+    }
+    return anyIPv4 ? @[] : @[@"1.1.1.1", @"1.0.0.1"];
+}
+
 /// The tunnel's MTU: the file's, else 1420; AmneziaWG adds S4 bytes to every data packet, so without an MTU in the file it
 /// takes S4 off, and a full-size packet stays within a 1500-byte path as WireGuard's own does
 static NSInteger SRPWGEffectiveMTU(SRPWGConfig *cfg, BOOL amnezia) {
@@ -486,6 +503,9 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
     NSString *endpointIP = SRPWGResolveIPv4(cfg.endpointHost);
     SSLogM(@"%@: parsed config — addrs=%@ dns=%@ allowed=%@ endpoint=%@:%ld", self.protocolName,
            cfg.addresses, cfg.dnsServers, cfg.allowedIPs, cfg.endpointHost, (long)cfg.endpointPort);
+    if (cfg.dnsServers.count == 0 && SRPWGTunnelDNSServers(cfg, _amnezia).count > 0) {
+        SSLogM(@"WireGuard: no DNS servers in the configuration: using 1.1.1.1 and 1.0.0.1");
+    }
     if (!endpointIP) {
         _failureCb([NSString stringWithFormat:@"The %@ endpoint %@ could not be resolved.", self.protocolName, cfg.endpointHost]);
         return;
@@ -542,7 +562,8 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
         if (errorOut) *errorOut = error;
         return nil;
     }
-    return @{@"uapi": uapi, @"mtu": @(SRPWGEffectiveMTU(cfg, amnezia)), @"silenceBytes": @(SRPWGSilenceBytes(cfg, amnezia))};
+    return @{@"uapi": uapi, @"mtu": @(SRPWGEffectiveMTU(cfg, amnezia)), @"silenceBytes": @(SRPWGSilenceBytes(cfg, amnezia)),
+             @"dnsServers": SRPWGTunnelDNSServers(cfg, amnezia)};
 }
 
 - (BOOL)activateWithError:(NSError **)error {
@@ -672,8 +693,9 @@ static NSString *SRPWGAmneziaKeysMessage(SRPWGConfig *cfg) {
         settings.IPv6Settings = v6;
     }
 
-    if (cfg.dnsServers.count > 0) {
-        NEDNSSettings *dns = [[NEDNSSettings alloc] initWithServers:cfg.dnsServers];
+    NSArray<NSString *> *dnsServers = SRPWGTunnelDNSServers(cfg, _amnezia);
+    if (dnsServers.count > 0) {
+        NEDNSSettings *dns = [[NEDNSSettings alloc] initWithServers:dnsServers];
         // Like the official app: the tunnel DNS is the default resolver —
         // without an explicit empty match-domain the system path reports
         // "no DNS" and URLSession fails with -1009 (offline).
