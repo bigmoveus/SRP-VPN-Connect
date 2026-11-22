@@ -146,6 +146,9 @@ def facts_of(case, result, server_ip, clean):
         servers = result["vpn_dns"]
         facts.append("the VPN's own name servers, as the system lists them: " + ", ".join(servers) if servers
                      else "the system lists no name servers of the VPN's own" if servers is not None else "the system listed no VPN")
+    if result.get("name_lookup"):
+        facts.append("the phone's shell found the address of a name nobody had looked up before" if result["name_lookup"] == "resolved"
+                     else "the phone's shell did not find the address of a name")
     if result.get("tunnel_ping"):
         facts.append("the server's tunnel address answered a ping: " + clean.text(result["tunnel_ping"]))
     for line in result.get("idle") or []:

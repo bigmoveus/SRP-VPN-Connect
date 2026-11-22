@@ -144,7 +144,7 @@ python3 tutorial/tools/wireguard_results.py extract --cases <cases-full.json> <c
 python3 tutorial/tools/wireguard_results.py render --evidence tutorial/evidence/wireguard-<date>.json
 ```
 
-`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac; `--server-ip` is only compared with the answers of the UDP cases and is never written. `render` rewrites `wireguard/results.html` from `tools/wireguard-results-intro.html`. The iPhone screenshots in `assets/img/wireguard/` come from the unit test `testWireGuardDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-wireguard`), the Android ones in `assets/img/wireguard/android/` from `docs_screenshots_android.py` on the emulator.
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac (the public resolvers 1.1.1.1, 1.0.0.1 and 8.8.8.8, which the name-server rows show, aside); `--server-ip` is only compared with the answers of the UDP cases and is never written. `render` rewrites `wireguard/results.html` from `tools/wireguard-results-intro.html`. The iPhone screenshots in `assets/img/wireguard/` come from the unit test `testWireGuardDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-wireguard`), the Android ones in `assets/img/wireguard/android/` from `docs_screenshots_android.py` on the emulator.
 
 ## AmneziaWG results and screenshots
 
@@ -159,7 +159,7 @@ python3 tutorial/tools/amneziawg_results.py extract --cases <cases-full.json> <c
 python3 tutorial/tools/amneziawg_results.py render --evidence tutorial/evidence/amneziawg-<date>.json
 ```
 
-`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac; `--server-ip` is only compared with the answers of the UDP cases and is never written. `render` rewrites `amneziawg/results.html` from `tools/amneziawg-results-intro.html`. The iPhone screenshots in `assets/img/amneziawg/` come from the unit test `testAmneziaWGDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-amneziawg`), the Android ones in `assets/img/amneziawg/android/` from `docs_screenshots_android.py` on the emulator.
+`extract` refuses to write a file that still contains a public IPv4 address or a path on the Mac (the public resolvers 1.1.1.1, 1.0.0.1 and 8.8.8.8, which the name-server rows show, aside); `--server-ip` is only compared with the answers of the UDP cases and is never written. `--rename <run name>=<page name>` gives a case the id its row has on the page: the runs call the RandomTrailers cases `awg-fork-awg4-hpk-…` and `awg-fork-awg7-nohpk-…`, the page `awg-ranges-trailers-…` and `awg-ranges-trailers-no-hpk-…`. `--keep <evidence file> <id prefix>…` carries rows of an earlier evidence file over as they are, for cases that were not run again (`awg-kernel-module-`, `awg-guide-`). `render` rewrites `amneziawg/results.html` from `tools/amneziawg-results-intro.html`. The iPhone screenshots in `assets/img/amneziawg/` come from the unit test `testAmneziaWGDocumentationScreenshotsWhenRequested` (written to `tmp/srp-docs-screenshots-amneziawg`), the Android ones in `assets/img/amneziawg/android/` from `docs_screenshots_android.py` on the emulator.
 
 ## Aether results and screenshots
 

@@ -23,7 +23,7 @@ GROUPS = [
     ("The generations of AmneziaWG", lambda i: i.startswith("awg-gen-")),
     ("RandomTrailers with ranges in H1-H3, both directions", lambda i: i.startswith("awg-ranges-trailers")),
     ("The same against AmneziaWG's kernel module, unchanged", lambda i: i.startswith("awg-kernel-module-")),
-    ("The configuration", lambda i: re.match(r"awg-(no-psk|no-keepalive|no-mtu|mtu-1280|endpoint-ip|split-tunnel|manual-configuration)", i)),
+    ("The configuration", lambda i: re.match(r"awg-(no-psk|no-keepalive|no-mtu|mtu-1280|endpoint-ip|split-tunnel|manual-configuration|no-dns|split-no-dns)", i)),
     ("Server and Port", lambda i: re.match(r"awg-(port|server)-field", i)),
     ("Refusals and damaged files", lambda i: re.match(r"awg-(wrong|unknown|closed|bad|no-address|garbage|retry-before|wireguard-file|invalid)", i)),
     ("Obfuscation that differs from the server's", lambda i: re.match(r"awg-(s1|h1|hpk|trailers)-", i) or re.match(r"awg-life-(s4|h4)-", i)),
@@ -52,6 +52,8 @@ PROFILES = {
     "keys/derived-mtu-1280.conf": "the phone's awg0 file with MTU = 1280",
     "keys/derived-endpoint-ip.conf": "the phone's awg0 file with the server's address as Endpoint",
     "keys/derived-split.conf": "the phone's awg0 file with AllowedIPs = 10.67.0.0/24",
+    "keys/derived-no-dns.conf": "the phone's awg0 file without DNS",
+    "keys/derived-split-no-dns.conf": "the phone's awg0 file with AllowedIPs = 10.67.0.0/24 and without DNS",
     "keys/derived-closed-port.conf": "the phone's awg0 file with Endpoint port 51839 (nothing listens)",
     "keys/derived-unknown-host.conf": "the phone's awg0 file with an Endpoint name that does not exist",
     "keys/derived-wrong-server-key.conf": "the phone's awg0 file with a server public key of nobody",
@@ -91,6 +93,7 @@ NOTES = {
     "awg-idle-trailers": "3 minutes without traffic",
 }
 LOG_WORDS = {"AmneziaWG: session established": "the session line", "AmneziaWG: obfuscation": "the obfuscation line",
+             "AmneziaWG: no DNS servers in the configuration": "the line that names 1.1.1.1 and 1.0.0.1",
              "AmneziaWG: last handshake": "the 30-second handshake and byte line", "[awg] ": "AmneziaWG's own lines",
              "PrivateKey =": "a private key line", "PresharedKey =": "a preshared key line", "HeaderProtectionKey =": "a header protection key line",
              "private_key=": "the engine's private key", "preshared_key=": "the engine's preshared key",
@@ -185,6 +188,18 @@ def facts_of(case, result, server_ip, clean):
             facts.append("the UDP DNS query got no answer")
         else:
             facts.append("the UDP DNS query was answered, and saw the phone's own network")
+    if case["id"].endswith("no-dns") and result.get("https_204"):
+        # The iPhone's own check: an HTTPS request by name before and after the transfer
+        answered = all(answer.startswith("Ping: ") for answer in result["https_204"])
+        facts.append("names resolved: the app's HTTPS check by name answered before and after the transfer" if answered
+                     else "the app's HTTPS check by name did not answer")
+    if "vpn_dns" in result:
+        servers = result["vpn_dns"]
+        facts.append("the VPN's own name servers, as the system lists them: " + ", ".join(servers) if servers
+                     else "the system lists no name servers of the VPN's own" if servers is not None else "the system listed no VPN")
+    if result.get("name_lookup"):
+        facts.append("the phone's shell found the address of a name nobody had looked up before" if result["name_lookup"] == "resolved"
+                     else "the phone's shell did not find the address of a name")
     if result.get("tunnel_ping"):
         facts.append("the server's tunnel address answered a ping: " + clean.text(result["tunnel_ping"]))
     for line in result.get("idle") or []:
@@ -236,9 +251,14 @@ def android_result(case, result, clean, server_ip):
 
 def extract(args):
     clean = Sanitizer(dict(pair.split("=", 1) for pair in args.replace))
-    cases = [case for path in args.cases for case in json.loads(Path(path).read_text())]
-    android_cases = {case["id"]: case for path in args.android_cases for case in json.loads(Path(path).read_text())}
-    ios, android = merged(args.ios), merged(args.android)
+    # --rename: a case the runs know under one name and the page under another
+    renames = dict(pair.split("=", 1) for pair in args.rename)
+    def named(rows):
+        return [{**row, "id": renames.get(row["id"], row["id"])} for row in rows]
+    cases = named(case for path in args.cases for case in json.loads(Path(path).read_text()))
+    android_cases = {case["id"]: case for case in named(case for path in args.android_cases for case in json.loads(Path(path).read_text()))}
+    ios = {case["id"]: case for case in named(merged(args.ios).values())}
+    android = {case["id"]: case for case in named(merged(args.android).values())}
     out, seen = [], set()
     for case in cases:
         if case["id"] in seen:
@@ -254,6 +274,11 @@ def extract(args):
         out.append({"id": case["id"], "settings": settings_of(case), "traffic": traffic_of(case),
                     "expect": case.get("expect", "connect"), "iphone": ios_result(case, ios.get(case["id"]), clean, args.server_ip),
                     "android": android_result(android_cases.get(case["id"], case), droid, clean, args.server_ip)})
+    if args.keep:
+        # --keep: rows of an earlier evidence file for cases that were not run again, as they are
+        have = {case["id"] for case in out}
+        out += [case for case in json.loads(Path(args.keep[0]).read_text())["cases"]
+                if case["id"].startswith(tuple(args.keep[1:])) and case["id"] not in have]
     evidence = {"run": {"date": args.date, "iphone": args.iphone, "android": args.android_device, "app": args.app, "server": args.server},
                 "summary": {"cases": len(out),
                             "iphone_passed": sum(1 for case in out if case["iphone"] and case["iphone"]["status"] == "passed"),
@@ -262,7 +287,8 @@ def extract(args):
                             "android_run": sum(1 for case in out if case["android"])},
                 "cases": out}
     text = json.dumps(evidence, indent=1)
-    leaks = sorted(set(PUBLIC_IPV4.findall(text)))
+    # the public resolvers a phone's file and the app's default name, which the name-server rows show
+    leaks = sorted(set(PUBLIC_IPV4.findall(text)) - {"1.1.1.1", "1.0.0.1", "8.8.8.8"})
     if leaks:
         sys.exit(f"Public addresses left in the evidence: {leaks}")
     if LOCAL_PATH.search(text):
@@ -306,6 +332,8 @@ def main():
     one.add_argument("--ios", nargs="*", default=[])
     one.add_argument("--android", nargs="*", default=[])
     one.add_argument("--replace", nargs="*", default=[], help="real=placeholder pairs")
+    one.add_argument("--rename", nargs="*", default=[], help="run-name=page-name pairs for case ids")
+    one.add_argument("--keep", nargs="*", default=[], help="an earlier evidence file, then the id prefixes of its rows to keep as they are")
     one.add_argument("--server-ip", required=True, help="the server's public address, compared with the UDP DNS answers (never written)")
     one.add_argument("--date", required=True)
     one.add_argument("--iphone", required=True)
