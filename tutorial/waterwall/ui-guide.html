@@ -15,8 +15,8 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>Every screen title, label and message below was read from the app's source code at commit <code>501cc02e</code>. Labels are quoted exactly as the app shows them.</p>
-  <p>The iPhone screenshots were taken from that code on our test iPhone 12 on 20 November 2026, each next to the same screen of the Android app. The profiles in them are examples (<code>vpn.example.com</code>, <code>server.example.com</code>, a dummy UUID), and no ping results are shown because none were measured for them.</p>
+  <p>Every screen title, label and message below was read from the app's source code at commit <code>367e594c</code>. Labels are quoted exactly as the app shows them.</p>
+  <p>The iPhone screenshots were taken from that code on our test iPhone 12 on 21 November 2026, each next to the same screen of the Android app. The profiles in them are examples (<code>vpn.example.com</code>, <code>server.example.com</code>, a dummy UUID), and no ping results are shown because none were measured for them.</p>
 </div>
 
 <h2>Words used on this page</h2>
@@ -79,7 +79,7 @@
 <p>Results are green below 200 ms, orange below 500 ms and red at 500 ms or more, or on failure.</p>
 <div class="callout tip">
   <span class="callout-title">Profiles without a TCP ping</span>
-  The TCP test needs a server reached over TCP. A chain that ends in <code>UdpConnector</code> or <code>UdpStatelessSocket</code>, such as KCP or QUIC over UDP, and a chain with no fixed server address, are skipped: the app says <em>This profile has no TCP server to ping; connect to it to measure its delay</em>. Connect to such a profile to see its delay. With a local proxy as the <a href="#input">WaterWall Input</a>, the connected ping measures the phone's own network, because the VPN then carries only the proxy's traffic.
+  The TCP test needs a server reached over TCP. A chain that ends in <code>UdpConnector</code>, such as KCP, QUIC, ENet or GNS over UDP, and a chain with no fixed server address, are skipped: the app says <em>This profile has no TCP server to ping; connect to it to measure its delay</em>. Connect to such a profile to see its delay. With a local proxy as the <a href="#input">WaterWall Input</a>, the connected ping measures the phone's own network, because the VPN then carries only the proxy's traffic.
 </div>
 
 <h2>Choosing WaterWall</h2>
@@ -124,7 +124,8 @@
 <p>Changes on the WaterWall screens go to the profile you are editing; <strong>Save</strong> keeps them and <strong>✕</strong> drops them. Save checks the chain with the same rules as <a href="#import">Import JSON</a>, and shows the first problem in an alert titled <strong>Invalid WaterWall Configuration</strong>. A new profile is only the input hint, so before its first Save you import a file or insert nodes; until then the alert says <em>The input hint "input" has no next node: import a WaterWall profile or insert a node after it.</em></p>
 
 <h2 id="configuration-screen">The node chain</h2>
-<p>Tapping <strong>WaterWall</strong> opens a screen titled <strong>WaterWall</strong>. Its <strong>NODE CHAIN</strong> section starts at the input hint and follows each <code>next</code>, one row per node, whatever order the nodes have in the file. Each row shows its number, the node's <code>type</code> and, below it, its <code>name</code>; the last row is marked <strong>End</strong>, a label of the screen that is not in the file. The note under the section says <em>Order follows each node's next field.</em> When the file has nodes that are not on this path, such as a Router's targets, the note also says how many; they stay in the profile as they are.</p>
+<p>Tapping <strong>WaterWall</strong> opens a screen titled <strong>WaterWall</strong>. Its <strong>NODE CHAIN</strong> section starts at the input hint and follows each <code>next</code>, one row per node, whatever order the nodes have in the file. Each row shows its number, the node's <code>type</code> and, below it, its <code>name</code>; the last row is marked <strong>End</strong>, a label of the screen that is not in the file. The note under the section says <em>Order follows each node's next field.</em></p>
+<p>Nodes that are not on this path are listed below the chain under <strong>OTHER NODES</strong>: for example a Router's targets, or the upload and download branches of a <code>HalfDuplexClient</code>, which those nodes name in their settings. Each branch runs along its own <code>next</code>, a branch mark stands in place of the number, and a node without a <code>next</code> is marked <strong>End</strong>. These rows open, edit, insert and delete as the rows of the chain do. A profile whose nodes are all on the chain has no such section.</p>
 <div class="shots">
   <figure>
     <img src="../assets/img/waterwall/waterwall.png" alt="WaterWall screen on iPhone with the node chain 1 HintConnectionIN input, 2 TlsClient tls, 3 TcpConnector uplink marked End, and Import JSON" width="260" loading="lazy">
@@ -142,6 +143,14 @@
     <img src="../assets/img/waterwall/android/waterwall-expanded.png" alt="The same opened node on Android" width="260" loading="lazy">
     <figcaption>The same on Android.</figcaption>
   </figure>
+  <figure>
+    <img src="../assets/img/waterwall/waterwall-branches.png" alt="WaterWall screen on iPhone for a profile with a HalfDuplexClient: the node chain ends at HalfDuplexClient, and OTHER NODES lists the upload path ConnectionStripeClient, ObfuscatorClient, RtmpClient, TcpConnector and the download path RealityClient, TcpConnector" width="260" loading="lazy">
+    <figcaption>A profile with two paths: the chain, and the nodes of both paths under OTHER NODES, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/waterwall-branches.png" alt="The same profile on Android" width="260" loading="lazy">
+    <figcaption>The same on Android.</figcaption>
+  </figure>
 </div>
 <p>Tap a row to open it, and again to close it. An open row shows:</p>
 <table>
@@ -150,7 +159,7 @@
     <tr><td><strong>next</strong></td><td>The name of the node after this one. The node that ends the chain has none.</td></tr>
     <tr><td><strong>Edit node</strong></td><td>Opens <a href="#edit-node">Edit Node</a> for this node.</td></tr>
     <tr><td><strong>Insert node after</strong></td><td>Opens Insert Node. The new node goes between this node and the one after it: this node's <code>next</code> names the new node, and the new node's <code>next</code> names the former successor. After the last node, the new node ends the chain.</td></tr>
-    <tr><td><strong>Delete node</strong></td><td>Removes the node at once and links the node before it to the node after it. When the deleted node ended the chain, the node before it loses its <code>next</code> and ends the chain. The input hint has no Delete. A deletion that would leave an invalid chain is refused with the alert <strong>Node Not Deleted</strong> and the reason.</td></tr>
+    <tr><td><strong>Delete node</strong></td><td>Removes the node at once and links the node before it to the node after it. When the deleted node ended the chain, the node before it loses its <code>next</code> and ends the chain. The input hint has no Delete. A deletion that would leave an invalid chain is refused with the alert <strong>Node Not Deleted</strong> and the reason, for example when a setting of another node still names the node.</td></tr>
   </tbody>
 </table>
 <p><strong>Import JSON…</strong> under the chain, and the document button at the top right, open <a href="#import">Import JSON</a>.</p>
@@ -178,7 +187,7 @@
 <table>
   <thead><tr><th>Row</th><th>What it does</th></tr></thead>
   <tbody>
-    <tr><td><strong>Name</strong></td><td>The node's <code>name</code>. Renaming a node also renames the <code>next</code> that pointed to it, so the chain stays linked.</td></tr>
+    <tr><td><strong>Name</strong></td><td>The node's <code>name</code>. Renaming a node also renames the <code>next</code> that pointed to it and the settings that name it (a Router rule's <code>target</code>, a HalfDuplexClient's <code>upload</code> or <code>download</code>, a <code>dns-next</code>), so the chain and its branches stay linked.</td></tr>
     <tr><td><strong>Type</strong></td><td>The WaterWall node type, such as <code>TlsClient</code>, spelled as WaterWall spells it.</td></tr>
     <tr><td><strong>Next</strong></td><td>Shown when the node has a <code>next</code>. It changes through Insert node after and Delete node on the chain.</td></tr>
     <tr><td>SETTINGS</td><td>The node's <code>settings</code> as JSON text: keys in red, values in blue. The line under it says <em>Valid JSON</em> or, in red, where the error is, for example <em>Line 3, column 3: …</em>. Return keeps the indentation and indents one more step after <code>{</code> or <code>[</code>. Automatic corrections, capitals and curly quotes are off, so what you type stays JSON. Empty text means no settings.</td></tr>
@@ -188,7 +197,7 @@
 <p><strong>Save</strong> keeps the other nodes and every key you did not change. Settings that are not a JSON object are refused with the alert <strong>Invalid Node Settings</strong>; a change that breaks the chain's rules is refused with <strong>Invalid Node</strong> and the reason, and the profile stays as it was. Which keys each node type takes is WaterWall's own reference; the <a href="configuration.html">Configuration Reference</a> lists the node types the app's WaterWall includes and the chains we tested.</p>
 
 <h2 id="import">Import JSON</h2>
-<p><strong>Import JSON</strong> reads a plain WaterWall <code>.json</code> file chosen with <strong>Choose File</strong> (the Files app, or on Android the system's file picker). Its <strong>IMPORT RULES</strong> say what the file needs. A file that passes shows its name and, under it, how many nodes are on its chain, for example <em>Example TLS chain: 3 nodes on the chain. Import replaces the profile's chain.</em> <strong>Import</strong> then replaces the chain of the profile you are editing.</p>
+<p><strong>Import JSON</strong> reads a WaterWall <code>.json</code> file chosen with <strong>Choose File</strong> (the Files app, or on Android the system's file picker): plain JSON, or WaterWall's own syntax with <code>//</code> comments and <code>$name$</code> variables. A client file that starts with its own local SOCKS5 or HTTP proxy is taken too, with the app's input in that proxy's place; see <a href="configuration.html#waterwall-syntax">Files in WaterWall's own syntax</a>. Its <strong>IMPORT RULES</strong> say what the file needs. A file that passes shows its name and, under it, how many nodes are on its chain, for example <em>Example TLS chain: 3 nodes on the chain. Import replaces the profile's chain.</em> <strong>Import</strong> then replaces the chain of the profile you are editing.</p>
 <div class="shots">
   <figure>
     <img src="../assets/img/waterwall/import-ready.png" alt="Import JSON on iPhone with example-tls-chain.json chosen, the import rules, and the Import button" width="260" loading="lazy">
@@ -209,16 +218,19 @@
   <tbody>
     <tr><td><em>Node "&lt;name&gt;" is a RawSocket node: raw socket nodes cannot be imported.</em></td><td>The file has a <code>RawSocket</code> node, on the chain or anywhere else in <code>nodes</code>. The app does not run raw sockets.</td></tr>
     <tr><td><em>Node "&lt;name&gt;" is a TunDevice node: SRP supplies TunDevice and PacketsToConnection itself when it connects, so leave them out of the profile.</em> (or a PacketsToConnection node)</td><td>Remove the input part of the client chain and start it with an input hint instead; the app adds that part when it connects.</td></tr>
-    <tr><td><em>The chain must start with an input hint: HintConnectionIN or HintPacketIN.</em></td><td>Add a hint whose <code>next</code> names the first node of your chain.</td></tr>
+    <tr><td><em>The chain must start with an input hint: HintConnectionIN or HintPacketIN.</em></td><td>Add a hint whose <code>next</code> names the first node of your chain. Only a file that starts with one local SOCKS5 or HTTP proxy gets its hint from the app.</td></tr>
     <tr><td><em>The profile has more than one input hint ("a" and "b"); it needs exactly one.</em></td><td>Keep one hint.</td></tr>
     <tr><td><em>The input hint "&lt;name&gt;" has settings, but a hint takes none.</em></td><td>Make its <code>settings</code> empty, <code>{}</code>.</td></tr>
     <tr><td><em>The input hint "&lt;name&gt;" has no next node: import a WaterWall profile or insert a node after it.</em></td><td>The chain has nothing after the hint.</td></tr>
     <tr><td><em>Node "&lt;a&gt;" names "&lt;b&gt;" as next, but no node has that name.</em></td><td>Fix the <code>next</code> or add the missing node.</td></tr>
     <tr><td><em>Following next from "&lt;a&gt;" comes back to "&lt;b&gt;": the chain has a cycle.</em></td><td>A <code>next</code> points back up the chain.</td></tr>
     <tr><td><em>Node "&lt;a&gt;" points to the input hint "&lt;b&gt;", which must start the chain.</em></td><td>No <code>next</code> may name the hint.</td></tr>
+    <tr><td><em>Node "&lt;a&gt;" names "&lt;b&gt;" as its &lt;setting&gt;, but no node has that name.</em>, with <em>upload</em>, <em>download</em>, <em>rules target</em> or <em>dns-next</em> as the setting</td><td>A setting names a node the file does not have. Fix the name or add the node.</td></tr>
+    <tr><td><em>Node "&lt;a&gt;" names the input hint "&lt;b&gt;" as its &lt;setting&gt;, but the hint must start the chain.</em></td><td>A setting may not name the hint.</td></tr>
+    <tr><td><em>The file uses the variable $&lt;name&gt;$, but its "variables" block does not define it.</em></td><td>Add the name to the file's <code>variables</code>, or write the value in place of the <code>$name$</code>.</td></tr>
     <tr><td><em>Two nodes are named "&lt;name&gt;": every node needs a name of its own.</em></td><td>Rename one of them.</td></tr>
     <tr><td><em>Node N has no name.</em>, <em>Node "&lt;name&gt;" has no type.</em>, <em>The settings of node "&lt;name&gt;" are not a JSON object.</em>, <em>The next of node "&lt;name&gt;" is not a node name.</em>, <em>Node N is not a JSON object.</em></td><td>Each node needs a non-empty <code>name</code> and <code>type</code>; <code>settings</code> must be an object and <code>next</code> a string.</td></tr>
-    <tr><td><em>The file is not valid JSON.</em>, <em>The file is not a WaterWall profile: it has no "nodes" list.</em>, <em>The file is not UTF-8 text.</em>, <em>The file is larger than 1 MB.</em>, <em>The file could not be read.</em></td><td>Choose a plain WaterWall JSON file. Compressed files are not read.</td></tr>
+    <tr><td><em>The file is not valid JSON.</em>, <em>The file is not a WaterWall profile: it has no "nodes" list.</em>, <em>The file is not UTF-8 text.</em>, <em>The file is larger than 1 MB.</em>, <em>The file is larger than 1 MB with its variables filled in.</em>, <em>The file could not be read.</em></td><td>Choose a WaterWall JSON file. A <code>$name$</code> that is not closed, or one inside quotes, leaves the file invalid, and so does a number JSON cannot hold, such as <code>1e999</code>. The 1 MB limit also counts the values that the file's <code>variables</code> put in place of each <code>$name$</code>. Compressed files are not read.</td></tr>
   </tbody>
 </table>
 <p>The example below is a complete file the app imports. Its nodes are listed out of order on purpose: the screen still shows <code>HintConnectionIN</code> → <code>TlsClient</code> → <code>TcpConnector</code>.</p>
@@ -281,7 +293,7 @@
 <p>A new database is checked before it replaces the old one; if the check fails, the old one stays. Files must be MaxMind Country databases no larger than 128 MB. After a successful update the app says <em>The country database was validated and installed. Reconnect WaterWall to use the new file.</em> Saving a chain with a country rule installs the database that comes with the app if there is none yet. Country data is GeoLite2 by MaxMind.</p>
 
 <h2 id="converted">Profiles saved by earlier versions of the app</h2>
-<p>Earlier versions of the app built the chain from a form (Application, Outer, Carrier and so on). The first time the app reads such a profile, it turns it into the chain it used to build from those settings, with the input hint in front, and keeps that chain from then on. The server, the UUID or password, the SNI, the TLS fragmentation sizes, GeoIP countries, the DNS resolver and Direct LAN Routing become node settings of the chain; open the chain to see or change them. A GeoIP update link the profile had becomes the <a href="#geoip">Update URL</a> in Settings when that is still empty. A profile in the form's WireGuard mode becomes a <a href="../wireguard/index.html">WireGuard</a> profile with the same keys, connecting to the <code>Endpoint</code> of its imported file. A profile the form could not connect, such as one without its UUID, keeps its old settings and starts with only the input hint, until you import or build a chain for it.</p>
+<p>Earlier versions of the app built the chain from a form (Application, Outer, Carrier and so on). The first time the app reads such a profile, it turns it into the chain it used to build from those settings, with the input hint in front, and keeps that chain from then on. The server, the UUID or password, the SNI, the TLS fragmentation sizes, GeoIP countries, the DNS resolver and Direct LAN Routing become node settings of the chain; open the chain to see or change them. A GeoIP update link the profile had becomes the <a href="#geoip">Update URL</a> in Settings when that is still empty. A profile in the form's WireGuard mode becomes a <a href="../wireguard/index.html">WireGuard</a> profile with the same keys, connecting to the <code>Endpoint</code> of its imported file. The form's WireGuard mode asked 1.1.1.1 and 1.0.0.1 when its keys or file named no DNS servers; a WireGuard profile asks only the servers of its file's <code>DNS</code> line or of its DNS row. Give such a profile DNS servers if it has none: on our test iPhone, a WireGuard profile for all traffic without them connected and carried traffic, but could not look up any name. A profile the form could not connect, such as one without its UUID, keeps its old settings and starts with only the input hint, until you import or build a chain for it.</p>
 
 <h2 id="options">OPTIONS</h2>
 <div class="shots">
@@ -303,16 +315,26 @@
     <tr><td><strong>Switch to Wi-Fi When Available</strong></td><td>On</td><td>Restarts the connection on Wi-Fi as soon as Wi-Fi appears, and on cellular when Wi-Fi is lost. This is also what returns Auto Switch to the profile you chose.</td></tr>
     <tr><td><strong>On Sleep</strong></td><td>Stay</td><td><em>Stay</em> keeps the connection open while the phone sleeps. <em>Pause</em> closes it and always reconnects on wake. <em>Off</em> closes it; on wake it reconnects only with Auto Reconnect, otherwise the VPN ends with <em>The connection was closed while the device slept.</em> On Android, the phone sleeping means the screen going off, and waking means the screen coming on.</td></tr>
     <tr><td><strong>Log Level</strong></td><td>Normal</td><td>How much the app and WaterWall write to their logs: Normal, Expert or Debug. On iPhone it matters only in Debug builds made for testing, because TestFlight and App Store builds keep no log of a WaterWall connection.</td></tr>
-    <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for a <code>HintConnectionIN</code> chain, and used with System VPN (TUN) as the input. The phone gets placeholder addresses for names, so each connection carries the name into the chain, and the server, or a <code>DomainResolver</code> node in the chain, looks it up. When off, the phone asks 1.1.1.1 and 1.0.0.1 itself.</td></tr>
+    <tr><td><strong>Remote DNS (Fake IP)</strong></td><td>On</td><td>Shown for a <code>HintConnectionIN</code> chain, and used with System VPN (TUN) as the input. The phone gets placeholder addresses for names, so each connection carries the name into the chain, and the server, or a <code>DomainResolver</code> node in the chain, looks it up. Turning it off asks first, with the alert <strong>Turn Off Remote DNS?</strong>: <em>WaterWall will no longer receive site names: apps look each name up with a DNS server through the tunnel and connect to an IP address. Domain routing and DNS routing in the chain stop working, even when they are enabled. Only a Router with sniffing still reads the name, from the traffic itself.</em> <strong>Turn Off</strong> switches it off, <strong>Cancel</strong> leaves it on. When off, the phone's DNS servers are 1.1.1.1 and 1.0.0.1.</td></tr>
   </tbody>
 </table>
+<div class="shots">
+  <figure>
+    <img src="../assets/img/waterwall/remote-dns-warning.png" alt="The alert Turn Off Remote DNS? on iPhone, with its explanation and the buttons Cancel and Turn Off" width="260" loading="lazy">
+    <figcaption>Turning Remote DNS (Fake IP) off asks first, on iPhone.</figcaption>
+  </figure>
+  <figure>
+    <img src="../assets/img/waterwall/android/remote-dns-warning.png" alt="The same alert on Android, with the buttons Turn Off and Cancel" width="260" loading="lazy">
+    <figcaption>The same alert on Android.</figcaption>
+  </figure>
+</div>
 
 <h2 id="on-android">On Android</h2>
 <p>Everything above applies to Android too. The few things Android does differently, such as the Connection request and the always-on setting, are on the <a href="android.html">Android</a> page.</p>
 
 <h2>What the app does not have</h2>
 <ul>
-  <li>No export of WaterWall profiles, and no share links (such as <code>vless://</code>) or QR codes. A profile comes in as a plain WaterWall JSON file, or is built node by node.</li>
+  <li>No export of WaterWall profiles, and no share links (such as <code>vless://</code>) or QR codes. A profile comes in as a WaterWall JSON file, or is built node by node.</li>
   <li>No raw socket nodes, and no TunDevice or PacketsToConnection of your own: the app supplies the input.</li>
   <li>No IPv6 inside the tunnel. The WaterWall tunnel carries IPv4 only.</li>
 </ul>

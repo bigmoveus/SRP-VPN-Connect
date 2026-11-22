@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file below was read from our test server on 10 November 2026, after its move to WaterWall 1.5.42. The app side was read from the app's source code at commit <code>501cc02e</code>. Which chains actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
+  <p>The server file below was read from our test server on 21 November 2026, where WaterWall 1.6.0 runs it. The app side was read from the app's source code at commit <code>367e594c</code>. Which chains actually worked in our tests is on the <a href="scenarios/index.html">Verified Test Scenarios</a> pages; this page describes settings, not results.</p>
 </div>
 
 <h2>Server configuration files</h2>
@@ -120,8 +120,14 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td><code>TlsClient</code></td><td><code>TlsServer</code></td><td>a certificate valid for the client's <code>sni</code> when its <code>verify</code> is on; the server's <code>select-alpns</code> must include the client's <code>alpns</code> (<code>http/1.1</code> in converted chains, <code>h2</code> with HTTP version 2)</td></tr>
     <tr><td><code>RealityClient</code></td><td><code>RealityServer</code></td><td><code>password</code>, <code>algorithm</code>, <code>salt</code>, <code>kdf-iterations</code> (converted chains: <code>chacha20-poly1305</code>, <code>waterwall-reality</code>, 12000)</td></tr>
     <tr><td><code>EncryptionClient</code></td><td><code>EncryptionServer</code></td><td><code>password</code>, <code>algorithm</code>, <code>salt</code>, <code>kdf-iterations</code>, <code>max-frame-size</code> (converted chains: <code>chacha20-poly1305</code>, <code>waterwall-aead</code>, 12000, 16356)</td></tr>
-    <tr><td><code>QuicClient</code></td><td><code>QuicServer</code></td><td><code>protocol</code> <code>h3</code>, <code>carrier-mode</code> (<code>datagram</code> or <code>stream</code>)</td></tr>
+    <tr><td><code>QuicClient</code></td><td><code>QuicServer</code></td><td><code>protocol</code> <code>h3</code>. QUIC sends datagrams; over TCP, <code>UdpOverTcpClient</code> follows <code>QuicClient</code> and <code>UdpOverTcpServer</code> comes before <code>QuicServer</code></td></tr>
+    <tr><td><code>UdpOverTcpClient</code></td><td><code>UdpOverTcpServer</code></td><td>—</td></tr>
     <tr><td><code>KcpClient</code></td><td><code>KcpServer</code></td><td>—</td></tr>
+    <tr><td><code>EnetClient</code></td><td><code>EnetServer</code></td><td>—</td></tr>
+    <tr><td><code>GnsClient</code></td><td><code>GnsServer</code></td><td>—; each side sends at its own <code>send-rate</code>, 262144 bytes a second unless set</td></tr>
+    <tr><td><code>RtmpClient</code></td><td><code>RtmpServer</code></td><td>—; the client's <code>tc-url</code> is an <code>rtmp://</code> or <code>rtmps://</code> address with a path</td></tr>
+    <tr><td><code>ConnectionStripeClient</code></td><td><code>ConnectionStripeServer</code></td><td>the client's <code>connections</code> may not be more than the server's <code>max-connections</code></td></tr>
+    <tr><td><code>HalfDuplexClient</code> with <code>upload</code> and <code>download</code></td><td>two <code>HalfDuplexServer</code> nodes, the second with <code>pair</code> naming the first</td><td>—</td></tr>
     <tr><td><code>PacketsToStream</code></td><td><code>StreamToPackets</code>, then <code>PacketsToConnection</code></td><td>—</td></tr>
     <tr><td><code>EncryptionClient</code> in packet mode</td><td><code>EncryptionServer</code> in packet mode, between <code>StreamToPackets</code> and <code>PacketsToConnection</code></td><td><code>password</code>, <code>packet-mode</code> <code>true</code>, <code>algorithm</code>, <code>salt</code>, <code>kdf-iterations</code> (converted chains: <code>xchacha20-poly1305</code>, <code>waterwall-packet</code>, 12000)</td></tr>
   </tbody>
@@ -135,8 +141,8 @@ systemctl status waterwall.service --no-pager</code></pre>
 </div>
 <p>The first server node depends on how the chain reaches the server:</p>
 <ul>
-  <li><code>TcpListener</code> when the client chain ends in <code>TcpConnector</code> or <code>TcpUdpConnector</code>, including QUIC with the Stream carrier.</li>
-  <li><code>UdpListener</code> when it ends in <code>UdpConnector</code>: KCP, and QUIC with the Datagram carrier.</li>
+  <li><code>TcpListener</code> when the client chain ends in <code>TcpConnector</code> or <code>TcpUdpConnector</code>, including QUIC over TCP and RTMP.</li>
+  <li><code>UdpListener</code> when it ends in <code>UdpConnector</code>: KCP, QUIC, ENet and GNS.</li>
 </ul>
 <p>The server chain ends with a connector to the internet, normally <code>TcpUdpConnector</code> as above. For a Raw IPv4 chain, the server turns the stream back into packets with <code>StreamToPackets</code> and <code>PacketsToConnection</code> before the connector.</p>
 
@@ -171,9 +177,40 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>Exactly one hint, <code>HintConnectionIN</code> or <code>HintPacketIN</code>, with no settings, that no <code>next</code> names</td><td>The app puts its input in the hint's place; the hint's type says whether the chain takes connections or IP packets.</td></tr>
     <tr><td>No <code>RawSocket</code>, <code>TunDevice</code>, <code>PacketsToConnection</code> or <code>NEPacketDevice</code> anywhere in <code>nodes</code></td><td>The app does not run raw sockets, and it supplies the input nodes itself.</td></tr>
     <tr><td>Unique names; every <code>next</code> names a node; no cycle</td><td>The chain must be one path from the hint to the node without <code>next</code>.</td></tr>
+    <tr><td>A node that a setting names exists and is not the hint: the <code>target</code> of a <code>Router</code> rule, the <code>upload</code> and <code>download</code> of a <code>HalfDuplexClient</code>, the <code>dns-next</code> of a <code>dns-behaviour</code></td><td>WaterWall cannot start a chain that points to a node it does not have.</td></tr>
   </tbody>
 </table>
-<p>Nodes off the chain, such as a <code>Router</code>'s targets, are allowed and kept. The messages for each broken rule are in <a href="ui-guide.html#import">Import JSON</a>.</p>
+<p>The messages for each broken rule are in <a href="ui-guide.html#import">Import JSON</a>.</p>
+
+<h3 id="branches">Nodes off the chain</h3>
+<p>The chain is the path from the hint along each <code>next</code>. A node reached another way, through one of the settings in the last rule above, is off the chain; it starts a branch of its own that also runs along <code>next</code>. The app keeps these nodes, lists them under <a href="ui-guide.html#configuration-screen">OTHER NODES</a>, and runs them with the profile.</p>
+<p>This profile is WaterWall's <a href="https://radkesvat.github.io/WaterWall-Docs/docs/examples/proxies/socks5-rtmp-reality">striped RTMP and Reality example</a> with the hint in place of its listener and SOCKS5 server. The chain ends at the <code>HalfDuplexClient</code>, which sends through the <code>up</code> branch, eight RTMP connections at a time, and receives through the <code>down</code> branch, one Reality connection.</p>
+<pre data-label="A profile with two branches"><code class="language-json">{
+  "name": "Striped RTMP upload, Reality download",
+  "nodes": [
+    { "name": "input", "type": "HintConnectionIN", "settings": {}, "next": "trojan" },
+    { "name": "trojan", "type": "TrojanClient", "settings": { "password": "&lt;TROJAN_PASSWORD&gt;", "address": "dest_context-&gt;address", "port": "dest_context-&gt;port", "protocol": "dest_context-&gt;protocol" }, "next": "mux" },
+    { "name": "mux", "type": "MuxClient", "settings": { "mode": "fixed-connections-count", "per-worker-connections-count": 1 }, "next": "half-duplex" },
+    { "name": "half-duplex", "type": "HalfDuplexClient", "settings": { "upload": "up", "download": "down" } },
+
+    { "name": "up", "type": "ConnectionStripeClient", "settings": { "connections": 8 }, "next": "obfuscator" },
+    { "name": "obfuscator", "type": "ObfuscatorClient", "settings": { "method": "xor", "xor_key": 90 }, "next": "rtmp" },
+    { "name": "rtmp", "type": "RtmpClient", "settings": { "tc-url": "rtmp://&lt;SERVER_HOST&gt;:1935/waterwall" }, "next": "rtmp-connector" },
+    { "name": "rtmp-connector", "type": "TcpConnector", "settings": { "address": "&lt;SERVER_HOST&gt;", "port": 1935, "nodelay": true, "fastopen": false } },
+
+    { "name": "down", "type": "RealityClient", "settings": { "sni": "&lt;COVER_SITE&gt;", "password": "&lt;REALITY_PASSWORD&gt;", "verify": true }, "next": "reality-connector" },
+    { "name": "reality-connector", "type": "TcpConnector", "settings": { "address": "&lt;SERVER_HOST&gt;", "port": 443, "nodelay": true, "fastopen": false } }
+  ]
+}</code></pre>
+<p>The server side is the example's server file as WaterWall's page gives it, with the same passwords, cover site and ports. The upload path is plain RTMP with a reversible XOR, so use it only as that page describes.</p>
+
+<h3 id="waterwall-syntax">Files in WaterWall's own syntax</h3>
+<p>Import JSON also reads what WaterWall's own loader reads beyond plain JSON:</p>
+<ul>
+  <li><strong>Comments.</strong> Everything from <code>//</code> to the end of a line is skipped, except inside a string.</li>
+  <li><strong>Variables.</strong> A top-level <code>variables</code> object holds values, and each unquoted <code>$name$</code> in the file takes the value of that name. The app fills the values in when it imports and keeps the profile without the <code>variables</code> object, so change a value in the file before importing, or in the node afterwards. A name that <code>variables</code> does not define blocks the file.</li>
+  <li><strong>The file's own local proxy.</strong> A client file written for a computer starts with a <code>TcpListener</code> or <code>TcpUdpListener</code> followed by a <code>Socks5Server</code> or <code>HttpProxyServer</code>. In a file without a hint, the app puts a <code>HintConnectionIN</code> named <code>input</code> in the place of that pair, because it supplies the input itself. A listener that leads anywhere else is not replaced, and the file is then blocked for having no hint.</li>
+</ul>
 
 <h3 id="runtime">What the app runs</h3>
 <p>Each time a profile connects, the app builds a separate copy for WaterWall and leaves the saved profile as it is:</p>
@@ -188,23 +225,42 @@ systemctl status waterwall.service --no-pager</code></pre>
       </tbody>
     </table>
     The packet device is the app's own <code>NEPacketDevice</code> node, which reads and writes the VPN's packets in place of WaterWall's <code>TunDevice</code>. The added nodes are named <code>srp-device</code>, <code>srp-connections</code>, <code>srp-socks5-listener</code>, <code>srp-socks5</code>, <code>srp-http-listener</code> or <code>srp-http-proxy</code>, with <code>-2</code>, <code>-3</code> and so on when the profile already uses that name.</li>
-  <li>Every connector with a fixed <code>address</code> (not <code>dest_context-&gt;address</code>) is looked up once, its address is written into the copy, and the VPN's routes leave that address out, so the chain's own connections to the server do not loop through the VPN. A name that cannot be looked up stops the connection with <em>The WaterWall server address &lt;name&gt; could not be resolved.</em></li>
-  <li>A <code>Router</code> with <code>geoip:</code> rules gets the path of the app's <a href="ui-guide.html#geoip">country database</a> as its <code>geoip-db-path</code>; a path in the file is replaced. Without a valid database the connection stops with <em>GeoIP is enabled but its database is unavailable: …</em></li>
+  <li>Every connector with a fixed <code>address</code> is looked up once, its address is written into the copy, and the VPN's routes leave that address out, so the chain's own connections to the server do not loop through the VPN. This goes for the connectors of branches too. A name that cannot be looked up stops the connection with <em>The WaterWall server address &lt;name&gt; could not be resolved.</em> An address taken from the connection (<code>dest_context-&gt;address</code>, <code>src_context-&gt;address</code>), an IPv6 address and an address range such as <code>203.0.113.0/24</code> are left to WaterWall as they are.</li>
+  <li>A <code>Router</code> with <code>geoip:</code> or <code>!geoip:</code> rules, in <code>destination-ip</code> or <code>source-ips</code>, gets the path of the app's <a href="ui-guide.html#geoip">country database</a> as its <code>geoip-db-path</code>; a path in the file is replaced. Without a valid database the connection stops with <em>GeoIP is enabled but its database is unavailable: …</em></li>
   <li>With Remote DNS (Fake IP) on, a <code>HintConnectionIN</code> chain and System VPN (TUN), <code>PacketsToConnection</code> answers DNS itself with placeholder addresses.</li>
+  <li>A <code>HintPacketIN</code> profile sends the phone's own packets, from the address <code>10.44.0.4</code>. A server that checks the source address, such as a <code>WireGuardServer</code> peer's <code>allowedips</code>, must allow <code>10.44.0.4/32</code>.</li>
 </ul>
-<p>The app's WaterWall includes these node types, besides the input nodes above: <code>TcpConnector</code>, <code>UdpConnector</code>, <code>TcpUdpConnector</code>, <code>UdpStatelessSocket</code>, <code>DomainResolver</code>, <code>Router</code>, <code>StreamFragmenter</code>, <code>VlessClient</code>, <code>VmessClient</code>, <code>TrojanClient</code>, <code>Socks5Client</code>, <code>HttpProxyClient</code>, <code>AuthenticationClient</code>, <code>UserController</code>, <code>MuxClient</code>, <code>ObfuscatorClient</code>, <code>HttpClient</code>, <code>Bgp4Client</code>, <code>TlsClient</code>, <code>RealityClient</code>, <code>EncryptionClient</code>, <code>QuicClient</code>, <code>KcpClient</code>, <code>PacketsToStream</code> and <code>WireGuardDevice</code>. WaterWall checks each node's settings when it starts the chain; the full list of options for every node is in the <a href="https://radkesvat.github.io/WaterWall-Docs/">official WaterWall documentation</a>.</p>
+<p>The app's WaterWall is WaterWall 1.6.0 with these node types, besides the input nodes above:</p>
+<table>
+  <thead><tr><th>Group</th><th>Node types</th></tr></thead>
+  <tbody>
+    <tr><td>Applications</td><td><code>VlessClient</code>, <code>VmessClient</code>, <code>TrojanClient</code>, <code>Socks5Client</code>, <code>HttpProxyClient</code>, <code>WireGuardClient</code></td></tr>
+    <tr><td>Layers over a stream</td><td><code>TlsClient</code>, <code>RealityClient</code>, <code>EncryptionClient</code>, <code>HttpClient</code>, <code>RtmpClient</code>, <code>MuxClient</code>, <code>Bgp4Client</code>, <code>ObfuscatorClient</code>, <code>StreamFragmenter</code>, <code>HeaderClient</code>, <code>KeepAliveClient</code>, <code>ConnectionFisherClient</code>, <code>ConnectionStripeClient</code>, <code>HalfDuplexClient</code></td></tr>
+    <tr><td>Transports over datagrams</td><td><code>QuicClient</code>, <code>KcpClient</code>, <code>EnetClient</code>, <code>GnsClient</code>, <code>UdpOverTcpClient</code>, <code>JunkDatagramSender</code></td></tr>
+    <tr><td>Routing and names</td><td><code>Router</code>, <code>DomainResolver</code>, <code>BlackHole</code></td></tr>
+    <tr><td>Packets</td><td><code>PacketsToStream</code>, <code>ConnectionToPackets</code></td></tr>
+    <tr><td>Connectors</td><td><code>TcpConnector</code>, <code>UdpConnector</code>, <code>TcpUdpConnector</code></td></tr>
+    <tr><td>Listeners and local proxy servers</td><td><code>TcpListener</code>, <code>UdpListener</code>, <code>TcpUdpListener</code>, <code>Socks5Server</code>, <code>HttpProxyServer</code></td></tr>
+    <tr><td>Accounts, limits and tests</td><td><code>AuthenticationClient</code>, <code>UserController</code>, <code>SpeedLimit</code>, <code>LoggerTunnel</code>, <code>Disturber</code></td></tr>
+  </tbody>
+</table>
+<p id="router-names">A <code>Router</code> rule with <code>destination-domain</code> needs the name of the site. With Remote DNS (Fake IP) on, each connection from the phone brings its name, and the rule matches it. With Remote DNS off, a connection brings only an address, and the rule matches only when the Router's own <code>sniffing</code> reads the name from the traffic: <code>tls</code> reads it from a TLS handshake and <code>http1</code> from an HTTP request. The app's WaterWall also starts a Router with <code>http2</code>, <code>http</code> or <code>quic</code> in <code>sniffing</code>. We checked the name rule on 21 November 2026 with the app's WaterWall built for a Mac, through its local SOCKS5 input: with the name sent along, and by address with <code>tls</code> and with <code>http1</code>. The app has no GeoSite database: a rule with <code>geosite:</code> is <a href="troubleshooting.html#when-connecting">refused</a>.</p>
+<p>A profile with another node type stops when it connects, with <em>Node "&lt;name&gt;" is a &lt;type&gt; node, which the app's WaterWall does not include.</em> Server nodes, and the nodes that need a raw socket or a device of the operating system (<code>RawSocket</code>, <code>TunDevice</code>, <code>IpManipulator</code>, <code>FakeTcpHeaderClient</code>, <code>PingClient</code>, <code>Ping6Client</code>), are not in the app. WaterWall checks each node's settings when it starts the chain, and a chain it refuses ends the connection with <em>WaterWall refused the profile: …</em> and its reason; the full list of options for every node is in the <a href="https://radkesvat.github.io/WaterWall-Docs/">official WaterWall documentation</a>.</p>
 
 <h3>Settings the app always uses</h3>
 <table>
   <thead><tr><th>Item</th><th>Value</th></tr></thead>
   <tbody>
-    <tr><td>WaterWall workers</td><td>1</td></tr>
+    <tr><td>WaterWall workers, <code>ram-profile</code></td><td>1, <code>minimal</code></td></tr>
+    <tr><td>DNS lookups WaterWall makes itself</td><td><code>domain-strategy</code> <code>prefer-ipv4</code></td></tr>
+    <tr><td><code>tcp-stack-receive-budget</code></td><td>16777216 bytes for all receive windows together</td></tr>
     <tr><td>MTU, and <code>PacketsToConnection</code></td><td>1420; <code>max-pending-bytes</code> 65536 and <code>max-total-pending-bytes</code> 16777216</td></tr>
     <tr><td>Log level</td><td><code>WARN</code>, <code>INFO</code> or <code>DEBUG</code> for the Normal, Expert and Debug log levels</td></tr>
     <tr><td>Remote DNS (Fake IP) when on</td><td>DNS answers from 198.18.0.2 port 53, placeholder addresses from 100.64.0.0/10, a cache of 10000 names, TTL 60 seconds</td></tr>
     <tr><td><code>splice</code>, <code>tcp-tune</code>, <code>try-enabling-bbr</code></td><td>Off: a phone's kernel settings are not WaterWall's to change</td></tr>
   </tbody>
 </table>
+<p>These belong to WaterWall's <code>core.json</code>, which the app writes itself, so a profile cannot change them. Of a profile file the app passes on its <code>name</code> and its <code>nodes</code>; other top-level keys, such as <code>author</code> or <code>config-version</code>, are kept in the profile and not used.</p>
 <div class="callout warning" id="packet-budget">
   <span class="callout-title">The two pending-bytes values also limit TCP connections</span>
   <p>Each TCP connection reserves <code>max-pending-bytes</code> of <code>max-total-pending-bytes</code> for as long as it lives, so the total divided by the per-connection value is how many can be open at once: 256 with these values. A new connection over that is refused, and iOS reports <em>A TLS error caused the secure connection to fail</em>. See <a href="troubleshooting.html#in-the-logs">Troubleshooting</a>.</p>
@@ -222,7 +278,8 @@ systemctl status waterwall.service --no-pager</code></pre>
     <tr><td>WireGuard</td><td>no chain: the profile becomes a <a href="../wireguard/index.html">WireGuard</a> profile</td></tr>
   </tbody>
 </table>
-<p>The connector is <code>UdpConnector</code> for KCP and QUIC Datagram, <code>TcpUdpConnector</code> for SOCKS5 and for VLESS, VMess or Trojan over TLS without MUX, an HTTP layer or a fixed <code>protocol</code>, and <code>TcpConnector</code> otherwise. The UUID or password, the SNI and certificate check, the TLS fragmentation sizes (a <code>fragment</code> object in the <code>TlsClient</code> or <code>RealityClient</code>), the router rules and the resolver servers are node settings of that chain.</p>
+<p>QUIC with the former Stream carrier is <code>QuicClient</code> → <code>UdpOverTcpClient</code> → <code>TcpConnector</code>, which is how WaterWall 1.6.0 carries QUIC over TCP; the server needs <code>UdpOverTcpServer</code> between its <code>TcpListener</code> and <code>QuicServer</code>. A QUIC profile that build 47 or APK 1.2.0 (12) converted still has the <code>carrier-mode</code> setting of WaterWall 1.5, which 1.6.0 refuses: the app takes it out, and adds the <code>UdpOverTcpClient</code> node where it was <code>stream</code>, when it reads the profile.</p>
+<p>The connector is <code>UdpConnector</code> for KCP and for QUIC over UDP, <code>TcpUdpConnector</code> for SOCKS5 and for VLESS, VMess or Trojan over TLS without MUX, an HTTP layer or a fixed <code>protocol</code>, and <code>TcpConnector</code> otherwise. The UUID or password, the SNI and certificate check, the TLS fragmentation sizes (a <code>fragment</code> object in the <code>TlsClient</code> or <code>RealityClient</code>), the router rules and the resolver servers are node settings of that chain.</p>
 </main>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/site.js"></script>

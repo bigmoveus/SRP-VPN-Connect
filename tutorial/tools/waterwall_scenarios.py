@@ -7,7 +7,7 @@
 Only the evidence files are kept in the repository; the work folders live in macOS temp.
 """
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 import html
 import json
 import re
@@ -195,7 +195,7 @@ def extract(args):
 APPS = {"vless": "VLESS", "vmess": "VMess", "trojan": "Trojan", "socks5": "SOCKS5", "http-proxy": "HTTP CONNECT"}
 OUTERS = {"tls": "TLS", "reality": "Reality", "aead": "AEAD", "bgp4": "BGP4"}
 GROUPS = [("production", "Production server"), ("tls", "TLS"), ("reality", "Reality"), ("aead", "AEAD"), ("quic", "QUIC"),
-          ("none", "No outer layer"), ("bgp4", "BGP4"), ("raw", "Raw IPv4"), ("modes", "Direct and WireGuard"),
+          ("none", "No outer layer"), ("bgp4", "BGP4"), ("raw", "Raw IPv4"), ("modes", "Direct mode"),
           ("advanced", "Advanced settings"), ("dns", "DNS resolver"), ("download", "UDP and GeoIP routing"), ("lifecycle", "Connection lifecycle")]
 RESOLVERS = {"native": "Native", "direct": "Direct", "chain": "Through the VPN"}
 LABELS = {"verified": "VERIFIED — TESTED SUCCESSFULLY", "failed": "TESTED — FAILED",
@@ -229,7 +229,7 @@ def title_of(case):
         parts.append("BGP4 framing")
     outer = c.get("outer")
     if outer == "quic":
-        parts.append("QUIC " + ("Stream" if c.get("quic-carrier") == "stream" else "Datagram"))
+        parts.append("QUIC over TCP" if c.get("quic-carrier") == "stream" else "QUIC")
     elif outer in OUTERS:
         parts.append(OUTERS[outer])
     if c.get("carrier") == "kcp":
@@ -377,7 +377,7 @@ def settings_rows(case):
         outer = c.get("outer")
         rows.append(("Outer", "QUIC" if outer == "quic" else OUTERS.get(outer, "None")))
         if outer == "quic":
-            rows.append(("QUIC Carrier", "Stream" if c.get("quic-carrier") == "stream" else "Datagram"))
+            rows.append(("QUIC runs over", "TCP, through UdpOverTcpClient" if c.get("quic-carrier") == "stream" else "UDP"))
         else:
             rows.append(("Carrier", "KCP" if c.get("carrier") == "kcp" else "TCP"))
     countries = (c.get("geoip") or {}).get("countries")
@@ -444,6 +444,18 @@ def setup_of(env, run):
     return [(k, v.replace("{head}", (run.get("head") or "")[:8])) for k, v in env.get("setup", [])]
 
 
+def date_of(case, env):
+    """The UTC date of a case. A run can pass midnight, and a case's log lines carry phone time (UTC+3)."""
+    started = (case.get("device") or {}).get("started")
+    if not started:
+        return env["date"]
+    return (datetime.strptime(started, "%Y-%m-%d %H:%M:%S") - timedelta(hours=3)).strftime("%Y-%m-%d")
+
+
+def tested_on(case, env):
+    return "on " + datetime.strptime(date_of(case, env), "%Y-%m-%d").strftime("%-d %B %Y") + " (UTC)"
+
+
 def render_case(case, env, run):
     status = status_of(case)
     result = case["result"]
@@ -452,7 +464,7 @@ def render_case(case, env, run):
     title = title_of(case)
     seconds, down, up = traffic_of(case)
     out = [f"<h1>{e(title)}</h1>", f'<p class="lead">{e(purpose_of(case))}</p>',
-           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} against WaterWall {e(env.get("server_version", ""))}.</p>']
+           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(tested_on(case, env))} against WaterWall {e(env.get("server_version", ""))}.</p>']
 
     out.append("<h2>Result</h2>")
     rows = [("Outcome", "Passed: every check succeeded." if status == "verified" else
@@ -559,7 +571,7 @@ def render_lifecycle(case, env, run):
     device = case.get("device") or {}
     duration = case["result"].get("duration_s") or 0
     out = [f"<h1>{e(step['title'])}</h1>", f'<p class="lead">{e(step["purpose"])}</p>',
-           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(env.get("date_text", ""))} against WaterWall {e(env.get("server_version", ""))}.</p>',
+           f'<p><span class="status {status}">{LABELS[status]}</span> &nbsp;Tested {e(tested_on(case, env))} against WaterWall {e(env.get("server_version", ""))}.</p>',
            "<h2>Result</h2>"]
     rows = [("Outcome", "Passed: every check succeeded." if status == "verified" else "Failed."),
             ("Test length", f"{duration:.0f} seconds, including connecting and disconnecting")]
@@ -635,7 +647,6 @@ def render(args):
         env["evidence_file"] = Path(evidence_path).name
         env["head"] = (evidence["run"].get("head") or "")[:8]
         env["date"] = (evidence["run"].get("start_utc") or "")[:10]
-        env["date_text"] = "on " + datetime.strptime(env["date"], "%Y-%m-%d").strftime("%-d %B %Y")
         # The form's WireGuard mode is gone: the app runs such a profile as a WireGuard profile, documented there
         cases = [case for case in evidence["cases"] if (case.get("configuration") or {}).get("mode") != "wireguard"]
         loaded.append((evidence, env, cases))
@@ -697,7 +708,7 @@ def render(args):
                             f"{'; '.join(numbers.get('errors') or []) or 'none'}" if seconds else
                             (case["result"].get("error") or "no traffic measured").splitlines()[-1][:120])
                 lines.append(f"| [{title_of(case)}](waterwall/scenarios/{case['id']}.html) (`{case['id']}`) | {env['inventory_environment'].replace('{head}', env['head'])} | "
-                             f"`evidence/{env['evidence_file']}`, case `{case['id']}` | {env['date'] or '—'} | "
+                             f"`evidence/{env['evidence_file']}`, case `{case['id']}` | {date_of(case, env) or '—'} | "
                              f"{observed.replace('|', '/')} | {LABELS[status_of(case)]} | {env['inventory_gaps']} |")
         text, count = re.subn(r"<!-- scenarios:begin -->.*?<!-- scenarios:end -->",
                               lambda _: "<!-- scenarios:begin -->\n" + "\n".join(lines) + "\n<!-- scenarios:end -->",

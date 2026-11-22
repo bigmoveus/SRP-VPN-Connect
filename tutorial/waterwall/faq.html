@@ -22,7 +22,7 @@
 <p>No. SRP VPN Connect contains its own WaterWall client. You only install WaterWall on your server; see <a href="installation.html">Installation</a>.</p>
 
 <h3>Which WaterWall versions does this guide cover?</h3>
-<p>The official WaterWall 1.5.42 release on the server, and the iPhone and Android apps, which contain their own WaterWall built from 1.5.42. Results with other server programs are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
+<p>The official WaterWall 1.6.0 release on the server, and the iPhone and Android apps, which contain their own WaterWall built from 1.6.0. Results with other server programs are not covered. See <a href="requirements.html#versions-we-tested">Versions we tested</a>.</p>
 
 <h3>Do I need a domain name and a certificate?</h3>
 <p>For chains with <code>TlsClient</code> or <code>QuicClient</code>, yes: the server needs a certificate, and with <code>verify</code> on it must be valid for the client's <code>sni</code>. Our server uses a free Let's Encrypt certificate. <code>RealityClient</code> and <code>EncryptionClient</code> chains do not use a certificate of your own.</p>
@@ -48,7 +48,7 @@
 <p>No delay has been measured for that profile yet. Pull the list down to ping every profile, or swipe a row to the right and tap <strong>Ping</strong>. See <a href="ui-guide.html#how-ping-is-measured">How ping is measured</a>.</p>
 
 <h3>Why can't the app ping my KCP or QUIC profile?</h3>
-<p>The ping before connecting measures a TCP handshake, and a chain that ends in <code>UdpConnector</code> or <code>UdpStatelessSocket</code>, such as KCP or QUIC Datagram, does not reach the server over TCP; nor does a chain without a fixed server address. The app says so instead of showing a result. Connect to the profile to see its delay.</p>
+<p>The ping before connecting measures a TCP handshake, and a chain that ends in <code>UdpConnector</code>, such as KCP, QUIC, ENet or GNS, does not reach the server over TCP; nor does a chain without a fixed server address. The app says so instead of showing a result. Connect to the profile to see its delay.</p>
 
 <h3>Where can I see what went wrong?</h3>
 <p>Tap the status text under the power button to open the app's log. Set <strong>Log Level</strong> to Expert or Debug in the profile's OPTIONS for more detail, then connect again.</p>
@@ -69,7 +69,10 @@
 <p>No. <code>ObfuscatorClient</code> scrambles bytes with a fixed XOR key so they show no obvious pattern. Anyone who knows the method can undo it. BGP4 framing does not encrypt either. Use TLS, Reality, AEAD (<code>EncryptionClient</code>), QUIC or VMess for encryption.</p>
 
 <h3>What does Remote DNS (Fake IP) do?</h3>
-<p>When an app on the phone looks up a name, the tunnel answers at once with a placeholder address from 100.64.0.0/10 and sends the name itself into the chain, where the server, or a <code>DomainResolver</code> node, looks up the real address. This keeps your DNS lookups inside the tunnel. When it is off, the phone asks 1.1.1.1 and 1.0.0.1. It applies to <code>HintConnectionIN</code> chains with System VPN (TUN) as the input.</p>
+<p>When an app on the phone looks up a name, the tunnel answers at once with a placeholder address from 100.64.0.0/10 and sends the name itself into the chain, where the server, or a <code>DomainResolver</code> node, looks up the real address. WaterWall thus gets the name of every site, which a chain needs to route by name or to resolve names itself. It applies to <code>HintConnectionIN</code> chains with System VPN (TUN) as the input, and it is on unless you turn it off.</p>
+
+<h3>What happens when I turn Remote DNS off?</h3>
+<p>The app asks first, with <strong>Turn Off Remote DNS?</strong>, and turns it off only after <strong>Turn Off</strong>. The phone's DNS servers are then 1.1.1.1 and 1.0.0.1: apps look each name up there and connect to an IP address, so WaterWall no longer receives site names. Routing by domain and DNS routing in the chain stop working, even when they are set up in the chain. The one exception is a <code>Router</code> that reads the name from the traffic itself; see <a href="configuration.html#router-names">Configuration</a>.</p>
 
 <h3>What does Auto Switch do, and why does nothing happen?</h3>
 <p>Auto Switch uses your other WaterWall profiles <em>for the same server address</em> as fallbacks. With only one profile for that server there is nothing to switch to, and a profile with exactly the same chain is not used. The option appears only for a chain with a fixed server address. See <a href="ui-guide.html#options">OPTIONS</a>.</p>

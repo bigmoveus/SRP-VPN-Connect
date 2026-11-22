@@ -15,7 +15,7 @@
 
 <div class="callout evidence">
   <span class="callout-title">Where this page comes from</span>
-  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The profile file is the one we imported into the app on 20 November 2026 and connected to this exact server file, with the server's Let's Encrypt certificate and the certificate check on. The result is at the end of this page.</p>
+  <p>The server file is our server's <code>/etc/waterwall/configs/vless-tls.json</code>, with the domain and UUID replaced by placeholders. The profile file is the one we imported into the app on 22 November 2026 and connected to this exact server file, with the server's Let's Encrypt certificate and the certificate check on. The result is at the end of this page.</p>
 </div>
 
 <div class="callout prereq">
@@ -145,7 +145,7 @@ ss -ltnp | grep 18443</code></pre>
 <h2>Our result</h2>
 <!-- result:begin -->
 <p><span class="status verified">VERIFIED — TESTED SUCCESSFULLY</span></p>
-<p>On 20 November 2026 we imported this profile, with our server's domain, port and UUID, into the app at commit <code>501cc02e</code> and connected it to this server file on our production server, with its Let's Encrypt certificate and <code>verify</code> on. For 64 seconds the phone downloaded and uploaded at the same time: 537 MB down and 1,158 MB up (67 and 146 Mbit/s on average on our office line), with no errors, and every request reached the server through the tunnel. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result of this chain from the app's earlier settings.</p>
+<p>On 22 November 2026 we imported this profile, with our server's domain, port and UUID, into the app at commit <code>367e594c</code>, the commit of TestFlight build 49, and connected it to this server file on our production server, with its Let's Encrypt certificate and <code>verify</code> on. For 63 seconds the phone downloaded and uploaded at the same time: 1,292 MB down and 973 MB up (165 and 124 Mbit/s on average on our office line), with no errors, and every request reached the server through the tunnel. The <a href="scenarios/prod-vless-tls.html">scenario page</a> has the full result of this chain from the app's earlier settings.</p>
 <!-- result:end -->
 <p>The Android app connected to the same server file in the same way, on our test phone, and passed two downloads and two uploads at once; see <a href="android.html#android-tested">Android</a>.</p>
 

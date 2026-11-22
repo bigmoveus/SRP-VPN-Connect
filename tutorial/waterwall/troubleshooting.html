@@ -28,12 +28,12 @@
 ss -ltnup | grep -i waterwall</code></pre>
 <div class="callout verify">
   <span class="callout-title">Check</span>
-  The service is <code>active (running)</code>, and your configuration's port is in the list: TCP for TLS, Reality, AEAD, no outer layer and QUIC Stream, UDP for KCP and QUIC Datagram. The program shows as <code>Waterwall</code>.
+  The service is <code>active (running)</code>, and your configuration's port is in the list: TCP for TLS, Reality, AEAD, no outer layer, RTMP and QUIC over TCP; UDP for KCP, QUIC, ENet and GNS. The program shows as <code>memfd:waterwall</code>.
 </div>
 <p>If the service does not start, its own messages say why:</p>
 <pre data-label="Server"><code class="language-bash">journalctl -u waterwall.service -n 50 --no-pager
 tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
-<p>After an upgrade from 1.5.3, a configuration file with a name that 1.5.4 and later refuse stops the whole program at start, with one of these lines (we started WaterWall 1.5.42 with two of our server's 1.5.3 files to see them):</p>
+<p>After an upgrade from 1.5.3, a configuration file with a name that 1.5.4 and later refuse stops the whole program at start, with one of these lines (we started WaterWall 1.6.0 with two of our server's 1.5.3 files to see them):</p>
 <table>
   <thead><tr><th>Message</th><th>What happened</th><th>What to change</th></tr></thead>
   <tbody>
@@ -41,10 +41,18 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
     <tr><td><code>FATAL NodeManager: node creation failure: library "TcpOverUdpServer" (hash: …) could not be loaded</code></td><td>The KCP node has a new name since 1.5.4.</td><td><code>"type": "KcpServer"</code> on the server (<code>KcpClient</code> on a client).</td></tr>
   </tbody>
 </table>
+<p>After an upgrade from 1.5.42, WaterWall 1.6.0 stops in the same way on these (we started 1.6.0 with three of our server's 1.5.42 files to see them):</p>
+<table>
+  <thead><tr><th>Message</th><th>What happened</th><th>What to change</th></tr></thead>
+  <tbody>
+    <tr><td><code>FATAL JSON Error: QUIC settings-&gt;carrier-mode was removed. Remove this setting and use UdpOverTcpClient and UdpOverTcpServer for a TCP carrier.</code>, followed by <code>FATAL NodeManager: node startup failure: node ("quic") create() returned NULL handle</code></td><td>A <code>QuicServer</code> still has <code>carrier-mode</code>, whatever its value.</td><td>Remove the setting; for QUIC over TCP also add <code>UdpOverTcpServer</code>. See <a href="installation.html#upgrade-from-1-5-42">Upgrading from 1.5.42</a>.</td></tr>
+    <tr><td><code>FATAL NodeManager: node creation failure: library "WireGuardDevice" (hash: …) could not be loaded</code></td><td>1.6.0 has no <code>WireGuardDevice</code>.</td><td><code>UdpListener</code> → <code>WireGuardServer</code> in packet mode → <code>TunDevice</code>, as on that page.</td></tr>
+  </tbody>
+</table>
 
 <h3>3. Is the port open in the firewall?</h3>
 <pre data-label="Server"><code class="language-bash">ufw status numbered</code></pre>
-<p>The port and its protocol (<code>tcp</code> or <code>udp</code>) must be allowed. A KCP or QUIC Datagram chain needs a UDP rule; a TCP rule for the same number does not help.</p>
+<p>The port and its protocol (<code>tcp</code> or <code>udp</code>) must be allowed. A KCP, QUIC, ENet or GNS chain needs a UDP rule; a TCP rule for the same number does not help.</p>
 
 <h3>4. Do the two halves match?</h3>
 <p>Compare the profile's chain with the server file, node by node, using <a href="configuration.html#matching">The server node for each client node</a>. The most common mistakes are a different port, a different UUID or password, a missing or extra node (for example MUX on one side only), and an HTTP path that differs between <code>HttpClient</code> and <code>HttpServer</code>.</p>
@@ -59,7 +67,7 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
 <h3>When saving a profile</h3>
 <p>An alert titled <strong>Invalid WaterWall Configuration</strong> names the node or the <code>next</code> to fix. Import JSON refuses a file for the same reasons, in a red <strong>Import blocked</strong> banner; the full list is in the <a href="ui-guide.html#import">UI guide</a>.</p>
 
-<h3>When connecting</h3>
+<h3 id="when-connecting">When connecting</h3>
 <table>
   <thead><tr><th>Message</th><th>What happened</th><th>What to check</th></tr></thead>
   <tbody>
@@ -73,7 +81,9 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
     <tr><td><em>WaterWall data-plane probe timed out</em> or <em>WaterWall data-plane validation timed out</em></td><td>The start-up check did not finish within its time limit (20 and 30 seconds).</td><td>The same as the TCP probe message.</td></tr>
     <tr><td><em>WaterWall TCP health probe failed</em>, <em>WaterWall UDP/DNS health probe failed</em> or <em>WaterWall local proxy health probe failed: …</em></td><td>A connection that was working stopped carrying data: the app checks again when nothing has passed for 15 seconds.</td><td>The network, and whether the server is still running. With Auto Reconnect on, the app reconnects after 2 seconds.</td></tr>
     <tr><td><em>WaterWall runtime stopped</em></td><td>WaterWall inside the app stopped.</td><td>The app's log for the line before it.</td></tr>
-    <tr><td><em>WaterWall refused the profile: JSON Error: …</em></td><td>WaterWall refused a node's settings when it built the chain, for example <em>JSON Error: VlessClient-&gt;settings-&gt;target-address (string field) is required</em>. The VPN ends at once, without reconnecting, because the same profile would fail again.</td><td>The node and the setting the message names, against the <a href="https://radkesvat.github.io/WaterWall-Docs/">WaterWall documentation</a>; <a href="getting-started.html">Getting Started</a> has a complete profile.</td></tr>
+    <tr><td><em>WaterWall refused the profile: …</em>, most often with <em>JSON Error: …</em></td><td>WaterWall refused a node's settings when it built the chain, for example <em>JSON Error: VlessClient-&gt;settings-&gt;target-address (string field) is required</em>. The VPN ends at once, without reconnecting, because the same profile would fail again.</td><td>The node and the setting the message names, against the <a href="https://radkesvat.github.io/WaterWall-Docs/">WaterWall documentation</a>; <a href="getting-started.html">Getting Started</a> has a complete profile.</td></tr>
+    <tr><td><em>WaterWall refused the profile: NodeManager: node startup failure: L4 payload conflict: &lt;restricted&gt;.next supports datagram, but &lt;restricted&gt;.prev supports stream</em></td><td>Two neighbours of the chain do not fit: one gives a stream and the next takes datagrams, or the other way round. WaterWall 1.6.0 checks this before it starts a chain, and the app's WaterWall does not print node names. A <code>QuicClient</code> straight into a <code>TcpConnector</code> ends this way.</td><td>Put the node that turns one into the other between them: <code>UdpOverTcpClient</code> after <code>QuicClient</code> for QUIC over TCP, or end the chain in <code>UdpConnector</code>.</td></tr>
+    <tr><td><em>WaterWall refused the profile: JSON Error: Router-&gt;settings-&gt;geosite-db-path (string field) : required when geosite rules are used</em></td><td>A <code>Router</code> rule uses a site list (<code>geosite:</code>). The app has no GeoSite database.</td><td>Write the domains themselves in <code>destination-domain</code>, or route by country with <code>geoip:</code>.</td></tr>
     <tr><td><em>WaterWall could not start (invalid configuration or another session is active)</em> or <em>WaterWall runtime stopped with an error</em></td><td>The app could not start WaterWall with this profile.</td><td>Disconnect any other VPN and try again.</td></tr>
     <tr><td><em>Could not reconnect after N attempts. (…)</em></td><td>Auto Reconnect used up the <strong>Retry Times</strong> you set. The reason is in the brackets.</td><td>The reason in the brackets; leave Retry Times empty for unlimited attempts.</td></tr>
     <tr><td><em>The connection was closed while the device slept.</em></td><td><strong>On Sleep</strong> is Off and Auto Reconnect is off, so the VPN ended when the phone slept.</td><td>Choose On Sleep Stay or Pause, or turn Auto Reconnect on.</td></tr>
@@ -87,9 +97,10 @@ tail -n 50 /var/log/waterwall/core.$(date +%Y%m%d).log</code></pre>
 <table>
   <thead><tr><th>Message</th><th>What happened</th><th>What to check</th></tr></thead>
   <tbody>
-    <tr><td><code>DomainResolver: async dns resolve failed for &lt;name&gt;: Timeout while contacting DNS servers</code>, in <code>/var/log/waterwall/dns.YYYYMMDD.log</code> on the server</td><td>The server could not get a DNS answer for that name in time and closed that connection.</td><td>The server's DNS. WaterWall 1.5.42 tries 5 times by default; if <code>core.json</code> sets <code>"dns": {"tries": …}</code>, keep it at 5 or more.</td></tr>
+    <tr><td><code>DomainResolver: async dns resolve failed for &lt;name&gt;: Timeout while contacting DNS servers</code>, in <code>/var/log/waterwall/dns.YYYYMMDD.log</code> on the server</td><td>The server could not get a DNS answer for that name in time and closed that connection.</td><td>The server's DNS. WaterWall 1.6.0 tries 5 times by default; if <code>core.json</code> sets <code>"dns": {"tries": …}</code>, keep it at 5 or more.</td></tr>
     <tr><td><code>QuicServer: closing association: application backlog budget exceeded</code>, in <code>/var/log/waterwall/network.YYYYMMDD.log</code> on the server</td><td>The server's queue for one QUIC connection passed its <code>max-buffered-bytes</code>, so the server closed that connection, and the requests on it failed.</td><td><code>max-buffered-bytes</code> on both ends; see the <a href="configuration.html">Configuration Reference</a>. The app opens a new QUIC connection for the next request.</td></tr>
     <tr><td><code>QuicServer: closing association: Network blackhole detected</code>, in the same log</td><td>The server got no acknowledgement on one QUIC connection for several retransmission timeouts in a row and closed it, for example during a network outage.</td><td>The network at that time. The app opens a new QUIC connection for the next request.</td></tr>
+    <tr><td><code>TcpListener: closing connection: write retention admission refused</code>, in the same log</td><td>The client took the data of one connection more slowly than it arrived, the server's queue for that connection reached its fixed limit of 16 MiB, and the server closed the connection. On a chain that carries many requests in one connection, such as the download connection of a <code>HalfDuplexServer</code> pair under a MUX, every request open at that moment failed. We saw it on our server, which has two workers, with the RTMP and Reality profile and four downloads and four uploads at once: in 3 of 16 runs of 60 seconds. A copy of that chain, run on the same server by the same program with <code>"workers": 1</code> in its <code>core.json</code>, did not show it in 10 runs, at the same speed.</td><td>The app opens new connections by itself, so only the requests of that moment are lost. If the line appears often, run that server with one worker.</td></tr>
     <tr><td><code>PacketsToConnection: TCP aggregate pending-byte budget is full; refusing a new flow</code>, in WaterWall's log inside the app, which on iOS the app keeps only in test runs; on Android it is in the app's log at Expert or Debug.</td><td>More TCP connections were open than the packet budget allows, so the new one was refused. iOS shows it as the TLS error.</td><td><code>max-total-pending-bytes</code> divided by <code>max-pending-bytes</code> is the limit. The app's defaults allow 256. Keep the defaults, or do the division first; see the <a href="configuration.html#packet-budget">Configuration Reference</a>.</td></tr>
   </tbody>
 </table>
