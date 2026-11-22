@@ -20,7 +20,7 @@ from waterwall_scenarios import LOCAL_PATH, PUBLIC_IPV4  # noqa: E402
 SITE = Path(__file__).resolve().parent.parent
 GROUPS = [
     ("Transfers and UDP", lambda i: re.match(r"wg-(download|upload|full-duplex|many-connections|udp-probe)$", i)),
-    ("The configuration", lambda i: re.match(r"wg-(no-psk|no-keepalive|mtu-1280|endpoint-ip|split-tunnel|manual-configuration)$", i)),
+    ("The configuration", lambda i: re.match(r"wg-(no-psk|no-keepalive|mtu-1280|endpoint-ip|split-tunnel|manual-configuration|no-dns|split-no-dns)$", i)),
     ("Server and Port", lambda i: re.match(r"wg-(port|server)-field", i)),
     ("Refusals and damaged files", lambda i: re.match(r"wg-(wrong|unknown|closed|bad|no-address|garbage|retry-before)", i)),
     ("Log levels", lambda i: i.startswith("wg-log") or i.startswith("wg-release")),
@@ -37,6 +37,8 @@ PROFILES = {
     "keys/derived-mtu-1280.conf": "the phone's file with MTU = 1280",
     "keys/derived-endpoint-ip.conf": "the phone's file with the server's address as Endpoint",
     "keys/derived-split.conf": "the phone's file with AllowedIPs = 10.66.66.0/24",
+    "keys/derived-no-dns.conf": "the phone's file without DNS",
+    "keys/derived-split-no-dns.conf": "the phone's file with AllowedIPs = 10.66.66.0/24 and without DNS",
     "keys/derived-closed-port.conf": "the phone's file with Endpoint port 51829 (nothing listens)",
     "keys/derived-unknown-host.conf": "the phone's file with an Endpoint name that does not exist",
     "keys/derived-wrong-server-key.conf": "the phone's file with a server public key of nobody",
@@ -57,6 +59,7 @@ NOTES = {
     "wg-life-dead-path-reconnects": "every packet of the session dropped for 45 s",
 }
 LOG_WORDS = {"WireGuard: session established": "the session line", "WireGuard: last handshake": "the 30-second handshake and byte line",
+             "WireGuard: no DNS servers in the configuration": "the line that names 1.1.1.1 and 1.0.0.1",
              "[wg] ": "WireGuard's own lines", "PrivateKey": "a private key line", "PresharedKey": "a preshared key line",
              "private_key=": "the engine's private key", "preshared_key=": "the engine's preshared key"}
 # the Android lifecycle tool names its cases android-life-*; they stand beside the iPhone's wg-life-* rows
@@ -134,6 +137,15 @@ def facts_of(case, result, server_ip, clean):
             facts.append("the UDP DNS query got no answer")
         else:
             facts.append("the UDP DNS query was answered, and saw the phone's own network")
+    if case["id"].endswith("no-dns") and result.get("https_204"):
+        # The iPhone's own check: an HTTPS request by name before and after the transfer
+        answered = all(answer.startswith("Ping: ") for answer in result["https_204"])
+        facts.append("names resolved: the app's HTTPS check by name answered before and after the transfer" if answered
+                     else "the app's HTTPS check by name did not answer")
+    if "vpn_dns" in result:
+        servers = result["vpn_dns"]
+        facts.append("the VPN's own name servers, as the system lists them: " + ", ".join(servers) if servers
+                     else "the system lists no name servers of the VPN's own" if servers is not None else "the system listed no VPN")
     if result.get("tunnel_ping"):
         facts.append("the server's tunnel address answered a ping: " + clean.text(result["tunnel_ping"]))
     for line in result.get("idle") or []:
@@ -210,7 +222,8 @@ def extract(args):
                             "android_run": sum(1 for case in out if case["android"])},
                 "cases": out}
     text = json.dumps(evidence, indent=1)
-    leaks = sorted(set(PUBLIC_IPV4.findall(text)))
+    # the public resolvers a phone's file and the app's default name, which the name-server rows show
+    leaks = sorted(set(PUBLIC_IPV4.findall(text)) - {"1.1.1.1", "1.0.0.1", "8.8.8.8"})
     if leaks:
         sys.exit(f"Public addresses left in the evidence: {leaks}")
     if LOCAL_PATH.search(text):

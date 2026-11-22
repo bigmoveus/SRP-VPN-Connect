@@ -1,17 +1,17 @@
 {
  "run": {
-  "date": "8 November 2026",
-  "iphone": "an iPhone 12 with iOS 27.2",
+  "date": "22 November 2026",
+  "iphone": "an iPhone 12 with iOS 27.2.1",
   "android": "a Samsung Galaxy A55 with Android 17",
-  "app": "the code of commit 3731b356 on the iPhone, as a Debug build, and of c1410582, which follows it, on Android, as a debug APK; the iPhone's rows of the wg-release-\u2026 cases come from a Release build of 3731b356's code, the kind TestFlight ships",
+  "app": "the code of commit f58015e1, which is TestFlight build 50 and APK 1.2.0 (15): on the iPhone as a Debug build and on Android as a debug APK; the iPhone's rows of the wg-release-\u2026 cases come from a Release build of it, the kind TestFlight ships",
   "server": "WireGuard in the Linux kernel 6.8 on Ubuntu 24.04, with wireguard-tools 1.0.20210914"
  },
  "summary": {
-  "cases": 40,
-  "iphone_passed": 40,
-  "iphone_run": 40,
-  "android_passed": 35,
-  "android_run": 35
+  "cases": 42,
+  "iphone_passed": 42,
+  "iphone_run": 42,
+  "android_passed": 37,
+  "android_run": 37
  },
  "cases": [
   {
@@ -27,14 +27,15 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ],
-    "download_mbps": 194.17
+    "download_mbps": 208.7
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer android1 13 s before it was asked"
+     "the server had a handshake with the peer android1 13 s before it was asked",
+     "the VPN's own name servers, as the system lists them: 1.1.1.1, 8.8.8.8"
     ]
    }
   },
@@ -49,13 +50,13 @@
     "status": "passed",
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "up 77.92 Mbit/s",
+     "up 256.89 Mbit/s",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ]
    },
    "android": {
     "status": "passed",
-    "transfer_s": 14.0,
+    "transfer_s": 8.3,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer android1 13 s before it was asked"
@@ -75,12 +76,12 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ],
-    "download_mbps": 158.8,
-    "upload_mbps": 39.18
+    "download_mbps": 81.88,
+    "upload_mbps": 187.46
    },
    "android": {
     "status": "passed",
-    "transfer_s": 10.5,
+    "transfer_s": 9.4,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer android1 13 s before it was asked"
@@ -100,11 +101,11 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ],
-    "download_mbps": 205.46
+    "download_mbps": 249.53
    },
    "android": {
     "status": "passed",
-    "transfer_s": 26.1,
+    "transfer_s": 32.7,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer android1 13 s before it was asked"
@@ -125,11 +126,11 @@
      "the server had a handshake with the peer ios1 7 s before it was asked",
      "the UDP DNS query was answered, and saw the server's address"
     ],
-    "download_mbps": 184.19
+    "download_mbps": 214.09
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.9,
+    "transfer_s": 5.0,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer android1 16 s before it was asked",
@@ -150,11 +151,11 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer nopsk 7 s before it was asked"
     ],
-    "download_mbps": 190.74
+    "download_mbps": 210.39
    },
    "android": {
     "status": "passed",
-    "transfer_s": 4.9,
+    "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer nopsk 13 s before it was asked"
@@ -174,14 +175,14 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ],
-    "download_mbps": 194.52
+    "download_mbps": 206.49
    },
    "android": {
     "status": "passed",
     "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
-     "the server had a handshake with the peer android1 12 s before it was asked"
+     "the server had a handshake with the peer android1 14 s before it was asked"
     ]
    }
   },
@@ -198,11 +199,11 @@
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer ios1 7 s before it was asked"
     ],
-    "download_mbps": 183.44
+    "download_mbps": 196.63
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.8,
+    "transfer_s": 3.9,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "the server had a handshake with the peer android1 13 s before it was asked"
@@ -227,7 +228,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer android1 4 s before it was asked",
+     "the server had a handshake with the peer android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -246,7 +247,7 @@
      "the server had a handshake with the peer ios1 8 s before it was asked",
      "the UDP DNS query was answered, and saw the phone's own network"
     ],
-    "download_mbps": 194.05
+    "download_mbps": 220.03
    },
    "android": {
     "status": "passed",
@@ -254,7 +255,7 @@
     "facts": [
      "the server had a handshake with the peer android1 18 s before it was asked",
      "the UDP DNS query was answered, and saw the phone's own network",
-     "the server's tunnel address answered a ping: 3 packets transmitted, 3 received, 0% packet loss, time 2005ms"
+     "the server's tunnel address answered a ping: 3 packets transmitted, 3 received, 0% packet loss, time 2006ms"
     ]
    }
   },
@@ -277,7 +278,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer android1 4 s before it was asked",
+     "the server had a handshake with the peer android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -293,7 +294,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "the server had a handshake with the peer ios1 1 s before it was asked",
+     "the server had a handshake with the peer ios1 2 s before it was asked",
      "held for 6 s"
     ]
    },
@@ -317,7 +318,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "the server had a handshake with the peer ios1 1 s before it was asked",
+     "the server had a handshake with the peer ios1 2 s before it was asked",
      "held for 6 s"
     ]
    },
@@ -325,7 +326,7 @@
     "status": "passed",
     "transfer_s": null,
     "facts": [
-     "the server had a handshake with the peer android1 2 s before it was asked",
+     "the server had a handshake with the peer android1 3 s before it was asked",
      "held for 6 s"
     ]
    }
@@ -340,7 +341,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 10.9 s"
     ],
     "message": "The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51821 may be closed."
    },
@@ -382,7 +383,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.1 s"
+     "ended after 11.0 s"
     ],
     "message": "The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51821 may be closed."
    },
@@ -403,7 +404,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 11.2 s"
+     "ended after 11.0 s"
     ],
     "message": "The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51829 may be closed."
    },
@@ -424,7 +425,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.4 s"
+     "ended after 0.2 s"
     ],
     "message": "The WireGuard endpoint no-such-host.srp.invalid could not be resolved."
    },
@@ -445,7 +446,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.6 s"
+     "ended after 0.4 s"
     ],
     "message": "Invalid WireGuard config: a key is not valid base64 (32 bytes)."
    },
@@ -489,7 +490,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 31.3 s"
+     "ended after 31.2 s"
     ],
     "message": "Could not connect after 3 attempts. (The server did not answer the WireGuard handshake.)"
    },
@@ -510,7 +511,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.4 s"
+     "ended after 0.3 s"
     ],
     "message": "Invalid WireGuard config: The config has no [Interface] Address."
    },
@@ -531,7 +532,7 @@
    "iphone": {
     "status": "passed",
     "facts": [
-     "ended after 0.5 s"
+     "ended after 0.4 s"
     ],
     "message": "Invalid WireGuard config: The config has no [Interface] PrivateKey."
    },
@@ -554,9 +555,9 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "On Sleep Stay, Auto Reconnect on: connected again after 3.4 s",
-     "On Sleep Pause, Auto Reconnect off: connected again after 3.2 s",
-     "On Sleep Off, Auto Reconnect on: connected again after 3.3 s",
+     "On Sleep Stay, Auto Reconnect on: connected again after 3.1 s",
+     "On Sleep Pause, Auto Reconnect off: connected again after 3.1 s",
+     "On Sleep Off, Auto Reconnect on: connected again after 3.2 s",
      "On Sleep Off, Auto Reconnect off: ended after 3.4 s with: The connection was closed while the device slept."
     ]
    },
@@ -585,7 +586,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 17.0 s"
+     "connected again after 16.4 s"
     ]
    },
    "android": {
@@ -593,7 +594,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "traffic passed again 17.3 s after the restart; transfer passed"
+     "traffic passed again 22.1 s after the restart; transfer passed"
     ]
    }
   },
@@ -618,7 +619,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "traffic passed again 25.4 s after the server stopped; transfer passed"
+     "traffic passed again 22.0 s after the server stopped; transfer passed"
     ]
    }
   },
@@ -635,7 +636,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "connected again after 48.1 s"
+     "connected again after 47.4 s"
     ]
    },
    "android": {
@@ -643,7 +644,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "noticed the dead path after 33.0 s, connected again 46.6 s after the drop began; transfer passed"
+     "noticed the dead path after 32.9 s, connected again 48.9 s after the drop began; transfer passed"
     ]
    }
   },
@@ -660,7 +661,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "ended after 35.1 s with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+     "ended after 40.1 s with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
     ]
    },
    "android": {
@@ -668,7 +669,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "ended 37.7 s after the server stopped with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
+     "ended 37.8 s after the server stopped with: The server stopped answering: nothing came back for 30 seconds (auto reconnect is off)."
     ]
    }
   },
@@ -686,7 +687,7 @@
     "status": "passed",
     "facts": [],
     "lifecycle": [
-     "ended after 55.3 s with: Could not reconnect after 2 attempts. (The server did not answer the WireGuard handshake.)"
+     "ended after 60.2 s with: Could not reconnect after 2 attempts. (The server did not answer the WireGuard handshake.)"
     ]
    },
    "android": {
@@ -694,7 +695,7 @@
     "transfer_s": null,
     "facts": [],
     "lifecycle": [
-     "ended 58.2 s after the server stopped with: Could not reconnect after 2 attempts. (The server did not answer the WireGuard handshake.)"
+     "ended 58.8 s after the server stopped with: Could not reconnect after 2 attempts. (The server did not answer the WireGuard handshake.)"
     ]
    }
   },
@@ -737,7 +738,7 @@
      "in the log: the session line",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key, the 30-second handshake and byte line"
     ],
-    "download_mbps": 198.72
+    "download_mbps": 216.89
    },
    "android": {
     "status": "passed",
@@ -765,11 +766,11 @@
      "in the log: the session line, the 30-second handshake and byte line",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
     ],
-    "download_mbps": 208.41
+    "download_mbps": 208.85
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.7,
+    "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "held for 40 s",
@@ -793,15 +794,74 @@
      "in the log: the session line, WireGuard's own lines",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
     ],
-    "download_mbps": 148.42
+    "download_mbps": 160.98
    },
    "android": {
     "status": "passed",
-    "transfer_s": 3.9,
+    "transfer_s": 3.8,
     "facts": [
      "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
      "in the log: the session line, WireGuard's own lines",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
+    ]
+   }
+  },
+  {
+   "id": "wg-no-dns",
+   "settings": [
+    "the phone's file without DNS"
+   ],
+   "traffic": "download, 20 s",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "names resolved: the app's HTTPS check by name answered before and after the transfer",
+     "in the log: the session line, the line that names 1.1.1.1 and 1.0.0.1",
+     "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
+    ],
+    "download_mbps": 209.31
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": 3.7,
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the VPN's own name servers, as the system lists them: 1.0.0.1, 1.1.1.1",
+     "in the log: the session line, the line that names 1.1.1.1 and 1.0.0.1",
+     "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
+    ]
+   }
+  },
+  {
+   "id": "wg-split-no-dns",
+   "settings": [
+    "the phone's file with AllowedIPs = 10.66.66.0/24 and without DNS"
+   ],
+   "traffic": "download, 15 s, and a DNS query over UDP",
+   "expect": "connect",
+   "iphone": {
+    "status": "passed",
+    "facts": [
+     "the transfers came through the tunnel (the stress server saw only the phone's tunnel address)",
+     "the UDP DNS query was answered, and saw the phone's own network",
+     "names resolved: the app's HTTPS check by name answered before and after the transfer",
+     "in the log: the session line",
+     "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key, the line that names 1.1.1.1 and 1.0.0.1"
+    ],
+    "download_mbps": 209.35
+   },
+   "android": {
+    "status": "passed",
+    "transfer_s": null,
+    "facts": [
+     "the server had a handshake with the peer android1 18 s before it was asked",
+     "the UDP DNS query was answered, and saw the phone's own network",
+     "the system lists no name servers of the VPN's own",
+     "the server's tunnel address answered a ping: 3 packets transmitted, 3 received, 0% packet loss, time 2006ms",
+     "in the log: the session line",
+     "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key, the line that names 1.1.1.1 and 1.0.0.1"
     ]
    }
   },
@@ -821,7 +881,7 @@
      "in the log: the session line",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key, the 30-second handshake and byte line"
     ],
-    "download_mbps": 207.37
+    "download_mbps": 220.13
    },
    "android": null
   },
@@ -841,7 +901,7 @@
      "in the log: the session line, the 30-second handshake and byte line",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
     ],
-    "download_mbps": 199.84
+    "download_mbps": 224.89
    },
    "android": null
   },
@@ -861,7 +921,7 @@
      "in the log: the session line, WireGuard's own lines",
      "not in the log: a private key line, a preshared key line, the engine's private key, the engine's preshared key"
     ],
-    "download_mbps": 143.04
+    "download_mbps": 166.88
    },
    "android": null
   },
@@ -879,7 +939,7 @@
      "Release build",
      "the server had a handshake with the peer iosrel 6 s before it was asked"
     ],
-    "download_mbps": 198.21
+    "download_mbps": 215.39
    },
    "android": null
   },
@@ -895,7 +955,7 @@
     "status": "passed",
     "facts": [
      "Release build",
-     "ended after 11.1 s"
+     "ended after 11.0 s"
     ],
     "message": "The server did not answer the WireGuard handshake: the server's public key or the preshared key may not match, the server may not have this profile's public key as a peer, or UDP port 51821 may be closed."
    },

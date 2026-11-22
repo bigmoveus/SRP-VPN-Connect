@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Changed
+- The WireGuard documentation describes TestFlight build 50 and the Android APK 1.2.0 (15). The `DNS` row of its Configuration Reference and the Manual Configuration step say which name servers a profile without DNS servers asks, and the Test Results page has every case again from the code of build 50 on both phones, tested on 22 November 2026: 42 cases on the iPhone and 37 on Android, all passed, with two new cases for a file without a `DNS` line (all traffic, and a split tunnel). The two cases on the guide's own server stay those of 8 November 2026. The WaterWall pages name build 50 and APK 1.2.0 (15) as the builds to use, and the UI guide says what a profile of the former WireGuard mode asks now.
+
 ## 1.2.0 (50) - 2026-11-22
 
 ### Changed
