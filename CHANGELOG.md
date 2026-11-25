@@ -4,6 +4,9 @@ All notable changes to SRP VPN Connect are recorded here. Every commit adds its 
 
 ## Unreleased
 
+### Added
+- A unit test renders the App Store screenshots from the app's own screens, with example profiles that name no real server, at the iPhone 6.7", iPad 12.9" and iPad 11" sizes (run on a test iPhone with `TEST_RUNNER_SRP_STORE_SCREENSHOTS=1`). The iPad sizes get the iPad idiom and a regular width, so the profile editor appears as the form sheet the app shows on an iPad.
+
 ### Changed
 - The AmneziaWG documentation describes TestFlight build 51 and the Android APK 1.2.0 (16). The `DNS` row of its Configuration Reference and the Manual Configuration step say which name servers a profile without DNS servers asks, and its Test Results page has every case again from the code of build 51 on both phones, tested on 22 November 2026: 66 cases on the iPhone and 61 on Android, all passed, with two new cases for a file without a `DNS` line (all traffic, and a split tunnel). The four cases against AmneziaWG's kernel module and the two on the guide's own server stay those of 9 November 2026. WireGuard's Test Results page is from the code of build 51 too. On Android both pages now show the phone looking a new name up while the VPN is connected, and the Android page of the WaterWall section no longer calls the profile's Ping a request by name: it is a probe to an address. The WaterWall pages name build 51 and APK 1.2.0 (16) as the builds to use. The AmneziaWG results generator can give a case the name its row has on the page (`--rename`) and carry rows of an earlier evidence file over (`--keep`).
 

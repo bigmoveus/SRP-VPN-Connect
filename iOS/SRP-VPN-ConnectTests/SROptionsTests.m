@@ -7533,6 +7533,109 @@ static uint16_t SRPTestLoopbackPort(int *descriptor, BOOL listening) {
     [previous makeKeyWindow];
 }
 
+/// Renders the App Store screenshots from the app's own screens, with example profiles that name no real server, at the sizes
+/// App Store Connect asks for: iPhone 6.7" (430x932 points at 3x), iPad 12.9" (1024x1366 at 2x) and iPad 11" (834x1194 at 2x).
+/// The iPad sizes get the iPad idiom and a regular width, so the profile editor opens as the form sheet the app shows there.
+/// Run it with TEST_RUNNER_SRP_STORE_SCREENSHOTS=1, then copy tmp/srp-store-screenshots out of the app's data container.
+- (void)testAppStoreScreenshotsWhenRequested {
+    XCTSkipIf(NSProcessInfo.processInfo.environment[@"SRP_STORE_SCREENSHOTS"].length == 0,
+              @"Set SRP_STORE_SCREENSHOTS=1 to render the App Store screenshots.");
+    if (@available(iOS 17.0, *)) {} else { XCTSkip(@"The iPad traits need iOS 17."); }
+    NSString *folder = [NSTemporaryDirectory() stringByAppendingPathComponent:@"srp-store-screenshots"];
+    [NSFileManager.defaultManager removeItemAtPath:folder error:nil];
+    XCTAssertTrue([NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]);
+    NSUserDefaults *shared = [[NSUserDefaults alloc] initWithSuiteName:@"group.tr.com.srp.vpn"];
+    id inputBefore = [shared objectForKey:@"SRPWaterWallInput"];
+    [shared removeObjectForKey:@"SRPWaterWallInput"];
+
+    NodeModel *(^profile)(NSString *, NSString *, NSString *) = ^NodeModel *(NSString *type, NSString *description, NSString *server) {
+        NodeModel *model = [NodeModel new];
+        [NSClassFromString(@"SRPProtocolViewController") applyProtocol:type toModel:model];
+        model.desc = description;
+        if ([type isEqualToString:@"waterwall"]) {
+            model.waterwallChainJSON = SRPWWExampleJSON;
+            [model syncWaterWallServer];
+        } else {
+            model.server = server;
+            model.username = @"vpnuser";
+            model.password = @"example-password";
+        }
+        return model;
+    };
+    NSArray<NodeModel *> *profiles = @[
+        profile(@"openconnect", @"Office", @"vpn.example.com"),
+        profile(@"sstp", @"Branch office", @"sstp.example.com"),
+        profile(@"wireguard", @"Home", @"home.example.com"),
+        profile(@"waterwall", @"Travel: TLS chain", nil)];
+
+    UIWindowScene *scene = (UIWindowScene *)UIApplication.sharedApplication.connectedScenes.anyObject;
+    UIWindow *previous = scene.keyWindow;
+    NSArray<NSArray *> *sizes = @[@[@"iphone67", @430, @932, @3, @NO], @[@"ipad129", @1024, @1366, @2, @YES], @[@"ipad11", @834, @1194, @2, @YES]];
+    for (NSArray *size in sizes) {
+        NSString *device = size[0];
+        CGFloat width = [size[1] doubleValue], height = [size[2] doubleValue], scale = [size[3] doubleValue];
+        BOOL pad = [size[4] boolValue];
+        UIWindow *window = [[UIWindow alloc] initWithWindowScene:scene];
+        window.frame = CGRectMake(0, 0, width, height);
+        window.overrideUserInterfaceStyle = UIUserInterfaceStyleLight;
+        if (@available(iOS 17.0, *)) {
+            window.traitOverrides.userInterfaceIdiom = pad ? UIUserInterfaceIdiomPad : UIUserInterfaceIdiomPhone;
+            window.traitOverrides.horizontalSizeClass = pad ? UIUserInterfaceSizeClassRegular : UIUserInterfaceSizeClassCompact;
+            window.traitOverrides.verticalSizeClass = UIUserInterfaceSizeClassRegular;
+            window.traitOverrides.displayScale = scale;
+        }
+        void (^shoot)(NSString *) = ^(NSString *name) {
+            [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1.2]];
+            UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat new];
+            format.scale = scale;
+            format.opaque = YES;
+            UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(width, height) format:format];
+            NSData *png = [renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {
+                XCTAssertTrue([window drawViewHierarchyInRect:CGRectMake(0, 0, width, height) afterScreenUpdates:YES], @"%@", name);
+            }];
+            NSString *file = [folder stringByAppendingPathComponent:[NSString stringWithFormat:@"%@-%@.png", device, name]];
+            XCTAssertTrue([png writeToFile:file atomically:YES], @"%@", name);
+        };
+
+        UIViewController *home = [NSClassFromString(@"ViewController") new];
+        window.rootViewController = home;
+        [window makeKeyAndVisible];
+        [home loadViewIfNeeded];
+        [home setValue:[profiles mutableCopy] forKey:@"nodaArray"];
+        [home setValue:@0 forKey:@"selectIndex"];
+        [[home valueForKey:@"homeTableview"] reloadData];
+        shoot(@"01-home");
+
+        CreateVC *create = [self profileEditorHostForModel:profiles[0] saved:[NSMutableArray new]];
+        create.modalPresentationStyle = pad ? UIModalPresentationFormSheet : UIModalPresentationFullScreen;
+        [home presentViewController:create animated:NO completion:nil];
+        shoot(@"02-profile");
+        UINavigationController *navigation = (UINavigationController *)create.childViewControllers.firstObject;
+        [navigation pushViewController:[[NSClassFromString(@"SRPProtocolViewController") alloc] initWithNodeModel:profiles[0]] animated:NO];
+        shoot(@"03-protocols");
+        [navigation popToRootViewControllerAnimated:NO];
+        [home dismissViewControllerAnimated:NO completion:nil];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+
+        NodeModel *chain = profile(@"waterwall", @"Travel: TLS chain", nil);
+        CreateVC *wwHost = [self profileEditorHostForModel:chain saved:[NSMutableArray new]];
+        wwHost.modalPresentationStyle = pad ? UIModalPresentationFormSheet : UIModalPresentationFullScreen;
+        [home presentViewController:wwHost animated:NO completion:nil];
+        UINavigationController *wwNavigation = (UINavigationController *)wwHost.childViewControllers.firstObject;
+        UITableViewController *waterWall = [[NSClassFromString(@"SRPWaterWallConfigViewController") alloc] initWithNodeModel:chain];
+        [wwNavigation pushViewController:waterWall animated:NO];
+        shoot(@"04-waterwall");
+        [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0]];
+        [waterWall tableView:waterWall.tableView didSelectRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0]];
+        shoot(@"05-node-editor");
+        [home dismissViewControllerAnimated:NO completion:nil];
+        [NSRunLoop.currentRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.8]];
+        window.hidden = YES;
+    }
+    [previous makeKeyWindow];
+    if (inputBefore) [shared setObject:inputBefore forKey:@"SRPWaterWallInput"];
+}
+
 /// Renders the Aether screens with example values for the documentation site, without saving any
 /// profile. Run it with TEST_RUNNER_SRP_DOCS_SCREENSHOTS=1, then copy tmp/srp-docs-screenshots-aether out of the app's data container.
 - (void)testAetherDocumentationScreenshotsWhenRequested {
